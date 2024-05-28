@@ -45,7 +45,6 @@ import org.hisp.dhis.fileresource.ExternalFileResource;
 import org.hisp.dhis.fileresource.ExternalFileResourceService;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.schema.descriptors.ExternalFileResourceSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,9 +58,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 /**
  * @author Stian Sandvold
  */
-@OpenApi.Tags("system")
+@OpenApi.Document(domain = ExternalFileResource.class)
 @Controller
-@RequestMapping(ExternalFileResourceSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/externalFileResources")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class ExternalFileResourceController {
   @Autowired private ExternalFileResourceService externalFileResourceService;

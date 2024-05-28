@@ -41,6 +41,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.auth.RegistrationParams;
 import org.hisp.dhis.common.auth.UserInviteParams;
 import org.hisp.dhis.common.auth.UserRegistrationParams;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.message.FakeMessageSender;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -70,12 +72,16 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
   @Autowired private MessageSender messageSender;
   @Autowired private SystemSettingManager systemSettingManager;
   @Autowired private PasswordManager passwordEncoder;
+  @Autowired private DhisConfigurationProvider configurationProvider;
 
   private String superUserRoleUid;
 
   @BeforeEach
   final void setupHere() throws Exception {
     ((FakeMessageSender) messageSender).clearMessages();
+    configurationProvider
+        .getProperties()
+        .put(ConfigurationKey.SERVER_BASE_URL.getKey(), "http://localhost:8080");
   }
 
   @Test
@@ -150,6 +156,15 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
     sendForgotPasswordRequest("testC");
     List<OutboundMessage> allMessages = ((FakeMessageSender) messageSender).getAllMessages();
     assertTrue(allMessages.isEmpty());
+  }
+
+  @Test
+  void testResetPasswordNoBaseUrl() {
+    configurationProvider.getProperties().put(ConfigurationKey.SERVER_BASE_URL.getKey(), "");
+    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
+    clearSecurityContext();
+    POST("/auth/forgotPassword", "{'emailOrUsername':'%s'}".formatted("userA"))
+        .content(HttpStatus.CONFLICT);
   }
 
   private void doAndCheckPasswordResetWithUser(User user) {

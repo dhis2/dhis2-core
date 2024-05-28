@@ -28,6 +28,7 @@
 package org.hisp.dhis.trackedentity;
 
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -45,11 +46,23 @@ public interface TrackerAccessManager {
 
   List<String> canWrite(UserDetails user, TrackedEntity trackedEntity);
 
+  /**
+   * Check if a user has data access to the supplied program and tracked entity type. It also
+   * validates user ownership to the TE/program pair.
+   *
+   * @return empty list if access is granted, list with errors otherwise
+   */
   List<String> canRead(
       UserDetails user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck);
 
-  List<String> canWrite(
-      UserDetails user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck);
+  /**
+   * Check if a user has data access to the supplied program and tracked entity type. Does not
+   * validate user ownership to the TE/program pair.
+   *
+   * @return empty list if access is granted, list with errors otherwise
+   */
+  List<String> canReadProgramAndTrackedEntityType(
+      UserDetails user, TrackedEntity trackedEntity, Program program);
 
   List<String> canRead(UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck);
 
@@ -70,6 +83,8 @@ public interface TrackerAccessManager {
   List<String> canRead(UserDetails user, Relationship relationship);
 
   List<String> canWrite(UserDetails user, Relationship relationship);
+
+  List<String> canDelete(UserDetails user, @Nonnull Relationship relationship);
 
   /**
    * Checks the sharing read access to EventDataValue
@@ -107,4 +122,12 @@ public interface TrackerAccessManager {
    *     return false
    */
   boolean canAccess(UserDetails user, Program program, OrganisationUnit orgUnit);
+
+  /**
+   * Checks if the user has access to the TE org unit owner in the specified program
+   *
+   * @return an error if the TE is not accessible, null otherwise
+   */
+  String canAccessProgramOwner(
+      UserDetails user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck);
 }

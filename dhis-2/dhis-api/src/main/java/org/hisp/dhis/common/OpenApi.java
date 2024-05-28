@@ -36,6 +36,7 @@ import java.lang.annotation.Target;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.intellij.lang.annotations.Language;
 
 /**
  * All annotations used to adjust the generation of OpenAPI document(s).
@@ -122,17 +123,90 @@ public @interface OpenApi {
   }
 
   /**
-   * When annotated on type level the tags are added to all endpoints of the controller.
-   *
-   * <p>When annotated on method level the tags are added to the annotated endpoint (operation).
-   *
-   * <p>Tags can be used to split generation into multiple OpenAPI document.
+   * Used to annotate data types that are not {@link IdentifiableObject}s but that represent a one
+   * (e.g. a projection of an {@link IdentifiableObject} or DTO used in the API).
    */
   @Inherited
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target(ElementType.TYPE)
+  @interface Identifiable {
+    /**
+     * @return the original {@link IdentifiableObject} type the annotated type represents, e.g. a
+     *     UserDTO would refer to User
+     */
+    Class<? extends IdentifiableObject> as();
+  }
+
+  /**
+   * Can be used to annotate endpoint methods to constraint which concrete {@link EntityType}s will
+   * support the annotated endpoint method.
+   */
+  @Inherited
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target(ElementType.METHOD)
+  @interface Filter {
+
+    /**
+     * @return when present (non-empty) only endpoints with an {@link EntityType} contained in the
+     *     given set will be considered
+     */
+    Class<?>[] includes() default {};
+
+    /**
+     * @return when present (non-empty) only endpoints with an {@link EntityType} not contained in
+     *     the given set will be considered
+     */
+    Class<?>[] excludes() default {};
+  }
+
   @Target({ElementType.METHOD, ElementType.TYPE})
   @Retention(RetentionPolicy.RUNTIME)
-  @interface Tags {
-    String[] value();
+  @interface Document {
+
+    @Getter
+    @RequiredArgsConstructor
+    enum Group {
+      DEFAULT("Default"),
+      QUERY("Query"),
+      MANAGE("Management"),
+      CONFIG("Configuration"),
+      MISC("Miscellaneous");
+
+      @Language("markdown")
+      private final String description;
+
+      /**
+       * @return the name of the OpenAPI tag used for this group
+       */
+      public String tag() {
+        return name().toLowerCase();
+      }
+    }
+
+    /**
+     * Alternative to {@link #domain()} for a "manual" override. Takes precedence when non-empty.
+     *
+     * @return name of the target document (no file extension)
+     */
+    String name() default "";
+
+    /**
+     * Each domain becomes a separate OpenAPI document. The name used for the document is the shared
+     * named of the domain class. That is the {@link Class#getSimpleName()} unless the class is
+     * annotated and named via {@link Shared}.
+     *
+     * @return the class that represents the domain for the annotated controller {@link Class} or
+     *     endpoint {@link java.lang.reflect.Method}.
+     */
+    Class<?> domain() default EntityType.class;
+
+    /**
+     * Groups become "sections" within a OpenAPI document. This is done by adding a tag to the
+     * annotated endpoint(s).
+     *
+     * @return type of group used
+     */
+    Group group() default Group.DEFAULT;
   }
 
   /**
@@ -213,6 +287,8 @@ public @interface OpenApi {
     Class<?>[] value();
 
     boolean required() default false;
+
+    boolean deprecated() default false;
 
     /**
      * When not empty the parameter is wrapped in an object having a single member with the provided
@@ -321,6 +397,7 @@ public @interface OpenApi {
 
     Class<?> type() default String.class;
 
+    @Language("markdown")
     String description() default "";
   }
 
@@ -347,6 +424,7 @@ public @interface OpenApi {
       DEFAULT(""),
       INFO("%sInfo"),
       TRACKER("Tracker%s"),
+      ANALYTICS("Analytics%s"),
       DEPRECATED_TRACKER("Deprecated_Tracker%s");
 
       private final String template;
@@ -358,6 +436,25 @@ public @interface OpenApi {
      * @return naming pattern used to create a name based on the simple class name.
      */
     Pattern pattern() default Pattern.DEFAULT;
+
+    /**
+     * @return just for documentation purposes to indicate why the manual adjustment was made
+     */
+    String reason() default "";
+  }
+
+  @Target({ElementType.TYPE_USE, ElementType.METHOD, ElementType.PARAMETER, ElementType.FIELD})
+  @Retention(RetentionPolicy.RUNTIME)
+  @interface Description {
+
+    /**
+     * If multiple values are given these are turned into a bullet list. Each item in the list is
+     * left "as is" so it may use inline mark-down syntax.
+     *
+     * @return The description, might use mark-down syntax
+     */
+    @Language("markdown")
+    String[] value();
   }
 
   /*

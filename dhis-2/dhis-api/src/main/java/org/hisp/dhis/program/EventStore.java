@@ -27,35 +27,15 @@
  */
 package org.hisp.dhis.program;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 
 /**
  * @author Abyot Asalefew
  */
 public interface EventStore extends IdentifiableObjectStore<Event> {
-  /**
-   * Retrieve an event list on enrollment list with a certain status
-   *
-   * @param enrollments Enrollment list
-   * @param status EventStatus
-   * @return Event list
-   */
-  List<Event> get(Collection<Enrollment> enrollments, EventStatus status);
-
-  /**
-   * Get all events by TrackedEntity, optionally filtering by completed.
-   *
-   * @param entityInstance TrackedEntity
-   * @param status EventStatus
-   * @return Event list
-   */
-  List<Event> get(TrackedEntity entityInstance, EventStatus status);
 
   /**
    * Get the number of events updates since the given Date.
@@ -82,14 +62,6 @@ public interface EventStore extends IdentifiableObjectStore<Event> {
   boolean existsIncludingDeleted(String uid);
 
   /**
-   * Returns UIDs of existing events (including deleted) from the provided UIDs.
-   *
-   * @param uids event UIDs to check
-   * @return List containing UIDs of existing events (including deleted)
-   */
-  List<String> getUidsIncludingDeleted(List<String> uids);
-
-  /**
    * Fetches Event matching the given list of UIDs
    *
    * @param uids a List of UID
@@ -107,12 +79,4 @@ public interface EventStore extends IdentifiableObjectStore<Event> {
    */
   List<Event> getWithScheduledNotifications(
       ProgramNotificationTemplate template, Date notificationDate);
-
-  /**
-   * Set lastSynchronized timestamp to provided timestamp for provided events.
-   *
-   * @param eventUids UIDs of events where the lastSynchronized flag should be updated
-   * @param lastSynchronized The date of last successful sync
-   */
-  void updateEventsSyncTimestamp(List<String> eventUids, Date lastSynchronized);
 }

@@ -43,15 +43,16 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.validation.ValidationAnalysisParams;
 import org.hisp.dhis.validation.ValidationService;
 import org.hisp.dhis.validation.ValidationSummary;
 import org.hisp.dhis.webapi.controller.datavalue.DataValidator;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -62,10 +63,10 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("data")
+@OpenApi.Document(domain = DataSet.class)
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = "/validation")
+@RequestMapping("/api/validation")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class ValidationController {
 
@@ -97,7 +98,7 @@ public class ValidationController {
             .build();
 
     summary.setValidationRuleViolations(
-        validationService.validationAnalysis(params, NoopJobProgress.INSTANCE));
+        validationService.validationAnalysis(params, JobProgress.noop()));
     summary.setCommentRequiredViolations(
         validationService.validateRequiredComments(dataSet, period, orgUnit, attributeOptionCombo));
 
@@ -107,7 +108,7 @@ public class ValidationController {
   @RequestMapping(
       value = "/sendNotifications",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @PreAuthorize("hasRole('ALL') or hasRole('M_dhis-web-app-management')")
+  @RequiresAuthority(anyOf = Authorities.F_RUN_VALIDATION)
   public WebMessage runValidationNotificationsTask()
       throws ConflictException, @OpenApi.Ignore NotFoundException {
     JobConfiguration config = new JobConfiguration(JobType.VALIDATION_RESULTS_NOTIFICATION);

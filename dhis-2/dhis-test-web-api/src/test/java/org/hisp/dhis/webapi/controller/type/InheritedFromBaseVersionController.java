@@ -39,7 +39,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
-@RequestMapping("/type/testInheritedFromBase")
+@RequestMapping("/api/type/testInheritedFromBase")
 @ApiVersion(DhisApiVersion.V32)
 public class InheritedFromBaseVersionController extends BaseWithVersionController {
   @GetMapping

@@ -62,11 +62,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Stian Sandvold
  */
-@OpenApi.Tags("data")
+@OpenApi.Document(domain = DataSet.class)
 @Controller
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class DataSetReportController {
-  private static final String RESOURCE_PATH = "/dataSetReport";
+  private static final String RESOURCE_PATH = "/api/dataSetReport";
 
   // -------------------------------------------------------------------------
   // Dependencies

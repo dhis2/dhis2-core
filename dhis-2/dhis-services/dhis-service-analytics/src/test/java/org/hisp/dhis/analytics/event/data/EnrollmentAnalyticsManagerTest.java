@@ -132,7 +132,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             jdbcTemplate,
             programIndicatorService,
             programIndicatorSubqueryBuilder,
-            new EnrollmentTimeFieldSqlRenderer(),
+            new EnrollmentTimeFieldSqlRenderer(sqlBuilder),
             executionPlanStore,
             sqlBuilder);
   }
@@ -155,7 +155,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     String expected =
         "ax.\"quarterly\",ax.\"ou\"  from "
             + getTable(programA.getUid())
-            + " as ax where ((enrollmentdate >= '2017-01-01' and enrollmentdate < '2018-01-01')) and (ax.\"uidlevel1\" = 'ouabcdefghA' ) ";
+            + " as ax where (((enrollmentdate >= '2017-01-01' and enrollmentdate < '2018-01-01'))) and (ax.\"uidlevel1\" = 'ouabcdefghA' ) ";
 
     assertSql(sql.getValue(), expected);
     assertTrue(grid.hasLastDataRow());
@@ -177,7 +177,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     String expected =
         "ax.\"quarterly\",ax.\"ou\"  from "
             + getTable(programA.getUid())
-            + " as ax where ((lastupdated >= '2017-01-01' and lastupdated < '2018-01-01')) and (ax.\"uidlevel1\" = 'ouabcdefghA' ) limit 10001";
+            + " as ax where (((lastupdated >= '2017-01-01' and lastupdated < '2018-01-01'))) and (ax.\"uidlevel1\" = 'ouabcdefghA' ) limit 10001";
 
     assertSql(sql.getValue(), expected);
   }
@@ -590,7 +590,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + "\"  "
             + "from analytics_enrollment_"
             + programA.getUid()
-            + " as ax where ((enrollmentdate >= '2015-01-01' and enrollmentdate < '2017-04-09')) and (ax.\"uidlevel1\" = 'ouabcdefghA' ) limit 101";
+            + " as ax where (((enrollmentdate >= '2015-01-01' and enrollmentdate < '2017-04-09'))) and (ax.\"uidlevel1\" = 'ouabcdefghA' ) limit 101";
 
     assertSql(sql.getValue(), expected);
   }
@@ -639,7 +639,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + "\"  "
             + "from analytics_enrollment_"
             + programA.getUid()
-            + " as ax where ((enrollmentdate >= '2015-01-01' and enrollmentdate < '2017-04-09')) and (ax.\"uidlevel1\" = 'ouabcdefghA' ) limit 101";
+            + " as ax where (((enrollmentdate >= '2015-01-01' and enrollmentdate < '2017-04-09'))) and (ax.\"uidlevel1\" = 'ouabcdefghA' ) limit 101";
 
     assertSql(sql.getValue(), expected);
   }
@@ -714,7 +714,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + "\"  "
             + "from analytics_enrollment_"
             + programA.getUid()
-            + " as ax where ((enrollmentdate >= '2015-01-01' and enrollmentdate < '2017-04-09')) and (ax.\"uidlevel1\" = 'ouabcdefghA' ) limit 101";
+            + " as ax where (((enrollmentdate >= '2015-01-01' and enrollmentdate < '2017-04-09'))) and (ax.\"uidlevel1\" = 'ouabcdefghA' ) limit 101";
 
     assertSql(sql.getValue(), expected);
   }

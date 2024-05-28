@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @Controller
 public class PingController {
-  @GetMapping("/ping")
+  @GetMapping("/api/ping")
   @ResponseStatus(OK)
   @CrossOrigin
   public void ping() {

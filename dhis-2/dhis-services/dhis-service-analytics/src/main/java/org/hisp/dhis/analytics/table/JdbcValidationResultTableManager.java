@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static java.lang.String.format;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
+import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
@@ -75,10 +75,28 @@ import org.springframework.stereotype.Service;
 public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
-          new AnalyticsTableColumn("dx", CHARACTER_11, NOT_NULL, "vr.uid"),
-          new AnalyticsTableColumn("pestartdate", TIMESTAMP, "pe.startdate"),
-          new AnalyticsTableColumn("peenddate", TIMESTAMP, "pe.enddate"),
-          new AnalyticsTableColumn("year", INTEGER, NOT_NULL, "ps.year"));
+          AnalyticsTableColumn.builder()
+              .build()
+              .withName("dx")
+              .withDataType(CHARACTER_11)
+              .withNullable(NOT_NULL)
+              .withSelectExpression("vr.uid"),
+          AnalyticsTableColumn.builder()
+              .build()
+              .withName("pestartdate")
+              .withDataType(TIMESTAMP)
+              .withSelectExpression("pe.startdate"),
+          AnalyticsTableColumn.builder()
+              .build()
+              .withName("peenddate")
+              .withDataType(TIMESTAMP)
+              .withSelectExpression("pe.enddate"),
+          AnalyticsTableColumn.builder()
+              .build()
+              .withName("year")
+              .withDataType(INTEGER)
+              .withNullable(NOT_NULL)
+              .withSelectExpression("ps.year"));
 
   public JdbcValidationResultTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -174,18 +192,20 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
             inner join analytics_rs_periodstructure ps on vrs.periodid=ps.periodid
             inner join validationrule vr on vr.validationruleid=vrs.validationruleid
             inner join analytics_rs_organisationunitgroupsetstructure ougs on vrs.organisationunitid=ougs.organisationunitid
-            and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null)
+            and (cast(${peStartDateMonth} as date)=ougs.startdate or ougs.startdate is null)
             left join analytics_rs_orgunitstructure ous on vrs.organisationunitid=ous.organisationunitid
             inner join analytics_rs_categorystructure acs on vrs.attributeoptioncomboid=acs.categoryoptioncomboid
             where vrs.created < '${startTime}'
             and vrs.created is not null ${partitionClause}""",
             Map.of(
+                "peStartDateMonth",
+                sqlBuilder.dateTrunc("month", "ps.startdate"),
                 "startTime",
                 toLongDate(params.getStartTime()),
                 "partitionClause",
                 partitionClause));
 
-    invokeTimeAndLog(sql, String.format("Populate %s", tableName));
+    invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }
 
   private List<Integer> getDataYears(AnalyticsTableUpdateParams params) {
@@ -217,18 +237,24 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
    * @return a partition SQL clause.
    */
   private String getPartitionClause(AnalyticsTablePartition partition) {
-    return format("and ps.year = %d ", partition.getYear());
+    return format("and ps.year = {} ", partition.getYear());
   }
 
   private List<AnalyticsTableColumn> getColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
-
+    columns.addAll(FIXED_COLS);
     columns.addAll(getOrganisationUnitGroupSetColumns());
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.addAll(getAttributeCategoryColumns());
     columns.addAll(getPeriodTypeColumns("ps"));
-    columns.addAll(FIXED_COLS);
-    columns.add(new AnalyticsTableColumn("value", DATE, NULL, FACT, "vrs.created as value"));
+    columns.add(
+        AnalyticsTableColumn.builder()
+            .build()
+            .withName("value")
+            .withDataType(DATE)
+            .withNullable(NULL)
+            .withValueType(FACT)
+            .withSelectExpression("vrs.created as value"));
 
     return filterDimensionColumns(columns);
   }

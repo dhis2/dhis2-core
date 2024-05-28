@@ -32,7 +32,7 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1015;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1016;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.ENROLLMENT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.TRACKED_ENTITY_INSTANCE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -82,7 +82,7 @@ class ExistingEnrollmentValidator
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
       Program program) {
-    checkNotNull(enrollment.getTrackedEntity(), TRACKED_ENTITY_INSTANCE_CANT_BE_NULL);
+    checkNotNull(enrollment.getTrackedEntity(), TRACKED_ENTITY_CANT_BE_NULL);
 
     TrackedEntity te = getTrackedEntity(bundle, enrollment.getTrackedEntity());
 

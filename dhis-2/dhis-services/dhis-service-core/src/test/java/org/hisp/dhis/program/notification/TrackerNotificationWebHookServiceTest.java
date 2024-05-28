@@ -127,10 +127,10 @@ class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest {
     programTrackedEntityAttribute =
         createProgramTrackedEntityAttribute(programA, trackedEntityAttribute);
     programA.getProgramAttributes().add(programTrackedEntityAttribute);
-    TrackedEntity tei = createTrackedEntity(organisationUnitA);
+    TrackedEntity te = createTrackedEntity(organisationUnitA);
     trackedEntityAttributeValue =
-        createTrackedEntityAttributeValue('I', tei, trackedEntityAttribute);
-    tei.getTrackedEntityAttributeValues().add(trackedEntityAttributeValue);
+        createTrackedEntityAttributeValue('I', te, trackedEntityAttribute);
+    te.getTrackedEntityAttributeValues().add(trackedEntityAttributeValue);
 
     programStageA = createProgramStage('A', programA);
 
@@ -140,7 +140,7 @@ class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest {
     enrollment.setOrganisationUnit(organisationUnitA);
     enrollment.setEnrollmentDate(new Date());
     enrollment.setOccurredDate(new Date());
-    enrollment.setTrackedEntity(tei);
+    enrollment.setTrackedEntity(te);
 
     event = new Event();
     event.setAutoFields();

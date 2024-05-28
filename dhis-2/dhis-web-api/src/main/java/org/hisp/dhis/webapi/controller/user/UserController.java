@@ -33,6 +33,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
+import static org.hisp.dhis.security.Authorities.F_REPLICATE_USER;
 import static org.hisp.dhis.user.User.populateUserCredentialsDtoCopyOnlyChanges;
 import static org.hisp.dhis.user.User.populateUserCredentialsDtoFields;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -61,10 +62,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.Document.Group;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
@@ -97,6 +101,7 @@ import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.MetadataMergeParams;
 import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
 import org.hisp.dhis.user.CurrentUser;
@@ -113,13 +118,13 @@ import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.Users;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.openapi.Api;
 import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -133,10 +138,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags({"user", "management"})
+@OpenApi.Document(group = Group.MANAGE)
 @Slf4j
 @Controller
-@RequestMapping(value = UserSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/users")
 public class UserController extends AbstractCrudController<User> {
   public static final String INVITE_PATH = "/invite";
 
@@ -159,7 +164,11 @@ public class UserController extends AbstractCrudController<User> {
   @Override
   @SuppressWarnings("unchecked")
   protected List<User> getEntityList(
-      WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders)
+      WebMetadata metadata,
+      WebOptions options,
+      List<String> filters,
+      List<Order> orders,
+      List<User> objects)
       throws QueryParserException {
     UserQueryParams params = makeUserQueryParams(options);
 
@@ -252,9 +261,10 @@ public class UserController extends AbstractCrudController<User> {
 
   @Override
   @GetMapping("/{uid}/{property}")
+  @OpenApi.Document(group = Group.QUERY)
   public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
-      @PathVariable("uid") String pvUid,
-      @PathVariable("property") String pvProperty,
+      @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
+      @OpenApi.Param(Api.PropertyNames.class) @PathVariable("property") String pvProperty,
       @RequestParam Map<String, String> rpParameters,
       TranslateParams translateParams,
       @CurrentUser UserDetails currentUser,
@@ -285,6 +295,8 @@ public class UserController extends AbstractCrudController<User> {
   // POST
   // -------------------------------------------------------------------------
 
+  @OpenApi.Params(MetadataImportParams.class)
+  @OpenApi.Param(OpenApi.EntityType.class)
   @Override
   @PostMapping(consumes = {APPLICATION_XML_VALUE, TEXT_XML_VALUE})
   @ResponseBody
@@ -293,6 +305,8 @@ public class UserController extends AbstractCrudController<User> {
     return postObject(renderService.fromXml(request.getInputStream(), getEntityClass()));
   }
 
+  @OpenApi.Params(MetadataImportParams.class)
+  @OpenApi.Param(OpenApi.EntityType.class)
   @Override
   @PostMapping(consumes = APPLICATION_JSON_VALUE)
   @ResponseBody
@@ -432,7 +446,7 @@ public class UserController extends AbstractCrudController<User> {
   }
 
   @SuppressWarnings("unchecked")
-  @PreAuthorize("hasRole('ALL') or hasRole('F_REPLICATE_USER')")
+  @RequiresAuthority(anyOf = F_REPLICATE_USER)
   @PostMapping("/{uid}/replica")
   @ResponseBody
   public WebMessage replicateUser(
@@ -656,6 +670,11 @@ public class UserController extends AbstractCrudController<User> {
     }
 
     return importReport;
+  }
+
+  @Override
+  protected void postUpdateItems(User entity, IdentifiableObjects items) {
+    aclService.invalidateCurrentUserGroupInfoCache();
   }
 
   protected void updateUserGroups(String userUid, User parsed, User currentUser) {

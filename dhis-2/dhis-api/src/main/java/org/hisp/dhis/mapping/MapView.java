@@ -51,6 +51,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.eventvisualization.EventRepetition;
 import org.hisp.dhis.eventvisualization.SimpleDimension;
@@ -310,17 +311,6 @@ public class MapView extends BaseAnalyticalObject
 
   public boolean isEventLayer() {
     return LAYER_EVENT.equals(layer);
-  }
-
-  @Override
-  public String getName() {
-    if (!dataDimensionItems.isEmpty()
-        && dataDimensionItems.get(0) != null
-        && dataDimensionItems.get(0).getDimensionalItemObject() != null) {
-      return dataDimensionItems.get(0).getDimensionalItemObject().getName();
-    }
-
-    return uid;
   }
 
   // -------------------------------------------------------------------------
@@ -745,6 +735,7 @@ public class MapView extends BaseAnalyticalObject
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @OpenApi.Property(org.hisp.dhis.event.EventStatus.class)
   public EventStatus getEventStatus() {
     return eventStatus;
   }

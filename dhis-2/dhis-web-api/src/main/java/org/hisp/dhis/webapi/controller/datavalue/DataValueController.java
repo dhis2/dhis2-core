@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.datavalue;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.security.Authorities.F_DATAVALUE_ADD;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 import java.io.IOException;
@@ -69,6 +70,7 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.FileResourceStorageStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUser;
@@ -84,7 +86,6 @@ import org.hisp.dhis.webapi.webdomain.datavalue.DataValueQueryParams;
 import org.jclouds.rest.AuthorizationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -99,13 +100,12 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("data")
+@OpenApi.Document(domain = DataValue.class)
 @RestController
-@RequestMapping(value = DataValueController.RESOURCE_PATH)
+@RequestMapping("/api/dataValues")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
 public class DataValueController {
-  public static final String RESOURCE_PATH = "/dataValues";
 
   public static final String FILE_PATH = "/file";
 
@@ -131,7 +131,7 @@ public class DataValueController {
   // POST
   // ---------------------------------------------------------------------
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
+  @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
   @PostMapping(params = {"de", "pe", "ou"})
   @ResponseStatus(HttpStatus.CREATED)
   public void saveDataValue(
@@ -167,7 +167,7 @@ public class DataValueController {
     saveDataValueInternal(dataValue, currentUser);
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
+  @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
   @PostMapping(consumes = "application/json")
   @ResponseStatus(HttpStatus.CREATED)
   public void saveDataValueWithBody(
@@ -176,7 +176,7 @@ public class DataValueController {
     saveDataValueInternal(dataValue, currentUser);
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
+  @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
   @PostMapping(FILE_PATH)
   public WebMessage saveFileDataValue(
       @OpenApi.Param({UID.class, DataElement.class}) @RequestParam String de,
@@ -463,8 +463,8 @@ public class DataValueController {
   // DELETE
   // ---------------------------------------------------------------------
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
   @DeleteMapping
+  @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteDataValue(
       DataValueQueryParams params,

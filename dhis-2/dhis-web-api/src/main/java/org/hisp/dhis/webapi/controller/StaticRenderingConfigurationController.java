@@ -37,9 +37,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@OpenApi.Tags("system")
+@OpenApi.Document(domain = Server.class)
 @RestController
-@RequestMapping(value = "/staticConfiguration/")
+@RequestMapping("/api/staticConfiguration/")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class StaticRenderingConfigurationController {
 

@@ -54,6 +54,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.Document.Group;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataset.DataSetService;
@@ -111,10 +112,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags({"user", "query"})
+@OpenApi.Document(domain = User.class, group = Group.QUERY)
 @Controller
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-@RequestMapping("/me")
+@RequestMapping("/api/me")
 @RequiredArgsConstructor
 public class MeController {
   @Nonnull private final UserService userService;
@@ -228,6 +229,7 @@ public class MeController {
     return ResponseEntity.ok(objectNode);
   }
 
+  @OpenApi.Document(group = Group.MANAGE)
   @PutMapping(value = "", consumes = APPLICATION_JSON_VALUE)
   public void updateCurrentUser(
       HttpServletRequest request,
@@ -327,6 +329,7 @@ public class MeController {
     return ResponseEntity.ok().cacheControl(noStore()).body(value);
   }
 
+  @OpenApi.Document(group = Group.MANAGE)
   @PutMapping(
       value = "/changePassword",
       consumes = {"text/*", "application/*"})
@@ -353,6 +356,7 @@ public class MeController {
     userService.invalidateUserSessions(currentUser.getUid());
   }
 
+  @OpenApi.Document(group = Group.MANAGE)
   @PostMapping(value = "/verifyPassword", consumes = "text/*")
   public @ResponseBody RootNode verifyPasswordText(
       @RequestBody String password,
@@ -362,6 +366,7 @@ public class MeController {
     return verifyPasswordInternal(password, currentUser);
   }
 
+  @OpenApi.Document(group = Group.MANAGE)
   @PostMapping(value = "/validatePassword", consumes = "text/*")
   public @ResponseBody RootNode validatePasswordText(
       @RequestBody String password,
@@ -371,6 +376,7 @@ public class MeController {
     return validatePasswordInternal(password, currentUser);
   }
 
+  @OpenApi.Document(group = Group.MANAGE)
   @PostMapping(value = "/verifyPassword", consumes = APPLICATION_JSON_VALUE)
   public @ResponseBody RootNode verifyPasswordJson(
       @RequestBody Map<String, String> body,
@@ -391,6 +397,7 @@ public class MeController {
     return dashboard;
   }
 
+  @OpenApi.Document(group = Group.MANAGE)
   @PostMapping(value = "/dashboard/interpretations/read")
   @ResponseStatus(value = HttpStatus.NO_CONTENT)
   @ApiVersion(include = {DhisApiVersion.ALL, DhisApiVersion.DEFAULT})

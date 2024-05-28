@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.imports.bundle;
 
 import static org.hisp.dhis.tracker.Assertions.assertHasError;
+import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,6 +49,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -85,7 +87,7 @@ class OwnershipTest extends TrackerTest {
     nonSuperUser = userService.getUser("Tu9fv8ezgHl");
     TrackerImportParams params = TrackerImportParams.builder().userId(superUser.getUid()).build();
     assertNoErrors(
-        trackerImportService.importTracker(params, fromJson("tracker/ownership_tei.json")));
+        trackerImportService.importTracker(params, fromJson("tracker/ownership_te.json")));
     assertNoErrors(
         trackerImportService.importTracker(params, fromJson("tracker/ownership_enrollment.json")));
   }
@@ -114,7 +116,7 @@ class OwnershipTest extends TrackerTest {
   }
 
   @Test
-  void testClientDatesForTeiEnrollmentEvent() throws IOException {
+  void testClientDatesForTrackedEntityEnrollmentEvent() throws IOException {
     User nonSuperUser = userService.getUser(this.nonSuperUser.getUid());
     injectSecurityContextUser(nonSuperUser);
     TrackerImportParams params =
@@ -122,7 +124,7 @@ class OwnershipTest extends TrackerTest {
     TrackerObjects trackerObjects = fromJson("tracker/ownership_event.json");
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     manager.flush();
-    TrackerObjects teTrackerObjects = fromJson("tracker/ownership_tei.json");
+    TrackerObjects teTrackerObjects = fromJson("tracker/ownership_te.json");
     TrackerObjects enTrackerObjects = fromJson("tracker/ownership_enrollment.json");
     assertNoErrors(importReport);
 
@@ -254,6 +256,21 @@ class OwnershipTest extends TrackerTest {
     updatedReport = trackerImportService.importTracker(params, trackerObjects);
     assertEquals(1, updatedReport.getStats().getIgnored());
     assertHasError(updatedReport, ValidationCode.E1102);
+  }
+
+  @Test
+  void shouldFailWhenCreatingTEAndEnrollmentAndUserHasNoAccessToEnrollmentOU() throws IOException {
+    injectSecurityContextUser(userService.getUser(nonSuperUser.getUid()));
+    TrackerImportParams params =
+        TrackerImportParams.builder()
+            .userId(nonSuperUser.getUid())
+            .atomicMode(AtomicMode.OBJECT)
+            .build();
+    TrackerObjects trackerObjects = fromJson("tracker/ownership_te_ok_enrollment_no_access.json");
+    ImportReport report = trackerImportService.importTracker(params, trackerObjects);
+    assertEquals(1, report.getStats().getCreated());
+    assertEquals(1, report.getStats().getIgnored());
+    assertHasOnlyErrors(report, ValidationCode.E1000);
   }
 
   @Test

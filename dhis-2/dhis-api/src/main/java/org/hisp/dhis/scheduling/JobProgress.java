@@ -61,6 +61,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.slf4j.helpers.MessageFormatter;
@@ -120,6 +121,17 @@ import org.slf4j.helpers.MessageFormatter;
  * @author Jan Bernitt
  */
 public interface JobProgress {
+
+  /**
+   * Main use case are tests and use as NULL object for the tracker progress delegate.
+   *
+   * @return A {@link JobProgress} that literally does nothing, this includes any form of abort or
+   *     cancel logic
+   */
+  static JobProgress noop() {
+    return NoopJobProgress.INSTANCE;
+  }
+
   /*
    * Flow Control API:
    */
@@ -576,6 +588,7 @@ public interface JobProgress {
    * Model (for representing progress as data)
    */
 
+  @OpenApi.Shared(name = "JobProgressStatus")
   enum Status {
     RUNNING,
     SUCCESS,
@@ -648,6 +661,10 @@ public interface JobProgress {
       if (sameObjectAndCode.stream().noneMatch(e -> e.args.equals(error.args))) {
         sameObjectAndCode.add(error);
       }
+    }
+
+    public Progress withoutErrors() {
+      return new Progress(sequence, Map.of());
     }
 
     public boolean hasErrors() {

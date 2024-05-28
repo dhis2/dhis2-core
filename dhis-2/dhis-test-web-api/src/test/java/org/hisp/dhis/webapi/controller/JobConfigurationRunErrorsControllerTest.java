@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.time.Duration.ofSeconds;
+import static org.hisp.dhis.security.Authorities.F_JOB_LOG_READ;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -57,7 +58,7 @@ class JobConfigurationRunErrorsControllerTest extends DhisControllerIntegrationT
   @BeforeEach
   void setUp() throws InterruptedException {
     jobId = createAndRunImportWithErrors();
-    switchToNewUser("special-admin", "F_JOB_LOG_READ");
+    switchToNewUser("special-admin", F_JOB_LOG_READ.toString());
   }
 
   @Test

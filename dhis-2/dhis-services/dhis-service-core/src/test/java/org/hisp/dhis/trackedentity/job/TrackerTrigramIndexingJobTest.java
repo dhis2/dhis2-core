@@ -42,7 +42,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.parameters.TrackerTrigramIndexJobParameters;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -83,7 +83,7 @@ class TrackerTrigramIndexingJobTest {
     TrackerTrigramIndexJobParameters jp = new TrackerTrigramIndexJobParameters();
     jobConfiguration.setJobParameters(jp);
 
-    job.execute(jobConfiguration, NoopJobProgress.INSTANCE);
+    job.execute(jobConfiguration, JobProgress.noop());
 
     verify(trackedEntityAttributeTableManager, never()).createTrigramIndex(any());
     verify(trackedEntityAttributeTableManager, never()).dropTrigramIndex(any());
@@ -98,7 +98,7 @@ class TrackerTrigramIndexingJobTest {
     TrackerTrigramIndexJobParameters jp = new TrackerTrigramIndexJobParameters();
     jobConfiguration.setJobParameters(jp);
 
-    job.execute(jobConfiguration, NoopJobProgress.INSTANCE);
+    job.execute(jobConfiguration, JobProgress.noop());
 
     verify(trackedEntityAttributeTableManager, never()).createTrigramIndex(any());
     verify(trackedEntityAttributeTableManager, times(2)).dropTrigramIndex(any());
@@ -114,7 +114,7 @@ class TrackerTrigramIndexingJobTest {
     jp.setAttributes(Collections.singleton("aaaa"));
     jobConfiguration.setJobParameters(jp);
 
-    job.execute(jobConfiguration, NoopJobProgress.INSTANCE);
+    job.execute(jobConfiguration, JobProgress.noop());
 
     verify(trackedEntityAttributeTableManager, never()).createTrigramIndex(any());
   }
@@ -140,7 +140,7 @@ class TrackerTrigramIndexingJobTest {
     jp.setAttributes(Stream.of("tea2", "tea3").collect(Collectors.toSet()));
     jobConfiguration.setJobParameters(jp);
 
-    job.execute(jobConfiguration, NoopJobProgress.INSTANCE);
+    job.execute(jobConfiguration, JobProgress.noop());
 
     verify(trackedEntityAttributeTableManager, times(2)).createTrigramIndex(any());
   }

@@ -87,7 +87,9 @@ import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleAttributeValue;
 import org.hisp.dhis.rules.models.RuleDataValue;
 import org.hisp.dhis.rules.models.RuleEnrollment;
+import org.hisp.dhis.rules.models.RuleEnrollmentStatus;
 import org.hisp.dhis.rules.models.RuleEvent;
+import org.hisp.dhis.rules.models.RuleEventStatus;
 import org.hisp.dhis.rules.models.RuleValueType;
 import org.hisp.dhis.rules.models.RuleVariable;
 import org.hisp.dhis.rules.models.RuleVariableAttribute;
@@ -226,24 +228,23 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     return new RuleEnrollment(
         enrollment.getUid(),
         enrollment.getProgram().getName(),
-        LocalDateTime.Companion.parse(DateUtils.toIso8601NoTz(enrollment.getOccurredDate()))
+        LocalDateTime.Formats.INSTANCE
+            .getISO()
+            .parse(DateUtils.toIso8601NoTz(enrollment.getOccurredDate()))
             .getDate(),
-        LocalDateTime.Companion.parse(DateUtils.toIso8601NoTz(enrollment.getEnrollmentDate()))
+        LocalDateTime.Formats.INSTANCE
+            .getISO()
+            .parse(DateUtils.toIso8601NoTz(enrollment.getEnrollmentDate()))
             .getDate(),
-        RuleEnrollment.Status.valueOf(enrollment.getStatus().toString()),
+        RuleEnrollmentStatus.valueOf(enrollment.getStatus().toString()),
         orgUnit,
         orgUnitCode,
         ruleAttributeValues);
   }
 
   @Override
-  public List<RuleEvent> toMappedRuleEvents(Set<Event> events, Event eventToEvaluate) {
-    return events.stream()
-        .filter(Objects::nonNull)
-        .filter(
-            event -> !(eventToEvaluate != null && event.getUid().equals(eventToEvaluate.getUid())))
-        .map(this::toMappedRuleEvent)
-        .toList();
+  public List<RuleEvent> toMappedRuleEvents(Set<Event> events) {
+    return events.stream().filter(Objects::nonNull).map(this::toMappedRuleEvent).toList();
   }
 
   @Override
@@ -259,19 +260,21 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         eventToEvaluate.getUid(),
         eventToEvaluate.getProgramStage().getUid(),
         eventToEvaluate.getProgramStage().getName(),
-        RuleEvent.Status.valueOf(eventToEvaluate.getStatus().toString()),
+        RuleEventStatus.valueOf(eventToEvaluate.getStatus().toString()),
         eventToEvaluate.getOccurredDate() != null
             ? Instant.Companion.fromEpochMilliseconds(eventToEvaluate.getOccurredDate().getTime())
             : Instant.Companion.fromEpochMilliseconds(eventToEvaluate.getScheduledDate().getTime()),
         eventToEvaluate.getScheduledDate() == null
             ? null
-            : LocalDateTime.Companion.parse(
-                    DateUtils.toIso8601NoTz(eventToEvaluate.getScheduledDate()))
+            : LocalDateTime.Formats.INSTANCE
+                .getISO()
+                .parse(DateUtils.toIso8601NoTz(eventToEvaluate.getScheduledDate()))
                 .getDate(),
         eventToEvaluate.getCompletedDate() == null
             ? null
-            : LocalDateTime.Companion.parse(
-                    DateUtils.toIso8601NoTz(eventToEvaluate.getCompletedDate()))
+            : LocalDateTime.Formats.INSTANCE
+                .getISO()
+                .parse(DateUtils.toIso8601NoTz(eventToEvaluate.getCompletedDate()))
                 .getDate(),
         orgUnit,
         orgUnitCode,

@@ -57,7 +57,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Controller
-@RequestMapping("/publicKeys")
+@RequestMapping("/api/publicKeys")
 @RequiredArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class PublicKeysController {

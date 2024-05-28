@@ -32,7 +32,6 @@ import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -51,14 +50,13 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Morten Olav Hansen
  */
 @RestController
-@OpenApi.Tags("integration")
 @RequiredArgsConstructor
-@RequestMapping(value = RouteSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/routes")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class RouteController extends AbstractCrudController<Route> {
   private final RouteService routeService;
 
-  @RequestMapping(value = "/{id}/run")
+  @RequestMapping("/{id}/run")
   public ResponseEntity<String> run(
       @PathVariable("id") String id,
       @CurrentUser UserDetails currentUser,
@@ -67,7 +65,7 @@ public class RouteController extends AbstractCrudController<Route> {
     return runWithSubpath(id, currentUser, request);
   }
 
-  @RequestMapping(value = "/{id}/run/**")
+  @RequestMapping("/{id}/run/**")
   public ResponseEntity<String> runWithSubpath(
       @PathVariable("id") String id,
       @CurrentUser UserDetails currentUser,

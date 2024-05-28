@@ -69,7 +69,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("org.hisp.dhis.analytics.OrgUnitTargetTableManager")
 public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
-      List.of(new AnalyticsTableColumn("oug", CHARACTER_11, NOT_NULL, "oug.uid"));
+      List.of(
+          AnalyticsTableColumn.builder()
+              .build()
+              .withName("oug")
+              .withDataType(CHARACTER_11)
+              .withNullable(NOT_NULL)
+              .withSelectExpression("oug.uid"));
 
   public JdbcOrgUnitTargetTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -152,15 +158,21 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
         left join analytics_rs_orgunitstructure ous on ougm.organisationunitid=ous.organisationunitid
         left join analytics_rs_organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid""";
 
-    invokeTimeAndLog(sql, tableName);
+    invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }
 
   private List<AnalyticsTableColumn> getColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
-
-    columns.addAll(getOrganisationUnitLevelColumns());
     columns.addAll(FIXED_COLS);
-    columns.add(new AnalyticsTableColumn("value", DOUBLE, NULL, FACT, "1 as value"));
+    columns.addAll(getOrganisationUnitLevelColumns());
+    columns.add(
+        AnalyticsTableColumn.builder()
+            .build()
+            .withName("value")
+            .withDataType(DOUBLE)
+            .withNullable(NULL)
+            .withValueType(FACT)
+            .withSelectExpression("1 as value"));
 
     return filterDimensionColumns(columns);
   }

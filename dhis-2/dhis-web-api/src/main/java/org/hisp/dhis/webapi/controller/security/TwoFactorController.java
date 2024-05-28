@@ -67,9 +67,9 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Henning Håkonsen
  * @author Morten Svanaes
  */
-@OpenApi.Tags({"user", "login"})
+@OpenApi.Document(domain = User.class)
 @RestController
-@RequestMapping(value = "/2fa")
+@RequestMapping("/api/2fa")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
 public class TwoFactorController {

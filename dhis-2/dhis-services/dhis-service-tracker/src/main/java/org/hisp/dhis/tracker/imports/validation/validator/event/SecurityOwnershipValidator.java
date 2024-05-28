@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.imports.validation.validator.event;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.security.Authorities.F_UNCOMPLETE_EVENT;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1083;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.EVENT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL;
@@ -124,13 +125,13 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
     OrganisationUnit ownerOrgUnit = getOwnerOrganisationUnit(preheat, teUid, program);
     // Check acting user is allowed to change existing/write event
     if (strategy.isUpdateOrDelete()) {
-      TrackedEntity entityInstance = preheatEvent.getEnrollment().getTrackedEntity();
+      TrackedEntity trackedEntity = preheatEvent.getEnrollment().getTrackedEntity();
       validateUpdateAndDeleteEvent(
           reporter,
           bundle,
           event,
           preheatEvent,
-          entityInstance == null ? null : entityInstance.getUid(),
+          trackedEntity == null ? null : trackedEntity.getUid(),
           ownerOrgUnit);
     } else {
       validateCreateEvent(
@@ -211,7 +212,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
     if (strategy.isUpdate()
         && EventStatus.COMPLETED == preheatEvent.getStatus()
         && event.getStatus() != preheatEvent.getStatus()
-        && (!user.isSuper() && !user.isAuthorized("F_UNCOMPLETE_EVENT"))) {
+        && (!user.isSuper() && !user.isAuthorized(F_UNCOMPLETE_EVENT))) {
       reporter.addError(event, E1083, user);
     }
   }

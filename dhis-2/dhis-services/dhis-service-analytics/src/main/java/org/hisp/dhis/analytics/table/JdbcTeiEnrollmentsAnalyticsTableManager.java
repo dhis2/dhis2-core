@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.table;
 
 import static java.lang.String.join;
+import static java.lang.String.valueOf;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_ENROLLMENTS;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
@@ -78,30 +79,110 @@ import org.springframework.transaction.annotation.Transactional;
 public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
-          new AnalyticsTableColumn("trackedentityinstanceuid", CHARACTER_11, NOT_NULL, "tei.uid"),
-          new AnalyticsTableColumn("programuid", CHARACTER_11, NULL, "p.uid"),
-          new AnalyticsTableColumn("programinstanceuid", CHARACTER_11, NULL, "pi.uid"),
-          new AnalyticsTableColumn("enrollmentdate", TIMESTAMP, "pi.enrollmentdate"),
-          new AnalyticsTableColumn("enddate", TIMESTAMP, "pi.completeddate"),
-          new AnalyticsTableColumn("incidentdate", TIMESTAMP, "pi.occurreddate"),
-          new AnalyticsTableColumn("enrollmentstatus", VARCHAR_50, "pi.status"),
-          new AnalyticsTableColumn("pigeometry", GEOMETRY, "pi.geometry", IndexType.GIST),
-          new AnalyticsTableColumn(
-              "pilongitude",
-              DOUBLE,
-              "case when 'POINT' = GeometryType(pi.geometry) then ST_X(pi.geometry) end"),
-          new AnalyticsTableColumn(
-              "pilatitude",
-              DOUBLE,
-              "case when 'POINT' = GeometryType(pi.geometry) then ST_Y(pi.geometry) end"),
-          new AnalyticsTableColumn("uidlevel1", CHARACTER_11, NULL, "ous.uidlevel1"),
-          new AnalyticsTableColumn("uidlevel2", CHARACTER_11, NULL, "ous.uidlevel2"),
-          new AnalyticsTableColumn("uidlevel3", CHARACTER_11, NULL, "ous.uidlevel3"),
-          new AnalyticsTableColumn("uidlevel4", CHARACTER_11, NULL, "ous.uidlevel4"),
-          new AnalyticsTableColumn("ou", CHARACTER_11, NULL, "ou.uid"),
-          new AnalyticsTableColumn("ouname", VARCHAR_255, NULL, "ou.name"),
-          new AnalyticsTableColumn("oucode", CHARACTER_32, NULL, "ou.code"),
-          new AnalyticsTableColumn("oulevel", INTEGER, NULL, "ous.level"));
+          AnalyticsTableColumn.builder()
+              .build()
+              .withName("trackedentityinstanceuid")
+              .withDataType(CHARACTER_11)
+              .withNullable(NOT_NULL)
+              .withSelectExpression("tei.uid"),
+          AnalyticsTableColumn.builder()
+              .build()
+              .withName("programuid")
+              .withDataType(CHARACTER_11)
+              .withNullable(NULL)
+              .withSelectExpression("p.uid"),
+          AnalyticsTableColumn.builder()
+              .build()
+              .withName("programinstanceuid")
+              .withDataType(CHARACTER_11)
+              .withNullable(NULL)
+              .withSelectExpression("pi.uid"),
+          AnalyticsTableColumn.builder()
+              .build()
+              .withName("enrollmentdate")
+              .withDataType(TIMESTAMP)
+              .withSelectExpression("pi.enrollmentdate"),
+          AnalyticsTableColumn.builder()
+              .build()
+              .withName("enddate")
+              .withDataType(TIMESTAMP)
+              .withSelectExpression("pi.completeddate"),
+          AnalyticsTableColumn.builder()
+              .build()
+              .withName("incidentdate")
+              .withDataType(TIMESTAMP)
+              .withSelectExpression("pi.occurreddate"),
+          AnalyticsTableColumn.builder()
+              .build()
+              .withName("enrollmentstatus")
+              .withDataType(VARCHAR_50)
+              .withSelectExpression("pi.status"),
+          AnalyticsTableColumn.builder()
+              .build()
+              .withName("pigeometry")
+              .withDataType(GEOMETRY)
+              .withSelectExpression("pi.geometry")
+              .withIndexType(IndexType.GIST),
+          AnalyticsTableColumn.builder()
+              .build()
+              .withName("pilongitude")
+              .withDataType(DOUBLE)
+              .withSelectExpression(
+                  "case when 'POINT' = GeometryType(pi.geometry) then ST_X(pi.geometry) end"),
+          AnalyticsTableColumn.builder()
+              .build()
+              .withName("pilatitude")
+              .withDataType(DOUBLE)
+              .withSelectExpression(
+                  "case when 'POINT' = GeometryType(pi.geometry) then ST_Y(pi.geometry) end"),
+          AnalyticsTableColumn.builder()
+              .build()
+              .withName("uidlevel1")
+              .withDataType(CHARACTER_11)
+              .withNullable(NULL)
+              .withSelectExpression("ous.uidlevel1"),
+          AnalyticsTableColumn.builder()
+              .build()
+              .withName("uidlevel2")
+              .withDataType(CHARACTER_11)
+              .withNullable(NULL)
+              .withSelectExpression("ous.uidlevel2"),
+          AnalyticsTableColumn.builder()
+              .build()
+              .withName("uidlevel3")
+              .withDataType(CHARACTER_11)
+              .withNullable(NULL)
+              .withSelectExpression("ous.uidlevel3"),
+          AnalyticsTableColumn.builder()
+              .build()
+              .withName("uidlevel4")
+              .withDataType(CHARACTER_11)
+              .withNullable(NULL)
+              .withSelectExpression("ous.uidlevel4"),
+          AnalyticsTableColumn.builder()
+              .build()
+              .withName("ou")
+              .withDataType(CHARACTER_11)
+              .withNullable(NULL)
+              .withSelectExpression("ou.uid"),
+          AnalyticsTableColumn.builder()
+              .build()
+              .withName("ouname")
+              .withDataType(VARCHAR_255)
+              .withNullable(NULL)
+              .withSelectExpression("ou.name"),
+          AnalyticsTableColumn.builder()
+              .build()
+              .withName("oucode")
+              .withDataType(CHARACTER_32)
+              .withNullable(NULL)
+              .withSelectExpression("ou.code"),
+          AnalyticsTableColumn.builder()
+              .build()
+              .withName("oulevel")
+              .withDataType(INTEGER)
+              .withNullable(NULL)
+              .withSelectExpression("ous.level"));
 
   private final TrackedEntityTypeService trackedEntityTypeService;
 
@@ -163,10 +244,11 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
   }
 
   private List<AnalyticsTableColumn> getColumns() {
-    List<AnalyticsTableColumn> analyticsTableColumnList = new ArrayList<>(FIXED_COLS);
-    analyticsTableColumnList.add(getOrganisationUnitNameHierarchyColumn());
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
+    columns.addAll(FIXED_COLS);
+    columns.add(getOrganisationUnitNameHierarchyColumn());
 
-    return analyticsTableColumnList;
+    return columns;
   }
 
   @Override
@@ -202,25 +284,24 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
         .append(
             replace(
                 """
-        \s from enrollment pi \
-        inner join trackedentity tei on pi.trackedentityid = tei.trackedentityid \
-        and tei.deleted = false \
-        and tei.trackedentitytypeid =${teiId} \
-        and tei.lastupdated < '${startTime}' \
-        left join program p on p.programid = pi.programid \
-        left join organisationunit ou on pi.organisationunitid = ou.organisationunitid \
-        left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
-        where exists ( select 1 from event psi where psi.deleted = false \
-        and psi.enrollmentid = pi.enrollmentid \
-        and psi.status in (${statuses})) \
-        and pi.occurreddate is not null \
-        and pi.deleted = false\s""",
+                \sfrom enrollment pi \
+                inner join trackedentity tei on pi.trackedentityid = tei.trackedentityid \
+                and tei.deleted = false \
+                and tei.trackedentitytypeid =${teiId} \
+                and tei.lastupdated < '${startTime}' \
+                left join program p on p.programid = pi.programid \
+                left join organisationunit ou on pi.organisationunitid = ou.organisationunitid \
+                left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
+                where exists ( select 1 from event psi where psi.deleted = false \
+                and psi.enrollmentid = pi.enrollmentid \
+                and psi.status in (${statuses})) \
+                and pi.occurreddate is not null \
+                and pi.deleted = false\s""",
                 Map.of(
-                    "teiId",
-                        String.valueOf(partition.getMasterTable().getTrackedEntityType().getId()),
+                    "teiId", valueOf(partition.getMasterTable().getTrackedEntityType().getId()),
                     "startTime", toLongDate(params.getStartTime()),
                     "statuses", join(",", EXPORTABLE_EVENT_STATUSES))));
 
-    invokeTimeAndLog(sql.toString(), tableName);
+    invokeTimeAndLog(sql.toString(), "Populating table: '{}'", tableName);
   }
 }

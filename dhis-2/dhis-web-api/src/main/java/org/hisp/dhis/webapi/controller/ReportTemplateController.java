@@ -36,6 +36,7 @@ import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
+import org.hisp.dhis.report.Report;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,20 +47,20 @@ import org.springframework.web.bind.annotation.GetMapping;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("analytics")
+@OpenApi.Document(domain = Report.class)
 @Controller
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class ReportTemplateController {
   @Autowired private ContextUtils contextUtils;
 
   @OpenApi.Response(String.class)
-  @GetMapping(value = "/reportTemplate.xml", produces = APPLICATION_XML_VALUE)
+  @GetMapping(value = "/api/reportTemplate.xml", produces = APPLICATION_XML_VALUE)
   public void getReportDesignJrxml(HttpServletResponse response) throws Exception {
     serveTemplate(response, ContextUtils.CONTENT_TYPE_XML, "jasper-report-template.jrxml");
   }
 
   @OpenApi.Response(String.class)
-  @GetMapping(value = "/reportTemplate.html", produces = APPLICATION_XML_VALUE)
+  @GetMapping(value = "/api/reportTemplate.html", produces = APPLICATION_XML_VALUE)
   public void getReportDesignHtml(HttpServletResponse response) throws Exception {
     serveTemplate(response, ContextUtils.CONTENT_TYPE_HTML, "html-report-template.html");
   }

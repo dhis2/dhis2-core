@@ -79,7 +79,7 @@ class LastUpdateImportTest extends TrackerTest {
 
     injectAdminUser();
 
-    TrackerObjects trackerObjects = fromJson("tracker/single_tei.json");
+    TrackerObjects trackerObjects = fromJson("tracker/single_te.json");
     assertNoErrors(trackerImportService.importTracker(new TrackerImportParams(), trackerObjects));
 
     trackedEntity = trackerObjects.getTrackedEntities().get(0);
@@ -99,13 +99,13 @@ class LastUpdateImportTest extends TrackerTest {
   }
 
   @Test
-  void shouldUpdateTeiWhenTeiIsUpdated() throws IOException {
+  void shouldUpdateTrackedEntityWhenTrackedEntityIsUpdated() throws IOException {
 
     TrackedEntity entityBeforeUpdate = getTrackedEntity();
 
     clearSession();
 
-    TrackerObjects trackerObjects = fromJson("tracker/single_tei.json");
+    TrackerObjects trackerObjects = fromJson("tracker/single_te.json");
     TrackerImportParams trackerImportParams = new TrackerImportParams();
     trackerImportParams.setImportStrategy(TrackerImportStrategy.UPDATE);
 
@@ -121,7 +121,7 @@ class LastUpdateImportTest extends TrackerTest {
   }
 
   @Test
-  void shouldUpdateTeiWhenEventIsUpdated() throws IOException {
+  void shouldUpdateTrackedEntityWhenEventIsUpdated() throws IOException {
     TrackedEntity entityBeforeUpdate = getTrackedEntity();
 
     User user = user();
@@ -157,7 +157,7 @@ class LastUpdateImportTest extends TrackerTest {
   }
 
   @Test
-  void shouldUpdateTeiWhenEnrollmentIsUpdated() {
+  void shouldUpdateTrackedEntityWhenEnrollmentIsUpdated() {
 
     TrackedEntity entityBeforeUpdate = getTrackedEntity();
 

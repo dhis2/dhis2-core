@@ -41,6 +41,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.security.SystemAuthoritiesProvider;
+import org.hisp.dhis.webapi.controller.Server;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -52,9 +53,9 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Jan Bernitt
  */
-@OpenApi.Tags({"user", "query"})
+@OpenApi.Document(domain = Server.class)
 @RestController
-@RequestMapping(value = "/authorities")
+@RequestMapping("/api/authorities")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class AuthoritiesController {
   @Autowired private I18nManager i18nManager;

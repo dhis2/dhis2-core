@@ -27,19 +27,21 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.security.Authorities.F_LEGEND_SET_DELETE;
+import static org.hisp.dhis.security.Authorities.F_LEGEND_SET_PRIVATE_ADD;
+import static org.hisp.dhis.security.Authorities.F_LEGEND_SET_PUBLIC_ADD;
+
 import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.legend.LegendSet;
-import org.hisp.dhis.schema.descriptors.LegendSetSchemaDescriptor;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -48,13 +50,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags("ui")
 @Controller
-@RequestMapping(value = LegendSetSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/legendSets")
 public class LegendSetController extends AbstractCrudController<LegendSet> {
   @Override
-  @PreAuthorize(
-      "hasRole('F_LEGEND_SET_PUBLIC_ADD') or hasRole('F_LEGEND_SET_PRIVATE_ADD') or hasRole('ALL')")
+  @RequiresAuthority(anyOf = {F_LEGEND_SET_PUBLIC_ADD, F_LEGEND_SET_PRIVATE_ADD})
   public WebMessage postJsonObject(HttpServletRequest request)
       throws ForbiddenException,
           ConflictException,
@@ -65,8 +65,7 @@ public class LegendSetController extends AbstractCrudController<LegendSet> {
   }
 
   @Override
-  @PreAuthorize(
-      "hasRole('F_LEGEND_SET_PUBLIC_ADD') or hasRole('F_LEGEND_SET_PRIVATE_ADD')  or hasRole('ALL')")
+  @RequiresAuthority(anyOf = {F_LEGEND_SET_PUBLIC_ADD, F_LEGEND_SET_PRIVATE_ADD})
   public WebMessage putJsonObject(
       @PathVariable String uid, @CurrentUser UserDetails currentUser, HttpServletRequest request)
       throws ForbiddenException,
@@ -78,7 +77,7 @@ public class LegendSetController extends AbstractCrudController<LegendSet> {
   }
 
   @Override
-  @PreAuthorize("hasRole('F_LEGEND_SET_DELETE') or hasRole('ALL')")
+  @RequiresAuthority(anyOf = F_LEGEND_SET_DELETE)
   public WebMessage deleteObject(
       @PathVariable String uid,
       @CurrentUser UserDetails currentUser,

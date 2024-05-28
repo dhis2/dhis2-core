@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import static java.util.stream.Collectors.toList;
+
 import com.google.common.collect.ImmutableSet;
 import java.util.HashSet;
 import java.util.List;
@@ -34,7 +36,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +49,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.MathUtils;
@@ -327,7 +327,7 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
           programAttributeStore.getAttributes(
               programs.stream()
                   .filter(program -> aclService.canDataRead(userDetails, program))
-                  .collect(Collectors.toList())));
+                  .collect(toList())));
     }
 
     if (trackedEntityTypes != null && !trackedEntityTypes.isEmpty()) {
@@ -336,16 +336,10 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
               trackedEntityTypes.stream()
                   .filter(
                       trackedEntityType -> aclService.canDataRead(userDetails, trackedEntityType))
-                  .collect(Collectors.toList())));
+                  .collect(toList())));
     }
 
     return attributes;
-  }
-
-  @Override
-  public ProgramTrackedEntityAttribute getProgramTrackedEntityAttribute(
-      Program program, TrackedEntityAttribute trackedEntityAttribute) {
-    return programAttributeStore.get(program, trackedEntityAttribute);
   }
 
   @Override
@@ -363,7 +357,7 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
   public List<TrackedEntityAttribute> getAllSystemWideUniqueTrackedEntityAttributes() {
     return getAllTrackedEntityAttributes().stream()
         .filter(TrackedEntityAttribute::isSystemWideUnique)
-        .collect(Collectors.toList());
+        .collect(toList());
   }
 
   @Override
@@ -371,7 +365,7 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
   public List<TrackedEntityAttribute> getAllUniqueTrackedEntityAttributes() {
     return getAllTrackedEntityAttributes().stream()
         .filter(TrackedEntityAttribute::isUnique)
-        .collect(Collectors.toList());
+        .collect(toList());
   }
 
   @Override
