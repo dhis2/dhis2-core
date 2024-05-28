@@ -310,7 +310,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     return "";
   }
 
-  private Rule toRule(ProgramRule programRule, Set<ProgramRuleAction> actions) {
+  private Rule toRule(ProgramRule programRule, List<ProgramRuleAction> actions) {
     if (programRule == null) {
       return null;
     }

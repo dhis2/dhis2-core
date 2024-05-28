@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.programrule.engine;
 
+import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
