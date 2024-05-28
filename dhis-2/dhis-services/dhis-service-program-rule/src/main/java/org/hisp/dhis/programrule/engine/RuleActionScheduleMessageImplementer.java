@@ -66,7 +66,6 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
   private final ProgramNotificationInstanceService programNotificationInstanceService;
   private final NotificationTemplateService notificationTemplateService;
-  private final AuthenticationService authenticationService;
 
   public RuleActionScheduleMessageImplementer(
       ProgramNotificationTemplateService programNotificationTemplateService,
