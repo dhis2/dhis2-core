@@ -31,6 +31,7 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.SYSTEM_PROGRAM_RULE_S
 
 import com.google.common.collect.Lists;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -41,6 +42,7 @@ import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -84,7 +86,8 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
       return List.of();
     }
 
-    List<ProgramRule> programRules = programRuleEngine.getProgramRules(enrollment.getProgram());
+    Map<ProgramRule, List<ProgramRuleAction>> programRules =
+        programRuleEngine.getProgramRules(enrollment.getProgram());
 
     if (programRules.isEmpty()) {
       return List.of();
@@ -139,7 +142,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
     }
 
     Program program = event.getProgramStage().getProgram();
-    List<ProgramRule> programRules =
+    Map<ProgramRule, List<ProgramRuleAction>> programRules =
         programRuleEngine.getProgramRules(program, List.of(event.getProgramStage()));
 
     if (programRules.isEmpty()) {

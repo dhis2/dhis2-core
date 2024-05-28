@@ -28,10 +28,12 @@
 package org.hisp.dhis.programrule.engine;
 
 import java.util.List;
+import java.util.Map;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleService;
 import org.springframework.stereotype.Component;
@@ -47,8 +49,9 @@ public class NotificationImplementableRuleService extends ImplementableRuleServi
   }
 
   @Override
-  public List<ProgramRule> getProgramRulesByActionTypes(Program program, String programStageUid) {
-    List<ProgramRule> permittedRules =
+  public Map<ProgramRule, List<ProgramRuleAction>> getProgramRulesByActionTypes(
+      Program program, String programStageUid) {
+    Map<ProgramRule, List<ProgramRuleAction>> permittedRules =
         getProgramRulesByActionTypes(
             program, ProgramRuleActionType.NOTIFICATION_LINKED_TYPES, programStageUid);
 
