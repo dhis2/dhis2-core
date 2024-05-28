@@ -31,6 +31,7 @@ import com.google.common.collect.Maps;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -56,7 +57,7 @@ public class SupplementaryDataProvider {
 
   @Nonnull private final OrganisationUnitGroupService organisationUnitGroupService;
 
-  public Map<String, List<String>> getSupplementaryData(List<ProgramRule> programRules) {
+  public Map<String, List<String>> getSupplementaryData(Set<ProgramRule> programRules) {
     List<String> orgUnitGroups = new ArrayList<>();
 
     for (ProgramRule programRule : programRules) {

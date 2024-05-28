@@ -97,20 +97,45 @@ public class HibernateProgramRuleStore extends HibernateIdentifiableObjectStore<
   }
 
   @Override
-  public List<ProgramRule> getProgramRulesByActionTypes(
-      Program program, Set<ProgramRuleActionType> actionTypes) {
-    final String hql =
-        "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra "
-            + "WHERE pr.program = :program AND pra.programRuleActionType IN ( :actionTypes ) ";
+  public Map<ProgramRule, List<ProgramRuleAction>> getProgramRulesByActionTypes(
+      Program program, Set<ProgramRuleActionType> types) {
+    String hql =
+        """
+                SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra
+                LEFT JOIN FETCH pr.programStage ps
+                WHERE pr.program = :programId AND pra.programRuleActionType IN ( :implementableTypes )
+                """;
 
-    return getQuery(hql)
-        .setParameter("program", program)
-        .setParameter("actionTypes", actionTypes)
-        .getResultList();
+    List<ProgramRule> programRules =
+        getQuery(hql)
+            .setParameter("programId", program)
+            .setParameter("implementableTypes", types)
+            .getResultList();
+
+    if (programRules.isEmpty()) {
+      return Map.of();
+    }
+
+    hql =
+        """
+                SELECT distinct pra FROM ProgramRuleAction pra
+                WHERE pra.programRule in ( :programRuleIds ) AND pra.programRuleActionType IN ( :implementableTypes )
+                """;
+
+    Map<ProgramRule, List<ProgramRuleAction>> ruleActions =
+        getSession()
+            .createQuery(hql, ProgramRuleAction.class)
+            .setParameter("programRuleIds", programRules)
+            .setParameter("implementableTypes", types)
+            .getResultList()
+            .stream()
+            .collect(Collectors.groupingBy(ProgramRuleAction::getProgramRule));
+
+    return ruleActions;
   }
 
   @Override
-  public List<ProgramRule> getProgramRulesByActionTypes(
+  public Map<ProgramRule, List<ProgramRuleAction>> getProgramRulesByActionTypes(
       Program program, Set<ProgramRuleActionType> types, String programStageUid) {
     String hql =
         """
@@ -128,7 +153,7 @@ public class HibernateProgramRuleStore extends HibernateIdentifiableObjectStore<
             .getResultList();
 
     if (programRules.isEmpty()) {
-      return programRules;
+      return Map.of();
     }
 
     hql =
@@ -137,27 +162,16 @@ public class HibernateProgramRuleStore extends HibernateIdentifiableObjectStore<
             WHERE pra.programRule in ( :programRuleIds ) AND pra.programRuleActionType IN ( :implementableTypes )
             """;
 
-    Map<ProgramRule, Set<ProgramRuleAction>> ruleActions =
+    Map<ProgramRule, List<ProgramRuleAction>> ruleActions =
         getSession()
             .createQuery(hql, ProgramRuleAction.class)
             .setParameter("programRuleIds", programRules)
             .setParameter("implementableTypes", types)
             .getResultList()
             .stream()
-            .collect(Collectors.groupingBy(ProgramRuleAction::getProgramRule, Collectors.toSet()));
+            .collect(Collectors.groupingBy(ProgramRuleAction::getProgramRule));
 
-    if (ruleActions.isEmpty()) {
-      return programRules;
-    }
-
-    for (ProgramRule programRule : programRules) {
-      if (ruleActions.containsKey(programRule)) {
-        programRule.getProgramRuleActions().clear();
-        programRule.getProgramRuleActions().addAll(ruleActions.get(programRule));
-      }
-    }
-
-    return List.copyOf(programRules);
+    return ruleActions;
   }
 
   @Override

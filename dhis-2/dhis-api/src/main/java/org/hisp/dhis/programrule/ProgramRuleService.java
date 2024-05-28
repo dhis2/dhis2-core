@@ -28,6 +28,7 @@
 package org.hisp.dhis.programrule;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.program.Program;
 
@@ -91,9 +92,10 @@ public interface ProgramRuleService {
 
   List<ProgramRule> getProgramRulesLinkedToTeaOrDe();
 
-  List<ProgramRule> getProgramRulesByActionTypes(Program program, Set<ProgramRuleActionType> types);
+  Map<ProgramRule, List<ProgramRuleAction>> getProgramRulesByActionTypes(
+      Program program, Set<ProgramRuleActionType> types);
 
-  List<ProgramRule> getProgramRulesByActionTypes(
+  Map<ProgramRule, List<ProgramRuleAction>> getProgramRulesByActionTypes(
       Program program, Set<ProgramRuleActionType> serverSupportedTypes, String programStageUid);
 
   /**

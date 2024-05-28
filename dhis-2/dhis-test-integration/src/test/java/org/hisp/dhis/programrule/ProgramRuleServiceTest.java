@@ -36,8 +36,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.DeleteNotAllowedException;
@@ -377,12 +379,13 @@ class ProgramRuleServiceTest extends IntegrationTestBase {
     ruleD.setProgramRuleActions(Sets.newHashSet(actionD));
     programRuleService.updateProgramRule(ruleD);
     // Get all the 3 rules for programB
-    List<ProgramRule> rules =
+
+    Map<ProgramRule, List<ProgramRuleAction>> rules =
         programRuleService.getProgramRulesByActionTypes(
             programB, ProgramRuleActionType.IMPLEMENTED_ACTIONS);
     assertEquals(1, rules.size());
-    assertTrue(rules.contains(ruleD));
-    assertFalse(rules.contains(ruleG));
+    assertTrue(rules.containsKey(ruleD));
+    assertFalse(rules.containsKey(ruleG));
   }
 
   @Test
@@ -421,16 +424,14 @@ class ProgramRuleServiceTest extends IntegrationTestBase {
     programRuleService.updateProgramRule(ruleD);
     programRuleService.updateProgramRule(ruleG);
 
-    List<ProgramRule> rules =
+    Map<ProgramRule, List<ProgramRuleAction>> rules =
         programRuleService.getProgramRulesByActionTypes(
             programB, ProgramRuleActionType.SERVER_SUPPORTED_TYPES, null);
 
-    assertContainsOnly(rules, List.of(ruleD, ruleG));
+    assertContainsOnly(rules.keySet(), List.of(ruleD, ruleG));
 
     List<ProgramRuleAction> ruleActions =
-        rules.stream()
-            .flatMap(r -> r.getProgramRuleActions().stream())
-            .collect(Collectors.toList());
+        rules.values().stream().flatMap(Collection::stream).collect(Collectors.toList());
 
     assertContainsOnly(
         ruleActions, List.of(showWarningAction, sendMessageActionA, sendMessageActionB));

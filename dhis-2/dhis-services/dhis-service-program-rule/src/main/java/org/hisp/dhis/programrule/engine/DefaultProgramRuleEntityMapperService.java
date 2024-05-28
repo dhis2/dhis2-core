@@ -121,15 +121,11 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
   private final I18nManager i18nManager;
 
   @Override
-  public List<Rule> toMappedProgramRules() {
-    List<ProgramRule> programRules = programRuleService.getAllProgramRule();
-
-    return toMappedProgramRules(programRules);
-  }
-
-  @Override
-  public List<Rule> toMappedProgramRules(List<ProgramRule> programRules) {
-    return programRules.stream().map(this::toRule).filter(Objects::nonNull).toList();
+  public List<Rule> toMappedProgramRules(Map<ProgramRule, List<ProgramRuleAction>> programRules) {
+    return programRules.keySet().stream()
+        .map(rule -> toRule(rule, programRules.get(rule)))
+        .filter(Objects::nonNull)
+        .toList();
   }
 
   @Override
@@ -314,18 +310,16 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     return "";
   }
 
-  private Rule toRule(ProgramRule programRule) {
+  private Rule toRule(ProgramRule programRule, List<ProgramRuleAction> actions) {
     if (programRule == null) {
       return null;
     }
-
-    Set<ProgramRuleAction> programRuleActions = programRule.getProgramRuleActions();
 
     List<RuleAction> ruleActions;
 
     Rule rule;
     try {
-      ruleActions = programRuleActions.stream().map(this::toRuleAction).toList();
+      ruleActions = actions.stream().map(this::toRuleAction).toList();
       rule =
           new Rule(
               programRule.getCondition(),

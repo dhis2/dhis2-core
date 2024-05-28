@@ -28,13 +28,16 @@
 package org.hisp.dhis.programrule.engine;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleService;
 
@@ -42,11 +45,12 @@ import org.hisp.dhis.programrule.ProgramRuleService;
 abstract class ImplementableRuleService {
   private final ProgramRuleService programRuleService;
 
-  abstract List<ProgramRule> getProgramRulesByActionTypes(Program program, String programStageUid);
+  abstract Map<ProgramRule, List<ProgramRuleAction>> getProgramRulesByActionTypes(
+      Program program, String programStageUid);
 
   abstract Cache<Boolean> getProgramHasRulesCache();
 
-  protected List<ProgramRule> getProgramRulesByActionTypes(
+  protected Map<ProgramRule, List<ProgramRuleAction>> getProgramRulesByActionTypes(
       Program program, Set<ProgramRuleActionType> types, String programStageUid) {
     if (programStageUid == null) {
       return programRuleService.getProgramRulesByActionTypes(program, types);
@@ -55,14 +59,15 @@ abstract class ImplementableRuleService {
     }
   }
 
-  public List<ProgramRule> getProgramRules(Program program, String programStageUid) {
+  public Map<ProgramRule, List<ProgramRuleAction>> getProgramRules(
+      Program program, String programStageUid) {
     Optional<Boolean> optionalCacheValue = getProgramHasRulesCache().get(program.getUid());
 
     if (optionalCacheValue.isPresent() && Boolean.FALSE.equals(optionalCacheValue.get())) {
-      return List.of();
+      return Map.of();
     }
 
-    List<ProgramRule> programRulesByActionTypes =
+    Map<ProgramRule, List<ProgramRuleAction>> programRulesByActionTypes =
         getProgramRulesByActionTypes(program, programStageUid);
 
     if (programStageUid == null) // To populate programHasRulesCache at
@@ -72,9 +77,9 @@ abstract class ImplementableRuleService {
 
       // At enrollment, only those rules should be selected for execution
       // which are not associated with any ProgramStage.
-      return programRulesByActionTypes.stream()
+      return programRulesByActionTypes.keySet().stream()
           .filter(rule -> rule.getProgramStage() == null)
-          .collect(Collectors.toList());
+          .collect(Collectors.toMap(Function.identity(), programRulesByActionTypes::get));
     }
 
     return programRulesByActionTypes;
