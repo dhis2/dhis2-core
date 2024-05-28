@@ -45,6 +45,7 @@ import org.hisp.dhis.program.notification.template.snapshot.NotificationTemplate
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.user.AuthenticationService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,15 +63,15 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
   // -------------------------------------------------------------------------
 
   private final ProgramNotificationInstanceService programNotificationInstanceService;
-
   private final NotificationTemplateService notificationTemplateService;
 
   public RuleActionScheduleMessageImplementer(
       ProgramNotificationTemplateService programNotificationTemplateService,
       NotificationLoggingService notificationLoggingService,
       ProgramNotificationInstanceService programNotificationInstanceService,
-      NotificationTemplateService notificationTemplateService) {
-    super(programNotificationTemplateService, notificationLoggingService);
+      NotificationTemplateService notificationTemplateService,
+      AuthenticationService authenticationService) {
+    super(programNotificationTemplateService, notificationLoggingService, authenticationService);
     this.programNotificationInstanceService = programNotificationInstanceService;
     this.notificationTemplateService = notificationTemplateService;
   }
@@ -83,6 +84,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
   @Override
   @Transactional
   public void implement(RuleEffect ruleEffect, Enrollment enrollment) {
+    authenticationService.obtainSystemAuthentication();
     NotificationValidationResult result = validate(ruleEffect, enrollment);
 
     if (!result.isValid()) {
@@ -122,6 +124,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
   @Override
   @Transactional
   public void implement(RuleEffect ruleEffect, Event event) {
+    authenticationService.obtainSystemAuthentication();
     checkNotNull(event, "Event cannot be null");
 
     NotificationValidationResult result = validate(ruleEffect, event.getEnrollment());
