@@ -211,13 +211,24 @@ valid if `assignedUserMode` is either `PROVIDED` or not specified.
 
 ### `*.parameter.TrackedEntityRequestParams.programStage`
 
+Define which programStage the `eventStatus`, `eventOccurredAfter` and `eventOccurredAfter` parameter should be applied to.
+
 ### `*.parameter.TrackedEntityRequestParams.eventStatus`
+
+Only return tracked entity instances that has at least one event in the specified status. See also
+`programStage`.
 
 ### `*.parameter.TrackedEntityRequestParams.eventOccurredAfter`
 
+Only return tracked entity instances that has at least one event after this date. See also `programStage`.
+
 ### `*.parameter.TrackedEntityRequestParams.eventOccurredBefore`
 
+Only return tracked entity instances that has at least one event before this date. See also `programStage`.
+
 ### `*.parameter.TrackedEntityRequestParams.includeDeleted`
+
+Include deleted tracked entities, enrollments and events in the response.
 
 ### `*.parameter.TrackedEntityRequestParams.potentialDuplicate`
 
