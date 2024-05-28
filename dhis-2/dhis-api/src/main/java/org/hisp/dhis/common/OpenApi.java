@@ -424,8 +424,7 @@ public @interface OpenApi {
       DEFAULT(""),
       INFO("%sInfo"),
       TRACKER("Tracker%s"),
-      ANALYTICS("Analytics%s"),
-      DEPRECATED_TRACKER("Deprecated_Tracker%s");
+      ANALYTICS("Analytics%s");
 
       private final String template;
     }
