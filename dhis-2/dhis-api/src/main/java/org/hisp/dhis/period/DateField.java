@@ -25,41 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling.parameters;
+package org.hisp.dhis.period;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dashboard.Dashboard;
-import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.user.UserGroup;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
-/**
- * @author Jan Bernitt
- */
-@Setter
-@Getter
-@NoArgsConstructor
-public class HtmlPushAnalyticsJobParameters implements JobParameters {
+import java.util.Date;
+import java.util.Objects;
+import java.util.function.Supplier;
 
-  @OpenApi.Property({UID.class, Dashboard.class})
-  @JsonProperty(required = true)
-  private String dashboard;
+public record DateField(Date date, String dateField) {
 
-  @OpenApi.Property({UID.class, UserGroup.class})
-  @JsonProperty(required = true)
-  private String receivers;
+  public static DateField withDefaultsIfNecessary(DateField dateField) {
+    if (Objects.isNull(dateField)) {
+      return new DateField(new Date(), "");
+    }
+    return new DateField(
+        defaultIfNull(dateField.date(), Date::new),
+        defaultIfNull(dateField.dateField(), () -> EMPTY));
+  }
 
-  @JsonProperty(required = true)
-  private ViewMode mode;
+  private static <T> T defaultIfNull(T item, Supplier<T> itemSupplier) {
+    return Objects.isNull(item) ? itemSupplier.get() : item;
+  }
 
-  public enum ViewMode {
-    /** The dashboard is viewed as the user running (executing) the push analytics job */
-    EXECUTOR,
-    /** The dashboard is viewed as the user receiving the push analytics email */
-    RECEIVER
+  public static DateField withDefaults() {
+    return new DateField(new Date(), EMPTY);
+  }
+
+  public DateField withDate(Date date) {
+    return new DateField(date, dateField);
   }
 }
