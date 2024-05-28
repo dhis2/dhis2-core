@@ -44,6 +44,7 @@ import org.hisp.dhis.program.notification.event.ProgramRuleStageEvent;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.user.AuthenticationService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -74,12 +75,14 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
       NotificationLoggingService notificationLoggingService,
       EnrollmentService enrollmentService,
       EventService eventService,
-      ApplicationEventPublisher publisher) {
+      ApplicationEventPublisher publisher,
+      AuthenticationService authenticationService) {
     super(
         programNotificationTemplateService,
         notificationLoggingService,
         enrollmentService,
-        eventService);
+        eventService,
+        authenticationService);
     this.publisher = publisher;
   }
 
@@ -110,7 +113,7 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
     entry.setNotificationTriggeredBy(NotificationTriggerEvent.PROGRAM);
     entry.setAllowMultiple(template.isSendRepeatable());
 
-    notificationLoggingService.save(entry);
+    saveExternalLogEntry(entry);
   }
 
   @Override
@@ -142,7 +145,7 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
     entry.setNotificationTriggeredBy(NotificationTriggerEvent.PROGRAM_STAGE);
     entry.setAllowMultiple(template.isSendRepeatable());
 
-    notificationLoggingService.save(entry);
+    saveExternalLogEntry(entry);
   }
 
   private void handleSingleEvent(RuleEffect ruleEffect, Event event) {
