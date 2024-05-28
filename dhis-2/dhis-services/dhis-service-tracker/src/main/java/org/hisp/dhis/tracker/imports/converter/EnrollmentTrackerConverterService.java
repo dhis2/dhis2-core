@@ -45,6 +45,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors;
 import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Service;
 
 /**
@@ -147,18 +148,15 @@ public class EnrollmentTrackerConverterService
     dbEnrollment.setFollowup(enrollment.isFollowUp());
     dbEnrollment.setGeometry(enrollment.getGeometry());
 
-    if (enrollment.getStatus() == null) {
-      enrollment.setStatus(org.hisp.dhis.tracker.imports.domain.EnrollmentStatus.ACTIVE);
-    }
-
     EnrollmentStatus previousStatus = dbEnrollment.getStatus();
-    dbEnrollment.setStatus(enrollment.getStatus().getProgramStatus());
+    dbEnrollment.setStatus(
+        ObjectUtils.firstNonNull(enrollment.getStatus(), EnrollmentStatus.ACTIVE));
 
     if (previousStatus != dbEnrollment.getStatus()) {
       if (dbEnrollment.isCompleted()) {
         dbEnrollment.setCompletedDate(now);
         dbEnrollment.setCompletedBy(preheat.getUsername());
-      } else if (dbEnrollment.getStatus().equals(EnrollmentStatus.CANCELLED)) {
+      } else if (EnrollmentStatus.CANCELLED == dbEnrollment.getStatus()) {
         dbEnrollment.setCompletedDate(now);
       }
     }
