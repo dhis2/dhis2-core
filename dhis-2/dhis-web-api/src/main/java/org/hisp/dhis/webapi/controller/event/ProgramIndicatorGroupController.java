@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.program.ProgramIndicatorGroup;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.stereotype.Controller;
@@ -36,7 +35,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 /**
  * @author Mark Polak
  */
-@OpenApi.Tags("tracker")
 @Controller
 @RequestMapping("/api/programIndicatorGroups")
 public class ProgramIndicatorGroupController

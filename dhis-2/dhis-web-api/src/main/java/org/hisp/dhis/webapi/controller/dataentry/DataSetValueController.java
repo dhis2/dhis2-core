@@ -61,7 +61,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("data")
+@OpenApi.Document(domain = DataValue.class)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/dataEntry")

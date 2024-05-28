@@ -50,7 +50,7 @@ import org.hisp.dhis.maintenance.MaintenanceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.resourcetable.ResourceTableService;
-import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,7 +67,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("system")
+@OpenApi.Document(domain = Server.class)
 @Controller
 @RequestMapping("/api/maintenance")
 @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
@@ -223,7 +223,7 @@ public class MaintenanceController {
       method = {RequestMethod.PUT, RequestMethod.POST})
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void createSqlViews() {
-    resourceTableService.createAllSqlViews(NoopJobProgress.INSTANCE);
+    resourceTableService.createAllSqlViews(JobProgress.noop());
   }
 
   @RequestMapping(
@@ -231,7 +231,7 @@ public class MaintenanceController {
       method = {RequestMethod.PUT, RequestMethod.POST})
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void dropSqlViews() {
-    resourceTableService.dropAllSqlViews(NoopJobProgress.INSTANCE);
+    resourceTableService.dropAllSqlViews(JobProgress.noop());
   }
 
   @RequestMapping(
@@ -393,7 +393,7 @@ public class MaintenanceController {
     }
 
     if (resourceTableUpdate) {
-      analyticsTableGenerator.generateResourceTables(NoopJobProgress.INSTANCE);
+      analyticsTableGenerator.generateResourceTables(JobProgress.noop());
     }
   }
 }

@@ -51,7 +51,6 @@ import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.AuthorityInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
-import org.hisp.dhis.webapi.mvc.messageconverter.CsvMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.MetadataExportParamsMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.StreamingJsonRootMessageConverter;
@@ -85,8 +84,10 @@ import org.springframework.web.accept.HeaderContentNegotiationStrategy;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.DelegatingWebMvcConfiguration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.springframework.web.servlet.resource.PathResourceResolver;
@@ -103,20 +104,8 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   // Paths where XML should still be allowed.
   public static final List<Pattern> XML_PATTERNS =
       List.of(
-          Pattern.compile("/api/(\\d\\d/)?relationships(.xml)?(.+)?"),
-          Pattern.compile("/api/(\\d\\d/)?enrollments(.xml)?(.+)?"),
-          Pattern.compile("/api/(\\d\\d/)?events(.xml)?(.+)?"),
-          Pattern.compile(
-              "/api/(\\d\\d/)?trackedEntityInstances(.xml)?(.+)?"), // TODO(tracker): remove with
-          // old
-          // tracker
           Pattern.compile("/api/(\\d\\d/)?dataValueSets(.xml)?(.+)?"),
           Pattern.compile("/api/(\\d\\d/)?completeDataSetRegistrations(.xml)?(.+)?"));
-
-  public static final List<Pattern> CSV_PATTERNS =
-      List.of(
-          Pattern.compile(
-              "/api/(\\d\\d/)?trackedEntityInstances.csv(.+)?")); // TODO(tracker): remove with old
 
   @Autowired
   public CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
@@ -161,12 +150,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
     registry
         .setOrder(Ordered.LOWEST_PRECEDENCE)
         .addResourceHandler("/**")
-        .addResourceLocations(
-            "/resources/",
-            "/dhis/",
-            "classpath:/static/",
-            "file:./dhis-web-apps/target/dhis-web-apps/",
-            "file:./dhis-web-commons-resources/src/main/webapp/")
+        .addResourceLocations("classpath:/static/", "file:./dhis-web-apps/target/dhis-web-apps/")
         // .setCachePeriod(3600)
         .resourceChain(false)
         .addResolver(new IndexFallbackResourceResolver());
@@ -227,9 +211,6 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
     Arrays.stream(Compression.values())
         .forEach(
             compression -> converters.add(new XmlMessageConverter(nodeService(), compression)));
-    Arrays.stream(Compression.values())
-        .forEach(
-            compression -> converters.add(new CsvMessageConverter(nodeService(), compression)));
 
     Arrays.stream(Compression.values())
         .forEach(
@@ -285,6 +266,22 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
     registry.addInterceptor(new UserContextInterceptor(userSettingService));
     registry.addInterceptor(new RequestInfoInterceptor(requestInfoService));
     registry.addInterceptor(authorityInterceptor);
+  }
+
+  @Override
+  public void configureContentNegotiation(ContentNegotiationConfigurer config) {
+    config
+        .favorPathExtension(true)
+        .favorParameter(false)
+        .ignoreAcceptHeader(false)
+        .defaultContentType(MediaType.APPLICATION_JSON)
+        .mediaType("json", MediaType.APPLICATION_JSON)
+        .mediaType("xml", MediaType.APPLICATION_XML);
+  }
+
+  @Override
+  public void configurePathMatch(PathMatchConfigurer config) {
+    config.setUseSuffixPatternMatch(true);
   }
 
   private Map<String, MediaType> mediaTypeMap =

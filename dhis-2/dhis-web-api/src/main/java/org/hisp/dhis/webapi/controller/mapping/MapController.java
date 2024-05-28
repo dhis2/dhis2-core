@@ -46,7 +46,6 @@ import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MergeMode;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -89,7 +88,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("metadata")
 @Controller
 @RequestMapping("/api/maps")
 public class MapController extends AbstractCrudController<Map> {

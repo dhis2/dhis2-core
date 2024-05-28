@@ -59,17 +59,17 @@ class DuplicateRelationshipSupplierTest extends DhisConvenienceTest {
 
   private static final String REL_C_UID = "RELC";
 
-  private static final String TE_A_UID = "TEIA";
+  private static final String TE_A_UID = "TE_A";
 
-  private static final String TE_B_UID = "TEIB";
+  private static final String TE_B_UID = "TE_B";
 
-  private static final String TE_C_UID = "TEIC";
+  private static final String TE_C_UID = "TE_C";
 
-  private static final String KEY_REL_A = "UNIRELTYPE_TEIA_TEIB";
+  private static final String KEY_REL_A = "UNIRELTYPE_TE_A_TE_B";
 
-  private static final String KEY_REL_B = "BIRELTYPE_TEIB_TEIC";
+  private static final String KEY_REL_B = "BIRELTYPE_TE_B_TE_C";
 
-  private static final String KEY_REL_C = "UNIRELTYPE_TEIC_TEIA";
+  private static final String KEY_REL_C = "UNIRELTYPE_TE_C_TE_A";
 
   private static final String UNIDIRECTIONAL_RELATIONSHIP_TYPE_UID = "UNIRELTYPE";
 

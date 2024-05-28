@@ -75,10 +75,7 @@ class UIDBindingTest {
 
   @BeforeEach
   public void setUp() {
-    mockMvc =
-        MockMvcBuilders.standaloneSetup(new UIDController())
-            .setControllerAdvice(new CrudControllerAdvice())
-            .build();
+    mockMvc = MockMvcBuilders.standaloneSetup(new UIDController()).build();
   }
 
   @Test

@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -45,11 +44,13 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.tracker.export.PageRequestParams;
-import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
-import org.hisp.dhis.webapi.controller.tracker.view.User;
+import org.hisp.dhis.webapi.webdomain.EndDateTime;
+import org.hisp.dhis.webapi.webdomain.StartDateTime;
 
 /**
  * Represents query parameters sent to {@link TrackedEntitiesExportController}.
@@ -136,25 +137,25 @@ public class TrackedEntityRequestParams implements PageRequestParams {
   private Boolean followUp;
 
   /** Start date for last updated. */
-  private Date updatedAfter;
+  private StartDateTime updatedAfter;
 
   /** End date for last updated. */
-  private Date updatedBefore;
+  private EndDateTime updatedBefore;
 
   /** The last updated duration filter. */
   private String updatedWithin;
 
   /** The given Program start date. */
-  private Date enrollmentEnrolledAfter;
+  private StartDateTime enrollmentEnrolledAfter;
 
   /** The given Program end date. */
-  private Date enrollmentEnrolledBefore;
+  private EndDateTime enrollmentEnrolledBefore;
 
   /** Start date for incident in the given program. */
-  private Date enrollmentOccurredAfter;
+  private StartDateTime enrollmentOccurredAfter;
 
   /** End date for incident in the given program. */
-  private Date enrollmentOccurredBefore;
+  private EndDateTime enrollmentOccurredBefore;
 
   /** Only returns Tracked Entity Instances of this type. */
   @OpenApi.Property({UID.class, TrackedEntityType.class})
@@ -187,7 +188,7 @@ public class TrackedEntityRequestParams implements PageRequestParams {
   @OpenApi.Property({UID[].class, User.class})
   private Set<UID> assignedUsers = new HashSet<>();
 
-  /** Program Stage UID, used for filtering TEIs based on the selected Program Stage */
+  /** Program Stage UID, used for filtering TEs based on the selected Program Stage */
   @OpenApi.Property({UID.class, ProgramStage.class})
   private UID programStage;
 
@@ -195,17 +196,17 @@ public class TrackedEntityRequestParams implements PageRequestParams {
   private EventStatus eventStatus;
 
   /** Start date for Event for the given Program. */
-  private Date eventOccurredAfter;
+  private StartDateTime eventOccurredAfter;
 
   /** End date for Event for the given Program. */
-  private Date eventOccurredBefore;
+  private EndDateTime eventOccurredBefore;
 
   /** Indicates whether to include soft-deleted elements */
   private boolean includeDeleted = false;
 
   /**
-   * Potential Duplicate value for TEI. If null, we don't check whether a TEI is a
-   * potentialDuplicate or not
+   * Potential Duplicate value for TE. If null, we don't check whether a TE is a potentialDuplicate
+   * or not
    */
   private Boolean potentialDuplicate;
 

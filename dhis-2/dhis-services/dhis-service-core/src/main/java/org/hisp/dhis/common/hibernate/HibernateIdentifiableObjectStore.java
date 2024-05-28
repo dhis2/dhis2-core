@@ -46,7 +46,6 @@ import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -957,17 +956,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
     query.where(builder.or(predicates.toArray(new Predicate[0])));
     return !getSession().createQuery(query).setMaxResults(1).getResultList().isEmpty();
-  }
-
-  /**
-   * Create a Hibernate {@link NativeQuery} instance with {@code SynchronizedEntityClass} set to the
-   * current class. Use this to avoid all Hibernate second level caches from being invalidated.
-   *
-   * @param sql the SQL query to execute
-   * @return the {@link NativeQuery} instance
-   */
-  protected NativeQuery nativeUpdateQuery(String sql) {
-    return getSession().createNativeQuery(sql).addSynchronizedEntityClass(getClazz());
   }
 
   /**

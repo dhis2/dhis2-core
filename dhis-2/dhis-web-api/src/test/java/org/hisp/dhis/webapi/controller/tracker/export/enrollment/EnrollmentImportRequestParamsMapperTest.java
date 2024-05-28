@@ -40,7 +40,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -53,6 +52,8 @@ import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.webdomain.EndDateTime;
+import org.hisp.dhis.webapi.webdomain.StartDateTime;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -259,7 +260,7 @@ class EnrollmentImportRequestParamsMapperTest {
   @Test
   void shouldFailWhenEnrolledAfterProvidedAndProgramNotPresent() {
     EnrollmentRequestParams requestParams = new EnrollmentRequestParams();
-    requestParams.setEnrolledAfter(new Date());
+    requestParams.setEnrolledAfter(StartDateTime.of("2020-01-01"));
 
     Exception badRequestException =
         Assertions.assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
@@ -272,7 +273,7 @@ class EnrollmentImportRequestParamsMapperTest {
   @Test
   void shouldFailWhenEnrolledBeforeProvidedAndProgramNotPresent() {
     EnrollmentRequestParams requestParams = new EnrollmentRequestParams();
-    requestParams.setEnrolledBefore(new Date());
+    requestParams.setEnrolledBefore(EndDateTime.of("2020-01-01"));
 
     Exception badRequestException =
         Assertions.assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
@@ -285,7 +286,7 @@ class EnrollmentImportRequestParamsMapperTest {
   @Test
   void shouldFailWhenUpdatedWithinAndUpdatedAfterProvided() {
     EnrollmentRequestParams requestParams = new EnrollmentRequestParams();
-    requestParams.setUpdatedAfter(new Date());
+    requestParams.setUpdatedAfter(StartDateTime.of("2020-01-01"));
     requestParams.setUpdatedWithin("2h");
 
     Exception badRequestException =

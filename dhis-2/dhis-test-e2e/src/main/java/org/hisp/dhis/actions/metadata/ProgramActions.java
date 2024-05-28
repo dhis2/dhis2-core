@@ -176,7 +176,7 @@ public class ProgramActions extends RestApiActions {
     return programStageActions.update(programStageId, object);
   }
 
-  public ApiResponse addAttribute(String programId, String teiAttributeId, boolean isMandatory) {
+  public ApiResponse addAttribute(String programId, String teAttributeId, boolean isMandatory) {
     JsonObject object =
         this.get(programId, new QueryParamsBuilder().add("fields=*"))
             .getBodyAsJsonBuilder()
@@ -186,7 +186,7 @@ public class ProgramActions extends RestApiActions {
                     .addProperty("mandatory", String.valueOf(isMandatory))
                     .addObject(
                         "trackedEntityAttribute",
-                        new JsonObjectBuilder().addProperty("id", teiAttributeId))
+                        new JsonObjectBuilder().addProperty("id", teAttributeId))
                     .build())
             .build();
 

@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.sync;
 
 import java.util.Date;
 import lombok.Getter;
-import org.hisp.dhis.dxf2.synch.SystemInstance;
 import org.hisp.dhis.scheduling.JobProgress;
 
 /**
@@ -43,10 +42,6 @@ public interface DataSynchronizationWithPaging {
     private final int pages;
 
     private final int pageSize;
-
-    public PagedDataSynchronisationContext(Date skipChangedBefore, int pageSize) {
-      this(skipChangedBefore, 0, null, pageSize);
-    }
 
     public PagedDataSynchronisationContext(
         Date skipChangedBefore, int objectsToSynchronize, SystemInstance instance, int pageSize) {

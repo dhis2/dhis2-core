@@ -124,14 +124,14 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
 
   private void addProgramInstance(Program program) {
     if (getProgramInstancesCount(program) == 0 && program.isWithoutRegistration()) {
-      Enrollment pi = new Enrollment();
-      pi.setEnrollmentDate(new Date());
-      pi.setOccurredDate(new Date());
-      pi.setProgram(program);
-      pi.setStatus(ProgramStatus.ACTIVE);
-      pi.setStoredBy("system-process");
+      Enrollment enrollment = new Enrollment();
+      enrollment.setEnrollmentDate(new Date());
+      enrollment.setOccurredDate(new Date());
+      enrollment.setProgram(program);
+      enrollment.setStatus(ProgramStatus.ACTIVE);
+      enrollment.setStoredBy("system-process");
 
-      this.enrollmentService.addEnrollment(pi);
+      this.enrollmentService.addEnrollment(enrollment);
     }
   }
 

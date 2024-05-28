@@ -34,7 +34,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 
-interface TrackedEntityStore extends IdentifiableObjectStore<TrackedEntity> {
+public interface TrackedEntityStore extends IdentifiableObjectStore<TrackedEntity> {
   String ID = TrackedEntityStore.class.getName();
 
   /** Get all tracked entity ids matching given params. */

@@ -88,8 +88,6 @@ class MaintenanceServiceTest extends IntegrationTestBase {
 
   @Autowired private ProgramMessageService programMessageService;
 
-  @Autowired private TrackedEntityService entityInstanceService;
-
   @Autowired private TrackedEntityDataValueChangeLogService trackedEntityDataValueAuditService;
 
   @Autowired private DataElementService dataElementService;
@@ -128,19 +126,19 @@ class MaintenanceServiceTest extends IntegrationTestBase {
 
   private Enrollment enrollment;
 
-  private Enrollment enrollmentWithTeiAssociation;
+  private Enrollment enrollmentWithTeAssociation;
 
   private Event event;
 
-  private Event eventWithTeiAssociation;
+  private Event eventWithTeAssociation;
 
   private TrackedEntityType trackedEntityType;
 
   private TrackedEntity trackedEntity;
 
-  private TrackedEntity entityInstanceB;
+  private TrackedEntity trackedEntityB;
 
-  private TrackedEntity entityInstanceWithAssociations;
+  private TrackedEntity trackedEntityWithAssociations;
 
   private RelationshipType relationshipType;
 
@@ -165,11 +163,11 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
     trackedEntity = createTrackedEntity(organisationUnit);
     trackedEntity.setTrackedEntityType(trackedEntityType);
-    entityInstanceService.addTrackedEntity(trackedEntity);
-    entityInstanceB = createTrackedEntity(organisationUnit);
-    entityInstanceB.setTrackedEntityType(trackedEntityType);
-    entityInstanceService.addTrackedEntity(entityInstanceB);
-    entityInstanceWithAssociations = createTrackedEntity('T', organisationUnit);
+    trackedEntityService.addTrackedEntity(trackedEntity);
+    trackedEntityB = createTrackedEntity(organisationUnit);
+    trackedEntityB.setTrackedEntityType(trackedEntityType);
+    trackedEntityService.addTrackedEntity(trackedEntityB);
+    trackedEntityWithAssociations = createTrackedEntity('T', organisationUnit);
     DateTime testDate1 = DateTime.now();
     testDate1.withTimeAtStartOfDay();
     testDate1 = testDate1.minusDays(70);
@@ -180,24 +178,24 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     enrollment = new Enrollment(enrollmentDate, incidenDate, trackedEntity, program);
     enrollment.setUid("UID-A");
     enrollment.setOrganisationUnit(organisationUnit);
-    enrollmentWithTeiAssociation =
-        new Enrollment(enrollmentDate, incidenDate, entityInstanceWithAssociations, program);
-    enrollmentWithTeiAssociation.setUid("UID-B");
-    enrollmentWithTeiAssociation.setOrganisationUnit(organisationUnit);
-    trackedEntityService.addTrackedEntity(entityInstanceWithAssociations);
-    enrollmentService.addEnrollment(enrollmentWithTeiAssociation);
+    enrollmentWithTeAssociation =
+        new Enrollment(enrollmentDate, incidenDate, trackedEntityWithAssociations, program);
+    enrollmentWithTeAssociation.setUid("UID-B");
+    enrollmentWithTeAssociation.setOrganisationUnit(organisationUnit);
+    trackedEntityService.addTrackedEntity(trackedEntityWithAssociations);
+    enrollmentService.addEnrollment(enrollmentWithTeAssociation);
     enrollmentService.addEnrollment(enrollment);
     event = new Event(enrollment, stageA);
     event.setUid("PSUID-B");
     event.setOrganisationUnit(organisationUnit);
     event.setEnrollment(enrollment);
     event.setOccurredDate(new Date());
-    eventWithTeiAssociation = new Event(enrollmentWithTeiAssociation, stageA);
-    eventWithTeiAssociation.setUid("PSUID-C");
-    eventWithTeiAssociation.setOrganisationUnit(organisationUnit);
-    eventWithTeiAssociation.setEnrollment(enrollmentWithTeiAssociation);
-    eventWithTeiAssociation.setOccurredDate(new Date());
-    eventService.addEvent(eventWithTeiAssociation);
+    eventWithTeAssociation = new Event(enrollmentWithTeAssociation, stageA);
+    eventWithTeAssociation.setUid("PSUID-C");
+    eventWithTeAssociation.setOrganisationUnit(organisationUnit);
+    eventWithTeAssociation.setEnrollment(enrollmentWithTeAssociation);
+    eventWithTeAssociation.setOccurredDate(new Date());
+    eventService.addEvent(eventWithTeAssociation);
     relationshipType = createPersonToPersonRelationshipType('A', program, trackedEntityType, false);
     relationshipTypeService.addRelationshipType(relationshipType);
   }
@@ -288,7 +286,7 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     programMessageRecipients.setEmailAddresses(Sets.newHashSet("testemail"));
     programMessageRecipients.setPhoneNumbers(Sets.newHashSet("testphone"));
     programMessageRecipients.setOrganisationUnit(organisationUnit);
-    programMessageRecipients.setTrackedEntity(entityInstanceB);
+    programMessageRecipients.setTrackedEntity(trackedEntityB);
     ProgramMessage message =
         ProgramMessage.builder()
             .subject("subject")
@@ -296,15 +294,14 @@ class MaintenanceServiceTest extends IntegrationTestBase {
             .recipients(programMessageRecipients)
             .deliveryChannels(Sets.newHashSet(DeliveryChannel.EMAIL))
             .build();
-    long idA = entityInstanceService.addTrackedEntity(entityInstanceB);
+    long idA = trackedEntityService.addTrackedEntity(trackedEntityB);
     programMessageService.saveProgramMessage(message);
-    assertNotNull(entityInstanceService.getTrackedEntity(idA));
-    entityInstanceService.deleteTrackedEntity(entityInstanceB);
-    assertNull(entityInstanceService.getTrackedEntity(idA));
-    assertTrue(entityInstanceService.trackedEntityExistsIncludingDeleted(entityInstanceB.getUid()));
+    assertNotNull(trackedEntityService.getTrackedEntity(idA));
+    trackedEntityService.deleteTrackedEntity(trackedEntityB);
+    assertNull(trackedEntityService.getTrackedEntity(idA));
+    assertTrue(trackedEntityService.trackedEntityExistsIncludingDeleted(trackedEntityB.getUid()));
     maintenanceService.deleteSoftDeletedTrackedEntities();
-    assertFalse(
-        entityInstanceService.trackedEntityExistsIncludingDeleted(entityInstanceB.getUid()));
+    assertFalse(trackedEntityService.trackedEntityExistsIncludingDeleted(trackedEntityB.getUid()));
   }
 
   @Test
@@ -399,11 +396,11 @@ class MaintenanceServiceTest extends IntegrationTestBase {
   @Test
   @Disabled("until we can inject dhis.conf property overrides")
   void testAuditEntryForDeletionOfSoftDeletedTrackedEntity() {
-    trackedEntityService.deleteTrackedEntity(entityInstanceWithAssociations);
-    assertNull(trackedEntityService.getTrackedEntity(entityInstanceWithAssociations.getId()));
+    trackedEntityService.deleteTrackedEntity(trackedEntityWithAssociations);
+    assertNull(trackedEntityService.getTrackedEntity(trackedEntityWithAssociations.getId()));
     assertTrue(
         trackedEntityService.trackedEntityExistsIncludingDeleted(
-            entityInstanceWithAssociations.getUid()));
+            trackedEntityWithAssociations.getUid()));
     maintenanceService.deleteSoftDeletedTrackedEntities();
     List<Audit> audits =
         auditService.getAudits(
@@ -430,7 +427,7 @@ class MaintenanceServiceTest extends IntegrationTestBase {
   @Test
   void testDeleteSoftDeletedRelationship() {
     Relationship relationship =
-        createTeToTeRelationship(trackedEntity, entityInstanceB, relationshipType);
+        createTeToTeRelationship(trackedEntity, trackedEntityB, relationshipType);
     relationshipService.addRelationship(relationship);
     assertNotNull(relationshipService.getRelationship(relationship.getUid()));
 

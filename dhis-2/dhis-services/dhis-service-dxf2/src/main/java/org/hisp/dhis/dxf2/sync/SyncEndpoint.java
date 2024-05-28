@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.sync;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
 
@@ -40,9 +39,6 @@ import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public enum SyncEndpoint {
-  TRACKED_ENTITY_INSTANCES("/api/trackedEntityInstances", ImportSummaries.class),
-  ENROLLMENTS("/api/enrollments", ImportSummaries.class),
-  EVENTS("/api/events", ImportSummaries.class),
   COMPLETE_DATA_SET_REGISTRATIONS("/api/completeDataSetRegistrations", ImportSummary.class),
   DATA_VALUE_SETS("/api/dataValueSets", ImportSummary.class);
 

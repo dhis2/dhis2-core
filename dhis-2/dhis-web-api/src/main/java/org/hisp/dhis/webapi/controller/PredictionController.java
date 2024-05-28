@@ -42,10 +42,11 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.predictor.PredictionService;
 import org.hisp.dhis.predictor.PredictionSummary;
+import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobSchedulerService;
-import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUser;
@@ -61,7 +62,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Jim Grace
  */
-@OpenApi.Tags("analytics")
+@OpenApi.Document(domain = Predictor.class)
 @Controller
 @RequestMapping("/api/predictions")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -102,7 +103,7 @@ public class PredictionController {
     }
     PredictionSummary predictionSummary =
         predictionService.predictTask(
-            startDate, endDate, predictors, predictorGroups, NoopJobProgress.INSTANCE);
+            startDate, endDate, predictors, predictorGroups, JobProgress.noop());
 
     return new WebMessage(Status.OK, HttpStatus.OK)
         .setResponse(predictionSummary)

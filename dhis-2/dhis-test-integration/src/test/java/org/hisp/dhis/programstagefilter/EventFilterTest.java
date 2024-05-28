@@ -42,7 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 class EventFilterTest extends SingleSetupIntegrationTestBase {
 
-  @Autowired private EventFilterService psiFilterService;
+  @Autowired private EventFilterService eventFilterService;
 
   @Autowired private ProgramService programService;
 
@@ -60,8 +60,8 @@ class EventFilterTest extends SingleSetupIntegrationTestBase {
 
   @Test
   void testValidatenvalidEventFilterWithMissingProgram() {
-    EventFilter psiFilter = createProgramStageInstanceFilter('1', null, null);
-    List<String> errors = psiFilterService.validate(psiFilter);
+    EventFilter eventFilter = createProgramStageInstanceFilter('1', null, null);
+    List<String> errors = eventFilterService.validate(eventFilter);
     assertNotNull(errors);
     assertEquals(1, errors.size());
     assertTrue(errors.get(0).contains("Program should be specified for event filters"));
@@ -69,8 +69,8 @@ class EventFilterTest extends SingleSetupIntegrationTestBase {
 
   @Test
   void testValidateInvalidEventFilterWithInvalidProgram() {
-    EventFilter psiFilter = createProgramStageInstanceFilter('1', "ABCDEF12345", null);
-    List<String> errors = psiFilterService.validate(psiFilter);
+    EventFilter eventFilter = createProgramStageInstanceFilter('1', "ABCDEF12345", null);
+    List<String> errors = eventFilterService.validate(eventFilter);
     assertNotNull(errors);
     assertEquals(1, errors.size());
     assertTrue(errors.get(0).contains("Program is specified but does not exist"));
@@ -78,8 +78,9 @@ class EventFilterTest extends SingleSetupIntegrationTestBase {
 
   @Test
   void testValidateInvalidEventFilterWithInvalidProgramStage() {
-    EventFilter psiFilter = createProgramStageInstanceFilter('1', programA.getUid(), "ABCDEF12345");
-    List<String> errors = psiFilterService.validate(psiFilter);
+    EventFilter eventFilter =
+        createProgramStageInstanceFilter('1', programA.getUid(), "ABCDEF12345");
+    List<String> errors = eventFilterService.validate(eventFilter);
     assertNotNull(errors);
     assertEquals(1, errors.size());
     assertTrue(errors.get(0).contains("Program stage is specified but does not exist"));
@@ -87,11 +88,11 @@ class EventFilterTest extends SingleSetupIntegrationTestBase {
 
   @Test
   void testValidateInvalidEventFilterWithInvalidOrganisationUnit() {
-    EventFilter psiFilter = createProgramStageInstanceFilter('1', programA.getUid(), null);
+    EventFilter eventFilter = createProgramStageInstanceFilter('1', programA.getUid(), null);
     EventQueryCriteria eqc = new EventQueryCriteria();
     eqc.setOrganisationUnit("ABCDEF12345");
-    psiFilter.setEventQueryCriteria(eqc);
-    List<String> errors = psiFilterService.validate(psiFilter);
+    eventFilter.setEventQueryCriteria(eqc);
+    List<String> errors = eventFilterService.validate(eventFilter);
     assertNotNull(errors);
     assertEquals(1, errors.size());
     assertTrue(errors.get(0).contains("Org unit is specified but does not exist"));
@@ -99,12 +100,12 @@ class EventFilterTest extends SingleSetupIntegrationTestBase {
 
   @Test
   void testValidateInvalidEventFilterWithDataFilterAndEventUids() {
-    EventFilter psiFilter = createProgramStageInstanceFilter('1', programA.getUid(), null);
+    EventFilter eventFilter = createProgramStageInstanceFilter('1', programA.getUid(), null);
     EventQueryCriteria eqc = new EventQueryCriteria();
     eqc.setEvents(Collections.singleton("abcdefghijklm"));
     eqc.setDataFilters(Collections.singletonList(new EventDataFilter()));
-    psiFilter.setEventQueryCriteria(eqc);
-    List<String> errors = psiFilterService.validate(psiFilter);
+    eventFilter.setEventQueryCriteria(eqc);
+    List<String> errors = eventFilterService.validate(eventFilter);
     assertNotNull(errors);
     assertEquals(1, errors.size());
     assertTrue(
@@ -113,12 +114,12 @@ class EventFilterTest extends SingleSetupIntegrationTestBase {
 
   @Test
   void testValidateInvalidEventFilterWithIncorrectAssignedUserMode() {
-    EventFilter psiFilter = createProgramStageInstanceFilter('1', programA.getUid(), null);
+    EventFilter eventFilter = createProgramStageInstanceFilter('1', programA.getUid(), null);
     EventQueryCriteria eqc = new EventQueryCriteria();
     eqc.setAssignedUserMode(AssignedUserSelectionMode.CURRENT);
     eqc.setAssignedUsers(Collections.singleton("abcdefghijklm"));
-    psiFilter.setEventQueryCriteria(eqc);
-    List<String> errors = psiFilterService.validate(psiFilter);
+    eventFilter.setEventQueryCriteria(eqc);
+    List<String> errors = eventFilterService.validate(eventFilter);
     assertNotNull(errors);
     assertEquals(1, errors.size());
     assertTrue(
@@ -129,28 +130,28 @@ class EventFilterTest extends SingleSetupIntegrationTestBase {
 
   @Test
   void testValidateEventFilterSuccessfully() {
-    EventFilter psiFilter = createProgramStageInstanceFilter('1', programA.getUid(), null);
+    EventFilter eventFilter = createProgramStageInstanceFilter('1', programA.getUid(), null);
     EventQueryCriteria eqc = new EventQueryCriteria();
     eqc.setAssignedUserMode(AssignedUserSelectionMode.CURRENT);
-    psiFilter.setEventQueryCriteria(eqc);
-    List<String> errors = psiFilterService.validate(psiFilter);
+    eventFilter.setEventQueryCriteria(eqc);
+    List<String> errors = eventFilterService.validate(eventFilter);
     assertNotNull(errors);
     assertEquals(0, errors.size());
   }
 
   private static EventFilter createProgramStageInstanceFilter(
       char uniqueCharacter, String program, String programStage) {
-    EventFilter psiFilter = new EventFilter();
-    psiFilter.setAutoFields();
-    psiFilter.setName("eventFilterName" + uniqueCharacter);
-    psiFilter.setCode("eventFilterCode" + uniqueCharacter);
-    psiFilter.setDescription("eventFilterDescription" + uniqueCharacter);
+    EventFilter eventFilter = new EventFilter();
+    eventFilter.setAutoFields();
+    eventFilter.setName("eventFilterName" + uniqueCharacter);
+    eventFilter.setCode("eventFilterCode" + uniqueCharacter);
+    eventFilter.setDescription("eventFilterDescription" + uniqueCharacter);
     if (program != null) {
-      psiFilter.setProgram(program);
+      eventFilter.setProgram(program);
     }
     if (programStage != null) {
-      psiFilter.setProgramStage(programStage);
+      eventFilter.setProgramStage(programStage);
     }
-    return psiFilter;
+    return eventFilter;
   }
 }
