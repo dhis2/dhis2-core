@@ -80,35 +80,38 @@ public class MetadataSyncController {
     MetadataSyncParams syncParams;
     MetadataSyncSummary metadataSyncSummary = null;
 
-    try {
-      syncParams = metadataSyncService.getParamsFromMap(contextService.getParameterValuesMap());
-    } catch (RemoteServerUnavailableException exception) {
-      throw new MetadataSyncException(exception.getMessage(), exception);
+    synchronized (metadataSyncService) {
+      try {
+        syncParams = metadataSyncService.getParamsFromMap(contextService.getParameterValuesMap());
+      } catch (RemoteServerUnavailableException exception) {
+        throw new MetadataSyncException(exception.getMessage(), exception);
 
-    } catch (MetadataSyncServiceException serviceException) {
-      throw new BadRequestException(
-          "Error in parsing inputParams " + serviceException.getMessage());
-    }
-
-    try {
-      boolean isSyncRequired = metadataSyncService.isSyncRequired(syncParams);
-
-      if (isSyncRequired) {
-        metadataSyncSummary = metadataSyncService.doMetadataSync(syncParams);
-        validateSyncSummaryResponse(metadataSyncSummary);
-      } else {
-        throw new MetadataImportConflictException(
-            "Version already exists in system and hence not starting the sync.");
+      } catch (MetadataSyncServiceException serviceException) {
+        throw new BadRequestException(
+            "Error in parsing inputParams " + serviceException.getMessage());
       }
-    } catch (MetadataSyncImportException importerException) {
-      throw new MetadataSyncException(
-          "Runtime exception occurred while doing import: " + importerException.getMessage());
-    } catch (MetadataSyncServiceException serviceException) {
-      throw new MetadataSyncException(
-          "Exception occurred while doing metadata sync: " + serviceException.getMessage());
-    } catch (DhisVersionMismatchException versionMismatchException) {
-      throw new ForbiddenException(
-          "Exception occurred while doing metadata sync: " + versionMismatchException.getMessage());
+
+      try {
+        boolean isSyncRequired = metadataSyncService.isSyncRequired(syncParams);
+
+        if (isSyncRequired) {
+          metadataSyncSummary = metadataSyncService.doMetadataSync(syncParams);
+          validateSyncSummaryResponse(metadataSyncSummary);
+        } else {
+          throw new MetadataImportConflictException(
+              "Version already exists in system and hence not starting the sync.");
+        }
+      } catch (MetadataSyncImportException importerException) {
+        throw new MetadataSyncException(
+            "Runtime exception occurred while doing import: " + importerException.getMessage());
+      } catch (MetadataSyncServiceException serviceException) {
+        throw new MetadataSyncException(
+            "Exception occurred while doing metadata sync: " + serviceException.getMessage());
+      } catch (DhisVersionMismatchException versionMismatchException) {
+        throw new ForbiddenException(
+            "Exception occurred while doing metadata sync: "
+                + versionMismatchException.getMessage());
+      }
     }
 
     return new ResponseEntity<>(metadataSyncSummary, HttpStatus.OK);
