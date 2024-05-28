@@ -711,7 +711,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   void shouldOrderTrackedEntitiesByEnrolledAtAsc() {
     TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
 
-    params.addOrganisationUnits(Set.of(orgUnit));
+    params.addOrganisationUnit(orgUnit);
     params.setOrganisationUnitMode(SELECTED);
     params.setTrackedEntityInstanceUids(Set.of("QS6w44flWAf", "dUE514NMOlo"));
     params.setTrackedEntityType(trackedEntityType);
@@ -727,7 +727,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   void shouldOrderTrackedEntitiesByEnrolledAtDescWithNoProgramInParams() {
     TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
 
-    params.addOrganisationUnits(Set.of(orgUnit));
+    params.addOrganisationUnit(orgUnit);
     params.setOrganisationUnitMode(SELECTED);
     params.setTrackedEntityInstanceUids(Set.of("QS6w44flWAf", "dUE514NMOlo"));
     params.setTrackedEntityType(trackedEntityType);
@@ -748,7 +748,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
 
     params.setProgram(program);
-    params.addOrganisationUnits(Set.of(orgUnit));
+    params.addOrganisationUnit(orgUnit);
     params.setOrganisationUnitMode(SELECTED);
     params.setTrackedEntityInstanceUids(Set.of("QS6w44flWAf", "dUE514NMOlo"));
     params.setUser(importUser);
