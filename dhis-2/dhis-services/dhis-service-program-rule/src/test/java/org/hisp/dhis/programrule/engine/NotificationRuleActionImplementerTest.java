@@ -59,6 +59,7 @@ import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.rules.models.AttributeType;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.user.AuthenticationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -86,6 +87,8 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest {
   @Mock private ApplicationEventPublisher publisher;
 
   @Mock private NotificationLoggingService loggingService;
+
+  @Mock private AuthenticationService authenticationService;
 
   @InjectMocks private RuleActionSendMessageImplementer implementer;
 
@@ -126,6 +129,8 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest {
   void test_implementWithEnrollmentWithTemplate() {
 
     when(templateStore.getByUid(anyString())).thenReturn(template);
+
+    doAnswer(i -> null).when(authenticationService).obtainSystemAuthentication();
 
     doAnswer(
             invocationOnMock -> {
