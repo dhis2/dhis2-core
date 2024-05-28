@@ -238,7 +238,11 @@ pipeline {
     post {
         failure {
             script {
-                slack.sendFailureMessage()
+                slack.sendMessage(
+                    '#ff0000',
+                    slack.buildUrl() + "\nLatest run on ${GIT_BRANCH} failed and needs investigation. :detective-duck:\nCommit: <${GIT_URL}/commit/${GIT_COMMIT}|${GIT_COMMIT}>",
+                    'team-backend'
+                )
             }
         }
 
