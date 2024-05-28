@@ -211,6 +211,12 @@ public class DefaultMetadataExportService implements MetadataExportService {
     return metadata;
   }
 
+  /**
+   * This predicate is used to filter out deprecated Analytics schemas, {@link EventChart} & {@link
+   * EventReport}.As they are no longer used ({@link EventVisualization} has replaced them), they
+   * should be removed from the metadata export flow. This was causing issues otherwise. See <a
+   * href="https://dhis2.atlassian.net/browse/BETA-177">Jira issue</a>
+   */
   public static final Predicate<Schema> DEPRECATED_ANALYTICS_SCHEMAS =
       schema -> schema.getKlass() != EventChart.class && schema.getKlass() != EventReport.class;
 
