@@ -130,8 +130,6 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest {
 
     when(templateStore.getByUid(anyString())).thenReturn(template);
 
-    doAnswer(i -> null).when(authenticationService).obtainSystemAuthentication();
-
     doAnswer(
             invocationOnMock -> {
               eventType = (ApplicationEvent) invocationOnMock.getArguments()[0];
