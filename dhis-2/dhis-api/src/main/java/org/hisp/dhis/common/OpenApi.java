@@ -36,6 +36,7 @@ import java.lang.annotation.Target;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.intellij.lang.annotations.Language;
 
 /**
  * All annotations used to adjust the generation of OpenAPI document(s).
@@ -158,20 +159,6 @@ public @interface OpenApi {
     Class<?>[] excludes() default {};
   }
 
-  /**
-   * When annotated on type level the tags are added to all endpoints of the controller.
-   *
-   * <p>When annotated on method level the tags are added to the annotated endpoint (operation).
-   *
-   * <p>Tags can be used to split generation into multiple OpenAPI document.
-   */
-  @Inherited
-  @Target({ElementType.METHOD, ElementType.TYPE})
-  @Retention(RetentionPolicy.RUNTIME)
-  @interface Tags {
-    String[] value();
-  }
-
   @Target({ElementType.METHOD, ElementType.TYPE})
   @Retention(RetentionPolicy.RUNTIME)
   @interface Document {
@@ -185,6 +172,7 @@ public @interface OpenApi {
       CONFIG("Configuration"),
       MISC("Miscellaneous");
 
+      @Language("markdown")
       private final String description;
 
       /**
@@ -409,6 +397,7 @@ public @interface OpenApi {
 
     Class<?> type() default String.class;
 
+    @Language("markdown")
     String description() default "";
   }
 
@@ -435,8 +424,7 @@ public @interface OpenApi {
       DEFAULT(""),
       INFO("%sInfo"),
       TRACKER("Tracker%s"),
-      ANALYTICS("Analytics%s"),
-      DEPRECATED_TRACKER("Deprecated_Tracker%s");
+      ANALYTICS("Analytics%s");
 
       private final String template;
     }
@@ -458,6 +446,13 @@ public @interface OpenApi {
   @Retention(RetentionPolicy.RUNTIME)
   @interface Description {
 
+    /**
+     * If multiple values are given these are turned into a bullet list. Each item in the list is
+     * left "as is" so it may use inline mark-down syntax.
+     *
+     * @return The description, might use mark-down syntax
+     */
+    @Language("markdown")
     String[] value();
   }
 

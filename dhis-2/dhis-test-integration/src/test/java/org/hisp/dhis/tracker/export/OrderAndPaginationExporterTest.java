@@ -357,7 +357,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldOrderTrackedEntitiesByEnrolledAtDesc()
+  void shouldOrderTrackedEntitiesByEnrolledAtDescWithNoProgramInParams()
       throws ForbiddenException, BadRequestException, NotFoundException {
     TrackedEntityOperationParams params =
         TrackedEntityOperationParams.builder()
@@ -365,6 +365,28 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .orgUnitMode(SELECTED)
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
+            .user(importUser)
+            .orderBy("enrollment.enrollmentDate", SortDirection.DESC)
+            .build();
+
+    List<String> trackedEntities = getTrackedEntities(params);
+
+    assertEquals(
+        List.of("QS6w44flWAf", "dUE514NMOlo"),
+        trackedEntities); // QS6w44flWAf has 2 enrollments, one of which has an enrollment with
+    // enrolled date greater than the enrollment in dUE514NMOlo
+  }
+
+  @Test
+  void shouldOrderTrackedEntitiesByEnrolledAtDescWithProgramInParams()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
+            .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
+            .trackedEntityTypeUid(trackedEntityType.getUid())
+            .programUid("BFcipDERJnf")
             .user(importUser)
             .orderBy("enrollment.enrollmentDate", SortDirection.DESC)
             .build();

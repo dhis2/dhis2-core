@@ -43,25 +43,25 @@ public interface TrackerOwnershipManager {
   String NO_READ_ACCESS_TO_ORG_UNIT = "User has no read access to organisation unit";
 
   /**
-   * @param entityInstance The tracked entity instance object
+   * @param trackedEntity The tracked entity instance object
    * @param program The program object
    * @param orgUnit The org unit that has to become the owner
    * @param skipAccessValidation whether ownership access validation has to be skipped or not.
    */
   void transferOwnership(
-      TrackedEntity entityInstance,
+      TrackedEntity trackedEntity,
       Program program,
       OrganisationUnit orgUnit,
       boolean skipAccessValidation,
       boolean createIfNotExists);
 
   /**
-   * @param entityInstance The tracked entity instance object
+   * @param trackedEntity The tracked entity instance object
    * @param program The program object
    * @param organisationUnit The org unit that has to become the owner
    */
   void assignOwnership(
-      TrackedEntity entityInstance,
+      TrackedEntity trackedEntity,
       Program program,
       OrganisationUnit organisationUnit,
       boolean skipAccessValidation,
@@ -72,42 +72,38 @@ public interface TrackerOwnershipManager {
    * tracked entity instance - program combination.
    *
    * @param user The user with which access has to be checked for.
-   * @param entityInstance The tracked entity instance.
+   * @param trackedEntity The tracked entity instance.
    * @param program The program.
    * @return true if the user has access, false otherwise.
    */
-  boolean hasAccess(UserDetails user, TrackedEntity entityInstance, Program program);
+  boolean hasAccess(UserDetails user, TrackedEntity trackedEntity, Program program);
 
   boolean hasAccess(
-      UserDetails user, String entityInstance, OrganisationUnit organisationUnit, Program program);
+      UserDetails user, String trackedEntity, OrganisationUnit organisationUnit, Program program);
 
   /**
    * Grant temporary ownership for a user for a specific te-program combination
    *
-   * @param entityInstance The tracked entity instance object
+   * @param trackedEntity The tracked entity instance object
    * @param program The program object
    * @param user The user for which temporary access is granted.
    * @param reason The reason for requesting temporary ownership
    */
   void grantTemporaryOwnership(
-      TrackedEntity entityInstance, Program program, UserDetails user, String reason);
+      TrackedEntity trackedEntity, Program program, UserDetails user, String reason);
 
   /**
-   * Ownership check can be skipped if the user is super user or if the program type is without
+   * Ownership check can be skipped if the user is superuser or if the program type is without
    * registration.
    *
-   * @param user the {@User}.
-   * @param program the {@link Program}.
    * @return true if ownership check can be skipped.
    */
   boolean canSkipOwnershipCheck(UserDetails user, Program program);
 
   /**
-   * Ownership check can be skipped if the user is super user or if the program type is without
+   * Ownership check can be skipped if the user is superuser or if the program type is without
    * registration.
    *
-   * @param user the {@User}.
-   * @param programType the {@link ProgramType}.
    * @return true if ownership check can be skipped.
    */
   boolean canSkipOwnershipCheck(UserDetails user, ProgramType programType);

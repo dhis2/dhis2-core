@@ -271,12 +271,6 @@ public class ImportOptions implements JobParameters {
   }
 
   @OpenApi.Property
-  public ImportOptions setTrackedEntityIdScheme(String idScheme) {
-    idSchemes.setTrackedEntityIdScheme(idScheme);
-    return this;
-  }
-
-  @OpenApi.Property
   public ImportOptions setTrackedEntityAttributeIdScheme(String idScheme) {
     idSchemes.setTrackedEntityAttributeIdScheme(idScheme);
     return this;
@@ -285,12 +279,6 @@ public class ImportOptions implements JobParameters {
   @OpenApi.Property
   public ImportOptions setDataSetIdScheme(String idScheme) {
     idSchemes.setDataSetIdScheme(idScheme);
-    return this;
-  }
-
-  @OpenApi.Property
-  public ImportOptions setEventIdScheme(String idScheme) {
-    idSchemes.setProgramStageInstanceIdScheme(idScheme);
     return this;
   }
 

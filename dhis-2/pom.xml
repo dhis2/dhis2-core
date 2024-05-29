@@ -116,7 +116,7 @@
     <com.google.zxing.javase.version>3.5.3</com.google.zxing.javase.version>
 
     <!-- Spring -->
-    <spring.version>5.3.35</spring.version>
+    <spring.version>5.3.36</spring.version>
     <spring-data-redis.version>2.7.18</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.4</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
@@ -177,7 +177,7 @@
 
     <!-- Apache Artemis -->
     <artemis.version>2.33.0</artemis.version>
-    <netty-all.version>4.1.109.Final</netty-all.version>
+    <netty-all.version>4.1.110.Final</netty-all.version>
     <classgraph.version>4.8.172</classgraph.version>
 
     <!-- SMS/SMPP -->
@@ -193,7 +193,7 @@
     <guava.version>33.2.0-jre</guava.version>
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
-    <google-api-client.version>2.5.1</google-api-client.version>
+    <google-api-client.version>2.6.0</google-api-client.version>
     <lombok.version>1.18.32</lombok.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
     <joda-time.version>2.12.7</joda-time.version>
@@ -204,7 +204,7 @@
     <commons-text.version>1.12.0</commons-text.version>
     <commons-fileupload.version>1.5</commons-fileupload.version>
     <commons-math3.version>3.6.1</commons-math3.version>
-    <commons-validator.version>1.8.0</commons-validator.version>
+    <commons-validator.version>1.9.0</commons-validator.version>
     <commons-io.version>2.16.1</commons-io.version>
     <commons-codec.version>1.17.0</commons-codec.version>
     <commons-jexl.version>2.1.1</commons-jexl.version>
@@ -870,6 +870,13 @@
         <groupId>org.jboss.aerogear</groupId>
         <artifactId>aerogear-otp-java</artifactId>
         <version>${aerogear-otp-java.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.jetbrains</groupId>
+        <artifactId>annotations</artifactId>
+        <version>24.1.0</version>
+        <scope>compile</scope>
       </dependency>
 
       <!-- Apache Commons -->

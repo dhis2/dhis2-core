@@ -44,5 +44,5 @@ public interface ProgramTempOwnerService {
    */
   void addProgramTempOwner(ProgramTempOwner programTempOwner);
 
-  int getValidTempOwnerRecordCount(Program program, TrackedEntity entityInstance, UserDetails user);
+  int getValidTempOwnerRecordCount(Program program, TrackedEntity trackedEntity, UserDetails user);
 }

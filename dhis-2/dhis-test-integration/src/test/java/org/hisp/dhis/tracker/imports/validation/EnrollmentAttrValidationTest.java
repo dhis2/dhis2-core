@@ -124,9 +124,9 @@ class EnrollmentAttrValidationTest extends TrackerTest {
   }
 
   @Test
-  void testAttributesUniquenessInSameTei() throws IOException {
+  void testAttributesUniquenessInSameTrackedEntity() throws IOException {
     TrackerObjects trackerObjects =
-        fromJson("tracker/validations/enrollments_te_unique_attr_same_tei.json");
+        fromJson("tracker/validations/enrollments_te_unique_attr_same_te.json");
 
     ImportReport importReport =
         trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
@@ -146,7 +146,7 @@ class EnrollmentAttrValidationTest extends TrackerTest {
     manager.flush();
     manager.clear();
 
-    trackerObjects = fromJson("tracker/validations/enrollments_te_unique_attr_same_tei.json");
+    trackerObjects = fromJson("tracker/validations/enrollments_te_unique_attr_same_te.json");
 
     importReport = trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
 
@@ -163,7 +163,7 @@ class EnrollmentAttrValidationTest extends TrackerTest {
   }
 
   @Test
-  void testAttributesUniquenessInDifferentTeis() throws IOException {
+  void testAttributesUniquenessInDifferentTrackedEntities() throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/validations/enrollments_te_te-data_3.json");
     assertNoErrors(trackerImportService.importTracker(new TrackerImportParams(), trackerObjects));
     manager.flush();

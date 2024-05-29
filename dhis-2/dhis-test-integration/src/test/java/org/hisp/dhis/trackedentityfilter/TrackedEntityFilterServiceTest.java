@@ -121,7 +121,7 @@ class TrackedEntityFilterServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testValidateProgramInTeiFilter() {
+  void testValidateProgramInTrackedEntityFilter() {
     TrackedEntityFilter trackedEntityFilterA = createTrackedEntityFilter('A', programA);
     assertEquals(0, trackedEntityFilterService.validate(trackedEntityFilterA).size());
     trackedEntityFilterA.setProgram(createProgram('z'));
@@ -137,7 +137,7 @@ class TrackedEntityFilterServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testValidateAssignedUsersInTeiFilter() {
+  void testValidateAssignedUsersInTrackedEntityFilter() {
     TrackedEntityFilter trackedEntityFilterA = createTrackedEntityFilter('A', programA);
     trackedEntityFilterA
         .getEntityQueryCriteria()
@@ -154,7 +154,7 @@ class TrackedEntityFilterServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testValidateOrganisationUnitsSelectedModeInTeiFilter() {
+  void testValidateOrganisationUnitsSelectedModeInTrackedEntityFilter() {
     TrackedEntityFilter trackedEntityFilterA = createTrackedEntityFilter('A', programA);
     trackedEntityFilterA.getEntityQueryCriteria().setOuMode(OrganisationUnitSelectionMode.SELECTED);
     List<String> errors = trackedEntityFilterService.validate(trackedEntityFilterA);
@@ -180,7 +180,7 @@ class TrackedEntityFilterServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testValidateOrderParamsInTeiFilter() {
+  void testValidateOrderParamsInTrackedEntityFilter() {
     TrackedEntityFilter trackedEntityFilterA = createTrackedEntityFilter('A', programA);
     trackedEntityFilterA.getEntityQueryCriteria().setOrder("aaa:asc,createdAt:desc");
     List<String> errors = trackedEntityFilterService.validate(trackedEntityFilterA);
@@ -255,7 +255,7 @@ class TrackedEntityFilterServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testValidateAttributeInTeiAttributeValueFilter() {
+  void testValidateAttributeInTrackedEntityAttributeValueFilter() {
     TrackedEntityFilter trackedEntityFilterA = createTrackedEntityFilter('A', programA);
     TrackedEntityAttribute attributeA = createTrackedEntityAttribute('A');
     TrackedEntityAttribute attributeB = createTrackedEntityAttribute('B');

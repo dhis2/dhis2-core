@@ -86,6 +86,7 @@ public class Main {
     connector.setThrowOnFailure(true);
     tomcat.getService().addConnector(connector);
     connector.setPort(PORT);
+    connector.setProperty("relaxedQueryChars", "\\ { } | [ ]");
     tomcat.setConnector(connector);
     registerConnectorExecutor(tomcat, connector);
 
@@ -99,6 +100,7 @@ public class Main {
     context.setName("/");
     context.setDisplayName("/");
     context.setPath("");
+    context.setMimeMappings(MimeMappings.lazyCopy(MimeMappings.DEFAULT));
 
     context.setResources(new LoaderHidingResourceRoot(context));
     context.addLifecycleListener(new FixContextListener());

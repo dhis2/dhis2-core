@@ -137,7 +137,7 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
 
   @Autowired private ProgramStageDataElementService programStageDataElementService;
 
-  @Autowired private TrackedEntityService entityInstanceService;
+  @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
@@ -205,12 +205,12 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
     programService.updateProgram(programA);
     trackedEntityA = createTrackedEntity(organisationUnitA);
     trackedEntityA.setUid(trackedEntityUid);
-    entityInstanceService.addTrackedEntity(trackedEntityA);
+    trackedEntityService.addTrackedEntity(trackedEntityA);
     trackedEntityAttributeValueA =
         new TrackedEntityAttributeValue(trackedEntityAttributeA, trackedEntityA, "attribute-test");
     trackedEntityAttributeValueService.addTrackedEntityAttributeValue(trackedEntityAttributeValueA);
     trackedEntityA.setTrackedEntityAttributeValues(Sets.newHashSet(trackedEntityAttributeValueA));
-    entityInstanceService.updateTrackedEntity(trackedEntityA);
+    trackedEntityService.updateTrackedEntity(trackedEntityA);
     // Enrollment to be provided in message renderer
     enrollmentA =
         enrollmentService.enrollTrackedEntity(

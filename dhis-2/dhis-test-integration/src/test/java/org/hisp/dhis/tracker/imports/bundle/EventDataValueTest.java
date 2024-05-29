@@ -71,7 +71,7 @@ class EventDataValueTest extends TrackerTest {
     final User userA = userService.getUser("M5zQapPyTZI");
     injectSecurityContextUser(userA);
     TrackerImportParams params = TrackerImportParams.builder().userId(userA.getUid()).build();
-    TrackerObjects trackerObjects = fromJson("tracker/single_tei.json");
+    TrackerObjects trackerObjects = fromJson("tracker/single_te.json");
     assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
     TrackerObjects enTrackerObjects = fromJson("tracker/single_enrollment.json");
     assertNoErrors(trackerImportService.importTracker(params, enTrackerObjects));

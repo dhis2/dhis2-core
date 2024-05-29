@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -41,12 +40,14 @@ import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.tracker.export.PageRequestParams;
+import org.hisp.dhis.webapi.webdomain.EndDateTime;
+import org.hisp.dhis.webapi.webdomain.StartDateTime;
 
 /** Represents query parameters sent to {@link EnrollmentsExportController}. */
 @OpenApi.Shared(name = "EnrollmentRequestParams")
@@ -105,17 +106,23 @@ public class EnrollmentRequestParams implements PageRequestParams {
   @OpenApi.Property({UID.class, Program.class})
   private UID program;
 
-  private ProgramStatus programStatus;
+  /**
+   * @deprecated use {@link #status} instead
+   */
+  @Deprecated(since = "2.42")
+  private EnrollmentStatus programStatus;
+
+  private EnrollmentStatus status;
 
   private Boolean followUp;
 
-  private Date updatedAfter;
+  private StartDateTime updatedAfter;
 
   private String updatedWithin;
 
-  private Date enrolledAfter;
+  private StartDateTime enrolledAfter;
 
-  private Date enrolledBefore;
+  private EndDateTime enrolledBefore;
 
   @OpenApi.Property({UID.class, TrackedEntityType.class})
   private UID trackedEntityType;

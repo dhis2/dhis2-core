@@ -41,7 +41,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.UserActions;
-import org.hisp.dhis.actions.deprecated.tracker.EventActions;
 import org.hisp.dhis.actions.metadata.OrgUnitActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.dto.ApiResponse;
@@ -50,7 +49,7 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerApiTest;
 import org.hisp.dhis.tracker.imports.databuilder.EventDataBuilder;
-import org.hisp.dhis.tracker.imports.databuilder.TeiDataBuilder;
+import org.hisp.dhis.tracker.imports.databuilder.TrackedEntityDataBuilder;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -79,8 +78,6 @@ public class EventValidationTests extends TrackerApiTest {
 
   private ProgramActions programActions;
 
-  private EventActions eventActions;
-
   private String enrollment;
 
   private static Stream<Arguments> provideValidationArguments() {
@@ -95,7 +92,6 @@ public class EventValidationTests extends TrackerApiTest {
   @BeforeAll
   public void beforeAll() {
     programActions = new ProgramActions();
-    eventActions = new EventActions();
 
     loginActions.loginAsSuperUser();
     setupData();
@@ -207,7 +203,7 @@ public class EventValidationTests extends TrackerApiTest {
         new EventDataBuilder()
             .setProgram(programId)
             .setAttributeCategoryOptions(Arrays.asList("invalid-option"))
-            .setOu(OU_ID)
+            .setOrgUnit(OU_ID)
             .array();
 
     trackerImportExportActions
@@ -269,7 +265,8 @@ public class EventValidationTests extends TrackerApiTest {
 
     enrollment =
         trackerImportExportActions
-            .postAndGetJobReport(new TeiDataBuilder().buildWithEnrollment(OU_ID, trackerProgramId))
+            .postAndGetJobReport(
+                new TrackedEntityDataBuilder().buildWithEnrollment(OU_ID, trackerProgramId))
             .validateSuccessfulImport()
             .extractImportedEnrollments()
             .get(0);

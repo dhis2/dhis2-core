@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.webapi.controller.tracker.export.AttributeMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.DataValueMapper;
@@ -37,7 +36,6 @@ import org.hisp.dhis.webapi.controller.tracker.export.NoteMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.ProgramOwnerMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.UserMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.event.CategoryOptionMapper;
-import org.hisp.dhis.webapi.controller.tracker.view.EnrollmentStatus;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.RelationshipItem;
 import org.hisp.dhis.webapi.controller.tracker.view.User;
@@ -89,10 +87,6 @@ interface RelationshipItemMapper
   @Mapping(target = "attributes", source = "trackedEntity.trackedEntityAttributeValues")
   @Mapping(target = "notes", source = "notes")
   RelationshipItem.Enrollment from(Enrollment enrollment);
-
-  default EnrollmentStatus from(ProgramStatus programStatus) {
-    return EnrollmentStatus.fromProgramStatus(programStatus);
-  }
 
   @Mapping(target = "event", source = "uid")
   @Mapping(target = "program", source = "enrollment.program.uid")

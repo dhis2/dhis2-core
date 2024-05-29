@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncParams;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService;
@@ -62,7 +63,7 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author vanyas
  */
-@OpenApi.Tags("metadata")
+@OpenApi.Document(domain = Metadata.class)
 @RestController
 @RequestMapping("/api/metadata/sync")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

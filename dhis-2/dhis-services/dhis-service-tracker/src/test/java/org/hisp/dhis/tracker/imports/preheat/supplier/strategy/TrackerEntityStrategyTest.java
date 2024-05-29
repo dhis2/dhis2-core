@@ -54,15 +54,15 @@ class TrackerEntityStrategyTest {
 
   @Test
   void verifyStrategyAddRightTeToPreheat() {
-    final List<String> uids = List.of("TEIA", "TEIB");
+    final List<String> uids = List.of("TE_A", "TE_B");
 
     List<List<String>> splitUids = new ArrayList<>();
     splitUids.add(uids);
 
     TrackedEntity teA = new TrackedEntity();
-    teA.setUid("TEIA");
+    teA.setUid("TE_A");
     TrackedEntity teB = new TrackedEntity();
-    teB.setUid("TEIB");
+    teB.setUid("TE_B");
     List<TrackedEntity> dbTrackedEntities = List.of(teA, teB);
     when(trackedEntityStore.getIncludingDeleted(uids)).thenReturn(dbTrackedEntities);
     strategy.add(splitUids, preheat);

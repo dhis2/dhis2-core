@@ -47,6 +47,7 @@ import org.hisp.dhis.analytics.outlier.service.AnalyticsOutlierService;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -59,7 +60,7 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Dusan Bernat
  */
-@OpenApi.Tags("analytics")
+@OpenApi.Document(domain = DataValue.class)
 @RestController
 @AllArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

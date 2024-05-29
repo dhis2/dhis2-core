@@ -52,7 +52,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase {
 
-  @Autowired private TrackedEntityService teiService;
+  @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private EnrollmentService piService;
 
@@ -74,11 +74,11 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase {
 
   private OrganisationUnit ouC;
 
-  private TrackedEntity teiA;
+  private TrackedEntity trackedEntityA;
 
-  private TrackedEntity teiB;
+  private TrackedEntity trackedEntityB;
 
-  private TrackedEntity teiC;
+  private TrackedEntity trackedEntityC;
 
   private Enrollment enrollmentA;
 
@@ -104,15 +104,15 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase {
     idObjectManager.save(ouA);
     idObjectManager.save(ouB);
     idObjectManager.save(ouC);
-    teiA = createTrackedEntity('A', ouA);
-    teiB = createTrackedEntity('B', ouB);
-    teiC = createTrackedEntity('C', ouC);
-    teiService.addTrackedEntity(teiA);
-    teiService.addTrackedEntity(teiB);
-    teiService.addTrackedEntity(teiC);
-    enrollmentA = createEnrollment(prA, teiA, ouA);
-    enrollmentB = createEnrollment(prA, teiB, ouB);
-    enrollmentC = createEnrollment(prA, teiC, ouA);
+    trackedEntityA = createTrackedEntity('A', ouA);
+    trackedEntityB = createTrackedEntity('B', ouB);
+    trackedEntityC = createTrackedEntity('C', ouC);
+    trackedEntityService.addTrackedEntity(trackedEntityA);
+    trackedEntityService.addTrackedEntity(trackedEntityB);
+    trackedEntityService.addTrackedEntity(trackedEntityC);
+    enrollmentA = createEnrollment(prA, trackedEntityA, ouA);
+    enrollmentB = createEnrollment(prA, trackedEntityB, ouB);
+    enrollmentC = createEnrollment(prA, trackedEntityC, ouA);
     piService.addEnrollment(enrollmentA);
     piService.addEnrollment(enrollmentB);
     piService.addEnrollment(enrollmentC);
@@ -147,7 +147,7 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase {
   private long getEnrollmentCount(OrganisationUnit target) {
     return (Long)
         entityManager
-            .createQuery("select count(*) from Enrollment pi where pi.organisationUnit = :target")
+            .createQuery("select count(*) from Enrollment en where en.organisationUnit = :target")
             .setParameter("target", target)
             .getSingleResult();
   }

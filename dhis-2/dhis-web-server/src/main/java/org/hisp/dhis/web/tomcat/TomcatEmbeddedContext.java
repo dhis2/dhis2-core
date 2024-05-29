@@ -28,11 +28,13 @@
 package org.hisp.dhis.web.tomcat;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Stream;
 import javax.servlet.ServletException;
+import lombok.Setter;
 import org.apache.catalina.Container;
 import org.apache.catalina.Manager;
 import org.apache.catalina.Wrapper;
@@ -50,6 +52,8 @@ import org.springframework.util.ClassUtils;
  * @author Andy Wilkinson
  */
 class TomcatEmbeddedContext extends StandardContext {
+
+  @Setter private MimeMappings mimeMappings;
 
   private TomcatStarter starter;
 
@@ -125,5 +129,24 @@ class TomcatEmbeddedContext extends StandardContext {
 
   TomcatStarter getStarter() {
     return this.starter;
+  }
+
+  @Override
+  public String[] findMimeMappings() {
+    List<String> mappings = new ArrayList<>();
+    mappings.addAll(Arrays.asList(super.findMimeMappings()));
+    if (this.mimeMappings != null) {
+      this.mimeMappings.forEach((mapping) -> mappings.add(mapping.getExtension()));
+    }
+    return mappings.toArray(String[]::new);
+  }
+
+  @Override
+  public String findMimeMapping(String extension) {
+    String mimeMapping = super.findMimeMapping(extension);
+    if (mimeMapping != null) {
+      return mimeMapping;
+    }
+    return (this.mimeMappings != null) ? this.mimeMappings.get(extension) : null;
   }
 }

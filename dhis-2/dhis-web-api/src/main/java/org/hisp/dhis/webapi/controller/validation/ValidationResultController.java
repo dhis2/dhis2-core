@@ -61,7 +61,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Stian Sandvold
  */
-@OpenApi.Tags("data")
+@OpenApi.Document(domain = ValidationResult.class)
 @RestController
 @RequestMapping("/api/validationResults")
 @ApiVersion({DhisApiVersion.ALL, DhisApiVersion.DEFAULT})

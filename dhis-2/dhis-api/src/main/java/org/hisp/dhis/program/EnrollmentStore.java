@@ -54,7 +54,7 @@ public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
    * @param status Status of program, include STATUS_ACTIVE, STATUS_COMPLETED and STATUS_CANCELLED
    * @return Enrollment list
    */
-  List<Enrollment> get(Program program, ProgramStatus status);
+  List<Enrollment> get(Program program, EnrollmentStatus status);
 
   /**
    * Retrieve enrollments on a TrackedEntity with a status by a program
@@ -64,7 +64,7 @@ public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
    * @param status Status of program, include STATUS_ACTIVE, STATUS_COMPLETED and STATUS_CANCELLED
    * @return Enrollment list
    */
-  List<Enrollment> get(TrackedEntity trackedEntity, Program program, ProgramStatus status);
+  List<Enrollment> get(TrackedEntity trackedEntity, Program program, EnrollmentStatus status);
 
   /**
    * Checks for the existence of an enrollment by UID, Deleted enrollments are not taken into

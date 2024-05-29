@@ -87,7 +87,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags("metadata")
 @Controller
 @RequestMapping("/api/organisationUnits")
 public class OrganisationUnitController extends AbstractCrudController<OrganisationUnit> {

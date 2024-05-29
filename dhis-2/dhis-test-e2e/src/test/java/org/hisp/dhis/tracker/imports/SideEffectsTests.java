@@ -43,7 +43,7 @@ import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerApiTest;
-import org.hisp.dhis.tracker.imports.databuilder.TeiDataBuilder;
+import org.hisp.dhis.tracker.imports.databuilder.TrackedEntityDataBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -73,7 +73,7 @@ public class SideEffectsTests extends TrackerApiTest {
   @Disabled("todo: fix this test 12098")
   public void shouldSendNotificationIfNotSkipSideEffects(Boolean shouldSkipSideEffects) {
     JsonObject object =
-        new TeiDataBuilder()
+        new TrackedEntityDataBuilder()
             .buildWithEnrollmentAndEvent(
                 Constants.TRACKED_ENTITY_TYPE,
                 Constants.ORG_UNIT_IDS[0],
