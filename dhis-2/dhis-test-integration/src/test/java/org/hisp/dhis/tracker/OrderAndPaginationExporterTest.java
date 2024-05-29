@@ -53,14 +53,19 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventQueryParams;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
+import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam.SortDirection;
@@ -75,11 +80,19 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   @Autowired private EventService eventService;
 
+  @Autowired private TrackedEntityInstanceService trackedEntityService;
+
   @Autowired private TrackerImportService trackerImportService;
 
   @Autowired private IdentifiableObjectManager manager;
 
   private OrganisationUnit orgUnit;
+
+  private TrackedEntityType trackedEntityType;
+
+  private User importUser;
+
+  private Program program;
 
   final Function<EventQueryParams, List<String>> eventsFunction =
       (params) ->
@@ -94,7 +107,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   @Override
   protected void initTest() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
-    User importUser = userService.getUser("M5zQapPyTZI");
+    importUser = userService.getUser("M5zQapPyTZI");
     assertNoErrors(
         trackerImportService.importTracker(
             fromJson("tracker/event_and_enrollment.json", importUser.getUid())));
@@ -102,6 +115,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     pTzf9KYMk72 = get(ProgramStageInstance.class, "pTzf9KYMk72");
     D9PbzJY8bJM = get(ProgramStageInstance.class, "D9PbzJY8bJM");
+    trackedEntityType = get(TrackedEntityType.class, "ja8NY4PW7Xm");
+    program = get(Program.class, "BFcipDERJnf");
 
     // to test that events are only returned if the user has read access to ALL COs of an events COC
     CategoryOption categoryOption = get(CategoryOption.class, "yMj2MnmNI8L");
@@ -690,6 +705,66 @@ class OrderAndPaginationExporterTest extends TrackerTest {
           sortEventsByDate(pTzf9KYMk72, D9PbzJY8bJM, ProgramStageInstance::getLastUpdated);
       assertEquals(expected, eventUids(events));
     }
+  }
+
+  @Test
+  void shouldOrderTrackedEntitiesByEnrolledAtAsc() {
+    TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+
+    params.addOrganisationUnit(orgUnit);
+    params.setOrganisationUnitMode(SELECTED);
+    params.setTrackedEntityInstanceUids(Set.of("QS6w44flWAf", "dUE514NMOlo"));
+    params.setTrackedEntityType(trackedEntityType);
+    params.setUser(importUser);
+    params.setOrders(List.of(new OrderParam("enrolledAt", SortDirection.ASC)));
+
+    List<String> trackedEntities = getTrackedEntities(params);
+
+    assertEquals(List.of("QS6w44flWAf", "dUE514NMOlo"), trackedEntities);
+  }
+
+  @Test
+  void shouldOrderTrackedEntitiesByEnrolledAtDescWithNoProgramInParams() {
+    TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+
+    params.addOrganisationUnit(orgUnit);
+    params.setOrganisationUnitMode(SELECTED);
+    params.setTrackedEntityInstanceUids(Set.of("QS6w44flWAf", "dUE514NMOlo"));
+    params.setTrackedEntityType(trackedEntityType);
+    params.setUser(importUser);
+    params.setOrders(List.of(new OrderParam("enrolledAt", SortDirection.DESC)));
+
+    List<String> trackedEntities = getTrackedEntities(params);
+
+    assertEquals(
+        List.of("QS6w44flWAf", "dUE514NMOlo"),
+        trackedEntities); // QS6w44flWAf has 2 enrollments, one of which has an enrollment with
+    // enrolled date greater than the enrollment in dUE514NMOlo
+  }
+
+  @Test
+  void shouldOrderTrackedEntitiesByEnrolledAtDescWithProgramInParams() {
+
+    TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+
+    params.setProgram(program);
+    params.addOrganisationUnit(orgUnit);
+    params.setOrganisationUnitMode(SELECTED);
+    params.setTrackedEntityInstanceUids(Set.of("QS6w44flWAf", "dUE514NMOlo"));
+    params.setUser(importUser);
+    params.setOrders(List.of(new OrderParam("enrolledAt", SortDirection.DESC)));
+
+    List<String> trackedEntities = getTrackedEntities(params);
+
+    assertEquals(List.of("dUE514NMOlo", "QS6w44flWAf"), trackedEntities);
+  }
+
+  private List<String> getTrackedEntities(TrackedEntityInstanceQueryParams params) {
+    return trackedEntityService
+        .getTrackedEntityInstances(params, TrackedEntityInstanceParams.FALSE, false, false)
+        .stream()
+        .map(TrackedEntityInstance::getTrackedEntityInstance)
+        .collect(Collectors.toList());
   }
 
   private static QueryItem queryItem(TrackedEntityAttribute tea) {
