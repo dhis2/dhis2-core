@@ -115,7 +115,7 @@ public class MapView extends BaseAnalyticalObject
   /** Tracked entity instance layer. */
   private TrackedEntityType trackedEntityType;
 
-  private EnrollmentStatus programStatus;
+  private EnrollmentStatus enrollmentStatus;
 
   private Boolean followUp;
 
@@ -392,11 +392,11 @@ public class MapView extends BaseAnalyticalObject
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public EnrollmentStatus getProgramStatus() {
-    return programStatus;
+    return enrollmentStatus;
   }
 
-  public void setProgramStatus(EnrollmentStatus programStatus) {
-    this.programStatus = programStatus;
+  public void setProgramStatus(EnrollmentStatus enrollmentStatus) {
+    this.enrollmentStatus = enrollmentStatus;
   }
 
   @JsonProperty

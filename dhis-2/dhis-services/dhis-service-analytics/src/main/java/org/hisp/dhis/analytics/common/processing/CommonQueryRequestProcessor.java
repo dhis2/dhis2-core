@@ -152,7 +152,7 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
       enrollmentStatuses.addAll(commonQueryRequest.getProgramStatus());
       enrollmentStatuses.addAll(commonQueryRequest.getEnrollmentStatus());
 
-      commonQueryRequest.getDimension().addAll(programStatusAsDimension(enrollmentStatuses));
+      commonQueryRequest.getDimension().addAll(enrollmentStatusAsDimension(enrollmentStatuses));
     }
     return commonQueryRequest;
   }
@@ -207,11 +207,11 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
         .collect(Collectors.toList());
   }
 
-  private List<String> programStatusAsDimension(Set<String> programStatuses) {
-    // Builds a map of [program] with a list of program statuses.
+  private List<String> enrollmentStatusAsDimension(Set<String> enrollmentStatuses) {
+    // Builds a map of [program] with a list of enrollment statuses.
     Map<String, List<EnrollmentStatus>> statusesByProgram =
-        programStatuses.stream()
-            .map(programStatus -> splitAndValidate(programStatus, IS_ENROLLMENT_STATUS, 2, E7140))
+        enrollmentStatuses.stream()
+            .map(status -> splitAndValidate(status, IS_ENROLLMENT_STATUS, 2, E7140))
             .map(
                 parts ->
                     Pair.of(parts[0], find(() -> EnrollmentStatus.valueOf(parts[1])).orElse(null)))

@@ -96,8 +96,8 @@ public class EventChart extends BaseChart implements EventAnalyticalObject, Meta
   /** Indicates whether to hide n/a data. */
   private boolean hideNaData;
 
-  /** The program status. */
-  private EnrollmentStatus programStatus;
+  /** The enrollment status. */
+  private EnrollmentStatus enrollmentStatus;
 
   /** The event status. */
   private EventStatus eventStatus;
@@ -325,11 +325,11 @@ public class EventChart extends BaseChart implements EventAnalyticalObject, Meta
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public EnrollmentStatus getProgramStatus() {
-    return programStatus;
+    return enrollmentStatus;
   }
 
-  public void setProgramStatus(EnrollmentStatus programStatus) {
-    this.programStatus = programStatus;
+  public void setProgramStatus(EnrollmentStatus enrollmentStatus) {
+    this.enrollmentStatus = enrollmentStatus;
   }
 
   @JsonProperty
