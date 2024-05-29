@@ -404,17 +404,17 @@ public class ApiIntegrator {
               String name = endpoint.getSource().getName();
               UnaryOperator<String> subst =
                   desc -> desc.replace("{entityType}", endpoint.getEntityTypeName());
-              endpoint
-                  .getDescription()
-                  .setIfAbsent(descriptions.get(subst, format("%s.description", name)));
+              updateDescription(
+                  endpoint.getDescription(),
+                  descriptions.get(subst, format("%s.description", name)));
               endpoint
                   .getParameters()
                   .values()
                   .forEach(
                       p ->
-                          p.getDescription()
-                              .setIfAbsent(
-                                  descriptions.get(subst, getParameterKeySequence(name, p))));
+                          updateDescription(
+                              p.getDescription(),
+                              descriptions.get(subst, getParameterKeySequence(name, p))));
               if (endpoint.getRequestBody().isPresent()) {
                 Api.Maybe<String> description =
                     endpoint.getRequestBody().getValue().getDescription();
@@ -427,25 +427,32 @@ public class ApiIntegrator {
                   .forEach(
                       response -> {
                         int statusCode = response.getStatus().value();
-                        response
-                            .getDescription()
-                            .setIfAbsent(
-                                descriptions.get(subst, getResponseKeySequence(name, statusCode)));
+                        updateDescription(
+                            response.getDescription(),
+                            descriptions.get(subst, getResponseKeySequence(name, statusCode)));
                         Api.Schema schema = response.getContent().get(MediaType.APPLICATION_JSON);
                         if (schema != null && !schema.isShared()) {
                           schema
                               .getProperties()
                               .forEach(
-                                  property -> {
-                                    String desc =
-                                        descriptions.get(
-                                            subst,
-                                            getPropertyKeySequence(name, statusCode, property));
-                                    property.getDescription().setIfAbsent(desc);
-                                  });
+                                  property ->
+                                      updateDescription(
+                                          property.getDescription(),
+                                          descriptions.get(
+                                              subst,
+                                              getPropertyKeySequence(name, statusCode, property))));
                         }
                       });
             });
+  }
+
+  private static void updateDescription(Api.Maybe<String> target, String desc) {
+    String text = target.getValue();
+    String merged =
+        text != null && text.contains("{md}")
+            ? text.replace("{md}", desc == null ? "" : desc)
+            : text != null ? text : desc;
+    if (merged != null) target.setValue(merged.trim());
   }
 
   @Nonnull
@@ -485,14 +492,18 @@ public class ApiIntegrator {
         .getProperties()
         .forEach(
             property ->
-                property
-                    .getDescription()
-                    .setValue(
-                        descriptions.get(
-                            List.of(
-                                format("%s.schema.%s.description", sharedName, property.getName()),
-                                format("*.schema.%s.description", property.getName()),
-                                format("%s.description", property.getName())))));
+                updateDescription(
+                    property.getDescription(),
+                    descriptions.get(getSchemaPropertyKeySequence(property, sharedName))));
+  }
+
+  @Nonnull
+  private static List<String> getSchemaPropertyKeySequence(
+      Api.Property property, String sharedName) {
+    return List.of(
+        format("%s.schema.%s.description", sharedName, property.getName()),
+        format("*.schema.%s.description", property.getName()),
+        format("%s.description", property.getName()));
   }
 
   private static String getSharedNameForDeclaringType(Api.Parameter p) {

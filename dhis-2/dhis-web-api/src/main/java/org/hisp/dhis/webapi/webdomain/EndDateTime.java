@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.webdomain;
 import java.util.Date;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.util.DateUtils;
 
 /**
@@ -41,6 +42,12 @@ import org.hisp.dhis.util.DateUtils;
  * <p>This behavior, combined with {@link StartDateTime}, allows to correctly implement an interval
  * search including start and end dates.
  */
+@OpenApi.Description(
+    """
+  {md}
+
+  Use a valid ISO8601 date _`YYYY[-]MM[-]DD`_ or date-time _`YYYY[-]MM[-]DD'T'hh[:mm[:ss[.sss]]]`_ pattern.
+  When the time part is omitted the end of the day is assumed.""")
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class EndDateTime {
   private final Date date;
