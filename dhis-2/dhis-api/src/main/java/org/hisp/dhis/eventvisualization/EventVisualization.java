@@ -150,8 +150,8 @@ public class EventVisualization extends BaseAnalyticalObject
    */
   private boolean legacy;
 
-  /** The program status. */
-  private EnrollmentStatus programStatus;
+  /** The enrollment status. */
+  private EnrollmentStatus enrollmentStatus;
 
   /** The event status. */
   private EventStatus eventStatus;
@@ -562,11 +562,11 @@ public class EventVisualization extends BaseAnalyticalObject
   @JsonProperty
   @JacksonXmlProperty(namespace = DXF_2_0)
   public EnrollmentStatus getProgramStatus() {
-    return programStatus;
+    return enrollmentStatus;
   }
 
-  public void setProgramStatus(EnrollmentStatus programStatus) {
-    this.programStatus = programStatus;
+  public void setProgramStatus(EnrollmentStatus enrollmentStatus) {
+    this.enrollmentStatus = enrollmentStatus;
   }
 
   @JsonProperty

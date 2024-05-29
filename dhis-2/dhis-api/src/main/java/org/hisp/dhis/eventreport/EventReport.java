@@ -135,8 +135,8 @@ public class EventReport extends BaseAnalyticalObject
   /** The font size of the text in the table. */
   private FontSize fontSize;
 
-  /** The program status. */
-  private EnrollmentStatus programStatus;
+  /** The enrollment status. */
+  private EnrollmentStatus enrollmentStatus;
 
   /** The event status. */
   private EventStatus eventStatus;
@@ -442,11 +442,11 @@ public class EventReport extends BaseAnalyticalObject
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public EnrollmentStatus getProgramStatus() {
-    return programStatus;
+    return enrollmentStatus;
   }
 
-  public void setProgramStatus(EnrollmentStatus programStatus) {
-    this.programStatus = programStatus;
+  public void setProgramStatus(EnrollmentStatus enrollmentStatus) {
+    this.enrollmentStatus = enrollmentStatus;
   }
 
   @JsonProperty

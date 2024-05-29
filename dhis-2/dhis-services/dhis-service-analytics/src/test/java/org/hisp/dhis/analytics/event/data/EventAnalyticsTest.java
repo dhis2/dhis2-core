@@ -177,7 +177,7 @@ abstract class EventAnalyticsTest {
     params.withOrganisationUnits(getList(ouA));
     params.withTableName(getTableName() + "_" + programA.getUid());
     params.withProgram(programA);
-    params.withProgramStatuses(new LinkedHashSet<>(List.of(ACTIVE, COMPLETED)));
+    params.withEnrollmentStatuses(new LinkedHashSet<>(List.of(ACTIVE, COMPLETED)));
     params.withEventStatuses(new LinkedHashSet<>(List.of(SCHEDULE)));
     params.withCoordinateFields(COL_NAME_GEOMETRY_LIST);
     return params.build();
@@ -203,7 +203,7 @@ abstract class EventAnalyticsTest {
     params.withOrganisationUnits(getList(ouA));
     params.withTableName(getTableName() + "_" + programA.getUid());
     params.withProgram(programA);
-    params.withProgramStatuses(new LinkedHashSet<>(List.of(ACTIVE, COMPLETED)));
+    params.withEnrollmentStatuses(new LinkedHashSet<>(List.of(ACTIVE, COMPLETED)));
     params.withCoordinateFields(COL_NAME_GEOMETRY_LIST);
     params.withTimeField(timeField);
     return params.build();

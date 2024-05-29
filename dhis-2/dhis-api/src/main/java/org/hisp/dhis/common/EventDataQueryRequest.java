@@ -94,7 +94,7 @@ public class EventDataQueryRequest {
 
   private Set<EventStatus> eventStatus;
 
-  private Set<EnrollmentStatus> programStatus;
+  private Set<EnrollmentStatus> enrollmentStatus;
 
   private boolean collapseDataDimensions;
 
@@ -180,7 +180,7 @@ public class EventDataQueryRequest {
     queryRequest.limit = this.limit;
     queryRequest.outputType = this.outputType;
     queryRequest.eventStatus = new LinkedHashSet<>(this.eventStatus);
-    queryRequest.programStatus = new LinkedHashSet<>(this.programStatus);
+    queryRequest.enrollmentStatus = new LinkedHashSet<>(this.enrollmentStatus);
     queryRequest.collapseDataDimensions = this.collapseDataDimensions;
     queryRequest.aggregateData = this.aggregateData;
     queryRequest.includeMetadataDetails = this.includeMetadataDetails;
@@ -243,7 +243,7 @@ public class EventDataQueryRequest {
               .page(criteria.getPage())
               .pageSize(criteria.getPageSize())
               .paging(criteria.isPaging())
-              .programStatus(criteria.getProgramStatus())
+              .enrollmentStatus(criteria.getProgramStatus())
               .relativePeriodDate(criteria.getRelativePeriodDate())
               .showHierarchy(criteria.isShowHierarchy())
               .skipRounding(criteria.isSkipRounding())
@@ -329,7 +329,7 @@ public class EventDataQueryRequest {
               .includeMetadataDetails(criteria.isIncludeMetadataDetails())
               .dataIdScheme(criteria.getDataIdScheme())
               .outputIdScheme(criteria.getOutputIdScheme())
-              .programStatus(criteria.getProgramStatus())
+              .enrollmentStatus(criteria.getProgramStatus())
               .page(criteria.getPage())
               .pageSize(criteria.getPageSize())
               .paging(criteria.isPaging())
