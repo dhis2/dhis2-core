@@ -917,7 +917,8 @@ public class HibernateTrackedEntityInstanceStore
 
   /**
    * Generates an INNER JOIN for program instances. If the param we need to order by is enrolledAt,
-   * we need to join the program instance table to be able to select and order by this value
+   * we need to join the program instance table to be able to select and order by this value. We
+   * restrict the join condition to a specific program if specified in the request.
    *
    * @param params
    * @return a SQL INNER JOIN for program instances
@@ -925,12 +926,16 @@ public class HibernateTrackedEntityInstanceStore
   private String getFromSubQueryJoinProgramInstanceConditions(
       TrackedEntityInstanceQueryParams params) {
     if (params.getOrders().stream().anyMatch(p -> ENROLLED_AT.isPropertyEqualTo(p.getField()))) {
-      return new StringBuilder(" INNER JOIN programinstance ")
-          .append(PROGRAM_INSTANCE_ALIAS)
-          .append(" ON ")
-          .append(PROGRAM_INSTANCE_ALIAS + "." + "trackedentityinstanceid")
-          .append("= TEI.trackedentityinstanceid ")
-          .toString();
+
+      String join =
+          "INNER JOIN programinstance %1$s ON %1$s.trackedentityinstanceid = TEI.trackedentityinstanceid";
+
+      return !params.hasProgram()
+          ? String.format(join, PROGRAM_INSTANCE_ALIAS)
+          : String.format(
+              join + " AND %1$s.programid = %2$s",
+              PROGRAM_INSTANCE_ALIAS,
+              params.getProgram().getId());
     }
 
     return "";
