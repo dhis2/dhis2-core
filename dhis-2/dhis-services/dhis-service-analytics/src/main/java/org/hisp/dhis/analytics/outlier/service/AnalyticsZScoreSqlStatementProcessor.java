@@ -283,18 +283,20 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
       return sql.toString();
     }
 
-    return dataDimensions.stream()
-        .map(
-            dd -> {
-              String s = "(ax.dataelementid = " + dd.getDataElement().getId();
-              if (dd.getCategoryOptionCombo() != null) {
-                s += " and ax.categoryoptioncomboid = " + dd.getCategoryOptionCombo().getId();
-              }
-              s += ")";
+    return "("
+        + dataDimensions.stream()
+            .map(
+                dd -> {
+                  String s = "(ax.dataelementid = " + dd.getDataElement().getId();
+                  if (dd.getCategoryOptionCombo() != null) {
+                    s += " and ax.categoryoptioncomboid = " + dd.getCategoryOptionCombo().getId();
+                  }
+                  s += ")";
 
-              return s;
-            })
-        .collect(Collectors.joining(" or "));
+                  return s;
+                })
+            .collect(Collectors.joining(" or "))
+        + ")";
   }
 
   /**
