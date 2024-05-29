@@ -106,7 +106,13 @@ public class EnrollmentRequestParams implements PageRequestParams {
   @OpenApi.Property({UID.class, Program.class})
   private UID program;
 
+  /**
+   * @deprecated use {@link #status} instead
+   */
+  @Deprecated(since = "2.42")
   private EnrollmentStatus programStatus;
+
+  private EnrollmentStatus status;
 
   private Boolean followUp;
 

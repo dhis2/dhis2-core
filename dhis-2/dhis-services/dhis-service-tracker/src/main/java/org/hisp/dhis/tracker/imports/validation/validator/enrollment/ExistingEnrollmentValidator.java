@@ -60,7 +60,7 @@ class ExistingEnrollmentValidator
       org.hisp.dhis.tracker.imports.domain.Enrollment enrollment) {
     checkNotNull(enrollment, ENROLLMENT_CANT_BE_NULL);
 
-    if (org.hisp.dhis.tracker.imports.domain.EnrollmentStatus.CANCELLED == enrollment.getStatus()) {
+    if (EnrollmentStatus.CANCELLED == enrollment.getStatus()) {
       return;
     }
 
@@ -68,7 +68,7 @@ class ExistingEnrollmentValidator
 
     checkNotNull(program, PROGRAM_CANT_BE_NULL);
 
-    if ((org.hisp.dhis.tracker.imports.domain.EnrollmentStatus.COMPLETED == enrollment.getStatus()
+    if ((EnrollmentStatus.COMPLETED == enrollment.getStatus()
         && Boolean.FALSE.equals(program.getOnlyEnrollOnce()))) {
       return;
     }
@@ -95,9 +95,8 @@ class ExistingEnrollmentValidator
                         && !e.getEnrollment().equals(enrollment.getEnrollment()))
             .filter(
                 e ->
-                    org.hisp.dhis.tracker.imports.domain.EnrollmentStatus.ACTIVE == e.getStatus()
-                        || org.hisp.dhis.tracker.imports.domain.EnrollmentStatus.COMPLETED
-                            == e.getStatus())
+                    EnrollmentStatus.ACTIVE == e.getStatus()
+                        || EnrollmentStatus.COMPLETED == e.getStatus())
             .collect(Collectors.toSet());
 
     Set<org.hisp.dhis.tracker.imports.domain.Enrollment> dbEnrollment =
@@ -132,12 +131,10 @@ class ExistingEnrollmentValidator
                         org.hisp.dhis.tracker.imports.domain.Enrollment y) -> x))
             .values();
 
-    if (org.hisp.dhis.tracker.imports.domain.EnrollmentStatus.ACTIVE == enrollment.getStatus()) {
+    if (EnrollmentStatus.ACTIVE == enrollment.getStatus()) {
       Set<org.hisp.dhis.tracker.imports.domain.Enrollment> activeOnly =
           mergedEnrollments.stream()
-              .filter(
-                  e ->
-                      org.hisp.dhis.tracker.imports.domain.EnrollmentStatus.ACTIVE == e.getStatus())
+              .filter(e -> EnrollmentStatus.ACTIVE == e.getStatus())
               .collect(Collectors.toSet());
 
       if (!activeOnly.isEmpty()) {
@@ -155,9 +152,7 @@ class ExistingEnrollmentValidator
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
         new org.hisp.dhis.tracker.imports.domain.Enrollment();
     enrollment.setEnrollment(dbEnrollment.getUid());
-    enrollment.setStatus(
-        org.hisp.dhis.tracker.imports.domain.EnrollmentStatus.fromProgramStatus(
-            dbEnrollment.getStatus()));
+    enrollment.setStatus(dbEnrollment.getStatus());
 
     return enrollment;
   }
