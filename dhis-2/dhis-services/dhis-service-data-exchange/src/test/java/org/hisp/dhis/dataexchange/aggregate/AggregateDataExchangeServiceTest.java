@@ -285,11 +285,11 @@ class AggregateDataExchangeServiceTest {
 
     ImportOptions options = service.toImportOptions(exchange);
 
-    assertEquals(IdScheme.CODE, options.getIdSchemes().getDataElementIdScheme());
-    assertEquals(IdScheme.CODE, options.getIdSchemes().getOrgUnitIdScheme());
-    assertEquals(IdScheme.UID, options.getIdSchemes().getCategoryOptionComboIdScheme());
-    assertEquals(IdScheme.UID, options.getIdSchemes().getCategoryOptionIdScheme());
-    assertEquals(IdScheme.UID, options.getIdSchemes().getIdScheme());
+    assertEquals(IdScheme.UID, options.getIdSchemes().getDataElementIdScheme());
+    assertEquals(IdScheme.UID, options.getIdSchemes().getOrgUnitIdScheme());
+    assertEquals(IdScheme.CODE, options.getIdSchemes().getCategoryOptionComboIdScheme());
+    assertEquals(IdScheme.CODE, options.getIdSchemes().getCategoryOptionIdScheme());
+    assertEquals(IdScheme.CODE, options.getIdSchemes().getIdScheme());
     assertEquals(ImportStrategy.CREATE_AND_UPDATE, options.getImportStrategy());
     assertFalse(options.isSkipAudit());
     assertFalse(options.isDryRun());
