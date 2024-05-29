@@ -202,9 +202,11 @@ public interface TrackedEntityAttributeService {
    * Get all {@link TrackedEntityAttribute} linked to all {@link TrackedEntityType} present in the
    * system
    *
+   * @param trackedEntityType we want to filter by
    * @return a Set of {@link TrackedEntityAttribute}
    */
-  Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes();
+  Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityType(
+      TrackedEntityType trackedEntityType);
 
   /**
    * Get all {@link TrackedEntityAttribute} grouped by {@link Program}

@@ -255,7 +255,8 @@ public class TrackedEntityAggregate implements Aggregate {
                                     "ALL_ATTRIBUTES",
                                     s ->
                                         trackedEntityAttributeService
-                                            .getTrackedEntityAttributesByTrackedEntityTypes()),
+                                            .getTrackedEntityAttributesByTrackedEntityType(
+                                                te.getTrackedEntityType())),
                                 programTeAttributesCache.get(
                                     "ATTRIBUTES_BY_PROGRAM",
                                     s ->

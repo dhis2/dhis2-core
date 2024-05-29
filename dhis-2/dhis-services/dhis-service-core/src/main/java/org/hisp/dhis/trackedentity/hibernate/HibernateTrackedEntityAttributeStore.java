@@ -52,6 +52,7 @@ import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
 import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -154,9 +155,15 @@ public class HibernateTrackedEntityAttributeStore
 
   @Override
   @SuppressWarnings({"unchecked", "rawtypes"})
-  public Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes() {
+  public Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityType(
+      TrackedEntityType trackedEntityType) {
+
+    String hql =
+        "select t.trackedEntityTypeAttributes from TrackedEntityType t where t.uid = :trackedEntityTypeUid";
     Query query =
-        getSession().createQuery("select trackedEntityTypeAttributes from TrackedEntityType");
+        getSession()
+            .createQuery(hql)
+            .setParameter("trackedEntityTypeUid", trackedEntityType.getUid());
 
     Set<TrackedEntityTypeAttribute> trackedEntityTypeAttributes = new HashSet<>(query.list());
 

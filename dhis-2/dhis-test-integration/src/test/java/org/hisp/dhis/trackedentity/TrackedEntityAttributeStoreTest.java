@@ -64,6 +64,10 @@ class TrackedEntityAttributeStoreTest extends IntegrationTestBase {
 
   private TrackedEntityAttribute attributeZ;
 
+  private TrackedEntityType trackedEntityTypeA;
+
+  private TrackedEntityType trackedEntityTypeB;
+
   @Autowired private TrackedEntityTypeService trackedEntityTypeService;
 
   @Autowired private ProgramService programService;
@@ -84,10 +88,9 @@ class TrackedEntityAttributeStoreTest extends IntegrationTestBase {
     attributesA.add(attributeY);
     Program program = createProgram('A');
     programService.addProgram(program);
-    TrackedEntityType trackedEntityTypeA = createTrackedEntityType('A');
+    trackedEntityTypeA = createTrackedEntityType('A');
     trackedEntityTypeA.setPublicAccess(AccessStringHelper.FULL);
-
-    TrackedEntityType trackedEntityTypeB = createTrackedEntityType('B');
+    trackedEntityTypeB = createTrackedEntityType('B');
     trackedEntityTypeB.setPublicAccess(AccessStringHelper.FULL);
 
     // Create 20 Tracked Entity Attributes (named A .. O)
@@ -212,10 +215,13 @@ class TrackedEntityAttributeStoreTest extends IntegrationTestBase {
   }
 
   @Test
-  void verifyGetTrackedEntityAttributesByTrackedEntityTypes() {
-    Set<TrackedEntityAttribute> trackedEntityAttributes =
-        attributeService.getTrackedEntityAttributesByTrackedEntityTypes();
-    assertThat(trackedEntityAttributes, hasSize(20));
+  void verifyGetTrackedEntityAttributesByTrackedEntityType() {
+    assertThat(
+        attributeService.getTrackedEntityAttributesByTrackedEntityType(trackedEntityTypeA),
+        hasSize(10));
+    assertThat(
+        attributeService.getTrackedEntityAttributesByTrackedEntityType(trackedEntityTypeB),
+        hasSize(10));
   }
 
   @Test
