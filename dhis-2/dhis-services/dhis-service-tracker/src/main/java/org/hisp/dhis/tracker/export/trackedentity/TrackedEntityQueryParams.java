@@ -369,8 +369,8 @@ public class TrackedEntityQueryParams {
     return programStatus;
   }
 
-  public TrackedEntityQueryParams setProgramStatus(EnrollmentStatus programStatus) {
-    this.programStatus = programStatus;
+  public TrackedEntityQueryParams setProgramStatus(EnrollmentStatus enrollmentStatus) {
+    this.programStatus = enrollmentStatus;
     return this;
   }
 
