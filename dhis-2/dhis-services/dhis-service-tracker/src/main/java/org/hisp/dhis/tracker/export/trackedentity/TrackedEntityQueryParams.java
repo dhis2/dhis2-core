@@ -49,9 +49,9 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.export.Order;
@@ -76,7 +76,7 @@ public class TrackedEntityQueryParams {
   private List<Program> programs = List.of();
 
   /** Status of the tracked entity instance in the given program. */
-  private ProgramStatus programStatus;
+  private EnrollmentStatus programStatus;
 
   /**
    * Indicates whether tracked entity instance is marked for follow up for the specified program.
@@ -365,12 +365,12 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public ProgramStatus getProgramStatus() {
+  public EnrollmentStatus getProgramStatus() {
     return programStatus;
   }
 
-  public TrackedEntityQueryParams setProgramStatus(ProgramStatus programStatus) {
-    this.programStatus = programStatus;
+  public TrackedEntityQueryParams setProgramStatus(EnrollmentStatus enrollmentStatus) {
+    this.programStatus = enrollmentStatus;
     return this;
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,23 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.webapi.controller.security;
+
+import java.util.Properties;
+import org.hisp.dhis.config.H2DhisConfigurationProvider;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public enum ProgramStatus {
-  ACTIVE(0),
-  COMPLETED(1),
-  CANCELLED(2);
+@Configuration
+@Profile({"app-controller-test"})
+public class AppControllerTestConfiguration {
 
-  private int value;
+  @Bean(name = "dhisConfigurationProvider")
+  public DhisConfigurationProvider dhisConfigurationProvider() {
+    H2DhisConfigurationProvider provider = new H2DhisConfigurationProvider();
 
-  ProgramStatus(int value) {
-    this.value = value;
-  }
+    Properties properties = new Properties();
+    properties.put(ConfigurationKey.FILESTORE_PROVIDER.getKey(), "filesystem");
+    provider.addProperties(properties);
 
-  public int getValue() {
-    return value;
+    return provider;
   }
 }

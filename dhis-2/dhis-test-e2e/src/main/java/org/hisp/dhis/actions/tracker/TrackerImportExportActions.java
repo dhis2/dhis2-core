@@ -64,7 +64,7 @@ public class TrackerImportExportActions extends RestApiActions {
 
     with().atMost(20, TimeUnit.SECONDS).await().until(jobIsCompleted::call);
 
-    logger.info("Tracker job is completed. Message: " + getJob(jobId).extract("message"));
+    logger.info("Tracker job is completed. Message: {}", getJob(jobId).extract("message"));
   }
 
   public TrackerApiResponse postAndGetJobReport(File file) {
@@ -144,6 +144,10 @@ public class TrackerImportExportActions extends RestApiActions {
     return new TrackerApiResponse(this.get("/events/" + eventId));
   }
 
+  public TrackerApiResponse getEvents(QueryParamsBuilder queryParamsBuilder) {
+    return new TrackerApiResponse(this.get("/events/", queryParamsBuilder));
+  }
+
   public TrackerApiResponse getEventsJsonZip(QueryParamsBuilder queryParamsBuilder) {
     return new TrackerApiResponse(this.get("/events.json.zip", queryParamsBuilder));
   }
@@ -164,19 +168,19 @@ public class TrackerImportExportActions extends RestApiActions {
     return new TrackerApiResponse(this.get("/relationships/" + relationshipId));
   }
 
-  public void overrideOwnership(String tei, String program, String reason) {
+  public void overrideOwnership(String te, String program, String reason) {
     this.post(
             String.format(
                 "/ownership/override?trackedEntityInstance=%s&program=%s&reason=%s",
-                tei, program, reason),
+                te, program, reason),
             new JsonObject())
         .validateStatus(200);
   }
 
-  public void transferOwnership(String tei, String program, String ou) {
+  public void transferOwnership(String te, String program, String ou) {
     this.update(
             String.format(
-                "/ownership/transfer?trackedEntityInstance=%s&program=%s&ou=%s", tei, program, ou),
+                "/ownership/transfer?trackedEntityInstance=%s&program=%s&ou=%s", te, program, ou),
             new JsonObject())
         .validateStatus(200);
   }

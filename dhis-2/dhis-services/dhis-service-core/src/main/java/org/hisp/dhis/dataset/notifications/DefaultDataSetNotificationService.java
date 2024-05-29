@@ -69,7 +69,6 @@ import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.util.DateUtils;
@@ -174,7 +173,7 @@ public class DefaultDataSetNotificationService implements DataSetNotificationSer
     sendBatch(
         "completion",
         createBatchForCompletionNotifications(registration, templates),
-        NoopJobProgress.INSTANCE);
+        JobProgress.noop());
   }
 
   // -------------------------------------------------------------------------

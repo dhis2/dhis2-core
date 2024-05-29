@@ -80,7 +80,7 @@ import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -99,7 +99,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 @Slf4j
 class AnalyticsValidationServiceTest extends TransactionalIntegrationTest {
-  @Autowired private TrackedEntityService entityInstanceService;
+  @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private TrackedEntityAttributeService entityAttributeService;
 
@@ -200,14 +200,14 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest {
     entityAttribute.setAggregationType(AggregationType.COUNT);
     entityAttribute.setUid(TRACKED_ENTITY_ATTRIBUTE_UID);
     entityAttributeService.addTrackedEntityAttribute(entityAttribute);
-    TrackedEntity entityInstance = createTrackedEntity('A', orgUnitA, entityAttribute);
-    entityInstanceService.addTrackedEntity(entityInstance);
+    TrackedEntity trackedEntity = createTrackedEntity('A', orgUnitA, entityAttribute);
+    trackedEntityService.addTrackedEntity(trackedEntity);
     TrackedEntityAttributeValue trackedEntityAttributeValue =
-        new TrackedEntityAttributeValue(entityAttribute, entityInstance);
+        new TrackedEntityAttributeValue(entityAttribute, trackedEntity);
     trackedEntityAttributeValue.setValue("123");
     entityAttributeValueService.addTrackedEntityAttributeValue(trackedEntityAttributeValue);
-    entityInstance.setTrackedEntityAttributeValues(Sets.newHashSet(trackedEntityAttributeValue));
-    entityInstanceService.updateTrackedEntity(entityInstance);
+    trackedEntity.setTrackedEntityAttributeValues(Sets.newHashSet(trackedEntityAttributeValue));
+    trackedEntityService.updateTrackedEntity(trackedEntity);
     Program program =
         createProgram(
             'A', null, Sets.newHashSet(entityAttribute), Sets.newHashSet(orgUnitA, orgUnitA), null);
@@ -226,7 +226,7 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest {
     programService.updateProgram(program);
     Enrollment enrollment =
         enrollmentService.enrollTrackedEntity(
-            entityInstance, program, dateMar20, dateMar20, orgUnitA);
+            trackedEntity, program, dateMar20, dateMar20, orgUnitA);
     enrollmentService.addEnrollment(enrollment);
     Event stageInstanceA =
         eventService.createEvent(enrollment, stageA, dateMar20, dateMar20, orgUnitA);
@@ -445,7 +445,7 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest {
     ValidationAnalysisParams params1 =
         validationService.newParamsBuilder(null, orgUnitA, startDate, endDate).build();
     Collection<ValidationResult> results =
-        validationService.validationAnalysis(params1, NoopJobProgress.INSTANCE);
+        validationService.validationAnalysis(params1, JobProgress.noop());
     assertResultsEquals(reference, results);
     // ---------------------------------------
     // Test validation rule expression details

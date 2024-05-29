@@ -38,7 +38,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
  *
  * <p>
  *
- * <p>The TEIs are returned as a Grid object, which is a two-dimensional list with headers. The TE
+ * <p>The TEs are returned as a Grid object, which is a two-dimensional list with headers. The TE
  * attribute values are returned in the same order as specified in the arguments. The grid has a set
  * of columns which are always present starting at index 0, followed by attributes specified for the
  * query. All values in the grid are of type String. The order is:
@@ -54,7 +54,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
  *       <ul>
  *         <p>
  *         <p>Attributes specified in the query follows on the next column indexes. Example usage
- *         for retrieving TEIs with two attributes using one attribute as filter:
+ *         for retrieving TEs with two attributes using one attribute as filter:
  *         <pre>
  * <code>
  * TrackedEntityQueryParams params = new TrackedEntityQueryParams();
@@ -91,7 +91,7 @@ public interface TrackedEntityService {
    * @param skipAccessValidation If true, access validation is skipped. Should be set to true only
    *     for internal tasks (e.g. currently used by synchronization job)
    * @param skipSearchScopeValidation if true, search scope validation is skipped.
-   * @return List of TEIs matching the params
+   * @return List of TEs matching the params
    */
   List<TrackedEntity> getTrackedEntities(
       TrackedEntityQueryParams params,

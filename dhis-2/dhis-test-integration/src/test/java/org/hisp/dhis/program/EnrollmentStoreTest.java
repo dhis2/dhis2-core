@@ -62,7 +62,7 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest {
 
   @Autowired private EnrollmentStore enrollmentStore;
 
-  @Autowired private TrackedEntityService entityInstanceService;
+  @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -98,7 +98,7 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest {
 
   private Enrollment enrollmentD;
 
-  private TrackedEntity entityInstanceA;
+  private TrackedEntity trackedEntityA;
 
   private Collection<Long> orgunitIds;
 
@@ -128,10 +128,10 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest {
     programService.addProgram(programB);
     programC = createProgram('C', new HashSet<>(), organisationUnitA);
     programService.addProgram(programC);
-    entityInstanceA = createTrackedEntity(organisationUnitA);
-    entityInstanceService.addTrackedEntity(entityInstanceA);
-    TrackedEntity entityInstanceB = createTrackedEntity(organisationUnitB);
-    entityInstanceService.addTrackedEntity(entityInstanceB);
+    trackedEntityA = createTrackedEntity(organisationUnitA);
+    trackedEntityService.addTrackedEntity(trackedEntityA);
+    TrackedEntity trackedEntityB = createTrackedEntity(organisationUnitB);
+    trackedEntityService.addTrackedEntity(trackedEntityB);
     DateTime testDate1 = DateTime.now();
     testDate1.withTimeAtStartOfDay();
     testDate1 = testDate1.minusDays(70);
@@ -139,15 +139,15 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest {
     DateTime testDate2 = DateTime.now();
     testDate2.withTimeAtStartOfDay();
     enrollmentDate = testDate2.toDate();
-    enrollmentA = new Enrollment(enrollmentDate, incidentDate, entityInstanceA, programA);
+    enrollmentA = new Enrollment(enrollmentDate, incidentDate, trackedEntityA, programA);
     enrollmentA.setUid("UID-A");
-    enrollmentB = new Enrollment(enrollmentDate, incidentDate, entityInstanceA, programB);
+    enrollmentB = new Enrollment(enrollmentDate, incidentDate, trackedEntityA, programB);
     enrollmentB.setUid("UID-B");
-    enrollmentB.setStatus(ProgramStatus.CANCELLED);
-    enrollmentC = new Enrollment(enrollmentDate, incidentDate, entityInstanceA, programC);
+    enrollmentB.setStatus(EnrollmentStatus.CANCELLED);
+    enrollmentC = new Enrollment(enrollmentDate, incidentDate, trackedEntityA, programC);
     enrollmentC.setUid("UID-C");
-    enrollmentC.setStatus(ProgramStatus.COMPLETED);
-    enrollmentD = new Enrollment(enrollmentDate, incidentDate, entityInstanceB, programA);
+    enrollmentC.setStatus(EnrollmentStatus.COMPLETED);
+    enrollmentD = new Enrollment(enrollmentDate, incidentDate, trackedEntityB, programA);
     enrollmentD.setUid("UID-D");
   }
 
@@ -183,10 +183,10 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest {
     enrollmentStore.save(enrollmentC);
     enrollmentStore.save(enrollmentD);
     List<Enrollment> enrollments =
-        enrollmentStore.get(entityInstanceA, programC, ProgramStatus.COMPLETED);
+        enrollmentStore.get(trackedEntityA, programC, EnrollmentStatus.COMPLETED);
     assertEquals(1, enrollments.size());
     assertTrue(enrollments.contains(enrollmentC));
-    enrollments = enrollmentStore.get(entityInstanceA, programA, ProgramStatus.ACTIVE);
+    enrollments = enrollmentStore.get(trackedEntityA, programA, EnrollmentStatus.ACTIVE);
     assertEquals(1, enrollments.size());
     assertTrue(enrollments.contains(enrollmentA));
   }
@@ -215,11 +215,11 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest {
     programNotificationStore.save(a1);
     programNotificationStore.save(a2);
     programNotificationStore.save(a3);
-    // TEI
-    TrackedEntity teiX = createTrackedEntity(organisationUnitA);
-    TrackedEntity teiY = createTrackedEntity(organisationUnitA);
-    entityInstanceService.addTrackedEntity(teiX);
-    entityInstanceService.addTrackedEntity(teiY);
+    // TE
+    TrackedEntity trackedEntityX = createTrackedEntity(organisationUnitA);
+    TrackedEntity trackedEntityY = createTrackedEntity(organisationUnitA);
+    trackedEntityService.addTrackedEntity(trackedEntityX);
+    trackedEntityService.addTrackedEntity(trackedEntityY);
     // Program
     programA.setNotificationTemplates(Sets.newHashSet(a1, a2, a3));
     programService.updateProgram(programA);
@@ -234,9 +234,9 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest {
     cal.add(Calendar.DATE, -6);
     Date aWeekAgo = cal.getTime();
     // Enrollments
-    Enrollment enrollmentA = new Enrollment(today, tomorrow, teiX, programA);
+    Enrollment enrollmentA = new Enrollment(today, tomorrow, trackedEntityX, programA);
     enrollmentStore.save(enrollmentA);
-    Enrollment enrollmentB = new Enrollment(aWeekAgo, yesterday, teiY, programA);
+    Enrollment enrollmentB = new Enrollment(aWeekAgo, yesterday, trackedEntityY, programA);
     enrollmentStore.save(enrollmentB);
     // Queries
     List<Enrollment> results;

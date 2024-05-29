@@ -68,7 +68,7 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
     implements RelationshipStore {
   private static final String TRACKED_ENTITY = "trackedEntity";
 
-  private static final String PROGRAM_INSTANCE = "enrollment";
+  private static final String ENROLLMENT = "enrollment";
 
   private static final String EVENT = "event";
 
@@ -172,7 +172,7 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
 
   private <T extends IdentifiableObject> String getRelationshipEntityType(T entity) {
     if (entity instanceof TrackedEntity) return TRACKED_ENTITY;
-    else if (entity instanceof Enrollment) return PROGRAM_INSTANCE;
+    else if (entity instanceof Enrollment) return ENROLLMENT;
     else if (entity instanceof Event) return EVENT;
     else
       throw new IllegalArgumentException(
@@ -344,8 +344,7 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
           getItem(direction, relationship).getTrackedEntity());
     } else if (relationshipItemDirection.getEnrollment() != null) {
       return builder.equal(
-          root.join(direction).get(PROGRAM_INSTANCE),
-          getItem(direction, relationship).getEnrollment());
+          root.join(direction).get(ENROLLMENT), getItem(direction, relationship).getEnrollment());
     } else if (relationshipItemDirection.getEvent() != null) {
       return builder.equal(
           root.join(direction).get(EVENT), getItem(direction, relationship).getEvent());

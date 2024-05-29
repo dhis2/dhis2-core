@@ -45,7 +45,7 @@ import org.hisp.dhis.mapping.MapViewRenderingStrategy;
 import org.hisp.dhis.mapping.MapViewStore;
 import org.hisp.dhis.mapping.ThematicMapType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.visualization.Visualization;
 import org.junit.jupiter.api.DisplayName;
@@ -135,7 +135,7 @@ class AnalyticalObjectStoreTest extends TransactionalIntegrationTest {
     MapView mapView = mapViewStore.getByUid(mvA.getUid());
     assertEquals(AggregationType.SUM, mapView.getAggregationType());
     assertEquals(ThematicMapType.CHOROPLETH, mapView.getThematicMapType());
-    assertEquals(ProgramStatus.COMPLETED, mapView.getProgramStatus());
+    assertEquals(EnrollmentStatus.COMPLETED, mapView.getProgramStatus());
     assertEquals(
         OrganisationUnitSelectionMode.DESCENDANTS, mapView.getOrganisationUnitSelectionMode());
     assertEquals(MapViewRenderingStrategy.SINGLE, mapView.getRenderingStrategy());

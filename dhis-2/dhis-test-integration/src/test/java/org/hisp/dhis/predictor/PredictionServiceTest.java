@@ -71,7 +71,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -86,7 +85,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Jim Grace
  */
 class PredictionServiceTest extends IntegrationTestBase {
-  private final JobProgress progress = NoopJobProgress.INSTANCE;
+  private final JobProgress progress = JobProgress.noop();
 
   @Autowired private PredictionService predictionService;
 
@@ -190,6 +189,7 @@ class PredictionServiceTest extends IntegrationTestBase {
   public void setUpTest() throws Exception {
     this.userService = _userService;
 
+    PeriodType.invalidatePeriodCache();
     orgUnitLevel1 = new OrganisationUnitLevel(1, "Level1");
     orgUnitLevel2 = new OrganisationUnitLevel(2, "Level2");
     orgUnitLevel3 = new OrganisationUnitLevel(3, "Level3");

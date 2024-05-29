@@ -49,7 +49,6 @@ import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -64,7 +63,7 @@ import org.springframework.retry.support.RetryTemplate;
  */
 @ExtendWith(MockitoExtension.class)
 class MetadataSyncJobParametersTest {
-  private static final JobProgress JOB_PROGRESS = NoopJobProgress.INSTANCE;
+  private static final JobProgress JOB_PROGRESS = JobProgress.noop();
 
   @Mock private SystemSettingManager systemSettingManager;
 

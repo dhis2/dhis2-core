@@ -48,9 +48,9 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 
@@ -74,10 +74,6 @@ public class TrackedEntityQueryParams {
 
   public static final String DELETED = "deleted";
 
-  public static final String META_DATA_NAMES_KEY = "names";
-
-  public static final String PAGER_META_KEY = "pager";
-
   public static final String POTENTIAL_DUPLICATE = "potentialduplicate";
 
   public static final int DEFAULT_PAGE = 1;
@@ -86,7 +82,7 @@ public class TrackedEntityQueryParams {
 
   public static final String MAIN_QUERY_ALIAS = "TE";
 
-  public static final String PROGRAM_INSTANCE_ALIAS = "pi";
+  public static final String ENROLLMENT_QUERY_ALIAS = "en";
 
   /** Query value, will apply to all relevant attributes. */
   private QueryFilter query;
@@ -107,7 +103,7 @@ public class TrackedEntityQueryParams {
   private Program program;
 
   /** Status of the tracked entity instance in the given program. */
-  private ProgramStatus programStatus;
+  private EnrollmentStatus programStatus;
 
   /**
    * Indicates whether tracked entity instance is marked for follow up for the specified program.
@@ -534,11 +530,11 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public ProgramStatus getProgramStatus() {
+  public EnrollmentStatus getProgramStatus() {
     return programStatus;
   }
 
-  public TrackedEntityQueryParams setProgramStatus(ProgramStatus programStatus) {
+  public TrackedEntityQueryParams setProgramStatus(EnrollmentStatus programStatus) {
     this.programStatus = programStatus;
     return this;
   }
@@ -718,7 +714,7 @@ public class TrackedEntityQueryParams {
     CREATED_AT_CLIENT("createdAtClient", "createdatclient", MAIN_QUERY_ALIAS),
     UPDATED_AT("updatedAt", "lastupdated", MAIN_QUERY_ALIAS),
     UPDATED_AT_CLIENT("updatedAtClient", "lastupdatedatclient", MAIN_QUERY_ALIAS),
-    ENROLLED_AT("enrolledAt", "enrollmentdate", PROGRAM_INSTANCE_ALIAS),
+    ENROLLED_AT("enrolledAt", "enrollmentdate", ENROLLMENT_QUERY_ALIAS),
     INACTIVE(INACTIVE_ID, "inactive", MAIN_QUERY_ALIAS);
 
     private final String propName;

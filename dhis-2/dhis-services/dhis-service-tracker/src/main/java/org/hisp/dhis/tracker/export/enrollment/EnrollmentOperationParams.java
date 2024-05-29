@@ -38,7 +38,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.SortDirection;
-import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.tracker.export.Order;
 
 @Getter
@@ -71,7 +71,7 @@ public class EnrollmentOperationParams {
   private final String programUid;
 
   /** Status of the tracked entity in the given program. */
-  private final ProgramStatus programStatus;
+  private final EnrollmentStatus programStatus;
 
   /** Indicates whether tracked entity is marked for follow up for the specified program. */
   private final Boolean followUp;

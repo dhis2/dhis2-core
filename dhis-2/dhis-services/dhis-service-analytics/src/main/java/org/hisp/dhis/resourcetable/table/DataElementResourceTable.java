@@ -95,27 +95,32 @@ public class DataElementResourceTable implements ResourceTable {
   @Override
   public List<Index> getIndexes() {
     return List.of(
-        new Index(
-            appendRandom("in_dataelementstructure_dataelementuid"),
-            toStaging(TABLE_NAME),
-            Unique.UNIQUE,
-            List.of("dataelementuid")),
-        new Index(
-            appendRandom("in_dataelementstructure_datasetid"),
-            toStaging(TABLE_NAME),
-            List.of("datasetid")),
-        new Index(
-            appendRandom("in_dataelementstructure_datasetuid"),
-            toStaging(TABLE_NAME),
-            List.of("datasetuid")),
-        new Index(
-            appendRandom("in_dataelementstructure_periodtypeid"),
-            toStaging(TABLE_NAME),
-            List.of("periodtypeid")),
-        new Index(
-            appendRandom("in_dataelementstructure_workflowid"),
-            toStaging(TABLE_NAME),
-            List.of("workflowid")));
+        Index.builder()
+            .build()
+            .withName(appendRandom("in_dataelementstructure_dataelementuid"))
+            .withTableName(toStaging(TABLE_NAME))
+            .withUnique(Unique.UNIQUE)
+            .withColumns(List.of("dataelementuid")),
+        Index.builder()
+            .build()
+            .withName(appendRandom("in_dataelementstructure_datasetid"))
+            .withTableName(toStaging(TABLE_NAME))
+            .withColumns(List.of("datasetid")),
+        Index.builder()
+            .build()
+            .withName(appendRandom("in_dataelementstructure_datasetuid"))
+            .withTableName(toStaging(TABLE_NAME))
+            .withColumns(List.of("datasetuid")),
+        Index.builder()
+            .build()
+            .withName(appendRandom("in_dataelementstructure_periodtypeid"))
+            .withTableName(toStaging(TABLE_NAME))
+            .withColumns(List.of("periodtypeid")),
+        Index.builder()
+            .build()
+            .withName(appendRandom("in_dataelementstructure_workflowid"))
+            .withTableName(toStaging(TABLE_NAME))
+            .withColumns(List.of("workflowid")));
   }
 
   @Override

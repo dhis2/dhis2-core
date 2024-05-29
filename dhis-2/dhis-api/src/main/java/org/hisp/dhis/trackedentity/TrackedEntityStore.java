@@ -45,7 +45,7 @@ public interface TrackedEntityStore extends IdentifiableObjectStore<TrackedEntit
   int getTrackedEntityCountWithMaxTeLimit(TrackedEntityQueryParams params);
 
   /**
-   * Checks for the existence of a TE by UID. Deleted TEIs are not taken into account.
+   * Checks for the existence of a TE by UID. Deleted TEs are not taken into account.
    *
    * @param uid Event UID to check for.
    * @return true/false depending on result.
@@ -53,7 +53,7 @@ public interface TrackedEntityStore extends IdentifiableObjectStore<TrackedEntit
   boolean exists(String uid);
 
   /**
-   * Checks for the existence of a TE by UID. Takes into account also the deleted TEIs.
+   * Checks for the existence of a TE by UID. Takes into account also the deleted TEs.
    *
    * @param uid Event UID to check for.
    * @return true/false depending on result.

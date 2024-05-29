@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.tei;
+package org.hisp.dhis.tracker.imports.trackedEntities;
 
 import static org.hamcrest.CoreMatchers.containsStringIgnoringCase;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -48,7 +48,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TeiUpdateTests extends TrackerApiTest {
+public class TrackedEntityUpdateTests extends TrackerApiTest {
   @BeforeAll
   public void beforeAll() {
 
@@ -58,13 +58,13 @@ public class TeiUpdateTests extends TrackerApiTest {
   @Test
   public void shouldNotUpdateImmutableProperties() throws Exception {
     // arrange
-    String tei = importTei();
+    String te = importTrackedEntity();
     String trackedEntityType = new TrackedEntityTypeActions().create();
     JsonObject body =
         trackerImportExportActions
-            .getTrackedEntity(tei)
+            .getTrackedEntity(te)
             .getBodyAsJsonBuilder()
-            .addProperty("trackedEntity", tei)
+            .addProperty("trackedEntity", te)
             .addProperty("trackedEntityType", trackedEntityType)
             .wrapIntoArray("trackedEntities");
 
@@ -79,18 +79,18 @@ public class TeiUpdateTests extends TrackerApiTest {
   @Test
   public void shouldUpdateWithUpdateStrategy() throws Exception {
     // arrange
-    String teiId = importTei();
+    String teId = importTrackedEntity();
 
-    JsonObject teiBody = trackerImportExportActions.getTrackedEntity(teiId).getBody();
-    teiBody =
-        JsonObjectBuilder.jsonObject(teiBody)
-            .addProperty("trackedEntity", teiId)
+    JsonObject teBody = trackerImportExportActions.getTrackedEntity(teId).getBody();
+    teBody =
+        JsonObjectBuilder.jsonObject(teBody)
+            .addProperty("trackedEntity", teId)
             .wrapIntoArray("trackedEntities");
 
     // act
     ApiResponse response =
         trackerImportExportActions.postAndGetJobReport(
-            teiBody, new QueryParamsBuilder().add("importStrategy=UPDATE"));
+            teBody, new QueryParamsBuilder().add("importStrategy=UPDATE"));
 
     // assert
     response
@@ -102,14 +102,16 @@ public class TeiUpdateTests extends TrackerApiTest {
 
   @ParameterizedTest
   @ValueSource(strings = {"UPDATE", "DELETE"})
-  public void shouldReturnErrorWhenTeiDoesntExist(String importStrategy) throws Exception {
-    JsonObject teiBody =
+  public void shouldReturnErrorWhenTrackedEntityDoesntExist(String importStrategy)
+      throws Exception {
+    JsonObject teBody =
         new FileReaderUtils()
-            .readJsonAndGenerateData(new File("src/test/resources/tracker/importer/teis/tei.json"));
+            .readJsonAndGenerateData(
+                new File("src/test/resources/tracker/importer/trackedEntities/trackedEntity.json"));
 
     ApiResponse response =
         trackerImportExportActions.postAndGetJobReport(
-            teiBody,
+            teBody,
             new QueryParamsBuilder().add(String.format("importStrategy=%s", importStrategy)));
 
     response
@@ -125,7 +127,7 @@ public class TeiUpdateTests extends TrackerApiTest {
 
   @Test
   public void shouldUpdateExportedTrackedEntity() throws Exception {
-    String teUID = importTei();
+    String teUID = importTrackedEntity();
     JsonObjectBuilder trackedEntities =
         trackerImportExportActions
             .getTrackedEntities(

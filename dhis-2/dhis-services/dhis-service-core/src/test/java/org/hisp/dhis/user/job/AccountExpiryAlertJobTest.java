@@ -39,7 +39,7 @@ import static org.mockito.Mockito.when;
 import java.sql.Date;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.UserAccountExpiryInfo;
@@ -74,7 +74,7 @@ class AccountExpiryAlertJobTest {
   @Test
   void testDisabledJobDoesNotExecute() {
     when(settingManager.getBoolSetting(SettingKey.ACCOUNT_EXPIRY_ALERT)).thenReturn(false);
-    job.execute(new JobConfiguration(), NoopJobProgress.INSTANCE);
+    job.execute(new JobConfiguration(), JobProgress.noop());
     verify(userService, never()).getExpiringUserAccounts(anyInt());
   }
 
@@ -86,7 +86,7 @@ class AccountExpiryAlertJobTest {
             singletonList(
                 new UserAccountExpiryInfo(
                     "username", "email@example.com", Date.valueOf("2021-08-23"))));
-    job.execute(new JobConfiguration(), NoopJobProgress.INSTANCE);
+    job.execute(new JobConfiguration(), JobProgress.noop());
     ArgumentCaptor<String> subject = ArgumentCaptor.forClass(String.class);
     ArgumentCaptor<String> text = ArgumentCaptor.forClass(String.class);
     ArgumentCaptor<String> recipient = ArgumentCaptor.forClass(String.class);
@@ -101,7 +101,7 @@ class AccountExpiryAlertJobTest {
   @Test
   void testValidate_Error() {
     when(messageSender.isConfigured()).thenReturn(false);
-    job.execute(new JobConfiguration(), NoopJobProgress.INSTANCE);
+    job.execute(new JobConfiguration(), JobProgress.noop());
     verify(messageSender, never()).sendMessage(anyString(), anyString(), anyString());
   }
 }

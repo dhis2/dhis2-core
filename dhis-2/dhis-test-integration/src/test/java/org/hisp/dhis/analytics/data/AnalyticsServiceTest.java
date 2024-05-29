@@ -87,7 +87,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.CsvUtils;
@@ -266,7 +266,7 @@ class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     // Generate analytics tables
     analyticsTableGenerator.generateAnalyticsTables(
         AnalyticsTableUpdateParams.newBuilder().withStartTime(tenSecondsFromNow).build(),
-        NoopJobProgress.INSTANCE);
+        JobProgress.noop());
   }
 
   private void setUpMetadata() {

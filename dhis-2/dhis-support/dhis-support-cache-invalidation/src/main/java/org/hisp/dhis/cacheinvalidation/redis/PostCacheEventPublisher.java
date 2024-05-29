@@ -145,9 +145,9 @@ public class PostCacheEventPublisher
     TrackedEntityAttributeValue trackedEntityAttributeValue = (TrackedEntityAttributeValue) entity;
 
     long trackedEntityAttributeId = trackedEntityAttributeValue.getAttribute().getId();
-    long entityInstanceId = trackedEntityAttributeValue.getTrackedEntity().getId();
+    long trackedEntityId = trackedEntityAttributeValue.getTrackedEntity().getId();
 
-    return trackedEntityAttributeId + ";" + entityInstanceId;
+    return trackedEntityAttributeId + ";" + trackedEntityId;
   }
 
   private Serializable getCompleteDataSetRegistrationId(Object entity) {

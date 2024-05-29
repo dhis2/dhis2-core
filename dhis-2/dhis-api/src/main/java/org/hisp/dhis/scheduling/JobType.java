@@ -104,9 +104,6 @@ public enum JobType {
   METADATA_IMPORT(),
   DATAVALUE_IMPORT(ImportOptions.class),
   GEOJSON_IMPORT(GeoJsonImportJobParams.class),
-  EVENT_IMPORT(),
-  ENROLLMENT_IMPORT(),
-  TEI_IMPORT(),
   GML_IMPORT(),
 
   /*

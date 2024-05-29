@@ -105,7 +105,8 @@ public class TrackerExportTest extends TrackerApiTest {
 
     TrackerApiResponse response =
         trackerImportExportActions.postAndGetJobReport(
-            new File("src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json"));
+            new File(
+                "src/test/resources/tracker/importer/trackedEntities/trackedEntitiesWithEnrollmentsAndEvents.json"));
 
     trackedEntityA = response.validateSuccessfulImport().extractImportedTrackedEntities().get(0);
     trackedEntityB = response.validateSuccessfulImport().extractImportedTrackedEntities().get(1);
@@ -115,22 +116,24 @@ public class TrackerExportTest extends TrackerApiTest {
     event = response.extractImportedEvents().get(0);
 
     trackedEntityToTrackedEntityRelationship =
-        importRelationshipBetweenTeis(trackedEntityA, trackedEntityB)
+        importRelationshipBetweenTrackedEntities(trackedEntityA, trackedEntityB)
             .extractImportedRelationships()
             .get(0);
     enrollmentToTrackedEntityRelationship =
-        importRelationshipEnrollmentToTei(enrollment, trackedEntityB)
+        importRelationshipEnrollmentToTrackedEntity(enrollment, trackedEntityB)
             .extractImportedRelationships()
             .get(0);
 
     eventToTrackedEntityRelationship =
-        importRelationshipEventToTei(event, trackedEntityB).extractImportedRelationships().get(0);
+        importRelationshipEventToTrackedEntity(event, trackedEntityB)
+            .extractImportedRelationships()
+            .get(0);
 
     trackedEntityWithEnrollmentAndEventsTemplate =
         new FileReaderUtils()
             .read(
                 new File(
-                    "src/test/resources/tracker/importer/teis/teiWithEnrollmentAndEventsNested.json"))
+                    "src/test/resources/tracker/importer/trackedEntities/trackedEntityWithEnrollmentAndEventsNested.json"))
             .get(JsonObject.class);
   }
 
@@ -248,7 +251,7 @@ public class TrackerExportTest extends TrackerApiTest {
   }
 
   @Test
-  public void shouldGetTrackedEntitiesWithSofDeletedEventsWhenIncludeDeletedInRequest() {
+  public void shouldGetTrackedEntitiesWithSoftDeletedEventsWhenIncludeDeletedInRequest() {
     TrackerApiResponse response =
         trackerImportExportActions
             .postAndGetJobReport(
@@ -469,10 +472,10 @@ public class TrackerExportTest extends TrackerApiTest {
   }
 
   @Test
-  public void shouldReturnFilteredEvent() {
+  public void shouldReturnEventWithEnrollmentOccurredOnADateWhenBeforeAndAfterIsTheSameDate() {
     trackerImportExportActions
         .get(
-            "events?enrollmentOccurredAfter=2019-08-16&enrollmentOccurredBefore=2019-08-20&event=ZwwuwNp6gVd")
+            "events?enrollmentOccurredAfter=2019-08-19&enrollmentOccurredBefore=2019-08-19&event=ZwwuwNp6gVd")
         .validate()
         .statusCode(200)
         .rootPath("events[0]")

@@ -37,7 +37,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.EnrollmentStatus;
 
 /**
  * This class contains all the criteria that can be used to execute a DHIS2 Events analytics query
@@ -105,7 +105,7 @@ public class EventsAnalyticsQueryCriteria extends AnalyticsPagingCriteria {
   private Set<EventStatus> eventStatus = new HashSet<>();
 
   /** Specify the enrollment status of events to include. */
-  private Set<ProgramStatus> programStatus = new HashSet<>();
+  private Set<EnrollmentStatus> programStatus = new HashSet<>();
 
   /** Overrides the start date of the relative period. */
   private Date relativePeriodDate;

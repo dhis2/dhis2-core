@@ -60,7 +60,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -144,7 +144,7 @@ class AggregateDataExchangeServiceTest {
         new AggregateDataExchange().setSource(source).setTarget(target);
 
     ImportSummaries summaries =
-        service.exchangeData(UserDetails.fromUser(new User()), exchange, NoopJobProgress.INSTANCE);
+        service.exchangeData(UserDetails.fromUser(new User()), exchange, JobProgress.noop());
 
     assertNotNull(summaries);
     assertEquals(1, summaries.getImportSummaries().size());

@@ -43,8 +43,6 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
-import org.hisp.dhis.actions.SystemActions;
-import org.hisp.dhis.actions.deprecated.tracker.EventActions;
 import org.hisp.dhis.actions.metadata.ProgramStageActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
@@ -57,7 +55,6 @@ import org.hisp.dhis.tracker.imports.databuilder.EventDataBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -74,9 +71,6 @@ class EventsTests extends TrackerApiTest {
 
   private static final String OU_ID_2 = Constants.ORG_UNIT_IDS[2];
 
-  private EventActions eventActions;
-  private SystemActions systemActions;
-
   private static Stream<Arguments> provideEventFilesTestArguments() {
     return Stream.of(
         Arguments.arguments("event.json", ContentType.JSON.toString()),
@@ -86,8 +80,6 @@ class EventsTests extends TrackerApiTest {
   @BeforeAll
   public void beforeAll() {
     loginActions.loginAsSuperUser();
-    eventActions = new EventActions();
-    systemActions = new SystemActions();
   }
 
   @Test
@@ -109,13 +101,12 @@ class EventsTests extends TrackerApiTest {
     eventBody
         .getAsJsonArray("events")
         .forEach(
-            event -> {
-              trackerImportExportActions
-                  .getEvent(event.getAsJsonObject().get("event").getAsString())
-                  .validate()
-                  .statusCode(200)
-                  .body("", matchesJSON(event));
-            });
+            event ->
+                trackerImportExportActions
+                    .getEvent(event.getAsJsonObject().get("event").getAsString())
+                    .validate()
+                    .statusCode(200)
+                    .body("", matchesJSON(event)));
   }
 
   @ParameterizedTest
@@ -160,14 +151,14 @@ class EventsTests extends TrackerApiTest {
                         "filter=repeatable:eq:" + repeatableStage))
             .extractString("programStages.id[0]");
 
-    TrackerApiResponse response = importTeiWithEnrollment(program);
-    String teiId = response.extractImportedTrackedEntities().get(0);
+    TrackerApiResponse response = importTrackedEntityWithEnrollment(program);
+    String teId = response.extractImportedTrackedEntities().get(0);
     String enrollmentId = response.extractImportedEnrollments().get(0);
 
     JsonObject event =
         new EventDataBuilder()
             .setEnrollment(enrollmentId)
-            .setTei(teiId)
+            .setTrackedEntity(teId)
             .array(OU_ID, program, programStage)
             .getAsJsonArray("events")
             .get(0)
@@ -186,13 +177,12 @@ class EventsTests extends TrackerApiTest {
     }
   }
 
-  @Disabled("TODO(tracker) DHIS2-16565 this test class should only test new tracker")
   @Test
   void shouldImportAndGetEventWithOrgUnitDifferentFromEnrollmentOrgUnit() throws Exception {
     String programId = Constants.TRACKER_PROGRAM_ID;
     String programStageId = "nlXNK4b7LVr";
 
-    TrackerApiResponse response = importTeiWithEnrollment(programId);
+    TrackerApiResponse response = importTrackedEntityWithEnrollment(programId);
 
     String enrollmentId = response.extractImportedEnrollments().get(0);
 
@@ -222,17 +212,8 @@ class EventsTests extends TrackerApiTest {
             .add("ouMode", "DESCENDANTS")
             .add("orgUnit", OU_ID_2)
             .add("program", programId);
-
-    // TODO(tracker) eventActions.get() is testing old tracker at /events
-    // this test class should only test new tracker. The call should therefore be replaced with
-    // trackerImportExportActions.getEvents( builder )
-    // Right now this leads to this error
-    // dhis-test-e2e-test-1   | JSON path events doesn't match.
-    // dhis-test-e2e-test-1   | Expected: a collection with size a value equal to or greater than
-    // <1>
-    //     dhis-test-e2e-test-1   |   Actual: null
-    eventActions
-        .get(builder.build())
+    trackerImportExportActions
+        .getEvents(builder)
         .validate()
         .statusCode(200)
         .body("events", hasSize(greaterThanOrEqualTo(1)))
@@ -240,11 +221,11 @@ class EventsTests extends TrackerApiTest {
   }
 
   @Test
-  void shouldAddEventsToExistingTei() throws Exception {
+  void shouldAddEventsToExistingTrackedEntity() throws Exception {
     String programId = Constants.TRACKER_PROGRAM_ID;
     String programStageId = "nlXNK4b7LVr";
 
-    TrackerApiResponse response = importTeiWithEnrollment(programId);
+    TrackerApiResponse response = importTrackedEntityWithEnrollment(programId);
 
     String enrollmentId = response.extractImportedEnrollments().get(0);
 
@@ -283,7 +264,7 @@ class EventsTests extends TrackerApiTest {
         new EventDataBuilder()
             .setProgram(programId)
             .setAttributeCategoryOptions(category)
-            .setOu(OU_ID)
+            .setOrgUnit(OU_ID)
             .array();
 
     trackerImportExportActions.postAndGetJobReport(object).validateSuccessfulImport();
