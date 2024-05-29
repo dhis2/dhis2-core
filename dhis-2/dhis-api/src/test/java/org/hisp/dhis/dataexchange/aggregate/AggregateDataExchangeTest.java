@@ -30,6 +30,7 @@ package org.hisp.dhis.dataexchange.aggregate;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.junit.jupiter.api.Test;
 
 class AggregateDataExchangeTest {
@@ -61,22 +62,22 @@ class AggregateDataExchangeTest {
     assertFalse(api.isBasicAuth());
     assertFalse(api.isAccessTokenAuth());
   }
-  
+
   @Test
   void testTargetRequestA() {
     TargetRequest tA = new TargetRequest();
     tA.setIdScheme("uid");
-    
+
     assertNull(tA.getSkipAudit());
     assertTrue(tA.isSkipAuditOrDefault());
   }
-  
+
   @Test
   void testTargetRequestB() {
     TargetRequest tA = new TargetRequest();
     tA.setIdScheme("uid");
     tA.setSkipAudit(false);
-    
+
     assertFalse(tA.getSkipAudit());
     assertFalse(tA.isSkipAuditOrDefault());
   }

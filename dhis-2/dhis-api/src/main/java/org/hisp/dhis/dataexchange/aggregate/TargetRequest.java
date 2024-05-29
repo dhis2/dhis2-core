@@ -27,15 +27,15 @@
  */
 package org.hisp.dhis.dataexchange.aggregate;
 
-import java.io.Serializable;
-import org.apache.commons.lang3.ObjectUtils;
-import org.hisp.dhis.importexport.ImportStrategy;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.io.Serializable;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.apache.commons.lang3.ObjectUtils;
+import org.hisp.dhis.importexport.ImportStrategy;
 
 @Getter
 @Setter
@@ -63,9 +63,7 @@ public class TargetRequest implements Serializable {
   /** Indicates whether to do a dry run. */
   @JsonProperty private Boolean dryRun;
 
-  /**
-   * Returns whether to skip audit, with fallback to default value if not set.
-   */
+  /** Returns whether to skip audit, with fallback to default value if not set. */
   @JsonIgnore
   public boolean isSkipAuditOrDefault() {
     return ObjectUtils.firstNonNull(skipAudit, true);
