@@ -100,6 +100,10 @@ public class EventRequestParams implements PageRequestParams {
   @OpenApi.Property({UID.class, ProgramStage.class})
   private UID programStage;
 
+  /**
+   * @deprecated use {@link #enrollmentStatus} instead
+   */
+  @Deprecated(since = "2.42")
   private EnrollmentStatus programStatus;
 
   private Boolean followUp;
@@ -145,6 +149,8 @@ public class EventRequestParams implements PageRequestParams {
   private EndDateTime updatedBefore;
 
   private String updatedWithin;
+
+  private EnrollmentStatus enrollmentStatus;
 
   private StartDateTime enrollmentEnrolledAfter;
 

@@ -123,11 +123,14 @@ public class TrackedEntityRequestParams implements PageRequestParams {
 
   private OrganisationUnitSelectionMode orgUnitMode;
 
-  /** a Program UID for which instances in the response must be enrolled in. */
+  /** The program tracked entities are enrolled in. */
   @OpenApi.Property({UID.class, Program.class})
   private UID program;
 
-  /** The {@see ProgramStatus} of the Tracked Entity Instance in the given program. */
+  /**
+   * @deprecated use {@link #enrollmentStatus} instead
+   */
+  @Deprecated(since = "2.42")
   private EnrollmentStatus programStatus;
 
   /**
@@ -144,6 +147,8 @@ public class TrackedEntityRequestParams implements PageRequestParams {
 
   /** The last updated duration filter. */
   private String updatedWithin;
+
+  private EnrollmentStatus enrollmentStatus;
 
   /** The given Program start date. */
   private StartDateTime enrollmentEnrolledAfter;
