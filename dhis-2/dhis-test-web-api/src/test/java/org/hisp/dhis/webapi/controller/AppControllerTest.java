@@ -27,24 +27,61 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.nio.file.Files.createTempDirectory;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.AppControllerBaseTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 
 /**
- * Tests the {@link AppController} using (mocked) REST requests.
+ * Tests the {@link AppController}
  *
  * @author Jan Bernitt
  */
-class AppControllerTest extends DhisControllerConvenienceTest {
+class AppControllerTest extends AppControllerBaseTest {
+
+  @Autowired private AppManager appManager;
+
+  static {
+    try {
+      ClassPathResource classPathResource = new ClassPathResource("AppControllerTestConfig.conf");
+      Path tempDir = createTempDirectory("appFiles").toAbsolutePath();
+      try (InputStream inputStream = classPathResource.getInputStream()) {
+        Path destFile = tempDir.resolve("dhis.conf");
+        Files.copy(inputStream, destFile);
+      }
+      String filePath = tempDir.toString();
+      System.setProperty("dhis2.home", filePath);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Test
+  void testGetInstalledAppIndexHtml() throws IOException {
+    appManager.installApp(
+        new ClassPathResource("app/test-app-with-index-html.zip").getFile(),
+        "test-app-with-index-html.zip");
+
+    HttpResponse response = GET("/apps/myapp/index.html");
+    assertTrue(response.hasBody());
+    String content = response.content("text/html");
+    assertTrue(content.contains("<!doctype html>"));
+  }
 
   @Test
   void testGetApps() {

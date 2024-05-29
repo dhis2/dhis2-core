@@ -39,8 +39,8 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.period.RelativePeriodEnum;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.programstagefilter.DateFilterPeriod;
 import org.hisp.dhis.programstagefilter.DatePeriodType;
 import org.hisp.dhis.translation.Translatable;
@@ -128,14 +128,14 @@ public class TrackedEntityFilter extends BaseIdentifiableObject implements Metad
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public ProgramStatus getEnrollmentStatus() {
+  public EnrollmentStatus getEnrollmentStatus() {
     if (this.entityQueryCriteria != null) {
       return entityQueryCriteria.getEnrollmentStatus();
     }
     return null;
   }
 
-  public void setEnrollmentStatus(ProgramStatus enrollmentStatus) {
+  public void setEnrollmentStatus(EnrollmentStatus enrollmentStatus) {
     if (this.entityQueryCriteria == null) {
       this.entityQueryCriteria = new EntityQueryCriteria();
     }

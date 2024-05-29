@@ -142,14 +142,14 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
    * @return a Query instance with return type is the object type T of the store class
    */
   @SuppressWarnings("unchecked")
-  protected final Query<T> getQuery(String hql) {
+  protected final Query<T> getQuery(@Language("hql") String hql) {
     return getSession()
         .createQuery(hql)
         .setCacheable(cacheable)
         .setHint(QueryHints.CACHEABLE, cacheable);
   }
 
-  protected final <C> Query<C> getQuery(String hql, Class<C> customClass) {
+  protected final <C> Query<C> getQuery(@Language("hql") String hql, Class<C> customClass) {
     return getSession()
         .createQuery(hql, customClass)
         .setCacheable(cacheable)
@@ -163,7 +163,7 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
    * @return a Query instance with return type specified in the Query<Y>
    */
   @SuppressWarnings("unchecked")
-  protected final <V> Query<V> getTypedQuery(String hql) {
+  protected final <V> Query<V> getTypedQuery(@Language("hql") String hql) {
     return getSession()
         .createQuery(hql)
         .setCacheable(cacheable)

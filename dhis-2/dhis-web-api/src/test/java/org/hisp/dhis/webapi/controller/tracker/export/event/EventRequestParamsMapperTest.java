@@ -59,6 +59,7 @@ import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
@@ -90,7 +91,7 @@ import org.mockito.quality.Strictness;
 
 @MockitoSettings(strictness = Strictness.LENIENT) // common setup
 @ExtendWith(MockitoExtension.class)
-class EventImportRequestParamsMapperTest {
+class EventRequestParamsMapperTest {
 
   private static final String DE_1_UID = "OBzmpRP6YUh";
 
@@ -206,6 +207,19 @@ class EventImportRequestParamsMapperTest {
         assertThrows(BadRequestException.class, () -> mapper.map(eventRequestParams));
 
     assertStartsWith("Only one parameter of 'ouMode' and 'orgUnitMode'", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailIfDeprecatedAndNewEnrollmentStatusParameterIsSet() {
+    EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setProgramStatus(EnrollmentStatus.ACTIVE);
+    eventRequestParams.setEnrollmentStatus(EnrollmentStatus.ACTIVE);
+
+    BadRequestException exception =
+        assertThrows(BadRequestException.class, () -> mapper.map(eventRequestParams));
+
+    assertStartsWith(
+        "Only one parameter of 'programStatus' and 'enrollmentStatus'", exception.getMessage());
   }
 
   @Test

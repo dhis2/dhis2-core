@@ -41,11 +41,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 
@@ -113,8 +112,8 @@ class ExistingEnrollmentValidator
                         && !e.getUid().equals(enrollment.getEnrollment()))
             .filter(
                 e ->
-                    ProgramStatus.ACTIVE == e.getStatus()
-                        || ProgramStatus.COMPLETED == e.getStatus())
+                    EnrollmentStatus.ACTIVE == e.getStatus()
+                        || EnrollmentStatus.COMPLETED == e.getStatus())
             .distinct()
             .map(this::getEnrollmentFromDbEnrollment)
             .collect(Collectors.toSet());
@@ -153,7 +152,7 @@ class ExistingEnrollmentValidator
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
         new org.hisp.dhis.tracker.imports.domain.Enrollment();
     enrollment.setEnrollment(dbEnrollment.getUid());
-    enrollment.setStatus(EnrollmentStatus.fromProgramStatus(dbEnrollment.getStatus()));
+    enrollment.setStatus(dbEnrollment.getStatus());
 
     return enrollment;
   }

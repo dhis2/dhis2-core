@@ -46,7 +46,7 @@ import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.junit.jupiter.api.Test;
 
-class RelationshipImportRequestParamsMapperTest {
+class RelationshipRequestParamsMapperTest {
 
   private final RelationshipRequestParamsMapper mapper = new RelationshipRequestParamsMapper();
 

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.tracker.imports.bundle;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -37,9 +39,8 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.scheduling.RecordingJobProgress;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.imports.DefaultTrackerImportService;
 import org.hisp.dhis.tracker.imports.ParamsConverter;
@@ -82,15 +83,15 @@ class TrackerImporterServiceTest {
 
   private TrackerObjects trackerObjects;
 
-  private final BeanRandomizer rnd = BeanRandomizer.create();
-
   @BeforeEach
   public void setUp() {
     subject =
         new DefaultTrackerImportService(
             trackerBundleService, validationService, trackerPreprocessService, trackerUserService);
 
-    final List<Event> events = rnd.objects(Event.class, 3).collect(Collectors.toList());
+    Event event = new Event();
+    event.setEvent("EventUid");
+    final List<Event> events = List.of(event);
 
     params = TrackerImportParams.builder().userId("123").build();
 
@@ -102,10 +103,7 @@ class TrackerImporterServiceTest {
             .trackedEntities(new ArrayList<>())
             .build();
 
-    PersistenceReport persistenceReport = PersistenceReport.emptyReport();
     when(trackerUserService.getUser(anyString())).thenReturn(getUser());
-
-    when(trackerBundleService.commit(any(TrackerBundle.class))).thenReturn(persistenceReport);
 
     when(validationService.validate(any(TrackerBundle.class))).thenReturn(validationResult);
     when(validationService.validateRuleEngine(any(TrackerBundle.class)))
@@ -129,6 +127,8 @@ class TrackerImporterServiceTest {
 
     when(trackerBundleService.create(any(TrackerImportParams.class), any(), any()))
         .thenReturn(ParamsConverter.convert(parameters, objects, new User()));
+    when(trackerBundleService.commit(any(TrackerBundle.class)))
+        .thenReturn(PersistenceReport.emptyReport());
 
     subject.importTracker(parameters, trackerObjects, JobProgress.noop());
 
@@ -142,10 +142,27 @@ class TrackerImporterServiceTest {
         .handleTrackerSideEffects(anyList());
     when(trackerBundleService.create(any(TrackerImportParams.class), any(), any()))
         .thenReturn(ParamsConverter.convert(params, trackerObjects, new User()));
+    when(trackerBundleService.commit(any(TrackerBundle.class)))
+        .thenReturn(PersistenceReport.emptyReport());
 
     subject.importTracker(params, trackerObjects, JobProgress.noop());
 
     verify(trackerBundleService, times(1)).handleTrackerSideEffects(anyList());
+  }
+
+  @Test
+  void shouldRaiseExceptionWhenExceptionWasThrownInsideAStage() {
+    when(trackerBundleService.create(any(TrackerImportParams.class), any(), any()))
+        .thenReturn(ParamsConverter.convert(params, trackerObjects, new User()));
+    when(trackerBundleService.commit(any(TrackerBundle.class)))
+        .thenThrow(new IllegalArgumentException("ERROR"));
+
+    JobProgress transitory = RecordingJobProgress.transitory();
+    IllegalArgumentException ex =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> subject.importTracker(params, trackerObjects, transitory));
+    assertEquals("ERROR", ex.getMessage());
   }
 
   private User getUser() {

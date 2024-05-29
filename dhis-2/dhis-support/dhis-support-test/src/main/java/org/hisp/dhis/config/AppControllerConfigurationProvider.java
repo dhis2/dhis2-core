@@ -25,23 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.config;
 
 /**
- * @author Lars Helge Overland
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public enum ProgramStatus {
-  ACTIVE(0),
-  COMPLETED(1),
-  CANCELLED(2);
+public class AppControllerConfigurationProvider extends TestConfigurationProvider {
 
-  private int value;
-
-  ProgramStatus(int value) {
-    this.value = value;
-  }
-
-  public int getValue() {
-    return value;
+  public AppControllerConfigurationProvider(String configurationFileName) {
+    this.properties = getPropertiesFromFile(configurationFileName);
   }
 }

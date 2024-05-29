@@ -100,6 +100,7 @@ public class Main {
     context.setName("/");
     context.setDisplayName("/");
     context.setPath("");
+    context.setMimeMappings(MimeMappings.lazyCopy(MimeMappings.DEFAULT));
 
     context.setResources(new LoaderHidingResourceRoot(context));
     context.addLifecycleListener(new FixContextListener());

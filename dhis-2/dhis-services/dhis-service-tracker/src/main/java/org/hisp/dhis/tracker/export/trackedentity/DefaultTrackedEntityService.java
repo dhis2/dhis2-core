@@ -509,11 +509,11 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     return ids.withItems(trackedEntities);
   }
 
-  public List<Long> getTrackedEntityIds(TrackedEntityQueryParams params) {
+  private List<Long> getTrackedEntityIds(TrackedEntityQueryParams params) {
     return trackedEntityStore.getTrackedEntityIds(params);
   }
 
-  public Page<Long> getTrackedEntityIds(TrackedEntityQueryParams params, PageParams pageParams) {
+  private Page<Long> getTrackedEntityIds(TrackedEntityQueryParams params, PageParams pageParams) {
     return trackedEntityStore.getTrackedEntityIds(params, pageParams);
   }
 

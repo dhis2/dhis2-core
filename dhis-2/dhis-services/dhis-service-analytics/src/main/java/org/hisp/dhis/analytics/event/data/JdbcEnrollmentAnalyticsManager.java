@@ -446,10 +446,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     // Various filters
     // ---------------------------------------------------------------------
 
-    if (params.hasProgramStatus()) {
+    if (params.hasEnrollmentStatuses()) {
       sql +=
           "and enrollmentstatus in ("
-              + params.getProgramStatus().stream()
+              + params.getEnrollmentStatus().stream()
                   .map(p -> singleQuote(p.name()))
                   .collect(joining(","))
               + ") ";

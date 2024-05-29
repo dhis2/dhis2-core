@@ -126,15 +126,11 @@ public class DataValueSetQueryParams {
 
   private String programStageIdScheme;
 
-  private String trackedEntityIdScheme;
-
   private String trackedEntityAttributeIdScheme;
 
   private String dataSetIdScheme;
 
   private String attributeOptionComboIdScheme;
-
-  private String programStageInstanceIdScheme;
 
   @OpenApi.Ignore
   public IdSchemes getInputIdSchemes() {
@@ -158,12 +154,10 @@ public class DataValueSetQueryParams {
     setNonNull(schemes, orgUnitIdScheme, IdSchemes::setOrgUnitIdScheme);
     setNonNull(schemes, programIdScheme, IdSchemes::setProgramIdScheme);
     setNonNull(schemes, programStageIdScheme, IdSchemes::setProgramStageIdScheme);
-    setNonNull(schemes, trackedEntityIdScheme, IdSchemes::setTrackedEntityIdScheme);
     setNonNull(
         schemes, trackedEntityAttributeIdScheme, IdSchemes::setTrackedEntityAttributeIdScheme);
     setNonNull(schemes, dataSetIdScheme, IdSchemes::setDataSetIdScheme);
     setNonNull(schemes, attributeOptionComboIdScheme, IdSchemes::setAttributeOptionComboIdScheme);
-    setNonNull(schemes, programStageInstanceIdScheme, IdSchemes::setProgramStageInstanceIdScheme);
     return schemes;
   }
 

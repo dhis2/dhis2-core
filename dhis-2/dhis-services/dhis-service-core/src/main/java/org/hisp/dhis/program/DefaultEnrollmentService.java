@@ -69,7 +69,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
   @Override
   @Transactional
   public void deleteEnrollment(Enrollment enrollment) {
-    enrollment.setStatus(ProgramStatus.CANCELLED);
+    enrollment.setStatus(EnrollmentStatus.CANCELLED);
     enrollmentStore.update(enrollment);
     enrollmentStore.delete(enrollment);
   }
@@ -124,14 +124,14 @@ public class DefaultEnrollmentService implements EnrollmentService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<Enrollment> getEnrollments(Program program, ProgramStatus status) {
+  public List<Enrollment> getEnrollments(Program program, EnrollmentStatus status) {
     return enrollmentStore.get(program, status);
   }
 
   @Override
   @Transactional(readOnly = true)
   public List<Enrollment> getEnrollments(
-      TrackedEntity trackedEntity, Program program, ProgramStatus status) {
+      TrackedEntity trackedEntity, Program program, EnrollmentStatus status) {
     return enrollmentStore.get(trackedEntity, program, status);
   }
 
@@ -165,7 +165,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
       enrollment.setOccurredDate(new Date());
     }
 
-    enrollment.setStatus(ProgramStatus.ACTIVE);
+    enrollment.setStatus(EnrollmentStatus.ACTIVE);
 
     return enrollment;
   }
