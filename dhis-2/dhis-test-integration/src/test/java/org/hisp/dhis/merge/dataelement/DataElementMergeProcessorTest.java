@@ -45,6 +45,9 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementOperandStore;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetElement;
+import org.hisp.dhis.dataset.DataSetStore;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationService;
 import org.hisp.dhis.expression.Expression;
@@ -98,6 +101,7 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
   @Autowired private ProgramRuleActionService programRuleActionService;
   @Autowired private IdentifiableObjectManager identifiableObjectManager;
   @Autowired private DataElementOperandStore dataElementOperandStore;
+  @Autowired private DataSetStore dataSetStore;
 
   private DataElement deSource1;
   private DataElement deSource2;
@@ -920,6 +924,180 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesDeleted(report, deoSources, prvTarget, allDataElements);
+  }
+
+  // -------------------------------
+  // -- DataSetElement --
+  // -------------------------------
+  @Test
+  @DisplayName(
+      "DataSetElement references for DataElement are replaced as expected, source DataElements are not deleted")
+  void dataSetElementTest() throws ConflictException {
+    // given
+    DataSet ds1 = createDataSet('1', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
+    DataSet ds2 = createDataSet('2', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
+    DataSet ds3 = createDataSet('3', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
+
+    DataSetElement dse1 = new DataSetElement(ds1, deSource1);
+    DataSetElement dse2 = new DataSetElement(ds2, deSource2);
+    DataSetElement dse3 = new DataSetElement(ds3, deTarget);
+
+    DataElement de1 = createDataElement('g');
+    de1.getDataSetElements().add(dse1);
+
+    DataElement de2 = createDataElement('h');
+    de2.getDataSetElements().add(dse2);
+
+    DataElement de3 = createDataElement('i');
+    de3.getDataSetElements().add(dse3);
+
+    ds1.setDataSetElements(Set.of(dse1));
+    ds2.setDataSetElements(Set.of(dse2));
+    ds3.setDataSetElements(Set.of(dse3));
+
+    identifiableObjectManager.save(ds1);
+    identifiableObjectManager.save(ds2);
+    identifiableObjectManager.save(ds3);
+
+    identifiableObjectManager.save(de1);
+    identifiableObjectManager.save(de2);
+    identifiableObjectManager.save(de3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<DataSetElement> dseSources =
+        dataSetStore.getDataSetElementsByDataElement(List.of(deSource1, deSource2));
+    List<DataSetElement> dseTarget =
+        dataSetStore.getDataSetElementsByDataElement(List.of(deTarget));
+
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    List<DataElement> allDataSetElsDataElement =
+        allDataElements.stream()
+            .flatMap(de -> de.getDataSetElements().stream())
+            .map(DataSetElement::getDataElement)
+            .distinct()
+            .toList();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(1, allDataSetElsDataElement.size(), "there should be only 1 data element present");
+    assertTrue(
+        allDataSetElsDataElement.contains(deTarget),
+        "only the target data element should be present in data set elements");
+    assertEquals(0, dseSources.size());
+    assertEquals(3, dseTarget.size());
+  }
+
+  @Test
+  @DisplayName(
+      "DataSetElement references for DataElement are replaced as expected, source DataElements are deleted")
+  void dataSetElementDeleteSourcesTest() throws ConflictException {
+    // given
+    DataSet ds1 = createDataSet('1', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
+    DataSet ds2 = createDataSet('2', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
+    DataSet ds3 = createDataSet('3', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
+
+    DataSetElement dse1 = new DataSetElement(ds1, deSource1);
+    DataSetElement dse2 = new DataSetElement(ds2, deSource2);
+    DataSetElement dse3 = new DataSetElement(ds3, deTarget);
+
+    DataElement de1 = createDataElement('g');
+    de1.getDataSetElements().add(dse1);
+
+    DataElement de2 = createDataElement('h');
+    de2.getDataSetElements().add(dse2);
+
+    DataElement de3 = createDataElement('i');
+    de3.getDataSetElements().add(dse3);
+
+    ds1.setDataSetElements(Set.of(dse1));
+    ds2.setDataSetElements(Set.of(dse2));
+    ds3.setDataSetElements(Set.of(dse3));
+
+    identifiableObjectManager.save(ds1);
+    identifiableObjectManager.save(ds2);
+    identifiableObjectManager.save(ds3);
+
+    identifiableObjectManager.save(de1);
+    identifiableObjectManager.save(de2);
+    identifiableObjectManager.save(de3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDeleteSources(true);
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<DataSetElement> dseSources =
+        dataSetStore.getDataSetElementsByDataElement(List.of(deSource1, deSource2));
+    List<DataSetElement> dseTarget =
+        dataSetStore.getDataSetElementsByDataElement(List.of(deTarget));
+
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    List<DataElement> allDataSetElsDataElement =
+        allDataElements.stream()
+            .flatMap(de -> de.getDataSetElements().stream())
+            .map(DataSetElement::getDataElement)
+            .distinct()
+            .toList();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(1, allDataSetElsDataElement.size(), "there should be only 1 data element present");
+    assertTrue(
+        allDataSetElsDataElement.contains(deTarget),
+        "only the target data element should be present in data set elements");
+    assertEquals(0, dseSources.size());
+    assertEquals(4, allDataElements.size());
+    assertFalse(allDataElements.contains(deSource1));
+    assertFalse(allDataElements.contains(deSource2));
+    assertEquals(3, dseTarget.size());
+  }
+
+  @Test
+  @DisplayName("DataSetElement DB constraint error when updating")
+  void dataSetElementDbConstraintTest() {
+    // given
+    DataSet ds1 = createDataSet('1', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
+    DataSet ds2 = createDataSet('2', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
+
+    DataSetElement dse1 = new DataSetElement(ds1, deSource1);
+    DataSetElement dse2 = new DataSetElement(ds1, deSource2);
+    DataSetElement dse3 = new DataSetElement(ds2, deTarget);
+
+    ds1.setDataSetElements(Set.of(dse1, dse2));
+    ds2.setDataSetElements(Set.of(dse3));
+
+    identifiableObjectManager.save(ds1);
+    identifiableObjectManager.save(ds2);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+
+    // when merge operation encounters DB constraint
+    PersistenceException persistenceException =
+        assertThrows(PersistenceException.class, () -> mergeProcessor.processMerge(mergeParams));
+    assertNotNull(persistenceException.getMessage());
+
+    // then DB constraint is thrown
+    List<String> expectedStrings =
+        List.of(
+            "duplicate key value violates unique constraint",
+            "datasetelement_unique_key",
+            "Detail: Key (datasetid, dataelementid)",
+            "already exists");
+
+    assertTrue(
+        expectedStrings.stream()
+            .allMatch(
+                exp -> persistenceException.getCause().getCause().getMessage().contains(exp)));
   }
 
   private void assertMergeSuccessfulSourcesNotDeleted(

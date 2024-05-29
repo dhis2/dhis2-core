@@ -137,6 +137,7 @@ public class DataElementMergeService implements MergeService {
             .add(dataElementMergeHandler::handleEventVisualization)
             .add(dataElementMergeHandler::handleMinMaxDataElement)
             .add(dataElementMergeHandler::handleDataElementOperand)
+            .add(dataElementMergeHandler::handleDataSetElement)
             .add(dataElementMergeHandler::handleSmsCode)
             // data
             .build();

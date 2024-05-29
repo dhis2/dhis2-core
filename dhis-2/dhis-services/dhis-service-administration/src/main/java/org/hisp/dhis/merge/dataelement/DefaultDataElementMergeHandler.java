@@ -32,6 +32,8 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementOperandStore;
+import org.hisp.dhis.dataset.DataSetElement;
+import org.hisp.dhis.dataset.DataSetStore;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationService;
 import org.hisp.dhis.minmax.MinMaxDataElement;
@@ -71,6 +73,7 @@ public class DefaultDataElementMergeHandler {
   private final ProgramRuleVariableService programRuleVariableService;
   private final ProgramRuleActionService programRuleActionService;
   private final DataElementOperandStore dataElementOperandStore;
+  private final DataSetStore dataSetStore;
 
   /**
    * Method retrieving {@link MinMaxDataElement}s by source {@link DataElement} references. All
@@ -232,5 +235,19 @@ public class DefaultDataElementMergeHandler {
         dataElementOperandStore.getByDataElement(sources);
 
     dataElementOperands.forEach(pra -> pra.setDataElement(target));
+  }
+
+  /**
+   * Method retrieving {@link DataSetElement}s by source {@link DataElement} references. All
+   * retrieved {@link DataSetElement}s will have their {@link DataElement} replaced with the target
+   * {@link DataElement}.
+   *
+   * @param sources source {@link DataElement}s used to retrieve {@link DataSetElement}s
+   * @param target {@link DataElement} which will be set as the {@link DataElement} for an {@link
+   *     DataSetElement}
+   */
+  public void handleDataSetElement(List<DataElement> sources, DataElement target) {
+    List<DataSetElement> dataSetElements = dataSetStore.getDataSetElementsByDataElement(sources);
+    dataSetElements.forEach(dse -> dse.setDataElement(target));
   }
 }
