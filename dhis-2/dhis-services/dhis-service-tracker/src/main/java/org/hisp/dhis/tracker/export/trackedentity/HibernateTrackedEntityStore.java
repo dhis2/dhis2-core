@@ -716,7 +716,8 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   /**
    * Generates an INNER JOIN for enrollments. If the param we need to order by is enrolledAt, we
-   * need to join the enrollment table to be able to select and order by this value
+   * need to join the enrollment table to be able to select and order by this value. We restrict the
+   * join condition to a specific program if specified in the request.
    *
    * @return a SQL INNER JOIN for enrollments
    */
@@ -724,13 +725,17 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     if (params.getOrder().stream()
         .filter(o -> o.getField() instanceof String)
         .anyMatch(p -> ENROLLMENT_DATE_KEY.equals(p.getField()))) {
-      return " INNER JOIN enrollment "
-          + ENROLLMENT_ALIAS
-          + " ON "
-          + ENROLLMENT_ALIAS
-          + "."
-          + "trackedentityid"
-          + "= TE.trackedentityid ";
+
+      String join =
+          """
+            INNER JOIN enrollment %1$s
+            ON %1$s.trackedentityid = TE.trackedentityid
+            """;
+
+      return !params.hasProgram()
+          ? join.formatted(ENROLLMENT_ALIAS)
+          : join.concat(" AND %1$s.programid = %2$s")
+              .formatted(ENROLLMENT_ALIAS, params.getProgram().getId());
     }
 
     return "";
