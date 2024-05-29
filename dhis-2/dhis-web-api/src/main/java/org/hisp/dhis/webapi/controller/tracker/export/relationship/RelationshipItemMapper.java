@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.webapi.controller.tracker.export.AttributeMapper;
@@ -88,12 +87,6 @@ interface RelationshipItemMapper
   @Mapping(target = "attributes", source = "trackedEntity.trackedEntityAttributeValues")
   @Mapping(target = "notes", source = "notes")
   RelationshipItem.Enrollment from(Enrollment enrollment);
-
-  default org.hisp.dhis.webapi.controller.tracker.view.EnrollmentStatus from(
-      EnrollmentStatus programStatus) {
-    return org.hisp.dhis.webapi.controller.tracker.view.EnrollmentStatus.fromProgramStatus(
-        programStatus);
-  }
 
   @Mapping(target = "event", source = "uid")
   @Mapping(target = "program", source = "enrollment.program.uid")
