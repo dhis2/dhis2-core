@@ -270,11 +270,12 @@ public class AggregateDataExchangeService {
     if (notNull(request.getImportStrategy())) {
       options.setImportStrategy(request.getImportStrategy());
     }
+    if (notNull(request.isSkipAuditOrDefault())) {
+      options.setSkipAudit(request.isSkipAuditOrDefault());
+    }
     if (notNull(request.getDryRun())) {
       options.setDryRun(request.getDryRun());
     }
-
-    options.setSkipAudit(request.isSkipAuditOrDefault());
 
     return options;
   }
