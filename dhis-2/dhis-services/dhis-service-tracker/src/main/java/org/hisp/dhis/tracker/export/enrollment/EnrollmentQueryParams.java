@@ -145,7 +145,7 @@ class EnrollmentQueryParams {
   }
 
   /** Indicates whether this params specifies enrollment status. */
-  public boolean hasEnrollmentStatus() {
+  public boolean hasProgramStatus() {
     return programStatus != null;
   }
 
