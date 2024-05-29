@@ -27,12 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import io.prometheus.client.CollectorRegistry;
-import io.prometheus.client.exporter.common.TextFormat;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.io.UncheckedIOException;
-import java.io.Writer;
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -48,25 +44,15 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Profile("!test")
 @Controller
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@RequiredArgsConstructor
 public class PrometheusScrapeEndpointController {
-  private final CollectorRegistry collectorRegistry;
+  private final PrometheusMeterRegistry registry;
 
-  public PrometheusScrapeEndpointController(CollectorRegistry collectorRegistry) {
-    this.collectorRegistry = collectorRegistry;
-  }
-
-  @GetMapping(value = "/metrics", produces = TextFormat.CONTENT_TYPE_004)
+  // https://prometheus.io/docs/instrumenting/exposition_formats/#text-based-format is the default
+  // format. Unfortunately, PrometheusMeterRegistry.Format.TEXT_004 is private.
+  @GetMapping(value = "/metrics", produces = "text/plain; version=0.0.4; charset=utf-8")
   @ResponseBody
   public String scrape() {
-    try {
-      Writer writer = new StringWriter();
-      TextFormat.write004(writer, this.collectorRegistry.metricFamilySamples());
-      return writer.toString();
-    } catch (IOException ex) {
-      // This never happens since StringWriter::write() doesn't throw
-      // IOException
-
-      throw new UncheckedIOException("Writing metrics failed", ex);
-    }
+    return registry.scrape();
   }
 }

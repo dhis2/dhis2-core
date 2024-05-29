@@ -215,6 +215,7 @@
     <!-- Monitoring -->
     <micrometer-spring-legacy.version>1.3.20</micrometer-spring-legacy.version>
     <micrometer.version>1.13.0</micrometer.version>
+    <prometheus.version>1.3.1</prometheus.version>
 
     <!-- Logging -->
     <log4j.version>2.23.1</log4j.version>
@@ -1760,6 +1761,11 @@
         <groupId>io.micrometer</groupId>
         <artifactId>micrometer-core</artifactId>
         <version>${micrometer.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.prometheus</groupId>
+        <artifactId>prometheus-metrics-model</artifactId>
+        <version>${prometheus.version}</version>
       </dependency>
       <dependency>
         <groupId>org.bouncycastle</groupId>
