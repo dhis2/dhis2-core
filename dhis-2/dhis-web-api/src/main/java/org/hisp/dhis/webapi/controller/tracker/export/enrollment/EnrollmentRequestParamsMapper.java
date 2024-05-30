@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
+import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedUidsParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
@@ -42,6 +43,8 @@ import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.EnrollmentOperationParamsBuilder;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.webdomain.EndDateTime;
+import org.hisp.dhis.webapi.webdomain.StartDateTime;
 import org.springframework.stereotype.Component;
 
 /**
@@ -87,24 +90,20 @@ class EnrollmentRequestParamsMapper {
 
     EnrollmentOperationParamsBuilder builder =
         EnrollmentOperationParams.builder()
-            .programUid(
-                enrollmentRequestParams.getProgram() != null
-                    ? enrollmentRequestParams.getProgram().getValue()
-                    : null)
+            .programUid(applyIfNotNull(enrollmentRequestParams.getProgram(), UID::getValue))
             .programStatus(enrollmentRequestParams.getProgramStatus())
             .followUp(enrollmentRequestParams.getFollowUp())
-            .lastUpdated(enrollmentRequestParams.getUpdatedAfter())
+            .lastUpdated(
+                applyIfNotNull(enrollmentRequestParams.getUpdatedAfter(), StartDateTime::toDate))
             .lastUpdatedDuration(enrollmentRequestParams.getUpdatedWithin())
-            .programStartDate(enrollmentRequestParams.getEnrolledAfter())
-            .programEndDate(enrollmentRequestParams.getEnrolledBefore())
+            .programStartDate(
+                applyIfNotNull(enrollmentRequestParams.getEnrolledAfter(), StartDateTime::toDate))
+            .programEndDate(
+                applyIfNotNull(enrollmentRequestParams.getEnrolledBefore(), EndDateTime::toDate))
             .trackedEntityTypeUid(
-                enrollmentRequestParams.getTrackedEntityType() != null
-                    ? enrollmentRequestParams.getTrackedEntityType().getValue()
-                    : null)
+                applyIfNotNull(enrollmentRequestParams.getTrackedEntityType(), UID::getValue))
             .trackedEntityUid(
-                enrollmentRequestParams.getTrackedEntity() != null
-                    ? enrollmentRequestParams.getTrackedEntity().getValue()
-                    : null)
+                applyIfNotNull(enrollmentRequestParams.getTrackedEntity(), UID::getValue))
             .orgUnitUids(UID.toValueSet(orgUnits))
             .orgUnitMode(orgUnitMode)
             .includeDeleted(enrollmentRequestParams.isIncludeDeleted())

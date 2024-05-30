@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
+import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.parseFilters;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedUidsParameter;
@@ -50,6 +51,8 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.webdomain.EndDateTime;
+import org.hisp.dhis.webapi.webdomain.StartDateTime;
 import org.springframework.stereotype.Component;
 
 /**
@@ -113,32 +116,39 @@ class TrackedEntityRequestParamsMapper {
 
     TrackedEntityOperationParamsBuilder builder =
         TrackedEntityOperationParams.builder()
-            .programUid(
-                trackedEntityRequestParams.getProgram() == null
-                    ? null
-                    : trackedEntityRequestParams.getProgram().getValue())
+            .programUid(applyIfNotNull(trackedEntityRequestParams.getProgram(), UID::getValue))
             .programStageUid(
-                trackedEntityRequestParams.getProgramStage() == null
-                    ? null
-                    : trackedEntityRequestParams.getProgramStage().getValue())
+                applyIfNotNull(trackedEntityRequestParams.getProgramStage(), UID::getValue))
             .programStatus(trackedEntityRequestParams.getProgramStatus())
             .followUp(trackedEntityRequestParams.getFollowUp())
-            .lastUpdatedStartDate(trackedEntityRequestParams.getUpdatedAfter())
-            .lastUpdatedEndDate(trackedEntityRequestParams.getUpdatedBefore())
+            .lastUpdatedStartDate(
+                applyIfNotNull(trackedEntityRequestParams.getUpdatedAfter(), StartDateTime::toDate))
+            .lastUpdatedEndDate(
+                applyIfNotNull(trackedEntityRequestParams.getUpdatedBefore(), EndDateTime::toDate))
             .lastUpdatedDuration(trackedEntityRequestParams.getUpdatedWithin())
-            .programEnrollmentStartDate(trackedEntityRequestParams.getEnrollmentEnrolledAfter())
-            .programEnrollmentEndDate(trackedEntityRequestParams.getEnrollmentEnrolledBefore())
-            .programIncidentStartDate(trackedEntityRequestParams.getEnrollmentOccurredAfter())
-            .programIncidentEndDate(trackedEntityRequestParams.getEnrollmentOccurredBefore())
+            .programEnrollmentStartDate(
+                applyIfNotNull(
+                    trackedEntityRequestParams.getEnrollmentEnrolledAfter(), StartDateTime::toDate))
+            .programEnrollmentEndDate(
+                applyIfNotNull(
+                    trackedEntityRequestParams.getEnrollmentEnrolledBefore(), EndDateTime::toDate))
+            .programIncidentStartDate(
+                applyIfNotNull(
+                    trackedEntityRequestParams.getEnrollmentOccurredAfter(), StartDateTime::toDate))
+            .programIncidentEndDate(
+                applyIfNotNull(
+                    trackedEntityRequestParams.getEnrollmentOccurredBefore(), EndDateTime::toDate))
             .trackedEntityTypeUid(
-                trackedEntityRequestParams.getTrackedEntityType() == null
-                    ? null
-                    : trackedEntityRequestParams.getTrackedEntityType().getValue())
+                applyIfNotNull(trackedEntityRequestParams.getTrackedEntityType(), UID::getValue))
             .organisationUnits(UID.toValueSet(orgUnitUids))
             .orgUnitMode(orgUnitMode)
             .eventStatus(trackedEntityRequestParams.getEventStatus())
-            .eventStartDate(trackedEntityRequestParams.getEventOccurredAfter())
-            .eventEndDate(trackedEntityRequestParams.getEventOccurredBefore())
+            .eventStartDate(
+                applyIfNotNull(
+                    trackedEntityRequestParams.getEventOccurredAfter(), StartDateTime::toDate))
+            .eventEndDate(
+                applyIfNotNull(
+                    trackedEntityRequestParams.getEventOccurredBefore(), EndDateTime::toDate))
             .assignedUserQueryParam(
                 new AssignedUserQueryParam(
                     trackedEntityRequestParams.getAssignedUserMode(),

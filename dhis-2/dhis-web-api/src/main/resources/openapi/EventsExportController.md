@@ -92,23 +92,33 @@ either `PROVIDED` or not specified.
 
 ### `*.parameter.EventRequestParams.occurredAfter`
 
-Get events that occurred after given date.
+Get events that occurred after given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
+If no time is specified, first millisecond of the day is used.
 
 ### `*.parameter.EventRequestParams.occurredBefore`
 
-Get events that occurred before given date.
+Get events that occurred before given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
+If no time is specified, last millisecond of the day is used.
 
 ### `*.parameter.EventRequestParams.scheduledAfter`
 
-Get events that are scheduled after given date.
+Get events that are scheduled after given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
+If no time is specified, first millisecond of the day is used.
 
 ### `*.parameter.EventRequestParams.scheduledBefore`
 
-Get events that are scheduled before given date.
+Get events that are scheduled before given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
+If no time is specified, last millisecond of the day is used.
 
 ### `*.parameter.EventRequestParams.updatedAfter`
 
-Get events updated after given date.
+Get events updated after given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
+If no time is specified, first millisecond of the day is used.
 
 ### `*.parameter.EventRequestParams.updatedWithin`
 
@@ -116,11 +126,15 @@ Get events updated since given ISO-8601 duration.
 
 ### `*.parameter.EventRequestParams.enrollmentEnrolledAfter`
 
-Get events with enrollments that were enrolled after given date.
+Get events with enrollments that were enrolled after given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
+If no time is specified, first millisecond of the day is used.
 
 ### `*.parameter.EventRequestParams.enrollmentEnrolledBefore`
 
-Get events with enrollments that were enrolled before given date.
+Get events with enrollments that were enrolled before given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
+If no time is specified, last millisecond of the day is used.
 
 ### `*.parameter.EventRequestParams.status`
 
