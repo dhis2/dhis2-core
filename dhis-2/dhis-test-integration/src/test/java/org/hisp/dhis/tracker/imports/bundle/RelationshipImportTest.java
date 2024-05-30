@@ -64,7 +64,7 @@ class RelationshipImportTest extends TrackerTest {
     setUpMetadata("tracker/simple_metadata.json");
     userA = userService.getUser("M5zQapPyTZI");
     TrackerImportParams params = TrackerImportParams.builder().userId(userA.getUid()).build();
-    assertNoErrors(trackerImportService.importTracker(params, fromJson("tracker/single_tei.json")));
+    assertNoErrors(trackerImportService.importTracker(params, fromJson("tracker/single_te.json")));
     assertNoErrors(
         trackerImportService.importTracker(params, fromJson("tracker/single_enrollment.json")));
     assertNoErrors(

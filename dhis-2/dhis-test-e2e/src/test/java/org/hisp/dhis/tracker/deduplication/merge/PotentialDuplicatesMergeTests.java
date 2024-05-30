@@ -54,11 +54,12 @@ public class PotentialDuplicatesMergeTests extends PotentialDuplicatesApiTest {
 
   @Test
   public void shouldUpdateLastUpdatedInfo() {
-    String teiA = createTei(Constants.TRACKED_ENTITY_TYPE);
-    String teiB = createTeiWithEnrollmentsAndEvents().extractImportedTrackedEntities().get(0);
+    String teA = createTrackedEntity(Constants.TRACKED_ENTITY_TYPE);
+    String teB =
+        createTrackedEntityWithEnrollmentsAndEvents().extractImportedTrackedEntities().get(0);
 
     String potentialDuplicate =
-        potentialDuplicatesActions.createAndValidatePotentialDuplicate(teiA, teiB, "OPEN");
+        potentialDuplicatesActions.createAndValidatePotentialDuplicate(teA, teB, "OPEN");
 
     String admin_username = "taadmin";
     loginActions.loginAsUser(admin_username, USER_PASSWORD);
@@ -73,7 +74,7 @@ public class PotentialDuplicatesMergeTests extends PotentialDuplicatesApiTest {
         .body("lastUpdatedByUserName", equalTo(admin_username));
 
     trackerImportExportActions
-        .getTrackedEntity(teiA + "?fields=*")
+        .getTrackedEntity(teA + "?fields=*")
         .validate()
         .statusCode(200)
         .body("createdBy.username", equalTo("tasuperadmin"))
@@ -87,11 +88,11 @@ public class PotentialDuplicatesMergeTests extends PotentialDuplicatesApiTest {
     String id = "nlXNK4b7LVr"; // id of a program. Valid, but there won't be
     // any enrollments, relationships or TEAs
     // with that id.
-    String teiA = createTei(Constants.TRACKED_ENTITY_TYPE);
-    String teiB = createTei(Constants.TRACKED_ENTITY_TYPE);
+    String teA = createTrackedEntity(Constants.TRACKED_ENTITY_TYPE);
+    String teB = createTrackedEntity(Constants.TRACKED_ENTITY_TYPE);
 
     String potentialDuplicate =
-        potentialDuplicatesActions.createAndValidatePotentialDuplicate(teiA, teiB, "OPEN");
+        potentialDuplicatesActions.createAndValidatePotentialDuplicate(teA, teB, "OPEN");
 
     potentialDuplicatesActions
         .manualMergePotentialDuplicate(
@@ -105,14 +106,14 @@ public class PotentialDuplicatesMergeTests extends PotentialDuplicatesApiTest {
   }
 
   @Test
-  public void shouldNotMergeDifferentTypeTeis() {
+  public void shouldNotMergeDifferentTypeTrackedEntities() {
     String trackedEntityType = new TrackedEntityTypeActions().create();
 
-    String teiA = createTei(Constants.TRACKED_ENTITY_TYPE);
-    String teiB = createTei(trackedEntityType);
+    String teA = createTrackedEntity(Constants.TRACKED_ENTITY_TYPE);
+    String teB = createTrackedEntity(trackedEntityType);
 
     String potentialDuplicate =
-        potentialDuplicatesActions.createAndValidatePotentialDuplicate(teiA, teiB, "OPEN");
+        potentialDuplicatesActions.createAndValidatePotentialDuplicate(teA, teB, "OPEN");
 
     potentialDuplicatesActions
         .autoMergePotentialDuplicate(potentialDuplicate)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,18 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.actions.deprecated.tracker;
+package org.hisp.dhis.period;
 
-import org.hisp.dhis.actions.RestApiActions;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
-/**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
- * @deprecated this is a base test class for "old" (deprecated) tracker which will be removed with
- *     "old" tracker
- */
-@Deprecated(since = "2.41")
-public class TrackedEntityInstancesAction extends RestApiActions {
-  public TrackedEntityInstancesAction() {
-    super("/trackedEntityInstances");
+import java.util.Date;
+import java.util.Objects;
+import java.util.function.Supplier;
+
+public record DateField(Date date, String dateField) {
+
+  public static DateField withDefaultsIfNecessary(DateField dateField) {
+    if (Objects.isNull(dateField)) {
+      return new DateField(new Date(), "");
+    }
+    return new DateField(
+        defaultIfNull(dateField.date(), Date::new),
+        defaultIfNull(dateField.dateField(), () -> EMPTY));
+  }
+
+  private static <T> T defaultIfNull(T item, Supplier<T> itemSupplier) {
+    return Objects.isNull(item) ? itemSupplier.get() : item;
+  }
+
+  public static DateField withDefaults() {
+    return new DateField(new Date(), EMPTY);
+  }
+
+  public DateField withDate(Date date) {
+    return new DateField(date, dateField);
   }
 }

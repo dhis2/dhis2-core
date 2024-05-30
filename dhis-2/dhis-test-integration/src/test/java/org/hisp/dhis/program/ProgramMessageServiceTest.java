@@ -64,7 +64,7 @@ class ProgramMessageServiceTest extends TransactionalIntegrationTest {
 
   private Enrollment enrollmentA;
 
-  private TrackedEntity teiA;
+  private TrackedEntity trackedEntityA;
 
   private BulkSmsGatewayConfig bulkSmsConfig;
 
@@ -109,7 +109,7 @@ class ProgramMessageServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private OrganisationUnitService orgUnitService;
 
-  @Autowired private TrackedEntityService teiService;
+  @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private EnrollmentService enrollmentService;
 
@@ -146,17 +146,17 @@ class ProgramMessageServiceTest extends TransactionalIntegrationTest {
     Set<String> ouUids = new HashSet<>();
     ouUids.add(ouA.getUid());
     // ouSet.add( ouB );
-    teiA = createTrackedEntity(ouA);
-    teiService.addTrackedEntity(teiA);
+    trackedEntityA = createTrackedEntity(ouA);
+    trackedEntityService.addTrackedEntity(trackedEntityA);
     recipientsA = new ProgramMessageRecipients();
     recipientsA.setOrganisationUnit(ouA);
-    recipientsA.setTrackedEntity(teiA);
+    recipientsA.setTrackedEntity(trackedEntityA);
     recipientsB = new ProgramMessageRecipients();
     recipientsB.setOrganisationUnit(ouA);
-    recipientsB.setTrackedEntity(teiA);
+    recipientsB.setTrackedEntity(trackedEntityA);
     recipientsC = new ProgramMessageRecipients();
     recipientsC.setOrganisationUnit(ouA);
-    recipientsC.setTrackedEntity(teiA);
+    recipientsC.setTrackedEntity(trackedEntityA);
     recipientsD = new ProgramMessageRecipients();
     recipientsD.setOrganisationUnit(ouA);
     recipientsD.setTrackedEntity(null);

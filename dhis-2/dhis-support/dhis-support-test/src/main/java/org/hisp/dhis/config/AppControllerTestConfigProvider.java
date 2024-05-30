@@ -25,40 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.domain;
+package org.hisp.dhis.config;
 
-import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public enum EnrollmentStatus {
-  ACTIVE(0, ProgramStatus.ACTIVE),
-  COMPLETED(1, ProgramStatus.COMPLETED),
-  CANCELLED(2, ProgramStatus.CANCELLED);
-
-  private final int value;
-
-  private final ProgramStatus programStatus;
-
-  EnrollmentStatus(int value, ProgramStatus programStatus) {
-    this.value = value;
-    this.programStatus = programStatus;
-  }
-
-  public int getValue() {
-    return value;
-  }
-
-  public ProgramStatus getProgramStatus() {
-    return programStatus;
-  }
-
-  public static EnrollmentStatus fromProgramStatus(ProgramStatus programStatus) {
-    return switch (programStatus) {
-      case ACTIVE -> ACTIVE;
-      case CANCELLED -> CANCELLED;
-      case COMPLETED -> COMPLETED;
-    };
+@Configuration
+@Profile({"!impersonate-user-test"})
+public class AppControllerTestConfigProvider {
+  @Bean(name = "dhisConfigurationProvider")
+  public DhisConfigurationProvider dhisConfigurationProvider() {
+    return new AppControllerConfigurationProvider("AppControllerTestConfig.conf");
   }
 }

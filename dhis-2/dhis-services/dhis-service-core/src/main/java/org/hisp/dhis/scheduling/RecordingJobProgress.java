@@ -199,7 +199,7 @@ public class RecordingJobProgress implements JobProgress {
     observer.run();
 
     if (isCancelled()) {
-      throw new CancellationException();
+      throw cancellationException();
     }
     String message = format(description, args);
     tracker.startingProcess(format(message, args));
@@ -208,6 +208,15 @@ public class RecordingJobProgress implements JobProgress {
     incompleteItem.remove();
     Process process = addProcessRecord(message);
     logInfo(process, "started", message);
+  }
+
+  @Nonnull
+  private RuntimeException cancellationException() {
+    Exception cause = getCause();
+    if (skipRecording && cause instanceof RuntimeException rex) throw rex;
+    CancellationException ex = new CancellationException();
+    ex.initCause(cause);
+    return ex;
   }
 
   @Override
@@ -266,7 +275,7 @@ public class RecordingJobProgress implements JobProgress {
     observer.run();
 
     if (isCancelled()) {
-      throw new CancellationException();
+      throw cancellationException();
     }
     skipCurrentStage.set(false);
     tracker.startingStage(description, workItems);

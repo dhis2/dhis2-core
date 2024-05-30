@@ -25,37 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.deprecated.tracker;
+package org.hisp.dhis.program;
 
-import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.deprecated.tracker.EventActions;
-import org.hisp.dhis.actions.deprecated.tracker.TrackedEntityInstancesAction;
-import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Tag;
+import lombok.Getter;
 
 /**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
- * @deprecated this is a base test class for "old" (deprecated) tracker which will be removed with
- *     "old" tracker
+ * @author Lars Helge Overland
  */
-@Deprecated(since = "2.41")
-@Tag("category:tracker")
-public class DeprecatedTrackerApiTest extends ApiTest {
-  protected EventActions eventActions;
+@Getter
+public enum EnrollmentStatus {
+  ACTIVE(0),
+  COMPLETED(1),
+  CANCELLED(2);
 
-  protected TrackedEntityInstancesAction trackedEntityInstancesAction;
+  private final int value;
 
-  protected LoginActions loginActions;
-
-  protected ProgramActions programActions;
-
-  @BeforeAll
-  public void beforeTracker() {
-    trackedEntityInstancesAction = new TrackedEntityInstancesAction();
-    loginActions = new LoginActions();
-    programActions = new ProgramActions();
-    eventActions = new EventActions();
+  EnrollmentStatus(int value) {
+    this.value = value;
   }
 }

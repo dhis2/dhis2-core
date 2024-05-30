@@ -43,9 +43,11 @@ import org.hisp.dhis.util.DateUtils;
  * search including start and end dates.
  */
 @OpenApi.Description(
-    "StartDateTime represents a lower limit date and time used to filter results in search APIs. "
-        + "StartDateTime accepts any date and time in ISO8601 format. "
-        + "If no time is defined, then the time at the beginning of the day is used by default.")
+    """
+  {md}
+
+  Use a valid ISO8601 date _`YYYY[-]MM[-]DD`_ or date-time _`YYYY[-]MM[-]DD'T'hh[:mm[:ss[.sss]]]`_ pattern.
+  When the time part is omitted the start of the day is assumed.""")
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class StartDateTime {
   private final Date date;

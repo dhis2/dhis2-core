@@ -50,7 +50,7 @@ import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.user.User;
@@ -65,20 +65,16 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class TrackedEntityImportRequestParamsMapperTest {
+class TrackedEntityRequestParamsMapperTest {
   public static final String TEA_1_UID = "TvjwTPToKHO";
 
   public static final String TEA_2_UID = "cy2oRh2sNr6";
-
-  public static final String TEA_3_UID = "cy2oRh2sNr7";
 
   private static final String PROGRAM_UID = "XhBYIraw7sv";
 
   private static final String PROGRAM_STAGE_UID = "RpCr2u2pFqw";
 
   private static final String TRACKED_ENTITY_TYPE_UID = "Dp8baZYrLtr";
-
-  private static final String ORG_UNIT_1_UID = "lW0T2U7gZUi";
 
   @Mock private TrackedEntityFieldsParamMapper fieldsParamMapper;
 
@@ -98,7 +94,7 @@ class TrackedEntityImportRequestParamsMapperTest {
   @Test
   void shouldMapCorrectlyWhenProgramAndSpecificUpdateDatesSupplied() throws BadRequestException {
     trackedEntityRequestParams.setOuMode(CAPTURE);
-    trackedEntityRequestParams.setProgramStatus(ProgramStatus.ACTIVE);
+    trackedEntityRequestParams.setEnrollmentStatus(EnrollmentStatus.ACTIVE);
     trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
     trackedEntityRequestParams.setProgramStage(UID.of(PROGRAM_STAGE_UID));
     trackedEntityRequestParams.setFollowUp(true);
@@ -173,7 +169,7 @@ class TrackedEntityImportRequestParamsMapperTest {
 
   @Test
   void shouldMapOrgUnitModeGivenOrgUnitModeParam() throws BadRequestException {
-    TrackedEntityRequestParams trackedEntityRequestParams = new TrackedEntityRequestParams();
+    trackedEntityRequestParams = new TrackedEntityRequestParams();
     trackedEntityRequestParams.setOrgUnitMode(CAPTURE);
     trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
 
@@ -184,7 +180,7 @@ class TrackedEntityImportRequestParamsMapperTest {
 
   @Test
   void shouldMapOrgUnitModeGivenOuModeParam() throws BadRequestException {
-    TrackedEntityRequestParams trackedEntityRequestParams = new TrackedEntityRequestParams();
+    trackedEntityRequestParams = new TrackedEntityRequestParams();
     trackedEntityRequestParams.setOuMode(CAPTURE);
     trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
 
@@ -195,7 +191,7 @@ class TrackedEntityImportRequestParamsMapperTest {
 
   @Test
   void shouldMapOrgUnitModeToDefaultGivenNoOrgUnitModeParamIsSet() throws BadRequestException {
-    TrackedEntityRequestParams trackedEntityRequestParams = new TrackedEntityRequestParams();
+    trackedEntityRequestParams = new TrackedEntityRequestParams();
     trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
 
     TrackedEntityOperationParams params = mapper.map(trackedEntityRequestParams, null);
@@ -205,7 +201,6 @@ class TrackedEntityImportRequestParamsMapperTest {
 
   @Test
   void shouldThrowIfDeprecatedAndNewOrgUnitModeParameterIsSet() {
-    TrackedEntityRequestParams trackedEntityRequestParams = new TrackedEntityRequestParams();
     trackedEntityRequestParams.setOuMode(SELECTED);
     trackedEntityRequestParams.setOrgUnitMode(SELECTED);
 
@@ -213,6 +208,18 @@ class TrackedEntityImportRequestParamsMapperTest {
         assertThrows(BadRequestException.class, () -> mapper.map(trackedEntityRequestParams, null));
 
     assertStartsWith("Only one parameter of 'ouMode' and 'orgUnitMode'", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailIfDeprecatedAndNewEnrollmentStatusParameterIsSet() {
+    trackedEntityRequestParams.setProgramStatus(EnrollmentStatus.ACTIVE);
+    trackedEntityRequestParams.setEnrollmentStatus(EnrollmentStatus.ACTIVE);
+
+    BadRequestException exception =
+        assertThrows(BadRequestException.class, () -> mapper.map(trackedEntityRequestParams, null));
+
+    assertStartsWith(
+        "Only one parameter of 'programStatus' and 'enrollmentStatus'", exception.getMessage());
   }
 
   @Test
@@ -284,6 +291,28 @@ class TrackedEntityImportRequestParamsMapperTest {
   }
 
   @Test
+  void shouldFailIfProgramStatusIsSetWithoutProgram() {
+    trackedEntityRequestParams.setTrackedEntityType(UID.of(TRACKED_ENTITY_TYPE_UID));
+    trackedEntityRequestParams.setProgramStatus(EnrollmentStatus.ACTIVE);
+
+    BadRequestException exception =
+        assertThrows(BadRequestException.class, () -> mapper.map(trackedEntityRequestParams, null));
+
+    assertStartsWith("`program` must be defined when `programStatus`", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailIfEnrollmentStatusIsSetWithoutProgram() {
+    trackedEntityRequestParams.setTrackedEntityType(UID.of(TRACKED_ENTITY_TYPE_UID));
+    trackedEntityRequestParams.setEnrollmentStatus(EnrollmentStatus.ACTIVE);
+
+    BadRequestException exception =
+        assertThrows(BadRequestException.class, () -> mapper.map(trackedEntityRequestParams, null));
+
+    assertStartsWith("`program` must be defined when `enrollmentStatus`", exception.getMessage());
+  }
+
+  @Test
   void shouldFailIfGivenStatusAndNotOccurredEventDates() {
     trackedEntityRequestParams.setEventStatus(EventStatus.ACTIVE);
 
@@ -345,7 +374,6 @@ class TrackedEntityImportRequestParamsMapperTest {
 
   @Test
   void shouldMapOrderParameterInGivenOrderWhenFieldsAreOrderable() throws BadRequestException {
-    TrackedEntityRequestParams trackedEntityRequestParams = new TrackedEntityRequestParams();
     trackedEntityRequestParams.setOrder(
         OrderCriteria.fromOrderString("createdAt:asc,zGlzbfreTOH,enrolledAt:desc"));
     trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
@@ -382,7 +410,6 @@ class TrackedEntityImportRequestParamsMapperTest {
 
   @Test
   void shouldMapFilterParameter() throws BadRequestException {
-    TrackedEntityRequestParams trackedEntityRequestParams = new TrackedEntityRequestParams();
     trackedEntityRequestParams.setOrgUnitMode(ACCESSIBLE);
     trackedEntityRequestParams.setFilter(TEA_1_UID + ":like:value1," + TEA_2_UID + ":like:value2");
     trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));

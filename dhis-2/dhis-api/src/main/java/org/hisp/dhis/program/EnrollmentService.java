@@ -106,35 +106,15 @@ public interface EnrollmentService {
    */
   boolean enrollmentExistsIncludingDeleted(String uid);
 
-  /**
-   * Retrieve Enrollments on a program
-   *
-   * @param program Program
-   * @return Enrollment list
-   */
+  /** Get enrollments into a program. */
   List<Enrollment> getEnrollments(Program program);
 
-  /**
-   * Retrieve enrollments on a program by status
-   *
-   * @param program Program
-   * @param status Status of program-instance, include STATUS_ACTIVE, STATUS_COMPLETED and
-   *     STATUS_CANCELLED
-   * @return Enrollment list
-   */
-  List<Enrollment> getEnrollments(Program program, ProgramStatus status);
+  /** Get enrollments into a program that are in given status. */
+  List<Enrollment> getEnrollments(Program program, EnrollmentStatus status);
 
-  /**
-   * Retrieve enrollments on a TrackedEntity with a status by a program
-   *
-   * @param entityInstance TrackedEntity
-   * @param program Program
-   * @param status Status of program-instance, include STATUS_ACTIVE, STATUS_COMPLETED and
-   *     STATUS_CANCELLED
-   * @return Enrollment list
-   */
+  /** Get a tracked entities enrollments into a program that are in given status. */
   List<Enrollment> getEnrollments(
-      TrackedEntity entityInstance, Program program, ProgramStatus status);
+      TrackedEntity trackedEntity, Program program, EnrollmentStatus status);
 
   /**
    * Enroll a TrackedEntity into a program. Must be run inside a transaction.

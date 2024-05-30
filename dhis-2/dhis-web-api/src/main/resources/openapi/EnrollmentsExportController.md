@@ -107,9 +107,17 @@ See `orgUnitMode` for details.
 
 Get enrollments enrolled in the given program.
 
+### `*.parameter.EnrollmentRequestParams.status`
+
+Get enrollments in the given status.
+
 ### `*.parameter.EnrollmentRequestParams.programStatus`
 
-Get enrollments enrolled in a program with the given status.
+Get enrollments in the given status.
+
+**DEPRECATED as of 2.42:** Use parameter `status` instead.
+
+See `status` for details.
 
 ### `*.parameter.EnrollmentRequestParams.trackedEntityType`
 

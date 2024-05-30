@@ -105,7 +105,7 @@ public class EventNotesTests extends TrackerApiTest {
   private JsonObject buildEventWithNote(String id) {
     JsonObject ob =
         new EventDataBuilder()
-            .setOu(Constants.ORG_UNIT_IDS[0])
+            .setOrgUnit(Constants.ORG_UNIT_IDS[0])
             .setId(id)
             .setProgram(Constants.EVENT_PROGRAM_ID)
             .setProgramStage(Constants.EVENT_PROGRAM_STAGE_ID)

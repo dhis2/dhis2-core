@@ -95,7 +95,7 @@ class EventPredictionServiceTest extends IntegrationTestBase {
 
   @Autowired private PredictionService predictionService;
 
-  @Autowired private TrackedEntityService entityInstanceService;
+  @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private TrackedEntityAttributeService entityAttributeService;
 
@@ -225,14 +225,14 @@ class EventPredictionServiceTest extends IntegrationTestBase {
     entityAttribute.setAggregationType(AggregationType.COUNT);
     entityAttribute.setUid(TRACKED_ENTITY_ATTRIBUTE_UID);
     entityAttributeService.addTrackedEntityAttribute(entityAttribute);
-    TrackedEntity entityInstance = createTrackedEntity('A', orgUnitA, entityAttribute);
-    entityInstanceService.addTrackedEntity(entityInstance);
+    TrackedEntity trackedEntity = createTrackedEntity('A', orgUnitA, entityAttribute);
+    trackedEntityService.addTrackedEntity(trackedEntity);
     TrackedEntityAttributeValue trackedEntityAttributeValue =
-        new TrackedEntityAttributeValue(entityAttribute, entityInstance);
+        new TrackedEntityAttributeValue(entityAttribute, trackedEntity);
     trackedEntityAttributeValue.setValue("123");
     entityAttributeValueService.addTrackedEntityAttributeValue(trackedEntityAttributeValue);
-    entityInstance.setTrackedEntityAttributeValues(Sets.newHashSet(trackedEntityAttributeValue));
-    entityInstanceService.updateTrackedEntity(entityInstance);
+    trackedEntity.setTrackedEntityAttributeValues(Sets.newHashSet(trackedEntityAttributeValue));
+    trackedEntityService.updateTrackedEntity(trackedEntity);
     Program program = createProgram('A', null, Sets.newHashSet(entityAttribute), orgUnitASet, null);
     program.setUid(PROGRAM_UID);
     programService.addProgram(program);
@@ -255,7 +255,7 @@ class EventPredictionServiceTest extends IntegrationTestBase {
     programService.updateProgram(program);
     Enrollment enrollment =
         enrollmentService.enrollTrackedEntity(
-            entityInstance, program, dateMar20, dateMar20, orgUnitA);
+            trackedEntity, program, dateMar20, dateMar20, orgUnitA);
     enrollmentService.addEnrollment(enrollment);
     Event stageInstanceA =
         eventService.createEvent(enrollment, stageA, dateMar20, dateMar20, orgUnitA);

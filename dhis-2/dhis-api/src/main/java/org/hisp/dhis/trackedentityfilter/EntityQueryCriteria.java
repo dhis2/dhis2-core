@@ -38,7 +38,7 @@ import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.programstagefilter.DateFilterPeriod;
 
 /**
@@ -86,7 +86,7 @@ public class EntityQueryCriteria implements Serializable {
   private EventStatus eventStatus;
 
   /** Property indicating which enrollment status types to filter */
-  private ProgramStatus enrollmentStatus;
+  private EnrollmentStatus enrollmentStatus;
 
   /** Property to filter te based on event created dates */
   private DateFilterPeriod eventDate;
@@ -115,11 +115,11 @@ public class EntityQueryCriteria implements Serializable {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public ProgramStatus getEnrollmentStatus() {
+  public EnrollmentStatus getEnrollmentStatus() {
     return enrollmentStatus;
   }
 
-  public void setEnrollmentStatus(ProgramStatus enrollmentStatus) {
+  public void setEnrollmentStatus(EnrollmentStatus enrollmentStatus) {
     this.enrollmentStatus = enrollmentStatus;
   }
 

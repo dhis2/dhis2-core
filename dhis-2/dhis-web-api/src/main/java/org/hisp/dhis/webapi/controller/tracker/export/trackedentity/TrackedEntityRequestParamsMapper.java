@@ -45,6 +45,7 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams.TrackedEntityOperationParamsBuilder;
 import org.hisp.dhis.user.User;
@@ -103,6 +104,13 @@ class TrackedEntityRequestParamsMapper {
         validateOrgUnitModeForTrackedEntities(
             orgUnitUids, orgUnitMode, trackedEntityRequestParams.getTrackedEntities());
 
+    EnrollmentStatus enrollmentStatus =
+        validateDeprecatedParameter(
+            "programStatus",
+            trackedEntityRequestParams.getProgramStatus(),
+            "enrollmentStatus",
+            trackedEntityRequestParams.getEnrollmentStatus());
+
     Set<UID> trackedEntities =
         validateDeprecatedUidsParameter(
             "trackedEntity",
@@ -119,7 +127,7 @@ class TrackedEntityRequestParamsMapper {
             .programUid(applyIfNotNull(trackedEntityRequestParams.getProgram(), UID::getValue))
             .programStageUid(
                 applyIfNotNull(trackedEntityRequestParams.getProgramStage(), UID::getValue))
-            .programStatus(trackedEntityRequestParams.getProgramStatus())
+            .enrollmentStatus(enrollmentStatus)
             .followUp(trackedEntityRequestParams.getFollowUp())
             .lastUpdatedStartDate(
                 applyIfNotNull(trackedEntityRequestParams.getUpdatedAfter(), StartDateTime::toDate))
@@ -182,6 +190,10 @@ class TrackedEntityRequestParamsMapper {
 
       if (params.getProgramStatus() != null) {
         throw new BadRequestException("`program` must be defined when `programStatus` is defined");
+      }
+      if (params.getEnrollmentStatus() != null) {
+        throw new BadRequestException(
+            "`program` must be defined when `enrollmentStatus` is defined");
       }
 
       if (params.getFollowUp() != null) {

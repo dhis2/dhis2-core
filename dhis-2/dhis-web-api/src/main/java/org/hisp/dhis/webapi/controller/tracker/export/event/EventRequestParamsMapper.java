@@ -45,6 +45,7 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams.EventOperationParamsBuilder;
 import org.hisp.dhis.util.DateUtils;
@@ -79,6 +80,13 @@ class EventRequestParamsMapper {
                 ? Set.of(eventRequestParams.getOrgUnit())
                 : emptySet(),
             orgUnitMode);
+
+    EnrollmentStatus enrollmentStatus =
+        validateDeprecatedParameter(
+            "programStatus",
+            eventRequestParams.getProgramStatus(),
+            "enrollmentStatus",
+            eventRequestParams.getEnrollmentStatus());
 
     UID attributeCategoryCombo =
         validateDeprecatedParameter(
@@ -121,7 +129,7 @@ class EventRequestParamsMapper {
             .programStageUid(applyIfNotNull(eventRequestParams.getProgramStage(), UID::getValue))
             .orgUnitUid(applyIfNotNull(eventRequestParams.getOrgUnit(), UID::getValue))
             .trackedEntityUid(applyIfNotNull(eventRequestParams.getTrackedEntity(), UID::getValue))
-            .programStatus(eventRequestParams.getProgramStatus())
+            .enrollmentStatus(enrollmentStatus)
             .followUp(eventRequestParams.getFollowUp())
             .orgUnitMode(orgUnitMode)
             .assignedUserMode(eventRequestParams.getAssignedUserMode())

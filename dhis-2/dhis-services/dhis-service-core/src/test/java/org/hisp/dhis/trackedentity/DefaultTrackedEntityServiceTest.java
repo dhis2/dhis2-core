@@ -78,13 +78,13 @@ class DefaultTrackedEntityServiceTest {
 
   private TrackedEntityQueryParams params;
 
-  private DefaultTrackedEntityService teiService;
+  private DefaultTrackedEntityService trackedEntityService;
 
   private User user;
 
   @BeforeEach
   void setup() {
-    teiService =
+    trackedEntityService =
         new DefaultTrackedEntityService(
             userService,
             trackedEntityStore,
@@ -113,7 +113,7 @@ class DefaultTrackedEntityServiceTest {
   }
 
   @Test
-  void exceptionThrownWhenTeiLimitReached() {
+  void exceptionThrownWhenTrackedEntityLimitReached() {
     when(trackedEntityStore.getTrackedEntityCountWithMaxTeLimit(
             any(TrackedEntityQueryParams.class)))
         .thenReturn(20);
@@ -124,14 +124,14 @@ class DefaultTrackedEntityServiceTest {
     IllegalQueryException expectedException =
         assertThrows(
             IllegalQueryException.class,
-            () -> teiService.getTrackedEntities(params, true, false),
+            () -> trackedEntityService.getTrackedEntities(params, true, false),
             "test message");
 
     assertEquals("maxteicountreached", expectedException.getMessage());
   }
 
   @Test
-  void noExceptionThrownWhenTeiLimitNotReached() {
+  void noExceptionThrownWhenTrackedEntityLimitNotReached() {
     when(trackedEntityStore.getTrackedEntityCountWithMaxTeLimit(
             any(TrackedEntityQueryParams.class)))
         .thenReturn(0);
@@ -139,16 +139,17 @@ class DefaultTrackedEntityServiceTest {
     String currentUsername = CurrentUserUtil.getCurrentUsername();
     when(userService.getUserByUsername(currentUsername)).thenReturn(user);
 
-    teiService.getTrackedEntities(params, true, false);
+    trackedEntityService.getTrackedEntities(params, true, false);
   }
 
   @Test
-  void testTeiQueryParamsWithoutEitherProgramOrTrackedEntityType() {
+  void testTrackedEntityQueryParamsWithoutEitherProgramOrTrackedEntityType() {
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
 
     IllegalQueryException exception =
         assertThrows(
-            IllegalQueryException.class, () -> teiService.getTrackedEntities(params, false, true));
+            IllegalQueryException.class,
+            () -> trackedEntityService.getTrackedEntities(params, false, true));
     assertEquals(
         "Either Program or Tracked entity type should be specified", exception.getMessage());
   }

@@ -40,8 +40,8 @@ import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
@@ -106,7 +106,13 @@ public class EnrollmentRequestParams implements PageRequestParams {
   @OpenApi.Property({UID.class, Program.class})
   private UID program;
 
-  private ProgramStatus programStatus;
+  /**
+   * @deprecated use {@link #status} instead
+   */
+  @Deprecated(since = "2.42")
+  private EnrollmentStatus programStatus;
+
+  private EnrollmentStatus status;
 
   private Boolean followUp;
 

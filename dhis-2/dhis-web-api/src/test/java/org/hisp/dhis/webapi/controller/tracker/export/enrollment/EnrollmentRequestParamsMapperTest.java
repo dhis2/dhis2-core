@@ -47,7 +47,7 @@ import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
-import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
@@ -66,7 +66,7 @@ import org.mockito.quality.Strictness;
 
 @MockitoSettings(strictness = Strictness.LENIENT) // common setup
 @ExtendWith(MockitoExtension.class)
-class EnrollmentImportRequestParamsMapperTest {
+class EnrollmentRequestParamsMapperTest {
 
   private static final String ORG_UNIT_1_UID = "lW0T2U7gZUi";
 
@@ -151,6 +151,18 @@ class EnrollmentImportRequestParamsMapperTest {
   }
 
   @Test
+  void shouldFailIfDeprecatedAndNewStatusParameterIsSet() {
+    EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
+    enrollmentRequestParams.setProgramStatus(EnrollmentStatus.ACTIVE);
+    enrollmentRequestParams.setStatus(EnrollmentStatus.ACTIVE);
+
+    BadRequestException exception =
+        assertThrows(BadRequestException.class, () -> mapper.map(enrollmentRequestParams));
+
+    assertStartsWith("Only one parameter of 'programStatus' and 'status'", exception.getMessage());
+  }
+
+  @Test
   void testMappingProgram() throws BadRequestException {
     EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
     enrollmentRequestParams.setProgram(UID.of(PROGRAM_UID));
@@ -227,21 +239,30 @@ class EnrollmentImportRequestParamsMapperTest {
         Assertions.assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
 
     assertEquals(
-        "Program and tracked entity cannot be specified simultaneously",
+        "`program` and `trackedEntityType` cannot be specified simultaneously",
         badRequestException.getMessage());
   }
 
   @Test
-  void shouldFailWhenProgramStatusProvidedAndProgramNotPresent() {
+  void shouldFailIfProgramStatusIsSetWithoutProgram() {
     EnrollmentRequestParams requestParams = new EnrollmentRequestParams();
-    requestParams.setProgramStatus(ProgramStatus.ACTIVE);
+    requestParams.setProgramStatus(EnrollmentStatus.ACTIVE);
 
-    Exception badRequestException =
+    Exception exception =
         Assertions.assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
 
-    assertEquals(
-        "Program must be defined when `programStatus` is defined",
-        badRequestException.getMessage());
+    assertStartsWith("`program` must be defined when `programStatus`", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailIfEnrollmentStatusIsSetWithoutProgram() {
+    EnrollmentRequestParams requestParams = new EnrollmentRequestParams();
+    requestParams.setStatus(EnrollmentStatus.ACTIVE);
+
+    Exception exception =
+        Assertions.assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
+
+    assertStartsWith("`program` must be defined when `status`", exception.getMessage());
   }
 
   @Test
@@ -253,7 +274,7 @@ class EnrollmentImportRequestParamsMapperTest {
         Assertions.assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
 
     assertEquals(
-        "Program must be defined when `followUp` status is defined",
+        "`program` must be defined when `followUp` status is defined",
         badRequestException.getMessage());
   }
 
@@ -266,7 +287,7 @@ class EnrollmentImportRequestParamsMapperTest {
         Assertions.assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
 
     assertEquals(
-        "Program must be defined when `enrolledAfter` is specified",
+        "`program` must be defined when `enrolledAfter` is specified",
         badRequestException.getMessage());
   }
 
@@ -279,7 +300,7 @@ class EnrollmentImportRequestParamsMapperTest {
         Assertions.assertThrows(BadRequestException.class, () -> mapper.map(requestParams));
 
     assertEquals(
-        "Program must be defined when `enrolledBefore` is specified",
+        "`program` must be defined when `enrolledBefore` is specified",
         badRequestException.getMessage());
   }
 

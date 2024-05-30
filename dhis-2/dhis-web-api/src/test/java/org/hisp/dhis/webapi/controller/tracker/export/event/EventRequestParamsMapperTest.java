@@ -59,6 +59,7 @@ import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
@@ -90,7 +91,7 @@ import org.mockito.quality.Strictness;
 
 @MockitoSettings(strictness = Strictness.LENIENT) // common setup
 @ExtendWith(MockitoExtension.class)
-class EventImportRequestParamsMapperTest {
+class EventRequestParamsMapperTest {
 
   private static final String DE_1_UID = "OBzmpRP6YUh";
 
@@ -112,7 +113,7 @@ class EventImportRequestParamsMapperTest {
 
   @Mock private AclService aclService;
 
-  @Mock private TrackedEntityService entityInstanceService;
+  @Mock private TrackedEntityService trackedEntityService;
 
   @Mock private TrackedEntityAttributeService attributeService;
 
@@ -147,7 +148,7 @@ class EventImportRequestParamsMapperTest {
     when(organisationUnitService.isInUserHierarchy(user, orgUnit)).thenReturn(true);
 
     TrackedEntity trackedEntity = new TrackedEntity();
-    when(entityInstanceService.getTrackedEntity("qnR1RK4cTIZ")).thenReturn(trackedEntity);
+    when(trackedEntityService.getTrackedEntity("qnR1RK4cTIZ")).thenReturn(trackedEntity);
     TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
     tea1.setUid(TEA_1_UID);
     TrackedEntityAttribute tea2 = new TrackedEntityAttribute();
@@ -172,7 +173,7 @@ class EventImportRequestParamsMapperTest {
     verifyNoInteractions(programService);
     verifyNoInteractions(programStageService);
     verifyNoInteractions(organisationUnitService);
-    verifyNoInteractions(entityInstanceService);
+    verifyNoInteractions(trackedEntityService);
   }
 
   @Test
@@ -206,6 +207,19 @@ class EventImportRequestParamsMapperTest {
         assertThrows(BadRequestException.class, () -> mapper.map(eventRequestParams));
 
     assertStartsWith("Only one parameter of 'ouMode' and 'orgUnitMode'", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailIfDeprecatedAndNewEnrollmentStatusParameterIsSet() {
+    EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setProgramStatus(EnrollmentStatus.ACTIVE);
+    eventRequestParams.setEnrollmentStatus(EnrollmentStatus.ACTIVE);
+
+    BadRequestException exception =
+        assertThrows(BadRequestException.class, () -> mapper.map(eventRequestParams));
+
+    assertStartsWith(
+        "Only one parameter of 'programStatus' and 'enrollmentStatus'", exception.getMessage());
   }
 
   @Test

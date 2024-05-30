@@ -41,9 +41,9 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
@@ -123,12 +123,15 @@ public class TrackedEntityRequestParams implements PageRequestParams {
 
   private OrganisationUnitSelectionMode orgUnitMode;
 
-  /** a Program UID for which instances in the response must be enrolled in. */
+  /** The program tracked entities are enrolled in. */
   @OpenApi.Property({UID.class, Program.class})
   private UID program;
 
-  /** The {@see ProgramStatus} of the Tracked Entity Instance in the given program. */
-  private ProgramStatus programStatus;
+  /**
+   * @deprecated use {@link #enrollmentStatus} instead
+   */
+  @Deprecated(since = "2.42")
+  private EnrollmentStatus programStatus;
 
   /**
    * Indicates whether the Tracked Entity Instance is marked for follow up for the specified
@@ -144,6 +147,8 @@ public class TrackedEntityRequestParams implements PageRequestParams {
 
   /** The last updated duration filter. */
   private String updatedWithin;
+
+  private EnrollmentStatus enrollmentStatus;
 
   /** The given Program start date. */
   private StartDateTime enrollmentEnrolledAfter;
@@ -188,7 +193,7 @@ public class TrackedEntityRequestParams implements PageRequestParams {
   @OpenApi.Property({UID[].class, User.class})
   private Set<UID> assignedUsers = new HashSet<>();
 
-  /** Program Stage UID, used for filtering TEIs based on the selected Program Stage */
+  /** Program Stage UID, used for filtering TEs based on the selected Program Stage */
   @OpenApi.Property({UID.class, ProgramStage.class})
   private UID programStage;
 
@@ -205,8 +210,8 @@ public class TrackedEntityRequestParams implements PageRequestParams {
   private boolean includeDeleted = false;
 
   /**
-   * Potential Duplicate value for TEI. If null, we don't check whether a TEI is a
-   * potentialDuplicate or not
+   * Potential Duplicate value for TE. If null, we don't check whether a TE is a potentialDuplicate
+   * or not
    */
   private Boolean potentialDuplicate;
 

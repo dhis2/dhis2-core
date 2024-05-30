@@ -44,6 +44,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
@@ -57,7 +58,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
-import org.hisp.dhis.tracker.imports.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
@@ -209,7 +209,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
             .setOrganisationUnits(Sets.newHashSet(orgUnit, organisationUnitA));
     userService.addUser(user);
     injectSecurityContextUser(user);
-    TrackerObjects trackerObjects = fromJson("tracker/validations/enrollments_no-access-tei.json");
+    TrackerObjects trackerObjects = fromJson("tracker/validations/enrollments_no-access-te.json");
     TrackerImportParams params = new TrackerImportParams();
     params.setUserId(user.getUid());
     params.setImportStrategy(CREATE);
@@ -272,7 +272,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
   }
 
   @Test
-  void testUserHasNoAccessToProgramTeiType() throws IOException {
+  void testUserHasNoAccessToProgramTeType() throws IOException {
     clearSecurityContext();
 
     setup();
@@ -284,7 +284,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
         createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(organisationUnitA));
     injectSecurityContextUser(user);
     TrackerObjects trackerObjects =
-        fromJson("tracker/validations/enrollments_program-teitype-missmatch.json");
+        fromJson("tracker/validations/enrollments_program-tetype-missmatch.json");
     TrackerImportParams params = new TrackerImportParams();
     params.setUserId(user.getUid());
     params.setImportStrategy(CREATE);
