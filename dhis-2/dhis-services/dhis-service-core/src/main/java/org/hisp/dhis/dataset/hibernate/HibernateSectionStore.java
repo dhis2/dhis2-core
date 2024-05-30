@@ -98,11 +98,11 @@ public class HibernateSectionStore extends HibernateIdentifiableObjectStore<Sect
     @Language("hql")
     String hql =
         """
-          select s from Section s
-          join s.dataElements de
-          where de in :dataElements
-          group by s.id
-          """;
+        select s from Section s
+        join s.dataElements de
+        where de in :dataElements
+        group by s.id
+        """;
     TypedQuery<Section> query = getTypedQuery(hql);
     query.setParameter("dataElements", dataElements);
     return query.getResultList();
