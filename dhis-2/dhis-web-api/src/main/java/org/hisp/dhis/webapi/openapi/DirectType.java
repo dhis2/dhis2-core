@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.openapi;
 
 import static org.hisp.dhis.common.CodeGenerator.UID_REGEXP;
+import static org.hisp.dhis.webapi.openapi.ApiDescriptions.toMarkdown;
 
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -131,8 +132,7 @@ class DirectType {
         source.isAnnotationPresent(OpenApi.Description.class)
             && source.isAnnotationPresent(OpenApi.Shared.class)
             && source.getAnnotation(OpenApi.Shared.class).value();
-    if (autoShare)
-      b.description(ApiDescriptions.toMarkdown(source.getAnnotation(OpenApi.Description.class)));
+    if (autoShare) b.description(toMarkdown(source.getAnnotation(OpenApi.Description.class)));
     schema.accept(b);
     SimpleType type = b.build();
     TYPES.compute(

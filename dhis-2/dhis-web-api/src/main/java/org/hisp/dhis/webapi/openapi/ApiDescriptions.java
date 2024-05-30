@@ -41,6 +41,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
@@ -255,9 +256,9 @@ final class ApiDescriptions {
     return null;
   }
 
+  @Nonnull
   @Language("markdown")
-  static String toMarkdown(OpenApi.Description desc) {
-    if (desc == null) return null;
+  static String toMarkdown(@Nonnull OpenApi.Description desc) {
     String[] items = desc.value();
     if (items.length == 0) return null;
     if (items.length == 1) return items[0];

@@ -116,6 +116,7 @@ public class EnrollmentRequestParams implements PageRequestParams {
 
   private Boolean followUp;
 
+  @OpenApi.Description("and this")
   private StartDateTime updatedAfter;
 
   private String updatedWithin;
