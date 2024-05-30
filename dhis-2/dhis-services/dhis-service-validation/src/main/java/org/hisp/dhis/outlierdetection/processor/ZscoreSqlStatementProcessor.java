@@ -87,15 +87,15 @@ public class ZscoreSqlStatementProcessor implements OutlierSqlStatementProcessor
         .addValue(MAX_RESULTS.getKey(), request.getMaxResults());
   }
 
-  private String getDataStartDateClause(Date dataStartDate) {
+  private String getDataStartDateClause(Date dataStartDate, String relation, String alias) {
     return dataStartDate != null
-        ? "and pe.startdate >= :" + DATA_START_DATE.getKey() + " "
+        ? relation + " " + alias + ".startdate >= :" + DATA_START_DATE.getKey() + " "
         : StringUtils.EMPTY;
   }
 
-  private String getDataEndDateClause(Date dataStartDate) {
+  private String getDataEndDateClause(Date dataStartDate, String relation, String alias) {
     return dataStartDate != null
-        ? "and pe.enddate <= :" + DATA_END_DATE.getKey() + " "
+        ? relation + " " + alias + ".enddate <= :" + DATA_END_DATE.getKey() + " "
         : StringUtils.EMPTY;
   }
 
@@ -106,8 +106,8 @@ public class ZscoreSqlStatementProcessor implements OutlierSqlStatementProcessor
             ? "middle_value_abs_dev"
             : request.getOrderBy().getKey();
     String ouPathClause = OutlierDetectionUtils.getOrgUnitPathClause(request.getOrgUnits(), "ou");
-    String dataStartDateClause = getDataStartDateClause(request.getDataStartDate());
-    String dataEndDateClause = getDataEndDateClause(request.getDataEndDate());
+    String dataStartDateClause = getDataStartDateClause(request.getDataStartDate(), "and", "pe");
+    String dataEndDateClause = getDataEndDateClause(request.getDataEndDate(), "and", "pe");
 
     return "select dvs.de_uid, dvs.ou_uid, dvs.coc_uid, dvs.aoc_uid, "
         + "dvs.de_name, dvs.ou_name, dvs.coc_name, dvs.aoc_name, dvs.value, dvs.follow_up, "
@@ -198,8 +198,8 @@ public class ZscoreSqlStatementProcessor implements OutlierSqlStatementProcessor
 
   private String getModifiedZScoreSqlStatement(OutlierDetectionRequest request) {
     String ouPathClause = OutlierDetectionUtils.getOrgUnitPathClause(request.getOrgUnits(), "ou");
-    String dataStartDateClause = getDataStartDateClause(request.getDataStartDate());
-    String dataEndDateClause = getDataEndDateClause(request.getDataEndDate());
+    String dataStartDateClause = getDataStartDateClause(request.getDataStartDate(), "", "t2");
+    String dataEndDateClause = getDataEndDateClause(request.getDataEndDate(), StringUtils.isEmpty(dataStartDateClause)? "" : "and", "t2");
     String order =
         request.getOrderBy() == Order.MEAN_ABS_DEV
             ? "middle_value_abs_dev"
@@ -214,7 +214,9 @@ public class ZscoreSqlStatementProcessor implements OutlierSqlStatementProcessor
         + " dv.attributeoptioncomboid as attributeoptioncomboid,"
         + " dv.value,"
         + " dv.deleted,"
-        + " dv.followup"
+        + " dv.followup,"
+        + " pe.startdate,"
+        + " pe.enddate"
         + " from datavalue dv"
         + " inner join period pe on"
         + " dv.periodid = pe.periodid"
@@ -225,11 +227,6 @@ public class ZscoreSqlStatementProcessor implements OutlierSqlStatementProcessor
         + ")"
         + " and "
         + ouPathClause
-        + " "
-        + dataStartDateClause
-        + " "
-        + dataEndDateClause
-        + " "
         + " and dv.deleted is false)"
         + " select dvs.de_uid,"
         + " dvs.ou_uid,"
@@ -316,6 +313,10 @@ public class ZscoreSqlStatementProcessor implements OutlierSqlStatementProcessor
         + " percentile_cont(0.5) within group (order by value::double precision) as median,"
         + " array_agg(value) as values"
         + " from t2"
+        + (StringUtils.isEmpty(dataStartDateClause) && StringUtils.isEmpty(dataEndDateClause) ? "" : " where ")
+        + dataStartDateClause
+        + " "
+        + dataEndDateClause
         + " group by dataelementid, sourceid, categoryoptioncomboid,"
         + " attributeoptioncomboid) t1) t"
         + " group by dataelementid, sourceid, categoryoptioncomboid, attributeoptioncomboid, median) t3"
