@@ -32,9 +32,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.containsString;
-import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
-import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
@@ -47,7 +45,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -80,6 +77,8 @@ import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.webdomain.EndDateTime;
+import org.hisp.dhis.webapi.webdomain.StartDateTime;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -201,15 +200,15 @@ class TrackerTrackedEntityCriteriaMapperTest {
     criteria.setOuMode(OrganisationUnitSelectionMode.DESCENDANTS);
     criteria.setProgramStatus(ProgramStatus.ACTIVE);
     criteria.setFollowUp(true);
-    criteria.setUpdatedAfter(getDate(2019, 1, 1));
-    criteria.setUpdatedBefore(getDate(2020, 1, 1));
+    criteria.setUpdatedAfter(StartDateTime.of("2019-01-01"));
+    criteria.setUpdatedBefore(EndDateTime.of("2020-01-01"));
     criteria.setUpdatedWithin("20");
-    criteria.setEnrollmentOccurredAfter(getDate(2019, 5, 5));
-    criteria.setEnrollmentOccurredBefore(getDate(2020, 5, 5));
+    criteria.setEnrollmentOccurredAfter(StartDateTime.of("2019-05-05"));
+    criteria.setEnrollmentOccurredBefore(EndDateTime.of("2020-05-05"));
     criteria.setTrackedEntityType(TRACKED_ENTITY_TYPE_UID);
     criteria.setEventStatus(EventStatus.COMPLETED);
-    criteria.setEventOccurredAfter(getDate(2019, 7, 7));
-    criteria.setEventOccurredBefore(getDate(2020, 7, 7));
+    criteria.setEventOccurredAfter(StartDateTime.of("2019-07-07"));
+    criteria.setEventOccurredBefore(EndDateTime.of("2020-07-07"));
     criteria.setSkipMeta(true);
     criteria.setPage(1);
     criteria.setPageSize(50);
@@ -229,13 +228,15 @@ class TrackerTrackedEntityCriteriaMapperTest {
     assertThat(params.isTotalPages(), is(false));
     assertThat(params.getProgramStatus(), is(ProgramStatus.ACTIVE));
     assertThat(params.getFollowUp(), is(true));
-    assertThat(params.getLastUpdatedStartDate(), is(criteria.getUpdatedAfter()));
-    assertThat(params.getLastUpdatedEndDate(), is(criteria.getUpdatedBefore()));
-    assertThat(params.getProgramIncidentStartDate(), is(criteria.getEnrollmentOccurredAfter()));
-    assertThat(params.getProgramIncidentEndDate(), is(criteria.getEnrollmentOccurredBefore()));
+    assertThat(params.getLastUpdatedStartDate(), is(criteria.getUpdatedAfter().toDate()));
+    assertThat(params.getLastUpdatedEndDate(), is(criteria.getUpdatedBefore().toDate()));
+    assertThat(
+        params.getProgramIncidentStartDate(), is(criteria.getEnrollmentOccurredAfter().toDate()));
+    assertThat(
+        params.getProgramIncidentEndDate(), is(criteria.getEnrollmentOccurredBefore().toDate()));
     assertThat(params.getEventStatus(), is(EventStatus.COMPLETED));
-    assertThat(params.getEventStartDate(), is(criteria.getEventOccurredAfter()));
-    assertThat(params.getEventEndDate(), is(criteria.getEventOccurredBefore()));
+    assertThat(params.getEventStartDate(), is(criteria.getEventOccurredAfter().toDate()));
+    assertThat(params.getEventEndDate(), is(criteria.getEventOccurredBefore().toDate()));
     assertThat(
         params.getAssignedUserQueryParam().getMode(), is(AssignedUserSelectionMode.PROVIDED));
     assertThat(params.isIncludeDeleted(), is(true));
@@ -268,22 +269,22 @@ class TrackerTrackedEntityCriteriaMapperTest {
 
   @Test
   void testMappingProgramEnrollmentStartDate() throws BadRequestException, ForbiddenException {
-    Date date = parseDate("2022-12-13");
+    StartDateTime date = StartDateTime.of("2022-12-13");
     criteria.setEnrollmentEnrolledAfter(date);
 
     TrackedEntityInstanceQueryParams params = mapper.map(criteria);
 
-    assertEquals(date, params.getProgramEnrollmentStartDate());
+    assertEquals(date.toDate(), params.getProgramEnrollmentStartDate());
   }
 
   @Test
   void testMappingProgramEnrollmentEndDate() throws BadRequestException, ForbiddenException {
-    Date date = parseDate("2022-12-13");
+    EndDateTime date = EndDateTime.of("2022-12-13");
     criteria.setEnrollmentEnrolledBefore(date);
 
     TrackedEntityInstanceQueryParams params = mapper.map(criteria);
 
-    assertEquals(date, params.getProgramEnrollmentEndDate());
+    assertEquals(date.toDate(), params.getProgramEnrollmentEndDate());
   }
 
   @Test

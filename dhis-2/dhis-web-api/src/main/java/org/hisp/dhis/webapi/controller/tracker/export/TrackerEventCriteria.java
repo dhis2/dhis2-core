@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.webapi.controller.event.webrequest.tracker.FieldTranslatorSupport.translate;
 
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -43,6 +42,8 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
+import org.hisp.dhis.webapi.webdomain.EndDateTime;
+import org.hisp.dhis.webapi.webdomain.StartDateTime;
 
 /**
  * Represents query parameters sent to {@link TrackerEventsExportController}.
@@ -70,27 +71,27 @@ class TrackerEventCriteria extends PagingAndSortingCriteriaAdapter {
 
   private String assignedUser;
 
-  private Date occurredAfter;
+  private StartDateTime occurredAfter;
 
-  private Date occurredBefore;
+  private EndDateTime occurredBefore;
 
-  private Date scheduledAfter;
+  private StartDateTime scheduledAfter;
 
-  private Date scheduledBefore;
+  private EndDateTime scheduledBefore;
 
-  private Date updatedAfter;
+  private StartDateTime updatedAfter;
 
-  private Date updatedBefore;
+  private EndDateTime updatedBefore;
 
   private String updatedWithin;
 
-  private Date enrollmentEnrolledBefore;
+  private EndDateTime enrollmentEnrolledBefore;
 
-  private Date enrollmentEnrolledAfter;
+  private StartDateTime enrollmentEnrolledAfter;
 
-  private Date enrollmentOccurredBefore;
+  private EndDateTime enrollmentOccurredBefore;
 
-  private Date enrollmentOccurredAfter;
+  private StartDateTime enrollmentOccurredAfter;
 
   private EventStatus status;
 
