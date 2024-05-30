@@ -127,7 +127,7 @@ class TrackedEntityRequestParamsMapper {
             .programUid(applyIfNotNull(trackedEntityRequestParams.getProgram(), UID::getValue))
             .programStageUid(
                 applyIfNotNull(trackedEntityRequestParams.getProgramStage(), UID::getValue))
-            .programStatus(enrollmentStatus)
+            .enrollmentStatus(enrollmentStatus)
             .followUp(trackedEntityRequestParams.getFollowUp())
             .lastUpdatedStartDate(
                 applyIfNotNull(trackedEntityRequestParams.getUpdatedAfter(), StartDateTime::toDate))

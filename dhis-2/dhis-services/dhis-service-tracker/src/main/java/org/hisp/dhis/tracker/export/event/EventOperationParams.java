@@ -59,7 +59,7 @@ public class EventOperationParams {
 
   private String programStageUid;
 
-  private EnrollmentStatus programStatus;
+  private EnrollmentStatus enrollmentStatus;
 
   private ProgramType programType;
 

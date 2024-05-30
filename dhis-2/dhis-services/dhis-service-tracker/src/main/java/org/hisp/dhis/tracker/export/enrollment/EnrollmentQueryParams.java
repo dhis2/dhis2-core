@@ -73,8 +73,8 @@ class EnrollmentQueryParams {
   /** Program for which instances in the response must be enrolled in. */
   private Program program;
 
-  /** Status of the tracked entity instance in the given program. */
-  private EnrollmentStatus programStatus;
+  /** Status of a tracked entities enrollment into a given program. */
+  private EnrollmentStatus enrollmentStatus;
 
   /**
    * Indicates whether tracked entity instance is marked for follow up for the specified program.
@@ -144,9 +144,9 @@ class EnrollmentQueryParams {
     return program != null;
   }
 
-  /** Indicates whether this params specifies enrollment status. */
-  public boolean hasProgramStatus() {
-    return programStatus != null;
+  /** Indicates whether this params specifies an enrollment status. */
+  public boolean hasEnrollmentStatus() {
+    return enrollmentStatus != null;
   }
 
   /**

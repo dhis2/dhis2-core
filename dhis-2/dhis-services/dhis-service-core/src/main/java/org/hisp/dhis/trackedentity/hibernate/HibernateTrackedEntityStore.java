@@ -738,8 +738,8 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
         .append(params.getProgram().getId())
         .append(SPACE);
 
-    if (params.hasProgramStatus()) {
-      program.append("AND EN.status = '").append(params.getProgramStatus()).append("' ");
+    if (params.hasEnrollmentStatus()) {
+      program.append("AND EN.status = '").append(params.getEnrollmentStatus()).append("' ");
     }
 
     if (params.hasFollowUp()) {

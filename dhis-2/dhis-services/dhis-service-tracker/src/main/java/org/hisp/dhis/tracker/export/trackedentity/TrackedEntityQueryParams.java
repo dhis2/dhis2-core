@@ -75,8 +75,8 @@ public class TrackedEntityQueryParams {
   /** Programs to fetch. */
   private List<Program> programs = List.of();
 
-  /** Status of the tracked entity instance in the given program. */
-  private EnrollmentStatus programStatus;
+  /** Status of a tracked entities enrollment into a given program. */
+  private EnrollmentStatus enrollmentStatus;
 
   /**
    * Indicates whether tracked entity instance is marked for follow up for the specified program.
@@ -206,9 +206,9 @@ public class TrackedEntityQueryParams {
     return program != null;
   }
 
-  /** Indicates whether these parameters specify a program status. */
-  public boolean hasProgramStatus() {
-    return programStatus != null;
+  /** Indicates whether these parameters specify an enrollment status. */
+  public boolean hasEnrollmentStatus() {
+    return enrollmentStatus != null;
   }
 
   /**
@@ -365,12 +365,12 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public EnrollmentStatus getProgramStatus() {
-    return programStatus;
+  public EnrollmentStatus getEnrollmentStatus() {
+    return enrollmentStatus;
   }
 
-  public TrackedEntityQueryParams setProgramStatus(EnrollmentStatus enrollmentStatus) {
-    this.programStatus = enrollmentStatus;
+  public TrackedEntityQueryParams setEnrollmentStatus(EnrollmentStatus enrollmentStatus) {
+    this.enrollmentStatus = enrollmentStatus;
     return this;
   }
 
