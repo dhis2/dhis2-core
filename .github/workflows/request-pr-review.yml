@@ -1,0 +1,17 @@
+# Automatically requests PR review, based on the conditions specified in the configuration file .github/reviewers.yml
+name: "Request PR review"
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  request-pr-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Request PR review'
+        uses: necojackarc/auto-request-review@v0.13.0
+        with:
+          token: ${{ secrets.DHIS2_BOT_GITHUB_TOKEN }}
+          config: .github/reviewers.yml

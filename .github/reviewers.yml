@@ -1,0 +1,19 @@
+# See https://github.com/marketplace/actions/auto-request-review for more configuration options.
+files:
+  '.github/**':
+    - team:devops
+  'dhis-2/*.sh':
+    - team:devops
+  'dhis-2/dhis-web-apps/apps-to-bundle.json':
+    - team:devops
+  'docker/**':
+    - team:devops
+  'jenkinsfiles/**':
+    - team:devops
+  'docker-compose.yml':
+    - team:devops
+  'jib.yaml':
+    - team:devops
+
+options:
+  ignore_draft: false
