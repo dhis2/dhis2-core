@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.webdomain;
 import java.util.Date;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.util.DateUtils;
 
 /**

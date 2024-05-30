@@ -106,13 +106,11 @@ See `enrollmentStatus` for details.
 
 Get tracked entities updated after given date and time.
 This parameter is inclusive, so results with the exact date and time specified will be included in the response.
-If no time is specified, first millisecond of the day is used.
 
 ### `*.parameter.TrackedEntityRequestParams.updatedBefore`
 
 Get tracked entities updated before given date and time.
 This parameter is inclusive, so results with the exact date and time specified will be included in the response.
-If no time is specified, last millisecond of the day is used.
 
 ### `*.parameter.TrackedEntityRequestParams.updatedWithin`
 
@@ -122,25 +120,21 @@ Get tracked entities updated since given ISO-8601 duration.
 
 Get tracked entities with enrollments that were enrolled after given date and time.
 This parameter is inclusive, so results with the exact date and time specified will be included in the response.
-If no time is specified, first millisecond of the day is used.
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentEnrolledBefore`
 
 Get tracked entities with enrollments that were enrolled before given date and time.
 This parameter is inclusive, so results with the exact date and time specified will be included in the response.
-If no time is specified, last millisecond of the day is used.
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentOccurredAfter`
 
 Get tracked entities with enrollments occurred after given date and time.
 This parameter is inclusive, so results with the exact date and time specified will be included in the response.
-If no time is specified, first millisecond of the day is used.
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentOccurredBefore`
 
 Get tracked entities with enrollments occurred before given date and time.
 This parameter is inclusive, so results with the exact date and time specified will be included in the response.
-If no time is specified, last millisecond of the day is used.
 
 ### `*.parameter.TrackedEntityRequestParams.trackedEntityType`
 
@@ -189,14 +183,12 @@ with `eventOccurredAfter` and `eventOccurredBefore`.
 
 Get tracked entities with an event occurred after given date and time.
 This parameter is inclusive, so results with the exact date and time specified will be included in the response.
-If no time is specified, first millisecond of the day is used.
 `eventOccurredAfter` must be specified together with `eventStatus` and `eventOccurredBefore`.
 
 ### `*.parameter.TrackedEntityRequestParams.eventOccurredBefore`
 
 Get tracked entities with an event occurred before given date and time.
 This parameter is inclusive, so results with the exact date and time specified will be included in the response.
-If no time is specified, last millisecond of the day is used. 
 `eventOccurredBefore` must be specified together with `eventStatus` and `eventOccurredAfter`.
 
 ### `*.parameter.TrackedEntityRequestParams.includeDeleted`
