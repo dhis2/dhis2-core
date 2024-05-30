@@ -260,7 +260,7 @@ final class ApiDescriptions {
   @Language("markdown")
   static String toMarkdown(@Nonnull OpenApi.Description desc) {
     String[] items = desc.value();
-    if (items.length == 0) return null;
+    if (items.length == 0) return "";
     if (items.length == 1) return items[0];
     return Stream.of(items).map(line -> "\n* " + line).collect(joining());
   }
