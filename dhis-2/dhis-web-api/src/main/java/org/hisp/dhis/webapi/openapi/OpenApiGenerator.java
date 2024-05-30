@@ -486,6 +486,7 @@ public class OpenApiGenerator extends JsonGenerator {
     if (!simpleType.enums().isEmpty()) {
       addInlineArrayMember("enum", simpleType.enums());
     }
+    addStringMultilineMember("description", simpleType.description());
   }
 
   private void addDefaultMember(Class<?> source, String defaultValue, String type) {

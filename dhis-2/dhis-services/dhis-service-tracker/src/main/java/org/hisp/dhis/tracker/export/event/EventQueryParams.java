@@ -63,7 +63,7 @@ class EventQueryParams {
 
   private ProgramStage programStage;
 
-  private EnrollmentStatus programStatus;
+  private EnrollmentStatus enrollmentStatus;
 
   private ProgramType programType;
 
@@ -202,12 +202,12 @@ class EventQueryParams {
     return this;
   }
 
-  public EnrollmentStatus getProgramStatus() {
-    return programStatus;
+  public EnrollmentStatus getEnrollmentStatus() {
+    return enrollmentStatus;
   }
 
-  public EventQueryParams setProgramStatus(EnrollmentStatus programStatus) {
-    this.programStatus = programStatus;
+  public EventQueryParams setEnrollmentStatus(EnrollmentStatus enrollmentStatus) {
+    this.enrollmentStatus = enrollmentStatus;
     return this;
   }
 

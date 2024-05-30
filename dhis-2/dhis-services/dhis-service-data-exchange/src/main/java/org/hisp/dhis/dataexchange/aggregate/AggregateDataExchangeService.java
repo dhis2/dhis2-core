@@ -258,21 +258,25 @@ public class AggregateDataExchangeService {
     if (isNotBlank(request.getDataElementIdScheme())) {
       options.setDataElementIdScheme(request.getDataElementIdScheme());
     }
+
     if (isNotBlank(request.getOrgUnitIdScheme())) {
       options.setOrgUnitIdScheme(request.getOrgUnitIdScheme());
     }
+
     if (isNotBlank(request.getCategoryOptionComboIdScheme())) {
       options.setCategoryOptionComboIdScheme(request.getCategoryOptionComboIdScheme());
     }
+
     if (isNotBlank(request.getIdScheme())) {
       options.setIdScheme(request.getIdScheme());
     }
+
     if (notNull(request.getImportStrategy())) {
       options.setImportStrategy(request.getImportStrategy());
     }
-    if (notNull(request.getSkipAudit())) {
-      options.setSkipAudit(request.getSkipAudit());
-    }
+
+    options.setSkipAudit(request.isSkipAuditOrDefault());
+
     if (notNull(request.getDryRun())) {
       options.setDryRun(request.getDryRun());
     }

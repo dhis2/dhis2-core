@@ -354,13 +354,24 @@ final class ApiExtractor {
       Set<MediaType> produces) {
     Map<HttpStatus, Api.Response> responses =
         extractResponses(endpoint, response, produces, List.of(), null);
-    if (responses.size() == 1)
-      responses.values().iterator().next().getDescription().setIfAbsent(extractDescription(source));
+    if (responses.size() == 1) {
+      Api.Response success = responses.values().iterator().next();
+      success
+          .getDescription()
+          .setIfAbsent(extractDescription(source, endpoint.getSource().getReturnType()));
+    }
     return responses;
   }
 
   private static String extractDescription(AnnotatedElement source) {
-    return ApiDescriptions.toMarkdown(source.getAnnotation(OpenApi.Description.class));
+    return extractDescription(source, null);
+  }
+
+  private static String extractDescription(AnnotatedElement source, Class<?> type) {
+    String desc = ApiDescriptions.toMarkdown(source.getAnnotation(OpenApi.Description.class));
+    if (desc != null) return desc;
+    if (type == null) return null;
+    return ApiDescriptions.toMarkdown(type.getAnnotation(OpenApi.Description.class));
   }
 
   private static Map<HttpStatus, Api.Response> extractResponses(
@@ -420,7 +431,7 @@ final class ApiExtractor {
         } else {
           Api.RequestBody requestBody =
               endpoint.getRequestBody().init(() -> new Api.RequestBody(p, details.required()));
-          requestBody.getDescription().setIfAbsent(extractDescription(p));
+          requestBody.getDescription().setIfAbsent(extractDescription(p, p.getType()));
           consumes.forEach(mediaType -> requestBody.getConsumes().putIfAbsent(mediaType, type));
         }
       } else if (p.isAnnotationPresent(PathVariable.class)) {
@@ -437,7 +448,7 @@ final class ApiExtractor {
         RequestBody a = p.getAnnotation(RequestBody.class);
         Api.RequestBody requestBody =
             endpoint.getRequestBody().init(() -> new Api.RequestBody(p, a.required()));
-        requestBody.getDescription().setIfAbsent(extractDescription(p));
+        requestBody.getDescription().setIfAbsent(extractDescription(p, p.getType()));
         Api.Schema type = extractParamSchema(endpoint, p.getParameterizedType());
         consumes.forEach(mediaType -> requestBody.getConsumes().putIfAbsent(mediaType, type));
       } else if (isParams(p)) {
@@ -453,7 +464,7 @@ final class ApiExtractor {
     Api.Parameter parameter =
         new Api.Parameter(source, key, details.in(), details.required(), type, deprecated);
     parameter.getDefaultValue().setValue(details.defaultValue());
-    parameter.getDescription().setIfAbsent(extractDescription(source));
+    parameter.getDescription().setIfAbsent(extractDescription(source, source.getType()));
     return parameter;
   }
 
@@ -464,7 +475,7 @@ final class ApiExtractor {
     boolean deprecated = source.isAnnotationPresent(Deprecated.class);
     Api.Parameter res =
         new Api.Parameter(source, name, In.PATH, details.required(), type, deprecated);
-    res.getDescription().setIfAbsent(extractDescription(source));
+    res.getDescription().setIfAbsent(extractDescription(source, source.getType()));
     return res;
   }
 
@@ -476,7 +487,7 @@ final class ApiExtractor {
     Api.Parameter res =
         new Api.Parameter(source, name, In.QUERY, details.required(), type, deprecated);
     res.getDefaultValue().setValue(details.defaultValue());
-    res.getDescription().setIfAbsent(extractDescription(source));
+    res.getDescription().setIfAbsent(extractDescription(source, source.getType()));
     return res;
   }
 
@@ -555,7 +566,9 @@ final class ApiExtractor {
         new Api.Parameter(source, property.getName(), In.QUERY, false, schema, deprecated);
     Object defaultValue = property.getDefaultValue();
     if (defaultValue != null) param.getDefaultValue().setValue(defaultValue.toString());
-    param.getDescription().setValue(extractDescription(source));
+    param
+        .getDescription()
+        .setValue(extractDescription(source, type instanceof Class<?> c ? c : null));
     return param;
   }
 

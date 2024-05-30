@@ -70,8 +70,8 @@ public class EnrollmentOperationParams {
   /** Enrollments must be enrolled into this program. */
   private final String programUid;
 
-  /** Status of the tracked entity in the given program. */
-  private final EnrollmentStatus programStatus;
+  /** Status of a tracked entities enrollment into a given program. */
+  private final EnrollmentStatus enrollmentStatus;
 
   /** Indicates whether tracked entity is marked for follow up for the specified program. */
   private final Boolean followUp;

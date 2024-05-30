@@ -291,8 +291,8 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
       violation = "Either Program or Tracked entity type should be specified";
     }
 
-    if (params.hasProgramStatus() && !params.hasProgram()) {
-      violation = "Program must be defined when program status is defined";
+    if (params.hasEnrollmentStatus() && !params.hasProgram()) {
+      violation = "Program must be defined when enrollment status is defined";
     }
 
     if (params.hasFollowUp() && !params.hasProgram()) {
