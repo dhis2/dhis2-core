@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.dataset;
 
+import java.util.Collection;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.indicator.Indicator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -79,6 +81,11 @@ public class DefaultSectionService implements SectionService {
   @Transactional
   public void addIndicator(Section s, Indicator i) {
     s.addIndicator(i);
+  }
+
+  @Override
+  public List<Section> getByDataElement(Collection<DataElement> dataElements) {
+    return sectionStore.getByDataElement(dataElements);
   }
 
   @Override

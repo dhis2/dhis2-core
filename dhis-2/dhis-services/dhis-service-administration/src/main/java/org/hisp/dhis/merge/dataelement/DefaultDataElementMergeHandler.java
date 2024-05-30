@@ -34,6 +34,8 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementOperandStore;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.DataSetStore;
+import org.hisp.dhis.dataset.Section;
+import org.hisp.dhis.dataset.SectionStore;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationService;
 import org.hisp.dhis.minmax.MinMaxDataElement;
@@ -74,6 +76,7 @@ public class DefaultDataElementMergeHandler {
   private final ProgramRuleActionService programRuleActionService;
   private final DataElementOperandStore dataElementOperandStore;
   private final DataSetStore dataSetStore;
+  private final SectionStore sectionStore;
 
   /**
    * Method retrieving {@link MinMaxDataElement}s by source {@link DataElement} references. All
@@ -249,5 +252,23 @@ public class DefaultDataElementMergeHandler {
   public void handleDataSetElement(List<DataElement> sources, DataElement target) {
     List<DataSetElement> dataSetElements = dataSetStore.getDataSetElementsByDataElement(sources);
     dataSetElements.forEach(dse -> dse.setDataElement(target));
+  }
+
+  /**
+   * Method retrieving {@link Section}s by source {@link DataElement} references. All retrieved
+   * {@link Section}s will have their {@link DataElement} replaced with the target {@link
+   * DataElement}.
+   *
+   * @param sources source {@link DataElement}s used to retrieve {@link Section}s
+   * @param target {@link DataElement} which will be set as the {@link DataElement} for an {@link
+   *     Section}
+   */
+  public void handleSection(List<DataElement> sources, DataElement target) {
+    List<Section> sections = sectionStore.getByDataElement(sources);
+    sources.forEach(
+        source -> {
+          sections.forEach(s -> s.getDataElements().remove(source));
+          sections.forEach(s -> s.getDataElements().add(target));
+        });
   }
 }

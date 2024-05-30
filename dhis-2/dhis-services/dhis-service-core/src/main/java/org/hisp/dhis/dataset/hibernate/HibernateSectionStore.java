@@ -27,15 +27,19 @@
  */
 package org.hisp.dhis.dataset.hibernate;
 
+import java.util.Collection;
 import java.util.List;
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.SectionStore;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.security.acl.AclService;
+import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -87,5 +91,20 @@ public class HibernateSectionStore extends HibernateIdentifiableObjectStore<Sect
             group by s.sectionid
           """;
     return nativeSynchronizedTypedQuery(sql).setParameter("indicators", indicators).list();
+  }
+
+  @Override
+  public List<Section> getByDataElement(Collection<DataElement> dataElements) {
+    @Language("hql")
+    String hql =
+        """
+          select s from Section s
+          join s.dataElements de
+          where de in :dataElements
+          group by s.id
+          """;
+    TypedQuery<Section> query = getTypedQuery(hql);
+    query.setParameter("dataElements", dataElements);
+    return query.getResultList();
   }
 }

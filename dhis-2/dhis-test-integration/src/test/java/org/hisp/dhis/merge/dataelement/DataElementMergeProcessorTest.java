@@ -48,6 +48,8 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.DataSetStore;
+import org.hisp.dhis.dataset.Section;
+import org.hisp.dhis.dataset.SectionService;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationService;
 import org.hisp.dhis.expression.Expression;
@@ -102,6 +104,7 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
   @Autowired private IdentifiableObjectManager identifiableObjectManager;
   @Autowired private DataElementOperandStore dataElementOperandStore;
   @Autowired private DataSetStore dataSetStore;
+  @Autowired private SectionService sectionService;
 
   private DataElement deSource1;
   private DataElement deSource2;
@@ -1100,6 +1103,66 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
                 exp -> persistenceException.getCause().getCause().getMessage().contains(exp)));
   }
 
+  // -------------------------------
+  // -- Sections --
+  // -------------------------------
+  @Test
+  @DisplayName(
+      "Section references for DataElement are replaced as expected, source DataElements are not deleted")
+  void programSectionMergeTest() throws ConflictException {
+    // given
+    DataSet ds1 = createDataSet('1', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
+    DataSet ds2 = createDataSet('2', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
+    identifiableObjectManager.save(ds1);
+    identifiableObjectManager.save(ds2);
+
+    createSectionAndSave('a', ds1, deSource1);
+    createSectionAndSave('b', ds2, deSource2);
+    createSectionAndSave('c', ds2, deTarget);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<Section> sectionSources = sectionService.getByDataElement(List.of(deSource1, deSource2));
+    List<Section> sectionTarget = sectionService.getByDataElement(List.of(deTarget));
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertMergeSuccessfulSourcesNotDeleted(report, sectionSources, sectionTarget, allDataElements);
+  }
+
+  @Test
+  @DisplayName(
+      "Section references for DataElement are replaced as expected, source DataElements are deleted")
+  void programSectionMergeDeleteSourcesTest() throws ConflictException {
+    // given
+    DataSet ds1 = createDataSet('1', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
+    DataSet ds2 = createDataSet('2', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
+    identifiableObjectManager.save(ds1);
+    identifiableObjectManager.save(ds2);
+
+    createSectionAndSave('a', ds1, deSource1);
+    createSectionAndSave('b', ds2, deSource2);
+    createSectionAndSave('c', ds2, deTarget);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDeleteSources(true);
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<Section> sectionSources = sectionService.getByDataElement(List.of(deSource1, deSource2));
+    List<Section> sectionTarget = sectionService.getByDataElement(List.of(deTarget));
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertMergeSuccessfulSourcesDeleted(report, sectionSources, sectionTarget, allDataElements);
+  }
+
   private void assertMergeSuccessfulSourcesNotDeleted(
       MergeReport report,
       Collection<?> sources,
@@ -1122,6 +1185,14 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     assertEquals(3, target.size());
     assertEquals(1, dataElements.size());
     assertTrue(dataElements.contains(deTarget));
+  }
+
+  private void createSectionAndSave(char c, DataSet ds, DataElement de) {
+    Section section = new Section();
+    section.setName("section " + c);
+    section.setDataSet(ds);
+    section.getDataElements().add(de);
+    identifiableObjectManager.save(section);
   }
 
   private MergeParams getMergeParams() {
