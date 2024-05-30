@@ -283,11 +283,11 @@ class OutlierDetectionServiceModifiedZScoreTest extends IntegrationTestBase {
     double threshold = 2.0;
     double median = median(values);
     double stdDev = stats.populationStandardDeviation();
-    double mad =  mad(values);
+    double mad = mad(values);
     double zScore = scalingFactor * Math.abs(outlierValue - median) / mad;
     double medianAbsDev = Math.abs(outlierValue - median);
-    double lowerBound = median - (mad * threshold/scalingFactor);
-    double upperBound = median + (mad * threshold/scalingFactor);
+    double lowerBound = median - (mad * threshold / scalingFactor);
+    double upperBound = median + (mad * threshold / scalingFactor);
     // (34+38) / 2
     assertEquals(median, DELTA, 36d);
     assertEquals(stdDev, DELTA, 17.365);
@@ -351,11 +351,10 @@ class OutlierDetectionServiceModifiedZScoreTest extends IntegrationTestBase {
     double median = median(input);
     arrayAbsDistance(input, median);
     return median(input);
-
   }
 
   private static void arrayAbsDistance(double[] array, double value) {
-    for (int i=0; i<array.length;i++) {
+    for (int i = 0; i < array.length; i++) {
       array[i] = Math.abs(array[i] - value);
     }
   }
