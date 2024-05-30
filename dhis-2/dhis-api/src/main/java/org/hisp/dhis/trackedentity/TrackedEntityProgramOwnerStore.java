@@ -40,7 +40,7 @@ public interface TrackedEntityProgramOwnerStore extends GenericStore<TrackedEnti
   /**
    * Get tracked entity program owner entity for the te-program combination.
    *
-   * @param teId The tracked entity instance id.
+   * @param teId The tracked entity id
    * @param programId the program id
    * @return matching tracked entity program owner entity
    */
