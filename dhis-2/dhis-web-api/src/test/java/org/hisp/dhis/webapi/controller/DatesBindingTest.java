@@ -35,20 +35,23 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Date;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.webdomain.EndDateTime;
 import org.hisp.dhis.webapi.webdomain.StartDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.stereotype.Controller;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
+@ExtendWith(MockitoExtension.class)
 class DatesBindingTest {
   private static final String ENDPOINT = "/binding";
 
@@ -97,21 +100,16 @@ class DatesBindingTest {
     assertNull(actualEndDateTime);
   }
 
-  @Controller
+  @RestController
+  @RequestMapping(value = ENDPOINT)
   private class BindingController {
-    @GetMapping(value = ENDPOINT)
-    public @ResponseBody WebMessage getDefault(Params params) {
-      actualStartDateTime = applyIfNotNull(params.getStart(), StartDateTime::toDate);
-      actualEndDateTime = applyIfNotNull(params.getEnd(), EndDateTime::toDate);
+    @GetMapping
+    public @ResponseBody WebMessage getDefault(
+        @RequestParam(required = false) StartDateTime start,
+        @RequestParam(required = false) EndDateTime end) {
+      actualStartDateTime = applyIfNotNull(start, StartDateTime::toDate);
+      actualEndDateTime = applyIfNotNull(end, EndDateTime::toDate);
       return ok();
     }
-  }
-
-  @NoArgsConstructor
-  @Data
-  private class Params {
-    private StartDateTime start;
-
-    private EndDateTime end;
   }
 }
