@@ -43,6 +43,7 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -53,7 +54,6 @@ import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
-import org.hisp.dhis.tracker.imports.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
@@ -87,7 +87,7 @@ class OwnershipTest extends TrackerTest {
     nonSuperUser = userService.getUser("Tu9fv8ezgHl");
     TrackerImportParams params = TrackerImportParams.builder().userId(superUser.getUid()).build();
     assertNoErrors(
-        trackerImportService.importTracker(params, fromJson("tracker/ownership_tei.json")));
+        trackerImportService.importTracker(params, fromJson("tracker/ownership_te.json")));
     assertNoErrors(
         trackerImportService.importTracker(params, fromJson("tracker/ownership_enrollment.json")));
   }
@@ -116,7 +116,7 @@ class OwnershipTest extends TrackerTest {
   }
 
   @Test
-  void testClientDatesForTeiEnrollmentEvent() throws IOException {
+  void testClientDatesForTrackedEntityEnrollmentEvent() throws IOException {
     User nonSuperUser = userService.getUser(this.nonSuperUser.getUid());
     injectSecurityContextUser(nonSuperUser);
     TrackerImportParams params =
@@ -124,7 +124,7 @@ class OwnershipTest extends TrackerTest {
     TrackerObjects trackerObjects = fromJson("tracker/ownership_event.json");
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     manager.flush();
-    TrackerObjects teTrackerObjects = fromJson("tracker/ownership_tei.json");
+    TrackerObjects teTrackerObjects = fromJson("tracker/ownership_te.json");
     TrackerObjects enTrackerObjects = fromJson("tracker/ownership_enrollment.json");
     assertNoErrors(importReport);
 

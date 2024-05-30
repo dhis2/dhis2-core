@@ -85,7 +85,6 @@ public class HideOptionProgramRuleActionValidator extends BaseProgramRuleActionV
     }
 
     if (ObjectUtils.anyNotNull(
-        programRuleAction.getDataElement(),
         programRuleAction.getProgramStage(),
         programRuleAction.getOptionGroup(),
         programRuleAction.getProgramStageSection())) {

@@ -77,8 +77,18 @@ import org.springframework.transaction.annotation.Transactional;
 public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
-          new AnalyticsTableColumn("dx", CHARACTER_11, NOT_NULL, "ds.uid"),
-          new AnalyticsTableColumn("year", INTEGER, NOT_NULL, "ps.year"));
+          AnalyticsTableColumn.builder()
+              .build()
+              .withName("dx")
+              .withDataType(CHARACTER_11)
+              .withNullable(NOT_NULL)
+              .withSelectExpression("ds.uid"),
+          AnalyticsTableColumn.builder()
+              .build()
+              .withName("year")
+              .withDataType(INTEGER)
+              .withNullable(NOT_NULL)
+              .withSelectExpression("ps.year"));
 
   public JdbcCompletenessTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -145,7 +155,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
         where cdr.lastupdated >= '${startDate}' \
         and cdr.lastupdated < '${endDate}' \
         limit 1;""";
-    replace(sql, Map.of("startDate", toLongDate(startDate), "endDate", toLongDate(endDate)));
+    sql = replace(sql, Map.of("startDate", toLongDate(startDate), "endDate", toLongDate(endDate)));
 
     return !jdbcTemplate.queryForList(sql).isEmpty();
   }
@@ -252,14 +262,31 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
 
     List<AnalyticsTableColumn> columns = new ArrayList<>();
     columns.addAll(FIXED_COLS);
-    columns.add(new AnalyticsTableColumn("id", TEXT, idColAlias));
+    columns.add(
+        AnalyticsTableColumn.builder()
+            .build()
+            .withName("id")
+            .withDataType(TEXT)
+            .withSelectExpression(idColAlias));
     columns.addAll(getOrganisationUnitGroupSetColumns());
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.addAll(getAttributeCategoryOptionGroupSetColumns());
     columns.addAll(getAttributeCategoryColumns());
     columns.addAll(getPeriodTypeColumns("ps"));
-    columns.add(new AnalyticsTableColumn("timely", BOOLEAN, timelyAlias));
-    columns.add(new AnalyticsTableColumn("value", DATE, NULL, FACT, "cdr.date as value"));
+    columns.add(
+        AnalyticsTableColumn.builder()
+            .build()
+            .withName("timely")
+            .withDataType(BOOLEAN)
+            .withSelectExpression(timelyAlias));
+    columns.add(
+        AnalyticsTableColumn.builder()
+            .build()
+            .withName("value")
+            .withDataType(DATE)
+            .withNullable(NULL)
+            .withValueType(FACT)
+            .withSelectExpression("cdr.date as value"));
 
     return filterDimensionColumns(columns);
   }

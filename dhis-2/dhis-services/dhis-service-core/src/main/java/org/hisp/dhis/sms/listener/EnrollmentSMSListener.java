@@ -193,7 +193,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener {
     if (enrollment == null) {
       throw new SMSProcessingException(SmsResponse.ENROLL_FAILED.set(teUid, progid));
     }
-    enrollment.setStatus(getCoreProgramStatus(subm.getEnrollmentStatus()));
+    enrollment.setStatus(getCoreEnrollmentStatus(subm.getEnrollmentStatus()));
     enrollment.setGeometry(convertGeoPointToGeometry(subm.getCoordinates()));
     enrollmentService.updateEnrollment(enrollment);
 
@@ -205,7 +205,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener {
         errorUIDs.addAll(processEvent(event, user, enrollment, sms));
       }
     }
-    enrollment.setStatus(getCoreProgramStatus(subm.getEnrollmentStatus()));
+    enrollment.setStatus(getCoreEnrollmentStatus(subm.getEnrollmentStatus()));
     enrollment.setGeometry(convertGeoPointToGeometry(subm.getCoordinates()));
     enrollmentService.updateEnrollment(enrollment);
 
@@ -259,12 +259,12 @@ public class EnrollmentSMSListener extends CompressionSMSListener {
   }
 
   private Set<TrackedEntityAttributeValue> getSMSAttributeValues(
-      EnrollmentSmsSubmission submission, TrackedEntity entityInstance) {
+      EnrollmentSmsSubmission submission, TrackedEntity trackedEntity) {
     if (submission.getValues() == null) {
       return null;
     }
     return submission.getValues().stream()
-        .map(v -> createTrackedEntityValue(v, entityInstance))
+        .map(v -> createTrackedEntityValue(v, trackedEntity))
         .collect(Collectors.toSet());
   }
 

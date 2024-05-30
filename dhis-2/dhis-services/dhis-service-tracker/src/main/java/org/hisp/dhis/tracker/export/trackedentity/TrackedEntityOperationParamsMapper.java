@@ -118,7 +118,7 @@ class TrackedEntityOperationParamsMapper {
         .setProgram(program)
         .setPrograms(programs)
         .setProgramStage(programStage)
-        .setProgramStatus(operationParams.getProgramStatus())
+        .setEnrollmentStatus(operationParams.getEnrollmentStatus())
         .setFollowUp(operationParams.getFollowUp())
         .setLastUpdatedStartDate(operationParams.getLastUpdatedStartDate())
         .setLastUpdatedEndDate(operationParams.getLastUpdatedEndDate())

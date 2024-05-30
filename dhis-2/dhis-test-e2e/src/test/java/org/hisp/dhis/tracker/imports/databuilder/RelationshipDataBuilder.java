@@ -73,14 +73,14 @@ public class RelationshipDataBuilder implements TrackerImporterDataBuilder {
         .addObject(type, JsonObjectBuilder.jsonObject().addProperty(type, identifier));
   }
 
-  public RelationshipDataBuilder buildUniDirectionalRelationship(String teiA, String teiB) {
-    this.setRelationshipType("TV9oB9LT3sh").setFromTrackedEntity(teiA).setToTrackedEntity(teiB);
+  public RelationshipDataBuilder buildUniDirectionalRelationship(String teA, String teB) {
+    this.setRelationshipType("TV9oB9LT3sh").setFromTrackedEntity(teA).setToTrackedEntity(teB);
 
     return this;
   }
 
-  public RelationshipDataBuilder buildBidirectionalRelationship(String teiA, String teiB) {
-    this.setRelationshipType("xLmPUYJX8Ks").setFromTrackedEntity(teiA).setToTrackedEntity(teiB);
+  public RelationshipDataBuilder buildBidirectionalRelationship(String teA, String teB) {
+    this.setRelationshipType("xLmPUYJX8Ks").setFromTrackedEntity(teA).setToTrackedEntity(teB);
 
     return this;
   }

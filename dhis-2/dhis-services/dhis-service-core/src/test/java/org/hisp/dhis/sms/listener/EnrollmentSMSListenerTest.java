@@ -113,7 +113,7 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
 
   // Needed for this test
 
-  @Mock private TrackedEntityService teiService;
+  @Mock private TrackedEntityService trackedEntityService;
 
   @Mock private EnrollmentService enrollmentService;
 
@@ -185,7 +185,7 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
             programStageService,
             eventService,
             attributeValueService,
-            teiService,
+            trackedEntityService,
             enrollmentService,
             identifiableObjectManager);
 

@@ -61,6 +61,7 @@ import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.hibernate.jsonb.type.JsonAttributeValueBinaryType;
+import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -141,14 +142,14 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
    * @return a Query instance with return type is the object type T of the store class
    */
   @SuppressWarnings("unchecked")
-  protected final Query<T> getQuery(String hql) {
+  protected final Query<T> getQuery(@Language("hql") String hql) {
     return getSession()
         .createQuery(hql)
         .setCacheable(cacheable)
         .setHint(QueryHints.CACHEABLE, cacheable);
   }
 
-  protected final <C> Query<C> getQuery(String hql, Class<C> customClass) {
+  protected final <C> Query<C> getQuery(@Language("hql") String hql, Class<C> customClass) {
     return getSession()
         .createQuery(hql, customClass)
         .setCacheable(cacheable)
@@ -162,7 +163,7 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
    * @return a Query instance with return type specified in the Query<Y>
    */
   @SuppressWarnings("unchecked")
-  protected final <V> Query<V> getTypedQuery(String hql) {
+  protected final <V> Query<V> getTypedQuery(@Language("hql") String hql) {
     return getSession()
         .createQuery(hql)
         .setCacheable(cacheable)
@@ -351,30 +352,27 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
   // ------------------------------------------------------------------------------------------
 
   /**
-   * Creates a SqlQuery.
+   * Create a Hibernate {@link NativeQuery} instance with {@code SynchronizedEntityClass} set to the
+   * current class of the store. Use this to avoid all Hibernate second level caches from being
+   * invalidated.
    *
-   * @param sql the SQL query String.
-   * @return a NativeQuery<T> instance.
+   * <p>Be aware that it is only correct to use this if and only if the only table touched by the
+   * native query is the one table belonging to the store.
+   *
+   * @param sql the SQL query to execute
+   * @return the {@link NativeQuery} instance
    */
-  @SuppressWarnings("unchecked")
-  protected final NativeQuery<T> getSqlQuery(String sql) {
-    return getSession()
-        .createNativeQuery(sql)
-        .setCacheable(cacheable)
-        .setHint(QueryHints.CACHEABLE, cacheable);
+  @SuppressWarnings("rawtypes")
+  protected NativeQuery nativeSynchronizedQuery(@Language("SQL") String sql) {
+    return getSession().createNativeQuery(sql).addSynchronizedEntityClass(getClazz());
   }
 
   /**
-   * Creates a untyped SqlQuery.
-   *
-   * @param sql the SQL query String.
-   * @return a NativeQuery<T> instance.
+   * Same as {@link #nativeSynchronizedQuery(String)} just with the return type being specified as
+   * the store entity type. Use only when the result is a of the store entity type or a list of it.
    */
-  protected final NativeQuery<?> getUntypedSqlQuery(String sql) {
-    return getSession()
-        .createNativeQuery(sql)
-        .setCacheable(cacheable)
-        .setHint(QueryHints.CACHEABLE, cacheable);
+  protected NativeQuery<T> nativeSynchronizedTypedQuery(@Language("SQL") String sql) {
+    return getSession().createNativeQuery(sql, clazz).addSynchronizedEntityClass(getClazz());
   }
 
   // -------------------------------------------------------------------------

@@ -52,10 +52,7 @@ class SpringBindingTest {
 
   @BeforeEach
   public void setUp() {
-    mockMvc =
-        MockMvcBuilders.standaloneSetup(new BindingController())
-            .setControllerAdvice(new CrudControllerAdvice())
-            .build();
+    mockMvc = MockMvcBuilders.standaloneSetup(new BindingController()).build();
   }
 
   @Test

@@ -40,6 +40,7 @@ import org.hisp.dhis.dataanalysis.MinMaxDataAnalysisService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.hisp.dhis.minmax.MinMaxValueParams;
@@ -65,7 +66,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  *
  * @author Joao Antunes
  */
-@OpenApi.Tags("analytics")
+@OpenApi.Document(domain = DataValue.class)
 @Controller
 @RequestMapping("/api/minMaxValues")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

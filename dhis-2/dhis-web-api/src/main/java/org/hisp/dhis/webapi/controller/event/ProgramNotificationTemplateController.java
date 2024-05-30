@@ -31,7 +31,6 @@ import static org.hisp.dhis.security.Authorities.ALL;
 
 import java.util.List;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageService;
@@ -52,7 +51,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Halvdan Hoem Grelland
  */
-@OpenApi.Tags("tracker")
 @Controller
 @RequestMapping("/api/programNotificationTemplates")
 @ApiVersion(include = {DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

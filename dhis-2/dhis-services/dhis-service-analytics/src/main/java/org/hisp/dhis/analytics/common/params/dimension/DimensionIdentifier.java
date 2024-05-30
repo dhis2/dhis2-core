@@ -33,11 +33,13 @@ import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifie
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier.DimensionIdentifierType.TEI;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.DIMENSION_SEPARATOR;
 
+import java.util.function.Predicate;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.With;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.params.IdentifiableKey;
+import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -157,10 +159,18 @@ public class DimensionIdentifier<D extends UidObject> implements IdentifiableKey
     return withoutOffset().toString();
   }
 
-  public boolean hasLegendSet() {
+  private boolean has(Predicate<QueryItem> function) {
     if (dimension instanceof DimensionParam dimensionParam && dimensionParam.isQueryItem()) {
-      return dimensionParam.getQueryItem().hasLegendSet();
+      return function.test(dimensionParam.getQueryItem());
     }
     return false;
+  }
+
+  public boolean hasLegendSet() {
+    return has(QueryItem::hasLegendSet);
+  }
+
+  public boolean hasOptionSet() {
+    return has(QueryItem::hasOptionSet);
   }
 }

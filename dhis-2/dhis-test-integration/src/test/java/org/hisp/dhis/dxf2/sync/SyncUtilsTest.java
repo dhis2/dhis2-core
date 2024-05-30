@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.sync;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-import org.hisp.dhis.dxf2.synch.SystemInstance;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
@@ -48,11 +47,6 @@ class SyncUtilsTest extends SingleSetupIntegrationTestBase {
 
   private static final String URL = "https://localhost:8080";
 
-  private static final String EVENTS_URL = URL + SyncEndpoint.EVENTS.getPath();
-
-  private static final String EVENTS_URL_WITH_SYNC_STRATEGY =
-      EVENTS_URL + SyncUtils.IMPORT_STRATEGY_SYNC_SUFFIX;
-
   @Autowired SystemSettingManager systemSettingManager;
 
   @Test
@@ -61,18 +55,9 @@ class SyncUtilsTest extends SingleSetupIntegrationTestBase {
     systemSettingManager.saveSystemSetting(SettingKey.REMOTE_INSTANCE_PASSWORD, PASSWORD);
     systemSettingManager.saveSystemSetting(SettingKey.REMOTE_INSTANCE_URL, URL);
     SystemInstance systemInstance =
-        SyncUtils.getRemoteInstance(systemSettingManager, SyncEndpoint.EVENTS);
+        SyncUtils.getRemoteInstance(systemSettingManager, SyncEndpoint.DATA_VALUE_SETS);
     assertThat(systemInstance.getUsername(), is(USERNAME));
     assertThat(systemInstance.getPassword(), is(PASSWORD));
-    assertThat(systemInstance.getUrl(), is(EVENTS_URL));
-  }
-
-  @Test
-  void getRemoteInstanceWithSyncImportStrategyTest() {
-    systemSettingManager.saveSystemSetting(SettingKey.REMOTE_INSTANCE_URL, URL);
-    SystemInstance systemInstance =
-        SyncUtils.getRemoteInstanceWithSyncImportStrategy(
-            systemSettingManager, SyncEndpoint.EVENTS);
-    assertThat(systemInstance.getUrl(), is(EVENTS_URL_WITH_SYNC_STRATEGY));
+    assertThat(systemInstance.getUrl(), is(URL + SyncEndpoint.DATA_VALUE_SETS.getPath()));
   }
 }

@@ -66,7 +66,9 @@ import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.Document.Group;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
@@ -116,6 +118,7 @@ import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.Users;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.openapi.Api;
 import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -135,7 +138,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags({"user", "management"})
+@OpenApi.Document(group = Group.MANAGE)
 @Slf4j
 @Controller
 @RequestMapping("/api/users")
@@ -161,7 +164,11 @@ public class UserController extends AbstractCrudController<User> {
   @Override
   @SuppressWarnings("unchecked")
   protected List<User> getEntityList(
-      WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders)
+      WebMetadata metadata,
+      WebOptions options,
+      List<String> filters,
+      List<Order> orders,
+      List<User> objects)
       throws QueryParserException {
     UserQueryParams params = makeUserQueryParams(options);
 
@@ -254,9 +261,10 @@ public class UserController extends AbstractCrudController<User> {
 
   @Override
   @GetMapping("/{uid}/{property}")
+  @OpenApi.Document(group = Group.QUERY)
   public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
-      @PathVariable("uid") String pvUid,
-      @PathVariable("property") String pvProperty,
+      @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
+      @OpenApi.Param(Api.PropertyNames.class) @PathVariable("property") String pvProperty,
       @RequestParam Map<String, String> rpParameters,
       TranslateParams translateParams,
       @CurrentUser UserDetails currentUser,
@@ -287,6 +295,8 @@ public class UserController extends AbstractCrudController<User> {
   // POST
   // -------------------------------------------------------------------------
 
+  @OpenApi.Params(MetadataImportParams.class)
+  @OpenApi.Param(OpenApi.EntityType.class)
   @Override
   @PostMapping(consumes = {APPLICATION_XML_VALUE, TEXT_XML_VALUE})
   @ResponseBody
@@ -295,6 +305,8 @@ public class UserController extends AbstractCrudController<User> {
     return postObject(renderService.fromXml(request.getInputStream(), getEntityClass()));
   }
 
+  @OpenApi.Params(MetadataImportParams.class)
+  @OpenApi.Param(OpenApi.EntityType.class)
   @Override
   @PostMapping(consumes = APPLICATION_JSON_VALUE)
   @ResponseBody

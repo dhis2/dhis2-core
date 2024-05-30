@@ -52,8 +52,6 @@ class SystemControllerTest extends DhisControllerConvenienceTest {
         tasks,
         "CONTINUOUS_ANALYTICS_TABLE",
         "DATA_SYNC",
-        "TRACKER_PROGRAMS_DATA_SYNC",
-        "EVENT_PROGRAMS_DATA_SYNC",
         "FILE_RESOURCE_CLEANUP",
         "IMAGE_PROCESSING",
         "META_DATA_SYNC",

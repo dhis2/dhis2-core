@@ -19,8 +19,7 @@ Get a tracked entity with given UID.
 ### `getTrackedEntityByUid.parameter.fields`
 
 Get only the specified fields in the JSON response. This query parameter allows you to remove
-unnecessary fields from
-the response and in some cases decrease the response time. Refer to
+unnecessary fields from the response and in some cases decrease the response time. Refer to
 https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata.html#webapi_metadata_field_filter
 for how to use it.
 
@@ -51,12 +50,12 @@ image is evaluated based on the users access to the relevant tracked entity type
 
 ### `getTrackedEntityAttributeChangeLog`
 
-Get the change logs of all tracked entity attributes related to that particular tracked entity UID. 
+Get the change logs of all tracked entity attributes related to that particular tracked entity UID.
 It will return change logs of tracked entity attributes within the tracked entity type.
 
 ### `getTrackedEntityAttributeChangeLog.parameter.program`
 
-Get the change logs of all tracked entity attributes related to that particular tracked entity and 
+Get the change logs of all tracked entity attributes related to that particular tracked entity and
 program UID. It will return change logs of tracked entity attributes within the tracked entity type
 and program attributes too.
 
@@ -89,23 +88,53 @@ Get tracked entities using given organisation unit mode.
 
 ### `*.parameter.TrackedEntityRequestParams.program`
 
+### `*.parameter.TrackedEntityRequestParams.enrollmentStatus`
+
+Get tracked entities with an enrollment in the given status.
+
 ### `*.parameter.TrackedEntityRequestParams.programStatus`
+
+Get tracked entities with an enrollment in the given status.
+
+**DEPRECATED as of 2.42:** Use parameter `enrollmentStatus` instead.
+
+See `enrollmentStatus` for details.
 
 ### `*.parameter.TrackedEntityRequestParams.followUp`
 
 ### `*.parameter.TrackedEntityRequestParams.updatedAfter`
 
+Get tracked entities updated after given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
+
 ### `*.parameter.TrackedEntityRequestParams.updatedBefore`
+
+Get tracked entities updated before given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.TrackedEntityRequestParams.updatedWithin`
 
+Get tracked entities updated since given ISO-8601 duration.
+
 ### `*.parameter.TrackedEntityRequestParams.enrollmentEnrolledAfter`
+
+Get tracked entities with enrollments that were enrolled after given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentEnrolledBefore`
 
+Get tracked entities with enrollments that were enrolled before given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
+
 ### `*.parameter.TrackedEntityRequestParams.enrollmentOccurredAfter`
 
+Get tracked entities with enrollments occurred after given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
+
 ### `*.parameter.TrackedEntityRequestParams.enrollmentOccurredBefore`
+
+Get tracked entities with enrollments occurred before given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.TrackedEntityRequestParams.trackedEntityType`
 
@@ -131,8 +160,7 @@ Get tracked entities with given UID(s).
 `<user1-uid>[,<user2-uid>...]`
 
 Get tracked entities with an event assigned to given user(s). Specifying `assignedUsers` is only
-valid
-if `assignedUserMode` is either `PROVIDED` or not specified.
+valid if `assignedUserMode` is either `PROVIDED` or not specified.
 
 ### `*.parameter.TrackedEntityRequestParams.assignedUser`
 
@@ -142,8 +170,7 @@ comma!
 `<user1-uid>[;<user2-uid>...]`
 
 Get tracked entities with an event assigned to given user(s). Specifying `assignedUsers` is only
-valid
-if `assignedUserMode` is either `PROVIDED` or not specified.
+valid if `assignedUserMode` is either `PROVIDED` or not specified.
 
 ### `*.parameter.TrackedEntityRequestParams.programStage`
 
@@ -154,13 +181,15 @@ with `eventOccurredAfter` and `eventOccurredBefore`.
 
 ### `*.parameter.TrackedEntityRequestParams.eventOccurredAfter`
 
-Get tracked entities with an event occurred after given date. `eventOccurredAfter` must be specified together
-with `eventStatus` and `eventOccurredBefore`.
+Get tracked entities with an event occurred after given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
+`eventOccurredAfter` must be specified together with `eventStatus` and `eventOccurredBefore`.
 
 ### `*.parameter.TrackedEntityRequestParams.eventOccurredBefore`
 
-Get tracked entities with an event occurred before given date. `eventOccurredBefore` must be specified together
-with `eventStatus` and `eventOccurredAfter`.
+Get tracked entities with an event occurred before given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
+`eventOccurredBefore` must be specified together with `eventStatus` and `eventOccurredAfter`.
 
 ### `*.parameter.TrackedEntityRequestParams.includeDeleted`
 
@@ -192,8 +221,7 @@ parameter is provided.
 ### `*.parameter.TrackedEntityRequestParams.fields`
 
 Get only the specified fields in the JSON response. This query parameter allows you to remove
-unnecessary fields from
-the JSON response and in some cases decrease the response time. Refer to
+unnecessary fields from the JSON response and in some cases decrease the response time. Refer to
 https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata.html#webapi_metadata_field_filter
 for how to use it.
 

@@ -35,6 +35,7 @@ import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.apphub.AppHubService;
+import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -55,7 +56,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Zubair Asghar
  */
-@OpenApi.Tags("ui")
+@OpenApi.Document(domain = App.class)
 @RestController
 @RequestMapping("/api/appHub")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

@@ -152,7 +152,6 @@ import org.hisp.dhis.schema.descriptors.ProgramTrackedEntityAttributeSchemaDescr
 import org.hisp.dhis.schema.descriptors.PushAnalysisSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.RelationshipConstraintSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.RelationshipItemSchemaDescriptor;
-import org.hisp.dhis.schema.descriptors.RelationshipSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.RelationshipTypeSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ReportSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ReportingRateSchemaDescriptor;
@@ -310,7 +309,6 @@ public class DefaultSchemaService implements SchemaService {
     register(new CategoryOptionGroupSetDimensionSchemaDescriptor());
     register(new DataElementGroupSetDimensionSchemaDescriptor());
     register(new OrganisationUnitGroupSetDimensionSchemaDescriptor());
-    register(new RelationshipSchemaDescriptor());
     register(new KeyJsonValueSchemaDescriptor());
     register(new EventFilterSchemaDescriptor());
     register(new VisualizationSchemaDescriptor());

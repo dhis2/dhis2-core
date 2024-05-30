@@ -39,7 +39,6 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetValuedMap;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.copy.CopyService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -71,7 +70,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags("tracker")
 @Controller
 @RequestMapping("/api/programs")
 @RequiredArgsConstructor
@@ -83,7 +81,11 @@ public class ProgramController extends AbstractCrudController<Program> {
   @Override
   @SuppressWarnings("unchecked")
   protected List<Program> getEntityList(
-      WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders)
+      WebMetadata metadata,
+      WebOptions options,
+      List<String> filters,
+      List<Order> orders,
+      List<Program> objects)
       throws QueryParserException {
     boolean userFilter = Boolean.parseBoolean(options.getOptions().get("userFilter"));
 

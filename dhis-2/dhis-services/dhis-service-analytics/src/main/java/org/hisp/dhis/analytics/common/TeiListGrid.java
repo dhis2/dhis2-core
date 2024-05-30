@@ -88,7 +88,30 @@ public class TeiListGrid extends ListGrid {
         if (headerExists(cols[i])) {
           String columnLabel = cols[i];
 
-          Object value = getValueAndRoundIfNecessary(rs, columnLabel);
+          boolean columnHasLegendSet =
+              teiQueryParams
+                  .getCommonParams()
+                  .streamDimensions()
+                  .filter(DimensionIdentifier::hasLegendSet)
+                  .map(DimensionIdentifier::getKey)
+                  .anyMatch(columnLabel::equals);
+
+          boolean columnHasOptionSet =
+              teiQueryParams
+                  .getCommonParams()
+                  .streamDimensions()
+                  .filter(DimensionIdentifier::hasOptionSet)
+                  .map(DimensionIdentifier::getKey)
+                  .anyMatch(columnLabel::equals);
+
+          boolean skipRounding =
+              teiQueryParams.getCommonParams().isSkipRounding()
+                  || columnHasLegendSet
+                  || columnHasOptionSet;
+
+          Object value =
+              getValueAndRoundIfNecessary(
+                  rs, columnHasLegendSet ? columnLabel + LEGEND : columnLabel, skipRounding);
           addValue(value);
           headersSet.add(columnLabel);
 
@@ -107,10 +130,11 @@ public class TeiListGrid extends ListGrid {
     return this;
   }
 
-  private Object getValueAndRoundIfNecessary(SqlRowSet rs, String columnLabel) {
+  private Object getValueAndRoundIfNecessary(
+      SqlRowSet rs, String columnLabel, boolean skipRounding) {
     ValueType valueType = getValueType(columnLabel);
     Object value = rs.getObject(columnLabel);
-    if (isNotRoundableType(valueType)) {
+    if (skipRounding || isNotRoundableType(valueType)) {
       return value;
     }
     // if roundable type we try to parse from string into double and round it

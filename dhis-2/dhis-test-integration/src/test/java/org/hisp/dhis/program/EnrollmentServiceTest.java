@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.program;
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -39,7 +38,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.note.NoteService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -48,7 +46,6 @@ import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
@@ -61,7 +58,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private EnrollmentService enrollmentService;
 
-  @Autowired private TrackedEntityService entityInstanceService;
+  @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -99,7 +96,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   private Enrollment enrollmentD;
 
-  private TrackedEntity entityInstanceA;
+  private TrackedEntity trackedEntityA;
 
   private User user;
 
@@ -135,10 +132,10 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     programService.addProgram(programB);
     programC = createProgram('C', new HashSet<>(), organisationUnitA);
     programService.addProgram(programC);
-    entityInstanceA = createTrackedEntity(organisationUnitA);
-    entityInstanceService.addTrackedEntity(entityInstanceA);
-    TrackedEntity entityInstanceB = createTrackedEntity(organisationUnitB);
-    entityInstanceService.addTrackedEntity(entityInstanceB);
+    trackedEntityA = createTrackedEntity(organisationUnitA);
+    trackedEntityService.addTrackedEntity(trackedEntityA);
+    TrackedEntity trackedEntityB = createTrackedEntity(organisationUnitB);
+    trackedEntityService.addTrackedEntity(trackedEntityB);
     DateTime testDate1 = DateTime.now();
     testDate1.withTimeAtStartOfDay();
     testDate1 = testDate1.minusDays(70);
@@ -146,21 +143,21 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     DateTime testDate2 = DateTime.now();
     testDate2.withTimeAtStartOfDay();
     enrollmentDate = testDate2.toDate();
-    enrollmentA = new Enrollment(enrollmentDate, incidentDate, entityInstanceA, programA);
+    enrollmentA = new Enrollment(enrollmentDate, incidentDate, trackedEntityA, programA);
     enrollmentA.setUid("UID-A");
     enrollmentA.setOrganisationUnit(organisationUnitA);
     eventA = new Event(enrollmentA, stageA);
     eventA.setUid("UID-PSI-A");
     eventA.setOrganisationUnit(organisationUnitA);
-    enrollmentB = new Enrollment(enrollmentDate, incidentDate, entityInstanceA, programB);
+    enrollmentB = new Enrollment(enrollmentDate, incidentDate, trackedEntityA, programB);
     enrollmentB.setUid("UID-B");
-    enrollmentB.setStatus(ProgramStatus.CANCELLED);
+    enrollmentB.setStatus(EnrollmentStatus.CANCELLED);
     enrollmentB.setOrganisationUnit(organisationUnitB);
-    enrollmentC = new Enrollment(enrollmentDate, incidentDate, entityInstanceA, programC);
+    enrollmentC = new Enrollment(enrollmentDate, incidentDate, trackedEntityA, programC);
     enrollmentC.setUid("UID-C");
-    enrollmentC.setStatus(ProgramStatus.COMPLETED);
+    enrollmentC.setStatus(EnrollmentStatus.COMPLETED);
     enrollmentC.setOrganisationUnit(organisationUnitA);
-    enrollmentD = new Enrollment(enrollmentDate, incidentDate, entityInstanceB, programA);
+    enrollmentD = new Enrollment(enrollmentDate, incidentDate, trackedEntityB, programA);
     enrollmentD.setUid("UID-D");
     enrollmentD.setOrganisationUnit(organisationUnitB);
 
@@ -242,98 +239,35 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   }
 
   @Test
-  void testGetEnrollmentsByEntityInstanceProgramStatus() {
+  void testGetEnrollmentsByTrackedEntityProgramAndEnrollmentStatus() {
     enrollmentService.addEnrollment(enrollmentA);
     Enrollment enrollment1 =
         enrollmentService.enrollTrackedEntity(
-            entityInstanceA, programA, enrollmentDate, incidentDate, organisationUnitA);
-    enrollment1.setStatus(ProgramStatus.COMPLETED);
+            trackedEntityA, programA, enrollmentDate, incidentDate, organisationUnitA);
+    enrollment1.setStatus(EnrollmentStatus.COMPLETED);
     enrollmentService.updateEnrollment(enrollment1);
     Enrollment enrollment2 =
         enrollmentService.enrollTrackedEntity(
-            entityInstanceA, programA, enrollmentDate, incidentDate, organisationUnitA);
-    enrollment2.setStatus(ProgramStatus.COMPLETED);
+            trackedEntityA, programA, enrollmentDate, incidentDate, organisationUnitA);
+    enrollment2.setStatus(EnrollmentStatus.COMPLETED);
     enrollmentService.updateEnrollment(enrollment2);
     List<Enrollment> enrollments =
-        enrollmentService.getEnrollments(entityInstanceA, programA, ProgramStatus.COMPLETED);
+        enrollmentService.getEnrollments(trackedEntityA, programA, EnrollmentStatus.COMPLETED);
     assertEquals(2, enrollments.size());
     assertTrue(enrollments.contains(enrollment1));
     assertTrue(enrollments.contains(enrollment2));
-    enrollments = enrollmentService.getEnrollments(entityInstanceA, programA, ProgramStatus.ACTIVE);
+    enrollments =
+        enrollmentService.getEnrollments(trackedEntityA, programA, EnrollmentStatus.ACTIVE);
     assertEquals(1, enrollments.size());
     assertTrue(enrollments.contains(enrollmentA));
-  }
-
-  @Test
-  void testGetEnrollmentsByOuProgram() {
-    enrollmentService.addEnrollment(enrollmentA);
-    enrollmentService.addEnrollment(enrollmentC);
-    enrollmentService.addEnrollment(enrollmentD);
-    List<Enrollment> enrollments =
-        enrollmentService.getEnrollments(
-            new EnrollmentQueryParams()
-                .setProgram(programA)
-                .setOrganisationUnits(Sets.newHashSet(organisationUnitA))
-                .setOrganisationUnitMode(OrganisationUnitSelectionMode.SELECTED));
-    assertEquals(1, enrollments.size());
-    assertTrue(enrollments.contains(enrollmentA));
-  }
-
-  @Test
-  void shouldGetEnrollmentsInCaptureScopeIfOrgUnitModeCapture() {
-    enrollmentService.addEnrollment(enrollmentA);
-    enrollmentService.addEnrollment(enrollmentC);
-    enrollmentService.addEnrollment(enrollmentD);
-
-    List<Enrollment> enrollments =
-        enrollmentService.getEnrollments(
-            new EnrollmentQueryParams()
-                .setCurrentUserDetails(UserDetails.fromUser(user))
-                .setOrganisationUnitMode(CAPTURE));
-
-    assertEquals(2, enrollments.size());
-    assertTrue(enrollments.contains(enrollmentA));
-    assertTrue(enrollments.contains(enrollmentC));
   }
 
   @Test
   void testEnrollTrackedEntity() {
     Enrollment enrollment =
         enrollmentService.enrollTrackedEntity(
-            entityInstanceA, programB, enrollmentDate, incidentDate, organisationUnitA);
+            trackedEntityA, programB, enrollmentDate, incidentDate, organisationUnitA);
     assertNotNull(enrollmentService.getEnrollment(enrollment.getId()));
-  }
-
-  @Test
-  void testCompleteEnrollmentStatus() {
-    long idA = enrollmentService.addEnrollment(enrollmentA);
-    long idD = enrollmentService.addEnrollment(enrollmentD);
-    enrollmentService.completeEnrollmentStatus(enrollmentA);
-    enrollmentService.completeEnrollmentStatus(enrollmentD);
-    assertEquals(ProgramStatus.COMPLETED, enrollmentService.getEnrollment(idA).getStatus());
-    assertEquals(ProgramStatus.COMPLETED, enrollmentService.getEnrollment(idD).getStatus());
-  }
-
-  @Test
-  void testIncompleteEnrollmentStatus() {
-    enrollmentA.setStatus(ProgramStatus.COMPLETED);
-    enrollmentD.setStatus(ProgramStatus.COMPLETED);
-    long idA = enrollmentService.addEnrollment(enrollmentA);
-    long idD = enrollmentService.addEnrollment(enrollmentD);
-    enrollmentService.incompleteEnrollmentStatus(enrollmentA);
-    enrollmentService.incompleteEnrollmentStatus(enrollmentD);
-    assertEquals(ProgramStatus.ACTIVE, enrollmentService.getEnrollment(idA).getStatus());
-    assertEquals(ProgramStatus.ACTIVE, enrollmentService.getEnrollment(idD).getStatus());
-  }
-
-  @Test
-  void testCancelEnrollmentStatus() {
-    long idA = enrollmentService.addEnrollment(enrollmentA);
-    long idD = enrollmentService.addEnrollment(enrollmentD);
-    enrollmentService.cancelEnrollmentStatus(enrollmentA);
-    enrollmentService.cancelEnrollmentStatus(enrollmentD);
-    assertEquals(ProgramStatus.CANCELLED, enrollmentService.getEnrollment(idA).getStatus());
-    assertEquals(ProgramStatus.CANCELLED, enrollmentService.getEnrollment(idD).getStatus());
   }
 
   @Test

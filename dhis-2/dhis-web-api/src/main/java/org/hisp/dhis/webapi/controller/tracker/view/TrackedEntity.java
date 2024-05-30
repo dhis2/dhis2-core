@@ -44,12 +44,13 @@ import org.locationtech.jts.geom.Geometry;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @OpenApi.Shared(pattern = Pattern.TRACKER)
+@OpenApi.Identifiable(as = org.hisp.dhis.trackedentity.TrackedEntity.class)
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class TrackedEntity {
-  @OpenApi.Property({UID.class, TrackedEntity.class})
+  @OpenApi.Property({UID.class, org.hisp.dhis.trackedentity.TrackedEntity.class})
   @JsonProperty
   private String trackedEntity;
 

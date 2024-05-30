@@ -54,7 +54,7 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.tracker.TrackerApiTest;
 import org.hisp.dhis.tracker.imports.databuilder.EnrollmentDataBuilder;
 import org.hisp.dhis.tracker.imports.databuilder.EventDataBuilder;
-import org.hisp.dhis.tracker.imports.databuilder.TeiDataBuilder;
+import org.hisp.dhis.tracker.imports.databuilder.TrackedEntityDataBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -93,13 +93,13 @@ public class RuleEngineTests extends TrackerApiTest {
   public void shouldShowErrorOnEventWhenProgramRuleStageMatches(
       String programStage, boolean shouldReturnError) throws Exception {
     // arrange
-    String tei = importTei();
+    String trackedEntity = importTrackedEntity();
 
     String enrollment =
         trackerImportExportActions
             .postAndGetJobReport(
                 new EnrollmentDataBuilder()
-                    .setTei(tei)
+                    .setTrackedEntity(trackedEntity)
                     .setEnrollmentDate(Instant.now().plus(1, ChronoUnit.DAYS).toString())
                     .array(trackerProgramId, Constants.ORG_UNIT_IDS[0]))
             .extractImportedEnrollments()
@@ -142,10 +142,10 @@ public class RuleEngineTests extends TrackerApiTest {
 
   @Test
   public void shouldShowErrorOnCompleteInTrackerEvents() throws Exception {
-    String tei = importTei();
+    String trackedEntity = importTrackedEntity();
     JsonObject enrollment =
         new EnrollmentDataBuilder()
-            .setTei(tei)
+            .setTrackedEntity(trackedEntity)
             .setEnrollmentDate(Instant.now().plus(1, ChronoUnit.DAYS).toString())
             .array(trackerProgramId, Constants.ORG_UNIT_IDS[0]);
 
@@ -257,7 +257,7 @@ public class RuleEngineTests extends TrackerApiTest {
             .extractString("programStages.id[0]");
 
     JsonObject payload =
-        new TeiDataBuilder()
+        new TrackedEntityDataBuilder()
             .buildWithEnrollmentAndEvent(
                 Constants.TRACKED_ENTITY_TYPE,
                 Constants.ORG_UNIT_IDS[0],
@@ -285,7 +285,7 @@ public class RuleEngineTests extends TrackerApiTest {
   @Test
   public void shouldAddErrorForEnrollmentsAndEventsWhenRuleHasNoStage() {
     JsonObject object =
-        new TeiDataBuilder()
+        new TrackedEntityDataBuilder()
             .buildWithEnrollmentAndEvent(
                 Constants.TRACKED_ENTITY_TYPE,
                 Constants.ORG_UNIT_IDS[0],
@@ -327,7 +327,7 @@ public class RuleEngineTests extends TrackerApiTest {
     // arrange
 
     JsonObject object =
-        new TeiDataBuilder()
+        new TrackedEntityDataBuilder()
             .buildWithEnrollmentAndEvent(
                 Constants.TRACKED_ENTITY_TYPE,
                 Constants.ORG_UNIT_IDS[0],

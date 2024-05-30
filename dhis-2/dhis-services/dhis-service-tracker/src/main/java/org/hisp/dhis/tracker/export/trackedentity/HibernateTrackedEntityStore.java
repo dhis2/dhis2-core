@@ -34,7 +34,7 @@ import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.system.util.SqlUtils.escape;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
-import static org.hisp.dhis.util.DateUtils.toLongDate;
+import static org.hisp.dhis.util.DateUtils.toLongDateWithMillis;
 import static org.hisp.dhis.util.DateUtils.toLongGmtDate;
 
 import java.util.ArrayList;
@@ -233,9 +233,9 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    *
    * <p>The constraint_subquery looks as follows:
    *
-   * <p>select (subquery_projection) from (tracked entity instances) inner join
-   * (attribute_constraints) [inner join (program_owner)] inner join (organisation units) left join
-   * (attribute_orderby) where exist(program_constraint) order by (order) limit (limit_offset)
+   * <p>select (subquery_projection) from (tracked entities) inner join (attribute_constraints)
+   * [inner join (program_owner)] inner join (organisation units) left join (attribute_orderby)
+   * where exist(program_constraint) order by (order) limit (limit_offset)
    *
    * <p>main_projection: Will have an aggregate string of attributevalues (uid:value) as well as
    * basic te-info. constraint_subquery: Includes all SQL related to narrowing down the number of
@@ -349,8 +349,8 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   }
 
   /**
-   * Generates the SQL of the sub-query, used to find the correct subset of tracked entity instances
-   * to return. Orchestrates all the different segments of the SQL into a complete sub-query.
+   * Generates the SQL of the sub-query, used to find the correct subset of tracked entities to
+   * return. Orchestrates all the different segments of the SQL into a complete sub-query.
    *
    * @return an SQL sub-query
    */
@@ -494,14 +494,14 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
         trackedEntity
             .append(whereAnd.whereAnd())
             .append(" TE.lastupdated >= '")
-            .append(toLongDate(params.getLastUpdatedStartDate()))
+            .append(toLongDateWithMillis(params.getLastUpdatedStartDate()))
             .append(SINGLE_QUOTE);
       }
       if (params.hasLastUpdatedEndDate()) {
         trackedEntity
             .append(whereAnd.whereAnd())
             .append(" TE.lastupdated <= '")
-            .append(toLongDate(params.getLastUpdatedEndDate()))
+            .append(toLongDateWithMillis(params.getLastUpdatedEndDate()))
             .append(SINGLE_QUOTE);
       }
     }
@@ -716,7 +716,8 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   /**
    * Generates an INNER JOIN for enrollments. If the param we need to order by is enrolledAt, we
-   * need to join the enrollment table to be able to select and order by this value
+   * need to join the enrollment table to be able to select and order by this value. We restrict the
+   * join condition to a specific program if specified in the request.
    *
    * @return a SQL INNER JOIN for enrollments
    */
@@ -724,13 +725,17 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     if (params.getOrder().stream()
         .filter(o -> o.getField() instanceof String)
         .anyMatch(p -> ENROLLMENT_DATE_KEY.equals(p.getField()))) {
-      return " INNER JOIN enrollment "
-          + ENROLLMENT_ALIAS
-          + " ON "
-          + ENROLLMENT_ALIAS
-          + "."
-          + "trackedentityid"
-          + "= TE.trackedentityid ";
+
+      String join =
+          """
+            INNER JOIN enrollment %1$s
+            ON %1$s.trackedentityid = TE.trackedentityid
+            """;
+
+      return !params.hasProgram()
+          ? join.formatted(ENROLLMENT_ALIAS)
+          : join.concat(" AND %1$s.programid = %2$s")
+              .formatted(ENROLLMENT_ALIAS, params.getProgram().getId());
     }
 
     return "";
@@ -768,8 +773,8 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
         .append(params.getProgram().getId())
         .append(SPACE);
 
-    if (params.hasProgramStatus()) {
-      program.append("AND EN.status = '").append(params.getProgramStatus()).append("' ");
+    if (params.hasEnrollmentStatus()) {
+      program.append("AND EN.status = '").append(params.getEnrollmentStatus()).append("' ");
     }
 
     if (params.hasFollowUp()) {
@@ -779,28 +784,28 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     if (params.hasProgramEnrollmentStartDate()) {
       program
           .append("AND EN.enrollmentdate >= '")
-          .append(toLongDate(params.getProgramEnrollmentStartDate()))
+          .append(toLongDateWithMillis(params.getProgramEnrollmentStartDate()))
           .append("' ");
     }
 
     if (params.hasProgramEnrollmentEndDate()) {
       program
           .append("AND EN.enrollmentdate <= '")
-          .append(toLongDate(params.getProgramEnrollmentEndDate()))
+          .append(toLongDateWithMillis(params.getProgramEnrollmentEndDate()))
           .append("' ");
     }
 
     if (params.hasProgramIncidentStartDate()) {
       program
           .append("AND EN.occurreddate >= '")
-          .append(toLongDate(params.getProgramIncidentStartDate()))
+          .append(toLongDateWithMillis(params.getProgramIncidentStartDate()))
           .append("' ");
     }
 
     if (params.hasProgramIncidentEndDate()) {
       program
           .append("AND EN.occurreddate <= '")
-          .append(toLongDate(params.getProgramIncidentEndDate()))
+          .append(toLongDateWithMillis(params.getProgramIncidentEndDate()))
           .append("' ");
     }
 
@@ -837,8 +842,8 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     }
 
     if (params.hasEventStatus()) {
-      String start = toLongDate(params.getEventStartDate());
-      String end = toLongDate(params.getEventEndDate());
+      String start = toLongDateWithMillis(params.getEventStartDate());
+      String end = toLongDateWithMillis(params.getEventEndDate());
 
       if (params.isEventStatus(EventStatus.COMPLETED)) {
         events

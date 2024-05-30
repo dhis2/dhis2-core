@@ -49,9 +49,9 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.export.Order;
@@ -75,12 +75,10 @@ public class TrackedEntityQueryParams {
   /** Programs to fetch. */
   private List<Program> programs = List.of();
 
-  /** Status of the tracked entity instance in the given program. */
-  private ProgramStatus programStatus;
+  /** Status of a tracked entities enrollment into a given program. */
+  private EnrollmentStatus enrollmentStatus;
 
-  /**
-   * Indicates whether tracked entity instance is marked for follow up for the specified program.
-   */
+  /** Indicates whether tracked entity is marked for follow up for the specified program. */
   private Boolean followUp;
 
   /** Start date for last updated. */
@@ -206,9 +204,9 @@ public class TrackedEntityQueryParams {
     return program != null;
   }
 
-  /** Indicates whether these parameters specify a program status. */
-  public boolean hasProgramStatus() {
-    return programStatus != null;
+  /** Indicates whether these parameters specify an enrollment status. */
+  public boolean hasEnrollmentStatus() {
+    return enrollmentStatus != null;
   }
 
   /**
@@ -365,12 +363,12 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public ProgramStatus getProgramStatus() {
-    return programStatus;
+  public EnrollmentStatus getEnrollmentStatus() {
+    return enrollmentStatus;
   }
 
-  public TrackedEntityQueryParams setProgramStatus(ProgramStatus programStatus) {
-    this.programStatus = programStatus;
+  public TrackedEntityQueryParams setEnrollmentStatus(EnrollmentStatus enrollmentStatus) {
+    this.enrollmentStatus = enrollmentStatus;
     return this;
   }
 

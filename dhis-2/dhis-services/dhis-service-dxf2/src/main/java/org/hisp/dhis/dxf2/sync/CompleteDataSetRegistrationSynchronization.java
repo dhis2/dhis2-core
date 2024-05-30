@@ -33,7 +33,6 @@ import lombok.Getter;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeService;
-import org.hisp.dhis.dxf2.synch.SystemInstance;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;

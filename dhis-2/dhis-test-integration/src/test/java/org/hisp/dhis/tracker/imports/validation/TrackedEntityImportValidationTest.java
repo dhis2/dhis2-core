@@ -119,7 +119,7 @@ class TrackedEntityImportValidationTest extends TrackerTest {
   }
 
   @Test
-  void testNoCreateTeiAccessOutsideCaptureScopeOu() throws IOException {
+  void testNoCreateTeAccessOutsideCaptureScopeOu() throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/validations/te-data_with_different_ou.json");
     TrackerImportParams params = new TrackerImportParams();
     User user = userService.getUser(USER_7);
@@ -292,7 +292,7 @@ class TrackedEntityImportValidationTest extends TrackerTest {
     assertNoErrors(trackerImportService.importTracker(new TrackerImportParams(), trackerObjects));
     trackerObjects = fromJson("tracker/validations/enrollments_te_enrollments-data_2.json");
     TrackerImportParams trackerImportParams = new TrackerImportParams();
-    trackerImportParams.setUserId(USER_10);
+    trackerImportParams.setUserId(USER_8);
     ImportReport importReport =
         trackerImportService.importTracker(trackerImportParams, trackerObjects);
     assertNoErrors(importReport);

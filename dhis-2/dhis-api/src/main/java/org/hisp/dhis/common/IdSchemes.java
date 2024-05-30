@@ -72,15 +72,11 @@ public class IdSchemes implements Serializable {
 
   @JsonProperty private IdScheme programStageIdScheme;
 
-  @JsonProperty private IdScheme trackedEntityIdScheme;
-
   @JsonProperty private IdScheme trackedEntityAttributeIdScheme;
 
   @JsonProperty private IdScheme dataSetIdScheme;
 
   @JsonProperty private IdScheme attributeOptionComboIdScheme;
-
-  @JsonProperty private IdScheme programStageInstanceIdScheme;
 
   public IdSchemes() {}
 
@@ -204,24 +200,6 @@ public class IdSchemes implements Serializable {
 
   public IdSchemes setProgramStageIdScheme(String idScheme) {
     this.programStageIdScheme = IdScheme.from(idScheme);
-    return this;
-  }
-
-  public IdScheme getProgramStageInstanceIdScheme() {
-    return getScheme(programStageInstanceIdScheme);
-  }
-
-  public IdSchemes setProgramStageInstanceIdScheme(String idScheme) {
-    this.programStageInstanceIdScheme = IdScheme.from(idScheme);
-    return this;
-  }
-
-  public IdScheme getTrackedEntityIdScheme() {
-    return getScheme(trackedEntityIdScheme);
-  }
-
-  public IdSchemes setTrackedEntityIdScheme(String idScheme) {
-    this.trackedEntityIdScheme = IdScheme.from(idScheme);
     return this;
   }
 

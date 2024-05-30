@@ -50,15 +50,11 @@ public class HibernateDataDimensionItemStore extends HibernateGenericStore<DataD
 
   @Override
   public List<DataDimensionItem> getIndicatorDataDimensionItems(List<Indicator> indicators) {
-    // language=sql
     String sql =
         """
       select * from datadimensionitem d
       where d.indicatorid in :indicators
     """;
-    return getSession()
-        .createNativeQuery(sql, DataDimensionItem.class)
-        .setParameter("indicators", indicators)
-        .list();
+    return nativeSynchronizedTypedQuery(sql).setParameter("indicators", indicators).list();
   }
 }

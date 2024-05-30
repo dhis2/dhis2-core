@@ -198,7 +198,7 @@ class EnrollmentImportValidationTest extends TrackerTest {
   @Test
   void testActiveEnrollmentAlreadyExists() throws IOException {
     TrackerObjects trackerObjects =
-        fromJson("tracker/validations/enrollments_double-tei-enrollment_part1.json");
+        fromJson("tracker/validations/enrollments_double-te-enrollment_part1.json");
 
     ImportReport importReport =
         trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
@@ -206,7 +206,7 @@ class EnrollmentImportValidationTest extends TrackerTest {
     assertNoErrors(importReport);
 
     TrackerObjects trackerObjects2 =
-        fromJson("tracker/validations/enrollments_double-tei-enrollment_part2.json");
+        fromJson("tracker/validations/enrollments_double-te-enrollment_part2.json");
 
     importReport = trackerImportService.importTracker(new TrackerImportParams(), trackerObjects2);
 

@@ -41,7 +41,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * This supplier adds to the pre-heat object a List of all Enrollment UIDs that have at least ONE
- * Program Stage Instance that is not logically deleted ('deleted = true').
+ * event that is not logically deleted ('deleted = true').
  *
  * @author Luciano Fiandesio
  */

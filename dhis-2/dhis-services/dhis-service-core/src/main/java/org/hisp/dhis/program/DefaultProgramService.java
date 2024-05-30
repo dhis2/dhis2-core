@@ -173,9 +173,4 @@ public class DefaultProgramService implements ProgramService {
 
     return jdbcOrgUnitAssociationsStore.getOrganisationUnitsAssociationsForCurrentUser(programUids);
   }
-
-  @Override
-  public boolean checkProgramOrganisationUnitsAssociations(String program, String orgUnit) {
-    return jdbcOrgUnitAssociationsStore.checkOrganisationUnitsAssociations(program, orgUnit);
-  }
 }

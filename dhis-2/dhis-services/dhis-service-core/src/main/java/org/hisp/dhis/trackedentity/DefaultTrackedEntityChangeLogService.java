@@ -32,7 +32,6 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,12 +47,6 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
   private final TrackedEntityStore trackedEntityStore;
 
   private final TrackerAccessManager trackerAccessManager;
-
-  private final UserService userService;
-
-  // -------------------------------------------------------------------------
-  // TrackedEntityAuditService implementation
-  // -------------------------------------------------------------------------
 
   @Override
   @Async

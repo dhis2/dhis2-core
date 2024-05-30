@@ -43,6 +43,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.audit.Audit;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -107,7 +108,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags("data")
+@OpenApi.Document(domain = Audit.class)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/audits")

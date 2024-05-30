@@ -42,8 +42,6 @@ public class TrackerImporterAssertErrors {
 
   public static final String PROGRAM_CANT_BE_NULL = "Program can't be null";
 
-  public static final String TRACKED_ENTITY_INSTANCE_CANT_BE_NULL = "TrackedEntity can't be null";
-
   public static final String ATTRIBUTE_CANT_BE_NULL = "Attribute can't be null";
 
   public static final String ENROLLMENT_CANT_BE_NULL = "Enrollment can't be null";

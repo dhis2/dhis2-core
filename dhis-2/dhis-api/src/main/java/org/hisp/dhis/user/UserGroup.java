@@ -39,6 +39,7 @@ import java.util.UUID;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.schema.annotation.PropertyTransformer;
 import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 
@@ -139,6 +140,7 @@ public class UserGroup extends BaseIdentifiableObject implements MetadataObject 
     this.uuid = uuid;
   }
 
+  @OpenApi.Property(UserPropertyTransformer.UserDto[].class)
   @JsonProperty("users")
   @JsonSerialize(contentUsing = UserPropertyTransformer.JacksonSerialize.class)
   @JsonDeserialize(contentUsing = UserPropertyTransformer.JacksonDeserialize.class)

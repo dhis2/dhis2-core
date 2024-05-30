@@ -346,9 +346,15 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
             .map(col -> toIndexColumn(index, col))
             .collect(Collectors.joining(COMMA));
 
-    return String.format(
-        "create %sindex %s on %s using %s(%s);",
-        unique, quote(index.getName()), quote(tableName), typeName, columns);
+    String sortOrder = index.getSortOrder();
+
+    return sortOrder == null
+        ? String.format(
+            "create %sindex %s on %s using %s(%s);",
+            unique, quote(index.getName()), quote(tableName), typeName, columns)
+        : String.format(
+            "create %sindex %s on %s using %s(%s %s);",
+            unique, quote(index.getName()), quote(tableName), typeName, columns, sortOrder);
   }
 
   @Override

@@ -27,45 +27,25 @@
  */
 package org.hisp.dhis.program.hibernate;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.util.DateUtils.nowMinusDuration;
-import static org.hisp.dhis.util.DateUtils.toLongDate;
-import static org.hisp.dhis.util.DateUtils.toLongGmtDate;
-
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import lombok.Builder;
-import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
-import org.hisp.dhis.commons.util.SqlHelper;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentQueryParams;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.EnrollmentStore;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.security.acl.AclService;
@@ -99,155 +79,6 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
   }
 
   @Override
-  public int countEnrollments(EnrollmentQueryParams params) {
-    String hql = buildCountEnrollmentHql(params);
-
-    Query<Long> query = getTypedQuery(hql);
-
-    return query.getSingleResult().intValue();
-  }
-
-  private String buildCountEnrollmentHql(EnrollmentQueryParams params) {
-    return buildEnrollmentHql(params)
-        .getQuery()
-        .replaceFirst("from Enrollment en", "select count(distinct uid) from Enrollment en");
-  }
-
-  @Override
-  public List<Enrollment> getEnrollments(EnrollmentQueryParams params) {
-    String hql = buildEnrollmentHql(params).getFullQuery();
-
-    Query<Enrollment> query = getQuery(hql);
-
-    if (!params.isSkipPaging()) {
-      query.setFirstResult(params.getOffset());
-      query.setMaxResults(params.getPageSizeWithDefault());
-    }
-
-    // When the clients choose to not show the total of pages.
-    if (!params.isTotalPages() && !params.isSkipPaging()) {
-      // Get pageSize + 1, so we are able to know if there is another
-      // page available. It adds one additional element into the list,
-      // as consequence. The caller needs to remove the last element.
-      query.setMaxResults(params.getPageSizeWithDefault() + 1);
-    }
-
-    return query.list();
-  }
-
-  private QueryWithOrderBy buildEnrollmentHql(EnrollmentQueryParams params) {
-    String hql = "from Enrollment en";
-    SqlHelper hlp = new SqlHelper(true);
-
-    if (params.hasLastUpdatedDuration()) {
-      hql +=
-          hlp.whereAnd()
-              + "en.lastUpdated >= '"
-              + toLongGmtDate(nowMinusDuration(params.getLastUpdatedDuration()))
-              + "'";
-    } else if (params.hasLastUpdated()) {
-      hql += hlp.whereAnd() + "en.lastUpdated >= '" + toLongDate(params.getLastUpdated()) + "'";
-    }
-
-    if (params.hasTrackedEntity()) {
-      hql += hlp.whereAnd() + "en.trackedEntity.uid = '" + params.getTrackedEntity().getUid() + "'";
-    }
-
-    if (params.hasTrackedEntityType()) {
-      hql +=
-          hlp.whereAnd()
-              + "en.trackedEntity.trackedEntityType.uid = '"
-              + params.getTrackedEntityType().getUid()
-              + "'";
-    }
-
-    if (params.hasOrganisationUnits()) {
-      if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS)) {
-        String ouClause = "(";
-        SqlHelper orHlp = new SqlHelper(true);
-
-        for (OrganisationUnit organisationUnit : params.getOrganisationUnits()) {
-          ouClause +=
-              orHlp.or() + "en.organisationUnit.path LIKE '" + organisationUnit.getPath() + "%'";
-        }
-
-        ouClause += ")";
-
-        hql += hlp.whereAnd() + ouClause;
-      } else {
-        hql +=
-            hlp.whereAnd()
-                + "en.organisationUnit.uid in ("
-                + getQuotedCommaDelimitedString(getUids(params.getOrganisationUnits()))
-                + ")";
-      }
-    }
-
-    if (params.hasProgram()) {
-      hql += hlp.whereAnd() + "en.program.uid = '" + params.getProgram().getUid() + "'";
-    }
-
-    if (params.hasProgramStatus()) {
-      hql += hlp.whereAnd() + "en." + STATUS + " = '" + params.getProgramStatus() + "'";
-    }
-
-    if (params.hasFollowUp()) {
-      hql += hlp.whereAnd() + "en.followup = " + params.getFollowUp();
-    }
-
-    if (params.hasProgramStartDate()) {
-      hql +=
-          hlp.whereAnd()
-              + "en.enrollmentDate >= '"
-              + toLongDate(params.getProgramStartDate())
-              + "'";
-    }
-
-    if (params.hasProgramEndDate()) {
-      hql +=
-          hlp.whereAnd() + "en.enrollmentDate <= '" + toLongDate(params.getProgramEndDate()) + "'";
-    }
-
-    if (!params.isIncludeDeleted()) {
-      hql += hlp.whereAnd() + " en.deleted is false ";
-    }
-
-    QueryWithOrderBy query = QueryWithOrderBy.builder().query(hql).build();
-
-    if (params.isSorting()) {
-      query =
-          query.toBuilder()
-              .orderBy(
-                  " order by "
-                      + params.getOrder().stream()
-                          .map(
-                              orderParam ->
-                                  orderParam.getField()
-                                      + " "
-                                      + (orderParam.getDirection().isAscending() ? "asc" : "desc"))
-                          .collect(Collectors.joining(", ")))
-              .build();
-    }
-
-    return query;
-  }
-
-  @Getter
-  @Builder(toBuilder = true)
-  static class QueryWithOrderBy {
-    private final String query;
-
-    private final String orderBy;
-
-    String getFullQuery() {
-      return Stream.of(query, orderBy)
-          .map(StringUtils::trimToEmpty)
-          .filter(Objects::nonNull)
-          .collect(Collectors.joining(" "));
-    }
-  }
-
-  @Override
   public List<Enrollment> get(Program program) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -257,7 +88,7 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
   }
 
   @Override
-  public List<Enrollment> get(Program program, ProgramStatus status) {
+  public List<Enrollment> get(Program program, EnrollmentStatus status) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
     return getList(
@@ -268,7 +99,8 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
   }
 
   @Override
-  public List<Enrollment> get(TrackedEntity trackedEntity, Program program, ProgramStatus status) {
+  public List<Enrollment> get(
+      TrackedEntity trackedEntity, Program program, EnrollmentStatus status) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
     return getList(
@@ -286,9 +118,8 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
     }
 
     Query<?> query =
-        getSession()
-            .createNativeQuery(
-                "select exists(select 1 from enrollment where uid=:uid and deleted is false)");
+        nativeSynchronizedQuery(
+            "select exists(select 1 from enrollment where uid=:uid and deleted is false)");
     query.setParameter("uid", uid);
 
     return ((Boolean) query.getSingleResult()).booleanValue();
@@ -301,26 +132,10 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
     }
 
     Query<?> query =
-        getSession().createNativeQuery("select exists(select 1 from enrollment where uid=:uid)");
+        nativeSynchronizedQuery("select exists(select 1 from enrollment where uid=:uid)");
     query.setParameter("uid", uid);
 
     return ((Boolean) query.getSingleResult()).booleanValue();
-  }
-
-  @Override
-  public List<String> getUidsIncludingDeleted(List<String> uids) {
-    String hql = "select en.uid " + PI_HQL_BY_UIDS;
-    List<String> resultUids = new ArrayList<>();
-    List<List<String>> uidsPartitions = Lists.partition(Lists.newArrayList(uids), 20000);
-
-    for (List<String> uidsPartition : uidsPartitions) {
-      if (!uidsPartition.isEmpty()) {
-        resultUids.addAll(
-            getSession().createQuery(hql, String.class).setParameter("uids", uidsPartition).list());
-      }
-    }
-
-    return resultUids;
   }
 
   @Override
@@ -370,7 +185,7 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
 
     return getQuery(hql)
         .setParameter("notificationTemplate", template)
-        .setParameter("activeEnrollmentStatus", ProgramStatus.ACTIVE)
+        .setParameter("activeEnrollmentStatus", EnrollmentStatus.ACTIVE)
         .setParameter("targetDate", targetDate)
         .list();
   }
@@ -385,51 +200,9 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
   }
 
   @Override
-  public List<Enrollment> getByType(ProgramType type) {
-    String hql = "select en from Enrollment pi join fetch pi.program p where p.programType = :type";
-
-    Query<Enrollment> query = getQuery(hql);
-    query.setParameter("type", type);
-
-    return query.list();
-  }
-
-  @Override
   public void hardDelete(Enrollment enrollment) {
     publisher.publishEvent(new ObjectDeletionRequestedEvent(enrollment));
     getSession().delete(enrollment);
-  }
-
-  @Override
-  public List<Enrollment> getByProgramAndTrackedEntity(
-      List<Pair<Program, TrackedEntity>> programTePair, ProgramStatus programStatus) {
-    checkNotNull(programTePair);
-
-    if (programTePair.isEmpty()) {
-      return new ArrayList<>();
-    }
-
-    CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-    CriteriaQuery<Enrollment> cr = cb.createQuery(Enrollment.class);
-    Root<Enrollment> enrollment = cr.from(Enrollment.class);
-
-    // Constructing list of parameters
-    List<Predicate> predicates = new ArrayList<>();
-
-    // TODO we may have potentially thousands of events here, so, it's
-    // better to
-    // partition the list
-    for (Pair<Program, TrackedEntity> pair : programTePair) {
-      predicates.add(
-          cb.and(
-              cb.equal(enrollment.get("program"), pair.getLeft()),
-              cb.equal(enrollment.get("trackedEntity"), pair.getRight()),
-              cb.equal(enrollment.get(STATUS), programStatus)));
-    }
-
-    cr.select(enrollment).where(cb.or(predicates.toArray(new Predicate[] {})));
-
-    return entityManager.createQuery(cr).getResultList();
   }
 
   private String toDateProperty(NotificationTrigger trigger) {

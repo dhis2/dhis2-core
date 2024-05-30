@@ -27,9 +27,13 @@
  */
 package org.hisp.dhis.tracker.imports;
 
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.Shared.Pattern;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Shared(pattern = Pattern.TRACKER)
 public enum AtomicMode {
   /** Import objects only if they all pass the validation phase (including references) */
   ALL,

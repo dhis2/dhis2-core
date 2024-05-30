@@ -40,6 +40,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -49,7 +50,6 @@ import org.hisp.dhis.tracker.imports.TrackerIdScheme;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
-import org.hisp.dhis.tracker.imports.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
@@ -79,7 +79,7 @@ class LastUpdateImportTest extends TrackerTest {
 
     injectAdminUser();
 
-    TrackerObjects trackerObjects = fromJson("tracker/single_tei.json");
+    TrackerObjects trackerObjects = fromJson("tracker/single_te.json");
     assertNoErrors(trackerImportService.importTracker(new TrackerImportParams(), trackerObjects));
 
     trackedEntity = trackerObjects.getTrackedEntities().get(0);
@@ -99,13 +99,13 @@ class LastUpdateImportTest extends TrackerTest {
   }
 
   @Test
-  void shouldUpdateTeiWhenTeiIsUpdated() throws IOException {
+  void shouldUpdateTrackedEntityWhenTrackedEntityIsUpdated() throws IOException {
 
     TrackedEntity entityBeforeUpdate = getTrackedEntity();
 
     clearSession();
 
-    TrackerObjects trackerObjects = fromJson("tracker/single_tei.json");
+    TrackerObjects trackerObjects = fromJson("tracker/single_te.json");
     TrackerImportParams trackerImportParams = new TrackerImportParams();
     trackerImportParams.setImportStrategy(TrackerImportStrategy.UPDATE);
 
@@ -121,7 +121,7 @@ class LastUpdateImportTest extends TrackerTest {
   }
 
   @Test
-  void shouldUpdateTeiWhenEventIsUpdated() throws IOException {
+  void shouldUpdateTrackedEntityWhenEventIsUpdated() throws IOException {
     TrackedEntity entityBeforeUpdate = getTrackedEntity();
 
     User user = user();
@@ -157,7 +157,7 @@ class LastUpdateImportTest extends TrackerTest {
   }
 
   @Test
-  void shouldUpdateTeiWhenEnrollmentIsUpdated() {
+  void shouldUpdateTrackedEntityWhenEnrollmentIsUpdated() {
 
     TrackedEntity entityBeforeUpdate = getTrackedEntity();
 
