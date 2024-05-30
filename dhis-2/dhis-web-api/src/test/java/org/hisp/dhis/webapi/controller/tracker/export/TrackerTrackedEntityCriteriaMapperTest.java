@@ -228,13 +228,15 @@ class TrackerTrackedEntityCriteriaMapperTest {
     assertThat(params.isTotalPages(), is(false));
     assertThat(params.getProgramStatus(), is(ProgramStatus.ACTIVE));
     assertThat(params.getFollowUp(), is(true));
-    assertThat(params.getLastUpdatedStartDate(), is(criteria.getUpdatedAfter()));
-    assertThat(params.getLastUpdatedEndDate(), is(criteria.getUpdatedBefore()));
-    assertThat(params.getProgramIncidentStartDate(), is(criteria.getEnrollmentOccurredAfter()));
-    assertThat(params.getProgramIncidentEndDate(), is(criteria.getEnrollmentOccurredBefore()));
+    assertThat(params.getLastUpdatedStartDate(), is(criteria.getUpdatedAfter().toDate()));
+    assertThat(params.getLastUpdatedEndDate(), is(criteria.getUpdatedBefore().toDate()));
+    assertThat(
+        params.getProgramIncidentStartDate(), is(criteria.getEnrollmentOccurredAfter().toDate()));
+    assertThat(
+        params.getProgramIncidentEndDate(), is(criteria.getEnrollmentOccurredBefore().toDate()));
     assertThat(params.getEventStatus(), is(EventStatus.COMPLETED));
-    assertThat(params.getEventStartDate(), is(criteria.getEventOccurredAfter()));
-    assertThat(params.getEventEndDate(), is(criteria.getEventOccurredBefore()));
+    assertThat(params.getEventStartDate(), is(criteria.getEventOccurredAfter().toDate()));
+    assertThat(params.getEventEndDate(), is(criteria.getEventOccurredBefore().toDate()));
     assertThat(
         params.getAssignedUserQueryParam().getMode(), is(AssignedUserSelectionMode.PROVIDED));
     assertThat(params.isIncludeDeleted(), is(true));
