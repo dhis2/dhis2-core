@@ -199,7 +199,9 @@ public class ZscoreSqlStatementProcessor implements OutlierSqlStatementProcessor
   private String getModifiedZScoreSqlStatement(OutlierDetectionRequest request) {
     String ouPathClause = OutlierDetectionUtils.getOrgUnitPathClause(request.getOrgUnits(), "ou");
     String dataStartDateClause = getDataStartDateClause(request.getDataStartDate(), "", "t2");
-    String dataEndDateClause = getDataEndDateClause(request.getDataEndDate(), StringUtils.isEmpty(dataStartDateClause)? "" : "and", "t2");
+    String dataEndDateClause =
+        getDataEndDateClause(
+            request.getDataEndDate(), StringUtils.isEmpty(dataStartDateClause) ? "" : "and", "t2");
     String order =
         request.getOrderBy() == Order.MEAN_ABS_DEV
             ? "middle_value_abs_dev"
@@ -313,7 +315,9 @@ public class ZscoreSqlStatementProcessor implements OutlierSqlStatementProcessor
         + " percentile_cont(0.5) within group (order by value::double precision) as median,"
         + " array_agg(value) as values"
         + " from t2"
-        + (StringUtils.isEmpty(dataStartDateClause) && StringUtils.isEmpty(dataEndDateClause) ? "" : " where ")
+        + (StringUtils.isEmpty(dataStartDateClause) && StringUtils.isEmpty(dataEndDateClause)
+            ? ""
+            : " where ")
         + dataStartDateClause
         + " "
         + dataEndDateClause
