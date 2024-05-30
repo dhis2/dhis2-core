@@ -203,7 +203,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
   /** Organisation units for data output and data analysis operations. */
   private Set<OrganisationUnit> dataViewOrganisationUnits = new HashSet<>();
 
-  /** Organisation units for tracked entity instance search operations. */
+  /** Organisation units for tracked entity search operations. */
   private Set<OrganisationUnit> teiSearchOrganisationUnits = new HashSet<>();
 
   /** Max organisation unit level for data output and data analysis operations, may be null. */
