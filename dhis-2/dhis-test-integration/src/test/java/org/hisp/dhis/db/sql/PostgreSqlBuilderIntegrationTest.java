@@ -70,27 +70,27 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
 
     return List.of(
         Index.builder()
-            .build()
-            .withName("in_immunization_data")
-            .withTableName("immunization")
-            .withColumns(List.of("data")),
+            .name("in_immunization_data")
+            .tableName("immunization")
+            .columns(List.of("data"))
+            .build(),
         Index.builder()
-            .build()
-            .withName("in_immunization_period_created")
-            .withTableName("immunization")
-            .withColumns(List.of("period", "created")),
+            .name("in_immunization_period_created")
+            .tableName("immunization")
+            .columns(List.of("period", "created"))
+            .build(),
         Index.builder()
-            .build()
-            .withName("in_immunization_user")
-            .withTableName("immunization")
-            .withIndexType(IndexType.GIN)
-            .withColumns(List.of("user")),
+            .name("in_immunization_user")
+            .tableName("immunization")
+            .indexType(IndexType.GIN)
+            .columns(List.of("user"))
+            .build(),
         Index.builder()
-            .build()
-            .withName("in_immunization_data_period")
-            .withTableName("immunization")
-            .withColumns(List.of("data", "period"))
-            .withFunction(IndexFunction.LOWER));
+            .name("in_immunization_data_period")
+            .tableName("immunization")
+            .columns(List.of("data", "period"))
+            .function(IndexFunction.LOWER)
+            .build());
   }
 
   private Table getTableB() {

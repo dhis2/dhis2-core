@@ -30,7 +30,6 @@ package org.hisp.dhis.db.model;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.With;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.db.model.constraint.Unique;
 
@@ -43,28 +42,28 @@ import org.hisp.dhis.db.model.constraint.Unique;
 @Builder
 public class Index {
   /** Index name. Required. */
-  @With private final String name;
+  private final String name;
 
   /** Name of index table. Required. */
-  @With private final String tableName;
+  private final String tableName;
 
   /** Index type. Required. */
-  @With @Builder.Default private final IndexType indexType = IndexType.BTREE;
+  @Builder.Default private final IndexType indexType = IndexType.BTREE;
 
   /** Index uniqueness constraint. Required. */
-  @With @Builder.Default private final Unique unique = Unique.NON_UNIQUE;
+  @Builder.Default private final Unique unique = Unique.NON_UNIQUE;
 
   /** Index column names. Required. */
-  @With private final List<String> columns;
+  private final List<String> columns;
 
   /** SQL {©code where} condition for index. Optional, may be null. */
-  @With private final String condition;
+  private final String condition;
 
   /** SQL function to use for index columns. Optional, may be null. */
-  @With private final IndexFunction function;
+  private final IndexFunction function;
 
   /** SQL function to use for index sort order. Optional, may be null. */
-  @With private final String sortOrder;
+  private final String sortOrder;
 
   /**
    * Indicates whether the index is unique.
