@@ -38,7 +38,6 @@ import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexes;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.db.model.IndexType.BTREE;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -97,11 +96,11 @@ class AnalyticsIndexHelperTest {
     List<AnalyticsTableColumn> columns =
         List.of(
             AnalyticsTableColumn.builder()
-                .build()
                 .withName("column")
                 .withDataType(TEXT)
                 .withSelectExpression("c")
-                .withIndexType(BTREE));
+                .withIndexType(BTREE)
+                .build());
 
     return new AnalyticsTable(EVENT, columns, Logged.UNLOGGED);
   }

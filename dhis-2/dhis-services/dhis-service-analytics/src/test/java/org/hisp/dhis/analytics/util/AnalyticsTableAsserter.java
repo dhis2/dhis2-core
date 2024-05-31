@@ -31,7 +31,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.fail;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -157,11 +156,11 @@ public class AnalyticsTableAsserter {
         String name, DataType dataType, String selectExpression, Date created) {
       AnalyticsTableColumn col =
           AnalyticsTableColumn.builder()
-              .build()
               .withName(name)
               .withDataType(dataType)
               .withSelectExpression(selectExpression)
-              .withCreated(created);
+              .withCreated(created)
+              .build();
       this._columns.add(col);
       return this;
     }
@@ -189,17 +188,17 @@ public class AnalyticsTableAsserter {
       AnalyticsTableColumn col =
           Skip.SKIP == skipIndex
               ? AnalyticsTableColumn.builder()
-                  .build()
                   .withName(name)
                   .withDataType(dataType)
                   .withSelectExpression(selectExpression)
                   .withSkipIndex(skipIndex)
-              : AnalyticsTableColumn.builder()
                   .build()
+              : AnalyticsTableColumn.builder()
                   .withName(name)
                   .withDataType(dataType)
                   .withSelectExpression(selectExpression)
-                  .withIndexType(indexType);
+                  .withIndexType(indexType)
+                  .build();
       this._columns.add(col);
       return this;
     }

@@ -39,7 +39,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -270,10 +269,10 @@ class JdbcAnalyticsTableManagerTest {
             AnalyticsTableType.DATA_VALUE,
             List.of(
                 AnalyticsTableColumn.builder()
-                    .build()
                     .withName("year")
                     .withDataType(INTEGER)
-                    .withSelectExpression("")),
+                    .withSelectExpression("")
+                    .build()),
             LOGGED);
     table.addTablePartition(List.of(), 2023, new DateTime(2023, 1, 1, 0, 0).toDate(), null);
     AnalyticsTableUpdateParams params =

@@ -47,7 +47,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.mockingDetails;
 import static org.mockito.Mockito.when;
-
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -325,26 +324,26 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
     List<AnalyticsTableColumn> expected =
         List.of(
             AnalyticsTableColumn.builder()
-                .build()
                 .withName("teiuid")
                 .withDataType(CHARACTER_11)
-                .withSelectExpression("tei.uid"),
+                .withSelectExpression("tei.uid")
+                .build(),
             AnalyticsTableColumn.builder()
-                .build()
                 .withName("startdate")
                 .withDataType(DATE)
-                .withSelectExpression("a.startdate"),
+                .withSelectExpression("a.startdate")
+                .build(),
             AnalyticsTableColumn.builder()
-                .build()
                 .withName("enddate")
                 .withDataType(DATE)
-                .withSelectExpression("a.enddate"),
+                .withSelectExpression("a.enddate")
+                .build(),
             AnalyticsTableColumn.builder()
-                .build()
                 .withName("ou")
                 .withDataType(CHARACTER_11)
                 .withNullable(NOT_NULL)
-                .withSelectExpression("ou.uid"));
+                .withSelectExpression("ou.uid")
+                .build());
 
     assertEquals(expected, JdbcOwnershipAnalyticsTableManager.FIXED_COLS);
   }

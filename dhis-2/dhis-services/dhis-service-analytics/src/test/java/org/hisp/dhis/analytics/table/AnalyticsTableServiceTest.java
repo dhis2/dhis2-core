@@ -31,7 +31,6 @@ import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
-
 import java.util.List;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
@@ -67,15 +66,15 @@ class AnalyticsTableServiceTest {
     List<AnalyticsTableColumn> columns =
         List.of(
             AnalyticsTableColumn.builder()
-                .build()
                 .withName("dx")
                 .withDataType(TEXT)
-                .withSelectExpression("dx"),
+                .withSelectExpression("dx")
+                .build(),
             AnalyticsTableColumn.builder()
-                .build()
                 .withName("value")
                 .withDataType(DOUBLE)
-                .withSelectExpression("value"));
+                .withSelectExpression("value")
+                .build());
 
     AnalyticsTable tA = new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, Logged.UNLOGGED);
     tA.addTablePartition(

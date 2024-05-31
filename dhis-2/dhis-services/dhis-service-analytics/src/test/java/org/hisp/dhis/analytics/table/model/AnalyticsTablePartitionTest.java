@@ -33,7 +33,6 @@ import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -48,20 +47,20 @@ class AnalyticsTablePartitionTest {
   private final List<AnalyticsTableColumn> columnsA =
       List.of(
           AnalyticsTableColumn.builder()
-              .build()
               .withName("id")
               .withDataType(BIGINT)
-              .withSelectExpression("id"),
+              .withSelectExpression("id")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("data")
               .withDataType(CHARACTER_11)
-              .withSelectExpression("data"),
+              .withSelectExpression("data")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("value")
               .withDataType(DOUBLE)
-              .withSelectExpression("value"));
+              .withSelectExpression("value")
+              .build());
 
   @Test
   void testGetName() {
