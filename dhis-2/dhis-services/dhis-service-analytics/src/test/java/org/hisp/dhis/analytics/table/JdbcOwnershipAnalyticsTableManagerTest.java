@@ -47,6 +47,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.mockingDetails;
 import static org.mockito.Mockito.when;
+
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
