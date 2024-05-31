@@ -41,17 +41,17 @@ class IndexTest {
   void testIsUnique() {
     Index indexA =
         Index.builder()
-            .withName("in_analytics_id")
-            .withTableName("analytics")
-            .withUnique(Unique.UNIQUE)
-            .withColumns(List.of("id"))
+            .name("in_analytics_id")
+            .tableName("analytics")
+            .unique(Unique.UNIQUE)
+            .columns(List.of("id"))
             .build();
 
     Index indexB =
         Index.builder()
-            .withName("in_analytics_dx")
-            .withTableName("analytics")
-            .withColumns(List.of("dx"))
+            .name("in_analytics_dx")
+            .tableName("analytics")
+            .columns(List.of("dx"))
             .build();
 
     assertTrue(indexA.isUnique());
@@ -67,13 +67,13 @@ class IndexTest {
     Index index = builder.build();
 
     // then
-    assertNull(index.getWithName());
-    assertNull(index.getWithTableName());
-    assertNull(index.getWithCondition());
-    assertNull(index.getWithFunction());
-    assertNull(index.getWithColumns());
-    assertNull(index.getWithSortOrder());
-    assertSame(IndexType.BTREE, index.getWithIndexType());
+    assertNull(index.getName());
+    assertNull(index.getTableName());
+    assertNull(index.getCondition());
+    assertNull(index.getFunction());
+    assertNull(index.getColumns());
+    assertNull(index.getSortOrder());
+    assertSame(IndexType.BTREE, index.getIndexType());
     assertFalse(index.isUnique());
   }
 }

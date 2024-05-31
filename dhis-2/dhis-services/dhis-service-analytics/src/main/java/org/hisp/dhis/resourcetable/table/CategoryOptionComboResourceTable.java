@@ -78,9 +78,9 @@ public class CategoryOptionComboResourceTable implements ResourceTable {
   public List<Index> getIndexes() {
     return List.of(
         Index.builder()
-            .withName(appendRandom("in_dataelementcategoryoptioncombo"))
-            .withTableName(toStaging(TABLE_NAME))
-            .withColumns(List.of("dataelementuid", "categoryoptioncombouid"))
+            .name(appendRandom("in_dataelementcategoryoptioncombo"))
+            .tableName(toStaging(TABLE_NAME))
+            .columns(List.of("dataelementuid", "categoryoptioncombouid"))
             .build());
   }
 

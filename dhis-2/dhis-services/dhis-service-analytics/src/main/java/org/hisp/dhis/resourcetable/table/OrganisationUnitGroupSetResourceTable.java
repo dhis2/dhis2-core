@@ -97,16 +97,16 @@ public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
   public List<Index> getIndexes() {
     return List.of(
         Index.builder()
-            .withName(appendRandom("in_orgunitgroupsetstructure_not_null"))
-            .withTableName(toStaging(TABLE_NAME))
-            .withColumns(List.of("organisationunitid", "startdate"))
-            .withCondition("startdate is not null")
+            .name(appendRandom("in_orgunitgroupsetstructure_not_null"))
+            .tableName(toStaging(TABLE_NAME))
+            .columns(List.of("organisationunitid", "startdate"))
+            .condition("startdate is not null")
             .build(),
         Index.builder()
-            .withName(appendRandom("in_orgunitgroupsetstructure_not_null"))
-            .withTableName(toStaging(TABLE_NAME))
-            .withColumns(List.of("organisationunitid", "startdate"))
-            .withCondition("startdate is null")
+            .name(appendRandom("in_orgunitgroupsetstructure_not_null"))
+            .tableName(toStaging(TABLE_NAME))
+            .columns(List.of("organisationunitid", "startdate"))
+            .condition("startdate is null")
             .build());
   }
 
