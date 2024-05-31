@@ -47,7 +47,6 @@ import static org.hisp.dhis.db.model.DataType.VARCHAR_50;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -98,136 +97,136 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_GROUP_BY_COLS =
       List.of(
           AnalyticsTableColumn.builder()
-              .build()
               .withName("trackedentityinstanceuid")
               .withDataType(CHARACTER_11)
               .withNullable(NOT_NULL)
-              .withSelectExpression("tei.uid"),
+              .withSelectExpression("tei.uid")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("trackedentityid")
               .withDataType(INTEGER)
               .withNullable(NOT_NULL)
-              .withSelectExpression("tei.trackedentityid"),
+              .withSelectExpression("tei.trackedentityid")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("created")
               .withDataType(TIMESTAMP)
-              .withSelectExpression("tei.created"),
+              .withSelectExpression("tei.created")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("lastupdated")
               .withDataType(TIMESTAMP)
-              .withSelectExpression("tei.lastupdated"),
+              .withSelectExpression("tei.lastupdated")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("inactive")
               .withDataType(BOOLEAN)
-              .withSelectExpression("tei.inactive"),
+              .withSelectExpression("tei.inactive")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("createdatclient")
               .withDataType(TIMESTAMP)
-              .withSelectExpression("tei.createdatclient"),
+              .withSelectExpression("tei.createdatclient")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("lastupdatedatclient")
               .withDataType(TIMESTAMP)
-              .withSelectExpression("tei.lastupdatedatclient"),
+              .withSelectExpression("tei.lastupdatedatclient")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("lastsynchronized")
               .withDataType(TIMESTAMP)
-              .withSelectExpression("tei.lastsynchronized"),
+              .withSelectExpression("tei.lastsynchronized")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("geometry")
               .withDataType(GEOMETRY)
               .withSelectExpression("tei.geometry")
-              .withIndexType(IndexType.GIST),
+              .withIndexType(IndexType.GIST)
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("longitude")
               .withDataType(DOUBLE)
               .withSelectExpression(
-                  "case when 'POINT' = GeometryType(tei.geometry) then ST_X(tei.geometry) else null end"),
+                  "case when 'POINT' = GeometryType(tei.geometry) then ST_X(tei.geometry) else null end")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("latitude")
               .withDataType(DOUBLE)
               .withSelectExpression(
-                  "case when 'POINT' = GeometryType(tei.geometry) then ST_Y(tei.geometry) else null end"),
+                  "case when 'POINT' = GeometryType(tei.geometry) then ST_Y(tei.geometry) else null end")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("featuretype")
               .withDataType(VARCHAR_255)
               .withNullable(NULL)
-              .withSelectExpression("tei.featuretype"),
+              .withSelectExpression("tei.featuretype")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("coordinates")
               .withDataType(TEXT)
               .withNullable(NULL)
-              .withSelectExpression("tei.coordinates"),
+              .withSelectExpression("tei.coordinates")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("storedby")
               .withDataType(VARCHAR_255)
-              .withSelectExpression("tei.storedby"),
+              .withSelectExpression("tei.storedby")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("potentialduplicate")
               .withDataType(BOOLEAN)
               .withNullable(NULL)
-              .withSelectExpression("tei.potentialduplicate"),
+              .withSelectExpression("tei.potentialduplicate")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("uidlevel1")
               .withDataType(CHARACTER_11)
               .withNullable(NULL)
-              .withSelectExpression("ous.uidlevel1"),
+              .withSelectExpression("ous.uidlevel1")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("uidlevel2")
               .withDataType(CHARACTER_11)
               .withNullable(NULL)
-              .withSelectExpression("ous.uidlevel2"),
+              .withSelectExpression("ous.uidlevel2")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("uidlevel3")
               .withDataType(CHARACTER_11)
               .withNullable(NULL)
-              .withSelectExpression("ous.uidlevel3"),
+              .withSelectExpression("ous.uidlevel3")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("uidlevel4")
               .withDataType(CHARACTER_11)
               .withNullable(NULL)
-              .withSelectExpression("ous.uidlevel4"),
+              .withSelectExpression("ous.uidlevel4")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("ou")
               .withDataType(CHARACTER_11)
               .withNullable(NULL)
-              .withSelectExpression("ou.uid"),
+              .withSelectExpression("ou.uid")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("ouname")
               .withDataType(VARCHAR_255)
               .withNullable(NULL)
-              .withSelectExpression("ou.name"),
+              .withSelectExpression("ou.name")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("oucode")
               .withDataType(VARCHAR_50)
               .withNullable(NULL)
-              .withSelectExpression("ou.code"),
+              .withSelectExpression("ou.code")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("oulevel")
               .withDataType(INTEGER)
               .withNullable(NULL)
-              .withSelectExpression("ous.level"));
+              .withSelectExpression("ous.level")
+              .build());
 
   private static final List<AnalyticsTableColumn> FIXED_NON_GROUP_BY_COLS =
       List.of(

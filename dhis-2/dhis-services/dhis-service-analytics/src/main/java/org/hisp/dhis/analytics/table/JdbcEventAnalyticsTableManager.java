@@ -602,12 +602,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         if (category.isDataDimension()) {
           columns.add(
               AnalyticsTableColumn.builder()
-                  .build()
                   .withName(category.getUid())
                   .withColumnType(AnalyticsColumnType.DYNAMIC)
                   .withDataType(CHARACTER_11)
                   .withSelectExpression("acs." + quote(category.getUid()))
-                  .withCreated(category.getCreated()));
+                  .withCreated(category.getCreated())
+                  .build());
         }
       }
     }
@@ -651,16 +651,16 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     if (program.isRegistration()) {
       columns.add(
           AnalyticsTableColumn.builder()
-              .build()
               .withName("tei")
               .withDataType(CHARACTER_11)
-              .withSelectExpression("tei.uid"));
+              .withSelectExpression("tei.uid")
+              .build());
       columns.add(
           AnalyticsTableColumn.builder()
-              .build()
               .withName("teigeometry")
               .withDataType(GEOMETRY)
-              .withSelectExpression("tei.geometry"));
+              .withSelectExpression("tei.geometry")
+              .build());
     }
 
     return filterDimensionColumns(columns);
@@ -685,12 +685,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     }
     columns.add(
         AnalyticsTableColumn.builder()
-            .build()
             .withName(attribute.getUid())
             .withColumnType(AnalyticsColumnType.DYNAMIC)
             .withDataType(dataType)
             .withSelectExpression(sql)
-            .withSkipIndex(skipIndex));
+            .withSkipIndex(skipIndex)
+            .build());
 
     return withLegendSet
         ? getColumnFromTrackedEntityAttributeWithLegendSet(attribute, numericClause)
@@ -724,10 +724,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                           "numericClause", numericClause));
 
               return AnalyticsTableColumn.builder()
-                  .build()
                   .withName(column)
                   .withDataType(CHARACTER_11)
-                  .withSelectExpression(sql);
+                  .withSelectExpression(sql)
+                  .build();
             })
         .collect(toList());
   }
@@ -748,12 +748,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     }
     columns.add(
         AnalyticsTableColumn.builder()
-            .build()
             .withName(dataElement.getUid())
             .withColumnType(AnalyticsColumnType.DYNAMIC)
             .withDataType(dataType)
             .withSelectExpression(sql)
-            .withSkipIndex(skipIndex));
+            .withSkipIndex(skipIndex)
+            .build());
 
     return withLegendSet
         ? getColumnFromDataElementWithLegendSet(dataElement, select, dataClause)
@@ -772,12 +772,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               dataClause);
       columns.add(
           AnalyticsTableColumn.builder()
-              .build()
               .withName((attribute.getUid() + OU_GEOMETRY_COL_SUFFIX))
               .withColumnType(AnalyticsColumnType.DYNAMIC)
               .withDataType(GEOMETRY)
               .withSelectExpression(geoSql)
-              .withIndexType(IndexType.GIST));
+              .withIndexType(IndexType.GIST)
+              .build());
     }
 
     String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select value";
@@ -785,12 +785,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     columns.add(
         AnalyticsTableColumn.builder()
-            .build()
             .withName((attribute.getUid() + OU_NAME_COL_SUFFIX))
             .withColumnType(AnalyticsColumnType.DYNAMIC)
             .withDataType(TEXT)
             .withSelectExpression(ouNameSql)
-            .withSkipIndex(SKIP));
+            .withSkipIndex(SKIP)
+            .build());
 
     return columns;
   }
@@ -810,12 +810,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
       columns.add(
           AnalyticsTableColumn.builder()
-              .build()
               .withName((dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX))
               .withColumnType(AnalyticsColumnType.DYNAMIC)
               .withDataType(GEOMETRY)
               .withSelectExpression(geoSql)
-              .withIndexType(IndexType.GIST));
+              .withIndexType(IndexType.GIST)
+              .build());
     }
 
     String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select " + columnName;
@@ -823,12 +823,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     columns.add(
         AnalyticsTableColumn.builder()
-            .build()
             .withName((dataElement.getUid() + OU_NAME_COL_SUFFIX))
             .withColumnType(AnalyticsColumnType.DYNAMIC)
             .withDataType(TEXT)
             .withSelectExpression(ouNameSql)
-            .withSkipIndex(SKIP));
+            .withSkipIndex(SKIP)
+            .build());
 
     return columns;
   }
@@ -901,10 +901,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                           "column", column));
 
               return AnalyticsTableColumn.builder()
-                  .build()
                   .withName(column)
                   .withDataType(CHARACTER_11)
-                  .withSelectExpression(sql);
+                  .withSelectExpression(sql)
+                  .build();
             })
         .collect(toList());
   }
