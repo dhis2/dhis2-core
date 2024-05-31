@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.event.webrequest.tracker;
 
 import static org.hisp.dhis.webapi.controller.event.webrequest.tracker.FieldTranslatorSupport.translate;
 
-import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
 import lombok.Data;
@@ -42,6 +41,8 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.hisp.dhis.webapi.controller.tracker.export.TrackerTrackedEntitiesExportController;
+import org.hisp.dhis.webapi.webdomain.EndDateTime;
+import org.hisp.dhis.webapi.webdomain.StartDateTime;
 
 /**
  * This class represent a container to hold parameters from new tracker GET {@link
@@ -77,25 +78,25 @@ public class TrackerTrackedEntityCriteria extends PagingAndSortingCriteriaAdapte
   private Boolean followUp;
 
   /** Start date for last updated. */
-  private Date updatedAfter;
+  private StartDateTime updatedAfter;
 
   /** End date for last updated. */
-  private Date updatedBefore;
+  private EndDateTime updatedBefore;
 
   /** The last updated duration filter. */
   private String updatedWithin;
 
   /** The given Program start date. */
-  private Date enrollmentEnrolledAfter;
+  private StartDateTime enrollmentEnrolledAfter;
 
   /** The given Program end date. */
-  private Date enrollmentEnrolledBefore;
+  private EndDateTime enrollmentEnrolledBefore;
 
   /** Start date for incident in the given program. */
-  private Date enrollmentOccurredAfter;
+  private StartDateTime enrollmentOccurredAfter;
 
   /** End date for incident in the given program. */
-  private Date enrollmentOccurredBefore;
+  private EndDateTime enrollmentOccurredBefore;
 
   /** Only returns Tracked Entity Instances of this type. */
   private String trackedEntityType;
@@ -116,10 +117,10 @@ public class TrackerTrackedEntityCriteria extends PagingAndSortingCriteriaAdapte
   private EventStatus eventStatus;
 
   /** Start date for Event for the given Program. */
-  private Date eventOccurredAfter;
+  private StartDateTime eventOccurredAfter;
 
   /** End date for Event for the given Program. */
-  private Date eventOccurredBefore;
+  private EndDateTime eventOccurredBefore;
 
   /** Indicates whether not to include meta data in the response. */
   private boolean skipMeta;

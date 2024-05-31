@@ -30,9 +30,9 @@ package org.hisp.dhis.program.hibernate;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 import static org.hisp.dhis.util.DateUtils.nowMinusDuration;
+import static org.hisp.dhis.util.DateUtils.toLongDateWithMillis;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -157,7 +157,10 @@ public class HibernateProgramInstanceStore extends SoftDeleteHibernateObjectStor
               + "'";
     } else if (params.hasLastUpdated()) {
       hql +=
-          hlp.whereAnd() + "pi.lastUpdated >= '" + getLongDateString(params.getLastUpdated()) + "'";
+          hlp.whereAnd()
+              + "pi.lastUpdated >= '"
+              + toLongDateWithMillis(params.getLastUpdated())
+              + "'";
     }
 
     if (params.hasTrackedEntityInstance()) {
@@ -211,7 +214,7 @@ public class HibernateProgramInstanceStore extends SoftDeleteHibernateObjectStor
       hql +=
           hlp.whereAnd()
               + "pi.enrollmentDate >= '"
-              + getLongDateString(params.getProgramStartDate())
+              + toLongDateWithMillis(params.getProgramStartDate())
               + "'";
     }
 
@@ -219,7 +222,7 @@ public class HibernateProgramInstanceStore extends SoftDeleteHibernateObjectStor
       hql +=
           hlp.whereAnd()
               + "pi.enrollmentDate <= '"
-              + getLongDateString(params.getProgramEndDate())
+              + toLongDateWithMillis(params.getProgramEndDate())
               + "'";
     }
 

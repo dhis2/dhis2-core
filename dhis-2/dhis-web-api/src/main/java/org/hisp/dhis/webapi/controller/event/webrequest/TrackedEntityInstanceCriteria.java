@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.event.webrequest;
 
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -40,6 +39,8 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.webapi.webdomain.EndDateTime;
+import org.hisp.dhis.webapi.webdomain.StartDateTime;
 
 /**
  * @author Luciano Fiandesio
@@ -72,31 +73,31 @@ public class TrackedEntityInstanceCriteria extends PagingAndSortingCriteriaAdapt
   private Boolean followUp;
 
   /** Start date for last updated. */
-  private Date lastUpdatedStartDate;
+  private StartDateTime lastUpdatedStartDate;
 
   /** End date for last updated. */
-  private Date lastUpdatedEndDate;
+  private EndDateTime lastUpdatedEndDate;
 
   /** The last updated duration filter. */
   private String lastUpdatedDuration;
 
   /** The given Program start date. */
-  private Date programStartDate;
+  private StartDateTime programStartDate;
 
   /** The given Program end date. */
-  private Date programEndDate;
+  private EndDateTime programEndDate;
 
   /** Start date for enrollment in the given program. */
-  private Date programEnrollmentStartDate;
+  private StartDateTime programEnrollmentStartDate;
 
   /** End date for enrollment in the given program. */
-  private Date programEnrollmentEndDate;
+  private EndDateTime programEnrollmentEndDate;
 
   /** Start date for incident in the given program. */
-  private Date programIncidentStartDate;
+  private StartDateTime programIncidentStartDate;
 
   /** End date for incident in the given program. */
-  private Date programIncidentEndDate;
+  private EndDateTime programIncidentEndDate;
 
   /** Only returns Tracked Entity Instances of this type. */
   private String trackedEntityType;
@@ -117,10 +118,10 @@ public class TrackedEntityInstanceCriteria extends PagingAndSortingCriteriaAdapt
   private EventStatus eventStatus;
 
   /** Start date for Event for the given Program. */
-  private Date eventStartDate;
+  private StartDateTime eventStartDate;
 
   /** End date for Event for the given Program. */
-  private Date eventEndDate;
+  private EndDateTime eventEndDate;
 
   /** Indicates whether not to include meta data in the response. */
   private boolean skipMeta;
