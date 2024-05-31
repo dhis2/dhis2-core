@@ -43,6 +43,7 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -73,6 +74,8 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
   private final SystemSettingManager systemSettingManager;
 
   private final SqlBuilder sqlBuilder;
+
+  private final AnalyticsTableSettings analyticsTableSettings;
 
   @Override
   public AnalyticsTableType getAnalyticsTableType() {

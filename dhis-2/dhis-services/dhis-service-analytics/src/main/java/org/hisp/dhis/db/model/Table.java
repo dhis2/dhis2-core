@@ -55,6 +55,8 @@ public class Table {
   /** Table name. Required. */
   @EqualsAndHashCode.Include private final String name;
 
+  private boolean distribution;
+
   /** Table columns. At least one column required, unless a parent table is specified. */
   private final List<Column> columns;
 
@@ -105,6 +107,31 @@ public class Table {
     this.checks = List.of();
     this.logged = logged;
     this.parent = null;
+    this.distribution = false;
+    this.validate();
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param name the table name.
+   * @param columns the list of {@link Column}.
+   * @param primaryKey the primary key.
+   * @param logged the {@link Logged} parameter.
+   */
+  public Table(
+      String name,
+      List<Column> columns,
+      List<String> primaryKey,
+      Logged logged,
+      boolean distribution) {
+    this.name = name;
+    this.columns = columns;
+    this.primaryKey = primaryKey;
+    this.checks = List.of();
+    this.logged = logged;
+    this.parent = null;
+    this.distribution = distribution;
     this.validate();
   }
 

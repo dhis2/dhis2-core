@@ -45,6 +45,7 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
 import org.hisp.dhis.analytics.cache.OutliersCache;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SettingKey;
@@ -68,6 +69,8 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
   private final AnalyticsCache analyticsCache;
 
   private final OutliersCache outliersCache;
+
+  private final AnalyticsTableSettings analyticsTableSettings;
 
   // TODO introduce last successful timestamps per table type
 
