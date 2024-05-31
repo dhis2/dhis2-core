@@ -337,24 +337,24 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String createIndex(Index index) {
-    String unique = index.getUnique() == Unique.UNIQUE ? "unique " : "";
-    String tableName = index.getTableName();
-    String typeName = getIndexTypeName(index.getIndexType());
+    String unique = index.getWithUnique() == Unique.UNIQUE ? "unique " : "";
+    String tableName = index.getWithTableName();
+    String typeName = getIndexTypeName(index.getWithIndexType());
 
     String columns =
-        index.getColumns().stream()
+        index.getWithColumns().stream()
             .map(col -> toIndexColumn(index, col))
             .collect(Collectors.joining(COMMA));
 
-    String sortOrder = index.getSortOrder();
+    String sortOrder = index.getWithSortOrder();
 
     return sortOrder == null
         ? String.format(
             "create %sindex %s on %s using %s(%s);",
-            unique, quote(index.getName()), quote(tableName), typeName, columns)
+            unique, quote(index.getWithName()), quote(tableName), typeName, columns)
         : String.format(
             "create %sindex %s on %s using %s(%s %s);",
-            unique, quote(index.getName()), quote(tableName), typeName, columns, sortOrder);
+            unique, quote(index.getWithName()), quote(tableName), typeName, columns, sortOrder);
   }
 
   @Override

@@ -201,12 +201,12 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
                   quote(attribute.getUid())));
       columns.add(
           AnalyticsTableColumn.builder()
-              .build()
-              .withName(attribute.getUid())
-              .withColumnType(AnalyticsColumnType.DYNAMIC)
-              .withDataType(dataType)
-              .withSelectExpression(sql)
-              .withSkipIndex(skipIndex));
+              .name(attribute.getUid())
+              .columnType(AnalyticsColumnType.DYNAMIC)
+              .dataType(dataType)
+              .selectExpression(sql)
+              .skipIndex(skipIndex)
+              .build());
     }
 
     return columns;

@@ -30,7 +30,6 @@ package org.hisp.dhis.db.model;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.With;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.db.model.constraint.Unique;
 
@@ -43,28 +42,28 @@ import org.hisp.dhis.db.model.constraint.Unique;
 @Builder
 public class Index {
   /** Index name. Required. */
-  @With private final String name;
+  private final String withName;
 
   /** Name of index table. Required. */
-  @With private final String tableName;
+  private final String withTableName;
 
   /** Index type. Required. */
-  @With @Builder.Default private final IndexType indexType = IndexType.BTREE;
+  @Builder.Default private final IndexType withIndexType = IndexType.BTREE;
 
   /** Index uniqueness constraint. Required. */
-  @With @Builder.Default private final Unique unique = Unique.NON_UNIQUE;
+  @Builder.Default private final Unique withUnique = Unique.NON_UNIQUE;
 
   /** Index column names. Required. */
-  @With private final List<String> columns;
+  private final List<String> withColumns;
 
   /** SQL {©code where} condition for index. Optional, may be null. */
-  @With private final String condition;
+  private final String withCondition;
 
   /** SQL function to use for index columns. Optional, may be null. */
-  @With private final IndexFunction function;
+  private final IndexFunction withFunction;
 
   /** SQL function to use for index sort order. Optional, may be null. */
-  @With private final String sortOrder;
+  private final String withSortOrder;
 
   /**
    * Indicates whether the index is unique.
@@ -72,7 +71,7 @@ public class Index {
    * @return true if the index is unique.
    */
   public boolean isUnique() {
-    return Unique.UNIQUE == unique;
+    return Unique.UNIQUE == withUnique;
   }
 
   /**
@@ -81,7 +80,7 @@ public class Index {
    * @return true if the index has a SQL condition.
    */
   public boolean hasCondition() {
-    return StringUtils.isNotBlank(condition);
+    return StringUtils.isNotBlank(withCondition);
   }
 
   /**
@@ -90,6 +89,6 @@ public class Index {
    * @return true if the index has a function.
    */
   public boolean hasFunction() {
-    return function != null;
+    return withFunction != null;
   }
 }

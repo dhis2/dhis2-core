@@ -270,10 +270,10 @@ class JdbcAnalyticsTableManagerTest {
             AnalyticsTableType.DATA_VALUE,
             List.of(
                 AnalyticsTableColumn.builder()
-                    .build()
-                    .withName("year")
-                    .withDataType(INTEGER)
-                    .withSelectExpression("")),
+                    .name("year")
+                    .dataType(INTEGER)
+                    .selectExpression("")
+                    .build()),
             LOGGED);
     table.addTablePartition(List.of(), 2023, new DateTime(2023, 1, 1, 0, 0).toDate(), null);
     AnalyticsTableUpdateParams params =
