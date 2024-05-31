@@ -294,21 +294,6 @@ public enum ConfigurationKey {
   /** Defines the query that will be executed for all Analytics connection tests. */
   ANALYTICS_CONNECTION_POOL_TEST_QUERY("analytics.connection.pool.preferred.test.query"),
 
-  /** Build indexes on data element group set analytics table columns. */
-  ANALYTICS_TABLE_INDEX_DATA_ELEMENT_GROUP_SET(
-      "analytics.table.index.data_element_group_set", Constants.ON, false),
-
-  /** Build indexes on category analytics table columns. */
-  ANALYTICS_TABLE_INDEX_CATEGORY("analytics.table.index.category", Constants.ON, false),
-
-  /** Build indexes on category option group set analytics table columns. */
-  ANALYTICS_TABLE_INDEX_CATEGORY_OPTION_GROUP_SET(
-      "analytics.table.index.category_option_group_set", Constants.ON, false),
-
-  /** Build indexes on org unit group set analytics table columns. */
-  ANALYTICS_TABLE_INDEX_ORG_UNIT_GROUP_SET(
-      "analytics.table.index.org_unit_group_set", Constants.ON, false),
-
   /** LDAP server URL. (default: ldaps://0:1) */
   LDAP_URL("ldap.url", "ldaps://0:1", false),
 

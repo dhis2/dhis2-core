@@ -78,20 +78,4 @@ class AnalyticsTableSettingsTest {
     assertEquals(Skip.INCLUDE, settings.toSkip(true));
     assertEquals(Skip.SKIP, settings.toSkip(false));
   }
-
-  @Test
-  void testSkipIndexCategoryColumns() {
-    when(config.isEnabled(ConfigurationKey.ANALYTICS_TABLE_INDEX_DATA_ELEMENT_GROUP_SET))
-        .thenReturn(true);
-    when(config.isEnabled(ConfigurationKey.ANALYTICS_TABLE_INDEX_CATEGORY)).thenReturn(true);
-    when(config.isEnabled(ConfigurationKey.ANALYTICS_TABLE_INDEX_CATEGORY_OPTION_GROUP_SET))
-        .thenReturn(false);
-    when(config.isEnabled(ConfigurationKey.ANALYTICS_TABLE_INDEX_ORG_UNIT_GROUP_SET))
-        .thenReturn(false);
-
-    assertEquals(Skip.INCLUDE, settings.skipIndexDataElementGroupSetColumns());
-    assertEquals(Skip.INCLUDE, settings.skipIndexCategoryColumns());
-    assertEquals(Skip.SKIP, settings.skipIndexCategoryOptionGroupSetColumns());
-    assertEquals(Skip.SKIP, settings.skipIndexOrgUnitGroupSetColumns());
-  }
 }

@@ -55,7 +55,6 @@ import org.hisp.dhis.analytics.table.model.AnalyticsColumnType;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
-import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
@@ -520,14 +519,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             ougs -> {
               String name = ougs.getUid();
-              Skip skipIndex = analyticsTableSettings.skipIndexOrgUnitGroupSetColumns();
               return AnalyticsTableColumn.builder()
                   .build()
                   .withName(name)
                   .withColumnType(AnalyticsColumnType.DYNAMIC)
                   .withDataType(CHARACTER_11)
                   .withSelectExpression("ougs." + quote(name))
-                  .withSkipIndex(skipIndex)
                   .withCreated(ougs.getCreated());
             })
         .toList();
@@ -538,14 +535,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             degs -> {
               String name = degs.getUid();
-              Skip skipIndex = analyticsTableSettings.skipIndexDataElementGroupSetColumns();
               return AnalyticsTableColumn.builder()
                   .build()
                   .withName(name)
                   .withColumnType(AnalyticsColumnType.DYNAMIC)
                   .withDataType(CHARACTER_11)
                   .withSelectExpression("degs." + quote(name))
-                  .withSkipIndex(skipIndex)
                   .withCreated(degs.getCreated());
             })
         .toList();
@@ -556,14 +551,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             cogs -> {
               String name = cogs.getUid();
-              Skip skipIndex = analyticsTableSettings.skipIndexCategoryOptionGroupSetColumns();
               return AnalyticsTableColumn.builder()
                   .build()
                   .withName(name)
                   .withColumnType(AnalyticsColumnType.DYNAMIC)
                   .withDataType(CHARACTER_11)
                   .withSelectExpression("dcs." + quote(name))
-                  .withSkipIndex(skipIndex)
                   .withCreated(cogs.getCreated());
             })
         .toList();
@@ -574,14 +567,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             cogs -> {
               String name = cogs.getUid();
-              Skip skipIndex = analyticsTableSettings.skipIndexCategoryOptionGroupSetColumns();
               return AnalyticsTableColumn.builder()
                   .build()
                   .withName(name)
                   .withColumnType(AnalyticsColumnType.DYNAMIC)
                   .withDataType(CHARACTER_11)
                   .withSelectExpression("acs." + quote(name))
-                  .withSkipIndex(skipIndex)
                   .withCreated(cogs.getCreated());
             })
         .toList();
@@ -592,14 +583,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             category -> {
               String name = category.getUid();
-              Skip skipIndex = analyticsTableSettings.skipIndexCategoryColumns();
               return AnalyticsTableColumn.builder()
                   .build()
                   .withName(name)
                   .withColumnType(AnalyticsColumnType.DYNAMIC)
                   .withDataType(CHARACTER_11)
                   .withSelectExpression("dcs." + quote(name))
-                  .withSkipIndex(skipIndex)
                   .withCreated(category.getCreated());
             })
         .toList();
@@ -610,14 +599,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             category -> {
               String name = category.getUid();
-              Skip skipIndex = analyticsTableSettings.skipIndexCategoryColumns();
               return AnalyticsTableColumn.builder()
                   .build()
                   .withName(name)
                   .withColumnType(AnalyticsColumnType.DYNAMIC)
                   .withDataType(CHARACTER_11)
                   .withSelectExpression("acs." + quote(name))
-                  .withSkipIndex(skipIndex)
                   .withCreated(category.getCreated());
             })
         .toList();
