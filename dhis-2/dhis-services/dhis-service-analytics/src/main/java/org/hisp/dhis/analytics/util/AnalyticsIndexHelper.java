@@ -79,11 +79,11 @@ public final class AnalyticsIndexHelper {
 
           indexes.add(
               Index.builder()
-                  .build()
-                  .withName(name)
-                  .withTableName(partition.getName())
-                  .withIndexType(col.getIndexType())
-                  .withColumns(columns));
+                  .name(name)
+                  .tableName(partition.getName())
+                  .indexType(col.getIndexType())
+                  .columns(columns)
+                  .build());
 
           maybeAddTextLowerIndex(indexes, name, partition.getName(), col, columns);
           maybeAddDateSortOrderIndex(indexes, name, partition.getName(), col, columns);
@@ -160,12 +160,12 @@ public final class AnalyticsIndexHelper {
       String name = indexName + "_lower";
       indexes.add(
           Index.builder()
-              .build()
-              .withName(name)
-              .withTableName(tableName)
-              .withIndexType(column.getIndexType())
-              .withColumns(indexColumns)
-              .withFunction(IndexFunction.LOWER));
+              .name(name)
+              .tableName(tableName)
+              .indexType(column.getIndexType())
+              .columns(indexColumns)
+              .function(IndexFunction.LOWER)
+              .build());
     }
   }
 
@@ -181,12 +181,12 @@ public final class AnalyticsIndexHelper {
     if (column.getDataType() == TIMESTAMP && column.isStatic() && isSingleColumn) {
       indexes.add(
           Index.builder()
-              .build()
-              .withName(indexName + "_desc")
-              .withTableName(tableName)
-              .withIndexType(column.getIndexType())
-              .withColumns(indexColumns)
-              .withSortOrder("desc nulls last"));
+              .name(indexName + "_desc")
+              .tableName(tableName)
+              .indexType(column.getIndexType())
+              .columns(indexColumns)
+              .sortOrder("desc nulls last")
+              .build());
     }
   }
 

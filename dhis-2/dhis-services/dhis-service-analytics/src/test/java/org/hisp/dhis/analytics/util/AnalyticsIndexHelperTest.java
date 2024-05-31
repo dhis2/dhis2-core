@@ -97,11 +97,11 @@ class AnalyticsIndexHelperTest {
     List<AnalyticsTableColumn> columns =
         List.of(
             AnalyticsTableColumn.builder()
-                .build()
-                .withName("column")
-                .withDataType(TEXT)
-                .withSelectExpression("c")
-                .withIndexType(BTREE));
+                .name("column")
+                .dataType(TEXT)
+                .selectExpression("c")
+                .indexType(BTREE)
+                .build());
 
     return new AnalyticsTable(EVENT, columns, Logged.UNLOGGED);
   }

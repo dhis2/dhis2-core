@@ -100,11 +100,11 @@ public class OrganisationUnitStructureResourceTable implements ResourceTable {
   public List<Index> getIndexes() {
     return List.of(
         Index.builder()
-            .build()
-            .withName(appendRandom("in_orgunitstructure_organisationunituid"))
-            .withTableName(toStaging(TABLE_NAME))
-            .withUnique(Unique.UNIQUE)
-            .withColumns(List.of("organisationunituid")));
+            .name(appendRandom("in_orgunitstructure_organisationunituid"))
+            .tableName(toStaging(TABLE_NAME))
+            .unique(Unique.UNIQUE)
+            .columns(List.of("organisationunituid"))
+            .build());
   }
 
   @Override

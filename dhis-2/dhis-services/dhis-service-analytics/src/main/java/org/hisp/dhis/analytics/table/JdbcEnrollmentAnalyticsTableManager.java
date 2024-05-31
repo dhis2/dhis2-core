@@ -78,132 +78,128 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("pi")
-              .withDataType(CHARACTER_11)
-              .withNullable(NOT_NULL)
-              .withSelectExpression("pi.uid"),
+              .name("pi")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("pi.uid")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("enrollmentdate")
-              .withDataType(TIMESTAMP)
-              .withSelectExpression("pi.enrollmentdate"),
+              .name("enrollmentdate")
+              .dataType(TIMESTAMP)
+              .selectExpression("pi.enrollmentdate")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("incidentdate")
-              .withDataType(TIMESTAMP)
-              .withSelectExpression("pi.occurreddate"),
+              .name("incidentdate")
+              .dataType(TIMESTAMP)
+              .selectExpression("pi.occurreddate")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("completeddate")
-              .withDataType(TIMESTAMP)
-              .withSelectExpression("case pi.status when 'COMPLETED' then pi.completeddate end"),
+              .name("completeddate")
+              .dataType(TIMESTAMP)
+              .selectExpression("case pi.status when 'COMPLETED' then pi.completeddate end")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("lastupdated")
-              .withDataType(TIMESTAMP)
-              .withSelectExpression("pi.lastupdated"),
+              .name("lastupdated")
+              .dataType(TIMESTAMP)
+              .selectExpression("pi.lastupdated")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("storedby")
-              .withDataType(VARCHAR_255)
-              .withSelectExpression("pi.storedby"),
+              .name("storedby")
+              .dataType(VARCHAR_255)
+              .selectExpression("pi.storedby")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("createdbyusername")
-              .withDataType(VARCHAR_255)
-              .withSelectExpression("pi.createdbyuserinfo ->> 'username' as createdbyusername"),
+              .name("createdbyusername")
+              .dataType(VARCHAR_255)
+              .selectExpression("pi.createdbyuserinfo ->> 'username' as createdbyusername")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("createdbyname")
-              .withDataType(VARCHAR_255)
-              .withSelectExpression("pi.createdbyuserinfo ->> 'firstName' as createdbyname"),
+              .name("createdbyname")
+              .dataType(VARCHAR_255)
+              .selectExpression("pi.createdbyuserinfo ->> 'firstName' as createdbyname")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("createdbylastname")
-              .withDataType(VARCHAR_255)
-              .withSelectExpression("pi.createdbyuserinfo ->> 'surname' as createdbylastname"),
+              .name("createdbylastname")
+              .dataType(VARCHAR_255)
+              .selectExpression("pi.createdbyuserinfo ->> 'surname' as createdbylastname")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("createdbydisplayname")
-              .withDataType(VARCHAR_255)
-              .withSelectExpression(
-                  getDisplayName("createdbyuserinfo", "pi", "createdbydisplayname")),
+              .name("createdbydisplayname")
+              .dataType(VARCHAR_255)
+              .selectExpression(getDisplayName("createdbyuserinfo", "pi", "createdbydisplayname"))
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("lastupdatedbyusername")
-              .withDataType(VARCHAR_255)
-              .withSelectExpression(
-                  "pi.lastupdatedbyuserinfo ->> 'username' as lastupdatedbyusername"),
+              .name("lastupdatedbyusername")
+              .dataType(VARCHAR_255)
+              .selectExpression("pi.lastupdatedbyuserinfo ->> 'username' as lastupdatedbyusername")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("lastupdatedbyname")
-              .withDataType(VARCHAR_255)
-              .withSelectExpression(
-                  "pi.lastupdatedbyuserinfo ->> 'firstName' as lastupdatedbyname"),
+              .name("lastupdatedbyname")
+              .dataType(VARCHAR_255)
+              .selectExpression("pi.lastupdatedbyuserinfo ->> 'firstName' as lastupdatedbyname")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("lastupdatedbylastname")
-              .withDataType(VARCHAR_255)
-              .withSelectExpression(
-                  "pi.lastupdatedbyuserinfo ->> 'surname' as lastupdatedbylastname"),
+              .name("lastupdatedbylastname")
+              .dataType(VARCHAR_255)
+              .selectExpression("pi.lastupdatedbyuserinfo ->> 'surname' as lastupdatedbylastname")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("lastupdatedbydisplayname")
-              .withDataType(VARCHAR_255)
-              .withSelectExpression(
-                  getDisplayName("lastupdatedbyuserinfo", "pi", "lastupdatedbydisplayname")),
+              .name("lastupdatedbydisplayname")
+              .dataType(VARCHAR_255)
+              .selectExpression(
+                  getDisplayName("lastupdatedbyuserinfo", "pi", "lastupdatedbydisplayname"))
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("enrollmentstatus")
-              .withDataType(VARCHAR_50)
-              .withSelectExpression("pi.status"),
+              .name("enrollmentstatus")
+              .dataType(VARCHAR_50)
+              .selectExpression("pi.status")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("longitude")
-              .withDataType(DOUBLE)
-              .withSelectExpression(
-                  "CASE WHEN 'POINT' = GeometryType(pi.geometry) THEN ST_X(pi.geometry) ELSE null END"),
+              .name("longitude")
+              .dataType(DOUBLE)
+              .selectExpression(
+                  "CASE WHEN 'POINT' = GeometryType(pi.geometry) THEN ST_X(pi.geometry) ELSE null END")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("latitude")
-              .withDataType(DOUBLE)
-              .withSelectExpression(
-                  "CASE WHEN 'POINT' = GeometryType(pi.geometry) THEN ST_Y(pi.geometry) ELSE null END"),
+              .name("latitude")
+              .dataType(DOUBLE)
+              .selectExpression(
+                  "CASE WHEN 'POINT' = GeometryType(pi.geometry) THEN ST_Y(pi.geometry) ELSE null END")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("ou")
-              .withDataType(CHARACTER_11)
-              .withNullable(NOT_NULL)
-              .withSelectExpression("ou.uid"),
+              .name("ou")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("ou.uid")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("ouname")
-              .withDataType(TEXT)
-              .withNullable(NOT_NULL)
-              .withSelectExpression("ou.name"),
+              .name("ouname")
+              .dataType(TEXT)
+              .nullable(NOT_NULL)
+              .selectExpression("ou.name")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("oucode")
-              .withDataType(TEXT)
-              .withSelectExpression("ou.code"),
+              .name("oucode")
+              .dataType(TEXT)
+              .selectExpression("ou.code")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("oulevel")
-              .withDataType(INTEGER)
-              .withSelectExpression("ous.level"),
+              .name("oulevel")
+              .dataType(INTEGER)
+              .selectExpression("ous.level")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("pigeometry")
-              .withDataType(GEOMETRY)
-              .withSelectExpression("pi.geometry")
-              .withIndexType(IndexType.GIST),
+              .name("pigeometry")
+              .dataType(GEOMETRY)
+              .selectExpression("pi.geometry")
+              .indexType(IndexType.GIST)
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("registrationou")
-              .withDataType(CHARACTER_11)
-              .withNullable(NOT_NULL)
-              .withSelectExpression("coalesce(registrationou.uid,ou.uid)"));
+              .name("registrationou")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("coalesce(registrationou.uid,ou.uid)")
+              .build());
 
   public JdbcEnrollmentAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -315,16 +311,16 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
     if (program.isRegistration()) {
       columns.add(
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("tei")
-              .withDataType(CHARACTER_11)
-              .withSelectExpression("tei.uid"));
+              .name("tei")
+              .dataType(CHARACTER_11)
+              .selectExpression("tei.uid")
+              .build());
       columns.add(
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("teigeometry")
-              .withDataType(GEOMETRY)
-              .withSelectExpression("tei.geometry"));
+              .name("teigeometry")
+              .dataType(GEOMETRY)
+              .selectExpression("tei.geometry")
+              .build());
     }
 
     return filterDimensionColumns(columns);

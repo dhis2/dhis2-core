@@ -76,27 +76,27 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("dx")
-              .withDataType(CHARACTER_11)
-              .withNullable(NOT_NULL)
-              .withSelectExpression("vr.uid"),
+              .name("dx")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("vr.uid")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("pestartdate")
-              .withDataType(TIMESTAMP)
-              .withSelectExpression("pe.startdate"),
+              .name("pestartdate")
+              .dataType(TIMESTAMP)
+              .selectExpression("pe.startdate")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("peenddate")
-              .withDataType(TIMESTAMP)
-              .withSelectExpression("pe.enddate"),
+              .name("peenddate")
+              .dataType(TIMESTAMP)
+              .selectExpression("pe.enddate")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("year")
-              .withDataType(INTEGER)
-              .withNullable(NOT_NULL)
-              .withSelectExpression("ps.year"));
+              .name("year")
+              .dataType(INTEGER)
+              .nullable(NOT_NULL)
+              .selectExpression("ps.year")
+              .build());
 
   public JdbcValidationResultTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -249,12 +249,12 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
     columns.addAll(getPeriodTypeColumns("ps"));
     columns.add(
         AnalyticsTableColumn.builder()
-            .build()
-            .withName("value")
-            .withDataType(DATE)
-            .withNullable(NULL)
-            .withValueType(FACT)
-            .withSelectExpression("vrs.created as value"));
+            .name("value")
+            .dataType(DATE)
+            .nullable(NULL)
+            .valueType(FACT)
+            .selectExpression("vrs.created as value")
+            .build());
 
     return filterDimensionColumns(columns);
   }
