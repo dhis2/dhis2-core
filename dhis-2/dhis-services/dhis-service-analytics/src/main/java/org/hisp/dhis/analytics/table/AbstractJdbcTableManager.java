@@ -622,14 +622,11 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * system configuration.
    *
    * @param dimension the {@link DimensionalObject}.
-   * @return {@link Skip#SKIP} if index should be skipped, {@link Skip#INCLUDE} if it should be
-   *     included.
+   * @return {@link Skip#SKIP} if index should be skipped, {@link Skip#INCLUDE} otherwise.
    */
   protected Skip skipIndex(DimensionalObject dimension) {
     Set<String> dimensions = analyticsTableSettings.getSkipIndexDimensions();
-    Skip skip = dimensions.contains(dimension.getUid()) ? Skip.SKIP : Skip.INCLUDE;
-    log.info("Dimension: '{}' index: {}", dimension.getUid(), skip);
-    return skip;
+    return dimensions.contains(dimension.getUid()) ? Skip.SKIP : Skip.INCLUDE;
   }
 
   /**
