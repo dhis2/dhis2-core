@@ -52,6 +52,7 @@ import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.experimental.Accessors;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.node.config.InclusionStrategy;
@@ -61,6 +62,8 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.tracker.export.FileResourceStream;
+import org.hisp.dhis.webapi.webdomain.EndDateTime;
+import org.hisp.dhis.webapi.webdomain.StartDateTime;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.locationtech.jts.geom.Geometry;
 import org.springframework.core.io.InputStreamResource;
@@ -96,6 +99,7 @@ class DirectType {
     Integer minLength;
     Integer maxLength;
     List<String> enums;
+    String description;
   }
 
   private static final Map<Class<?>, DirectType> TYPES = new IdentityHashMap<>();
@@ -123,14 +127,20 @@ class DirectType {
   private static void oneOf(Class<?> source, Consumer<SimpleType.SimpleTypeBuilder> schema) {
     SimpleType.SimpleTypeBuilder b = new SimpleType.SimpleTypeBuilder();
     b.enums(List.of()); // default
+    boolean autoShare =
+        source.isAnnotationPresent(OpenApi.Description.class)
+            && source.isAnnotationPresent(OpenApi.Shared.class)
+            && source.getAnnotation(OpenApi.Shared.class).value();
+    if (autoShare)
+      b.description(ApiDescriptions.toMarkdown(source.getAnnotation(OpenApi.Description.class)));
     schema.accept(b);
     SimpleType type = b.build();
     TYPES.compute(
         source,
         (k, v) ->
             v == null
-                ? new DirectType(k, Map.of(type.type(), type), false)
-                : new DirectType(k, put(v.oneOf(), type.type(), type), v.shared()));
+                ? new DirectType(k, Map.of(type.type(), type), autoShare)
+                : new DirectType(k, put(v.oneOf(), type.type(), type), autoShare || v.shared()));
   }
 
   private static <K, V> Map<K, V> put(Map<K, V> into, K key, V value) {
@@ -175,6 +185,8 @@ class DirectType {
     oneOf(FieldPath.class, schema -> schema.type("string"));
     oneOf(Class.class, schema -> schema.type("string").format("class").nullable(false));
     oneOf(Date.class, schema -> schema.type("string").format("date-time").nullable(true));
+    oneOf(StartDateTime.class, schema -> schema.type("string").format("date-time").nullable(true));
+    oneOf(EndDateTime.class, schema -> schema.type("string").format("date-time").nullable(true));
     oneOf(URI.class, schema -> schema.type("string").format("uri").nullable(true));
     oneOf(URL.class, schema -> schema.type("string").format("url").nullable(true));
     oneOf(

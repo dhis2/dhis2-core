@@ -27,21 +27,20 @@
  */
 package org.hisp.dhis.program;
 
+import lombok.Getter;
+
 /**
  * @author Lars Helge Overland
  */
+@Getter
 public enum EnrollmentStatus {
   ACTIVE(0),
   COMPLETED(1),
   CANCELLED(2);
 
-  private int value;
+  private final int value;
 
   EnrollmentStatus(int value) {
     this.value = value;
-  }
-
-  public int getValue() {
-    return value;
   }
 }

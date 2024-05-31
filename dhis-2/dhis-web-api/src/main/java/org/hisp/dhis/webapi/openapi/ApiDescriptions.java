@@ -44,6 +44,7 @@ import javax.annotation.CheckForNull;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
+import org.intellij.lang.annotations.Language;
 
 /**
  * Reads CommonMark markdown files into key-value pairs.
@@ -254,6 +255,7 @@ final class ApiDescriptions {
     return null;
   }
 
+  @Language("markdown")
   static String toMarkdown(OpenApi.Description desc) {
     if (desc == null) return null;
     String[] items = desc.value();

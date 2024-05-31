@@ -460,7 +460,6 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     addProgramOwnershipHistory(programA, teiA, ouG, feb15Noon, mar15);
     trackedEntityProgramOwnerService.createOrUpdateTrackedEntityProgramOwner(teiA, programA, ouH);
 
-    // Program Stage Instances (Events)
     Event eventA1 = createEvent(psA, piA, ouI);
     eventA1.setScheduledDate(jan15);
     eventA1.setOccurredDate(jan15);

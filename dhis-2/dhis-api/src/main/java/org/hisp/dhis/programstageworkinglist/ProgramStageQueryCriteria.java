@@ -97,7 +97,7 @@ public class ProgramStageQueryCriteria implements Serializable {
   @JsonProperty @Builder.Default
   private List<EventDataFilter> dataFilters = Collections.emptyList();
 
-  /** Property to filter tracked entity instances based on tracked entity attribute values */
+  /** Property to filter tracked entities based on tracked entity attribute values */
   @JsonProperty @Builder.Default
   private List<AttributeValueFilter> attributeValueFilters = Collections.emptyList();
 

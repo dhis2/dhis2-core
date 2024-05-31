@@ -102,12 +102,10 @@ public class TrackedEntityQueryParams {
   /** Program for which instances in the response must be enrolled in. */
   private Program program;
 
-  /** Status of the tracked entity instance in the given program. */
-  private EnrollmentStatus programStatus;
+  /** Status of a tracked entities enrollment into a given program. */
+  private EnrollmentStatus enrollmentStatus;
 
-  /**
-   * Indicates whether tracked entity instance is marked for follow up for the specified program.
-   */
+  /** Indicates whether tracked entity is marked for follow up for the specified program. */
   private Boolean followUp;
 
   /** The last updated duration filter. */
@@ -355,8 +353,8 @@ public class TrackedEntityQueryParams {
   }
 
   /** Indicates whether this parameter specifies a program status. */
-  public boolean hasProgramStatus() {
-    return programStatus != null;
+  public boolean hasEnrollmentStatus() {
+    return enrollmentStatus != null;
   }
 
   /**
@@ -457,7 +455,7 @@ public class TrackedEntityQueryParams {
         .add("filters", filters)
         .add("orgUnits", orgUnits)
         .add("program", program)
-        .add("programStatus", programStatus)
+        .add("enrollmentStatus", enrollmentStatus)
         .add("followUp", followUp)
         .add("lastUpdatedDuration", lastUpdatedDuration)
         .add("trackedEntityType", trackedEntityType)
@@ -530,12 +528,12 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public EnrollmentStatus getProgramStatus() {
-    return programStatus;
+  public EnrollmentStatus getEnrollmentStatus() {
+    return enrollmentStatus;
   }
 
-  public TrackedEntityQueryParams setProgramStatus(EnrollmentStatus programStatus) {
-    this.programStatus = programStatus;
+  public TrackedEntityQueryParams setEnrollmentStatus(EnrollmentStatus enrollmentStatus) {
+    this.enrollmentStatus = enrollmentStatus;
     return this;
   }
 

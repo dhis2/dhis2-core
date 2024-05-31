@@ -44,6 +44,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -161,6 +162,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
       schemaService.getMetadataSchemas().stream()
           .filter(schema -> schema.isIdentifiableObject() && schema.isPersisted())
           .filter(s -> !s.isSecondaryMetadata())
+          .filter(DEPRECATED_ANALYTICS_SCHEMAS)
           .forEach(
               schema ->
                   params.getClasses().add((Class<? extends IdentifiableObject>) schema.getKlass()));
@@ -208,6 +210,15 @@ public class DefaultMetadataExportService implements MetadataExportService {
 
     return metadata;
   }
+
+  /**
+   * This predicate is used to filter out deprecated Analytics schemas, {@link EventChart} & {@link
+   * EventReport}.As they are no longer used ({@link EventVisualization} has replaced them), they
+   * should be removed from the metadata export flow. This was causing issues otherwise. See <a
+   * href="https://dhis2.atlassian.net/browse/BETA-177">Jira issue</a>
+   */
+  public static final Predicate<Schema> DEPRECATED_ANALYTICS_SCHEMAS =
+      schema -> schema.getKlass() != EventChart.class && schema.getKlass() != EventReport.class;
 
   @Override
   @Transactional(readOnly = true)

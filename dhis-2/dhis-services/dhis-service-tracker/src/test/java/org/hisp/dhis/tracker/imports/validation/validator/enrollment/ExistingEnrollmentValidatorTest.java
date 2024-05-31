@@ -254,7 +254,7 @@ class ExistingEnrollmentValidatorTest {
     setTeInDb(EnrollmentStatus.ACTIVE);
   }
 
-  private void setTeInDb(EnrollmentStatus programStatus) {
+  private void setTeInDb(EnrollmentStatus status) {
     when(preheat.getTrackedEntityToEnrollmentMap())
         .thenReturn(
             new HashMap<>() {
@@ -265,7 +265,7 @@ class ExistingEnrollmentValidatorTest {
                 program.setUid(programUid);
 
                 enrollment.setUid("another_enrollment");
-                enrollment.setStatus(programStatus);
+                enrollment.setStatus(status);
                 enrollment.setProgram(program);
 
                 put(trackedEntitUid, Collections.singletonList(enrollment));
@@ -273,13 +273,13 @@ class ExistingEnrollmentValidatorTest {
             });
   }
 
-  private void setEnrollmentInPayload(EnrollmentStatus enrollmentStatus) {
+  private void setEnrollmentInPayload(EnrollmentStatus status) {
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollmentInBundle =
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
             .enrollment("another_enrollment")
             .program(MetadataIdentifier.ofUid(programUid))
             .trackedEntity(trackedEntitUid)
-            .status(enrollmentStatus)
+            .status(status)
             .build();
 
     when(bundle.getEnrollments()).thenReturn(Collections.singletonList(enrollmentInBundle));

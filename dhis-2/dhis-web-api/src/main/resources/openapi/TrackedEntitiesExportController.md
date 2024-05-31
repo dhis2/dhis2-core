@@ -104,17 +104,37 @@ See `enrollmentStatus` for details.
 
 ### `*.parameter.TrackedEntityRequestParams.updatedAfter`
 
+Get tracked entities updated after given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
+
 ### `*.parameter.TrackedEntityRequestParams.updatedBefore`
+
+Get tracked entities updated before given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.TrackedEntityRequestParams.updatedWithin`
 
+Get tracked entities updated since given ISO-8601 duration.
+
 ### `*.parameter.TrackedEntityRequestParams.enrollmentEnrolledAfter`
+
+Get tracked entities with enrollments that were enrolled after given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentEnrolledBefore`
 
+Get tracked entities with enrollments that were enrolled before given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
+
 ### `*.parameter.TrackedEntityRequestParams.enrollmentOccurredAfter`
 
+Get tracked entities with enrollments occurred after given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
+
 ### `*.parameter.TrackedEntityRequestParams.enrollmentOccurredBefore`
+
+Get tracked entities with enrollments occurred before given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.TrackedEntityRequestParams.trackedEntityType`
 
@@ -161,13 +181,15 @@ with `eventOccurredAfter` and `eventOccurredBefore`.
 
 ### `*.parameter.TrackedEntityRequestParams.eventOccurredAfter`
 
-Get tracked entities with an event occurred after given date. `eventOccurredAfter` must be specified
-together with `eventStatus` and `eventOccurredBefore`.
+Get tracked entities with an event occurred after given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
+`eventOccurredAfter` must be specified together with `eventStatus` and `eventOccurredBefore`.
 
 ### `*.parameter.TrackedEntityRequestParams.eventOccurredBefore`
 
-Get tracked entities with an event occurred before given date. `eventOccurredBefore` must be
-specified together with `eventStatus` and `eventOccurredAfter`.
+Get tracked entities with an event occurred before given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
+`eventOccurredBefore` must be specified together with `eventStatus` and `eventOccurredAfter`.
 
 ### `*.parameter.TrackedEntityRequestParams.includeDeleted`
 

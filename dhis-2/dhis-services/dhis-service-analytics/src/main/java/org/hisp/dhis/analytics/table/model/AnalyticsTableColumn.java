@@ -32,7 +32,6 @@ import java.util.List;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.With;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.IndexType;
@@ -48,37 +47,37 @@ import org.hisp.dhis.db.model.constraint.Nullable;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class AnalyticsTableColumn {
   /** Column name. */
-  @With @EqualsAndHashCode.Include private final String name;
+  @EqualsAndHashCode.Include private final String name;
 
   /** Column data type. */
-  @With private final DataType dataType;
+  private final DataType dataType;
 
   /** Column not null constraint, default is to allow null values. */
-  @With @Builder.Default private final Nullable nullable = Nullable.NULL;
+  @Builder.Default private final Nullable nullable = Nullable.NULL;
 
   /** Column collation. */
-  @With @Builder.Default private final Collation collation = Collation.DEFAULT;
+  @Builder.Default private final Collation collation = Collation.DEFAULT;
 
   /** Column analytics value type, i.e. dimension or fact. */
-  @With @Builder.Default private final AnalyticsValueType valueType = AnalyticsValueType.DIMENSION;
+  @Builder.Default private final AnalyticsValueType valueType = AnalyticsValueType.DIMENSION;
 
   /** The expression to use in select clauses. */
-  @With private final String selectExpression;
+  private final String selectExpression;
 
   /** Whether to skip or include an index for column. */
-  @With @Builder.Default private final Skip skipIndex = Skip.INCLUDE;
+  @Builder.Default private final Skip skipIndex = Skip.INCLUDE;
 
   /** Index type, defaults to database default type {@link IndexType#BTREE}. */
-  @With @Builder.Default private final IndexType indexType = IndexType.BTREE;
+  @Builder.Default private final IndexType indexType = IndexType.BTREE;
 
   /** Index column names, defaults to column name. */
-  @With @Builder.Default private final List<String> indexColumns = List.of();
+  @Builder.Default private final List<String> indexColumns = List.of();
 
   /** The column type indicates the column origin. */
-  @With @Builder.Default private final AnalyticsColumnType columnType = AnalyticsColumnType.STATIC;
+  @Builder.Default private final AnalyticsColumnType columnType = AnalyticsColumnType.STATIC;
 
   /** Date of creation of the underlying data dimension. */
-  @With private Date created;
+  private final Date created;
 
   //  // -------------------------------------------------------------------------
   //  // Logic

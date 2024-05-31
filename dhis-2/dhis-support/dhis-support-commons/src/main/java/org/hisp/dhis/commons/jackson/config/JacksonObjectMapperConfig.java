@@ -75,7 +75,7 @@ public class JacksonObjectMapperConfig {
   public static final ObjectMapper hibernateAwareJsonMapper = configureMapper(new ObjectMapper());
 
   /*
-   * Standard JSON mapper for Program Stage Instance data values.
+   * Standard JSON mapper for event data values.
    */
   public static final ObjectMapper dataValueJsonMapper = configureMapper(new ObjectMapper(), true);
 

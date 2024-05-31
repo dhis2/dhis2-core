@@ -43,7 +43,7 @@ public interface TrackerOwnershipManager {
   String NO_READ_ACCESS_TO_ORG_UNIT = "User has no read access to organisation unit";
 
   /**
-   * @param trackedEntity The tracked entity instance object
+   * @param trackedEntity The tracked entity object
    * @param program The program object
    * @param orgUnit The org unit that has to become the owner
    * @param skipAccessValidation whether ownership access validation has to be skipped or not.
@@ -56,7 +56,7 @@ public interface TrackerOwnershipManager {
       boolean createIfNotExists);
 
   /**
-   * @param trackedEntity The tracked entity instance object
+   * @param trackedEntity The tracked entity object
    * @param program The program object
    * @param organisationUnit The org unit that has to become the owner
    */
@@ -68,11 +68,11 @@ public interface TrackerOwnershipManager {
       boolean overwriteIfExists);
 
   /**
-   * Check whether the user has access (as owner or has temporarily broken the glass) for the
-   * tracked entity instance - program combination.
+   * Check whether the user has access (as owner or has temporarily broken the glass) to the tracked
+   * entity - program combination.
    *
    * @param user The user with which access has to be checked for.
-   * @param trackedEntity The tracked entity instance.
+   * @param trackedEntity The tracked entity.
    * @param program The program.
    * @return true if the user has access, false otherwise.
    */
@@ -82,9 +82,9 @@ public interface TrackerOwnershipManager {
       UserDetails user, String trackedEntity, OrganisationUnit organisationUnit, Program program);
 
   /**
-   * Grant temporary ownership for a user for a specific te-program combination
+   * Grant temporary ownership for a user for a specific tracked entity - program combination
    *
-   * @param trackedEntity The tracked entity instance object
+   * @param trackedEntity The tracked entity object
    * @param program The program object
    * @param user The user for which temporary access is granted.
    * @param reason The reason for requesting temporary ownership

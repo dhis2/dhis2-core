@@ -129,7 +129,7 @@ class EventRequestParamsMapper {
             .programStageUid(applyIfNotNull(eventRequestParams.getProgramStage(), UID::getValue))
             .orgUnitUid(applyIfNotNull(eventRequestParams.getOrgUnit(), UID::getValue))
             .trackedEntityUid(applyIfNotNull(eventRequestParams.getTrackedEntity(), UID::getValue))
-            .programStatus(enrollmentStatus)
+            .enrollmentStatus(enrollmentStatus)
             .followUp(eventRequestParams.getFollowUp())
             .orgUnitMode(orgUnitMode)
             .assignedUserMode(eventRequestParams.getAssignedUserMode())

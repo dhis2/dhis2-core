@@ -463,10 +463,10 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
             pt -> {
               String name = pt.getName().toLowerCase();
               return AnalyticsTableColumn.builder()
-                  .build()
-                  .withName(name)
-                  .withDataType(TEXT)
-                  .withSelectExpression(prefix + "." + quote(name));
+                  .name(name)
+                  .dataType(TEXT)
+                  .selectExpression(prefix + "." + quote(name))
+                  .build();
             })
         .toList();
   }
@@ -482,11 +482,11 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
             level -> {
               String name = PREFIX_ORGUNITLEVEL + level.getLevel();
               return AnalyticsTableColumn.builder()
-                  .build()
-                  .withName(name)
-                  .withDataType(CHARACTER_11)
-                  .withSelectExpression("ous." + quote(name))
-                  .withCreated(level.getCreated());
+                  .name(name)
+                  .dataType(CHARACTER_11)
+                  .selectExpression("ous." + quote(name))
+                  .created(level.getCreated())
+                  .build();
             })
         .toList();
   }
@@ -504,11 +504,11 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
                 .collect(Collectors.joining(","))
             + ") as ounamehierarchy";
     return AnalyticsTableColumn.builder()
-        .build()
-        .withName("ounamehierarchy")
-        .withDataType(TEXT)
-        .withCollation(Collation.C)
-        .withSelectExpression(columnExpression);
+        .name("ounamehierarchy")
+        .dataType(TEXT)
+        .collation(Collation.C)
+        .selectExpression(columnExpression)
+        .build();
   }
 
   /**
@@ -522,13 +522,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
             ougs -> {
               String name = ougs.getUid();
               return AnalyticsTableColumn.builder()
-                  .build()
-                  .withName(name)
-                  .withColumnType(AnalyticsColumnType.DYNAMIC)
-                  .withDataType(CHARACTER_11)
-                  .withSelectExpression("ougs." + quote(name))
-                  .withSkipIndex(skipIndex(ougs))
-                  .withCreated(ougs.getCreated());
+                  .name(name)
+                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dataType(CHARACTER_11)
+                  .selectExpression("ougs." + quote(name))
+                  .skipIndex(skipIndex)
+                  .created(ougs.getCreated())
+                  .build();
             })
         .toList();
   }
@@ -539,13 +539,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
             degs -> {
               String name = degs.getUid();
               return AnalyticsTableColumn.builder()
-                  .build()
-                  .withName(name)
-                  .withColumnType(AnalyticsColumnType.DYNAMIC)
-                  .withDataType(CHARACTER_11)
-                  .withSelectExpression("degs." + quote(name))
-                  .withSkipIndex(skipIndex(degs))
-                  .withCreated(degs.getCreated());
+                  .name(name)
+                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dataType(CHARACTER_11)
+                  .selectExpression("degs." + quote(name))
+                  .skipIndex(skipIndex)
+                  .created(degs.getCreated())
+                  .build();
             })
         .toList();
   }
@@ -556,13 +556,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
             cogs -> {
               String name = cogs.getUid();
               return AnalyticsTableColumn.builder()
-                  .build()
-                  .withName(name)
-                  .withColumnType(AnalyticsColumnType.DYNAMIC)
-                  .withDataType(CHARACTER_11)
-                  .withSelectExpression("dcs." + quote(name))
-                  .withSkipIndex(skipIndex(cogs))
-                  .withCreated(cogs.getCreated());
+                  .name(name)
+                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dataType(CHARACTER_11)
+                  .selectExpression("dcs." + quote(name))
+                  .skipIndex(skipIndex)
+                  .created(cogs.getCreated())
+                  .build();
             })
         .toList();
   }
@@ -573,13 +573,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
             cogs -> {
               String name = cogs.getUid();
               return AnalyticsTableColumn.builder()
-                  .build()
-                  .withName(name)
-                  .withColumnType(AnalyticsColumnType.DYNAMIC)
-                  .withDataType(CHARACTER_11)
-                  .withSelectExpression("acs." + quote(name))
-                  .withSkipIndex(skipIndex(cogs))
-                  .withCreated(cogs.getCreated());
+                  .name(name)
+                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dataType(CHARACTER_11)
+                  .selectExpression("acs." + quote(name))
+                  .skipIndex(skipIndex)
+                  .created(cogs.getCreated())
+                  .build();
             })
         .toList();
   }
@@ -590,13 +590,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
             category -> {
               String name = category.getUid();
               return AnalyticsTableColumn.builder()
-                  .build()
-                  .withName(name)
-                  .withColumnType(AnalyticsColumnType.DYNAMIC)
-                  .withDataType(CHARACTER_11)
-                  .withSelectExpression("dcs." + quote(name))
-                  .withSkipIndex(skipIndex(category))
-                  .withCreated(category.getCreated());
+                  .name(name)
+                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dataType(CHARACTER_11)
+                  .selectExpression("dcs." + quote(name))
+                  .skipIndex(skipIndex)
+                  .created(category.getCreated())
+                  .build();
             })
         .toList();
   }
@@ -607,13 +607,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
             category -> {
               String name = category.getUid();
               return AnalyticsTableColumn.builder()
-                  .build()
-                  .withName(name)
-                  .withColumnType(AnalyticsColumnType.DYNAMIC)
-                  .withDataType(CHARACTER_11)
-                  .withSelectExpression("acs." + quote(name))
-                  .withSkipIndex(skipIndex(category))
-                  .withCreated(category.getCreated());
+                  .name(name)
+                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dataType(CHARACTER_11)
+                  .selectExpression("acs." + quote(name))
+                  .skipIndex(skipIndex)
+                  .created(category.getCreated())
+                  .build();
             })
         .toList();
   }

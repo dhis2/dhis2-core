@@ -442,6 +442,27 @@ public @interface OpenApi {
     String reason() default "";
   }
 
+  /**
+   * Provides a description text. Generally takes precedence over providing texts in markdown file,
+   * but can be combined with such text by placing a placeholder {@code {md}} in the annotated text
+   * value.
+   *
+   * <p>Can be used in various places.
+   *
+   * <p>It becomes...
+   *
+   * <ul>
+   *   <li>endpoint description when placed on an endpoint method
+   *   <li>response body description when placed on the class of the endpoint method's return type
+   *   <li>parameter description when placed on an endpoint method's parameter
+   *   <li>property description when placed on a field or accessor method of a type that becomes a
+   *       schema
+   * </ul>
+   *
+   * When placed on a {@link Class} which is used as parameter type and that parameter has no
+   * annotation directly on the parameter (includes fields in a parameter object) the type level is
+   * used as a fallback for such a parameter.
+   */
   @Target({ElementType.TYPE_USE, ElementType.METHOD, ElementType.PARAMETER, ElementType.FIELD})
   @Retention(RetentionPolicy.RUNTIME)
   @interface Description {
@@ -449,6 +470,9 @@ public @interface OpenApi {
     /**
      * If multiple values are given these are turned into a bullet list. Each item in the list is
      * left "as is" so it may use inline mark-down syntax.
+     *
+     * <p>A value may contain a placeholder {@code {md}} in which case the description text that
+     * potentially exists in a markdown file will be inserted at that location.
      *
      * @return The description, might use mark-down syntax
      */

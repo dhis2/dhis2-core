@@ -53,7 +53,7 @@ public class EntityQueryCriteria implements Serializable {
   private String programStage;
 
   /**
-   * Property indicating whether to filter tracked entity instances whose enrollments are marked for
+   * Property indicating whether to filter tracked entities whose enrollments are marked for
    * followup or not
    */
   private Boolean followUp = false;
@@ -100,7 +100,7 @@ public class EntityQueryCriteria implements Serializable {
   /** Property to filter events based on program created dates */
   private DateFilterPeriod enrollmentCreatedDate;
 
-  /** Property to filter tracked entity instances based on tracked entity attribute values */
+  /** Property to filter tracked entities based on tracked entity attribute values */
   private List<AttributeValueFilter> attributeValueFilters = new ArrayList<>();
 
   @JsonProperty

@@ -178,7 +178,7 @@ class EventStoreTest extends TransactionalIntegrationTest {
     programStages.add(stageD);
     programB.getProgramStages().addAll(programStages);
     programService.updateProgram(programB);
-    /** Enrollment and Program Stage Instance */
+    /** Enrollment and event */
     DateTime testDate1 = DateTime.now();
     testDate1.withTimeAtStartOfDay();
     testDate1 = testDate1.minusDays(70);

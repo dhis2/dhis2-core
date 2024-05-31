@@ -99,7 +99,7 @@ class EnrollmentRequestParamsMapper {
     EnrollmentOperationParamsBuilder builder =
         EnrollmentOperationParams.builder()
             .programUid(applyIfNotNull(enrollmentRequestParams.getProgram(), UID::getValue))
-            .programStatus(enrollmentStatus)
+            .enrollmentStatus(enrollmentStatus)
             .followUp(enrollmentRequestParams.getFollowUp())
             .lastUpdated(
                 applyIfNotNull(enrollmentRequestParams.getUpdatedAfter(), StartDateTime::toDate))

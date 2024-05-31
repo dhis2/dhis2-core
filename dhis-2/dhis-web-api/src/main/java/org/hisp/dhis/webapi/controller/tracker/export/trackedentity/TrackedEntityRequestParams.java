@@ -133,10 +133,7 @@ public class TrackedEntityRequestParams implements PageRequestParams {
   @Deprecated(since = "2.42")
   private EnrollmentStatus programStatus;
 
-  /**
-   * Indicates whether the Tracked Entity Instance is marked for follow up for the specified
-   * Program.
-   */
+  /** Indicates whether the tracked entity is marked for follow up for the specified program. */
   private Boolean followUp;
 
   /** Start date for last updated. */
@@ -162,12 +159,12 @@ public class TrackedEntityRequestParams implements PageRequestParams {
   /** End date for incident in the given program. */
   private EndDateTime enrollmentOccurredBefore;
 
-  /** Only returns Tracked Entity Instances of this type. */
+  /** Only returns tracked entities of this type. */
   @OpenApi.Property({UID.class, TrackedEntityType.class})
   private UID trackedEntityType;
 
   /**
-   * Semicolon-delimited list of Tracked Entity Instance UIDs
+   * Semicolon-delimited list of tracked entity UIDs
    *
    * @deprecated use {@link #trackedEntities} instead which is comma instead of semicolon separated.
    */

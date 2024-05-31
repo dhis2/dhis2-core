@@ -70,12 +70,10 @@ public class TrackedEntityOperationParams {
   /** Program for which instances in the response must be enrolled in. */
   private String programUid;
 
-  /** Status of the tracked entity instance in the given program. */
-  private EnrollmentStatus programStatus;
+  /** Status of a tracked entities enrollment into a given program. */
+  private EnrollmentStatus enrollmentStatus;
 
-  /**
-   * Indicates whether tracked entity instance is marked for follow up for the specified program.
-   */
+  /** Indicates whether tracked entity is marked for follow up for the specified program. */
   private Boolean followUp;
 
   /** Start date for last updated. */

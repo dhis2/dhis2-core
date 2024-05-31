@@ -367,7 +367,7 @@ class EventExporterTest extends TrackerTest {
         operationParamsBuilder
             .enrollments(Set.of("nxP7UnKhomJ"))
             .programStageUid(programStage.getUid())
-            .programStatus(EnrollmentStatus.ACTIVE)
+            .enrollmentStatus(EnrollmentStatus.ACTIVE)
             .dataElementFilters(
                 Map.of(dataElement.getUid(), List.of(new QueryFilter(QueryOperator.LIKE, "%val%"))))
             .build();

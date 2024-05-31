@@ -219,9 +219,9 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
    *
    * <p>The constraint_subquery looks as follows:
    *
-   * <p>select (subquery_projection) from (tracked entity instances) inner join
-   * (attribute_constraints) [inner join (program_owner)] inner join (organisation units) left join
-   * (attribute_orderby) where exist(program_constraint) order by (order) limit (limit_offset)
+   * <p>select (subquery_projection) from (tracked entities) inner join (attribute_constraints)
+   * [inner join (program_owner)] inner join (organisation units) left join (attribute_orderby)
+   * where exist(program_constraint) order by (order) limit (limit_offset)
    *
    * <p>main_projection: Will have an aggregate string of attributevalues (uid:value) as well as
    * basic te-info. constraint_subquery: Includes all SQL related to narrowing down the number of
@@ -345,8 +345,8 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
   }
 
   /**
-   * Generates the SQL of the subquery, used to find the correct subset of tracked entity instances
-   * to return. Orchestrates all the different segments of the SQL into a complete subquery.
+   * Generates the SQL of the subquery, used to find the correct subset of tracked entities to
+   * return. Orchestrates all the different segments of the SQL into a complete subquery.
    *
    * @return an SQL subquery
    */
@@ -431,7 +431,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
   }
 
   /**
-   * Generates the WHERE-clause of the subquery SQL related to tracked entity instances.
+   * Generates the WHERE-clause of the subquery SQL related to tracked entities.
    *
    * @param whereAnd tracking if where has been invoked or not
    * @return a SQL segment for the WHERE clause used in the subquery
@@ -738,8 +738,8 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
         .append(params.getProgram().getId())
         .append(SPACE);
 
-    if (params.hasProgramStatus()) {
-      program.append("AND EN.status = '").append(params.getProgramStatus()).append("' ");
+    if (params.hasEnrollmentStatus()) {
+      program.append("AND EN.status = '").append(params.getEnrollmentStatus()).append("' ");
     }
 
     if (params.hasFollowUp()) {

@@ -190,7 +190,7 @@ class TrackedEntityOperationParamsMapperTest {
             .assignedUserQueryParam(
                 new AssignedUserQueryParam(AssignedUserSelectionMode.CURRENT, user, null))
             .orgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS)
-            .programStatus(EnrollmentStatus.ACTIVE)
+            .enrollmentStatus(EnrollmentStatus.ACTIVE)
             .followUp(true)
             .lastUpdatedStartDate(getDate(2019, 1, 1))
             .lastUpdatedEndDate(getDate(2020, 1, 1))
@@ -207,7 +207,7 @@ class TrackedEntityOperationParamsMapperTest {
     final TrackedEntityQueryParams params = mapper.map(operationParams);
 
     assertThat(params.getTrackedEntityType(), is(trackedEntityType));
-    assertThat(params.getProgramStatus(), is(EnrollmentStatus.ACTIVE));
+    assertThat(params.getEnrollmentStatus(), is(EnrollmentStatus.ACTIVE));
     assertThat(params.getFollowUp(), is(true));
     assertThat(params.getLastUpdatedStartDate(), is(operationParams.getLastUpdatedStartDate()));
     assertThat(params.getLastUpdatedEndDate(), is(operationParams.getLastUpdatedEndDate()));
