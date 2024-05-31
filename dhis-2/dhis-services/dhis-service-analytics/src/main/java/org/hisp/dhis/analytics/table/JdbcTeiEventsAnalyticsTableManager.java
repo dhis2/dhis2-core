@@ -50,6 +50,7 @@ import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -86,24 +87,24 @@ import org.springframework.transaction.annotation.Transactional;
 @Component("org.hisp.dhis.analytics.TeiEventsAnalyticsTableManager")
 public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager {
 
-  private static final String EVENT_DATA_VALUE_REBUILDER = """
+  private static final String EVENT_DATA_VALUE_REBUILDER =
+      """
       (select json_object_agg(l2.keys, l2.datavalue) as value
-      from (select l1.uid,
-                   l1.keys,
-                   json_strip_nulls(json_build_object(
-                           'value', l1.eventdatavalues -> l1.keys ->> 'value',
-                           'created', l1.eventdatavalues -> l1.keys ->> 'created',
-                           'storedBy', l1.eventdatavalues -> l1.keys ->> 'storedBy',
-                           'lastUpdated', l1.eventdatavalues -> l1.keys ->> 'lastUpdated',
-                           'providedElsewhere', l1.eventdatavalues -> l1.keys -> 'providedElsewhere',
-                           'value_name', (select ou.name
-                                          from organisationunit ou
-                                          where ou.uid = l1.eventdatavalues -> l1.keys ->> 'value'),
-                           'value_code', (select ou.code
-                                          from organisationunit ou
-                                          where ou.uid = l1.eventdatavalues -> l1.keys ->> 'value'))) as datavalue
-            from (select inner_evt.*, jsonb_object_keys(inner_evt.eventdatavalues) keys
-                  from event inner_evt) as l1) as l2
+      from (select l1.uid, l1.keys,
+          json_strip_nulls(json_build_object(
+                  'value', l1.eventdatavalues -> l1.keys ->> 'value',
+                  'created', l1.eventdatavalues -> l1.keys ->> 'created',
+                  'storedBy', l1.eventdatavalues -> l1.keys ->> 'storedBy',
+                  'lastUpdated', l1.eventdatavalues -> l1.keys ->> 'lastUpdated',
+                  'providedElsewhere', l1.eventdatavalues -> l1.keys -> 'providedElsewhere',
+                  'value_name', (select ou.name
+                                 from organisationunit ou
+                                 where ou.uid = l1.eventdatavalues -> l1.keys ->> 'value'),
+                  'value_code', (select ou.code
+                                 from organisationunit ou
+                                 where ou.uid = l1.eventdatavalues -> l1.keys ->> 'value'))) as datavalue
+           from (select inner_evt.*, jsonb_object_keys(inner_evt.eventdatavalues) keys
+                 from event inner_evt) as l1) as l2
       where l2.uid = psi.uid
       group by l2.uid)::jsonb
       """;
