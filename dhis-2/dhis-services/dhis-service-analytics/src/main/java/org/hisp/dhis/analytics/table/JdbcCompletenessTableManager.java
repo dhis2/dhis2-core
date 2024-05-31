@@ -37,7 +37,6 @@ import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
-import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.ArrayList;
@@ -283,7 +282,6 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
         AnalyticsTableColumn.builder()
             .name("value")
             .dataType(DATE)
-            .nullable(NULL)
             .valueType(FACT)
             .selectExpression("cdr.date as value")
             .build());
