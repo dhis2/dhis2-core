@@ -72,18 +72,6 @@ public class DefaultProgramRuleActionService implements ProgramRuleActionService
 
   @Override
   @Transactional(readOnly = true)
-  public List<ProgramRuleAction> getAllProgramRuleAction() {
-    return programRuleActionStore.getAll();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<ProgramRuleAction> getProgramRuleAction(ProgramRule programRule) {
-    return programRuleActionStore.get(programRule);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public List<ProgramRuleAction> getProgramActionsWithNoLinkToDataObject() {
     return programRuleActionStore.getProgramActionsWithNoDataObject();
   }

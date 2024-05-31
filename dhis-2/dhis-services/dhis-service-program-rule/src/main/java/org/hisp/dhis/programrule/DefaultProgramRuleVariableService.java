@@ -27,36 +27,20 @@
  */
 package org.hisp.dhis.programrule;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.dataelement.DataElement;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.program.Program;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * @author markusbekken
- */
+@RequiredArgsConstructor
 @Service("org.hisp.dhis.programrule.ProgramRuleVariableService")
 public class DefaultProgramRuleVariableService implements ProgramRuleVariableService {
   // -------------------------------------------------------------------------
   // Dependencies
   // -------------------------------------------------------------------------
 
-  private ProgramRuleVariableStore programRuleVariableStore;
-
-  private final Cache<Boolean> programRuleVariablesCache;
-
-  public DefaultProgramRuleVariableService(
-      ProgramRuleVariableStore programRuleVariableStore, CacheProvider cacheProvider) {
-    checkNotNull(programRuleVariableStore);
-
-    this.programRuleVariableStore = programRuleVariableStore;
-    this.programRuleVariablesCache = cacheProvider.createProgramRuleVariablesCache();
-  }
+  private final ProgramRuleVariableStore programRuleVariableStore;
 
   // -------------------------------------------------------------------------
   // ProgramRuleVariable implementation
@@ -73,7 +57,6 @@ public class DefaultProgramRuleVariableService implements ProgramRuleVariableSer
   @Transactional
   public void deleteProgramRuleVariable(ProgramRuleVariable programRuleVariable) {
     programRuleVariableStore.delete(programRuleVariable);
-    programRuleVariablesCache.invalidateAll();
   }
 
   @Override
@@ -98,18 +81,6 @@ public class DefaultProgramRuleVariableService implements ProgramRuleVariableSer
   @Transactional(readOnly = true)
   public List<ProgramRuleVariable> getProgramRuleVariable(Program program) {
     return programRuleVariableStore.get(program);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean isLinkedToProgramRuleVariableCached(Program program, DataElement dataElement) {
-    return programRuleVariablesCache.get(
-        dataElement.getUid(),
-        uid -> {
-          List<ProgramRuleVariable> ruleVariables =
-              programRuleVariableStore.getProgramVariables(program, dataElement);
-          return !ruleVariables.isEmpty();
-        });
   }
 
   @Override
