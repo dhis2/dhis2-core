@@ -280,7 +280,7 @@ class EventImportTest extends TransactionalIntegrationTest {
     // add a new data value and update an existing one
 
     DataValue dataValueA = new DataValue();
-    dataValueA.setValue("10");
+    dataValueA.setValue("10'000");
     dataValueA.setDataElement(dataElementA.getUid());
     dataValueA.setStoredBy(superUser.getName());
 
