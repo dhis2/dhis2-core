@@ -526,7 +526,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
                   .columnType(AnalyticsColumnType.DYNAMIC)
                   .dataType(CHARACTER_11)
                   .selectExpression("ougs." + quote(name))
-                  .skipIndex(skipIndex)
+                  .skipIndex(skipIndex(ougs))
                   .created(ougs.getCreated())
                   .build();
             })
@@ -543,7 +543,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
                   .columnType(AnalyticsColumnType.DYNAMIC)
                   .dataType(CHARACTER_11)
                   .selectExpression("degs." + quote(name))
-                  .skipIndex(skipIndex)
+                  .skipIndex(skipIndex(degs))
                   .created(degs.getCreated())
                   .build();
             })
@@ -560,7 +560,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
                   .columnType(AnalyticsColumnType.DYNAMIC)
                   .dataType(CHARACTER_11)
                   .selectExpression("dcs." + quote(name))
-                  .skipIndex(skipIndex)
+                  .skipIndex(skipIndex(cogs))
                   .created(cogs.getCreated())
                   .build();
             })
@@ -577,7 +577,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
                   .columnType(AnalyticsColumnType.DYNAMIC)
                   .dataType(CHARACTER_11)
                   .selectExpression("acs." + quote(name))
-                  .skipIndex(skipIndex)
+                  .skipIndex(skipIndex(cogs))
                   .created(cogs.getCreated())
                   .build();
             })
@@ -594,7 +594,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
                   .columnType(AnalyticsColumnType.DYNAMIC)
                   .dataType(CHARACTER_11)
                   .selectExpression("dcs." + quote(name))
-                  .skipIndex(skipIndex)
+                  .skipIndex(skipIndex(category))
                   .created(category.getCreated())
                   .build();
             })
@@ -611,7 +611,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
                   .columnType(AnalyticsColumnType.DYNAMIC)
                   .dataType(CHARACTER_11)
                   .selectExpression("acs." + quote(name))
-                  .skipIndex(skipIndex)
+                  .skipIndex(skipIndex(category))
                   .created(category.getCreated())
                   .build();
             })
