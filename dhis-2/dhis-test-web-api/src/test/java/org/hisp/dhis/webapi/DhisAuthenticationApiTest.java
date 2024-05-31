@@ -29,7 +29,7 @@ package org.hisp.dhis.webapi;
 
 import static org.hisp.dhis.web.WebClientUtils.failOnException;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.IntegrationH2Test;
 import org.hisp.dhis.common.IdentifiableObjectManager;

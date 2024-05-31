@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,36 +28,12 @@
 package org.hisp.dhis.hibernate.dialect;
 
 import org.hibernate.boot.model.FunctionContributions;
-import org.hibernate.boot.model.TypeContributions;
-import org.hibernate.dialect.H2Dialect;
+import org.hibernate.boot.model.FunctionContributor;
 import org.hibernate.dialect.function.StandardSQLFunction;
-import org.hibernate.service.ServiceRegistry;
-import org.hibernate.type.JavaObjectType;
 import org.hibernate.type.StandardBasicTypes;
-import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 
-/**
- * @author Lars Helge Overland
- */
-public class DhisH2Dialect extends H2Dialect {
-  public DhisH2Dialect() {}
-
-  @Override
-  public boolean dropConstraints() {
-    // No need to drop constraints before dropping tables, leads to error
-    // messages
-    return false;
-  }
-
-  @Override
-  public void contributeTypes(
-      TypeContributions typeContributions, ServiceRegistry serviceRegistry) {
-    super.contributeTypes(typeContributions, serviceRegistry);
-    typeContributions.contributeType(new JsonBinaryType(), "jsonb");
-    typeContributions.contributeType(new JavaObjectType(), "text");
-  }
-
+public class PostgresqlFunctionContributor implements FunctionContributor {
   @Override
   public void contributeFunctions(FunctionContributions functionContributions) {
     functionContributions
@@ -104,6 +80,5 @@ public class DhisH2Dialect extends H2Dialect {
         .register(
             JsonbFunctions.REGEXP_SEARCH,
             new StandardSQLFunction(JsonbFunctions.REGEXP_SEARCH, StandardBasicTypes.BOOLEAN));
-    super.contributeFunctions(functionContributions);
   }
 }

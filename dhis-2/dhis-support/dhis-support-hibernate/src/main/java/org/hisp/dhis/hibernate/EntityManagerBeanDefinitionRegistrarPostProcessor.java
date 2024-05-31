@@ -30,9 +30,9 @@ package org.hisp.dhis.hibernate;
 import static java.util.Arrays.asList;
 import static org.springframework.beans.factory.BeanFactoryUtils.beanNamesForTypeIncludingAncestors;
 
+import jakarta.persistence.EntityManagerFactory;
 import java.util.HashSet;
 import java.util.Set;
-import javax.persistence.EntityManagerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Qualifier;

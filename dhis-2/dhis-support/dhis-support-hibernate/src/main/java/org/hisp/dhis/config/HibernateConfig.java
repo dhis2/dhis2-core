@@ -30,20 +30,21 @@ package org.hisp.dhis.config;
 import static org.hisp.dhis.external.conf.ConfigurationKey.USE_QUERY_CACHE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.USE_SECOND_LEVEL_CACHE;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.SharedCacheMode;
+import jakarta.persistence.ValidationMode;
+import jakarta.persistence.spi.PersistenceProvider;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.SharedCacheMode;
-import javax.persistence.ValidationMode;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
-import org.hibernate.SessionFactory;
-import org.hibernate.cache.ehcache.internal.EhcacheRegionFactory;
+import org.hibernate.cache.jcache.internal.JCacheRegionFactory;
 import org.hibernate.cfg.AvailableSettings;
+import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.hisp.dhis.cache.DefaultHibernateCacheManager;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dbms.HibernateDbmsManager;
@@ -97,7 +98,7 @@ public class HibernateConfig {
   public DefaultHibernateCacheManager cacheManager(
       @Qualifier("entityManagerFactory") EntityManagerFactory emf) {
     DefaultHibernateCacheManager cacheManager = new DefaultHibernateCacheManager();
-    cacheManager.setSessionFactory(emf.unwrap(SessionFactory.class));
+    cacheManager.setSessionFactory(emf);
 
     return cacheManager;
   }
@@ -129,7 +130,7 @@ public class HibernateConfig {
     LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
     factory.setJpaVendorAdapter(adapter);
     factory.setPersistenceUnitName("dhis");
-    factory.setPersistenceProvider(new org.hibernate.jpa.HibernatePersistenceProvider());
+    factory.setPersistenceProvider((PersistenceProvider) new HibernatePersistenceProvider());
     factory.setDataSource(dataSource);
     factory.setPackagesToScan("org.hisp.dhis");
     factory.setSharedCacheMode(SharedCacheMode.ENABLE_SELECTIVE);
@@ -151,12 +152,15 @@ public class HibernateConfig {
 
     if (dhisConfig.getProperty(USE_SECOND_LEVEL_CACHE).equals("true")) {
       properties.put(AvailableSettings.USE_SECOND_LEVEL_CACHE, "true");
-      properties.put(AvailableSettings.CACHE_REGION_FACTORY, EhcacheRegionFactory.class.getName());
+      properties.put(AvailableSettings.CACHE_REGION_FACTORY, JCacheRegionFactory.class.getName());
       properties.put(AvailableSettings.USE_QUERY_CACHE, dhisConfig.getProperty(USE_QUERY_CACHE));
     }
 
     // TODO: this is anti-pattern and should be turn off
     properties.put("hibernate.allow_update_outside_transaction", "true");
+
+    // <property name="hibernate.transform_hbm_xml.enabled">true</property>
+    properties.put("hibernate.transform_hbm_xml.enabled", "true");
 
     return properties;
   }

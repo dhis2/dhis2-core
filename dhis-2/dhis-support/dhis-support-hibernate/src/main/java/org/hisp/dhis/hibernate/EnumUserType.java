@@ -50,8 +50,8 @@ public class EnumUserType<E extends Enum<E>> implements UserType {
   private static final int[] SQL_TYPES = {Types.VARCHAR};
 
   @Override
-  public int[] sqlTypes() {
-    return SQL_TYPES;
+  public int getSqlType() {
+    return Types.VARCHAR;
   }
 
   @Override
@@ -61,11 +61,11 @@ public class EnumUserType<E extends Enum<E>> implements UserType {
 
   @Override
   public Object nullSafeGet(
-      ResultSet resultSet, String[] names, SharedSessionContractImplementor impl, Object owner)
-      throws HibernateException, SQLException {
-    String name = resultSet.getString(names[0]);
+      ResultSet rs, int position, SharedSessionContractImplementor session, Object owner)
+      throws SQLException {
+    String name = rs.getString(position);
     E result = null;
-    if (!resultSet.wasNull()) {
+    if (!rs.wasNull()) {
       result = Enum.valueOf(clazz, name);
     }
     return result;

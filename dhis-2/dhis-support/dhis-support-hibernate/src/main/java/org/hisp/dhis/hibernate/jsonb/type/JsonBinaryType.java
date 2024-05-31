@@ -95,8 +95,8 @@ public class JsonBinaryType implements UserType, ParameterizedType {
   JavaType resultingJavaType;
 
   @Override
-  public int[] sqlTypes() {
-    return new int[] {Types.JAVA_OBJECT};
+  public int getSqlType() {
+    return Types.JAVA_OBJECT;
   }
 
   @Override
@@ -137,9 +137,9 @@ public class JsonBinaryType implements UserType, ParameterizedType {
 
   @Override
   public Object nullSafeGet(
-      ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner)
-      throws HibernateException, SQLException {
-    final Object result = rs.getObject(names[0]);
+      ResultSet rs, int position, SharedSessionContractImplementor session, Object owner)
+      throws SQLException {
+    final Object result = rs.getObject(position);
 
     if (!rs.wasNull()) {
       String content = null;

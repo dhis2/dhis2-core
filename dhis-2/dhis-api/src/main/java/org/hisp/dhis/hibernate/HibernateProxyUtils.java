@@ -30,7 +30,7 @@ package org.hisp.dhis.hibernate;
 import java.util.Objects;
 import org.hibernate.Hibernate;
 import org.hibernate.proxy.HibernateProxy;
-import org.hibernate.proxy.HibernateProxyHelper;
+import org.hibernate.proxy.LazyInitializer;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -48,7 +48,21 @@ public class HibernateProxyUtils {
       throw new IllegalArgumentException("Input can't be a Class instance!");
     }
 
-    return HibernateProxyHelper.getClassWithoutInitializingProxy(object);
+    return getClassWithoutInitializingProxy(object);
+  }
+
+  /**
+   * Get the class of an instance or the underlying class of a proxy (without initializing the
+   * proxy!). It is almost always better to use the entity name!
+   */
+  public static Class getClassWithoutInitializingProxy(Object object) {
+    if (object instanceof HibernateProxy) {
+      HibernateProxy proxy = (HibernateProxy) object;
+      LazyInitializer li = proxy.getHibernateLazyInitializer();
+      return li.getPersistentClass();
+    } else {
+      return object.getClass();
+    }
   }
 
   @SuppressWarnings({"unchecked"})

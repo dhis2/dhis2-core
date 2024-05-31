@@ -68,8 +68,8 @@ public class EncryptedStringUserType implements UserType, ParameterizedType {
   private PBEStringEncryptor encryptor = null;
 
   @Override
-  public int[] sqlTypes() {
-    return sqlTypes.clone();
+  public int getSqlType() {
+    return Types.VARCHAR;
   }
 
   @Override
@@ -89,11 +89,11 @@ public class EncryptedStringUserType implements UserType, ParameterizedType {
 
   @Override
   public Object nullSafeGet(
-      ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner)
-      throws HibernateException, SQLException {
+      ResultSet rs, int position, SharedSessionContractImplementor session, Object owner)
+      throws SQLException {
     ensureEncryptorInit();
 
-    String value = rs.getString(names[0]);
+    String value = rs.getString(position);
 
     return rs.wasNull() ? null : encryptor.decrypt(value);
   }

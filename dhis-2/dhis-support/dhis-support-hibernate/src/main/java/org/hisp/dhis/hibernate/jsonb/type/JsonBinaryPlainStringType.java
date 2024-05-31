@@ -49,9 +49,9 @@ public class JsonBinaryPlainStringType extends JsonBinaryType {
 
   @Override
   public Object nullSafeGet(
-      ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner)
-      throws HibernateException, SQLException {
-    final Object result = rs.getObject(names[0]);
+      ResultSet rs, int position, SharedSessionContractImplementor session, Object owner)
+      throws SQLException {
+    final Object result = rs.getObject(position);
 
     if (!rs.wasNull()) {
       String content = null;

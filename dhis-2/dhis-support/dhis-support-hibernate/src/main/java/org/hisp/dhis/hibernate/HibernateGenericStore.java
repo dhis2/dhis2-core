@@ -32,6 +32,15 @@ import static java.lang.String.format;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.NonUniqueResultException;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Order;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,19 +49,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.persistence.EntityManager;
-import javax.persistence.NonUniqueResultException;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Order;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.annotations.QueryHints;
-import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.hisp.dhis.attribute.Attribute;
@@ -169,9 +168,6 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
         .setCacheable(cacheable)
         .setHint(QueryHints.CACHEABLE, cacheable);
   }
-
-  /** Override to add additional restrictions to criteria before it is invoked. */
-  protected void preProcessDetachedCriteria(DetachedCriteria detachedCriteria) {}
 
   public CriteriaBuilder getCriteriaBuilder() {
     return entityManager.getCriteriaBuilder();
@@ -668,8 +664,8 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
     String template =
         "update %s set attributevalues = jsonb_strip_nulls("
             + "jsonb_set(cast(attributevalues as jsonb), '{%s}', cast(:value as jsonb), :createMissing))";
-    return getSession()
-        .createSQLQuery(format(template, getClazz().getSimpleName(), attribute.getUid()))
+    return nativeSynchronizedTypedQuery(
+            format(template, getClazz().getSimpleName(), attribute.getUid()))
         .setParameter("value", newValue)
         .setParameter("createMissing", createMissing)
         .executeUpdate();

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.program.hibernate;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import org.hisp.dhis.program.ProgramOwnershipHistory;
 import org.hisp.dhis.program.ProgramOwnershipHistoryStore;
 import org.springframework.stereotype.Repository;

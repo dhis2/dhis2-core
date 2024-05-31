@@ -6,9 +6,7 @@
     >
 
 <hibernate-mapping>
-
-  <typedef class="org.hibernate.type.PostgresUUIDType" name="pg-uuid" />
-
+  
   <class name="org.hisp.dhis.user.User" lazy="false" table="userinfo">
 
     <cache usage="read-write" />
@@ -109,7 +107,7 @@
       <element type="string" column="app" />
     </list>
 
-    <property name="uuid" column="uuid" type="pg-uuid" not-null="false" unique="true" />
+    <property name="uuid" column="uuid" not-null="false" unique="true" />
 
     <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="creatoruserid" foreign-key="fk_user_userid" />
 
