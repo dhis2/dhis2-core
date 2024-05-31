@@ -42,28 +42,28 @@ import org.hisp.dhis.db.model.constraint.Unique;
 @Builder
 public class Index {
   /** Index name. Required. */
-  private final String withName;
+  private final String name;
 
   /** Name of index table. Required. */
-  private final String withTableName;
+  private final String tableName;
 
   /** Index type. Required. */
-  @Builder.Default private final IndexType withIndexType = IndexType.BTREE;
+  @Builder.Default private final IndexType indexType = IndexType.BTREE;
 
   /** Index uniqueness constraint. Required. */
-  @Builder.Default private final Unique withUnique = Unique.NON_UNIQUE;
+  @Builder.Default private final Unique unique = Unique.NON_UNIQUE;
 
   /** Index column names. Required. */
-  private final List<String> withColumns;
+  private final List<String> columns;
 
   /** SQL {©code where} condition for index. Optional, may be null. */
-  private final String withCondition;
+  private final String condition;
 
   /** SQL function to use for index columns. Optional, may be null. */
-  private final IndexFunction withFunction;
+  private final IndexFunction function;
 
   /** SQL function to use for index sort order. Optional, may be null. */
-  private final String withSortOrder;
+  private final String sortOrder;
 
   /**
    * Indicates whether the index is unique.
@@ -71,7 +71,7 @@ public class Index {
    * @return true if the index is unique.
    */
   public boolean isUnique() {
-    return Unique.UNIQUE == withUnique;
+    return Unique.UNIQUE == unique;
   }
 
   /**
@@ -80,7 +80,7 @@ public class Index {
    * @return true if the index has a SQL condition.
    */
   public boolean hasCondition() {
-    return StringUtils.isNotBlank(withCondition);
+    return StringUtils.isNotBlank(condition);
   }
 
   /**
@@ -89,6 +89,6 @@ public class Index {
    * @return true if the index has a function.
    */
   public boolean hasFunction() {
-    return withFunction != null;
+    return function != null;
   }
 }

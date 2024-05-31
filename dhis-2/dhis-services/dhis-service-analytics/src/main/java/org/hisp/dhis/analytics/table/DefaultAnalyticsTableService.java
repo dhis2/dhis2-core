@@ -281,7 +281,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
    */
   private void createIndexes(List<Index> indexes, JobProgress progress) {
     progress.runStageInParallel(
-        getParallelJobs(), indexes, index -> index.getWithName(), tableManager::createIndex);
+        getParallelJobs(), indexes, index -> index.getName(), tableManager::createIndex);
   }
 
   /**
