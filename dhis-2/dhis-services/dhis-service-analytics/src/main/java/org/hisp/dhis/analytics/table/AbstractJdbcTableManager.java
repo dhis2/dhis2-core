@@ -33,7 +33,6 @@ import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -42,8 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
@@ -55,9 +52,11 @@ import org.hisp.dhis.analytics.table.model.AnalyticsColumnType;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
@@ -85,6 +84,8 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -525,6 +526,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
                   .withColumnType(AnalyticsColumnType.DYNAMIC)
                   .withDataType(CHARACTER_11)
                   .withSelectExpression("ougs." + quote(name))
+                  .withSkipIndex(skipIndex(ougs))
                   .withCreated(ougs.getCreated());
             })
         .toList();
@@ -541,6 +543,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
                   .withColumnType(AnalyticsColumnType.DYNAMIC)
                   .withDataType(CHARACTER_11)
                   .withSelectExpression("degs." + quote(name))
+                  .withSkipIndex(skipIndex(degs))
                   .withCreated(degs.getCreated());
             })
         .toList();
@@ -557,6 +560,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
                   .withColumnType(AnalyticsColumnType.DYNAMIC)
                   .withDataType(CHARACTER_11)
                   .withSelectExpression("dcs." + quote(name))
+                  .withSkipIndex(skipIndex(cogs))
                   .withCreated(cogs.getCreated());
             })
         .toList();
@@ -573,6 +577,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
                   .withColumnType(AnalyticsColumnType.DYNAMIC)
                   .withDataType(CHARACTER_11)
                   .withSelectExpression("acs." + quote(name))
+                  .withSkipIndex(skipIndex(cogs))
                   .withCreated(cogs.getCreated());
             })
         .toList();
@@ -589,6 +594,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
                   .withColumnType(AnalyticsColumnType.DYNAMIC)
                   .withDataType(CHARACTER_11)
                   .withSelectExpression("dcs." + quote(name))
+                  .withSkipIndex(skipIndex(category))
                   .withCreated(category.getCreated());
             })
         .toList();
@@ -605,11 +611,24 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
                   .withColumnType(AnalyticsColumnType.DYNAMIC)
                   .withDataType(CHARACTER_11)
                   .withSelectExpression("acs." + quote(name))
+                  .withSkipIndex(skipIndex(category))
                   .withCreated(category.getCreated());
             })
         .toList();
   }
 
+  /**
+   * Indicates whether indexing should be skipped for the given dimensional object based on the system configuration.
+   * 
+   * @param dimension the {@link DimensionalObject}.
+   * @return {@link Skip#SKIP} if index should be skipped, {@link Skip#INCLUDE} if it should be included.
+   */
+  protected Skip skipIndex(DimensionalObject dimension)
+  {
+    Set<String> dimensions = analyticsTableSettings.getSkipIndexDimensions();    
+    return dimensions.contains(dimension.getUid()) ? Skip.SKIP : Skip.INCLUDE;
+  }
+  
   /**
    * Indicates whether the table with the given name is not empty, i.e. has at least one row.
    *
