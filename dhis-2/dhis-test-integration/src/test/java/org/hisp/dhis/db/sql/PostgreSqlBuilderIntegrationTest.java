@@ -70,27 +70,27 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
 
     return List.of(
         Index.builder()
-            .build()
             .withName("in_immunization_data")
             .withTableName("immunization")
-            .withColumns(List.of("data")),
+            .withColumns(List.of("data"))
+            .build(),
         Index.builder()
-            .build()
             .withName("in_immunization_period_created")
             .withTableName("immunization")
-            .withColumns(List.of("period", "created")),
+            .withColumns(List.of("period", "created"))
+            .build(),
         Index.builder()
-            .build()
             .withName("in_immunization_user")
             .withTableName("immunization")
             .withIndexType(IndexType.GIN)
-            .withColumns(List.of("user")),
+            .withColumns(List.of("user"))
+            .build(),
         Index.builder()
-            .build()
             .withName("in_immunization_data_period")
             .withTableName("immunization")
             .withColumns(List.of("data", "period"))
-            .withFunction(IndexFunction.LOWER));
+            .withFunction(IndexFunction.LOWER)
+            .build());
   }
 
   private Table getTableB() {

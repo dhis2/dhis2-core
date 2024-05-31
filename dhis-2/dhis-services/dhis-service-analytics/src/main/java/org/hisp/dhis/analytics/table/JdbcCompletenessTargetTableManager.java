@@ -70,37 +70,37 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("dx")
-              .withDataType(CHARACTER_11)
-              .withNullable(NOT_NULL)
-              .withSelectExpression("ds.uid"),
+              .name("dx")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("ds.uid")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("ao")
-              .withDataType(CHARACTER_11)
-              .withNullable(NOT_NULL)
-              .withSelectExpression("ao.uid"),
+              .name("ao")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("ao.uid")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("ouopeningdate")
-              .withDataType(DATE)
-              .withSelectExpression("ou.openingdate"),
+              .name("ouopeningdate")
+              .dataType(DATE)
+              .selectExpression("ou.openingdate")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("oucloseddate")
-              .withDataType(DATE)
-              .withSelectExpression("ou.closeddate"),
+              .name("oucloseddate")
+              .dataType(DATE)
+              .selectExpression("ou.closeddate")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("costartdate")
-              .withDataType(DATE)
-              .withSelectExpression("doc.costartdate"),
+              .name("costartdate")
+              .dataType(DATE)
+              .selectExpression("doc.costartdate")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("coenddate")
-              .withDataType(DATE)
-              .withSelectExpression("doc.coenddate"));
+              .name("coenddate")
+              .dataType(DATE)
+              .selectExpression("doc.coenddate")
+              .build());
 
   public JdbcCompletenessTargetTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -198,12 +198,12 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
     columns.addAll(getAttributeCategoryColumns());
     columns.add(
         AnalyticsTableColumn.builder()
-            .build()
-            .withName("value")
-            .withDataType(DOUBLE)
-            .withNullable(NULL)
-            .withValueType(FACT)
-            .withSelectExpression("1 as value"));
+            .name("value")
+            .dataType(DOUBLE)
+            .nullable(NULL)
+            .valueType(FACT)
+            .selectExpression("1 as value")
+            .build());
 
     return filterDimensionColumns(columns);
   }
