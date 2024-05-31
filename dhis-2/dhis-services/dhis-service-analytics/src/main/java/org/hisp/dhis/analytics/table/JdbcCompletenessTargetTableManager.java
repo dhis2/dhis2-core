@@ -33,7 +33,6 @@ import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -70,37 +69,37 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
           AnalyticsTableColumn.builder()
-              .build()
               .withName("dx")
               .withDataType(CHARACTER_11)
               .withNullable(NOT_NULL)
-              .withSelectExpression("ds.uid"),
+              .withSelectExpression("ds.uid")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("ao")
               .withDataType(CHARACTER_11)
               .withNullable(NOT_NULL)
-              .withSelectExpression("ao.uid"),
+              .withSelectExpression("ao.uid")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("ouopeningdate")
               .withDataType(DATE)
-              .withSelectExpression("ou.openingdate"),
+              .withSelectExpression("ou.openingdate")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("oucloseddate")
               .withDataType(DATE)
-              .withSelectExpression("ou.closeddate"),
+              .withSelectExpression("ou.closeddate")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("costartdate")
               .withDataType(DATE)
-              .withSelectExpression("doc.costartdate"),
+              .withSelectExpression("doc.costartdate")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("coenddate")
               .withDataType(DATE)
-              .withSelectExpression("doc.coenddate"));
+              .withSelectExpression("doc.coenddate")
+              .build());
 
   public JdbcCompletenessTargetTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -198,12 +197,12 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
     columns.addAll(getAttributeCategoryColumns());
     columns.add(
         AnalyticsTableColumn.builder()
-            .build()
             .withName("value")
             .withDataType(DOUBLE)
             .withNullable(NULL)
             .withValueType(FACT)
-            .withSelectExpression("1 as value"));
+            .withSelectExpression("1 as value")
+            .build());
 
     return filterDimensionColumns(columns);
   }

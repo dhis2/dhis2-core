@@ -38,7 +38,6 @@ import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -76,27 +75,27 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
           AnalyticsTableColumn.builder()
-              .build()
               .withName("dx")
               .withDataType(CHARACTER_11)
               .withNullable(NOT_NULL)
-              .withSelectExpression("vr.uid"),
+              .withSelectExpression("vr.uid")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("pestartdate")
               .withDataType(TIMESTAMP)
-              .withSelectExpression("pe.startdate"),
+              .withSelectExpression("pe.startdate")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("peenddate")
               .withDataType(TIMESTAMP)
-              .withSelectExpression("pe.enddate"),
+              .withSelectExpression("pe.enddate")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("year")
               .withDataType(INTEGER)
               .withNullable(NOT_NULL)
-              .withSelectExpression("ps.year"));
+              .withSelectExpression("ps.year")
+              .build());
 
   public JdbcValidationResultTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -249,12 +248,12 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
     columns.addAll(getPeriodTypeColumns("ps"));
     columns.add(
         AnalyticsTableColumn.builder()
-            .build()
             .withName("value")
             .withDataType(DATE)
             .withNullable(NULL)
             .withValueType(FACT)
-            .withSelectExpression("vrs.created as value"));
+            .withSelectExpression("vrs.created as value")
+            .build());
 
     return filterDimensionColumns(columns);
   }

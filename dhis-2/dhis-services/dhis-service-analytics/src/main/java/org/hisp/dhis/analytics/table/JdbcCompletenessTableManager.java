@@ -39,7 +39,6 @@ import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -78,17 +77,17 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
           AnalyticsTableColumn.builder()
-              .build()
               .withName("dx")
               .withDataType(CHARACTER_11)
               .withNullable(NOT_NULL)
-              .withSelectExpression("ds.uid"),
+              .withSelectExpression("ds.uid")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("year")
               .withDataType(INTEGER)
               .withNullable(NOT_NULL)
-              .withSelectExpression("ps.year"));
+              .withSelectExpression("ps.year")
+              .build());
 
   public JdbcCompletenessTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -264,10 +263,10 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     columns.addAll(FIXED_COLS);
     columns.add(
         AnalyticsTableColumn.builder()
-            .build()
             .withName("id")
             .withDataType(TEXT)
-            .withSelectExpression(idColAlias));
+            .withSelectExpression(idColAlias)
+            .build());
     columns.addAll(getOrganisationUnitGroupSetColumns());
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.addAll(getAttributeCategoryOptionGroupSetColumns());
@@ -275,18 +274,18 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     columns.addAll(getPeriodTypeColumns("ps"));
     columns.add(
         AnalyticsTableColumn.builder()
-            .build()
             .withName("timely")
             .withDataType(BOOLEAN)
-            .withSelectExpression(timelyAlias));
+            .withSelectExpression(timelyAlias)
+            .build());
     columns.add(
         AnalyticsTableColumn.builder()
-            .build()
             .withName("value")
             .withDataType(DATE)
             .withNullable(NULL)
             .withValueType(FACT)
-            .withSelectExpression("cdr.date as value"));
+            .withSelectExpression("cdr.date as value")
+            .build());
 
     return filterDimensionColumns(columns);
   }

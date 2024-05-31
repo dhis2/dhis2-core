@@ -33,7 +33,6 @@ import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -42,8 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
@@ -86,6 +83,8 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -462,10 +461,10 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
             pt -> {
               String name = pt.getName().toLowerCase();
               return AnalyticsTableColumn.builder()
-                  .build()
                   .withName(name)
                   .withDataType(TEXT)
-                  .withSelectExpression(prefix + "." + quote(name));
+                  .withSelectExpression(prefix + "." + quote(name))
+                  .build();
             })
         .toList();
   }
@@ -481,11 +480,11 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
             level -> {
               String name = PREFIX_ORGUNITLEVEL + level.getLevel();
               return AnalyticsTableColumn.builder()
-                  .build()
                   .withName(name)
                   .withDataType(CHARACTER_11)
                   .withSelectExpression("ous." + quote(name))
-                  .withCreated(level.getCreated());
+                  .withCreated(level.getCreated())
+                  .build();
             })
         .toList();
   }
@@ -503,11 +502,11 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
                 .collect(Collectors.joining(","))
             + ") as ounamehierarchy";
     return AnalyticsTableColumn.builder()
-        .build()
         .withName("ounamehierarchy")
         .withDataType(TEXT)
         .withCollation(Collation.C)
-        .withSelectExpression(columnExpression);
+        .withSelectExpression(columnExpression)
+        .build();
   }
 
   /**
@@ -522,13 +521,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
               String name = ougs.getUid();
               Skip skipIndex = analyticsTableSettings.skipIndexOrgUnitGroupSetColumns();
               return AnalyticsTableColumn.builder()
-                  .build()
                   .withName(name)
                   .withColumnType(AnalyticsColumnType.DYNAMIC)
                   .withDataType(CHARACTER_11)
                   .withSelectExpression("ougs." + quote(name))
                   .withSkipIndex(skipIndex)
-                  .withCreated(ougs.getCreated());
+                  .withCreated(ougs.getCreated())
+                  .build();
             })
         .toList();
   }
@@ -540,13 +539,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
               String name = degs.getUid();
               Skip skipIndex = analyticsTableSettings.skipIndexDataElementGroupSetColumns();
               return AnalyticsTableColumn.builder()
-                  .build()
                   .withName(name)
                   .withColumnType(AnalyticsColumnType.DYNAMIC)
                   .withDataType(CHARACTER_11)
                   .withSelectExpression("degs." + quote(name))
                   .withSkipIndex(skipIndex)
-                  .withCreated(degs.getCreated());
+                  .withCreated(degs.getCreated())
+                  .build();
             })
         .toList();
   }
@@ -558,13 +557,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
               String name = cogs.getUid();
               Skip skipIndex = analyticsTableSettings.skipIndexCategoryOptionGroupSetColumns();
               return AnalyticsTableColumn.builder()
-                  .build()
                   .withName(name)
                   .withColumnType(AnalyticsColumnType.DYNAMIC)
                   .withDataType(CHARACTER_11)
                   .withSelectExpression("dcs." + quote(name))
                   .withSkipIndex(skipIndex)
-                  .withCreated(cogs.getCreated());
+                  .withCreated(cogs.getCreated())
+                  .build();
             })
         .toList();
   }
@@ -576,13 +575,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
               String name = cogs.getUid();
               Skip skipIndex = analyticsTableSettings.skipIndexCategoryOptionGroupSetColumns();
               return AnalyticsTableColumn.builder()
-                  .build()
                   .withName(name)
                   .withColumnType(AnalyticsColumnType.DYNAMIC)
                   .withDataType(CHARACTER_11)
                   .withSelectExpression("acs." + quote(name))
                   .withSkipIndex(skipIndex)
-                  .withCreated(cogs.getCreated());
+                  .withCreated(cogs.getCreated())
+                  .build();
             })
         .toList();
   }
@@ -594,13 +593,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
               String name = category.getUid();
               Skip skipIndex = analyticsTableSettings.skipIndexCategoryColumns();
               return AnalyticsTableColumn.builder()
-                  .build()
                   .withName(name)
                   .withColumnType(AnalyticsColumnType.DYNAMIC)
                   .withDataType(CHARACTER_11)
                   .withSelectExpression("dcs." + quote(name))
                   .withSkipIndex(skipIndex)
-                  .withCreated(category.getCreated());
+                  .withCreated(category.getCreated())
+                  .build();
             })
         .toList();
   }
@@ -612,13 +611,13 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
               String name = category.getUid();
               Skip skipIndex = analyticsTableSettings.skipIndexCategoryColumns();
               return AnalyticsTableColumn.builder()
-                  .build()
                   .withName(name)
                   .withColumnType(AnalyticsColumnType.DYNAMIC)
                   .withDataType(CHARACTER_11)
                   .withSelectExpression("acs." + quote(name))
                   .withSkipIndex(skipIndex)
-                  .withCreated(category.getCreated());
+                  .withCreated(category.getCreated())
+                  .build();
             })
         .toList();
   }

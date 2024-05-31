@@ -33,7 +33,6 @@ import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -71,11 +70,11 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
           AnalyticsTableColumn.builder()
-              .build()
               .withName("oug")
               .withDataType(CHARACTER_11)
               .withNullable(NOT_NULL)
-              .withSelectExpression("oug.uid"));
+              .withSelectExpression("oug.uid")
+              .build());
 
   public JdbcOrgUnitTargetTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -167,12 +166,12 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.add(
         AnalyticsTableColumn.builder()
-            .build()
             .withName("value")
             .withDataType(DOUBLE)
             .withNullable(NULL)
             .withValueType(FACT)
-            .withSelectExpression("1 as value"));
+            .withSelectExpression("1 as value")
+            .build());
 
     return filterDimensionColumns(columns);
   }
