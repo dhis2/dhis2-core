@@ -53,9 +53,9 @@ import org.hisp.dhis.eventvisualization.EventRepetition;
 import org.hisp.dhis.eventvisualization.SimpleDimension;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
@@ -96,8 +96,8 @@ public class EventChart extends BaseChart implements EventAnalyticalObject, Meta
   /** Indicates whether to hide n/a data. */
   private boolean hideNaData;
 
-  /** The program status. */
-  private ProgramStatus programStatus;
+  /** The enrollment status. */
+  private EnrollmentStatus enrollmentStatus;
 
   /** The event status. */
   private EventStatus eventStatus;
@@ -324,12 +324,12 @@ public class EventChart extends BaseChart implements EventAnalyticalObject, Meta
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public ProgramStatus getProgramStatus() {
-    return programStatus;
+  public EnrollmentStatus getProgramStatus() {
+    return enrollmentStatus;
   }
 
-  public void setProgramStatus(ProgramStatus programStatus) {
-    this.programStatus = programStatus;
+  public void setProgramStatus(EnrollmentStatus enrollmentStatus) {
+    this.enrollmentStatus = enrollmentStatus;
   }
 
   @JsonProperty

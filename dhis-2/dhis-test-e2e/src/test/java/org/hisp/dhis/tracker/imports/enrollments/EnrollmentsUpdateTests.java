@@ -57,7 +57,7 @@ public class EnrollmentsUpdateTests extends TrackerApiTest {
     body =
         JsonObjectBuilder.jsonObject(body)
             .addProperty("enrollment", enrollmentId)
-            .addProperty("trackedEntity", importTei())
+            .addProperty("trackedEntity", importTrackedEntity())
             .addProperty("program", program)
             .wrapIntoArray("enrollments");
 

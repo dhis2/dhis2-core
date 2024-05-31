@@ -72,7 +72,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  *
  * @author aamerm
  */
-@OpenApi.Tags("metadata")
+@OpenApi.Document(domain = MetadataVersion.class)
 @Controller
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequestMapping("/api/metadata/version")

@@ -40,7 +40,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -87,7 +86,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("ui")
 @Controller
 @RequestMapping("/api/interpretations")
 public class InterpretationController extends AbstractCrudController<Interpretation> {
@@ -98,7 +96,11 @@ public class InterpretationController extends AbstractCrudController<Interpretat
   @Override
   @SuppressWarnings("unchecked")
   protected List<Interpretation> getEntityList(
-      WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders)
+      WebMetadata metadata,
+      WebOptions options,
+      List<String> filters,
+      List<Order> orders,
+      List<Interpretation> objects)
       throws QueryParserException {
     // If custom filter (mentions:in:[username]) in filters -> Remove from
     // filters

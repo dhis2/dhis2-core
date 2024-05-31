@@ -38,8 +38,8 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
-import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
-import org.hisp.dhis.dxf2.synch.SynchronizationManager;
+import org.hisp.dhis.dxf2.sync.AvailabilityStatus;
+import org.hisp.dhis.dxf2.sync.SynchronizationManager;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.security.RequiresAuthority;
@@ -56,7 +56,7 @@ import org.springframework.web.client.RestTemplate;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("data")
+@OpenApi.Document(domain = Server.class)
 @Controller
 @RequestMapping("/api/synchronization")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

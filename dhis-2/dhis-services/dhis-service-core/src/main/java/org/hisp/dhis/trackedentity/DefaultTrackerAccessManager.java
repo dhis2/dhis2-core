@@ -34,6 +34,7 @@ import static org.hisp.dhis.trackedentity.TrackerOwnershipManager.PROGRAM_ACCESS
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -50,6 +51,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -98,7 +100,11 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     List<Program> tetPrograms =
         programs.stream()
             .filter(
-                p -> Objects.equals(p.getTrackedEntityType(), trackedEntity.getTrackedEntityType()))
+                p ->
+                    p.isRegistration()
+                        && Objects.equals(
+                            p.getTrackedEntityType().getUid(),
+                            trackedEntity.getTrackedEntityType().getUid()))
             .toList();
 
     if (tetPrograms.isEmpty()) {
@@ -135,28 +141,60 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     }
   }
 
+  /**
+   * Check the data write permissions and ownership of a tracked entity given the programs for which
+   * the user has metadata access to.
+   *
+   * @return No errors if a user has access to at least one program
+   */
   @Override
+  @Transactional(readOnly = true)
   public List<String> canWrite(UserDetails user, TrackedEntity trackedEntity) {
     // always allow if user == null (internal process) or user is superuser
     if (user == null || user.isSuper() || trackedEntity == null) {
       return List.of();
     }
 
-    OrganisationUnit ou = trackedEntity.getOrganisationUnit();
+    return canWrite(user, trackedEntity, programService.getAllPrograms());
+  }
 
-    List<String> errors = new ArrayList<>();
-    // ou should never be null, but needs to be checked for legacy reasons
-    if (ou != null && !user.isInUserSearchHierarchy(ou.getPath())) {
-      errors.add("User has no write access to organisation unit: " + ou.getUid());
-    }
+  private List<String> canWrite(
+      UserDetails user, TrackedEntity trackedEntity, List<Program> programs) {
 
     TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
 
-    if (!aclService.canDataWrite(user, trackedEntityType)) {
-      errors.add("User has no data write access to tracked entity: " + trackedEntityType.getUid());
+    if (!aclService.canDataRead(user, trackedEntityType)) {
+      return List.of(
+          "User has no data read access to tracked entity type: " + trackedEntityType.getUid());
     }
 
-    return errors;
+    initializeTrackedEntityOrgUnitParents(trackedEntity);
+
+    List<Program> tetPrograms =
+        programs.stream()
+            .filter(
+                p ->
+                    p.isRegistration()
+                        && Objects.equals(
+                            p.getTrackedEntityType().getUid(),
+                            trackedEntity.getTrackedEntityType().getUid()))
+            .toList();
+
+    if (tetPrograms.isEmpty()) {
+      return List.of("User has no access to any program");
+    }
+
+    if (tetPrograms.stream().anyMatch(p -> canWrite(user, trackedEntity, p))) {
+      return List.of();
+    } else {
+      return List.of(OWNERSHIP_ACCESS_DENIED);
+    }
+  }
+
+  /** Check Program data write access and Tracked Entity Program Ownership */
+  private boolean canWrite(UserDetails user, TrackedEntity trackedEntity, Program program) {
+    return aclService.canDataWrite(user, program)
+        && ownershipAccessManager.hasAccess(user, trackedEntity, program);
   }
 
   @Override
@@ -189,32 +227,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     if (!aclService.canDataRead(user, trackedEntityType)) {
       errors.add(
           "User has no data read access to tracked entity type: " + trackedEntityType.getUid());
-    }
-
-    return errors;
-  }
-
-  @Override
-  public List<String> canWrite(
-      UserDetails user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck) {
-    // always allow if user == null (internal process) or user is superuser
-    if (user == null || user.isSuper() || trackedEntity == null) {
-      return List.of();
-    }
-
-    List<String> errors = new ArrayList<>();
-    if (!aclService.canDataWrite(user, program)) {
-      errors.add("User has no data write access to program: " + program.getUid());
-    }
-
-    TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
-
-    if (!aclService.canDataWrite(user, trackedEntityType)) {
-      errors.add("User has no data write access to tracked entity: " + trackedEntityType.getUid());
-    }
-
-    if (!skipOwnershipCheck && !ownershipAccessManager.hasAccess(user, trackedEntity, program)) {
-      errors.add(OWNERSHIP_ACCESS_DENIED);
     }
 
     return errors;
@@ -587,6 +599,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public List<String> canWrite(UserDetails user, Relationship relationship) {
     // always allow if user == null (internal process) or user is superuser
     if (user == null || user.isSuper() || relationship == null) {
@@ -602,15 +615,47 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     RelationshipItem from = relationship.getFrom();
     RelationshipItem to = relationship.getTo();
+    boolean isBidirectional = relationshipType.isBidirectional();
 
     errors.addAll(canWrite(user, from.getTrackedEntity()));
     errors.addAll(canUpdate(user, from.getEnrollment(), false));
     errors.addAll(canUpdate(user, from.getEvent(), false));
 
-    errors.addAll(canWrite(user, to.getTrackedEntity()));
-    errors.addAll(canUpdate(user, to.getEnrollment(), false));
-    errors.addAll(canUpdate(user, to.getEvent(), false));
+    if (isBidirectional) {
+      errors.addAll(canWrite(user, to.getTrackedEntity()));
+      errors.addAll(canUpdate(user, to.getEnrollment(), false));
+      errors.addAll(canUpdate(user, to.getEvent(), false));
+    } else {
+      errors.addAll(canRead(user, to.getTrackedEntity()));
+      errors.addAll(canRead(user, to.getEnrollment(), false));
+      errors.addAll(canRead(user, to.getEvent(), false));
+    }
+    return errors;
+  }
 
+  @Override
+  @Transactional(readOnly = true)
+  public List<String> canDelete(UserDetails user, @Nonnull Relationship relationship) {
+    RelationshipType relationshipType = relationship.getRelationshipType();
+    List<String> errors = new ArrayList<>();
+
+    if (!aclService.canDataWrite(user, relationshipType)) {
+      errors.add("User has no data write access to relationshipType: " + relationshipType.getUid());
+    }
+
+    RelationshipItem from = relationship.getFrom();
+    RelationshipItem to = relationship.getTo();
+    boolean isBidirectional = relationshipType.isBidirectional();
+
+    errors.addAll(canWrite(user, from.getTrackedEntity()));
+    errors.addAll(canUpdate(user, from.getEnrollment(), false));
+    errors.addAll(canUpdate(user, from.getEvent(), false));
+
+    if (isBidirectional) {
+      errors.addAll(canWrite(user, to.getTrackedEntity()));
+      errors.addAll(canUpdate(user, to.getEnrollment(), false));
+      errors.addAll(canUpdate(user, to.getEvent(), false));
+    }
     return errors;
   }
 

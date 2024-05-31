@@ -44,12 +44,12 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.jobs.MetadataRetryContext;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate;
-import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
-import org.hisp.dhis.dxf2.synch.SynchronizationManager;
+import org.hisp.dhis.dxf2.sync.AvailabilityStatus;
+import org.hisp.dhis.dxf2.sync.SynchronizationManager;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.VersionType;
-import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -87,7 +87,7 @@ class MetadataSyncPreProcessorTest extends IntegrationTestBase {
     AvailabilityStatus availabilityStatus = new AvailabilityStatus(true, "test_message", null);
     when(synchronizationManager.isRemoteServerAvailable()).thenReturn(availabilityStatus);
     metadataSyncPreProcessor.handleDataValuePush(
-        mockRetryContext, metadataSyncJobParameters, NoopJobProgress.INSTANCE);
+        mockRetryContext, metadataSyncJobParameters, JobProgress.noop());
     verify(synchronizationManager, times(1)).executeDataValuePush();
   }
 
@@ -100,12 +100,12 @@ class MetadataSyncPreProcessorTest extends IntegrationTestBase {
     when(synchronizationManager.isRemoteServerAvailable()).thenReturn(availabilityStatus);
     doThrow(MetadataSyncServiceException.class)
         .when(metadataSyncPreProcessor)
-        .handleDataValuePush(mockRetryContext, metadataSyncJobParameters, NoopJobProgress.INSTANCE);
+        .handleDataValuePush(mockRetryContext, metadataSyncJobParameters, JobProgress.noop());
     assertThrows(
         MetadataSyncServiceException.class,
         () ->
             metadataSyncPreProcessor.handleDataValuePush(
-                mockRetryContext, metadataSyncJobParameters, NoopJobProgress.INSTANCE));
+                mockRetryContext, metadataSyncJobParameters, JobProgress.noop()));
   }
 
   @Test
@@ -117,11 +117,11 @@ class MetadataSyncPreProcessorTest extends IntegrationTestBase {
     when(synchronizationManager.isRemoteServerAvailable()).thenReturn(availabilityStatus);
     doNothing()
         .when(metadataSyncPreProcessor)
-        .handleDataValuePush(mockRetryContext, metadataSyncJobParameters, NoopJobProgress.INSTANCE);
+        .handleDataValuePush(mockRetryContext, metadataSyncJobParameters, JobProgress.noop());
     metadataSyncPreProcessor.handleDataValuePush(
-        mockRetryContext, metadataSyncJobParameters, NoopJobProgress.INSTANCE);
+        mockRetryContext, metadataSyncJobParameters, JobProgress.noop());
     verify(metadataSyncPreProcessor, times(1))
-        .handleDataValuePush(mockRetryContext, metadataSyncJobParameters, NoopJobProgress.INSTANCE);
+        .handleDataValuePush(mockRetryContext, metadataSyncJobParameters, JobProgress.noop());
   }
 
   @Test
@@ -142,7 +142,7 @@ class MetadataSyncPreProcessorTest extends IntegrationTestBase {
     when(metadataVersionDelegate.getMetaDataDifference(currentVersion)).thenReturn(listOfVersions);
     List<MetadataVersion> expectedListOfVersions =
         metadataSyncPreProcessor.handleMetadataVersionsList(
-            mockRetryContext, currentVersion, NoopJobProgress.INSTANCE);
+            mockRetryContext, currentVersion, JobProgress.noop());
     assertEquals(listOfVersions.size(), expectedListOfVersions.size());
     assertEquals(expectedListOfVersions, listOfVersions);
   }
@@ -161,7 +161,7 @@ class MetadataSyncPreProcessorTest extends IntegrationTestBase {
         .thenReturn(new ArrayList<>());
     List<MetadataVersion> expectedListOfVersions =
         metadataSyncPreProcessor.handleMetadataVersionsList(
-            mockRetryContext, currentVersion, NoopJobProgress.INSTANCE);
+            mockRetryContext, currentVersion, JobProgress.noop());
     assertEquals(0, expectedListOfVersions.size());
   }
 
@@ -179,7 +179,7 @@ class MetadataSyncPreProcessorTest extends IntegrationTestBase {
     when(metadataVersionDelegate.getMetaDataDifference(currentVersion)).thenReturn(listOfVersions);
     List<MetadataVersion> expectedListOfVersions =
         metadataSyncPreProcessor.handleMetadataVersionsList(
-            mockRetryContext, currentVersion, NoopJobProgress.INSTANCE);
+            mockRetryContext, currentVersion, JobProgress.noop());
     assertEquals(0, expectedListOfVersions.size());
   }
 
@@ -201,7 +201,7 @@ class MetadataSyncPreProcessorTest extends IntegrationTestBase {
         MetadataSyncServiceException.class,
         () ->
             metadataSyncPreProcessor.handleMetadataVersionsList(
-                mockRetryContext, currentVersion, NoopJobProgress.INSTANCE));
+                mockRetryContext, currentVersion, JobProgress.noop()));
   }
 
   @Test
@@ -214,8 +214,7 @@ class MetadataSyncPreProcessorTest extends IntegrationTestBase {
     currentVersion.setHashCode("samplehashcode");
     when(metadataVersionService.getCurrentVersion()).thenReturn(currentVersion);
     MetadataVersion actualVersion =
-        metadataSyncPreProcessor.handleCurrentMetadataVersion(
-            mockRetryContext, NoopJobProgress.INSTANCE);
+        metadataSyncPreProcessor.handleCurrentMetadataVersion(mockRetryContext, JobProgress.noop());
     assertEquals(currentVersion, actualVersion);
   }
 
@@ -245,7 +244,7 @@ class MetadataSyncPreProcessorTest extends IntegrationTestBase {
         .thenReturn(metadataVersionList);
     List<MetadataVersion> expectedListOfVersions =
         metadataSyncPreProcessor.handleMetadataVersionsList(
-            mockRetryContext, currentVersion, NoopJobProgress.INSTANCE);
+            mockRetryContext, currentVersion, JobProgress.noop());
     verify(systemSettingManager)
         .saveSystemSetting(SettingKey.REMOTE_METADATA_VERSION, version4.getName());
     assertEquals(3, expectedListOfVersions.size());

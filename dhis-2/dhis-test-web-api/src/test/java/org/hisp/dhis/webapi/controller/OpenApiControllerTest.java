@@ -60,7 +60,7 @@ class OpenApiControllerTest extends DhisControllerConvenienceTest {
     JsonObject doc =
         GET("/openapi/openapi.json?failOnNameClash=true&failOnInconsistency=true").content();
     assertTrue(doc.isObject());
-    assertTrue(doc.getObject("components.schemas.PropertyNames_OrganisationUnit").isObject());
+    assertTrue(doc.getObject("components.schemas.OrganisationUnitPropertyNames").isObject());
     assertGreaterOrEqual(150, doc.getObject("paths").size());
     assertGreaterOrEqual(0, doc.getObject("security[0].basicAuth").size());
     assertGreaterOrEqual(1, doc.getObject("components.securitySchemes").size());
@@ -84,12 +84,12 @@ class OpenApiControllerTest extends DhisControllerConvenienceTest {
                 "/api/users/invites",
                 "/api/users/sharing"));
     assertLessOrEqual(26, doc.getObject("paths").size());
-    assertLessOrEqual(22, doc.getObject("components.schemas").size());
+    assertLessOrEqual(60, doc.getObject("components.schemas").size());
   }
 
   @Test
-  void testGetOpenApiDocument_TagFilter() {
-    JsonObject doc = GET("/openapi/openapi.json?tag=user").content();
+  void testGetOpenApiDocument_DomainFilter() {
+    JsonObject doc = GET("/openapi/openapi.json?domain=User").content();
     assertTrue(doc.isObject());
     assertTrue(
         doc.getObject("paths")
@@ -99,7 +99,7 @@ class OpenApiControllerTest extends DhisControllerConvenienceTest {
                 "/api/users/invites",
                 "/api/users/sharing"));
     assertLessOrEqual(151, doc.getObject("paths").size());
-    assertLessOrEqual(60, doc.getObject("components.schemas").size());
+    assertLessOrEqual(80, doc.getObject("components.schemas").size());
   }
 
   @Test

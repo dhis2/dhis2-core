@@ -78,7 +78,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -110,7 +110,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Joao Antunes
  */
-@OpenApi.Tags("data")
+@OpenApi.Document(domain = ValidationRule.class)
 @Controller
 @RequestMapping("/api/dataAnalysis")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -182,7 +182,7 @@ public class DataAnalysisController {
             .build();
 
     List<ValidationResult> validationResults =
-        validationService.validationAnalysis(params, NoopJobProgress.INSTANCE);
+        validationService.validationAnalysis(params, JobProgress.noop());
 
     validationResults.sort(new ValidationResultComparator());
 

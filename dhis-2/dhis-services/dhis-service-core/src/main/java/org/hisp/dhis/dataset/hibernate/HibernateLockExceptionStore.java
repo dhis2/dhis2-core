@@ -174,8 +174,7 @@ public class HibernateLockExceptionStore extends HibernateGenericStore<LockExcep
   @Override
   public int deleteExpiredLockExceptions(Date createdBefore) {
     String sql = "delete from lockexception where created < :date";
-
-    return getSession().createNativeQuery(sql).setParameter("date", createdBefore).executeUpdate();
+    return nativeSynchronizedQuery(sql).setParameter("date", createdBefore).executeUpdate();
   }
 
   @Override

@@ -40,14 +40,10 @@ import org.hibernate.event.spi.PostInsertEvent;
 import org.hibernate.event.spi.PostUpdateEvent;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.datastatistics.DataStatisticsEvent;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
-import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -68,14 +64,6 @@ public class PostCacheEventPublisher
     implements PostCommitUpdateEventListener,
         PostCommitInsertEventListener,
         PostCommitDeleteEventListener {
-
-  @Autowired protected IdentifiableObjectManager idObjectManager;
-
-  @Autowired protected PeriodService periodService;
-
-  @Autowired protected TrackedEntityAttributeService trackedEntityAttributeService;
-
-  @Autowired protected TrackedEntityService trackedEntityService;
 
   @Autowired private CacheInvalidationMessagePublisher messagePublisher;
 
@@ -157,9 +145,9 @@ public class PostCacheEventPublisher
     TrackedEntityAttributeValue trackedEntityAttributeValue = (TrackedEntityAttributeValue) entity;
 
     long trackedEntityAttributeId = trackedEntityAttributeValue.getAttribute().getId();
-    long entityInstanceId = trackedEntityAttributeValue.getTrackedEntity().getId();
+    long trackedEntityId = trackedEntityAttributeValue.getTrackedEntity().getId();
 
-    return trackedEntityAttributeId + ";" + entityInstanceId;
+    return trackedEntityAttributeId + ";" + trackedEntityId;
   }
 
   private Serializable getCompleteDataSetRegistrationId(Object entity) {

@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.servlet;
 
 import java.util.EnumSet;
+import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletRegistration;
@@ -121,6 +122,11 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
     characterEncodingFilter.addMappingForServletNames(null, false, "dispatcher");
 
     context
+        .addFilter(
+            "springSecurityFilterChain", new DelegatingFilterProxy("springSecurityFilterChain"))
+        .addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
+
+    context
         .addFilter("RequestIdentifierFilter", new DelegatingFilterProxy("requestIdentifierFilter"))
         .addMappingForUrlPatterns(null, true, "/*");
 
@@ -130,11 +136,6 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
 
     context
         .addFilter("GlobalShellFilter", new DelegatingFilterProxy("globalShellFilter"))
-        .addMappingForUrlPatterns(null, true, "/*");
-
-    context
-        .addFilter(
-            "SwitchUserProcessingFilter", new DelegatingFilterProxy("switchUserProcessingFilter"))
         .addMappingForUrlPatterns(null, true, "/*");
   }
 }

@@ -47,7 +47,6 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -110,7 +109,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags("messaging")
 @Controller
 @RequestMapping("/api/messageConversations")
 @RequiredArgsConstructor
@@ -175,7 +173,11 @@ public class MessageConversationController
   @Override
   @SuppressWarnings("unchecked")
   protected List<org.hisp.dhis.message.MessageConversation> getEntityList(
-      WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders)
+      WebMetadata metadata,
+      WebOptions options,
+      List<String> filters,
+      List<Order> orders,
+      List<org.hisp.dhis.message.MessageConversation> objects)
       throws QueryParserException {
     List<org.hisp.dhis.message.MessageConversation> messageConversations;
 

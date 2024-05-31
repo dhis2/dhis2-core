@@ -44,7 +44,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Luciano Fiandesio
  */
-@OpenApi.Tags("system")
+@OpenApi.Document(domain = Server.class)
 @Profile("!test")
 @Controller
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

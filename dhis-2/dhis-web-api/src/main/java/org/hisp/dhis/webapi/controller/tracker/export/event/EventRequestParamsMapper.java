@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static java.util.Collections.emptySet;
+import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.parseFilters;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedUidsParameter;
@@ -44,10 +45,13 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams.EventOperationParamsBuilder;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.webdomain.EndDateTime;
+import org.hisp.dhis.webapi.webdomain.StartDateTime;
 import org.springframework.stereotype.Component;
 
 /**
@@ -76,6 +80,13 @@ class EventRequestParamsMapper {
                 ? Set.of(eventRequestParams.getOrgUnit())
                 : emptySet(),
             orgUnitMode);
+
+    EnrollmentStatus enrollmentStatus =
+        validateDeprecatedParameter(
+            "programStatus",
+            eventRequestParams.getProgramStatus(),
+            "enrollmentStatus",
+            eventRequestParams.getEnrollmentStatus());
 
     UID attributeCategoryCombo =
         validateDeprecatedParameter(
@@ -114,41 +125,42 @@ class EventRequestParamsMapper {
 
     EventOperationParamsBuilder builder =
         EventOperationParams.builder()
-            .programUid(
-                eventRequestParams.getProgram() != null
-                    ? eventRequestParams.getProgram().getValue()
-                    : null)
-            .programStageUid(
-                eventRequestParams.getProgramStage() != null
-                    ? eventRequestParams.getProgramStage().getValue()
-                    : null)
-            .orgUnitUid(
-                eventRequestParams.getOrgUnit() != null
-                    ? eventRequestParams.getOrgUnit().getValue()
-                    : null)
-            .trackedEntityUid(
-                eventRequestParams.getTrackedEntity() != null
-                    ? eventRequestParams.getTrackedEntity().getValue()
-                    : null)
-            .programStatus(eventRequestParams.getProgramStatus())
+            .programUid(applyIfNotNull(eventRequestParams.getProgram(), UID::getValue))
+            .programStageUid(applyIfNotNull(eventRequestParams.getProgramStage(), UID::getValue))
+            .orgUnitUid(applyIfNotNull(eventRequestParams.getOrgUnit(), UID::getValue))
+            .trackedEntityUid(applyIfNotNull(eventRequestParams.getTrackedEntity(), UID::getValue))
+            .enrollmentStatus(enrollmentStatus)
             .followUp(eventRequestParams.getFollowUp())
             .orgUnitMode(orgUnitMode)
             .assignedUserMode(eventRequestParams.getAssignedUserMode())
             .assignedUsers(UID.toValueSet(assignedUsers))
-            .occurredAfter(eventRequestParams.getOccurredAfter())
-            .occurredBefore(eventRequestParams.getOccurredBefore())
-            .scheduledAfter(eventRequestParams.getScheduledAfter())
-            .scheduledBefore(eventRequestParams.getScheduledBefore())
-            .updatedAfter(eventRequestParams.getUpdatedAfter())
-            .updatedBefore(eventRequestParams.getUpdatedBefore())
+            .occurredAfter(
+                applyIfNotNull(eventRequestParams.getOccurredAfter(), StartDateTime::toDate))
+            .occurredBefore(
+                applyIfNotNull(eventRequestParams.getOccurredBefore(), EndDateTime::toDate))
+            .scheduledAfter(
+                applyIfNotNull(eventRequestParams.getScheduledAfter(), StartDateTime::toDate))
+            .scheduledBefore(
+                applyIfNotNull(eventRequestParams.getScheduledBefore(), EndDateTime::toDate))
+            .updatedAfter(
+                applyIfNotNull(eventRequestParams.getUpdatedAfter(), StartDateTime::toDate))
+            .updatedBefore(
+                applyIfNotNull(eventRequestParams.getUpdatedBefore(), EndDateTime::toDate))
             .updatedWithin(eventRequestParams.getUpdatedWithin())
-            .enrollmentEnrolledBefore(eventRequestParams.getEnrollmentEnrolledBefore())
-            .enrollmentEnrolledAfter(eventRequestParams.getEnrollmentEnrolledAfter())
-            .enrollmentOccurredBefore(eventRequestParams.getEnrollmentOccurredBefore())
-            .enrollmentOccurredAfter(eventRequestParams.getEnrollmentOccurredAfter())
+            .enrollmentEnrolledBefore(
+                applyIfNotNull(
+                    eventRequestParams.getEnrollmentEnrolledBefore(), EndDateTime::toDate))
+            .enrollmentEnrolledAfter(
+                applyIfNotNull(
+                    eventRequestParams.getEnrollmentEnrolledAfter(), StartDateTime::toDate))
+            .enrollmentOccurredBefore(
+                applyIfNotNull(
+                    eventRequestParams.getEnrollmentOccurredBefore(), EndDateTime::toDate))
+            .enrollmentOccurredAfter(
+                applyIfNotNull(
+                    eventRequestParams.getEnrollmentOccurredAfter(), StartDateTime::toDate))
             .eventStatus(eventRequestParams.getStatus())
-            .attributeCategoryCombo(
-                attributeCategoryCombo != null ? attributeCategoryCombo.getValue() : null)
+            .attributeCategoryCombo(applyIfNotNull(attributeCategoryCombo, UID::getValue))
             .attributeCategoryOptions(UID.toValueSet(attributeCategoryOptions))
             .idSchemes(eventRequestParams.getIdSchemes())
             .includeAttributes(false)

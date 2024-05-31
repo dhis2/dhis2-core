@@ -64,7 +64,8 @@ class EnrollmentOperationParamsMapper {
       throws BadRequestException, ForbiddenException {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    Program program = paramsValidator.validateProgram(operationParams.getProgramUid(), currentUser);
+    Program program =
+        paramsValidator.validateTrackerProgram(operationParams.getProgramUid(), currentUser);
     TrackedEntityType trackedEntityType =
         paramsValidator.validateTrackedEntityType(
             operationParams.getTrackedEntityTypeUid(), currentUser);
@@ -77,7 +78,7 @@ class EnrollmentOperationParamsMapper {
 
     EnrollmentQueryParams params = new EnrollmentQueryParams();
     params.setProgram(program);
-    params.setProgramStatus(operationParams.getProgramStatus());
+    params.setEnrollmentStatus(operationParams.getEnrollmentStatus());
     params.setFollowUp(operationParams.getFollowUp());
     params.setLastUpdated(operationParams.getLastUpdated());
     params.setLastUpdatedDuration(operationParams.getLastUpdatedDuration());

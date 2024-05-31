@@ -45,7 +45,6 @@ import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
-import org.hisp.dhis.db.model.constraint.Unique;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
@@ -97,18 +96,18 @@ public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
   @Override
   public List<Index> getIndexes() {
     return List.of(
-        new Index(
-            appendRandom("in_orgunitgroupsetstructure_not_null"),
-            toStaging(TABLE_NAME),
-            Unique.NON_UNIQUE,
-            List.of("organisationunitid", "startdate"),
-            "startdate is not null"),
-        new Index(
-            appendRandom("in_orgunitgroupsetstructure_null"),
-            toStaging(TABLE_NAME),
-            Unique.NON_UNIQUE,
-            List.of("organisationunitid", "startdate"),
-            "startdate is null"));
+        Index.builder()
+            .name(appendRandom("in_orgunitgroupsetstructure_not_null"))
+            .tableName(toStaging(TABLE_NAME))
+            .columns(List.of("organisationunitid", "startdate"))
+            .condition("startdate is not null")
+            .build(),
+        Index.builder()
+            .name(appendRandom("in_orgunitgroupsetstructure_not_null"))
+            .tableName(toStaging(TABLE_NAME))
+            .columns(List.of("organisationunitid", "startdate"))
+            .condition("startdate is null")
+            .build());
   }
 
   @Override

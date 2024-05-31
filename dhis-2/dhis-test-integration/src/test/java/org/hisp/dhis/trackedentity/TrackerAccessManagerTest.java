@@ -224,9 +224,7 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest {
     // Cannot Read
     assertHasError(trackerAccessManager.canRead(userDetails, te), OWNERSHIP_ACCESS_DENIED);
     // Cannot write
-    assertHasError(
-        trackerAccessManager.canWrite(userDetails, te),
-        "User has no write access to organisation unit:");
+    assertHasError(trackerAccessManager.canWrite(userDetails, te), OWNERSHIP_ACCESS_DENIED);
   }
 
   @Test

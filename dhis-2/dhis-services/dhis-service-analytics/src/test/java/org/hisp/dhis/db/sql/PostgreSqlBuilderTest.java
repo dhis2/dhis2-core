@@ -63,16 +63,28 @@ class PostgreSqlBuilderTest {
 
   private List<Index> getIndexesA() {
     return List.of(
-        new Index("in_immunization_data", "immunization", List.of("data")),
-        new Index("in_immunization_period_created", "immunization", List.of("period", "created")),
-        new Index("in_immunization_user", "immunization", IndexType.GIN, List.of("user")),
-        new Index(
-            "in_immunization_data_period",
-            "immunization",
-            IndexType.BTREE,
-            Unique.NON_UNIQUE,
-            List.of("data", "period"),
-            IndexFunction.LOWER));
+        Index.builder()
+            .name("in_immunization_data")
+            .tableName("immunization")
+            .columns(List.of("data"))
+            .build(),
+        Index.builder()
+            .name("in_immunization_period_created")
+            .tableName("immunization")
+            .columns(List.of("period", "created"))
+            .build(),
+        Index.builder()
+            .name("in_immunization_user")
+            .tableName("immunization")
+            .indexType(IndexType.GIN)
+            .columns(List.of("user"))
+            .build(),
+        Index.builder()
+            .name("in_immunization_data_period")
+            .tableName("immunization")
+            .columns(List.of("data", "period"))
+            .function(IndexFunction.LOWER)
+            .build());
   }
 
   private Table getTableB() {
@@ -383,5 +395,26 @@ class PostgreSqlBuilderTest {
         "create index \"in_immunization_data_period\" on \"immunization\" using btree(lower(\"data\"), lower(\"period\"));";
 
     assertEquals(expected, sqlBuilder.createIndex(indexes.get(3)));
+  }
+
+  @Test
+  void testCreateIndexWithDescNullsLast() {
+    // given
+    String expected =
+        "create unique index \"index_a\" on \"table_a\" using btree(\"column_a\" desc nulls last);";
+    Index index =
+        Index.builder()
+            .name("index_a")
+            .tableName("table_a")
+            .unique(Unique.UNIQUE)
+            .columns(List.of("column_a"))
+            .sortOrder("desc nulls last")
+            .build();
+
+    // when
+    String createIndexStmt = sqlBuilder.createIndex(index);
+
+    // then
+    assertEquals(expected, createIndexStmt);
   }
 }

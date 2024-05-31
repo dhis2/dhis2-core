@@ -8,7 +8,7 @@ Read the contribution [guidelines](https://developers.dhis2.org/community/contri
 
 You'll need the following software to run DHIS2 on your machine:
 
-- Java 8
+- Java 17
 - Maven
 - Tomcat
 
@@ -29,9 +29,9 @@ Go in the repo and run maven:
     cd dhis-web
     mvn install -U
 
-Each project in the /dhis-2/dhis-web directory is an individual web module. The dhis-web-portal project is an assembly of all the individual web modules.
+Each project in the /dhis-2/dhis-web directory is an individual web module. The dhis-web-server project is an assembly of all the individual web modules.
 
-This should create a ready to use war in /dhis-2/dhis-web-portal/target
+This should create a ready to use war in /dhis-2/dhis-web-server/target
 
 ## Run locally
 

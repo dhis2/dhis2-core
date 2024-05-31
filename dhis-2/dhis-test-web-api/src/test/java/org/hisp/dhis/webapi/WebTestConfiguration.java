@@ -53,7 +53,6 @@ import org.hisp.dhis.jdbc.config.JdbcConfig;
 import org.hisp.dhis.leader.election.LeaderElectionConfiguration;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.SystemAuthoritiesProvider;
-import org.hisp.dhis.webapi.mvc.ContentNegotiationConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -106,14 +105,13 @@ import org.springframework.transaction.annotation.Transactional;
   org.hisp.dhis.setting.config.ServiceConfig.class,
   org.hisp.dhis.external.config.ServiceConfig.class,
   org.hisp.dhis.dxf2.config.ServiceConfig.class,
+  org.hisp.dhis.programrule.config.ServiceConfig.class,
   org.hisp.dhis.support.config.ServiceConfig.class,
   org.hisp.dhis.validation.config.ServiceConfig.class,
   org.hisp.dhis.validation.config.StoreConfig.class,
-  org.hisp.dhis.programrule.config.ProgramRuleConfig.class,
   org.hisp.dhis.reporting.config.StoreConfig.class,
   org.hisp.dhis.analytics.config.ServiceConfig.class,
   JacksonObjectMapperConfig.class,
-  ContentNegotiationConfig.class,
   JdbcOrgUnitAssociationStoreConfiguration.class,
   StartupConfig.class
 })

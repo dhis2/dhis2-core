@@ -38,7 +38,7 @@ import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.programstagefilter.DateFilterPeriod;
 
 /**
@@ -53,7 +53,7 @@ public class EntityQueryCriteria implements Serializable {
   private String programStage;
 
   /**
-   * Property indicating whether to filter tracked entity instances whose enrollments are marked for
+   * Property indicating whether to filter tracked entities whose enrollments are marked for
    * followup or not
    */
   private Boolean followUp = false;
@@ -86,7 +86,7 @@ public class EntityQueryCriteria implements Serializable {
   private EventStatus eventStatus;
 
   /** Property indicating which enrollment status types to filter */
-  private ProgramStatus enrollmentStatus;
+  private EnrollmentStatus enrollmentStatus;
 
   /** Property to filter te based on event created dates */
   private DateFilterPeriod eventDate;
@@ -100,7 +100,7 @@ public class EntityQueryCriteria implements Serializable {
   /** Property to filter events based on program created dates */
   private DateFilterPeriod enrollmentCreatedDate;
 
-  /** Property to filter tracked entity instances based on tracked entity attribute values */
+  /** Property to filter tracked entities based on tracked entity attribute values */
   private List<AttributeValueFilter> attributeValueFilters = new ArrayList<>();
 
   @JsonProperty
@@ -115,11 +115,11 @@ public class EntityQueryCriteria implements Serializable {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public ProgramStatus getEnrollmentStatus() {
+  public EnrollmentStatus getEnrollmentStatus() {
     return enrollmentStatus;
   }
 
-  public void setEnrollmentStatus(ProgramStatus enrollmentStatus) {
+  public void setEnrollmentStatus(EnrollmentStatus enrollmentStatus) {
     this.enrollmentStatus = enrollmentStatus;
   }
 

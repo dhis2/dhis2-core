@@ -52,9 +52,11 @@ import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.model.AnalyticsColumnType;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
@@ -66,6 +68,7 @@ import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Distribution;
 import org.hisp.dhis.db.model.Index;
@@ -450,6 +453,25 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   /**
+   * Executes the given SQL statement. Logs and times the operation.
+   *
+   * @param sql the SQL statement.
+   * @param logPattern the log message pattern.
+   * @param args the log message arguments.
+   */
+  protected void invokeTimeAndLog(String sql, String logPattern, Object... args) {
+    Timer timer = new SystemTimer().start();
+
+    log.debug("Populate table SQL: '{}'", sql);
+
+    jdbcTemplate.execute(sql);
+
+    String logMessage = format(logPattern, args);
+
+    log.info("{} in: {}", logMessage, timer.stop().toString());
+  }
+
+  /**
    * Filters out analytics table columns which were created after the time of the last successful
    * resource table update. This so that the create table query does not refer to columns not
    * present in resource tables.
@@ -471,24 +493,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   /**
-   * Executes the given SQL statement. Logs and times the operation.
-   *
-   * @param sql the SQL statement.
-   * @param logPattern the custom log message to include in the log statement.
-   */
-  protected void invokeTimeAndLog(String sql, String logPattern, Object... arguments) {
-    Timer timer = new SystemTimer().start();
-
-    log.debug("Populate table SQL: '{}'", sql);
-
-    jdbcTemplate.execute(sql);
-
-    String logMessage = format(logPattern, arguments);
-
-    log.info("{} in: {}", logMessage, timer.stop().toString());
-  }
-
-  /**
    * Collects all the {@link PeriodType} as a list of {@link AnalyticsTableColumn}.
    *
    * @param prefix the prefix to use for the column name
@@ -499,7 +503,11 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             pt -> {
               String name = pt.getName().toLowerCase();
-              return new AnalyticsTableColumn(name, TEXT, prefix + "." + quote(name));
+              return AnalyticsTableColumn.builder()
+                  .name(name)
+                  .dataType(TEXT)
+                  .selectExpression(prefix + "." + quote(name))
+                  .build();
             })
         .toList();
   }
@@ -514,8 +522,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             level -> {
               String name = PREFIX_ORGUNITLEVEL + level.getLevel();
-              return new AnalyticsTableColumn(
-                  name, CHARACTER_11, "ous." + quote(name), level.getCreated());
+              return AnalyticsTableColumn.builder()
+                  .name(name)
+                  .dataType(CHARACTER_11)
+                  .selectExpression("ous." + quote(name))
+                  .created(level.getCreated())
+                  .build();
             })
         .toList();
   }
@@ -532,7 +544,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
                 .map(lv -> "ous." + PREFIX_ORGUNITNAMELEVEL + lv.getLevel())
                 .collect(Collectors.joining(","))
             + ") as ounamehierarchy";
-    return new AnalyticsTableColumn("ounamehierarchy", TEXT, Collation.C, columnExpression);
+    return AnalyticsTableColumn.builder()
+        .name("ounamehierarchy")
+        .dataType(TEXT)
+        .collation(Collation.C)
+        .selectExpression(columnExpression)
+        .build();
   }
 
   /**
@@ -545,8 +562,51 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             ougs -> {
               String name = ougs.getUid();
-              return new AnalyticsTableColumn(
-                  name, CHARACTER_11, "ougs." + quote(name), ougs.getCreated());
+              Skip skipIndex = analyticsTableSettings.skipIndexOrgUnitGroupSetColumns();
+              return AnalyticsTableColumn.builder()
+                  .name(name)
+                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dataType(CHARACTER_11)
+                  .selectExpression("ougs." + quote(name))
+                  .skipIndex(skipIndex)
+                  .created(ougs.getCreated())
+                  .build();
+            })
+        .toList();
+  }
+
+  protected List<AnalyticsTableColumn> getDataElementGroupSetColumns() {
+    return idObjectManager.getDataDimensionsNoAcl(DataElementGroupSet.class).stream()
+        .map(
+            degs -> {
+              String name = degs.getUid();
+              Skip skipIndex = analyticsTableSettings.skipIndexDataElementGroupSetColumns();
+              return AnalyticsTableColumn.builder()
+                  .name(name)
+                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dataType(CHARACTER_11)
+                  .selectExpression("degs." + quote(name))
+                  .skipIndex(skipIndex)
+                  .created(degs.getCreated())
+                  .build();
+            })
+        .toList();
+  }
+
+  protected List<AnalyticsTableColumn> getDisaggregationCategoryOptionGroupSetColumns() {
+    return categoryService.getDisaggregationCategoryOptionGroupSetsNoAcl().stream()
+        .map(
+            cogs -> {
+              String name = cogs.getUid();
+              Skip skipIndex = analyticsTableSettings.skipIndexCategoryOptionGroupSetColumns();
+              return AnalyticsTableColumn.builder()
+                  .name(name)
+                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dataType(CHARACTER_11)
+                  .selectExpression("dcs." + quote(name))
+                  .skipIndex(skipIndex)
+                  .created(cogs.getCreated())
+                  .build();
             })
         .toList();
   }
@@ -556,8 +616,33 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             cogs -> {
               String name = cogs.getUid();
-              return new AnalyticsTableColumn(
-                  name, CHARACTER_11, "acs." + quote(name), cogs.getCreated());
+              Skip skipIndex = analyticsTableSettings.skipIndexCategoryOptionGroupSetColumns();
+              return AnalyticsTableColumn.builder()
+                  .name(name)
+                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dataType(CHARACTER_11)
+                  .selectExpression("acs." + quote(name))
+                  .skipIndex(skipIndex)
+                  .created(cogs.getCreated())
+                  .build();
+            })
+        .toList();
+  }
+
+  protected List<AnalyticsTableColumn> getDisaggregationCategoryColumns() {
+    return categoryService.getDisaggregationDataDimensionCategoriesNoAcl().stream()
+        .map(
+            category -> {
+              String name = category.getUid();
+              Skip skipIndex = analyticsTableSettings.skipIndexCategoryColumns();
+              return AnalyticsTableColumn.builder()
+                  .name(name)
+                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dataType(CHARACTER_11)
+                  .selectExpression("dcs." + quote(name))
+                  .skipIndex(skipIndex)
+                  .created(category.getCreated())
+                  .build();
             })
         .toList();
   }
@@ -567,8 +652,15 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             category -> {
               String name = category.getUid();
-              return new AnalyticsTableColumn(
-                  name, CHARACTER_11, "acs." + quote(name), category.getCreated());
+              Skip skipIndex = analyticsTableSettings.skipIndexCategoryColumns();
+              return AnalyticsTableColumn.builder()
+                  .name(name)
+                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dataType(CHARACTER_11)
+                  .selectExpression("acs." + quote(name))
+                  .skipIndex(skipIndex)
+                  .created(category.getCreated())
+                  .build();
             })
         .toList();
   }

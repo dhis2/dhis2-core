@@ -37,6 +37,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
@@ -59,8 +60,9 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -144,7 +146,7 @@ class AggregateDataExchangeServiceTest {
         new AggregateDataExchange().setSource(source).setTarget(target);
 
     ImportSummaries summaries =
-        service.exchangeData(UserDetails.fromUser(new User()), exchange, NoopJobProgress.INSTANCE);
+        service.exchangeData(UserDetails.fromUser(new User()), exchange, JobProgress.noop());
 
     assertNotNull(summaries);
     assertEquals(1, summaries.getImportSummaries().size());
@@ -232,9 +234,9 @@ class AggregateDataExchangeServiceTest {
   void testToImportOptionsA() {
     TargetRequest request =
         new TargetRequest()
+            .setIdScheme("uid")
             .setDataElementIdScheme("code")
             .setOrgUnitIdScheme("code")
-            .setIdScheme("uid")
             .setImportStrategy(ImportStrategy.CREATE)
             .setSkipAudit(Boolean.TRUE)
             .setDryRun(Boolean.TRUE);
@@ -267,6 +269,29 @@ class AggregateDataExchangeServiceTest {
     assertEquals(IdScheme.UID, options.getIdSchemes().getCategoryOptionComboIdScheme());
     assertEquals(IdScheme.UID, options.getIdSchemes().getCategoryOptionIdScheme());
     assertEquals(IdScheme.UID, options.getIdSchemes().getIdScheme());
+    assertEquals(ImportStrategy.CREATE_AND_UPDATE, options.getImportStrategy());
+    assertTrue(options.isSkipAudit());
+    assertFalse(options.isDryRun());
+  }
+
+  @Test
+  void testToImportOptionsC() {
+    TargetRequest request =
+        new TargetRequest()
+            .setIdScheme("code")
+            .setDataElementIdScheme("uid")
+            .setOrgUnitIdScheme("uid")
+            .setSkipAudit(Boolean.FALSE);
+    Target target = new Target().setType(TargetType.EXTERNAL).setApi(new Api()).setRequest(request);
+    AggregateDataExchange exchange = new AggregateDataExchange().setTarget(target);
+
+    ImportOptions options = service.toImportOptions(exchange);
+
+    assertEquals(IdScheme.UID, options.getIdSchemes().getDataElementIdScheme());
+    assertEquals(IdScheme.UID, options.getIdSchemes().getOrgUnitIdScheme());
+    assertEquals(IdScheme.CODE, options.getIdSchemes().getCategoryOptionComboIdScheme());
+    assertEquals(IdScheme.CODE, options.getIdSchemes().getCategoryOptionIdScheme());
+    assertEquals(IdScheme.CODE, options.getIdSchemes().getIdScheme());
     assertEquals(ImportStrategy.CREATE_AND_UPDATE, options.getImportStrategy());
     assertFalse(options.isSkipAudit());
     assertFalse(options.isDryRun());
@@ -343,5 +368,29 @@ class AggregateDataExchangeServiceTest {
 
     assertTrue(service.isPersisted(adeA));
     assertFalse(service.isPersisted(adeB));
+  }
+
+  @Test
+  void testGetSourceDataWithoutAccess() {
+    lenient()
+        .when(aclService.canDataRead(any(UserDetails.class), any(IdentifiableObject.class)))
+        .thenReturn(false);
+    assertThrows(
+        ForbiddenException.class,
+        () ->
+            service.getSourceData(
+                UserDetails.fromUser(new User()), "uid", new SourceDataQueryParams()));
+  }
+
+  @Test
+  void testGetSourceDataValueSetsWithoutAccess() {
+    lenient()
+        .when(aclService.canDataRead(any(UserDetails.class), any(IdentifiableObject.class)))
+        .thenReturn(false);
+    assertThrows(
+        ForbiddenException.class,
+        () ->
+            service.getSourceDataValueSets(
+                UserDetails.fromUser(new User()), "uid", new SourceDataQueryParams()));
   }
 }

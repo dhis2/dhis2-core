@@ -33,6 +33,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationEnrolmentException;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationException;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
@@ -85,7 +87,7 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@OpenApi.Tags({"login"})
+@OpenApi.Document(domain = User.class)
 @RestController
 @RequestMapping("/api/auth")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -94,24 +96,34 @@ public class AuthenticationController {
 
   @Autowired private AuthenticationManager authenticationManager;
 
+  @Autowired private DhisConfigurationProvider dhisConfig;
   @Autowired private SystemSettingManager settingManager;
   @Autowired private RequestCache requestCache;
   @Autowired private SessionRegistry sessionRegistry;
   @Autowired private UserService userService;
 
   private SessionAuthenticationStrategy sessionStrategy = new NullAuthenticatedSessionStrategy();
+
   private final SecurityContextHolderStrategy securityContextHolderStrategy =
       SecurityContextHolder.getContextHolderStrategy();
+
   private final SecurityContextRepository securityContextRepository =
       new HttpSessionSecurityContextRepository();
 
   @PostConstruct
   public void init() {
     if (sessionRegistry != null) {
+
+      int maxSessions =
+          Integer.parseInt(dhisConfig.getProperty((ConfigurationKey.MAX_SESSIONS_PER_USER)));
+      ConcurrentSessionControlAuthenticationStrategy concurrentStrategy =
+          new ConcurrentSessionControlAuthenticationStrategy(sessionRegistry);
+      concurrentStrategy.setMaximumSessions(maxSessions);
+
       sessionStrategy =
           new CompositeSessionAuthenticationStrategy(
               List.of(
-                  new ConcurrentSessionControlAuthenticationStrategy(sessionRegistry),
+                  concurrentStrategy,
                   new SessionFixationProtectionStrategy(),
                   new RegisterSessionAuthenticationStrategy(sessionRegistry)));
     }

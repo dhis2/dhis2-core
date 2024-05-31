@@ -17,8 +17,7 @@ Get an event with given UID.
 ### `getEventByUid.parameter.fields`
 
 Get only the specified fields in the JSON response. This query parameter allows you to remove
-unnecessary fields from
-the response and in some cases decrease the response time. Refer to
+unnecessary fields from the response and in some cases decrease the response time. Refer to
 https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata.html#webapi_metadata_field_filter
 for how to use it.
 
@@ -45,7 +44,17 @@ Get the change logs of all data elements related to that particular event UID.
 
 ### `*.parameter.EventRequestParams.programStage`
 
+### `*.parameter.EventRequestParams.enrollmentStatus`
+
+Get events from an enrollment in the given status.
+
 ### `*.parameter.EventRequestParams.programStatus`
+
+Get events from an enrollment in the given status.
+
+**DEPRECATED as of 2.42:** Use parameter `enrollmentStatus` instead.
+
+See `enrollmentStatus` for details.
 
 ### `*.parameter.EventRequestParams.followUp`
 
@@ -76,8 +85,7 @@ Get events using given organisation unit mode.
 `<user1-uid>[,<user2-uid>...]`
 
 Get events that are assigned to the given user(s). Specifying `assignedUsers` is only valid
-if `assignedUserMode` is
-either `PROVIDED` or not specified.
+if `assignedUserMode` is either `PROVIDED` or not specified.
 
 ### `*.parameter.EventRequestParams.assignedUser`
 
@@ -87,28 +95,32 @@ comma!
 `<user1-uid>[;<user2-uid>...]`
 
 Get events that are assigned to the given user(s). Specifying `assignedUser` is only valid
-if `assignedUserMode` is
-either `PROVIDED` or not specified.
+if `assignedUserMode` is either `PROVIDED` or not specified.
 
 ### `*.parameter.EventRequestParams.occurredAfter`
 
-Get events that occurred after given date.
+Get events that occurred after given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.EventRequestParams.occurredBefore`
 
-Get events that occurred before given date.
+Get events that occurred before given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.EventRequestParams.scheduledAfter`
 
-Get events that are scheduled after given date.
+Get events that are scheduled after given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.EventRequestParams.scheduledBefore`
 
-Get events that are scheduled before given date.
+Get events that are scheduled before given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.EventRequestParams.updatedAfter`
 
-Get events updated after given date.
+Get events updated after given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.EventRequestParams.updatedWithin`
 
@@ -116,11 +128,13 @@ Get events updated since given ISO-8601 duration.
 
 ### `*.parameter.EventRequestParams.enrollmentEnrolledAfter`
 
-Get events with enrollments that were enrolled after given date.
+Get events with enrollments that were enrolled after given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.EventRequestParams.enrollmentEnrolledBefore`
 
-Get events with enrollments that were enrolled before given date.
+Get events with enrollments that were enrolled before given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.EventRequestParams.status`
 
@@ -205,8 +219,7 @@ provided.
 ### `*.parameter.EventRequestParams.fields`
 
 Get only the specified fields in the JSON response. This query parameter allows you to remove
-unnecessary fields from
-the JSON response and in some cases decrease the response time. Refer to
+unnecessary fields from the JSON response and in some cases decrease the response time. Refer to
 https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata.html#webapi_metadata_field_filter
 for how to use it.
 
@@ -219,8 +232,8 @@ NOTE: this query parameter has no effect on a CSV response!
 Get events matching given filters on data values. A filter is a colon separated data element UID
 with operator and value pairs. Example: `filter=H9IlTX2X6SL:sw:A` with operator starts with `sw`
 followed by a value. Special characters like `+` need to be percent-encoded so `%2B` instead of `+`.
-Multiple operator/value pairs for the same data element
-as `filter=AuPLng5hLbE:gt:438901703:lt:448901704` are allowed. Operator and values are
+Multiple operator/value pairs for the same data element as
+`filter=AuPLng5hLbE:gt:438901703:lt:448901704` are allowed. Operator and values are
 case-insensitive. A user needs metadata read access to the data element and data read access to the
 program (if the program is without registration) or the program stage (if the program is with
 registration).
@@ -248,15 +261,15 @@ Valid operators are:
 
 `<filter1>[,<filter2>...]`
 
-Get events matching given filters on tracked entity attributes. A filter is a colon separated 
-attribute UID with optional operator and value pairs. Example: `filter=H9IlTX2X6SL:sw:A` with 
-operator starts with `sw` followed by a value. Special characters like `+` need to be 
-percent-encoded so `%2B` instead of `+`. Characters such as `:` (colon) or `,` (comma), as part 
-of the filter value, need to be escaped by / (slash). Likewise, `/` needs to be escaped. 
-Multiple operator/value pairs for the same attribute as `filter=AuPLng5hLbE:gt:438901703:lt:448901704` 
-are allowed. Repeating the same attribute UID is not allowed. Operator and values are case-insensitive. 
-A user needs metadata read access to the attribute and data read access to the program 
-(if the program is without registration) or to the program stage (if the program is with registration).
+Get events matching given filters on tracked entity attributes. A filter is a colon separated
+attribute UID with optional operator and value pairs. Example: `filter=H9IlTX2X6SL:sw:A` with
+operator starts with `sw` followed by a value. Special characters like `+` need to be
+percent-encoded so `%2B` instead of `+`. Characters such as `:` (colon) or `,` (comma), as part of
+the filter value, need to be escaped by / (slash). Likewise, `/` needs to be escaped. Multiple
+operator/value pairs for the same attribute as `filter=AuPLng5hLbE:gt:438901703:lt:448901704` are
+allowed. Repeating the same attribute UID is not allowed. Operator and values are case-insensitive.
+A user needs metadata read access to the attribute and data read access to the program (if the
+program is without registration) or to the program stage (if the program is with registration).
 
 Valid operators are:
 

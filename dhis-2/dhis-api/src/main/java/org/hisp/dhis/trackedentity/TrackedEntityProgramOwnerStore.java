@@ -40,28 +40,11 @@ public interface TrackedEntityProgramOwnerStore extends GenericStore<TrackedEnti
   /**
    * Get tracked entity program owner entity for the te-program combination.
    *
-   * @param teId The tracked entity instance id.
+   * @param teId The tracked entity id
    * @param programId the program id
    * @return matching tracked entity program owner entity
    */
   TrackedEntityProgramOwner getTrackedEntityProgramOwner(long teId, long programId);
-
-  /**
-   * Get all Tracked entity program owner entities for the list of tracked entities.
-   *
-   * @param teIds The list of tracked entity instance ids.
-   * @return matching tracked entity program owner entities.
-   */
-  List<TrackedEntityProgramOwner> getTrackedEntityProgramOwners(List<Long> teIds);
-
-  /**
-   * Get all Tracked entity program owner entities for the list of te and program.
-   *
-   * @param teIds The list of tracked entity instance ids.
-   * @param programId The program id
-   * @return matching tracked entity program owner entities.
-   */
-  List<TrackedEntityProgramOwner> getTrackedEntityProgramOwners(List<Long> teIds, long programId);
 
   List<TrackedEntityProgramOwnerOrgUnit> getTrackedEntityProgramOwnerOrgUnits(Set<Long> teIds);
 }

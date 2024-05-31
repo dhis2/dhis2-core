@@ -87,7 +87,8 @@ class EventOperationParamsMapper {
       throws BadRequestException, ForbiddenException {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    Program program = paramsValidator.validateProgram(operationParams.getProgramUid(), currentUser);
+    Program program =
+        paramsValidator.validateProgramAccess(operationParams.getProgramUid(), currentUser);
     ProgramStage programStage =
         validateProgramStage(operationParams.getProgramStageUid(), currentUser);
     TrackedEntity trackedEntity =
@@ -118,7 +119,7 @@ class EventOperationParamsMapper {
         .setProgramStage(programStage)
         .setOrgUnit(orgUnit)
         .setTrackedEntity(trackedEntity)
-        .setProgramStatus(operationParams.getProgramStatus())
+        .setEnrollmentStatus(operationParams.getEnrollmentStatus())
         .setFollowUp(operationParams.getFollowUp())
         .setOrgUnitMode(operationParams.getOrgUnitMode())
         .setAssignedUserQueryParam(
