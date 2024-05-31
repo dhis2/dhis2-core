@@ -36,9 +36,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.configuration.CitusSettings;
 import org.hisp.dhis.configuration.CitusSettings.PgExtension;
-import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
