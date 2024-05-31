@@ -231,50 +231,50 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_NON_GROUP_BY_COLS =
       List.of(
           AnalyticsTableColumn.builder()
-              .build()
               .withName("createdbyusername")
               .withDataType(VARCHAR_255)
-              .withSelectExpression("tei.createdbyuserinfo ->> 'username' as createdbyusername"),
+              .withSelectExpression("tei.createdbyuserinfo ->> 'username' as createdbyusername")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("createdbyname")
               .withDataType(VARCHAR_255)
-              .withSelectExpression("tei.createdbyuserinfo ->> 'firstName' as createdbyname"),
+              .withSelectExpression("tei.createdbyuserinfo ->> 'firstName' as createdbyname")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("createdbylastname")
               .withDataType(VARCHAR_255)
-              .withSelectExpression("tei.createdbyuserinfo ->> 'surname' as createdbylastname"),
+              .withSelectExpression("tei.createdbyuserinfo ->> 'surname' as createdbylastname")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("createdbydisplayname")
               .withDataType(VARCHAR_255)
               .withSelectExpression(
-                  getDisplayName("createdbyuserinfo", "tei", "createdbydisplayname")),
+                  getDisplayName("createdbyuserinfo", "tei", "createdbydisplayname"))
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("lastupdatedbyusername")
               .withDataType(VARCHAR_255)
               .withSelectExpression(
-                  "tei.lastupdatedbyuserinfo ->> 'username' as lastupdatedbyusername"),
+                  "tei.lastupdatedbyuserinfo ->> 'username' as lastupdatedbyusername")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("lastupdatedbyname")
               .withDataType(VARCHAR_255)
               .withSelectExpression(
-                  "tei.lastupdatedbyuserinfo ->> 'firstName' as lastupdatedbyname"),
+                  "tei.lastupdatedbyuserinfo ->> 'firstName' as lastupdatedbyname")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("lastupdatedbylastname")
               .withDataType(VARCHAR_255)
               .withSelectExpression(
-                  "tei.lastupdatedbyuserinfo ->> 'surname' as lastupdatedbylastname"),
+                  "tei.lastupdatedbyuserinfo ->> 'surname' as lastupdatedbylastname")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
               .withName("lastupdatedbydisplayname")
               .withDataType(VARCHAR_255)
               .withSelectExpression(
-                  getDisplayName("lastupdatedbyuserinfo", "tei", "lastupdatedbydisplayname")));
+                  getDisplayName("lastupdatedbyuserinfo", "tei", "lastupdatedbydisplayname"))
+              .build());
 
   public JdbcTeiAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -375,13 +375,13 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
             program ->
                 columns.add(
                     AnalyticsTableColumn.builder()
-                        .build()
                         .withName(program.getUid())
                         .withDataType(BOOLEAN)
                         .withSelectExpression(
                             replace(
                                 selectExpression,
-                                Map.of("programId", String.valueOf(program.getId()))))));
+                                "programId", String.valueOf(program.getId())))
+                        .build()));
 
     List<TrackedEntityAttribute> trackedEntityAttributes =
         programsByTetUid.containsKey(tet.getUid())
@@ -399,11 +399,11 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
             .map(
                 tea ->
                     AnalyticsTableColumn.builder()
-                        .build()
                         .withName(tea.getUid())
                         .withDataType(getColumnType(tea.getValueType(), isSpatialSupport()))
                         .withSelectExpression(
-                            castBasedOnType(tea.getValueType(), "\"" + tea.getUid() + "\".value")))
+                            castBasedOnType(tea.getValueType(), "\"" + tea.getUid() + "\".value"))
+                        .build())
             .toList());
 
     columns.addAll(getOrganisationUnitGroupSetColumns());
