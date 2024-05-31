@@ -36,9 +36,12 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_SKIP_
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_UNLOGGED;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_PERIOD_YEARS_OFFSET;
 import static org.hisp.dhis.util.ObjectUtils.isNull;
+
+import com.google.common.collect.Lists;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.table.model.Skip;
@@ -47,8 +50,6 @@ import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.stereotype.Component;
-import com.google.common.collect.Lists;
-import lombok.RequiredArgsConstructor;
 
 /**
  * Component responsible for exposing analytics table settings. Provides settings living in
@@ -110,14 +111,15 @@ public class AnalyticsTableSettings {
   }
 
   /**
-   * Returns a set of dimension identifiers (UID) for which to skip building indexes for analytics tables.
-   * 
+   * Returns a set of dimension identifiers (UID) for which to skip building indexes for analytics
+   * tables.
+   *
    * @return a set of dimension identifiers.
    */
   public Set<String> getSkipIndexDimensions() {
     return toSet(config.getProperty(ANALYTICS_TABLE_SKIP_INDEX));
   }
-  
+
   /**
    * Returns the {@link Database} matching the given value.
    *
@@ -143,7 +145,7 @@ public class AnalyticsTableSettings {
 
   /**
    * Splits the given value on comma, and returns the values as a set.
-   * 
+   *
    * @param value the value.
    * @return a set of values.
    */
@@ -151,13 +153,13 @@ public class AnalyticsTableSettings {
     if (isBlank(value)) {
       return Set.of();
     }
-    
+
     return Lists.newArrayList(value.split(",")).stream()
         .filter(Objects::nonNull)
         .map(String::trim)
-        .collect(Collectors.toSet());    
+        .collect(Collectors.toSet());
   }
-  
+
   /**
    * Converts the boolean enabled flag to a {@link Skip} value.
    *

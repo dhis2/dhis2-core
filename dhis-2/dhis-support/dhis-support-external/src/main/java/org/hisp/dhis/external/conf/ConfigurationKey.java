@@ -28,10 +28,11 @@
 package org.hisp.dhis.external.conf;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
+
 import java.util.Arrays;
 import java.util.Optional;
-import org.hisp.dhis.security.utils.CspConstants;
 import lombok.Getter;
+import org.hisp.dhis.security.utils.CspConstants;
 
 /**
  * @author Lars Helge Overland
@@ -384,8 +385,9 @@ public enum ConfigurationKey {
   /** Use unlogged tables during analytics export. (default: ON) */
   ANALYTICS_TABLE_UNLOGGED("analytics.table.unlogged", Constants.ON),
 
-
-  /** Skip building indexes on analytics tables for the comma-separated list of UIDs. Experimental. */
+  /**
+   * Skip building indexes on analytics tables for the comma-separated list of UIDs. Experimental.
+   */
   ANALYTICS_TABLE_SKIP_INDEX("analytics.table.skip_index", "", false),
 
   /**
