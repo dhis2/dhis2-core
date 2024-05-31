@@ -28,10 +28,6 @@
 package org.hisp.dhis.scheduling;
 
 import static java.util.stream.Collectors.toUnmodifiableSet;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Date;
@@ -55,16 +51,19 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.tracker.imports.validation.ValidationCode;
+import org.slf4j.helpers.MessageFormatter;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.tracker.imports.validation.ValidationCode;
-import org.slf4j.helpers.MessageFormatter;
 
 /**
  *
@@ -598,17 +597,17 @@ public interface JobProgress {
 
   /**
    * How to behave when an item or stage fails. By default, a failure means the process is aborted.
-   * Using a {@link FailurePolicy} allows to customise this behaviour on a stage or item basis.
+   * Using a {@link FailurePolicy} allows to customize this behavior on a stage or item basis.
    *
    * <p>The implementation of {@link FailurePolicy} is done by affecting {@link
-   * #isSkipCurrentStage()} and {@link #isCancelled()} acordingly after the failure occured and has
+   * #isSkipCurrentStage()} and {@link #isCancelled()} accordingly after the failure occurred and has
    * been tracked using one of the {@link #failedStage(String)} or {@link #failedWorkItem(String)}
    * methods.
    */
   enum FailurePolicy {
     /**
-     * Default used to "inherit" the behaviour from the node level above. If the root is not
-     * specified the behaviour is {@link #FAIL}.
+     * Default used to "inherit" the behavior from the node level above. If the root is not
+     * specified the behavior is {@link #FAIL}.
      */
     PARENT,
     /** Fail and abort processing as soon as possible. This is the effective default. */
