@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.analytics;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
+import java.util.Set;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -55,18 +55,26 @@ class AnalyticsExportSettingsTest {
   }
 
   @Test
-  void testSkipIndexCategoryColumns() {
-    when(config.isEnabled(ConfigurationKey.ANALYTICS_TABLE_INDEX_DATA_ELEMENT_GROUP_SET))
-        .thenReturn(true);
-    when(config.isEnabled(ConfigurationKey.ANALYTICS_TABLE_INDEX_CATEGORY)).thenReturn(true);
-    when(config.isEnabled(ConfigurationKey.ANALYTICS_TABLE_INDEX_CATEGORY_OPTION_GROUP_SET))
-        .thenReturn(false);
-    when(config.isEnabled(ConfigurationKey.ANALYTICS_TABLE_INDEX_ORG_UNIT_GROUP_SET))
-        .thenReturn(false);
+  void testGetSkipIndexDimensionsDefault() {
+    when(config.getProperty(ConfigurationKey.ANALYTICS_TABLE_SKIP_INDEX))
+        .thenReturn(ConfigurationKey.ANALYTICS_TABLE_SKIP_INDEX.getDefaultValue());
 
-    assertTrue(settings.skipIndexDataElementGroupSetColumns());
-    assertTrue(settings.skipIndexCategoryColumns());
-    assertFalse(settings.skipIndexCategoryOptionGroupSetColumns());
-    assertFalse(settings.skipIndexOrgUnitGroupSetColumns());
+    assertEquals(Set.of(), settings.getSkipIndexDimensions());
+  }
+
+  @Test
+  void testGetSkipIndexDimensions() {
+    when(config.getProperty(ConfigurationKey.ANALYTICS_TABLE_SKIP_INDEX))
+        .thenReturn("kJ7yGrfR413, Hg5tGfr2fas  , Ju71jG19Kaq,b5TgfRL9pUq");
+
+    assertEquals(
+        Set.of("kJ7yGrfR413", "Hg5tGfr2fas", "Ju71jG19Kaq", "b5TgfRL9pUq"),
+        settings.getSkipIndexDimensions());
+  }
+
+  @Test
+  void testToSet() {
+    Set<String> expected = Set.of("kJ7yGrfR413", "Hg5tGfr2fas", "Ju71jG19Kaq", "b5TgfRL9pUq");
+    assertEquals(expected, settings.toSet("kJ7yGrfR413, Hg5tGfr2fas  , Ju71jG19Kaq,b5TgfRL9pUq"));
   }
 }

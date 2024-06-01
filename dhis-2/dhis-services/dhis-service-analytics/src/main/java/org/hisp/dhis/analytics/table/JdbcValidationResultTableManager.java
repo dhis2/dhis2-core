@@ -235,10 +235,9 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
 
     for (OrganisationUnitGroupSet groupSet : orgUnitGroupSets) {
       String name = quote(groupSet.getUid());
-      boolean skipIndex = analyticsExportSettings.skipIndexOrgUnitGroupSetColumns();
       columns.add(
           new AnalyticsTableColumn(
-              name, CHARACTER_11, "ougs." + name, skipIndex, groupSet.getCreated()));
+              name, CHARACTER_11, "ougs." + name, skipIndex(groupSet), groupSet.getCreated()));
     }
 
     for (OrganisationUnitLevel level : levels) {
@@ -250,10 +249,9 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
 
     for (Category category : attributeCategories) {
       String name = quote(category.getUid());
-      boolean skipIndex = analyticsExportSettings.skipIndexCategoryColumns();
       columns.add(
           new AnalyticsTableColumn(
-              name, CHARACTER_11, "acs." + name, skipIndex, category.getCreated()));
+              name, CHARACTER_11, "acs." + name, skipIndex(category), category.getCreated()));
     }
 
     for (PeriodType periodType : PeriodType.getAvailablePeriodTypes()) {
