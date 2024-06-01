@@ -52,12 +52,12 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.sms.incoming.IncomingSms;
@@ -345,14 +345,14 @@ public abstract class CompressionSMSListener extends BaseSMSListener {
     }
   }
 
-  protected ProgramStatus getCoreProgramStatus(SmsEnrollmentStatus enrollmentStatus) {
+  protected EnrollmentStatus getCoreEnrollmentStatus(SmsEnrollmentStatus enrollmentStatus) {
     switch (enrollmentStatus) {
       case ACTIVE:
-        return ProgramStatus.ACTIVE;
+        return EnrollmentStatus.ACTIVE;
       case COMPLETED:
-        return ProgramStatus.COMPLETED;
+        return EnrollmentStatus.COMPLETED;
       case CANCELLED:
-        return ProgramStatus.CANCELLED;
+        return EnrollmentStatus.CANCELLED;
       default:
         return null;
     }

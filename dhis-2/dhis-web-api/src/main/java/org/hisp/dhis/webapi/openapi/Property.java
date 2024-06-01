@@ -104,6 +104,7 @@ class Property {
     BiConsumer<Method, Field> addMethod =
         (method, field) -> add.accept(new Property(method, field));
 
+    boolean includeByDefault = object.isAnnotationPresent(OpenApi.Property.class);
     Map<String, Field> propertyFields = new HashMap<>();
     fieldsIn(object).forEach(field -> propertyFields.putIfAbsent(getPropertyName(field), field));
     Set<String> ignoredFields =
@@ -113,14 +114,14 @@ class Property {
             .collect(Collectors.toSet());
     propertyFields.values().stream()
         .filter(Property::isProperty)
-        .filter(Property::isExplicitlyIncluded)
+        .filter(f -> includeByDefault || isExplicitlyIncluded(f))
         .forEach(addField);
     methodsIn(object)
         .filter(method -> Property.isGetter(method) || Property.isSetter(method))
         .filter(Property::isExplicitlyIncluded)
         .filter(method -> !ignoredFields.contains(getPropertyName(method)))
         .forEach(method -> addMethod.accept(method, propertyFields.get(getPropertyName(method))));
-    if (properties.isEmpty() || object.isAnnotationPresent(OpenApi.Property.class)) {
+    if (properties.isEmpty() || includeByDefault) {
       methodsIn(object)
           .filter(Property::isGetter)
           .filter(method -> !ignoredFields.contains(getPropertyName(method)))
@@ -130,7 +131,8 @@ class Property {
   }
 
   private static boolean isProperty(Field source) {
-    return !isExplicitlyExcluded(source);
+    return !isExplicitlyExcluded(source)
+        && !source.getType().isAnnotationPresent(OpenApi.Ignore.class);
   }
 
   private static boolean isSetter(Method source) {
@@ -145,6 +147,7 @@ class Property {
   private static boolean isGetter(Method source) {
     String name = source.getName();
     return !isExplicitlyExcluded(source)
+        && !source.getReturnType().isAnnotationPresent(OpenApi.Ignore.class)
         && source.getParameterCount() == 0
         && source.getReturnType() != void.class
         && Stream.of("is", "has", "get").anyMatch(prefix -> isGetterPrefix(name, prefix));
@@ -200,6 +203,10 @@ class Property {
     JsonProperty a = source.getAnnotation(JsonProperty.class);
     if (a != null && a.required()) return true;
     if (a != null && !a.defaultValue().isEmpty()) return false;
+    OpenApi.Property a2 = source.getAnnotation(OpenApi.Property.class);
+    if (a2 != null && a2.required()) return true;
+    if (a2 != null && !a2.defaultValue().isEmpty()) return false;
+    if (source.isAnnotationPresent(Nonnull.class)) return true;
     return type.isPrimitive() && type != boolean.class || type.isEnum() ? true : null;
   }
 

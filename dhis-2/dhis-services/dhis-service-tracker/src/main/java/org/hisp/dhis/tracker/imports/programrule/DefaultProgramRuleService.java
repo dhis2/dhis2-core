@@ -49,7 +49,6 @@ import org.hisp.dhis.tracker.imports.converter.RuleEngineConverterService;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,7 +58,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 class DefaultProgramRuleService implements ProgramRuleService {
-  @Qualifier("serviceTrackerRuleEngine")
   private final ProgramRuleEngine programRuleEngine;
 
   private final RuleEngineConverterService<

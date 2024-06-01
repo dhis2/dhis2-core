@@ -47,7 +47,7 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.tracker.export.Order;
 
@@ -59,7 +59,7 @@ public class EventOperationParams {
 
   private String programStageUid;
 
-  private ProgramStatus programStatus;
+  private EnrollmentStatus enrollmentStatus;
 
   private ProgramType programType;
 

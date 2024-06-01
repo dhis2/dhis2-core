@@ -64,20 +64,21 @@ class HardDeleteAuditTest extends IntegrationTestBase {
   @Autowired private JdbcMaintenanceStore jdbcMaintenanceStore;
 
   @Test
-  void testHardDeleteTei() {
+  void testHardDeleteTrackedEntity() {
     OrganisationUnit ou = createOrganisationUnit('A');
     TrackedEntityAttribute attribute = createTrackedEntityAttribute('A');
-    TrackedEntity tei = createTrackedEntity('A', ou, attribute);
+    TrackedEntity trackedEntity = createTrackedEntity('A', ou, attribute);
     transactionTemplate.execute(
         status -> {
           manager.save(ou);
           manager.save(attribute);
-          trackedEntityService.addTrackedEntity(tei);
-          trackedEntityService.deleteTrackedEntity(tei);
+          trackedEntityService.addTrackedEntity(trackedEntity);
+          trackedEntityService.deleteTrackedEntity(trackedEntity);
           dbmsManager.clearSession();
           return null;
         });
-    final AuditQuery query = AuditQuery.builder().uid(Sets.newHashSet(tei.getUid())).build();
+    final AuditQuery query =
+        AuditQuery.builder().uid(Sets.newHashSet(trackedEntity.getUid())).build();
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) > 0);
     List<Audit> audits = auditService.getAudits(query);
     assertEquals(2, audits.size());
@@ -89,7 +90,7 @@ class HardDeleteAuditTest extends IntegrationTestBase {
         });
     final AuditQuery deleteQuery =
         AuditQuery.builder()
-            .uid(Sets.newHashSet(tei.getUid()))
+            .uid(Sets.newHashSet(trackedEntity.getUid()))
             .auditType(Sets.newHashSet(AuditType.DELETE))
             .build();
     audits = auditService.getAudits(deleteQuery);
@@ -100,6 +101,6 @@ class HardDeleteAuditTest extends IntegrationTestBase {
     Audit audit = audits.get(0);
     assertEquals(AuditType.DELETE, audit.getAuditType());
     assertEquals(TrackedEntity.class.getName(), audit.getKlass());
-    assertEquals(tei.getUid(), audit.getUid());
+    assertEquals(trackedEntity.getUid(), audit.getUid());
   }
 }

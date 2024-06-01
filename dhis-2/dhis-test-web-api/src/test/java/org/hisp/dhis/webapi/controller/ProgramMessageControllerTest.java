@@ -57,7 +57,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class ProgramMessageControllerTest extends DhisControllerConvenienceTest {
 
-  @Autowired private TrackedEntityService teiService;
+  @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private EnrollmentService enrollmentService;
 
@@ -77,9 +77,9 @@ class ProgramMessageControllerTest extends DhisControllerConvenienceTest {
     idObjectManager.save(prA);
     ProgramStage psA = createProgramStage('A', prA);
     idObjectManager.save(psA);
-    TrackedEntity teiA = createTrackedEntity('A', ouA);
-    teiService.addTrackedEntity(teiA);
-    enrollmentA = createEnrollment(prA, teiA, ouA);
+    TrackedEntity trackedEntityA = createTrackedEntity('A', ouA);
+    trackedEntityService.addTrackedEntity(trackedEntityA);
+    enrollmentA = createEnrollment(prA, trackedEntityA, ouA);
     enrollmentService.addEnrollment(enrollmentA);
     eventA = createEvent(psA, enrollmentA, ouA);
     eventService.addEvent(eventA);

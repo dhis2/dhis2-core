@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.user;
 
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -54,7 +53,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags({"user", "management"})
 @Controller
 @RequestMapping("/api/userRoles")
 public class UserRoleController extends AbstractCrudController<UserRole> {
@@ -62,9 +60,13 @@ public class UserRoleController extends AbstractCrudController<UserRole> {
 
   @Override
   protected List<UserRole> getEntityList(
-      WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders)
+      WebMetadata metadata,
+      WebOptions options,
+      List<String> filters,
+      List<Order> orders,
+      List<UserRole> objects)
       throws BadRequestException {
-    List<UserRole> entityList = super.getEntityList(metadata, options, filters, orders);
+    List<UserRole> entityList = super.getEntityList(metadata, options, filters, orders, objects);
 
     if (options.getOptions().containsKey("canIssue")
         && Boolean.parseBoolean(options.getOptions().get("canIssue"))) {

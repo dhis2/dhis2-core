@@ -72,10 +72,9 @@ public interface ProgramRuleEntityMapperService {
 
   /**
    * @param events list of events
-   * @param eventToEvaluate event to filter out from the resulting list.
    * @return A list of mapped events for the list of DHIS events.
    */
-  List<RuleEvent> toMappedRuleEvents(Set<Event> events, Event eventToEvaluate);
+  List<RuleEvent> toMappedRuleEvents(Set<Event> events);
 
   /**
    * @param eventToEvaluate event to converted.

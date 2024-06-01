@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -138,16 +140,17 @@ class DefaultEventService implements EventService {
       throw new NotFoundException(Event.class, uid);
     }
 
-    return getEvent(event, eventParams);
-  }
-
-  public Event getEvent(@Nonnull Event event, EventParams eventParams) throws ForbiddenException {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     List<String> errors = trackerAccessManager.canRead(currentUser, event, false);
     if (!errors.isEmpty()) {
       throw new ForbiddenException(errors.toString());
     }
 
+    return getEvent(event, eventParams, currentUser);
+  }
+
+  private Event getEvent(@Nonnull Event event, EventParams eventParams, UserDetails currentUser)
+      throws ForbiddenException {
     Event result = new Event();
     result.setId(event.getId());
     result.setUid(event.getUid());
@@ -229,6 +232,25 @@ class DefaultEventService implements EventService {
       throws BadRequestException, ForbiddenException {
     EventQueryParams queryParams = paramsMapper.map(operationParams);
     return eventStore.getEvents(queryParams, pageParams);
+  }
+
+  public RelationshipItem getEventInRelationshipItem(String uid, EventParams eventParams)
+      throws NotFoundException, ForbiddenException {
+    RelationshipItem relationshipItem = new RelationshipItem();
+
+    Event event = eventService.getEvent(uid);
+    if (event == null) {
+      throw new NotFoundException(Event.class, uid);
+    }
+
+    UserDetails currentUser = getCurrentUserDetails();
+    List<String> errors = trackerAccessManager.canRead(currentUser, event, false);
+    if (!errors.isEmpty()) {
+      return null;
+    }
+
+    relationshipItem.setEvent(getEvent(event, eventParams, currentUser));
+    return relationshipItem;
   }
 
   @Override

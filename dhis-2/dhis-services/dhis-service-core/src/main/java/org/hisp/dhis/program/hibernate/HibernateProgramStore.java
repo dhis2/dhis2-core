@@ -108,9 +108,8 @@ public class HibernateProgramStore extends HibernateIdentifiableObjectStore<Prog
   @SuppressWarnings("unchecked")
   public boolean hasOrgUnit(Program program, OrganisationUnit organisationUnit) {
     NativeQuery<Long> query =
-        getSession()
-            .createNativeQuery(
-                "select programid from program_organisationunits where programid = :pid and organisationunitid = :ouid");
+        nativeSynchronizedQuery(
+            "select programid from program_organisationunits where programid = :pid and organisationunitid = :ouid");
     query.setParameter("pid", program.getId());
     query.setParameter("ouid", organisationUnit.getId());
 

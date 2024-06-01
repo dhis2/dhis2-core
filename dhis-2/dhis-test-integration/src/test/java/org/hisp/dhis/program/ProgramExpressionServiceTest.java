@@ -50,7 +50,7 @@ class ProgramExpressionServiceTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private ProgramExpressionService programExpressionService;
 
-  @Autowired private TrackedEntityService entityInstanceService;
+  @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -93,8 +93,8 @@ class ProgramExpressionServiceTest extends SingleSetupIntegrationTestBase {
     dataElementB = createDataElement('B');
     dataElementService.addDataElement(dataElementA);
     dataElementService.addDataElement(dataElementB);
-    TrackedEntity entityInstance = createTrackedEntity(organisationUnit);
-    entityInstanceService.addTrackedEntity(entityInstance);
+    TrackedEntity trackedEntity = createTrackedEntity(organisationUnit);
+    trackedEntityService.addTrackedEntity(trackedEntity);
     programExpressionA =
         new ProgramExpression(
             "["

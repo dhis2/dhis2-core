@@ -119,7 +119,7 @@ class TrackedEntityImportValidationTest extends TrackerTest {
   }
 
   @Test
-  void testNoCreateTeiAccessOutsideCaptureScopeOu() throws IOException {
+  void testNoCreateTeAccessOutsideCaptureScopeOu() throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/validations/te-data_with_different_ou.json");
     TrackerImportParams params = new TrackerImportParams();
     User user = userService.getUser(USER_7);
@@ -247,7 +247,9 @@ class TrackedEntityImportValidationTest extends TrackerTest {
   }
 
   @Test
-  void shouldDeleteWhenTEWasTransferredAndUserHasAccessToTransferredOrgUnit() throws IOException {
+  void
+      shouldFailToDeleteWhenTEWasTransferredAndUserHasAccessToTransferredOrgUnitAndTEOUIsNotInCaptureScope()
+          throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/validations/enrollments_te_te-data.json");
     TrackerImportParams params = new TrackerImportParams();
     assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
@@ -261,11 +263,11 @@ class TrackedEntityImportValidationTest extends TrackerTest {
     manager.flush();
     manager.clear();
     ImportReport importReport = deleteTransferredTrackedEntity(userService.getUser(USER_9));
-    assertNoErrors(importReport);
+    assertHasErrors(importReport, 1, ValidationCode.E1000);
   }
 
   @Test
-  void shouldFailToUpdateWhenUserHasAccessToRegistrationUnitAndTEWasTransferred()
+  void shouldDeleteWhenTEWasTransferredAndUserHasAccessToTransferredOrgUnitAndTEOUIsInCaptureScope()
       throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/validations/enrollments_te_te-data.json");
     TrackerImportParams params = new TrackerImportParams();
@@ -279,7 +281,30 @@ class TrackedEntityImportValidationTest extends TrackerTest {
     trackerOwnershipManager.transferOwnership(te, program, orgUnit, true, false);
     manager.flush();
     manager.clear();
-    ImportReport importReport = updateTransferredTrackedEntity(userService.getUser(USER_10));
+    ImportReport importReport = deleteTransferredTrackedEntity(userService.getUser(USER_7));
+    assertNoErrors(importReport);
+  }
+
+  @Test
+  void shouldFailToUpdateWhenUserHasAccessToRegistrationUnitAndTEWasTransferred()
+      throws IOException {
+    TrackerObjects trackerObjects = fromJson("tracker/validations/enrollments_te_te-data.json");
+    assertNoErrors(trackerImportService.importTracker(new TrackerImportParams(), trackerObjects));
+    trackerObjects = fromJson("tracker/validations/enrollments_te_enrollments-data_2.json");
+    TrackerImportParams trackerImportParams = new TrackerImportParams();
+    trackerImportParams.setUserId(USER_8);
+    ImportReport importReport =
+        trackerImportService.importTracker(trackerImportParams, trackerObjects);
+    assertNoErrors(importReport);
+    manager.flush();
+    manager.clear();
+    TrackedEntity te = manager.get(TrackedEntity.class, "KKKKj6vYdes");
+    OrganisationUnit orgUnit = manager.get(OrganisationUnit.class, "QfUVllTs6cW");
+    Program program = manager.get(Program.class, "E8o1E9tAppy");
+    trackerOwnershipManager.transferOwnership(te, program, orgUnit, true, false);
+    manager.flush();
+    manager.clear();
+    importReport = updateTransferredTrackedEntity(USER_10, "KKKKj6vYdes");
     assertHasErrors(importReport, 1, ValidationCode.E1003);
   }
 
@@ -297,7 +322,7 @@ class TrackedEntityImportValidationTest extends TrackerTest {
     trackerOwnershipManager.transferOwnership(te, program, orgUnit, true, false);
     manager.flush();
     manager.clear();
-    ImportReport importReport = updateTransferredTrackedEntity(userService.getUser(USER_9));
+    ImportReport importReport = updateTransferredTrackedEntity(USER_9, "Kj6vYde4LHh");
     assertNoErrors(importReport);
   }
 
@@ -333,11 +358,13 @@ class TrackedEntityImportValidationTest extends TrackerTest {
     return trackerImportService.importTracker(params, trackerObjects);
   }
 
-  protected ImportReport updateTransferredTrackedEntity(User user) throws IOException {
+  protected ImportReport updateTransferredTrackedEntity(String userId, String trackedEntity)
+      throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/validations/te-transferred-data-update.json");
+    trackerObjects.getTrackedEntities().get(0).setTrackedEntity(trackedEntity);
     TrackerImportParams params = new TrackerImportParams();
     params.setImportStrategy(TrackerImportStrategy.UPDATE);
-    params.setUserId(user.getUid());
+    params.setUserId(userId);
     return trackerImportService.importTracker(params, trackerObjects);
   }
 }

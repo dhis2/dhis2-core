@@ -52,10 +52,10 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.dxf2.deprecated.tracker.enrollment.EnrollmentStatus;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.stereotype.Component;
 
@@ -208,12 +208,10 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
   }
 
   private List<String> enrollmentStatusAsDimension(Set<String> enrollmentStatuses) {
-    // builds a map of [program] with a list of program (enrollment) statuses
+    // Builds a map of [program] with a list of enrollment statuses.
     Map<String, List<EnrollmentStatus>> statusesByProgram =
         enrollmentStatuses.stream()
-            .map(
-                enrollmentStatus ->
-                    splitAndValidate(enrollmentStatus, IS_ENROLLMENT_STATUS, 2, E7140))
+            .map(status -> splitAndValidate(status, IS_ENROLLMENT_STATUS, 2, E7140))
             .map(
                 parts ->
                     Pair.of(parts[0], find(() -> EnrollmentStatus.valueOf(parts[1])).orElse(null)))

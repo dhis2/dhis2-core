@@ -315,6 +315,11 @@
       <artifactId>spring-security-oauth2-jose</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>org.jetbrains</groupId>
+      <artifactId>annotations</artifactId>
+    </dependency>
+
     <!-- Batik -->
 
     <dependency>

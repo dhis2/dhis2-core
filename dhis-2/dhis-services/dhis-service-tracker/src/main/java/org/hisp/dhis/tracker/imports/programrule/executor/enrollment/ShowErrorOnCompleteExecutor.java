@@ -31,9 +31,9 @@ import static org.hisp.dhis.tracker.imports.programrule.IssueType.ERROR;
 
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
-import org.hisp.dhis.tracker.imports.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.imports.programrule.IssueType;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.imports.programrule.executor.ValidationExecutor;

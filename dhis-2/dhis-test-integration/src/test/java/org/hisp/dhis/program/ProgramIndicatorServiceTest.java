@@ -76,7 +76,7 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private TrackedEntityAttributeService attributeService;
 
-  @Autowired private TrackedEntityService entityInstanceService;
+  @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -234,18 +234,18 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest {
     // ---------------------------------------------------------------------
     // TrackedEntity & Enrollment
     // ---------------------------------------------------------------------
-    TrackedEntity entityInstance = createTrackedEntity(organisationUnit);
-    entityInstanceService.addTrackedEntity(entityInstance);
+    TrackedEntity trackedEntity = createTrackedEntity(organisationUnit);
+    trackedEntityService.addTrackedEntity(trackedEntity);
     incidentDate = DateUtils.toMediumDate("2014-10-22");
     enrollmentDate = DateUtils.toMediumDate("2014-12-31");
     enrollment =
         enrollmentService.enrollTrackedEntity(
-            entityInstance, programA, enrollmentDate, incidentDate, organisationUnit);
+            trackedEntity, programA, enrollmentDate, incidentDate, organisationUnit);
     incidentDate = DateUtils.toMediumDate("2014-10-22");
     enrollmentDate = DateUtils.toMediumDate("2014-12-31");
     enrollment =
         enrollmentService.enrollTrackedEntity(
-            entityInstance, programA, enrollmentDate, incidentDate, organisationUnit);
+            trackedEntity, programA, enrollmentDate, incidentDate, organisationUnit);
     // TODO enroll twice?
     // ---------------------------------------------------------------------
     // TrackedEntityAttribute
@@ -257,9 +257,9 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest {
     attributeService.addTrackedEntityAttribute(atA);
     attributeService.addTrackedEntityAttribute(atB);
     TrackedEntityAttributeValue attributeValueA =
-        new TrackedEntityAttributeValue(atA, entityInstance, "1");
+        new TrackedEntityAttributeValue(atA, trackedEntity, "1");
     TrackedEntityAttributeValue attributeValueB =
-        new TrackedEntityAttributeValue(atB, entityInstance, "2");
+        new TrackedEntityAttributeValue(atB, trackedEntity, "2");
     attributeValueService.addTrackedEntityAttributeValue(attributeValueA);
     attributeValueService.addTrackedEntityAttributeValue(attributeValueB);
     // ---------------------------------------------------------------------

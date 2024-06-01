@@ -41,8 +41,6 @@ import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteria
 public interface RelationshipService {
   String ID = RelationshipService.class.getName();
 
-  boolean relationshipExists(String uid);
-
   /**
    * Adds an {@link Relationship}
    *
@@ -57,13 +55,6 @@ public interface RelationshipService {
    * @param relationship the relationship.
    */
   void deleteRelationship(Relationship relationship);
-
-  /**
-   * Updates a {@link Relationship}.
-   *
-   * @param relationship the relationship.
-   */
-  void updateRelationship(Relationship relationship);
 
   /**
    * Returns a {@link Relationship}.

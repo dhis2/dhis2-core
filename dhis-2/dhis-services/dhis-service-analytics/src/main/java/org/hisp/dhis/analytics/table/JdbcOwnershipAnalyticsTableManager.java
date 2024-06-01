@@ -89,10 +89,27 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
 
   protected static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
-          new AnalyticsTableColumn("teiuid", CHARACTER_11, "tei.uid"),
-          new AnalyticsTableColumn("startdate", DATE, "a.startdate"),
-          new AnalyticsTableColumn("enddate", DATE, "a.enddate"),
-          new AnalyticsTableColumn("ou", CHARACTER_11, NOT_NULL, "ou.uid"));
+          AnalyticsTableColumn.builder()
+              .name("teiuid")
+              .dataType(CHARACTER_11)
+              .selectExpression("tei.uid")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("startdate")
+              .dataType(DATE)
+              .selectExpression("a.startdate")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("enddate")
+              .dataType(DATE)
+              .selectExpression("a.enddate")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("ou")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("ou.uid")
+              .build());
 
   public JdbcOwnershipAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,

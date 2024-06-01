@@ -34,6 +34,7 @@ import static org.hisp.dhis.trackedentity.TrackerOwnershipManager.PROGRAM_ACCESS
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -99,7 +100,11 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     List<Program> tetPrograms =
         programs.stream()
             .filter(
-                p -> Objects.equals(p.getTrackedEntityType(), trackedEntity.getTrackedEntityType()))
+                p ->
+                    p.isRegistration()
+                        && Objects.equals(
+                            p.getTrackedEntityType().getUid(),
+                            trackedEntity.getTrackedEntityType().getUid()))
             .toList();
 
     if (tetPrograms.isEmpty()) {
@@ -168,7 +173,11 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     List<Program> tetPrograms =
         programs.stream()
             .filter(
-                p -> Objects.equals(p.getTrackedEntityType(), trackedEntity.getTrackedEntityType()))
+                p ->
+                    p.isRegistration()
+                        && Objects.equals(
+                            p.getTrackedEntityType().getUid(),
+                            trackedEntity.getTrackedEntityType().getUid()))
             .toList();
 
     if (tetPrograms.isEmpty()) {
@@ -606,15 +615,47 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     RelationshipItem from = relationship.getFrom();
     RelationshipItem to = relationship.getTo();
+    boolean isBidirectional = relationshipType.isBidirectional();
 
     errors.addAll(canWrite(user, from.getTrackedEntity()));
     errors.addAll(canUpdate(user, from.getEnrollment(), false));
     errors.addAll(canUpdate(user, from.getEvent(), false));
 
-    errors.addAll(canWrite(user, to.getTrackedEntity()));
-    errors.addAll(canUpdate(user, to.getEnrollment(), false));
-    errors.addAll(canUpdate(user, to.getEvent(), false));
+    if (isBidirectional) {
+      errors.addAll(canWrite(user, to.getTrackedEntity()));
+      errors.addAll(canUpdate(user, to.getEnrollment(), false));
+      errors.addAll(canUpdate(user, to.getEvent(), false));
+    } else {
+      errors.addAll(canRead(user, to.getTrackedEntity()));
+      errors.addAll(canRead(user, to.getEnrollment(), false));
+      errors.addAll(canRead(user, to.getEvent(), false));
+    }
+    return errors;
+  }
 
+  @Override
+  @Transactional(readOnly = true)
+  public List<String> canDelete(UserDetails user, @Nonnull Relationship relationship) {
+    RelationshipType relationshipType = relationship.getRelationshipType();
+    List<String> errors = new ArrayList<>();
+
+    if (!aclService.canDataWrite(user, relationshipType)) {
+      errors.add("User has no data write access to relationshipType: " + relationshipType.getUid());
+    }
+
+    RelationshipItem from = relationship.getFrom();
+    RelationshipItem to = relationship.getTo();
+    boolean isBidirectional = relationshipType.isBidirectional();
+
+    errors.addAll(canWrite(user, from.getTrackedEntity()));
+    errors.addAll(canUpdate(user, from.getEnrollment(), false));
+    errors.addAll(canUpdate(user, from.getEvent(), false));
+
+    if (isBidirectional) {
+      errors.addAll(canWrite(user, to.getTrackedEntity()));
+      errors.addAll(canUpdate(user, to.getEnrollment(), false));
+      errors.addAll(canUpdate(user, to.getEvent(), false));
+    }
     return errors;
   }
 

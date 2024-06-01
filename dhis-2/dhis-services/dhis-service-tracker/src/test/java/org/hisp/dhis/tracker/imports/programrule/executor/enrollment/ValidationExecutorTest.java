@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.tracker.imports.programrule.executor.enrollment;
 
-import static org.hisp.dhis.tracker.imports.domain.EnrollmentStatus.ACTIVE;
-import static org.hisp.dhis.tracker.imports.domain.EnrollmentStatus.COMPLETED;
+import static org.hisp.dhis.program.EnrollmentStatus.ACTIVE;
+import static org.hisp.dhis.program.EnrollmentStatus.COMPLETED;
 import static org.hisp.dhis.tracker.imports.programrule.IssueType.ERROR;
 import static org.hisp.dhis.tracker.imports.programrule.IssueType.WARNING;
 import static org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue.error;

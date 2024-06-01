@@ -72,9 +72,9 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
 
   private static final String ORG_UNIT_ID = "ORG_UNIT_ID";
 
-  private static final String TE_ID = "TEI_ID";
+  private static final String TE_ID = "TE_ID";
 
-  private static final String TE_TYPE_ID = "TEI_TYPE_ID";
+  private static final String TE_TYPE_ID = "TE_TYPE_ID";
 
   private static final String PROGRAM_ID = "PROGRAM_ID";
 
@@ -149,7 +149,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldSuccessWhenDeleteTEWithNoEnrollmentsAndUserHasWriteAccess() {
+  void shouldSuccessWhenDeleteTEWithNoEnrollmentsAndUserHasWriteAccessAndOUInCaptureScope() {
     org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
         org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
             .trackedEntity(TE_ID)
@@ -161,6 +161,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     TrackedEntity te = teWithNoEnrollments();
     when(preheat.getTrackedEntity(TE_ID)).thenReturn(te);
     when(trackerAccessManager.canWrite(any(), eq(te))).thenReturn(List.of());
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
 
     validator.validate(reporter, bundle, trackedEntity);
 
@@ -191,7 +192,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldSuccessWhenDeleteTEWithDeletedEnrollmentsAndUserHasWriteAccess() {
+  void shouldSuccessWhenDeleteTEWithDeletedEnrollmentsAndUserHasWriteAccessAndOUInCaptureScope() {
     org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
         org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
             .trackedEntity(TE_ID)
@@ -203,6 +204,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     TrackedEntity te = teWithDeleteEnrollments();
     when(preheat.getTrackedEntity(TE_ID)).thenReturn(te);
     when(trackerAccessManager.canWrite(any(), eq(te))).thenReturn(List.of());
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
 
     validator.validate(reporter, bundle, trackedEntity);
 
@@ -210,7 +212,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldSuccessWhenDeleteTEWithEnrollmentsAndUserHasWriteAccessAndDeleteCascadeAuthority() {
+  void
+      shouldSuccessWhenDeleteTEWithEnrollmentsAndUserHasWriteAccessAndOUInCaptureScopeAndDeleteCascadeAuthority() {
     org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
         org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
             .trackedEntity(TE_ID)
@@ -223,6 +226,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     TrackedEntity te = teWithEnrollments();
     when(preheat.getTrackedEntity(TE_ID)).thenReturn(te);
     when(trackerAccessManager.canWrite(any(), eq(te))).thenReturn(List.of());
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
 
     validator.validate(reporter, bundle, trackedEntity);
 

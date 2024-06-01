@@ -72,7 +72,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
 
   private static final String TRACKED_ENTITY = "trackedEntity";
 
-  private static final String PROGRAM_INSTANCE = "enrollment";
+  private static final String ENROLLMENT = "enrollment";
 
   private static final String EVENT = "event";
 
@@ -236,7 +236,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
 
   private <T extends IdentifiableObject> String getRelationshipEntityType(T entity) {
     if (entity instanceof TrackedEntity) return TRACKED_ENTITY;
-    else if (entity instanceof Enrollment) return PROGRAM_INSTANCE;
+    else if (entity instanceof Enrollment) return ENROLLMENT;
     else if (entity instanceof Event) return EVENT;
     else
       throw new IllegalArgumentException(

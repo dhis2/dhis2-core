@@ -55,10 +55,10 @@ import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
@@ -220,17 +220,8 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
   }
 
   @Test
-  void testMappedRuleEventsWithFilter() {
-    List<RuleEvent> ruleEvents =
-        subject.toMappedRuleEvents(Sets.newHashSet(eventA, eventB), eventB);
-
-    assertEquals(1, ruleEvents.size());
-    assertEquals(expectedRuleEvent, ruleEvents.get(0));
-  }
-
-  @Test
   void testMappedRuleEvents() {
-    List<RuleEvent> ruleEvents = subject.toMappedRuleEvents(Sets.newHashSet(eventA, eventB), null);
+    List<RuleEvent> ruleEvents = subject.toMappedRuleEvents(Sets.newHashSet(eventA, eventB));
 
     assertEquals(2, ruleEvents.size());
   }
@@ -422,7 +413,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
     enrollmentB = new Enrollment(now, now, trackedEntity, program);
     enrollment = new Enrollment(now, now, trackedEntity, program);
     enrollment.setOrganisationUnit(organisationUnit);
-    enrollment.setStatus(ProgramStatus.ACTIVE);
+    enrollment.setStatus(EnrollmentStatus.ACTIVE);
     enrollment.setAutoFields();
     enrollment.setEnrollmentDate(now);
     enrollment.setOccurredDate(now);
@@ -451,7 +442,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
             programStage.getName(),
             RuleEventStatus.valueOf(eventA.getStatus().name()),
             Instant.Companion.fromEpochMilliseconds(now.getTime()),
-            LocalDateTime.Companion.parse(DateUtils.toIso8601NoTz(now)).getDate(),
+            LocalDateTime.Formats.INSTANCE.getISO().parse(DateUtils.toIso8601NoTz(now)).getDate(),
             null,
             organisationUnit.getUid(),
             organisationUnit.getCode(),

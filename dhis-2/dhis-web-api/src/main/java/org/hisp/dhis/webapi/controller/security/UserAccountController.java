@@ -40,6 +40,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.auth.UserInviteParams;
 import org.hisp.dhis.common.auth.UserRegistrationParams;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -56,7 +57,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccountService;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -77,7 +77,7 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@OpenApi.Tags({"user"})
+@OpenApi.Document(domain = User.class)
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -89,15 +89,20 @@ public class UserAccountController {
   private final UserAccountService userAccountService;
   private final SystemSettingManager systemSettingManager;
   private final PasswordValidationService passwordValidationService;
+  private final DhisConfigurationProvider configurationProvider;
 
   @PostMapping("/forgotPassword")
   @ResponseStatus(HttpStatus.OK)
-  public void forgotPassword(
-      HttpServletRequest request, @RequestBody ForgotPasswordRequest forgotPasswordRequest)
+  public void forgotPassword(@RequestBody ForgotPasswordRequest forgotPasswordRequest)
       throws HiddenNotFoundException, ConflictException, ForbiddenException {
 
     if (!systemSettingManager.accountRecoveryEnabled()) {
       throw new ConflictException("Account recovery is not enabled");
+    }
+
+    String baseUrl = configurationProvider.getServerBaseUrl();
+    if (StringUtils.isEmpty(baseUrl)) {
+      throw new ConflictException("Server base URL is not configured");
     }
 
     User user = getUser(forgotPasswordRequest.getEmailOrUsername());
@@ -111,9 +116,7 @@ public class UserAccountController {
     }
 
     if (!userService.sendRestoreOrInviteMessage(
-        user,
-        HttpServletRequestPaths.getContextPath(request),
-        RestoreOptions.RECOVER_PASSWORD_OPTION)) {
+        user, baseUrl, RestoreOptions.RECOVER_PASSWORD_OPTION)) {
       throw new ConflictException("Account could not be recovered");
     }
 

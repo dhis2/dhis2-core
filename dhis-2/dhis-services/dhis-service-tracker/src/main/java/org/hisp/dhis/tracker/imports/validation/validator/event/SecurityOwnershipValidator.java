@@ -125,13 +125,13 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
     OrganisationUnit ownerOrgUnit = getOwnerOrganisationUnit(preheat, teUid, program);
     // Check acting user is allowed to change existing/write event
     if (strategy.isUpdateOrDelete()) {
-      TrackedEntity entityInstance = preheatEvent.getEnrollment().getTrackedEntity();
+      TrackedEntity trackedEntity = preheatEvent.getEnrollment().getTrackedEntity();
       validateUpdateAndDeleteEvent(
           reporter,
           bundle,
           event,
           preheatEvent,
-          entityInstance == null ? null : entityInstance.getUid(),
+          trackedEntity == null ? null : trackedEntity.getUid(),
           ownerOrgUnit);
     } else {
       validateCreateEvent(

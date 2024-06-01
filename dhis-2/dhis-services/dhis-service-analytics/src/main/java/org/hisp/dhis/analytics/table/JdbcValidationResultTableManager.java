@@ -76,10 +76,28 @@ import org.springframework.stereotype.Service;
 public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
-          new AnalyticsTableColumn("dx", CHARACTER_11, NOT_NULL, "vr.uid"),
-          new AnalyticsTableColumn("pestartdate", TIMESTAMP, "pe.startdate"),
-          new AnalyticsTableColumn("peenddate", TIMESTAMP, "pe.enddate"),
-          new AnalyticsTableColumn("year", INTEGER, NOT_NULL, "ps.year"));
+          AnalyticsTableColumn.builder()
+              .name("dx")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("vr.uid")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("pestartdate")
+              .dataType(TIMESTAMP)
+              .selectExpression("pe.startdate")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("peenddate")
+              .dataType(TIMESTAMP)
+              .selectExpression("pe.enddate")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("year")
+              .dataType(INTEGER)
+              .nullable(NOT_NULL)
+              .selectExpression("ps.year")
+              .build());
 
   public JdbcValidationResultTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -230,7 +248,14 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.addAll(getAttributeCategoryColumns());
     columns.addAll(getPeriodTypeColumns("ps"));
-    columns.add(new AnalyticsTableColumn("value", DATE, NULL, FACT, "vrs.created as value"));
+    columns.add(
+        AnalyticsTableColumn.builder()
+            .name("value")
+            .dataType(DATE)
+            .nullable(NULL)
+            .valueType(FACT)
+            .selectExpression("vrs.created as value")
+            .build());
 
     return filterDimensionColumns(columns);
   }

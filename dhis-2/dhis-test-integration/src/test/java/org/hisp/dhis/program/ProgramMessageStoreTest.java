@@ -65,9 +65,9 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest {
 
   private Enrollment enrollmentA;
 
-  private TrackedEntity teiA;
+  private TrackedEntity trackedEntityA;
 
-  private TrackedEntity entityInstanceA;
+  private TrackedEntity trackedEntityB;
 
   private ProgramMessageStatus messageStatus = ProgramMessageStatus.SENT;
 
@@ -114,13 +114,11 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest {
 
   @Autowired private OrganisationUnitService orgUnitService;
 
-  @Autowired private TrackedEntityService teiService;
+  @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private ProgramService programService;
 
   @Autowired private ProgramStageService programStageService;
-
-  @Autowired private TrackedEntityService entityInstanceService;
 
   @Autowired private EventStore eventStore;
 
@@ -142,10 +140,8 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest {
     programStages.add(stageA);
     programA.setProgramStages(programStages);
     programService.updateProgram(programA);
-    entityInstanceA = createTrackedEntity(ouA);
-    entityInstanceService.addTrackedEntity(entityInstanceA);
-    TrackedEntity entityInstanceB = createTrackedEntity(ouA);
-    entityInstanceService.addTrackedEntity(entityInstanceB);
+    trackedEntityB = createTrackedEntity(ouA);
+    trackedEntityService.addTrackedEntity(trackedEntityB);
     DateTime testDate1 = DateTime.now();
     testDate1.withTimeAtStartOfDay();
     testDate1 = testDate1.minusDays(70);
@@ -153,7 +149,7 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest {
     DateTime testDate2 = DateTime.now();
     testDate2.withTimeAtStartOfDay();
     enrollmentDate = testDate2.toDate();
-    enrollmentA = new Enrollment(enrollmentDate, incidentDate, entityInstanceA, programA);
+    enrollmentA = new Enrollment(enrollmentDate, incidentDate, trackedEntityB, programA);
     enrollmentA.setUid("UID-A");
     eventA = new Event(enrollmentA, stageA);
     eventA.setScheduledDate(enrollmentDate);
@@ -163,17 +159,17 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest {
     Set<String> ouUids = new HashSet<>();
     ouUids.add(ouA.getUid());
     // ouSet.add( ouB );
-    teiA = createTrackedEntity(ouA);
-    teiService.addTrackedEntity(teiA);
+    trackedEntityA = createTrackedEntity(ouA);
+    trackedEntityService.addTrackedEntity(trackedEntityA);
     recipientsA = new ProgramMessageRecipients();
     recipientsA.setOrganisationUnit(ouA);
-    recipientsA.setTrackedEntity(teiA);
+    recipientsA.setTrackedEntity(trackedEntityA);
     recipientsB = new ProgramMessageRecipients();
     recipientsB.setOrganisationUnit(ouA);
-    recipientsB.setTrackedEntity(teiA);
+    recipientsB.setTrackedEntity(trackedEntityA);
     recipientsC = new ProgramMessageRecipients();
     recipientsC.setOrganisationUnit(ouA);
-    recipientsC.setTrackedEntity(teiA);
+    recipientsC.setTrackedEntity(trackedEntityA);
     Set<String> phoneNumberListA = new HashSet<>();
     phoneNumberListA.add(msisdn);
     recipientsA.setPhoneNumbers(phoneNumberListA);

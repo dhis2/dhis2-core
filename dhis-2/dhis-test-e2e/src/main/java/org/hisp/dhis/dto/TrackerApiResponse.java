@@ -44,7 +44,7 @@ public class TrackerApiResponse extends ApiResponse {
     super(response.raw);
   }
 
-  public List<String> extractImportedTeis() {
+  public List<String> extractImportedTrackedEntities() {
     return this.extractList("bundleReport.typeReportMap.TRACKED_ENTITY.objectReports.uid");
   }
 
@@ -90,7 +90,7 @@ public class TrackerApiResponse extends ApiResponse {
         .rootPath("validationReport.warningReports");
   }
 
-  public ValidatableResponse validateTeis() {
+  public ValidatableResponse validateTrackedEntities() {
     return validate()
         .body("bundleReport.typeReportMap.TRACKED_ENTITY", notNullValue())
         .rootPath("bundleReport.typeReportMap.TRACKED_ENTITY");

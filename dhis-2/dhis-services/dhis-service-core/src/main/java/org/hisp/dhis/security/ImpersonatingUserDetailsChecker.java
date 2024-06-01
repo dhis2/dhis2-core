@@ -40,11 +40,11 @@ public class ImpersonatingUserDetailsChecker extends AccountStatusUserDetailsChe
   public void check(org.springframework.security.core.userdetails.UserDetails userToImpersonate) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     if (currentUser == null) {
-      throw new InsufficientAuthenticationException("User is not authenticated.");
+      throw new InsufficientAuthenticationException("User is not authenticated");
     }
 
     if (currentUser.getUsername().equals(userToImpersonate.getUsername())) {
-      throw new InsufficientAuthenticationException("User can not impersonate itself.");
+      throw new InsufficientAuthenticationException("User can not impersonate itself");
     }
 
     boolean userToImpersonateIsSuper =
@@ -53,7 +53,7 @@ public class ImpersonatingUserDetailsChecker extends AccountStatusUserDetailsChe
 
     if ((!currentUser.isSuper() && userToImpersonateIsSuper)) {
       throw new InsufficientAuthenticationException(
-          "User is not authorized to impersonate super user.");
+          "User is not authorized to impersonate super user");
     }
   }
 }

@@ -61,7 +61,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @OpenApi.EntityType(Enrollment.class)
-@OpenApi.Tags("tracker")
+@OpenApi.Document(domain = org.hisp.dhis.program.Enrollment.class)
 @RestController
 @RequestMapping("/api/tracker/enrollments")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -136,7 +136,7 @@ class EnrollmentsExportController {
   @OpenApi.Response(OpenApi.EntityType.class)
   @GetMapping(value = "/{uid}")
   public ResponseEntity<ObjectNode> getEnrollmentByUid(
-      @OpenApi.Param({UID.class, Enrollment.class}) @PathVariable UID uid,
+      @OpenApi.Param({UID.class, org.hisp.dhis.program.Enrollment.class}) @PathVariable UID uid,
       @OpenApi.Param(value = String[].class) @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM)
           List<FieldPath> fields)
       throws NotFoundException, ForbiddenException {

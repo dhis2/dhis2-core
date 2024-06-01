@@ -68,7 +68,7 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
     implements RelationshipStore {
   private static final String TRACKED_ENTITY = "trackedEntity";
 
-  private static final String PROGRAM_INSTANCE = "enrollment";
+  private static final String ENROLLMENT = "enrollment";
 
   private static final String EVENT = "event";
 
@@ -172,7 +172,7 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
 
   private <T extends IdentifiableObject> String getRelationshipEntityType(T entity) {
     if (entity instanceof TrackedEntity) return TRACKED_ENTITY;
-    else if (entity instanceof Enrollment) return PROGRAM_INSTANCE;
+    else if (entity instanceof Enrollment) return ENROLLMENT;
     else if (entity instanceof Event) return EVENT;
     else
       throw new IllegalArgumentException(
@@ -220,7 +220,7 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
   @SuppressWarnings("unchecked")
   public boolean existsIncludingDeleted(String uid) {
     Query<String> query =
-        getSession().createNativeQuery("select uid from relationship where uid=:uid limit 1;");
+        nativeSynchronizedQuery("select uid from relationship where uid=:uid limit 1;");
     query.setParameter("uid", uid);
 
     return !query.list().isEmpty();
@@ -286,17 +286,17 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
       return Collections.emptyList();
     }
 
+    String sql =
+        """
+        SELECT R.uid
+        FROM relationship R
+        INNER JOIN relationshiptype RT ON RT.relationshiptypeid = R.relationshiptypeid
+        WHERE R.deleted = false AND (R.key IN (:keys)
+        OR (R.inverted_key IN (:keys) AND RT.bidirectional = TRUE))
+        """;
     List<Object> c =
-        getSession()
-            .createNativeQuery(
-                new StringBuilder()
-                    .append("SELECT R.uid ")
-                    .append("FROM relationship R ")
-                    .append(
-                        "INNER JOIN relationshiptype RT ON RT.relationshiptypeid = R.relationshiptypeid ")
-                    .append("WHERE R.deleted = false AND (R.key IN (:keys) ")
-                    .append("OR (R.inverted_key IN (:keys) AND RT.bidirectional = TRUE))")
-                    .toString())
+        nativeSynchronizedQuery(sql)
+            .addSynchronizedEntityClass(RelationshipType.class)
             .setParameter("keys", relationshipKeyList)
             .getResultList();
 
@@ -344,8 +344,7 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
           getItem(direction, relationship).getTrackedEntity());
     } else if (relationshipItemDirection.getEnrollment() != null) {
       return builder.equal(
-          root.join(direction).get(PROGRAM_INSTANCE),
-          getItem(direction, relationship).getEnrollment());
+          root.join(direction).get(ENROLLMENT), getItem(direction, relationship).getEnrollment());
     } else if (relationshipItemDirection.getEvent() != null) {
       return builder.equal(
           root.join(direction).get(EVENT), getItem(direction, relationship).getEvent());

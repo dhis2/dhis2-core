@@ -29,10 +29,8 @@ package org.hisp.dhis.trackedentity;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -44,14 +42,10 @@ public interface TrackedEntityStore extends IdentifiableObjectStore<TrackedEntit
 
   List<Long> getTrackedEntityIds(TrackedEntityQueryParams params);
 
-  List<Map<String, String>> getTrackedEntitiesGrid(TrackedEntityQueryParams params);
-
-  int getTrackedEntityCountForGrid(TrackedEntityQueryParams params);
-
-  int getTrackedEntityCountForGridWithMaxTeiLimit(TrackedEntityQueryParams params);
+  int getTrackedEntityCountWithMaxTeLimit(TrackedEntityQueryParams params);
 
   /**
-   * Checks for the existence of a TE by UID. Deleted TEIs are not taken into account.
+   * Checks for the existence of a TE by UID. Deleted TEs are not taken into account.
    *
    * @param uid Event UID to check for.
    * @return true/false depending on result.
@@ -59,20 +53,12 @@ public interface TrackedEntityStore extends IdentifiableObjectStore<TrackedEntit
   boolean exists(String uid);
 
   /**
-   * Checks for the existence of a TE by UID. Takes into account also the deleted TEIs.
+   * Checks for the existence of a TE by UID. Takes into account also the deleted TEs.
    *
    * @param uid Event UID to check for.
    * @return true/false depending on result.
    */
   boolean existsIncludingDeleted(String uid);
-
-  /**
-   * Returns UIDs of existing TrackedEntity(including deleted) from the provided UIDs
-   *
-   * @param uids TE UIDs to check
-   * @return List containing UIDs of existing TEIs (including deleted)
-   */
-  List<String> getUidsIncludingDeleted(List<String> uids);
 
   /**
    * Fetches TrackedEntity matching the given list of UIDs
@@ -82,22 +68,6 @@ public interface TrackedEntityStore extends IdentifiableObjectStore<TrackedEntit
    */
   List<TrackedEntity> getIncludingDeleted(List<String> uids);
 
-  /**
-   * Set lastSynchronized timestamp to provided timestamp for provided TEIs
-   *
-   * @param trackedEntityUIDs UIDs of Tracked entity instances where the lastSynchronized flag
-   *     should be updated
-   * @param lastSynchronized The date of last successful sync
-   */
-  void updateTrackedEntitySyncTimestamp(List<String> trackedEntityUIDs, Date lastSynchronized);
-
-  /**
-   * @param trackedEntityUIDs
-   * @param lastUpdated
-   * @param userInfoSnapshot
-   */
   void updateTrackedEntityLastUpdated(
       Set<String> trackedEntityUIDs, Date lastUpdated, String userInfoSnapshot);
-
-  List<TrackedEntity> getTrackedEntityByUid(List<String> uids, UserDetails user);
 }
