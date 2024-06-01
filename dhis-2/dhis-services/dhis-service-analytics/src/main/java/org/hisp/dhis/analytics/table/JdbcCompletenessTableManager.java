@@ -268,10 +268,9 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
 
     for (OrganisationUnitGroupSet groupSet : orgUnitGroupSets) {
       String name = quote(groupSet.getUid());
-      boolean skipIndex = analyticsExportSettings.skipIndexOrgUnitGroupSetColumns();
       columns.add(
           new AnalyticsTableColumn(
-              name, CHARACTER_11, "ougs." + name, skipIndex, groupSet.getCreated()));
+              name, CHARACTER_11, "ougs." + name, skipIndex(groupSet), groupSet.getCreated()));
     }
 
     for (OrganisationUnitLevel level : levels) {
@@ -283,18 +282,16 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
 
     for (CategoryOptionGroupSet groupSet : attributeCategoryOptionGroupSets) {
       String name = quote(groupSet.getUid());
-      boolean skipIndex = analyticsExportSettings.skipIndexCategoryOptionGroupSetColumns();
       columns.add(
           new AnalyticsTableColumn(
-              name, CHARACTER_11, "acs." + name, skipIndex, groupSet.getCreated()));
+              name, CHARACTER_11, "acs." + name, skipIndex(groupSet), groupSet.getCreated()));
     }
 
     for (Category category : attributeCategories) {
       String name = quote(category.getUid());
-      boolean skipIndex = analyticsExportSettings.skipIndexCategoryColumns();
       columns.add(
           new AnalyticsTableColumn(
-              name, CHARACTER_11, "acs." + name, skipIndex, category.getCreated()));
+              name, CHARACTER_11, "acs." + name, skipIndex(category), category.getCreated()));
     }
 
     columns.addAll(addPeriodTypeColumns("ps"));

@@ -528,10 +528,14 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
       for (Category category : categories) {
         if (category.isDataDimension()) {
+          boolean skipIndex = skipIndex(category);
           columns.add(
               new AnalyticsTableColumn(
-                      quote(category.getUid()), CHARACTER_11, "acs." + quote(category.getUid()))
-                  .withCreated(category.getCreated()));
+                  quote(category.getUid()),
+                  CHARACTER_11,
+                  "acs." + quote(category.getUid()),
+                  skipIndex,
+                  category.getCreated()));
         }
       }
     }

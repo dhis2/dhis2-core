@@ -59,6 +59,7 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
@@ -595,11 +596,23 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             ougs -> {
               String column = quote(ougs.getUid());
-              boolean skipIndex = analyticsExportSettings.skipIndexOrgUnitGroupSetColumns();
+              boolean skipIndex = skipIndex(ougs);
               return new AnalyticsTableColumn(
                   column, CHARACTER_11, "ougs." + column, skipIndex, ougs.getCreated());
             })
         .collect(Collectors.toList());
+  }
+
+  /**
+   * Indicates whether indexing should be skipped for the given dimensional object based on the
+   * system configuration.
+   *
+   * @param dimension the {@link DimensionalObject}.
+   * @return true if index should be skipped, false otherwise.
+   */
+  protected boolean skipIndex(DimensionalObject dimension) {
+    Set<String> dimensions = analyticsExportSettings.getSkipIndexDimensions();
+    return dimensions.contains(dimension.getUid());
   }
 
   // -------------------------------------------------------------------------
