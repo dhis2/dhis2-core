@@ -57,6 +57,7 @@ public class HibernateDataIntegrityStore implements DataIntegrityStore {
   @Transactional(readOnly = true)
   public DataIntegritySummary querySummary(DataIntegrityCheck check, String sql) {
     Date startTime = new Date();
+    // Note! that the SQL here can be touching any table so we cannot sync it
     Object summary = entityManager.createNativeQuery(sql).getSingleResult();
     return new DataIntegritySummary(
         check, startTime, new Date(), null, parseCount(summary), parsePercentage(summary));
@@ -66,6 +67,7 @@ public class HibernateDataIntegrityStore implements DataIntegrityStore {
   @Transactional(readOnly = true)
   public DataIntegrityDetails queryDetails(DataIntegrityCheck check, String sql) {
     Date startTime = new Date();
+    // Note! that the SQL here can be touching any table so we cannot sync it
     @SuppressWarnings("unchecked")
     List<Object[]> rows = entityManager.createNativeQuery(sql).getResultList();
     return new DataIntegrityDetails(

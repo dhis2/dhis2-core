@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.deprecated.tracker.event;
 import static java.util.Collections.emptyMap;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
 import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
 import static org.hisp.dhis.dxf2.deprecated.tracker.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
@@ -500,7 +501,8 @@ public abstract class AbstractEventService
             .setProgramType(ProgramType.WITHOUT_REGISTRATION)
             .setIncludeDeleted(true)
             .setSynchronizationQuery(true)
-            .setSkipChangedBefore(skipChangedBefore);
+            .setSkipChangedBefore(skipChangedBefore)
+            .setOrgUnitSelectionMode(ACCESSIBLE);
 
     return eventStore.getEventCount(params);
   }
@@ -518,7 +520,8 @@ public abstract class AbstractEventService
             .setIncludeDeleted(true)
             .setSynchronizationQuery(true)
             .setPageSize(pageSize)
-            .setSkipChangedBefore(skipChangedBefore);
+            .setSkipChangedBefore(skipChangedBefore)
+            .setOrgUnitSelectionMode(ACCESSIBLE);
 
     Events anonymousEvents = new Events();
     List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> events =
@@ -787,6 +790,15 @@ public abstract class AbstractEventService
             // data elements
             .collect(Collectors.toSet());
 
+    for (DataValue dataValue : event.getDataValues()) {
+      // data element has been deleted
+      if (eventDataValues.stream()
+          .noneMatch(e -> e.getDataElement().equals(dataValue.getDataElement()))) {
+        EventDataValue eventDataValue = new EventDataValue();
+        eventDataValue.setDataElement(dataValue.getDataElement());
+        eventDataValues.add(eventDataValue);
+      }
+    }
     return eventManager.updateEventDataValues(event, eventDataValues, context);
   }
 

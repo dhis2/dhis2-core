@@ -95,6 +95,11 @@ class OrganisationUnitControllerTest extends DhisControllerConvenienceTest {
         GET("/organisationUnits/{id}?includeChildren=true", ou1).content(), "L1", "L21", "L22");
     assertListOfOrganisationUnits(
         GET("/organisationUnits/{id}?includeChildren=true", ou21).content(), "L21", "L31");
+    assertListOfOrganisationUnits(
+        GET("/organisationUnits/{id}?includeChildren=true&filter=displayName:ilike:L2", ou1)
+            .content(),
+        "L21",
+        "L22");
   }
 
   @Test
@@ -103,6 +108,9 @@ class OrganisationUnitControllerTest extends DhisControllerConvenienceTest {
         GET("/organisationUnits/{id}/children?level=1", ou1).content(), "L21", "L22");
     assertListOfOrganisationUnits(
         GET("/organisationUnits/{id}/children?level=2", ou1).content(), "L31", "L32");
+    assertListOfOrganisationUnits(
+        GET("/organisationUnits/{id}/children?level=2&filter=displayName:ilike:31", ou1).content(),
+        "L31");
   }
 
   @Test
@@ -124,6 +132,10 @@ class OrganisationUnitControllerTest extends DhisControllerConvenienceTest {
         "L32");
     assertListOfOrganisationUnits(
         GET("/organisationUnits/{id}/descendants", ou21).content(), "L21", "L31");
+    assertListOfOrganisationUnits(
+        GET("/organisationUnits/{id}/descendants?filter=displayName:ilike:L2", ou1).content(),
+        "L21",
+        "L22");
   }
 
   @Test
@@ -143,6 +155,9 @@ class OrganisationUnitControllerTest extends DhisControllerConvenienceTest {
   void testGetAncestors() {
     assertListOfOrganisationUnits(
         GET("/organisationUnits/{id}/ancestors", ou22).content(), "L22", "L1", "L0");
+    assertListOfOrganisationUnits(
+        GET("/organisationUnits/{id}/ancestors?filter=displayName:ilike:22", ou22).content(),
+        "L22");
   }
 
   @Test
@@ -155,11 +170,15 @@ class OrganisationUnitControllerTest extends DhisControllerConvenienceTest {
   void testGetParents() {
     assertListOfOrganisationUnits(
         GET("/organisationUnits/{id}/parents", ou21).content(), "L1", "L0");
+    assertListOfOrganisationUnits(
+        GET("/organisationUnits/{id}/parents?filter=displayName:ilike:L0", ou21).content(), "L0");
   }
 
   @Test
   void testGetQuery() {
     assertListOfOrganisationUnits(GET("/organisationUnits?query=L21").content(), "L21");
+    assertListOfOrganisationUnits(
+        GET("/organisationUnits?query=L21&filter=displayName:ilike:L2").content(), "L21");
   }
 
   @Test

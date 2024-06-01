@@ -30,8 +30,10 @@ package org.hisp.dhis.config;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 @Configuration
+@Profile({"!impersonate-user-test"})
 public class ConfigProviderConfiguration {
   @Bean(name = "dhisConfigurationProvider")
   public DhisConfigurationProvider dhisConfigurationProvider() {

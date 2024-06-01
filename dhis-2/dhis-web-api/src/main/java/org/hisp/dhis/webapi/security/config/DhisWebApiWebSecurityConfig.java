@@ -35,7 +35,6 @@ import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.security.ImpersonatingUserDetailsChecker;
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.security.apikey.DhisApiTokenAuthenticationEntryPoint;
 import org.hisp.dhis.security.basic.HttpBasicWebAuthenticationDetailsSource;
@@ -58,7 +57,6 @@ import org.hisp.dhis.webapi.security.ExternalAccessVoter;
 import org.hisp.dhis.webapi.security.FormLoginBasicAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthManager;
 import org.hisp.dhis.webapi.security.apikey.Dhis2ApiTokenFilter;
-import org.hisp.dhis.webapi.security.switchuser.DhisSwitchUserFilter;
 import org.hisp.dhis.webapi.security.vote.LogicalOrAccessDecisionManager;
 import org.hisp.dhis.webapi.security.vote.SimpleAccessVoter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,20 +80,16 @@ import org.springframework.security.config.annotation.web.configurers.Expression
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationFilter;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.header.HeaderWriterFilter;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.web.util.UrlPathHelper;
 
 /**
  * The {@code DhisWebApiWebSecurityConfig} class configures mostly all authentication and
@@ -267,9 +261,6 @@ public class DhisWebApiWebSecurityConfig {
         ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry
             authorize) {
       authorize
-          .antMatchers("/impersonate")
-          .hasAnyAuthority("ALL", "F_IMPERSONATE_USER")
-
           // Temporary solution for Struts less login page, will be removed when apps are fully
           // migrated
           .antMatchers("/index.html")
@@ -498,21 +489,5 @@ public class DhisWebApiWebSecurityConfig {
         .xssProtection()
         .and()
         .httpStrictTransportSecurity();
-  }
-
-  @Bean("switchUserProcessingFilter")
-  public SwitchUserFilter switchUserFilter(
-      @Qualifier("userDetailsService") UserDetailsService userDetailsService,
-      @Qualifier("dhisConfigurationProvider") DhisConfigurationProvider config) {
-    DhisSwitchUserFilter filter = new DhisSwitchUserFilter(config);
-    filter.setUserDetailsService(userDetailsService);
-    filter.setUserDetailsChecker(new ImpersonatingUserDetailsChecker());
-    filter.setSwitchUserMatcher(
-        new AntPathRequestMatcher("/impersonate", "POST", true, new UrlPathHelper()));
-    filter.setExitUserMatcher(
-        new AntPathRequestMatcher("/impersonateExit", "POST", true, new UrlPathHelper()));
-    filter.setSwitchFailureUrl("/dhis-web-dashboard");
-    filter.setTargetUrl("/dhis-web-dashboard");
-    return filter;
   }
 }

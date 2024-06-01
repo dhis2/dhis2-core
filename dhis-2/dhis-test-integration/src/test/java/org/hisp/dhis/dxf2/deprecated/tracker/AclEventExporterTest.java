@@ -41,6 +41,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryOption;
@@ -399,9 +403,35 @@ class AclEventExporterTest extends TrackerTest {
         events.stream().map(Event::getOrgUnit).collect(Collectors.toSet()));
   }
 
+  @Test
+  void shouldGetAllEventsWaitingForSyncWhenRequested() {
+    Date date = createDateFromYear(2019);
+
+    assertEquals(7, eventService.getAnonymousEventReadyForSynchronizationCount(date));
+  }
+
+  @Test
+  void shouldGetAllAnonymousEventsWaitingForSyncWhenRequested() {
+    Date date = createDateFromYear(2019);
+
+    assertEquals(
+        7,
+        eventService
+            .getAnonymousEventsForSync(10, date, Collections.emptyMap())
+            .getEvents()
+            .size());
+  }
+
   private <T extends IdentifiableObject> T get(Class<T> type, String uid) {
     T t = manager.get(type, uid);
     assertNotNull(t, () -> String.format("metadata with uid '%s' should have been created", uid));
     return t;
+  }
+
+  private Date createDateFromYear(int year) {
+    LocalDateTime localDate = LocalDateTime.of(year, 1, 1, 0, 0).minusYears(10);
+    Date date = Date.from(localDate.atZone(ZoneId.systemDefault()).toInstant());
+
+    return date;
   }
 }

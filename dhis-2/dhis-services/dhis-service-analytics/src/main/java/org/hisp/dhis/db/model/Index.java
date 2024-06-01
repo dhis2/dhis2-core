@@ -28,8 +28,8 @@
 package org.hisp.dhis.db.model;
 
 import java.util.List;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.db.model.constraint.Unique;
 
@@ -39,7 +39,7 @@ import org.hisp.dhis.db.model.constraint.Unique;
  * @author Lars Helge Overland
  */
 @Getter
-@RequiredArgsConstructor
+@Builder
 public class Index {
   /** Index name. Required. */
   private final String name;
@@ -48,10 +48,10 @@ public class Index {
   private final String tableName;
 
   /** Index type. Required. */
-  private final IndexType indexType;
+  @Builder.Default private final IndexType indexType = IndexType.BTREE;
 
   /** Index uniqueness constraint. Required. */
-  private final Unique unique;
+  @Builder.Default private final Unique unique = Unique.NON_UNIQUE;
 
   /** Index column names. Required. */
   private final List<String> columns;
@@ -62,104 +62,8 @@ public class Index {
   /** SQL function to use for index columns. Optional, may be null. */
   private final IndexFunction function;
 
-  /**
-   * Constructor.
-   *
-   * @param name the index name.
-   * @param tableName the index table name.
-   * @param columns the list of index column names.
-   */
-  public Index(String name, String tableName, List<String> columns) {
-    this.name = name;
-    this.tableName = tableName;
-    this.indexType = IndexType.BTREE;
-    this.unique = Unique.NON_UNIQUE;
-    this.columns = columns;
-    this.condition = null;
-    this.function = null;
-  }
-
-  /**
-   * Constructor.
-   *
-   * @param name the index name.
-   * @param tableName the index table name.
-   * @param indexType the index type.
-   * @param columns the list of index column names.
-   */
-  public Index(String name, String tableName, IndexType indexType, List<String> columns) {
-    this.name = name;
-    this.tableName = tableName;
-    this.indexType = indexType;
-    this.unique = Unique.NON_UNIQUE;
-    this.columns = columns;
-    this.condition = null;
-    this.function = null;
-  }
-
-  /**
-   * Constructor.
-   *
-   * @param name the index name.
-   * @param tableName the index table name.
-   * @param unique the uniqueness property.
-   * @param columns the list of index column names.
-   */
-  public Index(String name, String tableName, Unique unique, List<String> columns) {
-    this.name = name;
-    this.tableName = tableName;
-    this.indexType = IndexType.BTREE;
-    this.unique = unique;
-    this.columns = columns;
-    this.condition = null;
-    this.function = null;
-  }
-
-  /**
-   * Constructor.
-   *
-   * @param name the index name.
-   * @param tableName the index table name.
-   * @param indexType the index type.
-   * @param unique the uniqueness property.
-   * @param columns the list of index column names.
-   * @param function the index function.
-   */
-  public Index(
-      String name,
-      String tableName,
-      IndexType indexType,
-      Unique unique,
-      List<String> columns,
-      IndexFunction function) {
-    this.name = name;
-    this.tableName = tableName;
-    this.indexType = indexType;
-    this.unique = unique;
-    this.columns = columns;
-    this.condition = null;
-    this.function = function;
-  }
-
-  /**
-   * Constructor.
-   *
-   * @param name the index name.
-   * @param tableName the index table name.
-   * @param unique the uniqueness property.
-   * @param columns the list of index column names.
-   * @param condition the SQL condition for the index.
-   */
-  public Index(
-      String name, String tableName, Unique unique, List<String> columns, String condition) {
-    this.name = name;
-    this.tableName = tableName;
-    this.indexType = IndexType.BTREE;
-    this.unique = unique;
-    this.columns = columns;
-    this.condition = condition;
-    this.function = null;
-  }
+  /** SQL function to use for index sort order. Optional, may be null. */
+  private final String sortOrder;
 
   /**
    * Indicates whether the index is unique.

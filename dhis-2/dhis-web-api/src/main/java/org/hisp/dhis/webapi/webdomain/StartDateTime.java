@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,11 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.util;
+package org.hisp.dhis.webapi.webdomain;
 
-import org.hisp.dhis.feedback.BadRequestException;
+import java.util.Date;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.util.DateUtils;
 
-@FunctionalInterface
-public interface CheckedFunction<T, R> {
-  R apply(T t) throws BadRequestException;
+/**
+ * StartDateTime represents a lower limit date and time used to filter results in search APIs.
+ *
+ * <p>StartDateTime accepts any date and time in ISO8601 format. If no time is defined, then the
+ * time at the beginning of the day is used by default.
+ *
+ * <p>This behavior, combined with {@link EndDateTime}, allows to correctly implement an interval
+ * search including start and end dates.
+ */
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public class StartDateTime {
+  private final Date date;
+
+  public static StartDateTime of(String date) {
+    return new StartDateTime(DateUtils.parseDate(date));
+  }
+
+  public Date toDate() {
+    if (date == null) {
+      return null;
+    }
+    return new Date(date.getTime());
+  }
 }

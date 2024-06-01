@@ -98,70 +98,181 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
 
   private static final List<AnalyticsTableColumn> FIXED_GROUP_BY_COLS =
       List.of(
-          new AnalyticsTableColumn("trackedentityinstanceuid", CHARACTER_11, NOT_NULL, "tei.uid"),
-          new AnalyticsTableColumn("trackedentityid", INTEGER, NOT_NULL, "tei.trackedentityid"),
-          new AnalyticsTableColumn("created", TIMESTAMP, "tei.created"),
-          new AnalyticsTableColumn("lastupdated", TIMESTAMP, "tei.lastupdated"),
-          new AnalyticsTableColumn("inactive", BOOLEAN, "tei.inactive"),
-          new AnalyticsTableColumn("createdatclient", TIMESTAMP, "tei.createdatclient"),
-          new AnalyticsTableColumn("lastupdatedatclient", TIMESTAMP, "tei.lastupdatedatclient"),
-          new AnalyticsTableColumn("lastsynchronized", TIMESTAMP, "tei.lastsynchronized"),
-          new AnalyticsTableColumn("geometry", GEOMETRY, "tei.geometry", IndexType.GIST),
-          new AnalyticsTableColumn(
-              "longitude",
-              DOUBLE,
-              "case when 'POINT' = GeometryType(tei.geometry) then ST_X(tei.geometry) else null end"),
-          new AnalyticsTableColumn(
-              "latitude",
-              DOUBLE,
-              "case when 'POINT' = GeometryType(tei.geometry) then ST_Y(tei.geometry) else null end"),
-          new AnalyticsTableColumn("featuretype", VARCHAR_255, NULL, "tei.featuretype"),
-          new AnalyticsTableColumn("coordinates", TEXT, NULL, "tei.coordinates"),
-          new AnalyticsTableColumn("storedby", VARCHAR_255, "tei.storedby"),
-          new AnalyticsTableColumn("potentialduplicate", BOOLEAN, NULL, "tei.potentialduplicate"),
-          new AnalyticsTableColumn("uidlevel1", CHARACTER_11, NULL, "ous.uidlevel1"),
-          new AnalyticsTableColumn("uidlevel2", CHARACTER_11, NULL, "ous.uidlevel2"),
-          new AnalyticsTableColumn("uidlevel3", CHARACTER_11, NULL, "ous.uidlevel3"),
-          new AnalyticsTableColumn("uidlevel4", CHARACTER_11, NULL, "ous.uidlevel4"),
-          new AnalyticsTableColumn("ou", CHARACTER_11, NULL, "ou.uid"),
-          new AnalyticsTableColumn("ouname", VARCHAR_255, NULL, "ou.name"),
-          new AnalyticsTableColumn("oucode", VARCHAR_50, NULL, "ou.code"),
-          new AnalyticsTableColumn("oulevel", INTEGER, NULL, "ous.level"));
+          AnalyticsTableColumn.builder()
+              .name("trackedentityinstanceuid")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("tei.uid")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("trackedentityid")
+              .dataType(INTEGER)
+              .nullable(NOT_NULL)
+              .selectExpression("tei.trackedentityid")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("created")
+              .dataType(TIMESTAMP)
+              .selectExpression("tei.created")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("lastupdated")
+              .dataType(TIMESTAMP)
+              .selectExpression("tei.lastupdated")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("inactive")
+              .dataType(BOOLEAN)
+              .selectExpression("tei.inactive")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("createdatclient")
+              .dataType(TIMESTAMP)
+              .selectExpression("tei.createdatclient")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("lastupdatedatclient")
+              .dataType(TIMESTAMP)
+              .selectExpression("tei.lastupdatedatclient")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("lastsynchronized")
+              .dataType(TIMESTAMP)
+              .selectExpression("tei.lastsynchronized")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("geometry")
+              .dataType(GEOMETRY)
+              .selectExpression("tei.geometry")
+              .indexType(IndexType.GIST)
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("longitude")
+              .dataType(DOUBLE)
+              .selectExpression(
+                  "case when 'POINT' = GeometryType(tei.geometry) then ST_X(tei.geometry) else null end")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("latitude")
+              .dataType(DOUBLE)
+              .selectExpression(
+                  "case when 'POINT' = GeometryType(tei.geometry) then ST_Y(tei.geometry) else null end")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("featuretype")
+              .dataType(VARCHAR_255)
+              .nullable(NULL)
+              .selectExpression("tei.featuretype")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("coordinates")
+              .dataType(TEXT)
+              .nullable(NULL)
+              .selectExpression("tei.coordinates")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("storedby")
+              .dataType(VARCHAR_255)
+              .selectExpression("tei.storedby")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("potentialduplicate")
+              .dataType(BOOLEAN)
+              .nullable(NULL)
+              .selectExpression("tei.potentialduplicate")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("uidlevel1")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("ous.uidlevel1")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("uidlevel2")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("ous.uidlevel2")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("uidlevel3")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("ous.uidlevel3")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("uidlevel4")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("ous.uidlevel4")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("ou")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("ou.uid")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("ouname")
+              .dataType(VARCHAR_255)
+              .nullable(NULL)
+              .selectExpression("ou.name")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("oucode")
+              .dataType(VARCHAR_50)
+              .nullable(NULL)
+              .selectExpression("ou.code")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("oulevel")
+              .dataType(INTEGER)
+              .nullable(NULL)
+              .selectExpression("ous.level")
+              .build());
 
   private static final List<AnalyticsTableColumn> FIXED_NON_GROUP_BY_COLS =
       List.of(
-          new AnalyticsTableColumn(
-              "createdbyusername",
-              VARCHAR_255,
-              "tei.createdbyuserinfo ->> 'username' as createdbyusername"),
-          new AnalyticsTableColumn(
-              "createdbyname",
-              VARCHAR_255,
-              "tei.createdbyuserinfo ->> 'firstName' as createdbyname"),
-          new AnalyticsTableColumn(
-              "createdbylastname",
-              VARCHAR_255,
-              "tei.createdbyuserinfo ->> 'surname' as createdbylastname"),
-          new AnalyticsTableColumn(
-              "createdbydisplayname",
-              VARCHAR_255,
-              getDisplayName("createdbyuserinfo", "tei", "createdbydisplayname")),
-          new AnalyticsTableColumn(
-              "lastupdatedbyusername",
-              VARCHAR_255,
-              "tei.lastupdatedbyuserinfo ->> 'username' as lastupdatedbyusername"),
-          new AnalyticsTableColumn(
-              "lastupdatedbyname",
-              VARCHAR_255,
-              "tei.lastupdatedbyuserinfo ->> 'firstName' as lastupdatedbyname"),
-          new AnalyticsTableColumn(
-              "lastupdatedbylastname",
-              VARCHAR_255,
-              "tei.lastupdatedbyuserinfo ->> 'surname' as lastupdatedbylastname"),
-          new AnalyticsTableColumn(
-              "lastupdatedbydisplayname",
-              VARCHAR_255,
-              getDisplayName("lastupdatedbyuserinfo", "tei", "lastupdatedbydisplayname")));
+          AnalyticsTableColumn.builder()
+              .name("createdbyusername")
+              .dataType(VARCHAR_255)
+              .selectExpression("tei.createdbyuserinfo ->> 'username' as createdbyusername")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("createdbyname")
+              .dataType(VARCHAR_255)
+              .selectExpression("tei.createdbyuserinfo ->> 'firstName' as createdbyname")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("createdbylastname")
+              .dataType(VARCHAR_255)
+              .selectExpression("tei.createdbyuserinfo ->> 'surname' as createdbylastname")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("createdbydisplayname")
+              .dataType(VARCHAR_255)
+              .selectExpression(getDisplayName("createdbyuserinfo", "tei", "createdbydisplayname"))
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("lastupdatedbyusername")
+              .dataType(VARCHAR_255)
+              .selectExpression("tei.lastupdatedbyuserinfo ->> 'username' as lastupdatedbyusername")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("lastupdatedbyname")
+              .dataType(VARCHAR_255)
+              .selectExpression("tei.lastupdatedbyuserinfo ->> 'firstName' as lastupdatedbyname")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("lastupdatedbylastname")
+              .dataType(VARCHAR_255)
+              .selectExpression("tei.lastupdatedbyuserinfo ->> 'surname' as lastupdatedbylastname")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("lastupdatedbydisplayname")
+              .dataType(VARCHAR_255)
+              .selectExpression(
+                  getDisplayName("lastupdatedbyuserinfo", "tei", "lastupdatedbydisplayname"))
+              .build());
 
   public JdbcTeiAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -261,12 +372,14 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
         .forEach(
             program ->
                 columns.add(
-                    new AnalyticsTableColumn(
-                        program.getUid(),
-                        BOOLEAN,
-                        replace(
-                            selectExpression,
-                            Map.of("programId", String.valueOf(program.getId()))))));
+                    AnalyticsTableColumn.builder()
+                        .name(program.getUid())
+                        .dataType(BOOLEAN)
+                        .selectExpression(
+                            replace(
+                                selectExpression,
+                                Map.of("programId", String.valueOf(program.getId()))))
+                        .build()));
 
     List<TrackedEntityAttribute> trackedEntityAttributes =
         programsByTetUid.containsKey(tet.getUid())
@@ -283,10 +396,12 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
         trackedEntityAttributes.stream()
             .map(
                 tea ->
-                    new AnalyticsTableColumn(
-                        tea.getUid(),
-                        getColumnType(tea.getValueType(), isSpatialSupport()),
-                        castBasedOnType(tea.getValueType(), "\"" + tea.getUid() + "\".value")))
+                    AnalyticsTableColumn.builder()
+                        .name(tea.getUid())
+                        .dataType(getColumnType(tea.getValueType(), isSpatialSupport()))
+                        .selectExpression(
+                            castBasedOnType(tea.getValueType(), "\"" + tea.getUid() + "\".value"))
+                        .build())
             .toList());
 
     columns.addAll(getOrganisationUnitGroupSetColumns());

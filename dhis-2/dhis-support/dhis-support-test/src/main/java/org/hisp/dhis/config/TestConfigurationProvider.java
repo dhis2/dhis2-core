@@ -87,12 +87,12 @@ public abstract class TestConfigurationProvider implements DhisConfigurationProv
 
   @Override
   public boolean isEnabled(ConfigurationKey key) {
-    return "on".equals(getProperty(key));
+    return DhisConfigurationProvider.isOn(getProperty(key));
   }
 
   @Override
   public boolean isDisabled(ConfigurationKey key) {
-    return "off".equals(getProperty(key));
+    return DhisConfigurationProvider.isOff(getProperty(key));
   }
 
   @Override

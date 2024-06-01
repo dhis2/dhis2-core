@@ -95,27 +95,32 @@ public class DataElementResourceTable implements ResourceTable {
   @Override
   public List<Index> getIndexes() {
     return List.of(
-        new Index(
-            appendRandom("in_dataelementstructure_dataelementuid"),
-            toStaging(TABLE_NAME),
-            Unique.UNIQUE,
-            List.of("dataelementuid")),
-        new Index(
-            appendRandom("in_dataelementstructure_datasetid"),
-            toStaging(TABLE_NAME),
-            List.of("datasetid")),
-        new Index(
-            appendRandom("in_dataelementstructure_datasetuid"),
-            toStaging(TABLE_NAME),
-            List.of("datasetuid")),
-        new Index(
-            appendRandom("in_dataelementstructure_periodtypeid"),
-            toStaging(TABLE_NAME),
-            List.of("periodtypeid")),
-        new Index(
-            appendRandom("in_dataelementstructure_workflowid"),
-            toStaging(TABLE_NAME),
-            List.of("workflowid")));
+        Index.builder()
+            .name(appendRandom("in_dataelementstructure_dataelementuid"))
+            .tableName(toStaging(TABLE_NAME))
+            .unique(Unique.UNIQUE)
+            .columns(List.of("dataelementuid"))
+            .build(),
+        Index.builder()
+            .name(appendRandom("in_dataelementstructure_datasetid"))
+            .tableName(toStaging(TABLE_NAME))
+            .columns(List.of("datasetid"))
+            .build(),
+        Index.builder()
+            .name(appendRandom("in_dataelementstructure_datasetuid"))
+            .tableName(toStaging(TABLE_NAME))
+            .columns(List.of("datasetuid"))
+            .build(),
+        Index.builder()
+            .name(appendRandom("in_dataelementstructure_periodtypeid"))
+            .tableName(toStaging(TABLE_NAME))
+            .columns(List.of("periodtypeid"))
+            .build(),
+        Index.builder()
+            .name(appendRandom("in_dataelementstructure_workflowid"))
+            .tableName(toStaging(TABLE_NAME))
+            .columns(List.of("workflowid"))
+            .build());
   }
 
   @Override

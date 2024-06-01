@@ -286,7 +286,7 @@ public class TrackedEntityAggregate implements Aggregate {
     enrollmentList.addAll(
         enrollments.stream()
             .filter(e -> (programs.contains(e.getProgram().getUid()) || ctx.isSuperUser()))
-            .collect(Collectors.toList()));
+            .toList());
 
     return enrollmentList;
   }

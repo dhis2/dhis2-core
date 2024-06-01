@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import static java.util.stream.Collectors.toList;
+
 import com.google.common.collect.ImmutableSet;
 import java.util.HashSet;
 import java.util.List;
@@ -34,7 +36,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
 import lombok.RequiredArgsConstructor;
@@ -327,7 +328,7 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
           programAttributeStore.getAttributes(
               programs.stream()
                   .filter(program -> aclService.canDataRead(userDetails, program))
-                  .collect(Collectors.toList())));
+                  .collect(toList())));
     }
 
     if (trackedEntityTypes != null && !trackedEntityTypes.isEmpty()) {
@@ -336,7 +337,7 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
               trackedEntityTypes.stream()
                   .filter(
                       trackedEntityType -> aclService.canDataRead(userDetails, trackedEntityType))
-                  .collect(Collectors.toList())));
+                  .collect(toList())));
     }
 
     return attributes;
@@ -363,7 +364,7 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
   public List<TrackedEntityAttribute> getAllSystemWideUniqueTrackedEntityAttributes() {
     return getAllTrackedEntityAttributes().stream()
         .filter(TrackedEntityAttribute::isSystemWideUnique)
-        .collect(Collectors.toList());
+        .collect(toList());
   }
 
   @Override
@@ -371,7 +372,7 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
   public List<TrackedEntityAttribute> getAllUniqueTrackedEntityAttributes() {
     return getAllTrackedEntityAttributes().stream()
         .filter(TrackedEntityAttribute::isUnique)
-        .collect(Collectors.toList());
+        .collect(toList());
   }
 
   @Override

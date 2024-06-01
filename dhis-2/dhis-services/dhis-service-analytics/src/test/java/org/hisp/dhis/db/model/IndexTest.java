@@ -28,6 +28,8 @@
 package org.hisp.dhis.db.model;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -37,10 +39,40 @@ import org.junit.jupiter.api.Test;
 class IndexTest {
   @Test
   void testIsUnique() {
-    Index indexA = new Index("in_analytics_id", "analytics", Unique.UNIQUE, List.of("id"));
-    Index indexB = new Index("in_analytics_dx", "analytics", Unique.NON_UNIQUE, List.of("dx"));
+    Index indexA =
+        Index.builder()
+            .name("in_analytics_id")
+            .tableName("analytics")
+            .unique(Unique.UNIQUE)
+            .columns(List.of("id"))
+            .build();
+
+    Index indexB =
+        Index.builder()
+            .name("in_analytics_dx")
+            .tableName("analytics")
+            .columns(List.of("dx"))
+            .build();
 
     assertTrue(indexA.isUnique());
     assertFalse(indexB.isUnique());
+  }
+
+  @Test
+  void testDefaults() {
+    // given
+    Index.IndexBuilder builder = Index.builder();
+
+    // when
+    Index index = builder.build();
+
+    // then
+    assertNull(index.getName());
+    assertNull(index.getTableName());
+    assertNull(index.getCondition());
+    assertNull(index.getFunction());
+    assertNull(index.getColumns());
+    assertSame(IndexType.BTREE, index.getIndexType());
+    assertFalse(index.isUnique());
   }
 }

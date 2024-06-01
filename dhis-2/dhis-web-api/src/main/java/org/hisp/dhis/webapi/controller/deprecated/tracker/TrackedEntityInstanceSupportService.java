@@ -81,18 +81,17 @@ public class TrackedEntityInstanceSupportService {
     TrackedEntityInstanceParams trackedEntityInstanceParams =
         getTrackedEntityInstanceParams(fields);
 
-    TrackedEntityInstance trackedEntityInstance =
-        trackedEntityInstanceService.getTrackedEntityInstance(id, trackedEntityInstanceParams);
-
-    if (trackedEntityInstance == null) {
-      throw new NotFoundException(TrackedEntityInstance.class, id);
-    }
-
+    TrackedEntityInstance trackedEntityInstance;
     if (pr != null) {
       Program program = programService.getProgram(pr);
-
       if (program == null) {
         throw new NotFoundException(Program.class, pr);
+      }
+
+      trackedEntityInstance =
+          trackedEntityInstanceService.getTrackedEntityInstance(id, trackedEntityInstanceParams);
+      if (trackedEntityInstance == null) {
+        throw new NotFoundException(TrackedEntityInstance.class, id);
       }
 
       List<String> errors =
@@ -120,6 +119,29 @@ public class TrackedEntityInstanceSupportService {
       }
     } else {
       // return only tracked entity type attributes
+      trackedEntityInstance =
+          trackedEntityInstanceService.getTrackedEntityInstance(id, trackedEntityInstanceParams);
+      if (trackedEntityInstance == null) {
+        throw new NotFoundException(TrackedEntityInstance.class, id);
+      }
+
+      if (programService.getAllPrograms().stream()
+          .noneMatch(
+              p ->
+                  p.getTrackedEntityType() != null
+                      && p.getTrackedEntityType()
+                          .getUid()
+                          .equalsIgnoreCase(trackedEntityInstance.getTrackedEntityType())
+                      && trackerAccessManager
+                          .canRead(
+                              currentUser,
+                              instanceService.getTrackedEntity(
+                                  trackedEntityInstance.getTrackedEntityInstance()),
+                              p,
+                              false)
+                          .isEmpty())) {
+        throw new NotFoundException(TrackedEntityInstance.class, id);
+      }
 
       TrackedEntityType trackedEntityType =
           trackedEntityTypeService.getTrackedEntityType(

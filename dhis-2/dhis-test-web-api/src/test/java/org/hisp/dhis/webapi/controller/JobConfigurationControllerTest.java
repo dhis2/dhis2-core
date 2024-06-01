@@ -458,6 +458,16 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest {
     assertStatus(HttpStatus.CONFLICT, POST("/jobConfigurations/" + jobId + "/enable"));
   }
 
+  @Test
+  void testRevert() {
+    JsonJobConfiguration config = createExpectSuccess(Map.of());
+    String jobId = config.getId();
+    switchToNewUser("no-auth");
+    assertStatus(HttpStatus.FORBIDDEN, POST("/jobConfigurations/" + jobId + "/revert"));
+    switchToSuperuser();
+    assertStatus(HttpStatus.CONFLICT, POST("/jobConfigurations/" + jobId + "/revert"));
+  }
+
   private JsonJobConfiguration createExpectSuccess(Map<String, Object> extra) {
     return createExpectSuccess(MINIMAL_CRON_CONFIG, extra);
   }

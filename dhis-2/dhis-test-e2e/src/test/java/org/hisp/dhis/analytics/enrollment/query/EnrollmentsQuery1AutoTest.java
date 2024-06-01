@@ -101,8 +101,8 @@ public class EnrollmentsQuery1AutoTest extends AnalyticsApiTest {
         6,
         "enrollmentdate",
         "Start of treatment date",
-        "DATE",
-        "java.time.LocalDate",
+        "DATETIME",
+        "java.time.LocalDateTime",
         false,
         true);
     validateHeader(response, 7, "uIuxlbV1vRT", "Area", "TEXT", "java.lang.String", false, true);
@@ -1466,7 +1466,14 @@ public class EnrollmentsQuery1AutoTest extends AnalyticsApiTest {
     validateHeader(
         response, 6, "Bpx0589u8y0", "Facility Ownership", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 7, "lastupdated", "Last updated on", "DATE", "java.time.LocalDate", false, true);
+        response,
+        7,
+        "lastupdated",
+        "Last updated on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
 
     // Assert rows.
     validateRow(
@@ -2713,7 +2720,14 @@ public class EnrollmentsQuery1AutoTest extends AnalyticsApiTest {
     validateHeader(
         response, 1, "Bpx0589u8y0", "Facility Ownership", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 2, "lastupdated", "Last updated on", "DATE", "java.time.LocalDate", false, true);
+        response,
+        2,
+        "lastupdated",
+        "Last updated on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
     validateHeader(
         response, 3, "Kv4fmHVAzwX", "Focus Name", "TEXT", "java.lang.String", false, true);
 
@@ -2811,7 +2825,14 @@ public class EnrollmentsQuery1AutoTest extends AnalyticsApiTest {
     validateHeader(
         response, 1, "Bpx0589u8y0", "Facility Ownership", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 2, "lastupdated", "Last updated on", "DATE", "java.time.LocalDate", false, true);
+        response,
+        2,
+        "lastupdated",
+        "Last updated on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
     validateHeader(
         response, 3, "Kv4fmHVAzwX", "Focus Name", "TEXT", "java.lang.String", false, true);
     validateHeader(
