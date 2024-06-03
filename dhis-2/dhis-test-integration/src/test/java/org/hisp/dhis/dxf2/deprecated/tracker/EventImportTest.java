@@ -258,7 +258,7 @@ class EventImportTest extends TransactionalIntegrationTest {
   }
 
   @Test
-  void shouldUpdateEventDataValues_whenAddingDataValuesToEvent() throws IOException {
+  void shouldUpdateEventDataValuesWhenAddingDataValuesToEvent() throws IOException {
     InputStream is =
         createEventJsonInputStream(
             programB.getUid(),
@@ -279,12 +279,12 @@ class EventImportTest extends TransactionalIntegrationTest {
     // add a new data value and update an existing one
 
     DataValue dataValueA = new DataValue();
-    dataValueA.setValue("10'000");
+    dataValueA.setValue("10'''000'''");
     dataValueA.setDataElement(dataElementA.getUid());
     dataValueA.setStoredBy(superUser.getName());
 
     DataValue dataValueB = new DataValue();
-    dataValueB.setValue("20");
+    dataValueB.setValue("20'''000'''");
     dataValueB.setDataElement(dataElementB.getUid());
     dataValueB.setStoredBy(superUser.getName());
 
@@ -337,7 +337,7 @@ class EventImportTest extends TransactionalIntegrationTest {
   }
 
   @Test
-  void shouldDeleteDataElementFromEventDataValues_whenSetDataValueToNull() throws IOException {
+  void shouldDeleteDataElementFromEventDataValuesWhenSetDataValueToNull() throws IOException {
     InputStream is =
         createEventJsonInputStream(
             programB.getUid(),
