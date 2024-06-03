@@ -145,7 +145,7 @@ public class AnalyticsTableColumn {
    * @param name analytics table column name.
    * @param dataType analytics table column data type.
    * @param selectExpression source table select expression.
-   * @param indexType the index type.
+   * @param skipIndex whether to skip or include an index for column.
    */
   public AnalyticsTableColumn(
       String name, DataType dataType, String selectExpression, Skip skipIndex) {
