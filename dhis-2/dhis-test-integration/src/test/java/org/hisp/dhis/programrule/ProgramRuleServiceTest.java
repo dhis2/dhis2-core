@@ -221,6 +221,9 @@ class ProgramRuleServiceTest extends IntegrationTestBase {
     programRuleService.updateProgramRule(ruleG);
     programRuleService.updateProgramRule(ruleF);
 
+    entityManager.clear();
+    entityManager.flush();
+
     List<ProgramRule> rules =
         programRuleService.getProgramRulesByActionTypes(
             programB, ProgramRuleActionType.SERVER_SUPPORTED_TYPES, null);

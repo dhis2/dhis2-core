@@ -96,7 +96,7 @@ public class HibernateProgramRuleStore extends HibernateIdentifiableObjectStore<
       Program program, Set<ProgramRuleActionType> types, String programStageUid) {
     final String hql =
         "SELECT distinct pr FROM ProgramRule pr JOIN pr.programRuleActions pra "
-            + "LEFT JOIN FETCH pr.programStage ps "
+            + "LEFT JOIN pr.programStage ps "
             + "WHERE pr.program = :programId AND pra.programRuleActionType IN ( :implementableTypes ) "
             + "AND (pr.programStage IS NULL OR ps.uid = :programStageUid )";
 

@@ -88,14 +88,12 @@ import org.hisp.dhis.rules.models.RuleVariablePreviousEvent;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Zubair Asghar
  */
 @Slf4j
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 @Service("org.hisp.dhis.programrule.engine.ProgramRuleEntityMapperService")
 public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityMapperService {
   private final ProgramRuleVariableService programRuleVariableService;
