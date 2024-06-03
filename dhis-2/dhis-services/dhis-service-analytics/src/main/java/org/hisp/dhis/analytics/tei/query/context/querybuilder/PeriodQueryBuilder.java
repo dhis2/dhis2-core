@@ -36,7 +36,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
@@ -102,12 +101,13 @@ public class PeriodQueryBuilder extends SqlQueryBuilderAdaptor {
           DimensionIdentifier<DimensionParam> dimensionIdentifier = sortingParam.getOrderBy();
           String fieldName = getTimeField(dimensionIdentifier, StaticDimension::getColumnName);
 
-          Field field =
-              Field.ofUnquoted(
-                  getPrefix(sortingParam.getOrderBy()), () -> fieldName, StringUtils.EMPTY);
           builder.orderClause(
               IndexedOrder.of(
-                  sortingParam.getIndex(), Order.of(field, sortingParam.getSortDirection())));
+                  sortingParam.getIndex(),
+                  Order.of(
+                      OrderByQueryBuilderHelper.buildOrderSubQuery(
+                          sortingParam.getOrderBy(), () -> fieldName),
+                      sortingParam.getSortDirection())));
         });
 
     return builder.build();

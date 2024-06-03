@@ -100,7 +100,9 @@ public class OrgUnitQueryBuilder implements SqlQueryBuilder {
                 IndexedOrder.of(
                     sortingParam.getIndex(),
                     Order.of(
-                        Field.ofDimensionIdentifier(sortingParam.getOrderBy()),
+                        OrderByQueryBuilderHelper.buildOrderSubQuery(
+                            sortingParam.getOrderBy(),
+                            () -> sortingParam.getOrderBy().getDimension().getUid()),
                         sortingParam.getSortDirection()))));
 
     return builder.build();

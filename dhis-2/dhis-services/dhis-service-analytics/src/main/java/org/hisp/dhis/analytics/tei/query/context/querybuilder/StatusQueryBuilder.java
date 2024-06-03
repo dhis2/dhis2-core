@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
@@ -113,12 +112,13 @@ public class StatusQueryBuilder extends SqlQueryBuilderAdaptor {
           String fieldName =
               dimensionIdentifier.getDimension().getStaticDimension().getColumnName();
 
-          Field field =
-              Field.ofUnquoted(
-                  getPrefix(sortingParam.getOrderBy()), () -> fieldName, StringUtils.EMPTY);
           builder.orderClause(
               IndexedOrder.of(
-                  sortingParam.getIndex(), Order.of(field, sortingParam.getSortDirection())));
+                  sortingParam.getIndex(),
+                  Order.of(
+                      OrderByQueryBuilderHelper.buildOrderSubQuery(
+                          sortingParam.getOrderBy(), () -> fieldName),
+                      sortingParam.getSortDirection())));
         });
 
     return builder.build();

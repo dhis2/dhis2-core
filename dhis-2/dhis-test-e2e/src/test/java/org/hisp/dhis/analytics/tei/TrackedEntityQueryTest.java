@@ -773,7 +773,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
   }
 
   @Test
-  @Disabled("Since we moved to JSON, we need to implement sorting by event date in a different way")
   public void queryWithProgramAndMultipleEventDimOrdering() {
     // Given
     QueryParamsBuilder params =

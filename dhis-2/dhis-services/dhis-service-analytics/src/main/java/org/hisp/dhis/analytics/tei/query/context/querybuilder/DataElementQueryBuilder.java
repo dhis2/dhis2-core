@@ -30,9 +30,7 @@ package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.common.ValueTypeMapping.fromValueType;
-import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.DATA_ELEMENT;
 import static org.hisp.dhis.analytics.common.query.Field.ofUnquoted;
-import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.isOfType;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 import static org.hisp.dhis.system.grid.ListGrid.EXISTS;
@@ -51,6 +49,7 @@ import javax.annotation.Nonnull;
 import lombok.Getter;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.GroupableCondition;
@@ -76,10 +75,10 @@ import org.springframework.stereotype.Service;
 public class DataElementQueryBuilder implements SqlQueryBuilder {
 
   private final List<Predicate<DimensionIdentifier<DimensionParam>>> headerFilters =
-      List.of(DataElementQueryBuilder::isDataElement);
+      List.of(DimensionIdentifierHelper::isDataElement);
 
   private final List<Predicate<DimensionIdentifier<DimensionParam>>> dimensionFilters =
-      List.of(DataElementQueryBuilder::isDataElement);
+      List.of(DimensionIdentifierHelper::isDataElement);
 
   private final List<Predicate<AnalyticsSortingParams>> sortingFilters =
       List.of(DataElementQueryBuilder::isDataElementOrder);
@@ -132,7 +131,16 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
                 IndexedOrder.of(
                     analyticsSortingParams.getIndex(),
                     Order.of(
-                        Field.of(analyticsSortingParams.getOrderBy().toString()),
+                        OrderByQueryBuilderHelper.buildOrderSubQuery(
+                            analyticsSortingParams.getOrderBy(),
+                            RenderableDataValue.of(
+                                EMPTY,
+                                analyticsSortingParams.getOrderBy().getDimension().getUid(),
+                                fromValueType(
+                                    analyticsSortingParams
+                                        .getOrderBy()
+                                        .getDimension()
+                                        .getValueType()))),
                         analyticsSortingParams.getSortDirection()))));
 
     return builder.build();
@@ -278,16 +286,6 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
    * @return true if the sorting parameter is of type data element, false otherwise.
    */
   private static boolean isDataElementOrder(AnalyticsSortingParams analyticsSortingParams) {
-    return isDataElement(analyticsSortingParams.getOrderBy());
-  }
-
-  /**
-   * Checks if the given dimension identifier is of type data element.
-   *
-   * @param dimensionIdentifier the dimension identifier to check.
-   * @return true if the dimension identifier is of type data element, false otherwise.
-   */
-  private static boolean isDataElement(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
-    return isOfType(dimensionIdentifier, DATA_ELEMENT) && dimensionIdentifier.isEventDimension();
+    return DimensionIdentifierHelper.isDataElement(analyticsSortingParams.getOrderBy());
   }
 }

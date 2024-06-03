@@ -51,6 +51,7 @@ import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType;
 import org.hisp.dhis.analytics.common.query.jsonextractor.JsonEnrollment.JsonEvent;
+import org.hisp.dhis.analytics.tei.query.context.querybuilder.OffsetHelper;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -130,7 +131,7 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
   private Object getObjectForEvents(
       List<JsonEnrollment> enrollments, DimensionIdentifier<DimensionParam> dimensionIdentifier) {
     JsonEnrollment jsonEnrollment =
-        getBasedOnOffset(
+        OffsetHelper.getItemBasedOnOffset(
                 enrollments.stream()
                     // gets only enrollments whose program is the same as specified in the dimension
                     .filter(
@@ -147,7 +148,7 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
 
     // sorts enrollments by enrollment date, descending
     JsonEvent jsonEvent =
-        getBasedOnOffset(
+        OffsetHelper.getItemBasedOnOffset(
                 CollectionUtils.emptyIfNull(jsonEnrollment.getEvents()).stream()
                     // gets only events whose program stage is the same as specified in the
                     // dimension
@@ -170,28 +171,6 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
         .orElse(null);
   }
 
-  /**
-   * Given a stream of objects, a comparator and an offset, returns the object at the specified
-   * offset.
-   *
-   * @param stream the stream of objects
-   * @param comparator the comparator to sort the objects
-   * @param offset the offset
-   * @param <T> the type of the objects
-   * @return the object at the specified offset
-   */
-  private <T> Optional<T> getBasedOnOffset(Stream<T> stream, Comparator<T> comparator, int offset) {
-    if (offset > 0) { // 1 first (--> skip 0), 2 second (--> skip 1), 3 third (--> skip 2), etc.
-      return stream
-          // positive offset means sort by ascending date
-          .sorted(comparator.reversed())
-          .skip(offset - 1L)
-          .findFirst();
-    }
-    // 0 latest, -1 second latest (--> skip 1), -2 third latest (--> skip 2), etc.
-    return stream.sorted(comparator).skip(-offset).findFirst();
-  }
-
   private Object getObjectForEnrollments(
       List<JsonEnrollment> enrollments, DimensionIdentifier<DimensionParam> dimensionIdentifier) {
     Stream<JsonEnrollment> jsonEnrollmentStream =
@@ -203,7 +182,7 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
                         .getProgramUid()
                         .equals(dimensionIdentifier.getProgram().getElement().getUid()));
 
-    return getBasedOnOffset(
+    return OffsetHelper.getItemBasedOnOffset(
             jsonEnrollmentStream,
             // sorts enrollments by enrollment date, descending
             ENR_ENROLLMENT_DATE_COMPARATOR,

@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
-import static java.lang.Math.abs;
 import static lombok.AccessLevel.PRIVATE;
 import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.ANALYTICS_TEI_ENR;
 import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.ANALYTICS_TEI_EVT;
@@ -69,7 +68,7 @@ class SqlQueryHelper {
         + ") innermost_enr"
         + " where innermost_enr.rn = "
         // This logic is needed because of the row_number(), which starts in 1.
-        + (offset > 0 ? offset : abs(offset) + 1);
+        + OffsetHelper.getOffset(offset);
   }
 
   static String eventSelect(
@@ -103,6 +102,6 @@ class SqlQueryHelper {
         + ") innermost_evt"
         + " where innermost_evt.rn = "
         // This logic is needed because of the row_number(), which starts in 1.
-        + (offset > 0 ? offset : abs(offset) + 1);
+        + OffsetHelper.getOffset(offset);
   }
 }
