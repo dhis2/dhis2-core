@@ -36,6 +36,7 @@ import lombok.Getter;
  */
 @Getter
 public enum ApiTokenType {
+  PERSONAL_ACCESS_TOKEN(1, "d2pat", 32, "SHA-256", "CRC32"),
   PERSONAL_ACCESS_TOKEN_V1(1, "d2pat", 32, "SHA-256", "CRC32"),
   PERSONAL_ACCESS_TOKEN_V2(2, "d2p", 44, "SHA-256", "CRC32_B62");
 
