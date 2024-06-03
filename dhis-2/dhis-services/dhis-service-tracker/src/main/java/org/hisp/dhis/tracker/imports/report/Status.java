@@ -27,9 +27,13 @@
  */
 package org.hisp.dhis.tracker.imports.report;
 
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.Shared.Pattern;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Shared(pattern = Pattern.TRACKER)
 public enum Status {
   OK,
   WARNING,

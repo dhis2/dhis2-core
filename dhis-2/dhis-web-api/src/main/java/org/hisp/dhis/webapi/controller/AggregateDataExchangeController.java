@@ -35,10 +35,12 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchangeService;
 import org.hisp.dhis.dataexchange.aggregate.SourceDataQueryParams;
+import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
-import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -54,7 +56,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("data")
+@OpenApi.Document(domain = DataValue.class)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/aggregateDataExchanges")
@@ -67,7 +69,7 @@ public class AggregateDataExchangeController extends AbstractCrudController<Aggr
   public WebMessage runDataExchange(
       @RequestBody AggregateDataExchange exchange, @CurrentUser UserDetails userDetails) {
     return WebMessageUtils.importSummaries(
-        service.exchangeData(userDetails, exchange, NoopJobProgress.INSTANCE));
+        service.exchangeData(userDetails, exchange, JobProgress.noop()));
   }
 
   @PostMapping("/{uid}/exchange")
@@ -75,19 +77,22 @@ public class AggregateDataExchangeController extends AbstractCrudController<Aggr
   public WebMessage runDataExchangeByUid(
       @PathVariable String uid, @CurrentUser UserDetails userDetails) {
     return WebMessageUtils.importSummaries(
-        service.exchangeData(userDetails, uid, NoopJobProgress.INSTANCE));
+        service.exchangeData(userDetails, uid, JobProgress.noop()));
   }
 
   @GetMapping("/{uid}/sourceData")
   @ResponseStatus(value = HttpStatus.OK)
-  public List<Grid> getSourceData(@PathVariable String uid, SourceDataQueryParams params) {
-    return service.getSourceData(uid, params);
+  public List<Grid> getSourceData(
+      @PathVariable String uid, SourceDataQueryParams params, @CurrentUser UserDetails userDetails)
+      throws ForbiddenException {
+    return service.getSourceData(userDetails, uid, params);
   }
 
   @GetMapping("/{uid}/sourceDataValueSets")
   @ResponseStatus(value = HttpStatus.OK)
   public List<DataValueSet> getSourceDataValueSets(
-      @PathVariable String uid, SourceDataQueryParams params) {
-    return service.getSourceDataValueSets(uid, params);
+      @PathVariable String uid, SourceDataQueryParams params, @CurrentUser UserDetails userDetails)
+      throws ForbiddenException {
+    return service.getSourceDataValueSets(userDetails, uid, params);
   }
 }

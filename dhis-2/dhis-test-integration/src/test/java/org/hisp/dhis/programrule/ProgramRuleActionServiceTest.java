@@ -28,7 +28,6 @@
 package org.hisp.dhis.programrule;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -184,84 +183,6 @@ class ProgramRuleActionServiceTest extends TransactionalIntegrationTest {
     assertEquals(actionC, actionService.getProgramRuleAction(idC));
     assertEquals(actionD, actionService.getProgramRuleAction(idD));
     assertEquals(actionE, actionService.getProgramRuleAction(idE));
-  }
-
-  @Test
-  void testGetByProgram() {
-    ProgramRuleAction actionD =
-        new ProgramRuleAction(
-            "ActionD",
-            programRuleB,
-            ProgramRuleActionType.ASSIGN,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            "$myvar",
-            "true",
-            null,
-            null);
-    ProgramRuleAction actionE =
-        new ProgramRuleAction(
-            "ActionE",
-            programRuleB,
-            ProgramRuleActionType.DISPLAYTEXT,
-            null,
-            null,
-            null,
-            null,
-            null,
-            "con",
-            "Hello",
-            "$placeofliving",
-            null,
-            null);
-    ProgramRuleAction actionF =
-        new ProgramRuleAction(
-            "ActionF",
-            programRuleB,
-            ProgramRuleActionType.HIDEFIELD,
-            dataElementA,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null);
-    // Add an action that is not part of programRuleB....
-    ProgramRuleAction actionG =
-        new ProgramRuleAction(
-            "ActionG",
-            programRuleC,
-            ProgramRuleActionType.HIDEFIELD,
-            dataElementA,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null);
-    actionService.addProgramRuleAction(actionD);
-    actionService.addProgramRuleAction(actionE);
-    actionService.addProgramRuleAction(actionF);
-    actionService.addProgramRuleAction(actionG);
-    // Get all the 3 rules for programB
-    List<ProgramRuleAction> rules = actionService.getProgramRuleAction(programRuleB);
-    assertEquals(3, rules.size());
-    assertTrue(rules.contains(actionD));
-    assertTrue(rules.contains(actionE));
-    assertTrue(rules.contains(actionF));
-    // Make sure that the action connected to rule A is not returned as part
-    // of list of actions in rule B.
-    assertFalse(rules.contains(actionG));
   }
 
   @Test

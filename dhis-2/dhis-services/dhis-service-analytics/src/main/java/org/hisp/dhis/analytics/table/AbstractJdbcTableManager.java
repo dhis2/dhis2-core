@@ -51,6 +51,7 @@ import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.model.AnalyticsColumnType;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
@@ -58,6 +59,7 @@ import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
@@ -460,7 +462,11 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             pt -> {
               String name = pt.getName().toLowerCase();
-              return new AnalyticsTableColumn(name, TEXT, prefix + "." + quote(name));
+              return AnalyticsTableColumn.builder()
+                  .name(name)
+                  .dataType(TEXT)
+                  .selectExpression(prefix + "." + quote(name))
+                  .build();
             })
         .toList();
   }
@@ -475,8 +481,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             level -> {
               String name = PREFIX_ORGUNITLEVEL + level.getLevel();
-              return new AnalyticsTableColumn(
-                  name, CHARACTER_11, "ous." + quote(name), level.getCreated());
+              return AnalyticsTableColumn.builder()
+                  .name(name)
+                  .dataType(CHARACTER_11)
+                  .selectExpression("ous." + quote(name))
+                  .created(level.getCreated())
+                  .build();
             })
         .toList();
   }
@@ -493,7 +503,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
                 .map(lv -> "ous." + PREFIX_ORGUNITNAMELEVEL + lv.getLevel())
                 .collect(Collectors.joining(","))
             + ") as ounamehierarchy";
-    return new AnalyticsTableColumn("ounamehierarchy", TEXT, Collation.C, columnExpression);
+    return AnalyticsTableColumn.builder()
+        .name("ounamehierarchy")
+        .dataType(TEXT)
+        .collation(Collation.C)
+        .selectExpression(columnExpression)
+        .build();
   }
 
   /**
@@ -506,9 +521,14 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             ougs -> {
               String name = ougs.getUid();
-              Skip skipIndex = analyticsTableSettings.skipIndexOrgUnitGroupSetColumns();
-              return new AnalyticsTableColumn(
-                  name, CHARACTER_11, "ougs." + quote(name), skipIndex, ougs.getCreated());
+              return AnalyticsTableColumn.builder()
+                  .name(name)
+                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dataType(CHARACTER_11)
+                  .selectExpression("ougs." + quote(name))
+                  .skipIndex(skipIndex(ougs))
+                  .created(ougs.getCreated())
+                  .build();
             })
         .toList();
   }
@@ -518,9 +538,14 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             degs -> {
               String name = degs.getUid();
-              Skip skipIndex = analyticsTableSettings.skipIndexDataElementGroupSetColumns();
-              return new AnalyticsTableColumn(
-                  name, CHARACTER_11, "degs." + quote(name), skipIndex, degs.getCreated());
+              return AnalyticsTableColumn.builder()
+                  .name(name)
+                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dataType(CHARACTER_11)
+                  .selectExpression("degs." + quote(name))
+                  .skipIndex(skipIndex(degs))
+                  .created(degs.getCreated())
+                  .build();
             })
         .toList();
   }
@@ -530,9 +555,14 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             cogs -> {
               String name = cogs.getUid();
-              Skip skipIndex = analyticsTableSettings.skipIndexCategoryOptionGroupSetColumns();
-              return new AnalyticsTableColumn(
-                  name, CHARACTER_11, "dcs." + quote(name), skipIndex, cogs.getCreated());
+              return AnalyticsTableColumn.builder()
+                  .name(name)
+                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dataType(CHARACTER_11)
+                  .selectExpression("dcs." + quote(name))
+                  .skipIndex(skipIndex(cogs))
+                  .created(cogs.getCreated())
+                  .build();
             })
         .toList();
   }
@@ -542,9 +572,14 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             cogs -> {
               String name = cogs.getUid();
-              Skip skipIndex = analyticsTableSettings.skipIndexCategoryOptionGroupSetColumns();
-              return new AnalyticsTableColumn(
-                  name, CHARACTER_11, "acs." + quote(name), skipIndex, cogs.getCreated());
+              return AnalyticsTableColumn.builder()
+                  .name(name)
+                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dataType(CHARACTER_11)
+                  .selectExpression("acs." + quote(name))
+                  .skipIndex(skipIndex(cogs))
+                  .created(cogs.getCreated())
+                  .build();
             })
         .toList();
   }
@@ -554,9 +589,14 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             category -> {
               String name = category.getUid();
-              Skip skipIndex = analyticsTableSettings.skipIndexCategoryColumns();
-              return new AnalyticsTableColumn(
-                  name, CHARACTER_11, "dcs." + quote(name), skipIndex, category.getCreated());
+              return AnalyticsTableColumn.builder()
+                  .name(name)
+                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dataType(CHARACTER_11)
+                  .selectExpression("dcs." + quote(name))
+                  .skipIndex(skipIndex(category))
+                  .created(category.getCreated())
+                  .build();
             })
         .toList();
   }
@@ -566,11 +606,28 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             category -> {
               String name = category.getUid();
-              Skip skipIndex = analyticsTableSettings.skipIndexCategoryColumns();
-              return new AnalyticsTableColumn(
-                  name, CHARACTER_11, "acs." + quote(name), skipIndex, category.getCreated());
+              return AnalyticsTableColumn.builder()
+                  .name(name)
+                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dataType(CHARACTER_11)
+                  .selectExpression("acs." + quote(name))
+                  .skipIndex(skipIndex(category))
+                  .created(category.getCreated())
+                  .build();
             })
         .toList();
+  }
+
+  /**
+   * Indicates whether indexing should be skipped for the given dimensional object based on the
+   * system configuration.
+   *
+   * @param dimension the {@link DimensionalObject}.
+   * @return {@link Skip#SKIP} if index should be skipped, {@link Skip#INCLUDE} otherwise.
+   */
+  protected Skip skipIndex(DimensionalObject dimension) {
+    Set<String> dimensions = analyticsTableSettings.getSkipIndexDimensions();
+    return dimensions.contains(dimension.getUid()) ? Skip.SKIP : Skip.INCLUDE;
   }
 
   /**

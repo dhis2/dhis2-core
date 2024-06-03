@@ -52,11 +52,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 class ExistenceValidatorTest {
-  private static final String SOFT_DELETED_TE_UID = "SoftDeletedTEIId";
+  private static final String SOFT_DELETED_TE_UID = "SoftDeletedTEId";
 
-  private static final String TE_UID = "TEIId";
+  private static final String TE_UID = "TEId";
 
-  private static final String NOT_PRESENT_TE_UID = "NotPresentTEIId";
+  private static final String NOT_PRESENT_TE_UID = "NotPresentTEId";
 
   @Mock private TrackerBundle bundle;
 

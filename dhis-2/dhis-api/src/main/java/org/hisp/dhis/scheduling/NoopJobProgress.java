@@ -34,7 +34,7 @@ package org.hisp.dhis.scheduling;
  *
  * @author Jan Bernitt
  */
-public class NoopJobProgress implements JobProgress {
+class NoopJobProgress implements JobProgress {
   public static final JobProgress INSTANCE = new NoopJobProgress();
 
   private NoopJobProgress() {

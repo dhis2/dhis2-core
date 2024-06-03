@@ -80,10 +80,10 @@ import org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.relationship.Relationship;
@@ -307,7 +307,7 @@ class JdbcEventStore implements EventStore {
               event.setDeleted(resultSet.getBoolean(COLUMN_EVENT_DELETED));
 
               enrollment.setStatus(
-                  ProgramStatus.valueOf(resultSet.getString(COLUMN_ENROLLMENT_STATUS)));
+                  EnrollmentStatus.valueOf(resultSet.getString(COLUMN_ENROLLMENT_STATUS)));
               enrollment.setFollowup(resultSet.getBoolean(COLUMN_ENROLLMENT_FOLLOWUP));
               event.setEnrollment(enrollment);
               event.setProgramStage(ps);
@@ -564,9 +564,8 @@ class JdbcEventStore implements EventStore {
   }
 
   /**
-   * Query is based on three sub queries on event, data value and note, which are joined using
-   * program stage instance id. The purpose of the separate queries is to be able to page properly
-   * on events.
+   * Query is based on three sub queries on event, data value and note, which are joined using event
+   * id. The purpose of the separate queries is to be able to page properly on events.
    */
   private String buildSql(
       EventQueryParams queryParams,
@@ -909,8 +908,8 @@ class JdbcEventStore implements EventStore {
           .append(" ");
     }
 
-    if (params.getProgramStatus() != null) {
-      mapSqlParameterSource.addValue("program_status", params.getProgramStatus().name());
+    if (params.getEnrollmentStatus() != null) {
+      mapSqlParameterSource.addValue("program_status", params.getEnrollmentStatus().name());
 
       fromBuilder.append(hlp.whereAnd()).append(" en.status = ").append(":program_status ");
     }

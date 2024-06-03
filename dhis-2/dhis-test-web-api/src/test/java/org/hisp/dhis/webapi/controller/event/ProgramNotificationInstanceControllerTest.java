@@ -63,7 +63,7 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
 
   @Autowired private EventService eventService;
 
-  @Autowired private TrackedEntityService teiService;
+  @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private IdentifiableObjectManager idObjectManager;
   private Enrollment enrollment;
@@ -81,9 +81,9 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
     idObjectManager.save(prA);
     ProgramStage psA = createProgramStage('A', prA);
     idObjectManager.save(psA);
-    TrackedEntity teiA = createTrackedEntity('A', ouA);
-    teiService.addTrackedEntity(teiA);
-    enrollment = createEnrollment(prA, teiA, ouA);
+    TrackedEntity trackedEntityA = createTrackedEntity('A', ouA);
+    trackedEntityService.addTrackedEntity(trackedEntityA);
+    enrollment = createEnrollment(prA, trackedEntityA, ouA);
     enrollmentService.addEnrollment(enrollment);
 
     enrollmentNotification1 = new ProgramNotificationInstance();

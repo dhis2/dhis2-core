@@ -39,32 +39,14 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
   String ID = EnrollmentStore.class.getName();
 
-  /**
-   * Retrieve enrollments on a program
-   *
-   * @param program Program
-   * @return Enrollment list
-   */
+  /** Get enrollments into a program. */
   List<Enrollment> get(Program program);
 
-  /**
-   * Retrieve enrollments on a program by status
-   *
-   * @param program Program
-   * @param status Status of program, include STATUS_ACTIVE, STATUS_COMPLETED and STATUS_CANCELLED
-   * @return Enrollment list
-   */
-  List<Enrollment> get(Program program, ProgramStatus status);
+  /** Get enrollments into a program that are in given status. */
+  List<Enrollment> get(Program program, EnrollmentStatus status);
 
-  /**
-   * Retrieve enrollments on a TrackedEntity with a status by a program
-   *
-   * @param trackedEntity TrackedEntity
-   * @param program Program
-   * @param status Status of program, include STATUS_ACTIVE, STATUS_COMPLETED and STATUS_CANCELLED
-   * @return Enrollment list
-   */
-  List<Enrollment> get(TrackedEntity trackedEntity, Program program, ProgramStatus status);
+  /** Get a tracked entities enrollments into a program that are in given status. */
+  List<Enrollment> get(TrackedEntity trackedEntity, Program program, EnrollmentStatus status);
 
   /**
    * Checks for the existence of an enrollment by UID, Deleted enrollments are not taken into

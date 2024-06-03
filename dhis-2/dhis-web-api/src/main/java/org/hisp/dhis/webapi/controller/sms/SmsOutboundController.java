@@ -39,7 +39,6 @@ import java.io.IOException;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
@@ -61,7 +60,6 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Zubair Asghar
  */
-@OpenApi.Tags("messaging")
 @RestController
 @RequestMapping("/api/sms/outbound")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

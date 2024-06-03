@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataset.Section;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,7 +34,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags("metadata")
 @Controller
 @RequestMapping("/api/sections")
 public class SectionController extends AbstractCrudController<Section> {}

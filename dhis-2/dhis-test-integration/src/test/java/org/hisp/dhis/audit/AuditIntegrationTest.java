@@ -105,16 +105,16 @@ class AuditIntegrationTest extends IntegrationTestBase {
     TrackedEntityAttribute attribute = createTrackedEntityAttribute('A');
     manager.save(ou);
     manager.save(attribute);
-    TrackedEntity tei = createTrackedEntity('A', ou, attribute);
-    trackedEntityService.addTrackedEntity(tei);
-    AuditQuery query = AuditQuery.builder().uid(Sets.newHashSet(tei.getUid())).build();
+    TrackedEntity trackedEntity = createTrackedEntity('A', ou, attribute);
+    trackedEntityService.addTrackedEntity(trackedEntity);
+    AuditQuery query = AuditQuery.builder().uid(Sets.newHashSet(trackedEntity.getUid())).build();
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 0);
     List<Audit> audits = auditService.getAudits(query);
     assertEquals(1, audits.size());
     Audit audit = audits.get(0);
     assertEquals(TrackedEntity.class.getName(), audit.getKlass());
-    assertEquals(tei.getUid(), audit.getUid());
-    assertEquals(tei.getUid(), audit.getAttributes().get("uid"));
+    assertEquals(trackedEntity.getUid(), audit.getUid());
+    assertEquals(trackedEntity.getUid(), audit.getAttributes().get("uid"));
     assertNotNull(audit.getData());
   }
 
@@ -124,13 +124,14 @@ class AuditIntegrationTest extends IntegrationTestBase {
     TrackedEntityAttribute attribute = createTrackedEntityAttribute('A');
     manager.save(ou);
     manager.save(attribute);
-    TrackedEntity tei = createTrackedEntity('A', ou, attribute);
-    trackedEntityService.addTrackedEntity(tei);
-    TrackedEntityAttributeValue dataValue = createTrackedEntityAttributeValue('A', tei, attribute);
+    TrackedEntity trackedEntity = createTrackedEntity('A', ou, attribute);
+    trackedEntityService.addTrackedEntity(trackedEntity);
+    TrackedEntityAttributeValue dataValue =
+        createTrackedEntityAttributeValue('A', trackedEntity, attribute);
     attributeValueService.addTrackedEntityAttributeValue(dataValue);
     AuditAttributes attributes = new AuditAttributes();
     attributes.put("attribute", attribute.getUid());
-    attributes.put("trackedEntity", tei.getUid());
+    attributes.put("trackedEntity", trackedEntity.getUid());
     AuditQuery query = AuditQuery.builder().auditAttributes(attributes).build();
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 0);
     List<Audit> audits = auditService.getAudits(query);
@@ -138,7 +139,7 @@ class AuditIntegrationTest extends IntegrationTestBase {
     Audit audit = audits.get(0);
     assertEquals(TrackedEntityAttributeValue.class.getName(), audit.getKlass());
     assertEquals(attribute.getUid(), audit.getAttributes().get("attribute"));
-    assertEquals(tei.getUid(), audit.getAttributes().get("trackedEntity"));
+    assertEquals(trackedEntity.getUid(), audit.getAttributes().get("trackedEntity"));
     assertNotNull(audit.getData());
   }
 

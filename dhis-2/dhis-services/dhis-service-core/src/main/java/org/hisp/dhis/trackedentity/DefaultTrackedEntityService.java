@@ -199,8 +199,6 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
    *
    * <p>For example, if attributes or filters don't have a specific trackedentityattribute uid, but
    * sorting has been requested for that tea uid, then we need to add them to the attribute list.
-   *
-   * @param params The TEIQueryParams object
    */
   private void handleSortAttributes(TrackedEntityQueryParams params) {
     List<TrackedEntityAttribute> sortAttributes =
@@ -222,10 +220,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   // TODO lower index on attribute value?
-
-  @Override
-  @Transactional(readOnly = true)
-  public void decideAccess(TrackedEntityQueryParams params) {
+  private void decideAccess(TrackedEntityQueryParams params) {
     User user = params.getUser();
     if (params.isOrganisationUnitMode(ALL)
         && !(user != null
@@ -262,8 +257,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     }
   }
 
-  @Override
-  public void validate(TrackedEntityQueryParams params) throws IllegalQueryException {
+  private void validate(TrackedEntityQueryParams params) throws IllegalQueryException {
     if (params == null) {
       throw new IllegalQueryException("Params cannot be null");
     }
@@ -297,8 +291,8 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
       violation = "Either Program or Tracked entity type should be specified";
     }
 
-    if (params.hasProgramStatus() && !params.hasProgram()) {
-      violation = "Program must be defined when program status is defined";
+    if (params.hasEnrollmentStatus() && !params.hasProgram()) {
+      violation = "Program must be defined when enrollment status is defined";
     }
 
     if (params.hasFollowUp() && !params.hasProgram()) {
@@ -330,9 +324,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     }
   }
 
-  @Override
-  @Transactional(readOnly = true)
-  public void validateSearchScope(TrackedEntityQueryParams params) throws IllegalQueryException {
+  private void validateSearchScope(TrackedEntityQueryParams params) throws IllegalQueryException {
     if (params == null) {
       throw new IllegalQueryException("Params cannot be null");
     }

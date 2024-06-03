@@ -36,6 +36,8 @@ import java.util.Map;
 import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.Access;
@@ -51,6 +53,7 @@ import org.hisp.dhis.user.sharing.UserGroupAccess;
 
 @Getter
 @Setter
+@OpenApi.Identifiable(as = User.class)
 public class MeDto {
   public MeDto(
       User user,
@@ -123,7 +126,9 @@ public class MeDto {
 
   @JsonProperty() private Date lastUpdated;
 
-  @JsonProperty() private Set<OrganisationUnit> dataViewOrganisationUnits;
+  @OpenApi.Property(BaseIdentifiableObject[].class)
+  @JsonProperty()
+  private Set<OrganisationUnit> dataViewOrganisationUnits;
 
   @JsonProperty() protected Set<String> favorites;
 
@@ -133,13 +138,19 @@ public class MeDto {
 
   @JsonProperty() private Set<UserAccess> userAccesses;
 
-  @JsonProperty() private Set<UserGroup> userGroups;
+  @OpenApi.Property(BaseIdentifiableObject[].class)
+  @JsonProperty()
+  private Set<UserGroup> userGroups;
 
   @JsonProperty() private Set<Translation> translations;
 
-  @JsonProperty() private Set<OrganisationUnit> teiSearchOrganisationUnits;
+  @OpenApi.Property(BaseIdentifiableObject[].class)
+  @JsonProperty()
+  private Set<OrganisationUnit> teiSearchOrganisationUnits;
 
-  @JsonProperty() private Set<OrganisationUnit> organisationUnits;
+  @OpenApi.Property(BaseIdentifiableObject[].class)
+  @JsonProperty()
+  private Set<OrganisationUnit> organisationUnits;
 
   @JsonProperty() private Boolean externalAccess;
 
@@ -173,7 +184,9 @@ public class MeDto {
 
   @JsonProperty() private String twitter;
 
-  @JsonProperty private Set<UserRole> userRoles;
+  @OpenApi.Property(BaseIdentifiableObject[].class)
+  @JsonProperty
+  private Set<UserRole> userRoles;
 
   @JsonProperty() private Map<String, Serializable> settings;
 

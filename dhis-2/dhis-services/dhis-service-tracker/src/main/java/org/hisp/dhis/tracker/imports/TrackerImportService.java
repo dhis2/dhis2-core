@@ -28,7 +28,7 @@
 package org.hisp.dhis.tracker.imports;
 
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.scheduling.RecordingJobProgress;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 
@@ -45,7 +45,7 @@ public interface TrackerImportService {
    * @return Report giving status of import (and any errors)
    */
   default ImportReport importTracker(TrackerImportParams params, TrackerObjects trackerObjects) {
-    return importTracker(params, trackerObjects, NoopJobProgress.INSTANCE);
+    return importTracker(params, trackerObjects, RecordingJobProgress.transitory());
   }
 
   /**

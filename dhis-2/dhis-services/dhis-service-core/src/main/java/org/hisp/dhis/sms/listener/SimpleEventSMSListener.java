@@ -40,11 +40,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.smscompression.SmsConsts.SubmissionType;
@@ -123,7 +123,7 @@ public class SimpleEventSMSListener extends CompressionSMSListener {
     }
 
     List<Enrollment> enrollments =
-        new ArrayList<>(enrollmentService.getEnrollments(program, ProgramStatus.ACTIVE));
+        new ArrayList<>(enrollmentService.getEnrollments(program, EnrollmentStatus.ACTIVE));
 
     // For Simple Events, the Program should have one Enrollment
     // If it doesn't exist, this is the first event, we can create it here
@@ -132,7 +132,7 @@ public class SimpleEventSMSListener extends CompressionSMSListener {
       enrollment.setEnrollmentDate(new Date());
       enrollment.setOccurredDate(new Date());
       enrollment.setProgram(program);
-      enrollment.setStatus(ProgramStatus.ACTIVE);
+      enrollment.setStatus(EnrollmentStatus.ACTIVE);
 
       enrollmentService.addEnrollment(enrollment);
 

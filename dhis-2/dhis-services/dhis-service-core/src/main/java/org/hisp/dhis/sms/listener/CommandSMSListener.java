@@ -48,9 +48,9 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.code.SMSCode;
@@ -219,7 +219,7 @@ public abstract class CommandSMSListener extends BaseSMSListener {
       enrollment.setEnrollmentDate(new Date());
       enrollment.setOccurredDate(new Date());
       enrollment.setProgram(smsCommand.getProgram());
-      enrollment.setStatus(ProgramStatus.ACTIVE);
+      enrollment.setStatus(EnrollmentStatus.ACTIVE);
 
       enrollmentService.addEnrollment(enrollment);
 

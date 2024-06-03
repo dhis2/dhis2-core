@@ -79,30 +79,110 @@ import org.springframework.transaction.annotation.Transactional;
 public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
-          new AnalyticsTableColumn("trackedentityinstanceuid", CHARACTER_11, NOT_NULL, "tei.uid"),
-          new AnalyticsTableColumn("programuid", CHARACTER_11, NULL, "p.uid"),
-          new AnalyticsTableColumn("programinstanceuid", CHARACTER_11, NULL, "pi.uid"),
-          new AnalyticsTableColumn("enrollmentdate", TIMESTAMP, "pi.enrollmentdate"),
-          new AnalyticsTableColumn("enddate", TIMESTAMP, "pi.completeddate"),
-          new AnalyticsTableColumn("incidentdate", TIMESTAMP, "pi.occurreddate"),
-          new AnalyticsTableColumn("enrollmentstatus", VARCHAR_50, "pi.status"),
-          new AnalyticsTableColumn("pigeometry", GEOMETRY, "pi.geometry", IndexType.GIST),
-          new AnalyticsTableColumn(
-              "pilongitude",
-              DOUBLE,
-              "case when 'POINT' = GeometryType(pi.geometry) then ST_X(pi.geometry) end"),
-          new AnalyticsTableColumn(
-              "pilatitude",
-              DOUBLE,
-              "case when 'POINT' = GeometryType(pi.geometry) then ST_Y(pi.geometry) end"),
-          new AnalyticsTableColumn("uidlevel1", CHARACTER_11, NULL, "ous.uidlevel1"),
-          new AnalyticsTableColumn("uidlevel2", CHARACTER_11, NULL, "ous.uidlevel2"),
-          new AnalyticsTableColumn("uidlevel3", CHARACTER_11, NULL, "ous.uidlevel3"),
-          new AnalyticsTableColumn("uidlevel4", CHARACTER_11, NULL, "ous.uidlevel4"),
-          new AnalyticsTableColumn("ou", CHARACTER_11, NULL, "ou.uid"),
-          new AnalyticsTableColumn("ouname", VARCHAR_255, NULL, "ou.name"),
-          new AnalyticsTableColumn("oucode", CHARACTER_32, NULL, "ou.code"),
-          new AnalyticsTableColumn("oulevel", INTEGER, NULL, "ous.level"));
+          AnalyticsTableColumn.builder()
+              .name("trackedentityinstanceuid")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("tei.uid")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("programuid")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("p.uid")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("programinstanceuid")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("pi.uid")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("enrollmentdate")
+              .dataType(TIMESTAMP)
+              .selectExpression("pi.enrollmentdate")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("enddate")
+              .dataType(TIMESTAMP)
+              .selectExpression("pi.completeddate")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("incidentdate")
+              .dataType(TIMESTAMP)
+              .selectExpression("pi.occurreddate")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("enrollmentstatus")
+              .dataType(VARCHAR_50)
+              .selectExpression("pi.status")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("pigeometry")
+              .dataType(GEOMETRY)
+              .selectExpression("pi.geometry")
+              .indexType(IndexType.GIST)
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("pilongitude")
+              .dataType(DOUBLE)
+              .selectExpression(
+                  "case when 'POINT' = GeometryType(pi.geometry) then ST_X(pi.geometry) end")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("pilatitude")
+              .dataType(DOUBLE)
+              .selectExpression(
+                  "case when 'POINT' = GeometryType(pi.geometry) then ST_Y(pi.geometry) end")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("uidlevel1")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("ous.uidlevel1")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("uidlevel2")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("ous.uidlevel2")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("uidlevel3")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("ous.uidlevel3")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("uidlevel4")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("ous.uidlevel4")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("ou")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("ou.uid")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("ouname")
+              .dataType(VARCHAR_255)
+              .nullable(NULL)
+              .selectExpression("ou.name")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("oucode")
+              .dataType(CHARACTER_32)
+              .nullable(NULL)
+              .selectExpression("ou.code")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("oulevel")
+              .dataType(INTEGER)
+              .nullable(NULL)
+              .selectExpression("ous.level")
+              .build());
 
   private final TrackedEntityTypeService trackedEntityTypeService;
 

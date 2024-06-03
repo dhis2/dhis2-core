@@ -103,7 +103,7 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
 
   @Override
   public List<RuleEffects> evaluateProgramEvents(Set<Event> events, Program program) {
-    List<ProgramRule> rules = getProgramRules(program);
+    List<ProgramRule> rules = implementableRuleService.getProgramRules(program, null);
     return evaluateProgramRulesForMultipleTrackerObjects(
         null, program, getRuleEvents(events), rules);
   }
@@ -159,10 +159,6 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
             .collect(Collectors.toSet());
 
     return List.copyOf(programRules);
-  }
-
-  private List<ProgramRule> getProgramRules(Program program) {
-    return implementableRuleService.getProgramRules(program, null);
   }
 
   private RuleEngineContext getRuleEngineContext(Program program, List<ProgramRule> programRules) {

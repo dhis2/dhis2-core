@@ -44,6 +44,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nLocaleService;
 import org.hisp.dhis.i18n.locale.I18nLocale;
 import org.hisp.dhis.i18n.locale.LocaleManager;
@@ -66,7 +67,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-@OpenApi.Tags("ui")
+@OpenApi.Document(domain = I18n.class)
 @Controller
 @RequestMapping("/api/locales")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

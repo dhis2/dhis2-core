@@ -63,10 +63,10 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -190,7 +190,7 @@ class TrackedEntityOperationParamsMapperTest {
             .assignedUserQueryParam(
                 new AssignedUserQueryParam(AssignedUserSelectionMode.CURRENT, user, null))
             .orgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS)
-            .programStatus(ProgramStatus.ACTIVE)
+            .enrollmentStatus(EnrollmentStatus.ACTIVE)
             .followUp(true)
             .lastUpdatedStartDate(getDate(2019, 1, 1))
             .lastUpdatedEndDate(getDate(2020, 1, 1))
@@ -207,7 +207,7 @@ class TrackedEntityOperationParamsMapperTest {
     final TrackedEntityQueryParams params = mapper.map(operationParams);
 
     assertThat(params.getTrackedEntityType(), is(trackedEntityType));
-    assertThat(params.getProgramStatus(), is(ProgramStatus.ACTIVE));
+    assertThat(params.getEnrollmentStatus(), is(EnrollmentStatus.ACTIVE));
     assertThat(params.getFollowUp(), is(true));
     assertThat(params.getLastUpdatedStartDate(), is(operationParams.getLastUpdatedStartDate()));
     assertThat(params.getLastUpdatedEndDate(), is(operationParams.getLastUpdatedEndDate()));

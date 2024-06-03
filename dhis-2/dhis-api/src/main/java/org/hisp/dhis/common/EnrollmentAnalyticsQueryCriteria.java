@@ -34,7 +34,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hisp.dhis.analytics.SortOrder;
-import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.EnrollmentStatus;
 
 /**
  * @author Jan Bernitt
@@ -98,7 +98,7 @@ public class EnrollmentAnalyticsQueryCriteria extends AnalyticsPagingCriteria {
    */
   private IdScheme outputIdScheme;
 
-  private Set<ProgramStatus> programStatus = new HashSet<>();
+  private Set<EnrollmentStatus> programStatus = new HashSet<>();
 
   private DisplayProperty displayProperty;
 

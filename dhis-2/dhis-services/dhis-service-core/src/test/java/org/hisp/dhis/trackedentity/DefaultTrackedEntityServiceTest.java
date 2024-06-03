@@ -51,7 +51,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
+@MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 class DefaultTrackedEntityServiceTest {
 
@@ -75,13 +78,13 @@ class DefaultTrackedEntityServiceTest {
 
   private TrackedEntityQueryParams params;
 
-  private DefaultTrackedEntityService teiService;
+  private DefaultTrackedEntityService trackedEntityService;
 
   private User user;
 
   @BeforeEach
   void setup() {
-    teiService =
+    trackedEntityService =
         new DefaultTrackedEntityService(
             userService,
             trackedEntityStore,
@@ -105,10 +108,12 @@ class DefaultTrackedEntityServiceTest {
     params.setProgram(new Program("Test program"));
     params.getProgram().setMaxTeiCountToReturn(10);
     params.setTrackedEntityUids(Set.of("1"));
+
+    when(aclService.canDataRead(params.getUser(), params.getProgram())).thenReturn(true);
   }
 
   @Test
-  void exceptionThrownWhenTeiLimitReached() {
+  void exceptionThrownWhenTrackedEntityLimitReached() {
     when(trackedEntityStore.getTrackedEntityCountWithMaxTeLimit(
             any(TrackedEntityQueryParams.class)))
         .thenReturn(20);
@@ -119,14 +124,14 @@ class DefaultTrackedEntityServiceTest {
     IllegalQueryException expectedException =
         assertThrows(
             IllegalQueryException.class,
-            () -> teiService.validateSearchScope(params),
+            () -> trackedEntityService.getTrackedEntities(params, true, false),
             "test message");
 
     assertEquals("maxteicountreached", expectedException.getMessage());
   }
 
   @Test
-  void noExceptionThrownWhenTeiLimitNotReached() {
+  void noExceptionThrownWhenTrackedEntityLimitNotReached() {
     when(trackedEntityStore.getTrackedEntityCountWithMaxTeLimit(
             any(TrackedEntityQueryParams.class)))
         .thenReturn(0);
@@ -134,6 +139,18 @@ class DefaultTrackedEntityServiceTest {
     String currentUsername = CurrentUserUtil.getCurrentUsername();
     when(userService.getUserByUsername(currentUsername)).thenReturn(user);
 
-    teiService.validateSearchScope(params);
+    trackedEntityService.getTrackedEntities(params, true, false);
+  }
+
+  @Test
+  void testTrackedEntityQueryParamsWithoutEitherProgramOrTrackedEntityType() {
+    TrackedEntityQueryParams params = new TrackedEntityQueryParams();
+
+    IllegalQueryException exception =
+        assertThrows(
+            IllegalQueryException.class,
+            () -> trackedEntityService.getTrackedEntities(params, false, true));
+    assertEquals(
+        "Either Program or Tracked entity type should be specified", exception.getMessage());
   }
 }

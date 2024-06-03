@@ -109,6 +109,7 @@ public class HibernateCategoryOptionComboStore
     for (CategoryOptionCombo coc : categoryOptionCombos) {
       session.update(coc);
 
+      counter++;
       if ((counter % 400) == 0) {
         dbmsManager.clearSession();
       }

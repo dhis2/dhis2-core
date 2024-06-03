@@ -541,11 +541,11 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     // Various filters
     // ---------------------------------------------------------------------
 
-    if (params.hasProgramStatus()) {
+    if (params.hasEnrollmentStatuses()) {
       sql +=
           hlp.whereAnd()
               + " pistatus in ("
-              + params.getProgramStatus().stream()
+              + params.getEnrollmentStatus().stream()
                   .map(p -> singleQuote(p.name()))
                   .collect(joining(","))
               + ") ";

@@ -93,13 +93,13 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("ui")
+@OpenApi.Document(domain = App.class)
 @Controller
 @RequestMapping("/api/apps")
 @Slf4j
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class AppController {
-  public static final String RESOURCE_PATH = "/apps";
+  public static final String RESOURCE_PATH = "/api/apps";
 
   public static final Pattern REGEX_REMOVE_PROTOCOL = Pattern.compile(".+:/+");
 

@@ -35,13 +35,13 @@ package org.hisp.dhis.commons.util;
 public class SqlHelper {
   private final boolean includeSpaces;
 
-  private boolean whereInvoked = false;
+  private boolean whereAndInvoked = false;
 
-  private boolean havingInvoked = false;
+  private boolean havingAndInvoked = false;
 
   private boolean orInvoked = false;
 
-  private boolean betweenInvoked = false;
+  private boolean betweenAndInvoked = false;
 
   private boolean andOrInvoked = false;
 
@@ -67,8 +67,8 @@ public class SqlHelper {
    * @return "where" or "and".
    */
   public String whereAnd() {
-    String str = whereInvoked ? "and" : "where";
-    whereInvoked = true;
+    String str = whereAndInvoked ? "and" : "where";
+    whereAndInvoked = true;
     return padded(str);
   }
 
@@ -78,8 +78,30 @@ public class SqlHelper {
    * @return "having" or "and".
    */
   public String havingAnd() {
-    String str = havingInvoked ? "and" : "having";
-    havingInvoked = true;
+    String str = havingAndInvoked ? "and" : "having";
+    havingAndInvoked = true;
+    return padded(str);
+  }
+
+  /**
+   * Returns "between" the first time it is invoked, then "and" for subsequent invocations.
+   *
+   * @return "between" or "and".
+   */
+  public String betweenAnd() {
+    String str = betweenAndInvoked ? "and" : "between";
+    betweenAndInvoked = true;
+    return padded(str);
+  }
+
+  /**
+   * Returns "and" the first time it is invoked, then "or" for subsequent invocations.
+   *
+   * @return "and" or "or".
+   */
+  public String andOr() {
+    String str = andOrInvoked ? "or" : "and";
+    andOrInvoked = true;
     return padded(str);
   }
 
@@ -102,28 +124,6 @@ public class SqlHelper {
   public String or() {
     String str = orInvoked ? "or" : "";
     orInvoked = true;
-    return padded(str);
-  }
-
-  /**
-   * Returns the empty string the first time it is invoked, then "or" for subsequent invocations.
-   *
-   * @return empty or "or".
-   */
-  public String betweenAnd() {
-    String str = betweenInvoked ? "and" : "between";
-    betweenInvoked = true;
-    return padded(str);
-  }
-
-  /**
-   * Returns "and" the first time it is invoked, then "or" for subsequent invocations.
-   *
-   * @return "and" or "or".
-   */
-  public String andOr() {
-    final String str = andOrInvoked ? "or" : "and";
-    andOrInvoked = true;
     return padded(str);
   }
 

@@ -59,6 +59,8 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobProgress.FailurePolicy;
 import org.hisp.dhis.security.acl.AclService;
@@ -164,8 +166,14 @@ public class AggregateDataExchangeService {
    * @param params the {@link SourceDataQueryParams}.
    * @return the source data for the analytics data exchange.
    */
-  public List<Grid> getSourceData(String uid, SourceDataQueryParams params) {
+  public List<Grid> getSourceData(UserDetails userDetails, String uid, SourceDataQueryParams params)
+      throws ForbiddenException {
+
     AggregateDataExchange exchange = aggregateDataExchangeStore.loadByUid(uid);
+
+    if (!aclService.canDataRead(userDetails, exchange)) {
+      throw new ForbiddenException(ErrorCode.E3012, exchange);
+    }
 
     return mapToList(
         exchange.getSource().getRequests(),
@@ -179,8 +187,13 @@ public class AggregateDataExchangeService {
    * @param params the {@link SourceDataQueryParams}.
    * @return the source data value sets for the analytics data exchange.
    */
-  public List<DataValueSet> getSourceDataValueSets(String uid, SourceDataQueryParams params) {
+  public List<DataValueSet> getSourceDataValueSets(
+      UserDetails userDetails, String uid, SourceDataQueryParams params) throws ForbiddenException {
     AggregateDataExchange exchange = aggregateDataExchangeStore.loadByUid(uid);
+
+    if (!aclService.canDataRead(userDetails, exchange)) {
+      throw new ForbiddenException(ErrorCode.E3012, exchange);
+    }
 
     return mapToList(
         exchange.getSource().getRequests(),
@@ -258,21 +271,25 @@ public class AggregateDataExchangeService {
     if (isNotBlank(request.getDataElementIdScheme())) {
       options.setDataElementIdScheme(request.getDataElementIdScheme());
     }
+
     if (isNotBlank(request.getOrgUnitIdScheme())) {
       options.setOrgUnitIdScheme(request.getOrgUnitIdScheme());
     }
+
     if (isNotBlank(request.getCategoryOptionComboIdScheme())) {
       options.setCategoryOptionComboIdScheme(request.getCategoryOptionComboIdScheme());
     }
+
     if (isNotBlank(request.getIdScheme())) {
       options.setIdScheme(request.getIdScheme());
     }
+
     if (notNull(request.getImportStrategy())) {
       options.setImportStrategy(request.getImportStrategy());
     }
-    if (notNull(request.getSkipAudit())) {
-      options.setSkipAudit(request.getSkipAudit());
-    }
+
+    options.setSkipAudit(request.isSkipAuditOrDefault());
+
     if (notNull(request.getDryRun())) {
       options.setDryRun(request.getDryRun());
     }

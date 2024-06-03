@@ -46,11 +46,11 @@ class TrackedEntityProgramOwnerServiceTest extends SingleSetupIntegrationTestBas
 
   private static final String PA = "PA";
 
-  private static final String TEIB1 = "TEI-B1";
+  private static final String TE_B1 = "TE-B1";
 
-  private static final String TEIA1 = "TEI-A1";
+  private static final String TE_A1 = "TE-A1";
 
-  @Autowired private TrackedEntityService entityInstanceService;
+  @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private TrackedEntityProgramOwnerService programOwnerService;
 
@@ -68,12 +68,12 @@ class TrackedEntityProgramOwnerServiceTest extends SingleSetupIntegrationTestBas
     organisationUnitService.addOrganisationUnit(organisationUnitA);
     organisationUnitB = createOrganisationUnit('B');
     organisationUnitService.addOrganisationUnit(organisationUnitB);
-    TrackedEntity entityInstanceA1 = createTrackedEntity(organisationUnitA);
-    entityInstanceA1.setUid(TEIA1);
-    TrackedEntity entityInstanceB1 = createTrackedEntity(organisationUnitA);
-    entityInstanceB1.setUid(TEIB1);
-    entityInstanceService.addTrackedEntity(entityInstanceA1);
-    entityInstanceService.addTrackedEntity(entityInstanceB1);
+    TrackedEntity trackedEntityA1 = createTrackedEntity(organisationUnitA);
+    trackedEntityA1.setUid(TE_A1);
+    TrackedEntity trackedEntityB1 = createTrackedEntity(organisationUnitA);
+    trackedEntityB1.setUid(TE_B1);
+    trackedEntityService.addTrackedEntity(trackedEntityA1);
+    trackedEntityService.addTrackedEntity(trackedEntityB1);
     Program programA = createProgram('A');
     programA.setUid(PA);
     programService.addProgram(programA);
@@ -81,22 +81,22 @@ class TrackedEntityProgramOwnerServiceTest extends SingleSetupIntegrationTestBas
 
   @Test
   void testCreateTrackedEntityProgramOwner() {
-    programOwnerService.createTrackedEntityProgramOwner(TEIA1, PA, organisationUnitA.getUid());
-    assertNotNull(programOwnerService.getTrackedEntityProgramOwner(TEIA1, PA));
-    assertNull(programOwnerService.getTrackedEntityProgramOwner(TEIB1, PA));
+    programOwnerService.createTrackedEntityProgramOwner(TE_A1, PA, organisationUnitA.getUid());
+    assertNotNull(programOwnerService.getTrackedEntityProgramOwner(TE_A1, PA));
+    assertNull(programOwnerService.getTrackedEntityProgramOwner(TE_B1, PA));
   }
 
   @Test
   void testCreateOrUpdateTrackedEntityProgramOwner() {
     programOwnerService.createOrUpdateTrackedEntityProgramOwner(
-        TEIA1, PA, organisationUnitA.getUid());
+        TE_A1, PA, organisationUnitA.getUid());
     TrackedEntityProgramOwner programOwner =
-        programOwnerService.getTrackedEntityProgramOwner(TEIA1, PA);
+        programOwnerService.getTrackedEntityProgramOwner(TE_A1, PA);
     assertNotNull(programOwner);
     assertEquals(organisationUnitA.getUid(), programOwner.getOrganisationUnit().getUid());
     programOwnerService.createOrUpdateTrackedEntityProgramOwner(
-        TEIA1, PA, organisationUnitB.getUid());
-    programOwner = programOwnerService.getTrackedEntityProgramOwner(TEIA1, PA);
+        TE_A1, PA, organisationUnitB.getUid());
+    programOwner = programOwnerService.getTrackedEntityProgramOwner(TE_A1, PA);
     assertNotNull(programOwner);
     assertEquals(organisationUnitB.getUid(), programOwner.getOrganisationUnit().getUid());
   }

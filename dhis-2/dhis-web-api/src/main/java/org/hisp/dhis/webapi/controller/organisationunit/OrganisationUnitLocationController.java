@@ -52,7 +52,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author James Chang <jamesbchang@gmail.com>
  */
-@OpenApi.Tags("metadata")
+@OpenApi.Document(domain = OrganisationUnit.class)
 @Controller
 @RequestMapping("/api/organisationUnitLocations")
 public class OrganisationUnitLocationController {

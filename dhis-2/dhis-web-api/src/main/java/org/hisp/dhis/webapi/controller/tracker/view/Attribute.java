@@ -42,12 +42,14 @@ import org.hisp.dhis.common.ValueType;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @OpenApi.Shared(pattern = Pattern.TRACKER)
+@OpenApi.Identifiable(as = org.hisp.dhis.attribute.Attribute.class)
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Attribute {
-  @OpenApi.Property({UID.class, Attribute.class})
+
+  @OpenApi.Property({UID.class, org.hisp.dhis.attribute.Attribute.class})
   @JsonProperty
   private String attribute;
 

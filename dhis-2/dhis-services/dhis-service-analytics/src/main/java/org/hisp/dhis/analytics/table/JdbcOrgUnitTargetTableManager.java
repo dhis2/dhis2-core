@@ -69,7 +69,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("org.hisp.dhis.analytics.OrgUnitTargetTableManager")
 public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
-      List.of(new AnalyticsTableColumn("oug", CHARACTER_11, NOT_NULL, "oug.uid"));
+      List.of(
+          AnalyticsTableColumn.builder()
+              .name("oug")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("oug.uid")
+              .build());
 
   public JdbcOrgUnitTargetTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -159,7 +165,14 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
     columns.addAll(FIXED_COLS);
     columns.addAll(getOrganisationUnitLevelColumns());
-    columns.add(new AnalyticsTableColumn("value", DOUBLE, NULL, FACT, "1 as value"));
+    columns.add(
+        AnalyticsTableColumn.builder()
+            .name("value")
+            .dataType(DOUBLE)
+            .nullable(NULL)
+            .valueType(FACT)
+            .selectExpression("1 as value")
+            .build());
 
     return filterDimensionColumns(columns);
   }

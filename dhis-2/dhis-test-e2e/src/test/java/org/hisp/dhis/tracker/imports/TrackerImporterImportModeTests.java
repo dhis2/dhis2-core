@@ -51,7 +51,7 @@ public class TrackerImporterImportModeTests extends TrackerApiTest {
   public void shouldNotCommitWhenImportModeIsValidate() {
     ApiResponse response =
         trackerImportExportActions.postAndGetJobReport(
-            new File("src/test/resources/tracker/importer/teis/tei.json"),
+            new File("src/test/resources/tracker/importer/trackedEntities/trackedEntity.json"),
             new QueryParamsBuilder().add("importMode=VALIDATE"));
 
     response

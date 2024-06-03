@@ -116,7 +116,7 @@ import org.hisp.dhis.program.ProgramOwnershipHistory;
 import org.hisp.dhis.program.ProgramOwnershipHistoryService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
-import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -460,7 +460,6 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     addProgramOwnershipHistory(programA, teiA, ouG, feb15Noon, mar15);
     trackedEntityProgramOwnerService.createOrUpdateTrackedEntityProgramOwner(teiA, programA, ouH);
 
-    // Program Stage Instances (Events)
     Event eventA1 = createEvent(psA, piA, ouI);
     eventA1.setScheduledDate(jan15);
     eventA1.setOccurredDate(jan15);
@@ -587,7 +586,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     // Generate resource tables and analytics tables
     analyticsTableGenerator.generateAnalyticsTables(
         AnalyticsTableUpdateParams.newBuilder().withStartTime(oneSecondFromNow).build(),
-        NoopJobProgress.INSTANCE);
+        JobProgress.noop());
   }
 
   /** Adds a program ownership history entry. */

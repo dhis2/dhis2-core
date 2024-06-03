@@ -48,6 +48,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobSchedulerService;
@@ -69,7 +70,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Jan Bernitt
  */
-@OpenApi.Tags("data")
+@OpenApi.Document(domain = OrganisationUnit.class)
 @RequestMapping("/api/organisationUnits")
 @RestController
 @RequiredArgsConstructor

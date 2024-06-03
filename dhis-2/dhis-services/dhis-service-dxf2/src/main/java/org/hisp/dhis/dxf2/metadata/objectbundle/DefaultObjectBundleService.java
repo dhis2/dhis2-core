@@ -61,7 +61,6 @@ import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.preheat.PreheatParams;
 import org.hisp.dhis.preheat.PreheatService;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.schema.MetadataMergeParams;
 import org.hisp.dhis.schema.MetadataMergeService;
 import org.hisp.dhis.schema.SchemaService;
@@ -117,7 +116,7 @@ public class DefaultObjectBundleService implements ObjectBundleService {
   @Override
   @Transactional
   public ObjectBundleCommitReport commit(ObjectBundle bundle) {
-    return commit(bundle, NoopJobProgress.INSTANCE);
+    return commit(bundle, JobProgress.noop());
   }
 
   @Override

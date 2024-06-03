@@ -112,34 +112,132 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
 
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
-          new AnalyticsTableColumn("trackedentityinstanceuid", CHARACTER_11, NOT_NULL, "tei.uid"),
-          new AnalyticsTableColumn("programuid", CHARACTER_11, NULL, "p.uid"),
-          new AnalyticsTableColumn("programinstanceuid", CHARACTER_11, NULL, "pi.uid"),
-          new AnalyticsTableColumn("programstageuid", CHARACTER_11, NULL, "ps.uid"),
-          new AnalyticsTableColumn("programstageinstanceuid", CHARACTER_11, NULL, "psi.uid"),
-          new AnalyticsTableColumn("occurreddate", TIMESTAMP, "psi.occurreddate"),
-          new AnalyticsTableColumn("lastupdated", TIMESTAMP, "psi.lastupdated"),
-          new AnalyticsTableColumn("created", TIMESTAMP, "psi.created"),
-          new AnalyticsTableColumn("scheduleddate", TIMESTAMP, "psi.scheduleddate"),
-          new AnalyticsTableColumn("status", VARCHAR_50, "psi.status"),
-          new AnalyticsTableColumn("psigeometry", GEOMETRY, "psi.geometry", IndexType.GIST),
-          new AnalyticsTableColumn(
-              "psilongitude",
-              DOUBLE,
-              "case when 'POINT' = GeometryType(psi.geometry) then ST_X(psi.geometry) end"),
-          new AnalyticsTableColumn(
-              "psilatitude",
-              DOUBLE,
-              "case when 'POINT' = GeometryType(psi.geometry) then ST_Y(psi.geometry) end"),
-          new AnalyticsTableColumn("uidlevel1", CHARACTER_11, NULL, "ous.uidlevel1"),
-          new AnalyticsTableColumn("uidlevel2", CHARACTER_11, NULL, "ous.uidlevel2"),
-          new AnalyticsTableColumn("uidlevel3", CHARACTER_11, NULL, "ous.uidlevel3"),
-          new AnalyticsTableColumn("uidlevel4", CHARACTER_11, NULL, "ous.uidlevel4"),
-          new AnalyticsTableColumn("ou", CHARACTER_11, NULL, "ou.uid"),
-          new AnalyticsTableColumn("ouname", VARCHAR_255, NULL, "ou.name"),
-          new AnalyticsTableColumn("oucode", CHARACTER_32, NULL, "ou.code"),
-          new AnalyticsTableColumn("oulevel", INTEGER, NULL, "ous.level"),
-          new AnalyticsTableColumn("eventdatavalues", JSONB, EVENT_DATA_VALUE_REBUILDER));
+          AnalyticsTableColumn.builder()
+              .name("trackedentityinstanceuid")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("tei.uid")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("programuid")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("p.uid")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("programinstanceuid")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("pi.uid")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("programstageuid")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("ps.uid")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("programstageinstanceuid")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("psi.uid")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("occurreddate")
+              .dataType(TIMESTAMP)
+              .selectExpression("psi.occurreddate")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("lastupdated")
+              .dataType(TIMESTAMP)
+              .selectExpression("psi.lastupdated")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("created")
+              .dataType(TIMESTAMP)
+              .selectExpression("psi.created")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("scheduleddate")
+              .dataType(TIMESTAMP)
+              .selectExpression("psi.scheduleddate")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("status")
+              .dataType(VARCHAR_50)
+              .selectExpression("psi.status")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("psigeometry")
+              .dataType(GEOMETRY)
+              .selectExpression("psi.geometry")
+              .indexType(IndexType.GIST)
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("psilongitude")
+              .dataType(DOUBLE)
+              .selectExpression(
+                  "case when 'POINT' = GeometryType(psi.geometry) then ST_X(psi.geometry) end")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("psilatitude")
+              .dataType(DOUBLE)
+              .selectExpression(
+                  "case when 'POINT' = GeometryType(psi.geometry) then ST_Y(psi.geometry) end")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("uidlevel1")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("ous.uidlevel1")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("uidlevel2")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("ous.uidlevel2")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("uidlevel3")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("ous.uidlevel3")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("uidlevel4")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("ous.uidlevel4")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("ou")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("ou.uid")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("ouname")
+              .dataType(VARCHAR_255)
+              .nullable(NULL)
+              .selectExpression("ou.name")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("oucode")
+              .dataType(CHARACTER_32)
+              .nullable(NULL)
+              .selectExpression("ou.code")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("oulevel")
+              .dataType(INTEGER)
+              .nullable(NULL)
+              .selectExpression("ous.level")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("eventdatavalues")
+              .dataType(JSONB)
+              .selectExpression(EVENT_DATA_VALUE_REBUILDER)
+              .build());
 
   private static final String AND = " and (";
 

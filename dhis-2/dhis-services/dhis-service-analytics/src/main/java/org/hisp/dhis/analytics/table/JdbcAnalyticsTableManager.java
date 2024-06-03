@@ -105,25 +105,59 @@ import org.springframework.transaction.annotation.Transactional;
 public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
-          new AnalyticsTableColumn("dx", CHARACTER_11, NOT_NULL, "des.dataelementuid as dx"),
-          new AnalyticsTableColumn(
-              "co",
-              CHARACTER_11,
-              NOT_NULL,
-              "dcs.categoryoptioncombouid as co",
-              List.of("dx", "co")),
-          new AnalyticsTableColumn(
-              "ao",
-              CHARACTER_11,
-              NOT_NULL,
-              "acs.categoryoptioncombouid as ao",
-              List.of("dx", "ao")),
-          new AnalyticsTableColumn("pestartdate", DATE, "ps.startdate as pestartdate"),
-          new AnalyticsTableColumn("peenddate", DATE, "ps.enddate as peenddate"),
-          new AnalyticsTableColumn("year", INTEGER, NOT_NULL, "ps.year as year"),
-          new AnalyticsTableColumn("pe", TEXT, NOT_NULL, "ps.iso as pe"),
-          new AnalyticsTableColumn("ou", CHARACTER_11, NOT_NULL, "ous.organisationunituid as ou"),
-          new AnalyticsTableColumn("oulevel", INTEGER, "ous.level as oulevel"));
+          AnalyticsTableColumn.builder()
+              .name("dx")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("des.dataelementuid as dx")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("co")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("dcs.categoryoptioncombouid as co")
+              .indexColumns(List.of("dx", "co"))
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("ao")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("acs.categoryoptioncombouid as ao")
+              .indexColumns(List.of("dx", "ao"))
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("pestartdate")
+              .dataType(DATE)
+              .selectExpression("ps.startdate as pestartdate")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("peenddate")
+              .dataType(DATE)
+              .selectExpression("ps.enddate as peenddate")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("year")
+              .dataType(INTEGER)
+              .nullable(NOT_NULL)
+              .selectExpression("ps.year as year")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("pe")
+              .dataType(TEXT)
+              .nullable(NOT_NULL)
+              .selectExpression("ps.iso as pe")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("ou")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("ous.organisationunituid as ou")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("oulevel")
+              .dataType(INTEGER)
+              .selectExpression("ous.level as oulevel")
+              .build());
 
   public JdbcAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -456,7 +490,12 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
 
     List<AnalyticsTableColumn> columns = new ArrayList<>();
     columns.addAll(FIXED_COLS);
-    columns.add(new AnalyticsTableColumn("id", TEXT, idColAlias));
+    columns.add(
+        AnalyticsTableColumn.builder()
+            .name("id")
+            .dataType(TEXT)
+            .selectExpression(idColAlias)
+            .build());
     columns.addAll(getDataElementGroupSetColumns());
     columns.addAll(getOrganisationUnitGroupSetColumns());
     columns.addAll(getDisaggregationCategoryOptionGroupSetColumns());
@@ -482,11 +521,41 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
    */
   private List<AnalyticsTableColumn> getFactColumns() {
     return List.of(
-        new AnalyticsTableColumn("approvallevel", INTEGER, NULL, FACT, "approvallevel"),
-        new AnalyticsTableColumn("daysxvalue", DOUBLE, NULL, FACT, "daysxvalue"),
-        new AnalyticsTableColumn("daysno", INTEGER, NOT_NULL, FACT, "daysno"),
-        new AnalyticsTableColumn("value", DOUBLE, NULL, FACT, "value"),
-        new AnalyticsTableColumn("textvalue", TEXT, NULL, FACT, "textvalue"));
+        AnalyticsTableColumn.builder()
+            .name("approvallevel")
+            .dataType(INTEGER)
+            .nullable(NULL)
+            .valueType(FACT)
+            .selectExpression("approvallevel")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name("daysxvalue")
+            .dataType(DOUBLE)
+            .nullable(NULL)
+            .valueType(FACT)
+            .selectExpression("daysxvalue")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name("daysno")
+            .dataType(INTEGER)
+            .nullable(NOT_NULL)
+            .valueType(FACT)
+            .selectExpression("daysno")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name("value")
+            .dataType(DOUBLE)
+            .nullable(NULL)
+            .valueType(FACT)
+            .selectExpression("value")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name("textvalue")
+            .dataType(TEXT)
+            .nullable(NULL)
+            .valueType(FACT)
+            .selectExpression("textvalue")
+            .build());
   }
 
   /**
@@ -509,24 +578,70 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     return List.of(
 
         // TODO: Do not export IDs into analytics. We work only with UIDs.
-        new AnalyticsTableColumn("sourceid", INTEGER, NOT_NULL, "dv.sourceid"),
-        new AnalyticsTableColumn("periodid", INTEGER, NOT_NULL, "dv.periodid"),
-        new AnalyticsTableColumn(
-            "categoryoptioncomboid", INTEGER, NOT_NULL, "dv.categoryoptioncomboid"),
-        new AnalyticsTableColumn(
-            "attributeoptioncomboid", INTEGER, NOT_NULL, "dv.attributeoptioncomboid"),
-        new AnalyticsTableColumn("dataelementid", INTEGER, NOT_NULL, "dv.dataelementid"),
-        new AnalyticsTableColumn("petype", VARCHAR_255, "ps.periodtypename"),
-        new AnalyticsTableColumn("path", VARCHAR_255, "ous.path"),
+        AnalyticsTableColumn.builder()
+            .name("sourceid")
+            .dataType(INTEGER)
+            .nullable(NOT_NULL)
+            .selectExpression("dv.sourceid")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name("periodid")
+            .dataType(INTEGER)
+            .nullable(NOT_NULL)
+            .selectExpression("dv.periodid")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name("categoryoptioncomboid")
+            .dataType(INTEGER)
+            .nullable(NOT_NULL)
+            .selectExpression("dv.categoryoptioncomboid")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name("attributeoptioncomboid")
+            .dataType(INTEGER)
+            .nullable(NOT_NULL)
+            .selectExpression("dv.attributeoptioncomboid")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name("dataelementid")
+            .dataType(INTEGER)
+            .nullable(NOT_NULL)
+            .selectExpression("dv.dataelementid")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name("petype")
+            .dataType(VARCHAR_255)
+            .selectExpression("ps.periodtypename")
+            .build(),
+        AnalyticsTableColumn.builder()
+            .name("path")
+            .dataType(VARCHAR_255)
+            .selectExpression("ous.path")
+            .build(),
         // mean
-        new AnalyticsTableColumn("avg_middle_value", DOUBLE, "stats.avg_middle_value"),
+        AnalyticsTableColumn.builder()
+            .name("avg_middle_value")
+            .dataType(DOUBLE)
+            .selectExpression("stats.avg_middle_value")
+            .build(),
         // median
-        new AnalyticsTableColumn(
-            "percentile_middle_value", DOUBLE, "stats.percentile_middle_value"),
+        AnalyticsTableColumn.builder()
+            .name("percentile_middle_value")
+            .dataType(DOUBLE)
+            .selectExpression("stats.percentile_middle_value")
+            .build(),
         // median of absolute deviations "MAD"
-        new AnalyticsTableColumn("mad", DOUBLE, "stats.mad"),
+        AnalyticsTableColumn.builder()
+            .name("mad")
+            .dataType(DOUBLE)
+            .selectExpression("stats.mad")
+            .build(),
         // standard deviation
-        new AnalyticsTableColumn("std_dev", DOUBLE, "stats.std_dev"));
+        AnalyticsTableColumn.builder()
+            .name("std_dev")
+            .dataType(DOUBLE)
+            .selectExpression("stats.std_dev")
+            .build());
   }
 
   /**
