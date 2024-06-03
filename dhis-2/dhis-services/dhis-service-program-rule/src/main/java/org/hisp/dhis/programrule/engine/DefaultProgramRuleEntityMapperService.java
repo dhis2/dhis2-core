@@ -74,7 +74,6 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
-import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.rules.api.DataItem;
@@ -111,21 +110,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 @Service("org.hisp.dhis.programrule.engine.ProgramRuleEntityMapperService")
 public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityMapperService {
-
-  private final ProgramRuleService programRuleService;
-
   private final ProgramRuleVariableService programRuleVariableService;
 
   private final ConstantService constantService;
 
   private final I18nManager i18nManager;
-
-  @Override
-  public List<Rule> toMappedProgramRules() {
-    List<ProgramRule> programRules = programRuleService.getAllProgramRule();
-
-    return toMappedProgramRules(programRules);
-  }
 
   @Override
   public List<Rule> toMappedProgramRules(List<ProgramRule> programRules) {
