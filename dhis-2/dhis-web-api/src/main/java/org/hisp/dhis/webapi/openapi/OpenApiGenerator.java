@@ -50,6 +50,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.webapi.openapi.Api.Schema.Direction;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -228,6 +229,7 @@ public class OpenApiGenerator extends JsonGenerator {
         method.name().toLowerCase(),
         () -> {
           addTrueMember("deprecated", endpoint.getDeprecated());
+          addStringMember("x-maturity", getMaturityTag(endpoint.getMaturity()));
           addStringMultilineMember("description", endpoint.getDescription().orElse(NO_DESCRIPTION));
           addStringMember("operationId", getUniqueOperationId(endpoint));
           addInlineArrayMember("tags", List.copyOf(tags));
@@ -271,10 +273,15 @@ public class OpenApiGenerator extends JsonGenerator {
               "description", parameter.getDescription().orElse(NO_DESCRIPTION));
           addTrueMember("required", parameter.isRequired());
           addTrueMember("deprecated", parameter.getDeprecated());
+          addStringMember("x-maturity", getMaturityTag(parameter.getMaturity()));
           String defaultValue = parameter.getDefaultValue().orElse(null);
           addObjectMember(
               "schema", () -> generateSchemaOrRef(parameter.getType(), IN, defaultValue));
         });
+  }
+
+  private static String getMaturityTag(Maturity.Degree maturity) {
+    return maturity == null ? null : maturity.name().toLowerCase();
   }
 
   private void generateRequestBody(Api.RequestBody requestBody) {
