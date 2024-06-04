@@ -457,6 +457,7 @@ public @interface OpenApi {
    *   <li>parameter description when placed on an endpoint method's parameter
    *   <li>property description when placed on a field or accessor method of a type that becomes a
    *       schema
+   *   <li>endpoint exception
    * </ul>
    *
    * When placed on a {@link Class} which is used as parameter type and that parameter has no
@@ -478,6 +479,18 @@ public @interface OpenApi {
      */
     @Language("markdown")
     String[] value();
+
+    /**
+     * @return when true any {@link Description} annotation present on the type (of a parameter) is
+     *     ignored and only the text from this annotation is included
+     */
+    boolean ignoreTypeDescription() default false;
+
+    /**
+     * @return when true any matching text present in a markdown file for the annotated element is
+     *     ignored and only the text from this annotation is included
+     */
+    boolean ignoreFileDescription() default false;
   }
 
   /*

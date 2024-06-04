@@ -63,6 +63,7 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
@@ -237,6 +238,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
               .name("eventdatavalues")
               .dataType(JSONB)
               .selectExpression(EVENT_DATA_VALUE_REBUILDER)
+              .skipIndex(Skip.SKIP)
               .build());
 
   private static final String AND = " and (";
