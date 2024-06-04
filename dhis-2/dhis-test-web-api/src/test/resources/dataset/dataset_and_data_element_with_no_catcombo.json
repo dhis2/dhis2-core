@@ -1,0 +1,32 @@
+{
+  "dataElements": [
+    {
+      "name": "NB_INSUREES",
+      "id": "IjXDFHSWw8n",
+      "code": "NB_INSUREES",
+      "shortName": "NB_INSUREES",
+      "aggregationType": "SUM",
+      "domainType": "AGGREGATE",
+      "valueType": "NUMBER"
+    }
+  ],
+  "dataSets": [
+    {
+      "name": "Enrolment",
+      "id": "tS4D4c2HiTk",
+      "code": "Enrolment",
+      "shortName": "Enrolment",
+      "dataSetElements": [
+        {
+          "dataElement": {
+            "id": "IjXDFHSWw8n"
+          },
+          "dataSet": {
+            "id": "tS4D4c2HiTk"
+          }
+        }
+      ],
+      "periodType": "Monthly"
+    }
+  ]
+}
