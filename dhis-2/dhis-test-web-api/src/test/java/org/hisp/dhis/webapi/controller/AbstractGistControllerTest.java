@@ -61,7 +61,7 @@ abstract class AbstractGistControllerTest extends DhisControllerConvenienceTest 
 
   @BeforeEach
   void setUp() {
-    userA = createUserWithAuth("userA", "ALL");
+    userA = createUserWithAuth("userGist", "ALL");
 
     switchContextToUser(userA);
 
