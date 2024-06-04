@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dxf2.datavalueset;
 
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 
 /**

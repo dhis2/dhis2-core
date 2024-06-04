@@ -28,10 +28,10 @@
 package org.hisp.dhis.system.notification;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import jakarta.annotation.Nonnull;
 import java.util.Date;
 import java.util.Deque;
 import java.util.Map;
-import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;

@@ -30,9 +30,9 @@ package org.hisp.dhis.security.apikey;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.base.Preconditions;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.List;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
@@ -67,21 +67,21 @@ public class ApiTokenServiceImpl implements ApiTokenService {
   }
 
   @Override
-  @CheckForNull
+  @Nullable
   public ApiToken getByUid(@Nonnull String uid) {
     return apiTokenStore.getByUid(uid);
   }
 
   @Override
   @Transactional(readOnly = true)
-  @CheckForNull
+  @Nullable
   public ApiToken getByKey(@Nonnull String key, @Nonnull User user) {
     return apiTokenStore.getByKey(key, user);
   }
 
   @Override
   @Transactional(readOnly = true)
-  @CheckForNull
+  @Nullable
   public ApiToken getByKey(@Nonnull String key) {
     return apiTokenStore.getByKey(key);
   }

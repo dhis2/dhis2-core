@@ -34,7 +34,7 @@ import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporter
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.TRACKED_ENTITY_TYPE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.USER_CANT_BE_NULL;
 
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;

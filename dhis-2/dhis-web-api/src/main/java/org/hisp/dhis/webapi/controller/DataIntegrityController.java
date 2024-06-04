@@ -32,12 +32,12 @@ import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
@@ -87,8 +87,8 @@ public class DataIntegrityController {
   @PostMapping
   @ResponseBody
   public WebMessage runDataIntegrity(
-      @CheckForNull @RequestParam(required = false) Set<String> checks,
-      @CheckForNull @RequestBody(required = false) Set<String> checksBody,
+      @Nullable @RequestParam(required = false) Set<String> checks,
+      @Nullable @RequestBody(required = false) Set<String> checksBody,
       @CurrentUser UserDetails currentUser)
       throws ConflictException, @OpenApi.Ignore NotFoundException {
     Set<String> names = getCheckNames(checksBody, checks);
@@ -119,10 +119,10 @@ public class DataIntegrityController {
   @GetMapping
   @ResponseBody
   public Collection<DataIntegrityCheck> getAvailableChecks(
-      @CheckForNull @RequestParam(required = false) Set<String> checks,
-      @CheckForNull @RequestParam(required = false) String section,
-      @CheckForNull @RequestParam(required = false) Boolean slow,
-      @CheckForNull @RequestParam(required = false) Boolean programmatic) {
+      @Nullable @RequestParam(required = false) Set<String> checks,
+      @Nullable @RequestParam(required = false) String section,
+      @Nullable @RequestParam(required = false) Boolean slow,
+      @Nullable @RequestParam(required = false) Boolean programmatic) {
     Collection<DataIntegrityCheck> matches =
         dataIntegrityService.getDataIntegrityChecks(getCheckNames(checks));
     Predicate<DataIntegrityCheck> filter = check -> true;
@@ -148,7 +148,7 @@ public class DataIntegrityController {
   @GetMapping("/summary")
   @ResponseBody
   public Map<String, DataIntegritySummary> getSummaries(
-      @CheckForNull @RequestParam(required = false) Set<String> checks,
+      @Nullable @RequestParam(required = false) Set<String> checks,
       @RequestParam(required = false, defaultValue = "0") long timeout) {
     return dataIntegrityService.getSummaries(getCheckNames(checks), timeout);
   }
@@ -157,8 +157,8 @@ public class DataIntegrityController {
   @PostMapping("/summary")
   @ResponseBody
   public WebMessage runSummariesCheck(
-      @CheckForNull @RequestParam(required = false) Set<String> checks,
-      @CheckForNull @RequestBody(required = false) Set<String> checksBody,
+      @Nullable @RequestParam(required = false) Set<String> checks,
+      @Nullable @RequestBody(required = false) Set<String> checksBody,
       @CurrentUser UserDetails currentUser)
       throws ConflictException, @OpenApi.Ignore NotFoundException {
     Set<String> names = getCheckNames(checksBody, checks);
@@ -182,7 +182,7 @@ public class DataIntegrityController {
   @GetMapping("/details")
   @ResponseBody
   public Map<String, DataIntegrityDetails> getDetails(
-      @CheckForNull @RequestParam(required = false) Set<String> checks,
+      @Nullable @RequestParam(required = false) Set<String> checks,
       @RequestParam(required = false, defaultValue = "0") long timeout) {
     return dataIntegrityService.getDetails(getCheckNames(checks), timeout);
   }
@@ -191,7 +191,7 @@ public class DataIntegrityController {
   @PostMapping("/details")
   @ResponseBody
   public WebMessage runDetailsCheck(
-      @CheckForNull @RequestParam(required = false) Set<String> checks,
+      @Nullable @RequestParam(required = false) Set<String> checks,
       @RequestBody(required = false) Set<String> checksBody,
       @CurrentUser UserDetails currentUser)
       throws ConflictException, @OpenApi.Ignore NotFoundException {

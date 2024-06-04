@@ -29,10 +29,10 @@ package org.hisp.dhis.tracker.export.event;
 
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
+import jakarta.annotation.Nonnull;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;

@@ -34,6 +34,8 @@ import static org.hisp.dhis.tracker.export.trackedentity.aggregates.ThreadPoolMa
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.PostConstruct;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -45,8 +47,6 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;

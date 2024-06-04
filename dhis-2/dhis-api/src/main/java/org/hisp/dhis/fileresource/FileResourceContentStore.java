@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.fileresource;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,8 +36,6 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -66,7 +66,7 @@ public interface FileResourceContentStore {
    * @param bytes the byte array.
    * @return the key on success or null if saving failed.
    */
-  @CheckForNull
+  @Nullable
   String saveFileResourceContent(@Nonnull FileResource fileResource, @Nonnull byte[] bytes);
 
   /**
@@ -76,7 +76,7 @@ public interface FileResourceContentStore {
    * @param file the File. Will be consumed upon deletion.
    * @return the key on success or null if saving failed.
    */
-  @CheckForNull
+  @Nullable
   String saveFileResourceContent(@Nonnull FileResource fileResource, @Nonnull File file);
 
   /**
@@ -86,7 +86,7 @@ public interface FileResourceContentStore {
    * @param imageFile will map image dimension to its associated file.
    * @return the key on success or null if saving failed.
    */
-  @CheckForNull
+  @Nullable
   String saveFileResourceContent(
       @Nonnull FileResource fileResource, @Nonnull Map<ImageFileDimension, File> imageFile);
 

@@ -33,12 +33,12 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.Nonnull;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;

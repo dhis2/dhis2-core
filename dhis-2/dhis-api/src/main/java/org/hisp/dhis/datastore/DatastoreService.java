@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.datastore;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -157,9 +157,9 @@ public interface DatastoreService {
   void updateEntry(
       @Nonnull String ns,
       @Nonnull String key,
-      @CheckForNull String value,
-      @CheckForNull String path,
-      @CheckForNull Integer roll)
+      @Nullable String value,
+      @Nullable String path,
+      @Nullable Integer roll)
       throws BadRequestException;
 
   /**

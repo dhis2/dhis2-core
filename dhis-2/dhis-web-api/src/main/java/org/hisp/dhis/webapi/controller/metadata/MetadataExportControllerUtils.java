@@ -29,7 +29,7 @@ package org.hisp.dhis.webapi.controller.metadata;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;

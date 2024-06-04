@@ -29,10 +29,10 @@ package org.hisp.dhis.pushanalysis.scheduling;
 
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 
+import jakarta.annotation.Nonnull;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.email.EmailService;
 import org.hisp.dhis.scheduling.Job;

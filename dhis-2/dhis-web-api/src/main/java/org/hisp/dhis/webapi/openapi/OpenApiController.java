@@ -30,14 +30,14 @@ package org.hisp.dhis.webapi.openapi;
 import static java.util.stream.Collectors.toSet;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import jakarta.annotation.Nullable;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
-import javax.annotation.CheckForNull;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.springframework.context.ApplicationContext;
@@ -176,8 +176,8 @@ public class OpenApiController {
   private void writeDocument(
       HttpServletRequest request,
       HttpServletResponse response,
-      @CheckForNull Set<String> paths,
-      @CheckForNull Set<String> domains,
+      @Nullable Set<String> paths,
+      @Nullable Set<String> domains,
       boolean failOnNameClash,
       boolean failOnInconsistency,
       String contentType,

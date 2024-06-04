@@ -36,13 +36,13 @@ import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.is
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.Nonnull;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;

@@ -30,8 +30,8 @@ package org.hisp.dhis.analytics.tei.query;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getPrefix;
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
+import jakarta.annotation.Nonnull;
 import java.util.Collection;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.ValueTypeMapping;

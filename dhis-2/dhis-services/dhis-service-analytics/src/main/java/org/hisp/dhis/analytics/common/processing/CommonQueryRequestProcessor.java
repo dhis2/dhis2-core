@@ -37,6 +37,7 @@ import static org.hisp.dhis.feedback.ErrorCode.E7140;
 import static org.hisp.dhis.feedback.ErrorCode.E7141;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_LIMIT;
 
+import jakarta.annotation.Nonnull;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +48,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.common.CommonQueryRequest;

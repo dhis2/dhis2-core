@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.scheduling;
 
+import jakarta.annotation.Nonnull;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.schema.Property;

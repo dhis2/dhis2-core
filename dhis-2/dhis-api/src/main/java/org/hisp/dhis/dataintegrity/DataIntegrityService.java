@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.dataintegrity;
 
+import jakarta.annotation.Nonnull;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.scheduling.JobProgress;
 
 /**

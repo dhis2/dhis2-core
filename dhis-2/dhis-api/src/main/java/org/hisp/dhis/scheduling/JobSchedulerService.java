@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.scheduling;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -104,15 +104,15 @@ public interface JobSchedulerService {
   @Nonnull
   Set<JobType> getCompletedTypes();
 
-  @CheckForNull
+  @Nullable
   Progress getProgress(@Nonnull String jobId);
 
   @Nonnull
   List<JobProgress.Error> getErrors(@Nonnull String jobId);
 
-  @CheckForNull
+  @Nullable
   Progress getRunningProgress(@Nonnull JobType type);
 
-  @CheckForNull
+  @Nullable
   Progress getCompletedProgress(@Nonnull JobType type);
 }

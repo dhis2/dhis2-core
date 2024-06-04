@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.system.deletion;
 
+import jakarta.annotation.PostConstruct;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import javax.annotation.PostConstruct;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.scheduling;
 
+import jakarta.annotation.Nullable;
 import java.util.Date;
 import java.util.List;
-import javax.annotation.CheckForNull;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.OpenApi;
@@ -50,27 +50,27 @@ import org.hisp.dhis.user.User;
 @Accessors(chain = true)
 public class JobRunErrorsParams {
 
-  @OpenApi.Ignore @CheckForNull private UID job;
+  @OpenApi.Ignore @Nullable private UID job;
 
   /** The user that ran the job */
   @OpenApi.Property({UID.class, User.class})
-  @CheckForNull
+  @Nullable
   private UID user;
 
   /** The earliest date the job ran that should be included */
-  @CheckForNull private Date from;
+  @Nullable private Date from;
 
   /** The latest date the job ran that should be included */
-  @CheckForNull private Date to;
+  @Nullable private Date to;
 
   /** The codes to select, any match combined */
-  @CheckForNull private List<String> code;
+  @Nullable private List<String> code;
 
   /** The object with errors to select, any match combined */
-  @CheckForNull private List<UID> object;
+  @Nullable private List<UID> object;
 
   /** The {@link JobType} with errors to select, any match combined */
-  @CheckForNull private List<JobType> type;
+  @Nullable private List<JobType> type;
 
   boolean includeInput = false;
 }

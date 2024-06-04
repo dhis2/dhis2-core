@@ -32,14 +32,14 @@ import static java.util.stream.Collectors.toSet;
 import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
 
 import com.vladmihalcea.hibernate.type.array.StringArrayType;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import jakarta.persistence.EntityManager;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
@@ -159,7 +159,7 @@ public class HibernateJobConfigurationStore
   }
 
   @Override
-  @CheckForNull
+  @Nullable
   public JobConfiguration getNextInQueue(@Nonnull String queue, int fromPosition) {
     String sql = "select * from jobconfiguration where queuename = :queue and queueposition = :pos";
     List<JobConfiguration> res =
@@ -399,7 +399,7 @@ public class HibernateJobConfigurationStore
 
   @Override
   public void updateProgress(
-      @Nonnull String jobId, @CheckForNull String progressJson, @CheckForNull String errorCodes) {
+      @Nonnull String jobId, @Nullable String progressJson, @Nullable String errorCodes) {
     String sql =
         """
         update jobconfiguration

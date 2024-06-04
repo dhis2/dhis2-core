@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.openapi;
 import static java.lang.reflect.Modifier.isPrivate;
 import static java.lang.reflect.Modifier.isStatic;
 
+import jakarta.annotation.Nonnull;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
 import java.lang.reflect.AnnotatedElement;
@@ -40,7 +41,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nonnull;
 import lombok.Value;
 
 /**

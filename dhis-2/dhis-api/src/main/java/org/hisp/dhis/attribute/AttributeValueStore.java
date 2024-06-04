@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.attribute;
 
+import jakarta.annotation.Nonnull;
 import java.util.List;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.IdentifiableObject;
 

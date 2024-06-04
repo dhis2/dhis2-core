@@ -30,11 +30,11 @@ package org.hisp.dhis.validation;
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
 
 import com.google.common.collect.Sets;
+import jakarta.annotation.Nonnull;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;

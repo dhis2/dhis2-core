@@ -29,8 +29,8 @@ package org.hisp.dhis.analytics.common;
 
 import static org.springframework.util.Assert.notNull;
 
+import jakarta.annotation.Nonnull;
 import java.util.Optional;
-import javax.annotation.Nonnull;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;

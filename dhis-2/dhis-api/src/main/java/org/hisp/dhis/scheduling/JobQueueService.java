@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.scheduling;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 
@@ -75,7 +75,7 @@ public interface JobQueueService {
    */
   void updateQueue(
       @Nonnull String name,
-      @CheckForNull String newName,
+      @Nullable String newName,
       @Nonnull String newCronExpression,
       @Nonnull List<String> newSequence)
       throws NotFoundException, ConflictException;

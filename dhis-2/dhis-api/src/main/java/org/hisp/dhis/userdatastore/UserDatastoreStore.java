@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.userdatastore;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.datastore.DatastoreFields;
 import org.hisp.dhis.datastore.DatastoreQuery;
@@ -106,7 +106,7 @@ public interface UserDatastoreStore extends IdentifiableObjectStore<UserDatastor
   boolean updateEntry(
       @Nonnull String ns,
       @Nonnull String key,
-      @CheckForNull String value,
-      @CheckForNull String path,
-      @CheckForNull Integer roll);
+      @Nullable String value,
+      @Nullable String path,
+      @Nullable Integer roll);
 }

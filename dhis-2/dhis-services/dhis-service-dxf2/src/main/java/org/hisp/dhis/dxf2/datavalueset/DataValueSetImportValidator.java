@@ -30,12 +30,12 @@ package org.hisp.dhis.dxf2.datavalueset;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 
+import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
-import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.category.CategoryOption;

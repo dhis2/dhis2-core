@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.export.trackedentity;
 
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
+import jakarta.annotation.Nullable;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -36,7 +37,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.changelog.ChangeLogType;
@@ -109,23 +109,22 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   private final TrackedEntityOperationParamsMapper mapper;
 
   @Override
-  public FileResourceStream getFileResource(
-      UID trackedEntity, UID attribute, @CheckForNull UID program) throws NotFoundException {
+  public FileResourceStream getFileResource(UID trackedEntity, UID attribute, @Nullable UID program)
+      throws NotFoundException {
     FileResource fileResource = getFileResourceMetadata(trackedEntity, attribute, program);
     return FileResourceStream.of(fileResourceService, fileResource);
   }
 
   @Override
   public FileResourceStream getFileResourceImage(
-      UID trackedEntity, UID attribute, @CheckForNull UID program, ImageFileDimension dimension)
+      UID trackedEntity, UID attribute, @Nullable UID program, ImageFileDimension dimension)
       throws NotFoundException {
     FileResource fileResource = getFileResourceMetadata(trackedEntity, attribute, program);
     return FileResourceStream.ofImage(fileResourceService, fileResource, dimension);
   }
 
   private FileResource getFileResourceMetadata(
-      UID trackedEntityUid, UID attributeUid, @CheckForNull UID programUid)
-      throws NotFoundException {
+      UID trackedEntityUid, UID attributeUid, @Nullable UID programUid) throws NotFoundException {
     TrackedEntity trackedEntity = trackedEntityStore.getByUid(trackedEntityUid.getValue());
     if (trackedEntity == null) {
       throw new NotFoundException(TrackedEntity.class, trackedEntityUid.getValue());
@@ -163,7 +162,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
    * of the tracked entity.
    */
   private TrackedEntityAttribute getAttribute(
-      UID attributeUid, TrackedEntity trackedEntity, @CheckForNull UID programUid)
+      UID attributeUid, TrackedEntity trackedEntity, @Nullable UID programUid)
       throws NotFoundException {
     UserDetails currentUser = getCurrentUserDetails();
 

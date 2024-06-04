@@ -31,10 +31,10 @@ import static org.hisp.dhis.trackedentity.TrackerOwnershipManager.NO_READ_ACCESS
 import static org.hisp.dhis.trackedentity.TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED;
 import static org.hisp.dhis.trackedentity.TrackerOwnershipManager.PROGRAM_ACCESS_CLOSED;
 
+import jakarta.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;

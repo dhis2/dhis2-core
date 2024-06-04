@@ -35,9 +35,9 @@ import static org.hisp.dhis.security.Authorities.F_PERFORM_ANALYTICS_EXPLAIN;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.annotation.Nonnull;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
-import javax.annotation.Nonnull;
-import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;

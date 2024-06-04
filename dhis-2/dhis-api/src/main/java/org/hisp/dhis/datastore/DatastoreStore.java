@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.datastore;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
@@ -132,7 +132,7 @@ public interface DatastoreStore extends IdentifiableObjectStore<DatastoreEntry> 
   boolean updateEntry(
       @Nonnull String ns,
       @Nonnull String key,
-      @CheckForNull String value,
-      @CheckForNull String path,
-      @CheckForNull Integer roll);
+      @Nullable String value,
+      @Nullable String path,
+      @Nullable Integer roll);
 }

@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.program;
 
+import jakarta.annotation.Nonnull;
 import java.util.Date;
 import java.util.List;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 

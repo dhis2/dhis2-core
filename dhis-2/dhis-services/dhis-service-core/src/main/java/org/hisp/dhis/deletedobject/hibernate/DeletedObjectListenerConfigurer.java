@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.deletedobject.hibernate;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceUnit;
-import javax.annotation.PostConstruct;
 import org.hibernate.event.service.spi.EventListenerRegistry;
 import org.hibernate.event.spi.EventType;
 import org.hibernate.internal.SessionFactoryImpl;

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.artemis.config;
 
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Queue;

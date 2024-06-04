@@ -30,8 +30,8 @@ package org.hisp.dhis.analytics.common;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.springframework.util.Assert.hasText;
 
+import jakarta.annotation.Nonnull;
 import java.util.Set;
-import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Qualifier;

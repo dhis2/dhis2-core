@@ -28,11 +28,11 @@
 package org.hisp.dhis.security.oidc;
 
 import com.nimbusds.jose.jwk.JWK;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.RequestEntity;

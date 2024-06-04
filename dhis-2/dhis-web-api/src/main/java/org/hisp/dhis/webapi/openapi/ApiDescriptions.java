@@ -31,6 +31,7 @@ import static java.util.Arrays.stream;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.joining;
 
+import jakarta.annotation.Nullable;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
@@ -40,7 +41,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
-import javax.annotation.CheckForNull;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
@@ -221,17 +221,17 @@ final class ApiDescriptions {
    * @param key the complete key
    * @return the value for the provided key
    */
-  @CheckForNull
+  @Nullable
   String get(String key) {
     return entries.get(key);
   }
 
-  @CheckForNull
+  @Nullable
   String get(List<String> keys) {
     return get(UnaryOperator.identity(), keys);
   }
 
-  @CheckForNull
+  @Nullable
   String get(UnaryOperator<String> transformer, String... keys) {
     return get(transformer, List.of(keys));
   }
@@ -244,7 +244,7 @@ final class ApiDescriptions {
    * @param keys keys to try
    * @return the first non-null value transformed
    */
-  @CheckForNull
+  @Nullable
   String get(UnaryOperator<String> transformer, List<String> keys) {
     for (String key : keys) {
       String value = get(key);

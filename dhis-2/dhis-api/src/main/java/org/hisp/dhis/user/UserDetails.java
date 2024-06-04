@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.user;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.UserDetailsImpl.UserDetailsImplBuilder;
@@ -50,8 +50,8 @@ public interface UserDetails extends org.springframework.security.core.userdetai
    * @param user user to convert
    * @return UserDetails
    */
-  @CheckForNull
-  static UserDetails fromUser(@CheckForNull User user) {
+  @Nullable
+  static UserDetails fromUser(@Nullable User user) {
     // TODO check in session if a UserDetails for the user already exists (if the user is the
     // current user)
     if (user == null) {
@@ -90,15 +90,15 @@ public interface UserDetails extends org.springframework.security.core.userdetai
         false);
   }
 
-  @CheckForNull
+  @Nullable
   static UserDetails createUserDetails(
-      @CheckForNull User user,
+      @Nullable User user,
       boolean accountNonLocked,
       boolean credentialsNonExpired,
-      @CheckForNull Set<String> orgUnitUids,
-      @CheckForNull Set<String> searchOrgUnitUids,
-      @CheckForNull Set<String> dataViewUnitUids,
-      @CheckForNull Map<String, Serializable> settings) {
+      @Nullable Set<String> orgUnitUids,
+      @Nullable Set<String> searchOrgUnitUids,
+      @Nullable Set<String> dataViewUnitUids,
+      @Nullable Map<String, Serializable> settings) {
     return createUserDetails(
         user,
         accountNonLocked,
@@ -110,15 +110,15 @@ public interface UserDetails extends org.springframework.security.core.userdetai
         true);
   }
 
-  @CheckForNull
+  @Nullable
   static UserDetails createUserDetails(
-      @CheckForNull User user,
+      @Nullable User user,
       boolean accountNonLocked,
       boolean credentialsNonExpired,
-      @CheckForNull Set<String> orgUnitUids,
-      @CheckForNull Set<String> searchOrgUnitUids,
-      @CheckForNull Set<String> dataViewUnitUids,
-      @CheckForNull Map<String, Serializable> settings,
+      @Nullable Set<String> orgUnitUids,
+      @Nullable Set<String> searchOrgUnitUids,
+      @Nullable Set<String> dataViewUnitUids,
+      @Nullable Map<String, Serializable> settings,
       boolean loadOrgUnits) {
 
     if (user == null) {
@@ -267,15 +267,14 @@ public interface UserDetails extends org.springframework.security.core.userdetai
   }
 
   private static boolean isInUserHierarchy(
-      @CheckForNull String orgUnitPath, @Nonnull Set<String> orgUnitIds) {
+      @Nullable String orgUnitPath, @Nonnull Set<String> orgUnitIds) {
     if (orgUnitPath == null) return false;
     for (String uid : orgUnitPath.split("/")) if (orgUnitIds.contains(uid)) return true;
     return false;
   }
 
   @Nonnull
-  private static Set<String> setOfIds(
-      @CheckForNull Collection<? extends IdentifiableObject> objects) {
+  private static Set<String> setOfIds(@Nullable Collection<? extends IdentifiableObject> objects) {
     return objects == null || objects.isEmpty()
         ? Set.of()
         : Set.copyOf(objects.stream().map(IdentifiableObject::getUid).toList());

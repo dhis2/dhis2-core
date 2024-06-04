@@ -29,9 +29,9 @@ package org.hisp.dhis.relationship;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import jakarta.annotation.Nonnull;
 import java.util.List;
 import java.util.Optional;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;

@@ -28,12 +28,12 @@
 package org.hisp.dhis.dxf2.metadata;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.annotation.Nonnull;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObject;
 
 /**

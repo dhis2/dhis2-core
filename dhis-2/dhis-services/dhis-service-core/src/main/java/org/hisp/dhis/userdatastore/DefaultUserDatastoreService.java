@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.userdatastore;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.datastore.DatastoreFields;
 import org.hisp.dhis.datastore.DatastoreQuery;
@@ -81,9 +81,9 @@ public class DefaultUserDatastoreService implements UserDatastoreService {
   public void updateEntry(
       @Nonnull String ns,
       @Nonnull String key,
-      @CheckForNull String value,
-      @CheckForNull String path,
-      @CheckForNull Integer roll)
+      @Nullable String value,
+      @Nullable String path,
+      @Nullable Integer roll)
       throws BadRequestException {
     validateEntry(key, value);
     store.updateEntry(ns, key, value, path, roll);

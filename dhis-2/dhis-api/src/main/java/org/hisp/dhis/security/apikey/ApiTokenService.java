@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.security.apikey;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.List;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.user.User;
 
 /**
@@ -48,12 +48,12 @@ public interface ApiTokenService {
   @Nonnull
   List<ApiToken> getAllOwning(@Nonnull User user);
 
-  @CheckForNull
+  @Nullable
   ApiToken getByUid(@Nonnull String uid);
 
-  @CheckForNull
+  @Nullable
   ApiToken getByKey(@Nonnull String key, @Nonnull User user);
 
-  @CheckForNull
+  @Nullable
   ApiToken getByKey(@Nonnull String key);
 }

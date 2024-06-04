@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.tracker.imports;
 
+import jakarta.annotation.Nonnull;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.scheduling.JobProgress;

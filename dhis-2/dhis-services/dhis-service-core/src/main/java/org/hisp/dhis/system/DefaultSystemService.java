@@ -29,6 +29,7 @@ package org.hisp.dhis.system;
 
 import static org.hisp.dhis.util.DateUtils.getPrettyInterval;
 
+import jakarta.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,7 +38,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.TimeZone;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.calendar.CalendarService;

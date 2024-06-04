@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.analytics.tei;
 
+import jakarta.annotation.Nonnull;
 import java.util.List;
 import java.util.Set;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.common.PrefixedDimension;
 
 /**

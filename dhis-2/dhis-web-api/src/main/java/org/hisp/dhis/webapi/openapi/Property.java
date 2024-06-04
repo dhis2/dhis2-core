@@ -33,6 +33,8 @@ import static java.util.Arrays.stream;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
@@ -49,8 +51,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Value;
@@ -71,8 +71,8 @@ class Property {
   @Nonnull String name;
   @Nonnull Type type;
   @Nonnull Member source;
-  @CheckForNull Boolean required;
-  @CheckForNull Object defaultValue;
+  @Nullable Boolean required;
+  @Nullable Object defaultValue;
 
   private Property(Field f) {
     this(

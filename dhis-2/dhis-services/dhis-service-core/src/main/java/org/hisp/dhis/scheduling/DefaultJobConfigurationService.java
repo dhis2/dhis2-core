@@ -34,6 +34,8 @@ import static org.hisp.dhis.scheduling.JobType.values;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Primitives;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.beans.PropertyDescriptor;
 import java.io.InputStream;
 import java.lang.reflect.Field;
@@ -51,8 +53,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.PropertyUtils;
@@ -380,7 +380,7 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
     return jobParameters;
   }
 
-  @CheckForNull
+  @Nullable
   private JsonProperty getJsonProperty(Field field, PropertyDescriptor descriptor) {
     JsonProperty property = field.getAnnotation(JsonProperty.class);
     if (property != null) return property;

@@ -30,14 +30,14 @@ package org.hisp.dhis.scheduling;
 import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.ConflictException;
@@ -90,8 +90,8 @@ public class DefaultJobQueueService implements JobQueueService {
   @Transactional
   public void updateQueue(
       @Nonnull String name,
-      @CheckForNull String newName,
-      @CheckForNull String newCronExpression,
+      @Nullable String newName,
+      @Nullable String newCronExpression,
       @Nonnull List<String> newSequence)
       throws NotFoundException, ConflictException {
     if (newName != null && !newName.isEmpty() && !newName.equals(name)) {

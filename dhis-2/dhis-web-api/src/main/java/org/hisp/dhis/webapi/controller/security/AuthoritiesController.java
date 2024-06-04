@@ -29,12 +29,12 @@ package org.hisp.dhis.webapi.controller.security;
 
 import static java.util.Collections.singletonMap;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;

@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.db.migration.v33;
 
+import jakarta.annotation.Nonnull;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import javax.annotation.Nonnull;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
 import org.hisp.dhis.common.DisplayProperty;

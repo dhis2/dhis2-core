@@ -59,6 +59,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+import jakarta.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -71,7 +72,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.annotation.CheckForNull;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -1653,7 +1653,7 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
     return subscribers;
   }
 
-  public void setSubscribers(@CheckForNull Set<String> subscribers) {
+  public void setSubscribers(@Nullable Set<String> subscribers) {
     if (subscribers == null) {
       this.subscribers = new HashSet<>();
     } else {

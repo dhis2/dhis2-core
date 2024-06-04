@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import jakarta.annotation.Nullable;
 import java.text.SimpleDateFormat;
 import java.time.LocalTime;
 import java.time.ZoneId;
@@ -39,7 +40,6 @@ import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.Objects;
 import java.util.function.Function;
-import javax.annotation.CheckForNull;
 import lombok.Getter;
 import lombok.Setter;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -69,7 +69,7 @@ public class Period extends BaseDimensionalItemObject {
    *     both ends inclusive)
    */
   public static boolean isDateInTimeFrame(
-      @CheckForNull Date start, @CheckForNull Date end, @CheckForNull Date checked) {
+      @Nullable Date start, @Nullable Date end, @Nullable Date checked) {
     if (checked == null) {
       return false;
     }

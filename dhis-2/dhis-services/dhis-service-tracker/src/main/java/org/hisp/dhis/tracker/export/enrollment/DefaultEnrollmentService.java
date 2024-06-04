@@ -29,12 +29,12 @@ package org.hisp.dhis.tracker.export.enrollment;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 
+import jakarta.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.feedback.BadRequestException;

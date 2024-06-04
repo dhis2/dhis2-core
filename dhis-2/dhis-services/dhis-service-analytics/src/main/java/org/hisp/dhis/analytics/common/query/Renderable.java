@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.common.query;
 
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 
 /**
  * This interface simply enables and object to be "renderable" based on the conditions defined by

@@ -28,6 +28,7 @@
 package org.hisp.dhis.dxf2.dataset;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.Nonnull;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -36,7 +37,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;

@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.tracker.export;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.NoSuchElementException;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -96,7 +96,7 @@ public record FileResourceStream(
   public static FileResourceStream ofImage(
       @Nonnull FileResourceService fileResourceService,
       @Nonnull FileResource fileResource,
-      @CheckForNull ImageFileDimension dimension) {
+      @Nullable ImageFileDimension dimension) {
     ImageFileDimension imageDimension =
         ObjectUtils.firstNonNull(dimension, ImageFileDimension.ORIGINAL);
     if (imageDimension == ImageFileDimension.ORIGINAL) {

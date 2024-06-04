@@ -28,10 +28,10 @@
 package org.hisp.dhis.security.oidc;
 
 import com.google.common.base.MoreObjects;
+import jakarta.annotation.PostConstruct;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.PostConstruct;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oidc.provider.AzureAdProvider;
 import org.hisp.dhis.security.oidc.provider.GoogleProvider;

@@ -34,6 +34,7 @@ import static org.imgscalr.Scalr.resize;
 
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
+import jakarta.servlet.http.HttpServletResponse;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
@@ -44,7 +45,6 @@ import java.nio.file.Files;
 import java.util.List;
 import java.util.Objects;
 import javax.imageio.ImageIO;
-import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.fileupload.FileItem;

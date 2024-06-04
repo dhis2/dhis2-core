@@ -32,14 +32,14 @@ import static java.util.Arrays.copyOfRange;
 import static java.util.Collections.emptyList;
 import static org.hisp.dhis.query.JpaQueryUtils.generateHqlQueryForSharingCheck;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.datastore.DatastoreEntry;
@@ -183,9 +183,9 @@ public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<Da
   public boolean updateEntry(
       @Nonnull String ns,
       @Nonnull String key,
-      @CheckForNull String value,
-      @CheckForNull String path,
-      @CheckForNull Integer roll) {
+      @Nullable String value,
+      @Nullable String path,
+      @Nullable Integer roll) {
     boolean rootIsTarget = path == null || path.isEmpty();
     if (value == null && rootIsTarget) return updateEntryRootDelete(ns, key);
     if (value == null) return updateEntryPathSetToNull(ns, key, path);

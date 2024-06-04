@@ -28,10 +28,10 @@
 package org.hisp.dhis.security.apikey;
 
 import com.google.common.base.Preconditions;
+import jakarta.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import javax.annotation.CheckForNull;
 import lombok.Value;
 import org.hisp.dhis.common.Base62;
 import org.hisp.dhis.common.CRC32Utils;
@@ -54,7 +54,7 @@ public class ApiKeyTokenGenerator {
    * @return a token wrapper containing the plaintext token and the token
    */
   public static TokenWrapper generatePersonalAccessToken(
-      @CheckForNull List<ApiTokenAttribute> attributes, long expire) {
+      @Nullable List<ApiTokenAttribute> attributes, long expire) {
     ApiTokenType type = ApiTokenType.getDefaultPatType();
 
     char[] plaintext = ApiKeyTokenGenerator.generatePatToken(type);

@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.orgunitprofile;
 
+import jakarta.annotation.Nullable;
 import java.util.List;
-import javax.annotation.Nullable;
 import org.hisp.dhis.feedback.ErrorReport;
 
 /**

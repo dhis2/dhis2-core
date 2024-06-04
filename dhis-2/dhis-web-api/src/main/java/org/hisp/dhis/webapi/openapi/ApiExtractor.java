@@ -42,6 +42,8 @@ import static org.hisp.dhis.webapi.openapi.Property.getProperties;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Array;
@@ -62,8 +64,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -541,7 +541,7 @@ final class ApiExtractor {
     }
   }
 
-  @CheckForNull
+  @Nullable
   private static String getSharedName(Class<?> type, OpenApi.Shared shared, String defaultName) {
     DirectType directType = DirectType.of(type);
     if (directType != null && !directType.shared()) return null;

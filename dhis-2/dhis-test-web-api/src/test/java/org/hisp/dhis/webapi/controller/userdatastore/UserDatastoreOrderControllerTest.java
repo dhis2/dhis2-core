@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.userdatastore;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
-import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.datastore.DatastoreParams;
 import org.hisp.dhis.webapi.controller.AbstractUserDatastoreControllerTest;
 import org.hisp.dhis.webapi.controller.UserDatastoreController;

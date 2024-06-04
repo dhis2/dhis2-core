@@ -30,13 +30,13 @@ package org.hisp.dhis.monitoring.metrics;
 import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_HIBERNATE_ENABLED;
 
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.binder.jpa.HibernateMetrics;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceException;
 import java.util.Collections;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
+import org.hibernate.stat.HibernateMetrics;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;

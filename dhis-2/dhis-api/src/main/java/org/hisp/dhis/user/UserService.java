@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.user;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
@@ -37,9 +39,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -274,7 +273,7 @@ public interface UserService {
    * @param openId the openId of the User.
    * @return the User or null if there is no match
    */
-  @CheckForNull
+  @Nullable
   User getUserByOpenId(@Nonnull String openId);
 
   /**

@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.common;
 
+import jakarta.annotation.Nonnull;
 import java.util.List;
-import javax.annotation.Nonnull;
 
 /**
  * @author Lars Helge Overland

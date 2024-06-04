@@ -34,6 +34,7 @@ import static org.hisp.dhis.dxf2.geojson.CoordinatesUtils.coordinatesEmpty;
 import static org.hisp.dhis.dxf2.geojson.CoordinatesUtils.geometryWithCoordinatePairs;
 import static org.hisp.dhis.dxf2.importsummary.ImportConflict.createConflict;
 
+import jakarta.annotation.Nonnull;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -42,7 +43,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
-import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;

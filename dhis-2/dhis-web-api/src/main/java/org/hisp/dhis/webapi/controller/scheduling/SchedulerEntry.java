@@ -32,11 +32,11 @@ import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.scheduling.JobConfiguration.maxDelayedExecutionTime;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.annotation.Nullable;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
-import javax.annotation.CheckForNull;
 import lombok.Value;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobStatus;
@@ -139,7 +139,7 @@ class SchedulerEntry {
     return instant == null ? null : Date.from(instant);
   }
 
-  @CheckForNull
+  @Nullable
   public static Long secondsUntil(Instant instant) {
     if (instant == null) return null;
     return Duration.between(Instant.now(), instant).getSeconds();

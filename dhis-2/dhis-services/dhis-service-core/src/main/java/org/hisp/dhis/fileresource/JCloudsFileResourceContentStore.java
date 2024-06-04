@@ -29,6 +29,8 @@ package org.hisp.dhis.fileresource;
 
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,8 +39,6 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -114,9 +114,9 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
         });
   }
 
-  @CheckForNull
+  @Nullable
   private String saveFileResourceContent(
-      @Nonnull FileResource fr, @CheckForNull Blob blob, @CheckForNull Runnable postPutCallback) {
+      @Nonnull FileResource fr, @Nullable Blob blob, @Nullable Runnable postPutCallback) {
     if (blob == null) {
       return null;
     }

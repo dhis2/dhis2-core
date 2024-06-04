@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.system.notification;
 
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 import org.slf4j.Logger;
 
 /**

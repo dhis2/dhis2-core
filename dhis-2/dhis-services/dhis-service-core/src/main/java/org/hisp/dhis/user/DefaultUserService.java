@@ -37,6 +37,8 @@ import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
@@ -58,9 +60,6 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
@@ -597,7 +596,7 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional(readOnly = true)
-  @CheckForNull
+  @Nullable
   public User getUserByOpenId(@Nonnull String openId) {
     User user = userStore.getUserByOpenId(openId);
 

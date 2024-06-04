@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.audit;
 
+import jakarta.annotation.Nonnull;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
-import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;

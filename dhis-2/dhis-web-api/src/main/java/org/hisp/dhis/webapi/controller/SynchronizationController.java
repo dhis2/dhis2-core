@@ -31,8 +31,8 @@ import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.security.Authorities.F_EXPORT_DATA;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import jakarta.annotation.Nonnull;
 import java.io.IOException;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;

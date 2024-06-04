@@ -43,11 +43,11 @@ import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 import static org.hisp.dhis.feedback.ErrorCode.E2035;
 import static org.hisp.dhis.feedback.ErrorCode.E2045;
 
+import jakarta.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.BiFunction;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
 import org.hisp.dhis.analytics.common.params.dimension.AnalyticsQueryOperator;

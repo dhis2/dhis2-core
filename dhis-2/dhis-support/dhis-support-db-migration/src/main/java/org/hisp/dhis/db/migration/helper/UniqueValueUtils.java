@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.db.migration.helper;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -36,8 +38,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 import lombok.experimental.Accessors;
@@ -100,7 +100,7 @@ public class UniqueValueUtils {
    * @param values the set of unique values the provided value should be added to
    * @return the found unique value, which also was added to the set
    */
-  static String addValue(@CheckForNull String value, int maxLength, @Nonnull Set<String> values) {
+  static String addValue(@Nullable String value, int maxLength, @Nonnull Set<String> values) {
     String unique = value == null ? "" : value;
     if (unique.length() > maxLength) {
       unique = unique.substring(0, maxLength);

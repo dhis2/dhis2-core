@@ -28,9 +28,9 @@
 package org.hisp.dhis.webapi.mvc.messageconverter;
 
 import com.google.common.collect.ImmutableList;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.List;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.HttpOutputMessage;

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.calendar;
 
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 
 /**
  * Class representing a date interval.

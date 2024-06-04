@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.program;
 
+import jakarta.annotation.Nonnull;
 import java.util.Date;
 import java.util.List;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;

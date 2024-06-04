@@ -32,6 +32,7 @@ import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
 
+import jakarta.annotation.Nonnull;
 import java.lang.reflect.Member;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -47,7 +48,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
-import javax.annotation.Nonnull;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;

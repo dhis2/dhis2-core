@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.fileresource;
 
+import jakarta.annotation.Nonnull;
 import java.util.List;
 import java.util.Optional;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.datavalue.DataValueKey;
 import org.joda.time.DateTime;

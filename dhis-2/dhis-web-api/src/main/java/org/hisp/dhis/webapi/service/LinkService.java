@@ -61,7 +61,7 @@ public interface LinkService {
    *
    * @param object Object (can be collection) to set HREFs on
    * @param deepScan Generate links also on deeper levels (only one level down)
-   * @see javax.servlet.http.HttpServletRequest
+   * @see jakarta.servlet.http.HttpServletRequest
    * @see ContextService
    */
   <T> void generateLinks(T object, boolean deepScan);
@@ -72,7 +72,7 @@ public interface LinkService {
    * @param object Object (can be collection) to set HREFs on
    * @param hrefBase Used as starting point of HREF
    * @param deepScan Generate links also on deeper levels (only one level down)
-   * @see javax.servlet.http.HttpServletRequest
+   * @see jakarta.servlet.http.HttpServletRequest
    */
   <T> void generateLinks(T object, String hrefBase, boolean deepScan);
 

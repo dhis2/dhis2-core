@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics.tei.query;
 
 import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.common.query.BaseRenderable;
 import org.hisp.dhis.analytics.common.query.Renderable;

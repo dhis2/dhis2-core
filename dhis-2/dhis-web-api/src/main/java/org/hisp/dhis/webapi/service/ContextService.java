@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.webapi.service;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -39,7 +39,7 @@ public interface ContextService {
    * Get full path of servlet.
    *
    * @return Full HREF to servlet
-   * @see javax.servlet.http.HttpServletRequest
+   * @see jakarta.servlet.http.HttpServletRequest
    */
   String getServletPath();
 
@@ -47,7 +47,7 @@ public interface ContextService {
    * Get HREF to context.
    *
    * @return Full HREF to context (context root)
-   * @see javax.servlet.http.HttpServletRequest
+   * @see jakarta.servlet.http.HttpServletRequest
    */
   String getContextPath();
 
@@ -55,7 +55,7 @@ public interface ContextService {
    * Get HREF to Web-API.
    *
    * @return Full HREF to Web-API
-   * @see javax.servlet.http.HttpServletRequest
+   * @see jakarta.servlet.http.HttpServletRequest
    */
   String getApiPath();
 

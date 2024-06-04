@@ -30,13 +30,13 @@ package org.hisp.dhis.security.jwt;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.nimbusds.jwt.JWTParser;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.user.User;

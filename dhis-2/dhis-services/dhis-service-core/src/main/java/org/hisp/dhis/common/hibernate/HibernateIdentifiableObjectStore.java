@@ -29,6 +29,8 @@ package org.hisp.dhis.common.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -41,8 +43,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -235,7 +235,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     super.delete(object);
   }
 
-  @CheckForNull
+  @Nullable
   @Override
   public final T get(long id) {
     T object = getNoPostProcess(id);
@@ -348,7 +348,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
   /** Uses query since name property might not be unique. */
   @Override
-  @CheckForNull
+  @Nullable
   public final T getByName(@Nonnull String name) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -373,7 +373,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   }
 
   @Override
-  @CheckForNull
+  @Nullable
   public final T getByCode(@Nonnull String code) {
     if (isTransientIdentifiableProperties()) {
       return null;
@@ -402,7 +402,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   }
 
   @Override
-  @CheckForNull
+  @Nullable
   public T getByUniqueAttributeValue(@Nonnull Attribute attribute, @Nonnull String value) {
     if (StringUtils.isEmpty(value) || !attribute.isUnique()) {
       return null;
@@ -428,9 +428,9 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   }
 
   @Override
-  @CheckForNull
+  @Nullable
   public T getByUniqueAttributeValue(
-      @Nonnull Attribute attribute, @Nonnull String value, @CheckForNull UserDetails user) {
+      @Nonnull Attribute attribute, @Nonnull String value, @Nullable UserDetails user) {
     if (StringUtils.isEmpty(value) || !attribute.isUnique()) {
       return null;
     }
@@ -686,7 +686,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   }
 
   @Override
-  @CheckForNull
+  @Nullable
   public Date getLastUpdated() {
     CriteriaBuilder builder = getCriteriaBuilder();
 

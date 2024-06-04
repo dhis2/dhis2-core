@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.icon;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -106,7 +106,7 @@ public interface IconService {
    * @return the created and persisted {@link Icon}
    */
   @Nonnull
-  Icon addIcon(@Nonnull AddIconRequest request, @CheckForNull DefaultIcon origin)
+  Icon addIcon(@Nonnull AddIconRequest request, @Nullable DefaultIcon origin)
       throws BadRequestException, NotFoundException;
 
   /**

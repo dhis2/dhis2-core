@@ -30,13 +30,13 @@ package org.hisp.dhis.copy;
 import static org.hisp.dhis.common.BaseIdentifiableObject.copyList;
 import static org.hisp.dhis.common.BaseIdentifiableObject.copySet;
 
+import jakarta.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;

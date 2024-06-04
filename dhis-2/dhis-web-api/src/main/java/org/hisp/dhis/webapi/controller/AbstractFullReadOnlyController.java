@@ -38,6 +38,10 @@ import com.fasterxml.jackson.dataformat.csv.CsvSchema.Builder;
 import com.fasterxml.jackson.dataformat.csv.CsvWriteException;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -49,10 +53,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.Value;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -199,7 +199,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
       HttpServletResponse response,
       UserDetails userDetails,
       boolean countTotal,
-      @CheckForNull List<T> objects)
+      @Nullable List<T> objects)
       throws ForbiddenException, BadRequestException {
     List<Order> orders = orderParams.getOrders(getSchema());
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));

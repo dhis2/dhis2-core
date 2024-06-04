@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.security.apikey;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import java.util.List;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
@@ -65,7 +65,7 @@ public class HibernateApiTokenStore extends HibernateIdentifiableObjectStore<Api
   }
 
   @Override
-  @CheckForNull
+  @Nullable
   public ApiToken getByKey(@Nonnull String key, @Nonnull User currentUser) {
     CriteriaBuilder builder = getCriteriaBuilder();
     return getSingleResult(
@@ -76,7 +76,7 @@ public class HibernateApiTokenStore extends HibernateIdentifiableObjectStore<Api
   }
 
   @Override
-  @CheckForNull
+  @Nullable
   public ApiToken getByKey(@Nonnull String key) {
     CriteriaBuilder builder = getCriteriaBuilder();
     return getSingleResult(

@@ -30,9 +30,9 @@ package org.hisp.dhis.dxf2.metadata;
 import static org.hisp.dhis.dxf2.metadata.objectbundle.EventReportCompatibilityGuard.handleDeprecationIfEventReport;
 
 import com.google.common.base.Enums;
+import jakarta.annotation.Nonnull;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;

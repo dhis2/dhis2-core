@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics.tei.query;
 
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;

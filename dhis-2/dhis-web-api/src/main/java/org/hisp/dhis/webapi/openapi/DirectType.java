@@ -33,6 +33,7 @@ import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.annotation.Nullable;
 import java.io.Serializable;
 import java.net.URI;
 import java.net.URL;
@@ -47,7 +48,6 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
-import javax.annotation.CheckForNull;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
@@ -108,7 +108,7 @@ class DirectType {
    * @param type a Java type
    * @return {@code oneOf} the OpenAPI types that correspond to the Java type
    */
-  @CheckForNull
+  @Nullable
   public static DirectType of(Class<?> type) {
     return TYPES.get(type);
   }

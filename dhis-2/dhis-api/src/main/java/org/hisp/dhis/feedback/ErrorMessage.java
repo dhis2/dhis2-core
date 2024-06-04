@@ -29,11 +29,11 @@ package org.hisp.dhis.feedback;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.stream.Stream;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.ToString;
 
@@ -61,7 +61,7 @@ public class ErrorMessage {
   public ErrorMessage(
       @Nonnull @JsonProperty("message") String message,
       @Nonnull @JsonProperty("errorCode") ErrorCode errorCode,
-      @CheckForNull @JsonProperty("args") List<String> args) {
+      @Nullable @JsonProperty("args") List<String> args) {
     this.errorCode = errorCode;
     this.args = args == null ? List.of() : args;
     this.message = message;

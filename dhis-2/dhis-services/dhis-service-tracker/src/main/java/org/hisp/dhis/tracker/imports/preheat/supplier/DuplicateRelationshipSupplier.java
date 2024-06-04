@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.supplier;
 
+import jakarta.annotation.Nonnull;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.relationship.RelationshipType;

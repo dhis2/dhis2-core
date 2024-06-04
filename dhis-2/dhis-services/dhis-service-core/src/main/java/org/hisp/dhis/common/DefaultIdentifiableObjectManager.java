@@ -36,6 +36,8 @@ import com.google.common.base.Defaults;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
 import com.google.gson.internal.Primitives;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -50,8 +52,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
@@ -247,7 +247,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     return existsByUser(store, user);
   }
 
-  @CheckForNull
+  @Nullable
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> T get(@Nonnull Class<T> type, long id) {
@@ -260,7 +260,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     return store.get(id);
   }
 
-  @CheckForNull
+  @Nullable
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> T get(@Nonnull Class<T> type, @Nonnull String uid) {
@@ -307,7 +307,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     return get(type, uid) != null;
   }
 
-  @CheckForNull
+  @Nullable
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> T get(
@@ -319,7 +319,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
         .orElse(null);
   }
 
-  @CheckForNull
+  @Nullable
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> T get(
@@ -347,7 +347,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     return store.getByUidNoAcl(uids);
   }
 
-  @CheckForNull
+  @Nullable
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> T getByCode(@Nonnull Class<T> type, @Nonnull String code) {
@@ -374,7 +374,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     return store.loadByCode(code);
   }
 
-  @CheckForNull
+  @Nullable
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> T getByName(@Nonnull Class<T> type, @Nonnull String name) {
@@ -394,7 +394,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     return getByUniqueAttributeValue(type, attribute, value, CurrentUserUtil.getCurrentUsername());
   }
 
-  @CheckForNull
+  @Nullable
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> T getByUniqueAttributeValue(
@@ -415,7 +415,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     return get(User.class, CurrentUserUtil.getCurrentUsername());
   }
 
-  @CheckForNull
+  @Nullable
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> T search(@Nonnull Class<T> type, @Nonnull String query) {
@@ -595,7 +595,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> List<T> loadByUid(
-      @Nonnull Class<T> type, @CheckForNull Collection<String> uids) throws IllegalQueryException {
+      @Nonnull Class<T> type, @Nullable Collection<String> uids) throws IllegalQueryException {
     if (uids == null || uids.isEmpty()) {
       return List.of();
     }
@@ -863,7 +863,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     return store.getById(identifiers);
   }
 
-  @CheckForNull
+  @Nullable
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> T getObject(
@@ -871,7 +871,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     return getObject(type, IdScheme.from(property), value);
   }
 
-  @CheckForNull
+  @Nullable
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> T getObject(
@@ -913,7 +913,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
         "Invalid identifiable property / class combination: " + idScheme);
   }
 
-  @CheckForNull
+  @Nullable
   @Override
   @Transactional(readOnly = true)
   public IdentifiableObject getObject(@Nonnull String uid, @Nonnull String simpleClassName) {
@@ -927,7 +927,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     return null;
   }
 
-  @CheckForNull
+  @Nullable
   @Override
   @Transactional(readOnly = true)
   public IdentifiableObject getObject(long id, @Nonnull String simpleClassName) {

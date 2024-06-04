@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.scheduling;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
 
 /**
@@ -47,7 +47,7 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
    * @param type the type of job to find
    * @return the UID of the most recently started job configuration or null if none exists
    */
-  @CheckForNull
+  @Nullable
   String getLastRunningId(@Nonnull JobType type);
 
   /**
@@ -56,7 +56,7 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
    * @param type the type of job to find
    * @return the UID of the most recently finished job configuration or null if none exists
    */
-  @CheckForNull
+  @Nullable
   String getLastCompletedId(@Nonnull JobType type);
 
   /**
@@ -66,10 +66,10 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
    * @param jobId of the job for which to fetch the progress data
    * @return the most recent progress JSON data
    */
-  @CheckForNull
+  @Nullable
   String getProgress(@Nonnull String jobId);
 
-  @CheckForNull
+  @Nullable
   String getErrors(@Nonnull String jobId);
 
   /**
@@ -150,7 +150,7 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
    * @param fromPosition current position in the queue (executed last)
    * @return the job next in line if exists or null otherwise
    */
-  @CheckForNull
+  @Nullable
   JobConfiguration getNextInQueue(@Nonnull String queue, int fromPosition);
 
   /**
@@ -223,7 +223,7 @@ public interface JobConfigurationStore extends GenericDimensionalObjectStore<Job
   boolean trySkip(@Nonnull String queue);
 
   void updateProgress(
-      @Nonnull String jobId, @CheckForNull String progressJson, @CheckForNull String errorCodes);
+      @Nonnull String jobId, @Nullable String progressJson, @Nullable String errorCodes);
 
   /**
    * Switches {@link JobConfiguration#getJobStatus()} to {@link JobStatus#DISABLED} for any job that

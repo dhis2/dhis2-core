@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.analytics.common;
 
+import jakarta.annotation.Nonnull;
 import java.util.Map;
-import javax.annotation.Nonnull;
 
 /**
  * Encapsulates the internals of a query, exposing methods that provide executable statements.

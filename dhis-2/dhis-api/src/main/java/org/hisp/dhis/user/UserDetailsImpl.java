@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.user;
 
+import jakarta.annotation.Nonnull;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.Nonnull;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

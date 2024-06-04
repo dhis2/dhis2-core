@@ -29,10 +29,10 @@ package org.hisp.dhis.i18n.ui.locale;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import jakarta.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import javax.annotation.CheckForNull;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManagerException;
@@ -100,7 +100,7 @@ public class UserSettingLocaleManager implements LocaleManager {
     return locales;
   }
 
-  @CheckForNull
+  @Nullable
   public Locale getUserSelectedLocale() {
     return (Locale) userSettingService.getUserSetting(UserSettingKey.UI_LOCALE);
   }

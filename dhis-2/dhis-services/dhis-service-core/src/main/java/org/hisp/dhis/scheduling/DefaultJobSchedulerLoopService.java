@@ -36,13 +36,13 @@ import static org.hisp.dhis.eventhook.EventUtils.schedulerStart;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.commons.util.DebugUtils;
@@ -133,13 +133,13 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
   }
 
   @Override
-  @CheckForNull
+  @Nullable
   @Transactional(readOnly = true)
   public JobConfiguration getNextInQueue(String queue, int fromPosition) {
     return jobConfigurationStore.getNextInQueue(queue, fromPosition);
   }
 
-  @CheckForNull
+  @Nullable
   @Override
   @Transactional(readOnly = true)
   public JobConfiguration getJobConfiguration(String jobId) {
@@ -194,7 +194,7 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
 
   @Override
   @Transactional
-  public void finishRunFail(@Nonnull String jobId, @CheckForNull Exception ex) {
+  public void finishRunFail(@Nonnull String jobId, @Nullable Exception ex) {
     if (jobConfigurationStore.tryFinish(jobId, JobStatus.FAILED)) {
       JobConfiguration job = jobConfigurationStore.getByUid(jobId);
       if (job == null) return;

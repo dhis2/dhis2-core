@@ -28,9 +28,9 @@
 package org.hisp.dhis.query;
 
 import com.google.common.base.MoreObjects;
+import jakarta.annotation.Nonnull;
 import java.util.Date;
 import java.util.Objects;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.system.util.ReflectionUtils;
 

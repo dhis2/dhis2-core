@@ -31,11 +31,11 @@ import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+import jakarta.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
-import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
@@ -121,7 +121,7 @@ public class DefaultGatewayAdministrationService implements GatewayAdministratio
   @Override
   @IndirectTransactional
   public void updateGateway(
-      @CheckForNull SmsGatewayConfig persisted, @CheckForNull SmsGatewayConfig updated)
+      @Nullable SmsGatewayConfig persisted, @Nullable SmsGatewayConfig updated)
       throws NotFoundException, ConflictException {
     if (updated == null) throw new ConflictException("Gateway configuration cannot be null");
     if (persisted == null) throw new NotFoundException(SmsGatewayConfig.class, updated.getUid());

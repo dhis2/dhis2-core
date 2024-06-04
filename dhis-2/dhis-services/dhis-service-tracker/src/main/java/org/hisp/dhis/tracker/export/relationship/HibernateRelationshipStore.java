@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.relationship;
 
+import jakarta.annotation.Nonnull;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -40,7 +41,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.LongSupplier;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.common.SortDirection;

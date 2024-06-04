@@ -90,7 +90,7 @@ public class PostCacheEventPublisher
     handleMessage(CacheEventOperation.DELETE, postDeleteEvent.getEntity(), postDeleteEvent.getId());
   }
 
-  private void handleMessage(CacheEventOperation operation, Object entity, Serializable id) {
+  private void handleMessage(CacheEventOperation operation, Object entity, Object id) {
     Class<?> realClass = HibernateProxyUtils.getRealClass(entity);
 
     if (entity instanceof DataValue) {
@@ -162,13 +162,8 @@ public class PostCacheEventPublisher
   }
 
   @Override
-  public boolean requiresPostCommitHanding(EntityPersister entityPersister) {
-    return true;
-  }
-
-  @Override
   public boolean requiresPostCommitHandling(EntityPersister persister) {
-    return PostCommitUpdateEventListener.super.requiresPostCommitHandling(persister);
+    return requiresPostCommitHandling(persister);
   }
 
   @Override

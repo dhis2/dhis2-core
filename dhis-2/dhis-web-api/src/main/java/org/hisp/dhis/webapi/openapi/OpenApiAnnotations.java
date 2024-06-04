@@ -29,6 +29,8 @@ package org.hisp.dhis.webapi.openapi;
 
 import static java.util.Arrays.stream;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
@@ -39,8 +41,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
@@ -54,7 +54,7 @@ import org.hisp.dhis.common.OpenApi;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 class OpenApiAnnotations {
 
-  @CheckForNull
+  @Nullable
   static Class<?> getEntityType(@Nonnull Class<?> controller) {
     Class<?> entityClass =
         controller.isAnnotationPresent(OpenApi.EntityType.class)

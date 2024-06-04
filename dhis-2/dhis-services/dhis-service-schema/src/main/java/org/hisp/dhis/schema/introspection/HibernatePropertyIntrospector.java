@@ -46,15 +46,14 @@ import org.hibernate.persister.collection.CollectionPersister;
 import org.hibernate.persister.entity.Joinable;
 import org.hibernate.type.CollectionType;
 import org.hibernate.type.CustomType;
-import org.hibernate.type.DoubleType;
-import org.hibernate.type.IntegerType;
-import org.hibernate.type.LongType;
 import org.hibernate.type.ManyToOneType;
 import org.hibernate.type.OneToOneType;
 import org.hibernate.type.SetType;
-import org.hibernate.type.SingleColumnType;
-import org.hibernate.type.TextType;
 import org.hibernate.type.Type;
+import org.hibernate.type.descriptor.java.DoubleJavaType;
+import org.hibernate.type.descriptor.java.IntegerJavaType;
+import org.hibernate.type.descriptor.java.LongJavaType;
+import org.hibernate.type.descriptor.java.StringJavaType;
 import org.hisp.dhis.hibernate.HibernateMetadata;
 import org.hisp.dhis.schema.Property;
 
@@ -138,7 +137,7 @@ public class HibernatePropertyIntrospector implements PropertyIntrospector {
 
     PersistentClass persistentClass = metadataImplementor.getEntityBinding(klass.getName());
 
-    Iterator<?> propertyIterator = persistentClass.getPropertyClosureIterator();
+    Iterator<?> propertyIterator = persistentClass.getPropertyClosure().iterator();
 
     while (propertyIterator.hasNext()) {
       Property property =
@@ -178,10 +177,8 @@ public class HibernatePropertyIntrospector implements PropertyIntrospector {
       initCollectionProperty(metamodelImplementor, property, (CollectionType) type);
     }
 
-    if (type instanceof SingleColumnType
-        || type instanceof CustomType
-        || type instanceof ManyToOneType) {
-      Column column = (Column) hibernateProperty.getColumnIterator().next();
+    if (type instanceof CustomType || type instanceof ManyToOneType) {
+      Column column = hibernateProperty.getColumns().get(0);
 
       property.setUnique(column.isUnique());
       property.setRequired(!column.isNullable());
@@ -189,22 +186,22 @@ public class HibernatePropertyIntrospector implements PropertyIntrospector {
       property.setMax((double) column.getLength());
       property.setLength(column.getLength());
 
-      if (type instanceof TextType) {
+      if (type instanceof StringJavaType) {
         property.setMin(0d);
         property.setMax((double) Integer.MAX_VALUE);
-        property.setLength(Integer.MAX_VALUE);
-      } else if (type instanceof IntegerType) {
+        property.setLength(Long.MAX_VALUE);
+      } else if (type instanceof IntegerJavaType) {
         property.setMin((double) Integer.MIN_VALUE);
         property.setMax((double) Integer.MAX_VALUE);
-        property.setLength(Integer.MAX_VALUE);
-      } else if (type instanceof LongType) {
+        property.setLength(Long.MAX_VALUE);
+      } else if (type instanceof LongJavaType) {
         property.setMin((double) Long.MIN_VALUE);
         property.setMax((double) Long.MAX_VALUE);
-        property.setLength(Integer.MAX_VALUE);
-      } else if (type instanceof DoubleType) {
+        property.setLength(Long.MAX_VALUE);
+      } else if (type instanceof DoubleJavaType) {
         property.setMin(-Double.MAX_VALUE);
         property.setMax(Double.MAX_VALUE);
-        property.setLength(Integer.MAX_VALUE);
+        property.setLength(Long.MAX_VALUE);
       }
     }
 

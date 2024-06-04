@@ -29,9 +29,9 @@ package org.hisp.dhis.tracker.imports.report;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.List;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
@@ -54,7 +54,7 @@ public class Error {
       @Nonnull @JsonProperty("errorCode") String errorCode,
       @Nonnull @JsonProperty("trackerType") String trackerType,
       @Nonnull @JsonProperty("uid") String uid,
-      @CheckForNull @JsonProperty("args") List<String> args) {
+      @Nullable @JsonProperty("args") List<String> args) {
     this.message = message;
     this.errorCode = errorCode;
     this.trackerType = trackerType;

@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.document.impl;
 
+import jakarta.annotation.Nonnull;
 import java.util.List;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentService;

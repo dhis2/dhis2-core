@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.common.processing;
 
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 
 /**
  * Interface responsible for processing and/or transforming the internals of objects of the given

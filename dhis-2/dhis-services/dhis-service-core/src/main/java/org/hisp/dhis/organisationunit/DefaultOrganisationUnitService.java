@@ -32,6 +32,7 @@ import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.hisp.dhis.commons.util.TextUtils.joinHyphen;
 
 import com.google.common.collect.Sets;
+import jakarta.annotation.Nonnull;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -43,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;

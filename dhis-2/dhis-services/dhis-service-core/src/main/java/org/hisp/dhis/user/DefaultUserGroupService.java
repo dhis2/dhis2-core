@@ -29,12 +29,12 @@ package org.hisp.dhis.user;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import jakarta.annotation.Nonnull;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.cache.HibernateCacheManager;

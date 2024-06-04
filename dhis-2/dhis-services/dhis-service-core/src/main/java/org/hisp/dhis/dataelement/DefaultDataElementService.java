@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.dataelement;
 
+import jakarta.annotation.Nonnull;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.category.CategoryCombo;

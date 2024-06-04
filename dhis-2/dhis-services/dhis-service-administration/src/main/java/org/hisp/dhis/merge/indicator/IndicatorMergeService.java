@@ -28,11 +28,11 @@
 package org.hisp.dhis.merge.indicator;
 
 import com.google.common.collect.ImmutableList;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.PostConstruct;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.MergeReport;

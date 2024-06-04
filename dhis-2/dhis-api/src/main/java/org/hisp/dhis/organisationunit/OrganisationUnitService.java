@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.organisationunit;
 
+import jakarta.annotation.Nonnull;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.user.User;

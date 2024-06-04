@@ -80,7 +80,7 @@ public class PostCollectionCacheEventPublisher implements PreCollectionUpdateEve
         && !Objects.equals(addedElements, removedElements)) {
       String affectedOwnerEntityName = event.getAffectedOwnerEntityName();
       String role = event.getCollection().getRole();
-      Serializable affectedOwnerIdOrNull = event.getAffectedOwnerIdOrNull();
+      Object affectedOwnerIdOrNull = event.getAffectedOwnerIdOrNull();
       String op = CacheEventOperation.COLLECTION.name().toLowerCase();
 
       String message =

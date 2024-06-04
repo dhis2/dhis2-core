@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.user;
 
+import jakarta.annotation.Nonnull;
 import java.util.Collection;
 import java.util.List;
-import javax.annotation.Nonnull;
 
 public interface UserGroupService {
   String ID = UserGroupService.class.getName();

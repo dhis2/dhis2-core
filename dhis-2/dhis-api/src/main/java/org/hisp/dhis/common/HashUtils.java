@@ -28,12 +28,12 @@
 package org.hisp.dhis.common;
 
 import com.google.common.hash.Hashing;
+import jakarta.annotation.Nonnull;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Pattern;
-import javax.annotation.Nonnull;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>

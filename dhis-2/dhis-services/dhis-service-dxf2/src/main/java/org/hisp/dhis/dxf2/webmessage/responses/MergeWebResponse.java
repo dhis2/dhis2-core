@@ -28,7 +28,7 @@
 package org.hisp.dhis.dxf2.webmessage.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.merge.MergeType;
 import org.hisp.dhis.webmessage.WebMessageResponse;

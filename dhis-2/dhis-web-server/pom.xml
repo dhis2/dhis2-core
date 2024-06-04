@@ -120,8 +120,8 @@
       <artifactId>slf4j-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>javax.servlet-api</artifactId>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
@@ -416,13 +416,13 @@
 
                     <!-- exclude the MANIFEST.MF entries that will cause problems -->
                     <filter>
-                      <artifact>javax.annotation:*</artifact>
+                      <artifact>jakarta.annotation:*</artifact>
                       <excludes>
                         <exclude>META-INF/MANIFEST.MF</exclude>
                       </excludes>
                     </filter>
                     <filter>
-                      <artifact>javax.servlet:*</artifact>
+                      <artifact>jakarta.servlet:*</artifact>
                       <excludes>
                         <exclude>META-INF/MANIFEST.MF</exclude>
                       </excludes>

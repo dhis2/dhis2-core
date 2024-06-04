@@ -32,13 +32,13 @@ import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static org.hisp.dhis.tracker.export.trackedentity.aggregates.ThreadPoolManager.getPool;
 
 import com.google.common.collect.Multimap;
+import jakarta.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.note.Note;

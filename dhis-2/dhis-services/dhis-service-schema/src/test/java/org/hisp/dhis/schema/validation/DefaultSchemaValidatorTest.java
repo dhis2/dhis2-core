@@ -178,7 +178,7 @@ class DefaultSchemaValidatorTest {
   @Test
   void testStringPropertyTooLong() {
     // fake column length limitation
-    schema.getProperty("string").setLength(20);
+    schema.getProperty("string").setLength(Long.valueOf(20));
     assertError(
         ErrorCode.E4001,
         SimpleFields.builder().string("123456789012345678901").build(),

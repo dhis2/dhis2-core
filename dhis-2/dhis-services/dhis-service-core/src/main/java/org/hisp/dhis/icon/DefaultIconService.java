@@ -33,6 +33,8 @@ import static org.hisp.dhis.util.DateUtils.dateTimeIsValid;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import com.google.common.base.Strings;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -44,8 +46,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -168,7 +168,7 @@ public class DefaultIconService implements IconService {
 
   @Nonnull
   @Override
-  public Icon addIcon(@Nonnull AddIconRequest request, @CheckForNull DefaultIcon origin)
+  public Icon addIcon(@Nonnull AddIconRequest request, @Nullable DefaultIcon origin)
       throws BadRequestException, NotFoundException {
     validateIconKey(request.getKey());
     validateIconDoesNotExists(request.getKey());

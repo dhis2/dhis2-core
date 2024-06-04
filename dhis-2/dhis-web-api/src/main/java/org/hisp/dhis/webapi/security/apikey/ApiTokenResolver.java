@@ -30,10 +30,10 @@ package org.hisp.dhis.webapi.security.apikey;
 import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.isValidTokenChecksum;
 
 import com.google.common.net.HttpHeaders;
+import jakarta.annotation.Nullable;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.annotation.CheckForNull;
-import javax.servlet.http.HttpServletRequest;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator;
@@ -64,7 +64,7 @@ public final class ApiTokenResolver {
         || (this.allowUriQueryParameter && "GET".equals(request.getMethod()));
   }
 
-  @CheckForNull
+  @Nullable
   public String resolve(HttpServletRequest request) {
     char[] headerToken = extractTokenFromHeader(request);
     char[] parameterToken = extractTokenFromParameters(request);

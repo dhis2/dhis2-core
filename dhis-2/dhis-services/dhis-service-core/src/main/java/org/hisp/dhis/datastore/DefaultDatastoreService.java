@@ -30,6 +30,8 @@ package org.hisp.dhis.datastore;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -38,8 +40,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -134,9 +134,9 @@ public class DefaultDatastoreService implements DatastoreService {
   public void updateEntry(
       @Nonnull String ns,
       @Nonnull String key,
-      @CheckForNull String value,
-      @CheckForNull String path,
-      @CheckForNull Integer roll)
+      @Nullable String value,
+      @Nullable String path,
+      @Nullable Integer roll)
       throws BadRequestException {
     validateEntry(key, value);
     Runnable update = () -> store.updateEntry(ns, key, value, path, roll);

@@ -42,6 +42,7 @@ import static org.hisp.dhis.util.DateUtils.addDays;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import jakarta.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -50,7 +51,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -185,7 +185,7 @@ public class DefaultPredictionService implements PredictionService {
   }
 
   private List<Predictor> fetchPredictors(
-      @CheckForNull List<String> predictors, @CheckForNull List<String> predictorGroups) {
+      @Nullable List<String> predictors, @Nullable List<String> predictorGroups) {
     if (isEmpty(predictors) && isEmpty(predictorGroups)) {
       return predictorService.getAllPredictors();
     }

@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.program;
 
+import jakarta.annotation.Nonnull;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import javax.annotation.Nonnull;
 import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;

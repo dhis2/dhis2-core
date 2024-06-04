@@ -30,6 +30,8 @@ package org.hisp.dhis.webapi.openapi;
 import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.webapi.openapi.JsonGenerator.Format.PRETTY_PRINT;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Modifier;
@@ -43,8 +45,6 @@ import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.spi.ToolProvider;
 import java.util.stream.Stream;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 
@@ -119,7 +119,7 @@ public class OpenApiTool implements ToolProvider {
     return errorCode.get() < 0 ? -1 : 0;
   }
 
-  @CheckForNull
+  @Nullable
   private static Set<Class<?>> findControllerClasses(PrintWriter err) {
     String root =
         AbstractCrudController.class.getProtectionDomain().getCodeSource().getLocation().getPath();
@@ -222,7 +222,7 @@ public class OpenApiTool implements ToolProvider {
   }
 
   @Nonnull
-  private static String getTypeName(@CheckForNull Class<?> type) {
+  private static String getTypeName(@Nullable Class<?> type) {
     if (type == null) return "Misc";
     if (type.isAnnotationPresent(OpenApi.Shared.class)) {
       OpenApi.Shared shared = type.getAnnotation(OpenApi.Shared.class);

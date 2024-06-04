@@ -35,6 +35,7 @@ import static java.util.stream.Collectors.toSet;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import jakarta.annotation.Nonnull;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +45,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;

@@ -30,12 +30,12 @@ package org.hisp.dhis.common;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.hisp.dhis.user.UserDetails;
@@ -80,7 +80,7 @@ public final class UID implements Serializable {
     return new UID(currentUser.getUid());
   }
 
-  public static UID of(@CheckForNull UidObject object) {
+  public static UID of(@Nullable UidObject object) {
     return object == null ? null : new UID(object.getUid());
   }
 

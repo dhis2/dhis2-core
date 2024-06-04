@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.security.spring2fa;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
 
 /**

@@ -34,12 +34,12 @@ import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.ge
 import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.getExtensibleAttachmentFilename;
 import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.isAttachment;
 
+import jakarta.annotation.Nonnull;
 import java.io.IOException;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;

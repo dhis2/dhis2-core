@@ -29,13 +29,13 @@ package org.hisp.dhis.schema;
 
 import static java.util.Collections.singletonList;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 /**
  * A utility to resolve the {@link Property} for a given path.

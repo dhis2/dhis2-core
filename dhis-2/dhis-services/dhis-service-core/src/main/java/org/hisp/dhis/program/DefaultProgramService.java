@@ -28,11 +28,11 @@
 package org.hisp.dhis.program;
 
 import com.google.common.collect.Lists;
+import jakarta.annotation.Nonnull;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationsStore;

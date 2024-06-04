@@ -32,6 +32,8 @@ import static java.lang.String.format;
 import static java.time.ZoneId.systemDefault;
 import static java.util.stream.Collectors.toMap;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -53,9 +55,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.QueryHints;
@@ -518,7 +517,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   }
 
   @Override
-  @CheckForNull
+  @Nullable
   public User getUserByOpenId(@Nonnull String openId) {
     Query<User> query = getQuery("from User u where u.openId = :openId order by u.lastLogin desc");
     query.setParameter("openId", openId);

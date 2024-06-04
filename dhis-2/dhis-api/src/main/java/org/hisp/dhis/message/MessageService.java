@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.message;
 
+import jakarta.annotation.Nonnull;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.user.User;

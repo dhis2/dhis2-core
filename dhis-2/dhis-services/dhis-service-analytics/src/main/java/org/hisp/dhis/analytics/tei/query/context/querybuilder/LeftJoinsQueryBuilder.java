@@ -39,11 +39,11 @@ import static org.hisp.dhis.analytics.tei.query.context.querybuilder.SqlQueryHel
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.isOfType;
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
+import jakarta.annotation.Nonnull;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;

@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.user;
 
+import jakarta.annotation.Nonnull;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.security.Authorities;
 import org.springframework.security.core.GrantedAuthority;

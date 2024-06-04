@@ -29,11 +29,11 @@ package org.hisp.dhis.system.database;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.PostConstruct;
 import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

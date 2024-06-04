@@ -38,8 +38,8 @@ import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporter
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.TRACKED_ENTITY_TYPE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.USER_CANT_BE_NULL;
 
+import jakarta.annotation.Nonnull;
 import java.util.Map;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOption;

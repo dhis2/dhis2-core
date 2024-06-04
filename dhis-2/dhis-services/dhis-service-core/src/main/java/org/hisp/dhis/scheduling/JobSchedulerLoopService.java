@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.scheduling;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.List;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.user.UserDetails;
 
@@ -70,10 +70,10 @@ public interface JobSchedulerLoopService {
    */
   List<JobConfiguration> getDueJobConfigurations(int dueInNextSeconds);
 
-  @CheckForNull
+  @Nullable
   JobConfiguration getJobConfiguration(String jobId);
 
-  @CheckForNull
+  @Nullable
   JobConfiguration getNextInQueue(String queue, int fromPosition);
 
   /**
@@ -93,7 +93,7 @@ public interface JobSchedulerLoopService {
    * @param jobId the job that will be executed
    * @return the progress tracker to use
    */
-  JobProgress startRun(@Nonnull String jobId, @CheckForNull String user, Runnable observer)
+  JobProgress startRun(@Nonnull String jobId, @Nullable String user, Runnable observer)
       throws NotFoundException;
 
   /**
@@ -146,7 +146,7 @@ public interface JobSchedulerLoopService {
    *
    * @param jobId the job that failed before it could complete
    */
-  void finishRunFail(@Nonnull String jobId, @CheckForNull Exception ex);
+  void finishRunFail(@Nonnull String jobId, @Nullable Exception ex);
 
   /**
    * Adjusts a job after it has been cancelled. The {@link JobConfiguration#getJobStatus()} is

@@ -32,9 +32,9 @@ import static java.util.UUID.randomUUID;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.springframework.util.Assert.notNull;
 
+import jakarta.annotation.Nonnull;
 import java.util.List;
 import java.util.Optional;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.GridAdaptor;

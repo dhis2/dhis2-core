@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.webapi.security.config;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.webapi.controller.Server;

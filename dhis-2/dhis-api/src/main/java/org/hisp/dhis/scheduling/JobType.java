@@ -33,10 +33,10 @@ import static org.hisp.dhis.scheduling.JobType.Defaults.daily7am;
 import static org.hisp.dhis.scheduling.JobType.Defaults.dailyRandomBetween3and5;
 import static org.hisp.dhis.scheduling.JobType.Defaults.every;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import lombok.Getter;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.scheduling.parameters.AggregateDataExchangeJobParameters;
@@ -132,8 +132,8 @@ public enum JobType {
    */
   public record Defaults(
       @Nonnull String uid,
-      @CheckForNull String cronExpression,
-      @CheckForNull Integer delay,
+      @Nullable String cronExpression,
+      @Nullable Integer delay,
       @Nonnull String name) {
 
     static Defaults every(int seconds, String uid, String name) {
@@ -160,8 +160,8 @@ public enum JobType {
     }
   }
 
-  @CheckForNull private final Class<? extends JobParameters> jobParameters;
-  @CheckForNull private final Defaults defaults;
+  @Nullable private final Class<? extends JobParameters> jobParameters;
+  @Nullable private final Defaults defaults;
 
   JobType() {
     this(null, null);
@@ -175,8 +175,7 @@ public enum JobType {
     this(null, defaults);
   }
 
-  JobType(
-      @CheckForNull Class<? extends JobParameters> jobParameters, @CheckForNull Defaults defaults) {
+  JobType(@Nullable Class<? extends JobParameters> jobParameters, @Nullable Defaults defaults) {
     this.jobParameters = jobParameters;
     this.defaults = defaults;
   }

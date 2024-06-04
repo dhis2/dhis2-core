@@ -32,11 +32,11 @@ import static java.util.stream.Collectors.joining;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.annotation.Nonnull;
 import java.io.Serializable;
 import java.util.Comparator;
 import java.util.function.Function;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.user;
 
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.common.NonTransactional;

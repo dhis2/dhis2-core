@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.common;
 
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 
 /**
  * Responsible for providing methods able to execute read only queries on the respective data

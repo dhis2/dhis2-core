@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.user;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -34,9 +36,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
@@ -164,7 +163,7 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    * @param openId open ID.
    * @return the User or null if there is no match.
    */
-  @CheckForNull
+  @Nullable
   User getUserByOpenId(@Nonnull String openId);
 
   /**

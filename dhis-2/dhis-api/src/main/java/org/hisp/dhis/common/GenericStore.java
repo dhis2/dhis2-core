@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.common;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.List;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 
@@ -69,7 +69,7 @@ public interface GenericStore<T> {
    * @param id the object identifier.
    * @return the object identified by the given identifier or null
    */
-  @CheckForNull
+  @Nullable
   T get(long id);
 
   long countAllValuesByAttributes(@Nonnull List<Attribute> attributes);

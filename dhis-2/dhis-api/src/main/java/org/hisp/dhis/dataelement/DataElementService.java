@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.dataelement;
 
+import jakarta.annotation.Nonnull;
 import java.util.Collection;
 import java.util.List;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IllegalQueryException;

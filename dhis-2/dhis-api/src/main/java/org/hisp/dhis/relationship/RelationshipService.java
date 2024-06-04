@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.relationship;
 
+import jakarta.annotation.Nonnull;
 import java.util.List;
 import java.util.Optional;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackedEntity;

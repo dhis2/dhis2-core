@@ -30,11 +30,11 @@ package org.hisp.dhis.webapi.mvc.messageconverter;
 import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.getContentDispositionHeaderValue;
 import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.isAttachment;
 
+import jakarta.annotation.Nonnull;
 import java.io.IOException;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.node.NodeService;

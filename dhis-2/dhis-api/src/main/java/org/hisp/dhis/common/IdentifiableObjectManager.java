@@ -27,14 +27,14 @@
  */
 package org.hisp.dhis.common;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -99,7 +99,7 @@ public interface IdentifiableObjectManager {
    * @param id object's database ID
    * @return the found object
    */
-  @CheckForNull
+  @Nullable
   <T extends IdentifiableObject> T get(@Nonnull Class<T> type, long id);
 
   /**
@@ -109,7 +109,7 @@ public interface IdentifiableObjectManager {
    * @param uid the UID.
    * @return the object with the given UID.
    */
-  @CheckForNull
+  @Nullable
   <T extends IdentifiableObject> T get(@Nonnull Class<T> type, @Nonnull String uid);
 
   /**
@@ -141,11 +141,11 @@ public interface IdentifiableObjectManager {
 
   <T extends IdentifiableObject> boolean exists(@Nonnull Class<T> type, @Nonnull String uid);
 
-  @CheckForNull
+  @Nullable
   <T extends IdentifiableObject> T get(
       @Nonnull Collection<Class<? extends T>> types, @Nonnull String uid);
 
-  @CheckForNull
+  @Nullable
   <T extends IdentifiableObject> T get(
       @Nonnull Collection<Class<? extends T>> types,
       @Nonnull IdScheme idScheme,
@@ -158,7 +158,7 @@ public interface IdentifiableObjectManager {
    * @param code the code.
    * @return the object with the given code.
    */
-  @CheckForNull
+  @Nullable
   <T extends IdentifiableObject> T getByCode(@Nonnull Class<T> type, @Nonnull String code);
 
   /**
@@ -177,21 +177,21 @@ public interface IdentifiableObjectManager {
   <T extends IdentifiableObject> List<T> getByCode(
       @Nonnull Class<T> type, @Nonnull Collection<String> codes);
 
-  @CheckForNull
+  @Nullable
   <T extends IdentifiableObject> T getByName(@Nonnull Class<T> type, @Nonnull String name);
 
-  @CheckForNull
+  @Nullable
   <T extends IdentifiableObject> T getByUniqueAttributeValue(
       @Nonnull Class<T> type, @Nonnull Attribute attribute, @Nonnull String value);
 
-  @CheckForNull
+  @Nullable
   <T extends IdentifiableObject> T getByUniqueAttributeValue(
       @Nonnull Class<T> type,
       @Nonnull Attribute attribute,
       @Nonnull String value,
-      @CheckForNull String username);
+      @Nullable String username);
 
-  @CheckForNull
+  @Nullable
   <T extends IdentifiableObject> T search(@Nonnull Class<T> type, @Nonnull String query);
 
   @Nonnull
@@ -235,7 +235,7 @@ public interface IdentifiableObjectManager {
    */
   @Nonnull
   <T extends IdentifiableObject> List<T> loadByUid(
-      @Nonnull Class<T> type, @CheckForNull Collection<String> uids) throws IllegalQueryException;
+      @Nonnull Class<T> type, @Nullable Collection<String> uids) throws IllegalQueryException;
 
   @Nonnull
   <T extends IdentifiableObject> List<T> getByUid(
@@ -296,18 +296,18 @@ public interface IdentifiableObjectManager {
   <T extends IdentifiableObject> List<T> getObjects(
       @Nonnull Class<T> type, @Nonnull Collection<Long> identifiers);
 
-  @CheckForNull
+  @Nullable
   <T extends IdentifiableObject> T getObject(
       @Nonnull Class<T> type, @Nonnull IdentifiableProperty property, @Nonnull String value);
 
-  @CheckForNull
+  @Nullable
   <T extends IdentifiableObject> T getObject(
       @Nonnull Class<T> type, @Nonnull IdScheme idScheme, @Nonnull String value);
 
-  @CheckForNull
+  @Nullable
   IdentifiableObject getObject(@Nonnull String uid, @Nonnull String simpleClassName);
 
-  @CheckForNull
+  @Nullable
   IdentifiableObject getObject(long id, @Nonnull String simpleClassName);
 
   <T extends IdentifiableObject> int getCount(@Nonnull Class<T> type);
@@ -379,7 +379,7 @@ public interface IdentifiableObjectManager {
   // NO ACL
   // -------------------------------------------------------------------------
 
-  @CheckForNull
+  @Nullable
   <T extends IdentifiableObject> T getNoAcl(@Nonnull Class<T> type, @Nonnull String uid);
 
   <T extends IdentifiableObject> void updateNoAcl(@Nonnull T object);

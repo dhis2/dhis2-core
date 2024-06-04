@@ -29,9 +29,9 @@ package org.hisp.dhis.tracker.imports.preheat;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import jakarta.annotation.Nonnull;
 import java.beans.Introspector;
 import java.util.List;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObjectManager;

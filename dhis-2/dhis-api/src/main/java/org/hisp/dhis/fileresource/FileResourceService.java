@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.fileresource;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,8 +37,6 @@ import java.net.URI;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -46,7 +46,7 @@ import org.hisp.dhis.feedback.NotFoundException;
  */
 public interface FileResourceService {
 
-  @CheckForNull
+  @Nullable
   FileResource getFileResource(String uid);
 
   /**
@@ -78,7 +78,7 @@ public interface FileResourceService {
    * @param storageKey key to look up
    * @return the {@link FileResource} associated with the given storage key
    */
-  Optional<FileResource> findByStorageKey(@CheckForNull String storageKey);
+  Optional<FileResource> findByStorageKey(@Nullable String storageKey);
 
   /**
    * Reverse lookup the objects associated with a {@link FileResource} by the storage key property.
@@ -88,7 +88,7 @@ public interface FileResourceService {
    *     key. This is either none, most often one, but in theory can also be more than one. For
    *     example when the same data value would be associated with the same file resource value.
    */
-  List<FileResourceOwner> findOwnersByStorageKey(@CheckForNull String storageKey);
+  List<FileResourceOwner> findOwnersByStorageKey(@Nullable String storageKey);
 
   /**
    * Creates the provided file resource and stores the file content asynchronously.

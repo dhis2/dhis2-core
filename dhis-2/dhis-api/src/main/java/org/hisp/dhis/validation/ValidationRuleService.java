@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.validation;
 
+import jakarta.annotation.Nonnull;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 

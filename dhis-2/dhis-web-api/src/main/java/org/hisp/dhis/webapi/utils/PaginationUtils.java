@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.webapi.utils;
 
+import jakarta.annotation.Nonnull;
 import java.util.List;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;

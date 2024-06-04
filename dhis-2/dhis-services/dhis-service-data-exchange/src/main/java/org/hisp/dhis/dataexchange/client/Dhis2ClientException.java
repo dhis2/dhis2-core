@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dataexchange.client;
 
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 import lombok.Getter;
 import org.hisp.dhis.common.ErrorCodeException;
 import org.hisp.dhis.feedback.ErrorCode;

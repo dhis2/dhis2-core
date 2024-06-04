@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dataexchange.client.auth;
 
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;

@@ -28,9 +28,8 @@
 package org.hisp.dhis.monitoring.prometheus.config;
 
 import io.micrometer.core.instrument.Clock;
-import io.micrometer.prometheus.PrometheusConfig;
-import io.micrometer.prometheus.PrometheusMeterRegistry;
-import io.prometheus.client.CollectorRegistry;
+import io.micrometer.prometheusmetrics.PrometheusConfig;
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -55,13 +54,7 @@ public class PrometheusMonitoringConfig {
   }
 
   @Bean
-  public PrometheusMeterRegistry prometheusMeterRegistry(
-      PrometheusConfig prometheusConfig, CollectorRegistry collectorRegistry, Clock clock) {
-    return new PrometheusMeterRegistry(prometheusConfig, collectorRegistry, clock);
-  }
-
-  @Bean
-  public CollectorRegistry collectorRegistry() {
-    return new CollectorRegistry(true);
+  public PrometheusMeterRegistry prometheusMeterRegistry(PrometheusConfig prometheusConfig) {
+    return new PrometheusMeterRegistry(prometheusConfig);
   }
 }

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.utils;
 
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 
 /** Utility class enabling easier testing of CSV endpoints */
 public class CsvUtils {

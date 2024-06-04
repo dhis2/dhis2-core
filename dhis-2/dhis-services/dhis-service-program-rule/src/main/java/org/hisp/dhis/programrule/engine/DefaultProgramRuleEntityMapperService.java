@@ -54,13 +54,13 @@ import static org.hisp.dhis.programrule.engine.RuleActionKey.PROGRAM_STAGE_SECTI
 import static org.hisp.dhis.rules.models.AttributeType.DATA_ELEMENT;
 import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import kotlinx.datetime.Instant;
 import kotlinx.datetime.LocalDateTime;
 import lombok.RequiredArgsConstructor;

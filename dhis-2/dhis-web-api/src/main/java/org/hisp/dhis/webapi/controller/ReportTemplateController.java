@@ -29,9 +29,9 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;

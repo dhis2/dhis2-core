@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
+import jakarta.annotation.Nonnull;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.scheduling.JobProgress;
 

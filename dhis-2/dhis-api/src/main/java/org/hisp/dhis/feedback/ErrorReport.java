@@ -29,10 +29,10 @@ package org.hisp.dhis.feedback;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -70,7 +70,7 @@ public class ErrorReport {
   @JsonCreator
   public ErrorReport(
       @JsonProperty("message") String message,
-      @CheckForNull @JsonProperty("args") List<String> args,
+      @Nullable @JsonProperty("args") List<String> args,
       @JsonProperty("mainKlass") Class<?> mainKlass,
       @JsonProperty("errorCode") ErrorCode errorCode) {
     this.mainKlass = mainKlass;

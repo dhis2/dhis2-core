@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.security.apikey;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.List;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.user.User;
 
@@ -37,10 +37,10 @@ import org.hisp.dhis.user.User;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public interface ApiTokenStore extends IdentifiableObjectStore<ApiToken> {
-  @CheckForNull
+  @Nullable
   ApiToken getByKey(@Nonnull String key, @Nonnull User currentUser);
 
-  @CheckForNull
+  @Nullable
   ApiToken getByKey(@Nonnull String key);
 
   @Nonnull

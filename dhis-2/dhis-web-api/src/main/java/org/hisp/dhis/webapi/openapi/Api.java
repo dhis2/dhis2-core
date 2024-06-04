@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.openapi;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toSet;
 
+import jakarta.annotation.Nullable;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -47,7 +48,6 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-import javax.annotation.CheckForNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -460,7 +460,7 @@ public class Api {
 
     @ToString.Exclude @EqualsAndHashCode.Include Class<?> rawType;
 
-    @CheckForNull @ToString.Exclude Class<? extends IdentifiableObject> identifyAs;
+    @Nullable @ToString.Exclude Class<? extends IdentifiableObject> identifyAs;
 
     /** Is empty for primitive types */
     @EqualsAndHashCode.Include List<Property> properties = new ArrayList<>();

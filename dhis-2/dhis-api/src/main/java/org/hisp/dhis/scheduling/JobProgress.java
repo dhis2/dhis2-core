@@ -32,6 +32,8 @@ import static java.util.stream.Collectors.toUnmodifiableSet;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Date;
@@ -53,8 +55,6 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -172,21 +172,18 @@ public interface JobProgress {
   */
 
   default void addError(
-      @Nonnull ErrorCode code, @CheckForNull String uid, @Nonnull String type, String... args) {
+      @Nonnull ErrorCode code, @Nullable String uid, @Nonnull String type, String... args) {
     addError(code, uid, type, List.of(args));
   }
 
   default void addError(
-      @Nonnull ValidationCode code,
-      @CheckForNull String uid,
-      @Nonnull String type,
-      String... args) {
+      @Nonnull ValidationCode code, @Nullable String uid, @Nonnull String type, String... args) {
     addError(code, uid, type, List.of(args));
   }
 
   default void addError(
       @Nonnull ErrorCode code,
-      @CheckForNull String uid,
+      @Nullable String uid,
       @Nonnull String type,
       @Nonnull List<String> args) {
     // is overridden by a tracker that collects errors
@@ -195,7 +192,7 @@ public interface JobProgress {
 
   default void addError(
       @Nonnull ValidationCode code,
-      @CheckForNull String uid,
+      @Nullable String uid,
       @Nonnull String type,
       @Nonnull List<String> args) {
     // is overridden by a tracker that collects errors
@@ -648,7 +645,7 @@ public interface JobProgress {
     @JsonCreator
     public Progress(
         @Nonnull @JsonProperty("sequence") Deque<Process> sequence,
-        @CheckForNull @JsonProperty("errors") Map<String, Map<String, Queue<Error>>> errors) {
+        @Nullable @JsonProperty("errors") Map<String, Map<String, Queue<Error>>> errors) {
       this.sequence = sequence;
       this.errors = errors == null ? Map.of() : errors;
     }

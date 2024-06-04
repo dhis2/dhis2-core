@@ -165,7 +165,7 @@ public class Property implements Ordered, Klass {
   private boolean required;
 
   /** Maximum length/size/value of this property. */
-  private Integer length;
+  private Long length;
 
   /** Minimum size/length of this property. */
   private Double max;
@@ -501,11 +501,11 @@ public class Property implements Ordered, Klass {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Integer getLength() {
+  public Long getLength() {
     return length;
   }
 
-  public void setLength(Integer length) {
+  public void setLength(Long length) {
     this.length = length;
   }
 

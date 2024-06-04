@@ -29,14 +29,14 @@ package org.hisp.dhis.scheduling;
 
 import static org.hisp.dhis.scheduling.JobProgress.getMessage;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.time.Duration;
 import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -69,8 +69,8 @@ public class RecordingJobProgress implements JobProgress {
     return new RecordingJobProgress(null, null, JobProgress.noop(), true, () -> {}, false, true);
   }
 
-  @CheckForNull private final MessageService messageService;
-  @CheckForNull private final JobConfiguration configuration;
+  @Nullable private final MessageService messageService;
+  @Nullable private final JobConfiguration configuration;
   private final JobProgress tracker;
   private final boolean abortOnFailure;
   private final Runnable observer;
@@ -92,8 +92,8 @@ public class RecordingJobProgress implements JobProgress {
   }
 
   public RecordingJobProgress(
-      @CheckForNull MessageService messageService,
-      @CheckForNull JobConfiguration configuration,
+      @Nullable MessageService messageService,
+      @Nullable JobConfiguration configuration,
       JobProgress tracker,
       boolean abortOnFailure,
       Runnable observer,
@@ -116,7 +116,7 @@ public class RecordingJobProgress implements JobProgress {
   /**
    * @return the exception that likely caused the job to abort
    */
-  @CheckForNull
+  @Nullable
   public Exception getCause() {
     Process process = progress.sequence.peekLast();
     return process == null ? null : process.getCause();
@@ -166,7 +166,7 @@ public class RecordingJobProgress implements JobProgress {
   @Override
   public void addError(
       @Nonnull ErrorCode code,
-      @CheckForNull String uid,
+      @Nullable String uid,
       @Nonnull String type,
       @Nonnull List<String> args) {
     addError(code.name(), uid, type, args);
@@ -175,7 +175,7 @@ public class RecordingJobProgress implements JobProgress {
   @Override
   public void addError(
       @Nonnull ValidationCode code,
-      @CheckForNull String uid,
+      @Nullable String uid,
       @Nonnull String type,
       @Nonnull List<String> args) {
     addError(code.name(), uid, type, args);
@@ -183,7 +183,7 @@ public class RecordingJobProgress implements JobProgress {
 
   private void addError(
       @Nonnull String code,
-      @CheckForNull String uid,
+      @Nullable String uid,
       @Nonnull String type,
       @Nonnull List<String> args) {
     try {

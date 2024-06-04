@@ -29,6 +29,8 @@ package org.hisp.dhis.fileresource;
 
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import jakarta.persistence.EntityManager;
 import java.io.File;
 import java.io.IOException;
@@ -41,8 +43,6 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -136,13 +136,13 @@ public class DefaultFileResourceService implements FileResourceService {
 
   @Override
   @Transactional(readOnly = true)
-  public Optional<FileResource> findByStorageKey(@CheckForNull String storageKey) {
+  public Optional<FileResource> findByStorageKey(@Nullable String storageKey) {
     return storageKey == null ? Optional.empty() : fileResourceStore.findByStorageKey(storageKey);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public List<FileResourceOwner> findOwnersByStorageKey(@CheckForNull String storageKey) {
+  public List<FileResourceOwner> findOwnersByStorageKey(@Nullable String storageKey) {
     Optional<FileResource> maybeFr = findByStorageKey(storageKey);
     if (maybeFr.isEmpty()) return List.of();
     FileResource fr = maybeFr.get();

@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.config;
 
+import jakarta.annotation.PostConstruct;
 import java.util.Map;
-import javax.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.hisp.dhis.external.conf.ConfigurationKey;

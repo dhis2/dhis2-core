@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.common;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -88,7 +88,7 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
    * @param uid the UID.
    * @return the object with the given UID.
    */
-  @CheckForNull
+  @Nullable
   T getByUid(@Nonnull String uid);
 
   /**
@@ -107,7 +107,7 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
    * @param uid the uid.
    * @return the object with the given uid.
    */
-  @CheckForNull
+  @Nullable
   T getByUidNoAcl(@Nonnull String uid);
 
   /**
@@ -116,7 +116,7 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
    * @param code the code.
    * @return the object with the given code.
    */
-  @CheckForNull
+  @Nullable
   T getByCodeNoAcl(@Nonnull String code);
 
   /**
@@ -125,7 +125,7 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
    * @param name the name.
    * @return the object with the given name.
    */
-  @CheckForNull
+  @Nullable
   T getByName(@Nonnull String name);
 
   /**
@@ -134,7 +134,7 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
    * @param code the code.
    * @return the object with the given code.
    */
-  @CheckForNull
+  @Nullable
   T getByCode(@Nonnull String code);
 
   /**
@@ -154,7 +154,7 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
    * @param value the value.
    * @return the attribute value or null if not found
    */
-  @CheckForNull
+  @Nullable
   T getByUniqueAttributeValue(@Nonnull Attribute attribute, @Nonnull String value);
 
   /**
@@ -166,9 +166,9 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
    * @param userDetails the user.
    * @return the attribute value or null if not found
    */
-  @CheckForNull
+  @Nullable
   T getByUniqueAttributeValue(
-      @Nonnull Attribute attribute, @Nonnull String value, @CheckForNull UserDetails userDetails);
+      @Nonnull Attribute attribute, @Nonnull String value, @Nullable UserDetails userDetails);
 
   /**
    * Retrieves a List of all objects (sorted on name).
@@ -354,7 +354,7 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
    *
    * @return a Date / time stamp or null if no objects exist
    */
-  @CheckForNull
+  @Nullable
   Date getLastUpdated();
 
   /**
@@ -386,13 +386,13 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
   List<T> getDataReadAll();
 
   @Nonnull
-  List<T> getDataReadAll(@CheckForNull UserDetails userDetails);
+  List<T> getDataReadAll(@Nullable UserDetails userDetails);
 
   @Nonnull
   List<T> getDataWriteAll();
 
   @Nonnull
-  List<T> getDataWriteAll(@CheckForNull UserDetails userDetails);
+  List<T> getDataWriteAll(@Nullable UserDetails userDetails);
 
   /** Remove given UserGroup UID from all sharing records in database */
   void removeUserGroupFromSharing(@Nonnull String userGroupUID, @Nonnull String tableName);

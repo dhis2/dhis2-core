@@ -29,9 +29,9 @@ package org.hisp.dhis.analytics.event.data;
 
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 
+import jakarta.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;

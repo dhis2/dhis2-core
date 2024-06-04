@@ -30,11 +30,11 @@ package org.hisp.dhis.webapi.utils;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import jakarta.servlet.http.Cookie;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
-import javax.servlet.http.Cookie;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.web.HttpMethod;

@@ -30,13 +30,13 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
 import static java.util.Collections.emptyList;
 
 import com.google.common.collect.Iterables;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;

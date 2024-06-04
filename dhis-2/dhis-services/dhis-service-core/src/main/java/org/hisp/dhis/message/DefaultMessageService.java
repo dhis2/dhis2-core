@@ -31,6 +31,7 @@ import static org.hisp.dhis.commons.util.TextUtils.LN;
 import static org.hisp.dhis.commons.util.TextUtils.removeAnyTrailingSlash;
 import static org.hisp.dhis.security.Authorities.ALL;
 
+import jakarta.annotation.Nonnull;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -39,7 +40,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;

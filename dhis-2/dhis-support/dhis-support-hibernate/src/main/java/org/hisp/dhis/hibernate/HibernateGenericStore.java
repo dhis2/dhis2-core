@@ -32,6 +32,8 @@ import static java.lang.String.format;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NonUniqueResultException;
 import jakarta.persistence.TypedQuery;
@@ -47,8 +49,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.annotations.QueryHints;
@@ -393,14 +393,14 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
     getSession().delete(object);
   }
 
-  @CheckForNull
+  @Nullable
   @Override
   public T get(long id) {
     T object = getNoPostProcess(id);
     return postProcessObject(object);
   }
 
-  @CheckForNull
+  @Nullable
   protected final T getNoPostProcess(long id) {
     return getSession().get(getClazz(), id);
   }

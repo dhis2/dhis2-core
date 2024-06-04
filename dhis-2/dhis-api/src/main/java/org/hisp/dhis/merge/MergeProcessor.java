@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.merge;
 
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.MergeReport;

@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.security.oidc;
 
+import jakarta.annotation.Nonnull;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;

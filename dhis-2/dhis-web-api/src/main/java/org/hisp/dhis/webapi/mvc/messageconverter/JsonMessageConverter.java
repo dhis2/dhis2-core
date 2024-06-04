@@ -31,7 +31,7 @@ import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.JS
 import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.JSON_SUPPORTED_MEDIA_TYPES;
 import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.JSON_ZIP_SUPPORTED_MEDIA_TYPES;
 
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.node.NodeService;
 import org.springframework.beans.factory.annotation.Autowired;

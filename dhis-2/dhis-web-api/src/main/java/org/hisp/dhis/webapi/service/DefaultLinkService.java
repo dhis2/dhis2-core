@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.service;
 
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 
+import jakarta.annotation.Nonnull;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -37,7 +38,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;

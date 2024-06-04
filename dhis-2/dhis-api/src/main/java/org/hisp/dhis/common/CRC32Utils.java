@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.common;
 
+import jakarta.annotation.Nonnull;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.CRC32;
-import javax.annotation.Nonnull;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>

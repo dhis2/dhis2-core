@@ -30,12 +30,12 @@ package org.hisp.dhis.analytics.tei.query.context.sql;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
+import jakarta.annotation.Nonnull;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
 import lombok.Getter;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;

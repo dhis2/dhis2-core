@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import jakarta.annotation.Nonnull;
 import java.util.Map;
 import java.util.function.Consumer;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.programrule.ProgramRuleAction;

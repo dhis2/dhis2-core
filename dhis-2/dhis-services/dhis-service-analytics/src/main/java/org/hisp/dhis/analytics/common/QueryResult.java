@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.common;
 
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 
 /**
  * Represents the result of a query. It's a very simple interface that will hold the result object

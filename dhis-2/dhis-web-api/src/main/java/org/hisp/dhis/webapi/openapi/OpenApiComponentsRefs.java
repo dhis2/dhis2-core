@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.openapi;
 
 import static java.util.Comparator.comparing;
 
+import jakarta.annotation.Nonnull;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -37,7 +38,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
 
 /**
  * A tool to analyse how many schemas are referenced by each {@link

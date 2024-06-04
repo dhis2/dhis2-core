@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.supplier;
 
+import jakarta.annotation.Nonnull;
 import java.util.Optional;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;

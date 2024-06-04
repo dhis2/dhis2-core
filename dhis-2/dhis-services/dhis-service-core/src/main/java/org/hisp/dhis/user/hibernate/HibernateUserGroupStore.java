@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.user.hibernate;
 
+import jakarta.annotation.Nonnull;
 import jakarta.persistence.EntityManager;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.UserGroup;

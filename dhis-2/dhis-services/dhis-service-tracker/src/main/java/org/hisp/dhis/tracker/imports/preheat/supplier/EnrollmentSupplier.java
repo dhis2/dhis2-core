@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.supplier;
 
+import jakarta.annotation.Nonnull;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStore;

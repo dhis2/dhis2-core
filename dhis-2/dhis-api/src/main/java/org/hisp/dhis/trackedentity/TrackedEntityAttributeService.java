@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import jakarta.annotation.Nonnull;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.user.UserDetails;

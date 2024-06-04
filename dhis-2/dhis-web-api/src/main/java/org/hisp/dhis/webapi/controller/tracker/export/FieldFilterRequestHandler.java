@@ -30,8 +30,8 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 import static org.hisp.dhis.webapi.utils.HttpServletRequestPaths.getServletPath;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;

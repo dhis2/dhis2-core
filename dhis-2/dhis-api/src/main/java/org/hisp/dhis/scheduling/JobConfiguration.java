@@ -32,6 +32,8 @@ import static org.hisp.dhis.schema.annotation.Property.Value.FALSE;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -39,8 +41,6 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -175,7 +175,7 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   private Integer queuePosition;
 
-  @CheckForNull
+  @Nullable
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   private String errorCodes;
 
@@ -192,7 +192,7 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
     this(null, type);
   }
 
-  public JobConfiguration(@CheckForNull String name, @Nonnull JobType type) {
+  public JobConfiguration(@Nullable String name, @Nonnull JobType type) {
     this(name, type, null);
   }
 
@@ -204,7 +204,7 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
    * @param executedBy UID of the user running the job or null for run as admin
    */
   public JobConfiguration(
-      @CheckForNull String name, @Nonnull JobType type, @CheckForNull String executedBy) {
+      @Nullable String name, @Nonnull JobType type, @Nullable String executedBy) {
     this.name =
         name == null || name.isEmpty()
             ? "%s (%d)".formatted(type.name(), Instant.now().toEpochMilli())
@@ -440,7 +440,7 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
     return since;
   }
 
-  @CheckForNull
+  @Nullable
   public static Instant maxDelayedExecutionTime(
       JobConfiguration config, Duration maxCronDelay, Instant nextExecutionTime) {
     return nextExecutionTime == null || config.getSchedulingType() != SchedulingType.CRON

@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.feedback;
 
+import jakarta.annotation.Nonnull;
 import java.util.IdentityHashMap;
 import java.util.Map;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObject;
 
 /**

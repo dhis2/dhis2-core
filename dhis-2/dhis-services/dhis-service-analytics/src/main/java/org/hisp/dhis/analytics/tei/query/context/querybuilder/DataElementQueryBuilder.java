@@ -40,6 +40,7 @@ import static org.hisp.dhis.system.grid.ListGrid.HAS_VALUE;
 import static org.hisp.dhis.system.grid.ListGrid.LEGEND;
 import static org.hisp.dhis.system.grid.ListGrid.STATUS;
 
+import jakarta.annotation.Nonnull;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +48,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
 import lombok.Getter;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;

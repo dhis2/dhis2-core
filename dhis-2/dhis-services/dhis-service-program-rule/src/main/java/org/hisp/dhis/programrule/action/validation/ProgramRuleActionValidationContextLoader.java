@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.programrule.action.validation;
 
+import jakarta.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.option.Option;
