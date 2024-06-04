@@ -49,7 +49,7 @@ class DataSetMetadataControllerTest extends DhisControllerIntegrationTest {
   @MethodSource("defaultCatComboData")
   @DisplayName(
       "The correct amount of category combos and default category combos are present in the payload")
-  void testGetDatasetMetadata_1DatasetCatCombo_1DataElementCatCombo(
+  void getDatasetMetadataDefaultCatComboTest(
       String testData,
       int expectedCatComboSize,
       int expectedDefaultCatComboCount,
