@@ -29,32 +29,72 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.stream.Stream;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.web.WebClient;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author david mackessy
  */
 class DataSetMetadataControllerTest extends DhisControllerIntegrationTest {
 
-  @Test
-  void testGetDatasetMetadata_1DatasetCatCombo_1DataElementCatCombo() {
-    // given a data element has 1 cat combo & a data set has a different cat combo
-    POST("/metadata", WebClient.Body("dataset/data_element_and_dataset_with_catcombo.json"))
-        .content(HttpStatus.OK);
+  @ParameterizedTest
+  @MethodSource("defaultCatComboData")
+  @DisplayName(
+      "The correct amount of category combos and default category combos are present in the payload")
+  void testGetDatasetMetadata_1DatasetCatCombo_1DataElementCatCombo(
+      String testData,
+      int expectedCatComboSize,
+      int expectedDefaultCatComboCount,
+      String catComboSizeCondition,
+      String defaultCatComboCondition) {
+    // given
+    POST("/metadata", WebClient.Body(testData)).content(HttpStatus.OK);
 
-    // when the dataset metadata is retrieved
+    // when the data entry metadata is retrieved
     JsonArray categoryCombos = GET("/dataEntry/metadata").content().getArray("categoryCombos");
 
-    // and only 1 default cat combo should be present
+    // then
+    assertEquals(expectedCatComboSize, categoryCombos.size(), catComboSizeCondition);
     long count =
         categoryCombos.asList(JsonObject.class).stream()
             .filter(cc -> cc.getString("name").string().equals("default"))
             .count();
-    assertEquals(1, count);
+    assertEquals(expectedDefaultCatComboCount, count, defaultCatComboCondition);
+  }
+
+  private static Stream<Arguments> defaultCatComboData() {
+    return Stream.of(
+        Arguments.of(
+            "dataset/data_element_and_dataset_with_catcombo.json",
+            2,
+            0,
+            "2 cat combos should be present",
+            "0 default cat combo should be present"),
+        Arguments.of(
+            "dataset/data_element_with_catcombo.json",
+            2,
+            1,
+            "2 cat combos should be present",
+            "1 default cat combo should be present"),
+        Arguments.of(
+            "dataset/dataset_with_catcombo.json",
+            2,
+            1,
+            "2 cat combos should be present",
+            "1 default cat combo should be present"),
+        Arguments.of(
+            "dataset/dataset_and_data_element_with_no_catcombo.json",
+            1,
+            1,
+            "1 cat combos should be present",
+            "1 default cat combo should be present"));
   }
 }
