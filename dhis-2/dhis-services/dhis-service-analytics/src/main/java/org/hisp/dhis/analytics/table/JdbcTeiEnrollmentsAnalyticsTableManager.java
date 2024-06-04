@@ -80,109 +80,109 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("trackedentityinstanceuid")
-              .withDataType(CHARACTER_11)
-              .withNullable(NOT_NULL)
-              .withSelectExpression("tei.uid"),
+              .name("trackedentityinstanceuid")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("tei.uid")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("programuid")
-              .withDataType(CHARACTER_11)
-              .withNullable(NULL)
-              .withSelectExpression("p.uid"),
+              .name("programuid")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("p.uid")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("programinstanceuid")
-              .withDataType(CHARACTER_11)
-              .withNullable(NULL)
-              .withSelectExpression("pi.uid"),
+              .name("programinstanceuid")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("pi.uid")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("enrollmentdate")
-              .withDataType(TIMESTAMP)
-              .withSelectExpression("pi.enrollmentdate"),
+              .name("enrollmentdate")
+              .dataType(TIMESTAMP)
+              .selectExpression("pi.enrollmentdate")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("enddate")
-              .withDataType(TIMESTAMP)
-              .withSelectExpression("pi.completeddate"),
+              .name("enddate")
+              .dataType(TIMESTAMP)
+              .selectExpression("pi.completeddate")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("incidentdate")
-              .withDataType(TIMESTAMP)
-              .withSelectExpression("pi.occurreddate"),
+              .name("incidentdate")
+              .dataType(TIMESTAMP)
+              .selectExpression("pi.occurreddate")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("enrollmentstatus")
-              .withDataType(VARCHAR_50)
-              .withSelectExpression("pi.status"),
+              .name("enrollmentstatus")
+              .dataType(VARCHAR_50)
+              .selectExpression("pi.status")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("pigeometry")
-              .withDataType(GEOMETRY)
-              .withSelectExpression("pi.geometry")
-              .withIndexType(IndexType.GIST),
+              .name("pigeometry")
+              .dataType(GEOMETRY)
+              .selectExpression("pi.geometry")
+              .indexType(IndexType.GIST)
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("pilongitude")
-              .withDataType(DOUBLE)
-              .withSelectExpression(
-                  "case when 'POINT' = GeometryType(pi.geometry) then ST_X(pi.geometry) end"),
+              .name("pilongitude")
+              .dataType(DOUBLE)
+              .selectExpression(
+                  "case when 'POINT' = GeometryType(pi.geometry) then ST_X(pi.geometry) end")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("pilatitude")
-              .withDataType(DOUBLE)
-              .withSelectExpression(
-                  "case when 'POINT' = GeometryType(pi.geometry) then ST_Y(pi.geometry) end"),
+              .name("pilatitude")
+              .dataType(DOUBLE)
+              .selectExpression(
+                  "case when 'POINT' = GeometryType(pi.geometry) then ST_Y(pi.geometry) end")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("uidlevel1")
-              .withDataType(CHARACTER_11)
-              .withNullable(NULL)
-              .withSelectExpression("ous.uidlevel1"),
+              .name("uidlevel1")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("ous.uidlevel1")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("uidlevel2")
-              .withDataType(CHARACTER_11)
-              .withNullable(NULL)
-              .withSelectExpression("ous.uidlevel2"),
+              .name("uidlevel2")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("ous.uidlevel2")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("uidlevel3")
-              .withDataType(CHARACTER_11)
-              .withNullable(NULL)
-              .withSelectExpression("ous.uidlevel3"),
+              .name("uidlevel3")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("ous.uidlevel3")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("uidlevel4")
-              .withDataType(CHARACTER_11)
-              .withNullable(NULL)
-              .withSelectExpression("ous.uidlevel4"),
+              .name("uidlevel4")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("ous.uidlevel4")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("ou")
-              .withDataType(CHARACTER_11)
-              .withNullable(NULL)
-              .withSelectExpression("ou.uid"),
+              .name("ou")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("ou.uid")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("ouname")
-              .withDataType(VARCHAR_255)
-              .withNullable(NULL)
-              .withSelectExpression("ou.name"),
+              .name("ouname")
+              .dataType(VARCHAR_255)
+              .nullable(NULL)
+              .selectExpression("ou.name")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("oucode")
-              .withDataType(CHARACTER_32)
-              .withNullable(NULL)
-              .withSelectExpression("ou.code"),
+              .name("oucode")
+              .dataType(CHARACTER_32)
+              .nullable(NULL)
+              .selectExpression("ou.code")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("oulevel")
-              .withDataType(INTEGER)
-              .withNullable(NULL)
-              .withSelectExpression("ous.level"));
+              .name("oulevel")
+              .dataType(INTEGER)
+              .nullable(NULL)
+              .selectExpression("ous.level")
+              .build());
 
   private final TrackedEntityTypeService trackedEntityTypeService;
 

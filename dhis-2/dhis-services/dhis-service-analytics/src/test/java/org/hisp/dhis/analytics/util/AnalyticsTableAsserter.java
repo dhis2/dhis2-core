@@ -157,11 +157,11 @@ public class AnalyticsTableAsserter {
         String name, DataType dataType, String selectExpression, Date created) {
       AnalyticsTableColumn col =
           AnalyticsTableColumn.builder()
-              .build()
-              .withName(name)
-              .withDataType(dataType)
-              .withSelectExpression(selectExpression)
-              .withCreated(created);
+              .name(name)
+              .dataType(dataType)
+              .selectExpression(selectExpression)
+              .created(created)
+              .build();
       this._columns.add(col);
       return this;
     }
@@ -189,17 +189,17 @@ public class AnalyticsTableAsserter {
       AnalyticsTableColumn col =
           Skip.SKIP == skipIndex
               ? AnalyticsTableColumn.builder()
+                  .name(name)
+                  .dataType(dataType)
+                  .selectExpression(selectExpression)
+                  .skipIndex(skipIndex)
                   .build()
-                  .withName(name)
-                  .withDataType(dataType)
-                  .withSelectExpression(selectExpression)
-                  .withSkipIndex(skipIndex)
               : AnalyticsTableColumn.builder()
-                  .build()
-                  .withName(name)
-                  .withDataType(dataType)
-                  .withSelectExpression(selectExpression)
-                  .withIndexType(indexType);
+                  .name(name)
+                  .dataType(dataType)
+                  .selectExpression(selectExpression)
+                  .indexType(indexType)
+                  .build();
       this._columns.add(col);
       return this;
     }

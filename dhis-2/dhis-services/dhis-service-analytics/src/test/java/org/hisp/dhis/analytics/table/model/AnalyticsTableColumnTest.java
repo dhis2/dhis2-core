@@ -46,19 +46,19 @@ class AnalyticsTableColumnTest {
   void testIsNotNull() {
     AnalyticsTableColumn colA =
         AnalyticsTableColumn.builder()
-            .build()
-            .withName("dx")
-            .withDataType(CHARACTER_11)
-            .withNullable(NOT_NULL)
-            .withSelectExpression("dx");
+            .name("dx")
+            .dataType(CHARACTER_11)
+            .nullable(NOT_NULL)
+            .selectExpression("dx")
+            .build();
 
     AnalyticsTableColumn colB =
         AnalyticsTableColumn.builder()
-            .build()
-            .withName("value")
-            .withDataType(DOUBLE)
-            .withNullable(NULL)
-            .withSelectExpression("value");
+            .name("value")
+            .dataType(DOUBLE)
+            .nullable(NULL)
+            .selectExpression("value")
+            .build();
 
     assertTrue(colA.isNotNull());
     assertFalse(colB.isNotNull());
@@ -68,26 +68,26 @@ class AnalyticsTableColumnTest {
   void testHasCollation() {
     AnalyticsTableColumn colA =
         AnalyticsTableColumn.builder()
-            .build()
-            .withName("dx")
-            .withDataType(CHARACTER_11)
-            .withCollation(Collation.DEFAULT)
-            .withSelectExpression("dx");
+            .name("dx")
+            .dataType(CHARACTER_11)
+            .collation(Collation.DEFAULT)
+            .selectExpression("dx")
+            .build();
 
     AnalyticsTableColumn colB =
         AnalyticsTableColumn.builder()
-            .build()
-            .withName("ou")
-            .withDataType(CHARACTER_11)
-            .withCollation(Collation.C)
-            .withSelectExpression("ou");
+            .name("ou")
+            .dataType(CHARACTER_11)
+            .collation(Collation.C)
+            .selectExpression("ou")
+            .build();
 
     AnalyticsTableColumn colC =
         AnalyticsTableColumn.builder()
-            .build()
-            .withName("value")
-            .withDataType(DOUBLE)
-            .withSelectExpression("value");
+            .name("value")
+            .dataType(DOUBLE)
+            .selectExpression("value")
+            .build();
 
     assertFalse(colA.hasCollation());
     assertTrue(colB.hasCollation());
@@ -98,19 +98,19 @@ class AnalyticsTableColumnTest {
   void testIsSkipIndex() {
     AnalyticsTableColumn colA =
         AnalyticsTableColumn.builder()
-            .build()
-            .withName("value")
-            .withDataType(DOUBLE)
-            .withSelectExpression("value")
-            .withSkipIndex(Skip.SKIP);
+            .name("value")
+            .dataType(DOUBLE)
+            .selectExpression("value")
+            .skipIndex(Skip.SKIP)
+            .build();
 
     AnalyticsTableColumn colB =
         AnalyticsTableColumn.builder()
-            .build()
-            .withName("ou")
-            .withDataType(CHARACTER_11)
-            .withSelectExpression("ou")
-            .withSkipIndex(Skip.INCLUDE);
+            .name("ou")
+            .dataType(CHARACTER_11)
+            .selectExpression("ou")
+            .skipIndex(Skip.INCLUDE)
+            .build();
 
     assertTrue(colA.isSkipIndex());
     assertFalse(colB.isSkipIndex());

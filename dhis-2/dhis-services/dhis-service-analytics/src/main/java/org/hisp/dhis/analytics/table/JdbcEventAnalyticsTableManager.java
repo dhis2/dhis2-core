@@ -113,194 +113,189 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   protected static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("psi")
-              .withDataType(CHARACTER_11)
-              .withNullable(NOT_NULL)
-              .withSelectExpression("psi.uid"),
+              .name("psi")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("psi.uid")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("pi")
-              .withDataType(CHARACTER_11)
-              .withNullable(NOT_NULL)
-              .withSelectExpression("pi.uid"),
+              .name("pi")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("pi.uid")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("ps")
-              .withDataType(CHARACTER_11)
-              .withNullable(NOT_NULL)
-              .withSelectExpression("ps.uid"),
+              .name("ps")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("ps.uid")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("ao")
-              .withDataType(CHARACTER_11)
-              .withNullable(NOT_NULL)
-              .withSelectExpression("ao.uid"),
+              .name("ao")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("ao.uid")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("enrollmentdate")
-              .withDataType(TIMESTAMP)
-              .withSelectExpression("pi.enrollmentdate"),
+              .name("enrollmentdate")
+              .dataType(TIMESTAMP)
+              .selectExpression("pi.enrollmentdate")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("incidentdate")
-              .withDataType(TIMESTAMP)
-              .withSelectExpression("pi.occurreddate"),
+              .name("incidentdate")
+              .dataType(TIMESTAMP)
+              .selectExpression("pi.occurreddate")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("occurreddate")
-              .withDataType(TIMESTAMP)
-              .withSelectExpression("psi.occurreddate"),
+              .name("occurreddate")
+              .dataType(TIMESTAMP)
+              .selectExpression("psi.occurreddate")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("scheduleddate")
-              .withDataType(TIMESTAMP)
-              .withSelectExpression("psi.scheduleddate"),
+              .name("scheduleddate")
+              .dataType(TIMESTAMP)
+              .selectExpression("psi.scheduleddate")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("completeddate")
-              .withDataType(TIMESTAMP)
-              .withSelectExpression("psi.completeddate"),
+              .name("completeddate")
+              .dataType(TIMESTAMP)
+              .selectExpression("psi.completeddate")
+              .build(),
           /*
            * DHIS2-14981: Use the client-side timestamp if available, otherwise
            * the server-side timestamp. Applies to both created and lastupdated.
            */
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("created")
-              .withDataType(TIMESTAMP)
-              .withSelectExpression(firstIfNotNullOrElse("psi.createdatclient", "psi.created")),
+              .name("created")
+              .dataType(TIMESTAMP)
+              .selectExpression(firstIfNotNullOrElse("psi.createdatclient", "psi.created"))
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("lastupdated")
-              .withDataType(TIMESTAMP)
-              .withSelectExpression(
-                  firstIfNotNullOrElse("psi.lastupdatedatclient", "psi.lastupdated")),
+              .name("lastupdated")
+              .dataType(TIMESTAMP)
+              .selectExpression(firstIfNotNullOrElse("psi.lastupdatedatclient", "psi.lastupdated"))
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("storedby")
-              .withDataType(VARCHAR_255)
-              .withSelectExpression("psi.storedby"),
+              .name("storedby")
+              .dataType(VARCHAR_255)
+              .selectExpression("psi.storedby")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("createdbyusername")
-              .withDataType(VARCHAR_255)
-              .withSelectExpression("psi.createdbyuserinfo ->> 'username' as createdbyusername"),
+              .name("createdbyusername")
+              .dataType(VARCHAR_255)
+              .selectExpression("psi.createdbyuserinfo ->> 'username' as createdbyusername")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("createdbyname")
-              .withDataType(VARCHAR_255)
-              .withSelectExpression("psi.createdbyuserinfo ->> 'firstName' as createdbyname"),
+              .name("createdbyname")
+              .dataType(VARCHAR_255)
+              .selectExpression("psi.createdbyuserinfo ->> 'firstName' as createdbyname")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("createdbylastname")
-              .withDataType(VARCHAR_255)
-              .withSelectExpression("psi.createdbyuserinfo ->> 'surname' as createdbylastname"),
+              .name("createdbylastname")
+              .dataType(VARCHAR_255)
+              .selectExpression("psi.createdbyuserinfo ->> 'surname' as createdbylastname")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("createdbydisplayname")
-              .withDataType(VARCHAR_255)
-              .withSelectExpression(
-                  getDisplayName("createdbyuserinfo", "psi", "createdbydisplayname")),
+              .name("createdbydisplayname")
+              .dataType(VARCHAR_255)
+              .selectExpression(getDisplayName("createdbyuserinfo", "psi", "createdbydisplayname"))
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("lastupdatedbyusername")
-              .withDataType(VARCHAR_255)
-              .withSelectExpression(
-                  "psi.lastupdatedbyuserinfo ->> 'username' as lastupdatedbyusername"),
+              .name("lastupdatedbyusername")
+              .dataType(VARCHAR_255)
+              .selectExpression("psi.lastupdatedbyuserinfo ->> 'username' as lastupdatedbyusername")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("lastupdatedbyname")
-              .withDataType(VARCHAR_255)
-              .withSelectExpression(
-                  "psi.lastupdatedbyuserinfo ->> 'firstName' as lastupdatedbyname"),
+              .name("lastupdatedbyname")
+              .dataType(VARCHAR_255)
+              .selectExpression("psi.lastupdatedbyuserinfo ->> 'firstName' as lastupdatedbyname")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("lastupdatedbylastname")
-              .withDataType(VARCHAR_255)
-              .withSelectExpression(
-                  "psi.lastupdatedbyuserinfo ->> 'surname' as lastupdatedbylastname"),
+              .name("lastupdatedbylastname")
+              .dataType(VARCHAR_255)
+              .selectExpression("psi.lastupdatedbyuserinfo ->> 'surname' as lastupdatedbylastname")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("lastupdatedbydisplayname")
-              .withDataType(VARCHAR_255)
-              .withSelectExpression(
-                  getDisplayName("lastupdatedbyuserinfo", "psi", "lastupdatedbydisplayname")),
+              .name("lastupdatedbydisplayname")
+              .dataType(VARCHAR_255)
+              .selectExpression(
+                  getDisplayName("lastupdatedbyuserinfo", "psi", "lastupdatedbydisplayname"))
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("psistatus")
-              .withDataType(VARCHAR_50)
-              .withSelectExpression("psi.status"),
+              .name("psistatus")
+              .dataType(VARCHAR_50)
+              .selectExpression("psi.status")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("pistatus")
-              .withDataType(VARCHAR_50)
-              .withSelectExpression("pi.status"),
+              .name("pistatus")
+              .dataType(VARCHAR_50)
+              .selectExpression("pi.status")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("psigeometry")
-              .withDataType(GEOMETRY)
-              .withSelectExpression("psi.geometry")
-              .withIndexType(IndexType.GIST),
+              .name("psigeometry")
+              .dataType(GEOMETRY)
+              .selectExpression("psi.geometry")
+              .indexType(IndexType.GIST)
+              .build(),
           // TODO latitude and longitude deprecated in 2.30, remove in 2.33
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("longitude")
-              .withDataType(DOUBLE)
-              .withSelectExpression(
-                  "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_X(psi.geometry) ELSE null END"),
+              .name("longitude")
+              .dataType(DOUBLE)
+              .selectExpression(
+                  "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_X(psi.geometry) ELSE null END")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("latitude")
-              .withDataType(DOUBLE)
-              .withSelectExpression(
-                  "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_Y(psi.geometry) ELSE null END"),
+              .name("latitude")
+              .dataType(DOUBLE)
+              .selectExpression(
+                  "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_Y(psi.geometry) ELSE null END")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("ou")
-              .withDataType(CHARACTER_11)
-              .withNullable(NOT_NULL)
-              .withSelectExpression("ou.uid"),
+              .name("ou")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("ou.uid")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("ouname")
-              .withDataType(TEXT)
-              .withNullable(NOT_NULL)
-              .withSelectExpression("ou.name"),
+              .name("ouname")
+              .dataType(TEXT)
+              .nullable(NOT_NULL)
+              .selectExpression("ou.name")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("oucode")
-              .withDataType(TEXT)
-              .withSelectExpression("ou.code"),
+              .name("oucode")
+              .dataType(TEXT)
+              .selectExpression("ou.code")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("oulevel")
-              .withDataType(INTEGER)
-              .withSelectExpression("ous.level"),
+              .name("oulevel")
+              .dataType(INTEGER)
+              .selectExpression("ous.level")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("ougeometry")
-              .withDataType(GEOMETRY)
-              .withSelectExpression("ou.geometry")
-              .withIndexType(IndexType.GIST),
+              .name("ougeometry")
+              .dataType(GEOMETRY)
+              .selectExpression("ou.geometry")
+              .indexType(IndexType.GIST)
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("pigeometry")
-              .withDataType(GEOMETRY)
-              .withSelectExpression("pi.geometry")
-              .withIndexType(IndexType.GIST),
+              .name("pigeometry")
+              .dataType(GEOMETRY)
+              .selectExpression("pi.geometry")
+              .indexType(IndexType.GIST)
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("registrationou")
-              .withDataType(CHARACTER_11)
-              .withNullable(NOT_NULL)
-              .withSelectExpression("coalesce(registrationou.uid,ou.uid)"),
+              .name("registrationou")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("coalesce(registrationou.uid,ou.uid)")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("enrollmentou")
-              .withDataType(CHARACTER_11)
-              .withNullable(NOT_NULL)
-              .withSelectExpression("coalesce(enrollmentou.uid,ou.uid)"));
+              .name("enrollmentou")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("coalesce(enrollmentou.uid,ou.uid)")
+              .build());
 
   public JdbcEventAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -607,12 +602,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         if (category.isDataDimension()) {
           columns.add(
               AnalyticsTableColumn.builder()
-                  .build()
-                  .withName(category.getUid())
-                  .withColumnType(AnalyticsColumnType.DYNAMIC)
-                  .withDataType(CHARACTER_11)
-                  .withSelectExpression("acs." + quote(category.getUid()))
-                  .withCreated(category.getCreated()));
+                  .name(category.getUid())
+                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dataType(CHARACTER_11)
+                  .selectExpression("acs." + quote(category.getUid()))
+                  .created(category.getCreated())
+                  .build());
         }
       }
     }
@@ -656,16 +651,16 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     if (program.isRegistration()) {
       columns.add(
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("tei")
-              .withDataType(CHARACTER_11)
-              .withSelectExpression("tei.uid"));
+              .name("tei")
+              .dataType(CHARACTER_11)
+              .selectExpression("tei.uid")
+              .build());
       columns.add(
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("teigeometry")
-              .withDataType(GEOMETRY)
-              .withSelectExpression("tei.geometry"));
+              .name("teigeometry")
+              .dataType(GEOMETRY)
+              .selectExpression("tei.geometry")
+              .build());
     }
 
     return filterDimensionColumns(columns);
@@ -690,12 +685,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     }
     columns.add(
         AnalyticsTableColumn.builder()
-            .build()
-            .withName(attribute.getUid())
-            .withColumnType(AnalyticsColumnType.DYNAMIC)
-            .withDataType(dataType)
-            .withSelectExpression(sql)
-            .withSkipIndex(skipIndex));
+            .name(attribute.getUid())
+            .columnType(AnalyticsColumnType.DYNAMIC)
+            .dataType(dataType)
+            .selectExpression(sql)
+            .skipIndex(skipIndex)
+            .build());
 
     return withLegendSet
         ? getColumnFromTrackedEntityAttributeWithLegendSet(attribute, numericClause)
@@ -729,10 +724,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                           "numericClause", numericClause));
 
               return AnalyticsTableColumn.builder()
-                  .build()
-                  .withName(column)
-                  .withDataType(CHARACTER_11)
-                  .withSelectExpression(sql);
+                  .name(column)
+                  .dataType(CHARACTER_11)
+                  .selectExpression(sql)
+                  .build();
             })
         .collect(toList());
   }
@@ -753,12 +748,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     }
     columns.add(
         AnalyticsTableColumn.builder()
-            .build()
-            .withName(dataElement.getUid())
-            .withColumnType(AnalyticsColumnType.DYNAMIC)
-            .withDataType(dataType)
-            .withSelectExpression(sql)
-            .withSkipIndex(skipIndex));
+            .name(dataElement.getUid())
+            .columnType(AnalyticsColumnType.DYNAMIC)
+            .dataType(dataType)
+            .selectExpression(sql)
+            .skipIndex(skipIndex)
+            .build());
 
     return withLegendSet
         ? getColumnFromDataElementWithLegendSet(dataElement, select, dataClause)
@@ -777,12 +772,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               dataClause);
       columns.add(
           AnalyticsTableColumn.builder()
-              .build()
-              .withName((attribute.getUid() + OU_GEOMETRY_COL_SUFFIX))
-              .withColumnType(AnalyticsColumnType.DYNAMIC)
-              .withDataType(GEOMETRY)
-              .withSelectExpression(geoSql)
-              .withIndexType(IndexType.GIST));
+              .name((attribute.getUid() + OU_GEOMETRY_COL_SUFFIX))
+              .columnType(AnalyticsColumnType.DYNAMIC)
+              .dataType(GEOMETRY)
+              .selectExpression(geoSql)
+              .indexType(IndexType.GIST)
+              .build());
     }
 
     String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select value";
@@ -790,12 +785,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     columns.add(
         AnalyticsTableColumn.builder()
-            .build()
-            .withName((attribute.getUid() + OU_NAME_COL_SUFFIX))
-            .withColumnType(AnalyticsColumnType.DYNAMIC)
-            .withDataType(TEXT)
-            .withSelectExpression(ouNameSql)
-            .withSkipIndex(SKIP));
+            .name((attribute.getUid() + OU_NAME_COL_SUFFIX))
+            .columnType(AnalyticsColumnType.DYNAMIC)
+            .dataType(TEXT)
+            .selectExpression(ouNameSql)
+            .skipIndex(SKIP)
+            .build());
 
     return columns;
   }
@@ -815,12 +810,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
       columns.add(
           AnalyticsTableColumn.builder()
-              .build()
-              .withName((dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX))
-              .withColumnType(AnalyticsColumnType.DYNAMIC)
-              .withDataType(GEOMETRY)
-              .withSelectExpression(geoSql)
-              .withIndexType(IndexType.GIST));
+              .name((dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX))
+              .columnType(AnalyticsColumnType.DYNAMIC)
+              .dataType(GEOMETRY)
+              .selectExpression(geoSql)
+              .indexType(IndexType.GIST)
+              .build());
     }
 
     String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select " + columnName;
@@ -828,12 +823,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     columns.add(
         AnalyticsTableColumn.builder()
-            .build()
-            .withName((dataElement.getUid() + OU_NAME_COL_SUFFIX))
-            .withColumnType(AnalyticsColumnType.DYNAMIC)
-            .withDataType(TEXT)
-            .withSelectExpression(ouNameSql)
-            .withSkipIndex(SKIP));
+            .name((dataElement.getUid() + OU_NAME_COL_SUFFIX))
+            .columnType(AnalyticsColumnType.DYNAMIC)
+            .dataType(TEXT)
+            .selectExpression(ouNameSql)
+            .skipIndex(SKIP)
+            .build());
 
     return columns;
   }
@@ -906,10 +901,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                           "column", column));
 
               return AnalyticsTableColumn.builder()
-                  .build()
-                  .withName(column)
-                  .withDataType(CHARACTER_11)
-                  .withSelectExpression(sql);
+                  .name(column)
+                  .dataType(CHARACTER_11)
+                  .selectExpression(sql)
+                  .build();
             })
         .collect(toList());
   }

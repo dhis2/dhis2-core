@@ -598,17 +598,17 @@ public interface JobProgress {
 
   /**
    * How to behave when an item or stage fails. By default, a failure means the process is aborted.
-   * Using a {@link FailurePolicy} allows to customise this behaviour on a stage or item basis.
+   * Using a {@link FailurePolicy} allows to customize this behavior on a stage or item basis.
    *
    * <p>The implementation of {@link FailurePolicy} is done by affecting {@link
-   * #isSkipCurrentStage()} and {@link #isCancelled()} acordingly after the failure occured and has
-   * been tracked using one of the {@link #failedStage(String)} or {@link #failedWorkItem(String)}
-   * methods.
+   * #isSkipCurrentStage()} and {@link #isCancelled()} accordingly after the failure occurred and
+   * has been tracked using one of the {@link #failedStage(String)} or {@link
+   * #failedWorkItem(String)} methods.
    */
   enum FailurePolicy {
     /**
-     * Default used to "inherit" the behaviour from the node level above. If the root is not
-     * specified the behaviour is {@link #FAIL}.
+     * Default used to "inherit" the behavior from the node level above. If the root is not
+     * specified the behavior is {@link #FAIL}.
      */
     PARENT,
     /** Fail and abort processing as soon as possible. This is the effective default. */

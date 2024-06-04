@@ -41,18 +41,18 @@ class IndexTest {
   void testIsUnique() {
     Index indexA =
         Index.builder()
-            .build()
-            .withName("in_analytics_id")
-            .withTableName("analytics")
-            .withUnique(Unique.UNIQUE)
-            .withColumns(List.of("id"));
+            .name("in_analytics_id")
+            .tableName("analytics")
+            .unique(Unique.UNIQUE)
+            .columns(List.of("id"))
+            .build();
 
     Index indexB =
         Index.builder()
-            .build()
-            .withName("in_analytics_dx")
-            .withTableName("analytics")
-            .withColumns(List.of("dx"));
+            .name("in_analytics_dx")
+            .tableName("analytics")
+            .columns(List.of("dx"))
+            .build();
 
     assertTrue(indexA.isUnique());
     assertFalse(indexB.isUnique());

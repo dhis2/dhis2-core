@@ -44,8 +44,6 @@ import org.hisp.dhis.util.DateUtils;
  */
 @OpenApi.Description(
     """
-  {md}
-
   Use a valid ISO8601 date _`YYYY[-]MM[-]DD`_ or date-time _`YYYY[-]MM[-]DD'T'hh[:mm[:ss[.sss]]]`_ pattern.
   When the time part is omitted the end of the day is assumed.""")
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)

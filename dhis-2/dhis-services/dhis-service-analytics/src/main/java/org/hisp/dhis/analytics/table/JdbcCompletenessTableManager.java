@@ -37,7 +37,6 @@ import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
-import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.ArrayList;
@@ -78,17 +77,17 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("dx")
-              .withDataType(CHARACTER_11)
-              .withNullable(NOT_NULL)
-              .withSelectExpression("ds.uid"),
+              .name("dx")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("ds.uid")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("year")
-              .withDataType(INTEGER)
-              .withNullable(NOT_NULL)
-              .withSelectExpression("ps.year"));
+              .name("year")
+              .dataType(INTEGER)
+              .nullable(NOT_NULL)
+              .selectExpression("ps.year")
+              .build());
 
   public JdbcCompletenessTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -264,10 +263,10 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     columns.addAll(FIXED_COLS);
     columns.add(
         AnalyticsTableColumn.builder()
-            .build()
-            .withName("id")
-            .withDataType(TEXT)
-            .withSelectExpression(idColAlias));
+            .name("id")
+            .dataType(TEXT)
+            .selectExpression(idColAlias)
+            .build());
     columns.addAll(getOrganisationUnitGroupSetColumns());
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.addAll(getAttributeCategoryOptionGroupSetColumns());
@@ -275,18 +274,17 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     columns.addAll(getPeriodTypeColumns("ps"));
     columns.add(
         AnalyticsTableColumn.builder()
-            .build()
-            .withName("timely")
-            .withDataType(BOOLEAN)
-            .withSelectExpression(timelyAlias));
+            .name("timely")
+            .dataType(BOOLEAN)
+            .selectExpression(timelyAlias)
+            .build());
     columns.add(
         AnalyticsTableColumn.builder()
-            .build()
-            .withName("value")
-            .withDataType(DATE)
-            .withNullable(NULL)
-            .withValueType(FACT)
-            .withSelectExpression("cdr.date as value"));
+            .name("value")
+            .dataType(DATE)
+            .valueType(FACT)
+            .selectExpression("cdr.date as value")
+            .build());
 
     return filterDimensionColumns(columns);
   }

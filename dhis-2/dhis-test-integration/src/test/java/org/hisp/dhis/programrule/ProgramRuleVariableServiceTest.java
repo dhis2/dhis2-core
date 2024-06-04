@@ -242,50 +242,6 @@ class ProgramRuleVariableServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testShouldReturnTrueIfDataElementIsLinkedToProgramRuleVariable() {
-    ProgramRuleVariable variableA =
-        new ProgramRuleVariable(
-            "RuleVariableA",
-            programA,
-            ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT,
-            null,
-            dataElementA,
-            false,
-            null,
-            ValueType.TEXT);
-    ProgramRuleVariable variableB =
-        new ProgramRuleVariable(
-            "RuleVariableB",
-            programA,
-            ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM,
-            null,
-            dataElementB,
-            true,
-            null,
-            ValueType.TEXT);
-    variableService.addProgramRuleVariable(variableA);
-    variableService.addProgramRuleVariable(variableB);
-    assertTrue(variableService.isLinkedToProgramRuleVariableCached(programA, dataElementA));
-    assertTrue(variableService.isLinkedToProgramRuleVariableCached(programA, dataElementB));
-  }
-
-  @Test
-  void testShouldReturnFalseIfDataElementIsNOTLinkedToProgramRuleVariable() {
-    ProgramRuleVariable variableA =
-        new ProgramRuleVariable(
-            "RuleVariableA",
-            programA,
-            ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT,
-            null,
-            dataElementA,
-            false,
-            null,
-            ValueType.TEXT);
-    variableService.addProgramRuleVariable(variableA);
-    assertFalse(variableService.isLinkedToProgramRuleVariableCached(programA, dataElementC));
-  }
-
-  @Test
   void testShouldReturnVariableIfNotLinkedToDataElement() {
     ProgramRuleVariable variableA =
         new ProgramRuleVariable(

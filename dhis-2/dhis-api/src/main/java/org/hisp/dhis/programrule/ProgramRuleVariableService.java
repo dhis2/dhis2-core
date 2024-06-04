@@ -82,13 +82,6 @@ public interface ProgramRuleVariableService {
   List<ProgramRuleVariable> getProgramRuleVariable(Program program);
 
   /**
-   * @param program program.
-   * @param dataElement to find association with.
-   * @return true if dataElement is associated with any ProgramRuleVariable, false otherwise.
-   */
-  boolean isLinkedToProgramRuleVariableCached(Program program, DataElement dataElement);
-
-  /**
    * @return all ProgramRuleVariables which are linked to {@link DataElement}.
    */
   List<ProgramRuleVariable> getVariablesWithNoDataElement();

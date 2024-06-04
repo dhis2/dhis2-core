@@ -47,21 +47,17 @@ import org.junit.jupiter.api.Test;
 class AnalyticsTablePartitionTest {
   private final List<AnalyticsTableColumn> columnsA =
       List.of(
+          AnalyticsTableColumn.builder().name("id").dataType(BIGINT).selectExpression("id").build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("id")
-              .withDataType(BIGINT)
-              .withSelectExpression("id"),
+              .name("data")
+              .dataType(CHARACTER_11)
+              .selectExpression("data")
+              .build(),
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("data")
-              .withDataType(CHARACTER_11)
-              .withSelectExpression("data"),
-          AnalyticsTableColumn.builder()
-              .build()
-              .withName("value")
-              .withDataType(DOUBLE)
-              .withSelectExpression("value"));
+              .name("value")
+              .dataType(DOUBLE)
+              .selectExpression("value")
+              .build());
 
   @Test
   void testGetName() {
