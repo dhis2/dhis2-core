@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.util.Date;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.merge.Simple;
-import org.hisp.dhis.dxf2.metadata.merge.SimpleCollection;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -69,23 +68,6 @@ class MetadataMergeServiceTest extends SingleSetupIntegrationTestBase {
     Assertions.assertEquals(date, target.getDate());
     Assertions.assertEquals(false, target.getBool());
     Assertions.assertEquals(123, target.getAnInt());
-  }
-
-  @Test
-  void simpleCollection() {
-    Date date = new Date();
-    SimpleCollection source = new SimpleCollection("name");
-    source.getSimples().add(new Simple("simple", 10, date, false, 123, 2.5f));
-    source.getSimples().add(new Simple("simple", 20, date, false, 123, 2.5f));
-    source.getSimples().add(new Simple("simple", 30, date, false, 123, 2.5f));
-    SimpleCollection target = new SimpleCollection("target");
-    metadataMergeService.merge(
-        new MetadataMergeParams<>(source, target).setMergeMode(MergeMode.MERGE));
-    Assertions.assertEquals("name", target.getName());
-    Assertions.assertEquals(3, target.getSimples().size());
-    Assertions.assertTrue(target.getSimples().contains(source.getSimples().get(0)));
-    Assertions.assertTrue(target.getSimples().contains(source.getSimples().get(1)));
-    Assertions.assertTrue(target.getSimples().contains(source.getSimples().get(2)));
   }
 
   @Test

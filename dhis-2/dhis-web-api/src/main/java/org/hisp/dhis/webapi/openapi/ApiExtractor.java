@@ -34,6 +34,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Collectors.toUnmodifiableSet;
+import static org.hisp.dhis.webapi.openapi.ApiDescriptions.toMarkdown;
 import static org.hisp.dhis.webapi.openapi.DirectType.isDirectType;
 import static org.hisp.dhis.webapi.openapi.OpenApiAnnotations.getAnnotated;
 import static org.hisp.dhis.webapi.openapi.OpenApiAnnotations.getAnnotations;
@@ -314,9 +315,9 @@ final class ApiExtractor {
     // error response(s) from annotated exception types in method signature and
     // error response(s) from annotations on exceptions in method signature
     for (AnnotatedType error : source.getAnnotatedExceptionTypes()) {
-      OpenApi.Response response =
-          error.getType() instanceof Class<?> t ? t.getAnnotation(OpenApi.Response.class) : null;
-      if (response == null) response = error.getAnnotation(OpenApi.Response.class);
+      OpenApi.Response response = error.getAnnotation(OpenApi.Response.class);
+      if (response == null && error.getType() instanceof Class<?> t)
+        response = t.getAnnotation(OpenApi.Response.class);
       if (response != null) {
         res.putAll(newErrorResponse(endpoint, error, response, produces));
       }
@@ -355,10 +356,11 @@ final class ApiExtractor {
     Map<HttpStatus, Api.Response> responses =
         extractResponses(endpoint, response, produces, List.of(), null);
     if (responses.size() == 1) {
-      Api.Response success = responses.values().iterator().next();
-      success
+      Api.Response error = responses.values().iterator().next();
+      Type exType = source.getType();
+      error
           .getDescription()
-          .setIfAbsent(extractDescription(source, endpoint.getSource().getReturnType()));
+          .setIfAbsent(extractDescription(source, exType instanceof Class<?> ex ? ex : null));
     }
     return responses;
   }
@@ -367,11 +369,21 @@ final class ApiExtractor {
     return extractDescription(source, null);
   }
 
-  private static String extractDescription(AnnotatedElement source, Class<?> type) {
-    String desc = ApiDescriptions.toMarkdown(source.getAnnotation(OpenApi.Description.class));
-    if (desc != null) return desc;
-    if (type == null) return null;
-    return ApiDescriptions.toMarkdown(type.getAnnotation(OpenApi.Description.class));
+  private static String extractDescription(
+      @Nonnull AnnotatedElement source, @CheckForNull Class<?> type) {
+    OpenApi.Description desc0 = source.getAnnotation(OpenApi.Description.class);
+    OpenApi.Description desc1 = type == null ? null : type.getAnnotation(OpenApi.Description.class);
+    if (desc0 == null && desc1 == null) return null;
+    String text0 = desc0 == null ? "" : toMarkdown(desc0);
+    String text1 = desc1 == null ? "" : toMarkdown(desc1);
+    if (desc0 == null)
+      return (desc1.ignoreFileDescription() || text1.contains("{md}") ? "" : "{md}\n") + text1;
+    boolean noPlaceholder =
+        desc0.ignoreFileDescription() || text0.contains("{md}") || text1.contains("{md}");
+    String placeholder = noPlaceholder ? "" : "\n{md}\n";
+    return (desc1 == null || desc0.ignoreTypeDescription())
+        ? text0 + placeholder
+        : text0 + placeholder + text1;
   }
 
   private static Map<HttpStatus, Api.Response> extractResponses(

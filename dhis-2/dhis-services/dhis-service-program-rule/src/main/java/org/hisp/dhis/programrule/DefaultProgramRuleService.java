@@ -73,20 +73,8 @@ public class DefaultProgramRuleService implements ProgramRuleService {
 
   @Override
   @Transactional(readOnly = true)
-  public ProgramRule getProgramRule(String uid) {
-    return programRuleStore.getByUid(uid);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public List<ProgramRule> getProgramRulesLinkedToTeaOrDe() {
     return programRuleStore.getProgramRulesLinkedToTeaOrDe();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<ProgramRule> getAllProgramRule() {
-    return programRuleStore.getAll();
   }
 
   @Override

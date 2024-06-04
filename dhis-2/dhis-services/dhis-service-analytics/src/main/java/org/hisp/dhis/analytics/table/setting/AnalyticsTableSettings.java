@@ -27,18 +27,20 @@
  */
 package org.hisp.dhis.analytics.table.setting;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.db.model.Logged.LOGGED;
 import static org.hisp.dhis.db.model.Logged.UNLOGGED;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_INDEX_CATEGORY;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_INDEX_CATEGORY_OPTION_GROUP_SET;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_INDEX_DATA_ELEMENT_GROUP_SET;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_INDEX_ORG_UNIT_GROUP_SET;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_SKIP_INDEX;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_UNLOGGED;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_PERIOD_YEARS_OFFSET;
 import static org.hisp.dhis.util.ObjectUtils.isNull;
 
+import com.google.common.collect.Lists;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -109,6 +111,16 @@ public class AnalyticsTableSettings {
   }
 
   /**
+   * Returns a set of dimension identifiers (UID) for which to skip building indexes for analytics
+   * tables.
+   *
+   * @return a set of dimension identifiers.
+   */
+  public Set<String> getSkipIndexDimensions() {
+    return toSet(config.getProperty(ANALYTICS_TABLE_SKIP_INDEX));
+  }
+
+  /**
    * Returns the {@link Database} matching the given value.
    *
    * @param value the string value.
@@ -132,39 +144,20 @@ public class AnalyticsTableSettings {
   }
 
   /**
-   * Indicates whether to skip indexing of data element group set analytics table columns.
+   * Splits the given value on comma, and returns the values as a set.
    *
-   * @return {@link Skip#SKIP} if indexing should be skipped, {@link Skip#INCLUDE} if not.
+   * @param value the value.
+   * @return a set of values.
    */
-  public Skip skipIndexDataElementGroupSetColumns() {
-    return toSkip(config.isEnabled(ANALYTICS_TABLE_INDEX_DATA_ELEMENT_GROUP_SET));
-  }
+  Set<String> toSet(String value) {
+    if (isBlank(value)) {
+      return Set.of();
+    }
 
-  /**
-   * Indicates whether to skip indexing of category analytics table columns.
-   *
-   * @return {@link Skip#SKIP} if indexing should be skipped, {@link Skip#INCLUDE} if not.
-   */
-  public Skip skipIndexCategoryColumns() {
-    return toSkip(config.isEnabled(ANALYTICS_TABLE_INDEX_CATEGORY));
-  }
-
-  /**
-   * Indicates whether to skip indexing of category option group set analytics table columns.
-   *
-   * @return {@link Skip#SKIP} if indexing should be skipped, {@link Skip#INCLUDE} if not.
-   */
-  public Skip skipIndexCategoryOptionGroupSetColumns() {
-    return toSkip(config.isEnabled(ANALYTICS_TABLE_INDEX_CATEGORY_OPTION_GROUP_SET));
-  }
-
-  /**
-   * Indicates whether to skip indexing of organisation unit group set analytics table columns.
-   *
-   * @return {@link Skip#SKIP} if indexing should be skipped, {@link Skip#INCLUDE} if not.
-   */
-  public Skip skipIndexOrgUnitGroupSetColumns() {
-    return toSkip(config.isEnabled(ANALYTICS_TABLE_INDEX_ORG_UNIT_GROUP_SET));
+    return Lists.newArrayList(value.split(",")).stream()
+        .filter(Objects::nonNull)
+        .map(String::trim)
+        .collect(Collectors.toSet());
   }
 
   /**

@@ -80,7 +80,7 @@
     <skipTests>false</skipTests>
 
     <!-- *Build* -->
-    <jib.version>3.4.2</jib.version>
+    <jib.version>3.4.3</jib.version>
     <jib.from.image>tomcat:9.0-jre17</jib.from.image>
     <jib.to.image>dhis2/core-dev:local</jib.to.image>
     <!-- uid=65534(nobody) gid=65534(nogroup) present in Tomcat image -->
@@ -107,7 +107,6 @@
 
     <!-- Security -->
     <spring-security.version>5.8.12</spring-security.version>
-    <spring-security-oauth2.version>2.5.2.RELEASE</spring-security-oauth2.version>
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
@@ -190,7 +189,7 @@
     <jetty.version>10.0.21</jetty.version>
 
     <!-- Div. utils -->
-    <guava.version>33.2.0-jre</guava.version>
+    <guava.version>33.2.1-jre</guava.version>
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
     <google-api-client.version>2.6.0</google-api-client.version>
@@ -240,7 +239,7 @@
     <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
     <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
     <maven-failsafe-plugin.version>3.2.5</maven-failsafe-plugin.version>
-    <maven-javadoc-plugin.version>3.6.3</maven-javadoc-plugin.version>
+    <maven-javadoc-plugin.version>3.7.0</maven-javadoc-plugin.version>
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
     <maven-enforcer-plugin.version>3.5.0</maven-enforcer-plugin.version>
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
@@ -618,11 +617,6 @@
       </dependency>
 
       <!-- OAuth 2.0 -->
-      <dependency>
-        <groupId>org.springframework.security.oauth</groupId>
-        <artifactId>spring-security-oauth2</artifactId>
-        <version>${spring-security-oauth2.version}</version>
-      </dependency>
       <dependency>
         <groupId>org.springframework.security</groupId>
         <artifactId>spring-security-oauth2-core</artifactId>
