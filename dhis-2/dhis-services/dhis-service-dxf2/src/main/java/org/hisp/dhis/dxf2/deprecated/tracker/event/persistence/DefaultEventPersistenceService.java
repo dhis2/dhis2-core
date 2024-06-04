@@ -152,6 +152,10 @@ public class DefaultEventPersistenceService implements EventPersistenceService {
     } else {
       // merge
       de.setDataElement(null); // de uid is used as a key in the json, so we don't need it here
+      de.setValue(
+          de.getValue()
+              .replace(
+                  "'", "''")); // escape single quote used also as a json delimiter in the query
 
       query =
           String.format(
