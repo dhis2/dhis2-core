@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.common.params;
 
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.common.IdScheme.UID;
@@ -40,7 +41,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.Builder;
 import lombok.Getter;
@@ -227,7 +227,7 @@ public class CommonParams {
    */
   public List<DimensionIdentifier<DimensionParam>> getAllDimensionIdentifiers() {
     return streamDimensions()
-        .collect(Collectors.groupingBy(DimensionIdentifier::getKeyNoOffset))
+        .collect(groupingBy(DimensionIdentifier::getKeyNoOffset))
         .values()
         .stream()
         .map(identifiers -> identifiers.get(0))
