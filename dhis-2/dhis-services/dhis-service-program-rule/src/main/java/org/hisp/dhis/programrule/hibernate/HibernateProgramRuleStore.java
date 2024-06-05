@@ -102,7 +102,7 @@ public class HibernateProgramRuleStore extends HibernateIdentifiableObjectStore<
   public List<ProgramRule> getProgramRulesByActionTypes(
       Program program, Set<ProgramRuleActionType> actionTypes) {
     final String hql =
-        "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra "
+        "SELECT distinct pr FROM ProgramRule pr JOIN pr.programRuleActions pra "
             + "WHERE pr.program = :program AND pra.programRuleActionType IN ( :actionTypes ) ";
 
     return getQuery(hql)
@@ -115,8 +115,8 @@ public class HibernateProgramRuleStore extends HibernateIdentifiableObjectStore<
   public List<ProgramRule> getProgramRulesByActionTypes(
       Program program, Set<ProgramRuleActionType> types, String programStageUid) {
     final String hql =
-        "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra "
-            + "LEFT JOIN FETCH pr.programStage ps "
+        "SELECT distinct pr FROM ProgramRule pr JOIN pr.programRuleActions pra "
+            + "LEFT JOIN pr.programStage ps "
             + "WHERE pr.program = :programId AND pra.programRuleActionType IN ( :implementableTypes ) "
             + "AND (pr.programStage IS NULL OR ps.uid = :programStageUid )";
 
