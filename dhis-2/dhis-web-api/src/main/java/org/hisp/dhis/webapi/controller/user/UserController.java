@@ -496,7 +496,7 @@ public class UserController extends AbstractCrudController<User> {
 
     User userReplica = new User();
     metadataMergeService.merge(
-        new MetadataMergeParams<>(existingUser, userReplica).setMergeMode(MergeMode.MERGE));
+        new MetadataMergeParams<>(existingUser, userReplica).setMergeMode(MergeMode.REPLACE));
     copyAttributeValues(userReplica);
     userReplica.setId(0);
     userReplica.setUuid(UUID.randomUUID());
