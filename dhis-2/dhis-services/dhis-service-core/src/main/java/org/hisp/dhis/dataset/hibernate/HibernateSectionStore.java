@@ -95,11 +95,11 @@ public class HibernateSectionStore extends HibernateIdentifiableObjectStore<Sect
   public List<Section> getByDataElement(Collection<DataElement> dataElements) {
     return getQuery(
             """
-                select s from Section s
-                join s.dataElements de
-                where de in :dataElements
-                group by s.id
-                """,
+            select s from Section s
+            join s.dataElements de
+            where de in :dataElements
+            group by s.id
+            """,
             Section.class)
         .setParameter("dataElements", dataElements)
         .getResultList();
