@@ -28,29 +28,17 @@
 package org.hisp.dhis.programrule.engine;
 
 import static org.hisp.dhis.programrule.ProgramRuleActionType.ASSIGN;
-import static org.hisp.dhis.programrule.ProgramRuleActionType.CREATEEVENT;
-import static org.hisp.dhis.programrule.ProgramRuleActionType.DISPLAYKEYVALUEPAIR;
-import static org.hisp.dhis.programrule.ProgramRuleActionType.DISPLAYTEXT;
 import static org.hisp.dhis.programrule.ProgramRuleActionType.ERRORONCOMPLETE;
-import static org.hisp.dhis.programrule.ProgramRuleActionType.HIDEFIELD;
-import static org.hisp.dhis.programrule.ProgramRuleActionType.HIDEOPTION;
-import static org.hisp.dhis.programrule.ProgramRuleActionType.HIDEOPTIONGROUP;
-import static org.hisp.dhis.programrule.ProgramRuleActionType.HIDEPROGRAMSTAGE;
-import static org.hisp.dhis.programrule.ProgramRuleActionType.HIDESECTION;
 import static org.hisp.dhis.programrule.ProgramRuleActionType.SCHEDULEMESSAGE;
 import static org.hisp.dhis.programrule.ProgramRuleActionType.SENDMESSAGE;
 import static org.hisp.dhis.programrule.ProgramRuleActionType.SETMANDATORYFIELD;
 import static org.hisp.dhis.programrule.ProgramRuleActionType.SHOWERROR;
-import static org.hisp.dhis.programrule.ProgramRuleActionType.SHOWOPTIONGROUP;
 import static org.hisp.dhis.programrule.ProgramRuleActionType.SHOWWARNING;
 import static org.hisp.dhis.programrule.ProgramRuleActionType.WARNINGONCOMPLETE;
 import static org.hisp.dhis.programrule.engine.RuleActionKey.ATTRIBUTE_TYPE;
 import static org.hisp.dhis.programrule.engine.RuleActionKey.CONTENT;
 import static org.hisp.dhis.programrule.engine.RuleActionKey.FIELD;
-import static org.hisp.dhis.programrule.engine.RuleActionKey.LOCATION;
 import static org.hisp.dhis.programrule.engine.RuleActionKey.NOTIFICATION;
-import static org.hisp.dhis.programrule.engine.RuleActionKey.PROGRAM_STAGE;
-import static org.hisp.dhis.programrule.engine.RuleActionKey.PROGRAM_STAGE_SECTION;
 import static org.hisp.dhis.rules.models.AttributeType.DATA_ELEMENT;
 import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
 
@@ -101,14 +89,12 @@ import org.hisp.dhis.rules.models.RuleVariablePreviousEvent;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Zubair Asghar
  */
 @Slf4j
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 @Service("org.hisp.dhis.programrule.engine.ProgramRuleEntityMapperService")
 public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityMapperService {
 
@@ -325,66 +311,35 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
       return null;
     }
 
-    Set<ProgramRuleAction> programRuleActions = programRule.getProgramRuleActions();
-
-    List<RuleAction> ruleActions;
-
-    Rule rule;
     try {
-      ruleActions = programRuleActions.stream().map(this::toRuleAction).toList();
-      rule =
-          new Rule(
-              programRule.getCondition(),
-              ruleActions,
-              programRule.getUid(),
-              programRule.getName(),
-              programRule.getProgramStage() != null
-                  ? programRule.getProgramStage().getUid()
-                  : StringUtils.EMPTY,
-              programRule.getPriority());
+      List<RuleAction> ruleActions =
+          programRule.getProgramRuleActions().stream()
+              .map(this::toRuleAction)
+              .filter(Objects::nonNull)
+              .toList();
 
+      if (ruleActions.isEmpty()) {
+        return null;
+      }
+
+      return new Rule(
+          programRule.getCondition(),
+          ruleActions,
+          programRule.getUid(),
+          programRule.getName(),
+          programRule.getProgramStage() != null
+              ? programRule.getProgramStage().getUid()
+              : StringUtils.EMPTY,
+          programRule.getPriority());
     } catch (Exception e) {
       log.debug("Invalid rule action in ProgramRule: " + programRule.getUid());
 
       return null;
     }
-
-    return rule;
   }
 
   private RuleAction toRuleAction(ProgramRuleAction pra) {
     return switch (pra.getProgramRuleActionType()) {
-      case DISPLAYTEXT ->
-          new RuleAction(
-              pra.getData(),
-              DISPLAYTEXT.name(),
-              createValues(CONTENT, pra.getContent(), LOCATION, pra.getLocation()));
-      case DISPLAYKEYVALUEPAIR ->
-          new RuleAction(
-              pra.getData(),
-              DISPLAYKEYVALUEPAIR.name(),
-              createValues(CONTENT, pra.getContent(), LOCATION, pra.getLocation()));
-      case HIDEFIELD ->
-          new RuleAction(
-              null,
-              HIDEFIELD.name(),
-              createValues(
-                  CONTENT,
-                  pra.getContent(),
-                  FIELD,
-                  getAssignedParameter(pra),
-                  ATTRIBUTE_TYPE,
-                  getAttributeType(pra).name()));
-      case HIDESECTION ->
-          new RuleAction(
-              null,
-              HIDESECTION.name(),
-              createValues(PROGRAM_STAGE_SECTION, pra.getProgramStageSection().getUid()));
-      case HIDEPROGRAMSTAGE ->
-          new RuleAction(
-              null,
-              HIDEPROGRAMSTAGE.name(),
-              createValues(PROGRAM_STAGE, pra.getProgramStage().getUid()));
       case ASSIGN ->
           new RuleAction(
               pra.getData(),
@@ -440,11 +395,6 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                   getAssignedParameter(pra),
                   ATTRIBUTE_TYPE,
                   getAttributeType(pra).name()));
-      case CREATEEVENT ->
-          new RuleAction(
-              pra.getData(),
-              CREATEEVENT.name(),
-              createValues(CONTENT, pra.getContent(), LOCATION, pra.getLocation()));
       case SETMANDATORYFIELD ->
           new RuleAction(
               null,
@@ -459,14 +409,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
               pra.getData(),
               SCHEDULEMESSAGE.name(),
               createValues(NOTIFICATION, pra.getTemplateUid()));
-      case HIDEOPTION ->
-          new RuleAction(null, HIDEOPTION.name(), createValues(FIELD, getAssignedParameter(pra)));
-      case SHOWOPTIONGROUP ->
-          new RuleAction(
-              null, SHOWOPTIONGROUP.name(), createValues(FIELD, getAssignedParameter(pra)));
-      case HIDEOPTIONGROUP ->
-          new RuleAction(
-              null, HIDEOPTIONGROUP.name(), createValues(FIELD, getAssignedParameter(pra)));
+      default -> null;
     };
   }
 
