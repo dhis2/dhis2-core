@@ -125,7 +125,7 @@ class GistFilterControllerTest extends AbstractGistControllerTest {
   @Test
   void testFilter_Like() {
     assertEquals(
-        1, GET("/users/gist?filter=surname:like:?urnameuserA&headless=true").content().size());
+        1, GET("/users/gist?filter=surname:like:?urnameuserGist&headless=true").content().size());
     assertEquals(3, GET("/users/gist?filter=surname:like:Surna*&headless=true").content().size());
     assertEquals(0, GET("/users/gist?filter=surname:like:Zulu&headless=true").content().size());
   }

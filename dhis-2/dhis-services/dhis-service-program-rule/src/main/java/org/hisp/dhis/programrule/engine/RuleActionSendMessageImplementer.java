@@ -44,7 +44,6 @@ import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  *
@@ -59,7 +58,6 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Zubair Asghar
  */
 @Component("org.hisp.dhis.programrule.engine.RuleActionSendMessageImplementer")
-@Transactional
 public class RuleActionSendMessageImplementer extends NotificationRuleActionImplementer {
   // -------------------------------------------------------------------------
   // Dependencies
