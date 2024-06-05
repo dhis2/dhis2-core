@@ -71,11 +71,11 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
           AnalyticsTableColumn.builder()
-              .build()
-              .withName("oug")
-              .withDataType(CHARACTER_11)
-              .withNullable(NOT_NULL)
-              .withSelectExpression("oug.uid"));
+              .name("oug")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("oug.uid")
+              .build());
 
   public JdbcOrgUnitTargetTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -167,12 +167,12 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.add(
         AnalyticsTableColumn.builder()
-            .build()
-            .withName("value")
-            .withDataType(DOUBLE)
-            .withNullable(NULL)
-            .withValueType(FACT)
-            .withSelectExpression("1 as value"));
+            .name("value")
+            .dataType(DOUBLE)
+            .nullable(NULL)
+            .valueType(FACT)
+            .selectExpression("1 as value")
+            .build());
 
     return filterDimensionColumns(columns);
   }

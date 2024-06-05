@@ -564,9 +564,8 @@ class JdbcEventStore implements EventStore {
   }
 
   /**
-   * Query is based on three sub queries on event, data value and note, which are joined using
-   * program stage instance id. The purpose of the separate queries is to be able to page properly
-   * on events.
+   * Query is based on three sub queries on event, data value and note, which are joined using event
+   * id. The purpose of the separate queries is to be able to page properly on events.
    */
   private String buildSql(
       EventQueryParams queryParams,

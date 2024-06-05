@@ -96,31 +96,31 @@ public class DataElementResourceTable implements ResourceTable {
   public List<Index> getIndexes() {
     return List.of(
         Index.builder()
-            .build()
-            .withName(appendRandom("in_dataelementstructure_dataelementuid"))
-            .withTableName(toStaging(TABLE_NAME))
-            .withUnique(Unique.UNIQUE)
-            .withColumns(List.of("dataelementuid")),
+            .name(appendRandom("in_dataelementstructure_dataelementuid"))
+            .tableName(toStaging(TABLE_NAME))
+            .unique(Unique.UNIQUE)
+            .columns(List.of("dataelementuid"))
+            .build(),
         Index.builder()
-            .build()
-            .withName(appendRandom("in_dataelementstructure_datasetid"))
-            .withTableName(toStaging(TABLE_NAME))
-            .withColumns(List.of("datasetid")),
+            .name(appendRandom("in_dataelementstructure_datasetid"))
+            .tableName(toStaging(TABLE_NAME))
+            .columns(List.of("datasetid"))
+            .build(),
         Index.builder()
-            .build()
-            .withName(appendRandom("in_dataelementstructure_datasetuid"))
-            .withTableName(toStaging(TABLE_NAME))
-            .withColumns(List.of("datasetuid")),
+            .name(appendRandom("in_dataelementstructure_datasetuid"))
+            .tableName(toStaging(TABLE_NAME))
+            .columns(List.of("datasetuid"))
+            .build(),
         Index.builder()
-            .build()
-            .withName(appendRandom("in_dataelementstructure_periodtypeid"))
-            .withTableName(toStaging(TABLE_NAME))
-            .withColumns(List.of("periodtypeid")),
+            .name(appendRandom("in_dataelementstructure_periodtypeid"))
+            .tableName(toStaging(TABLE_NAME))
+            .columns(List.of("periodtypeid"))
+            .build(),
         Index.builder()
-            .build()
-            .withName(appendRandom("in_dataelementstructure_workflowid"))
-            .withTableName(toStaging(TABLE_NAME))
-            .withColumns(List.of("workflowid")));
+            .name(appendRandom("in_dataelementstructure_workflowid"))
+            .tableName(toStaging(TABLE_NAME))
+            .columns(List.of("workflowid"))
+            .build());
   }
 
   @Override

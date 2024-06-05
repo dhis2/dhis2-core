@@ -78,7 +78,7 @@ class GistCsvControllerTest extends AbstractGistControllerTest {
         List.of(
             "id,code,education,twitter,employer",
             allUsers.get(1).getUid() + ",Codeadmin,,,",
-            allUsers.get(2).getUid() + ",CodeuserA,,,"),
+            allUsers.get(2).getUid() + ",CodeuserGist,,,"),
         cleanSplit);
   }
 

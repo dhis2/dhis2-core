@@ -32,7 +32,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.programrule.ProgramRule;
@@ -64,16 +63,6 @@ public class HibernateProgramRuleActionStore
       ApplicationEventPublisher publisher,
       AclService aclService) {
     super(entityManager, jdbcTemplate, publisher, ProgramRuleAction.class, aclService, true);
-  }
-
-  @Override
-  public List<ProgramRuleAction> get(ProgramRule programRule) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    return getList(
-        builder,
-        newJpaParameters()
-            .addPredicate(root -> builder.equal(root.get("programRule"), programRule)));
   }
 
   @Override

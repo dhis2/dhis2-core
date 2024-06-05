@@ -73,26 +73,8 @@ public class DefaultProgramRuleService implements ProgramRuleService {
 
   @Override
   @Transactional(readOnly = true)
-  public ProgramRule getProgramRule(String uid) {
-    return programRuleStore.getByUid(uid);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public ProgramRule getProgramRuleByName(String name, Program program) {
-    return programRuleStore.getByName(name, program);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public List<ProgramRule> getProgramRulesLinkedToTeaOrDe() {
     return programRuleStore.getProgramRulesLinkedToTeaOrDe();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<ProgramRule> getAllProgramRule() {
-    return programRuleStore.getAll();
   }
 
   @Override
@@ -114,43 +96,5 @@ public class DefaultProgramRuleService implements ProgramRuleService {
   @Transactional(readOnly = true)
   public List<ProgramRule> getProgramRule(Program program) {
     return programRuleStore.get(program);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<ProgramRule> getProgramRules(Program program, String key) {
-    return programRuleStore.get(program, key);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<ProgramRule> getProgramRulesWithNoPriority() {
-    return programRuleStore.getProgramRulesWithNoPriority();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<ProgramRule> getProgramRulesWithNoCondition() {
-    return programRuleStore.getProgramRulesWithNoCondition();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<ProgramRule> getProgramRulesByEvaluationTime(
-      ProgramRuleActionEvaluationTime evaluationTime) {
-    return programRuleStore.getProgramRulesByEvaluationTime(evaluationTime);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<ProgramRule> getProgramRulesByEvaluationEnvironment(
-      ProgramRuleActionEvaluationEnvironment evaluationEnvironment) {
-    return programRuleStore.getProgramRulesByEvaluationEnvironment(evaluationEnvironment);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<ProgramRule> getProgramRulesWithNoAction() {
-    return programRuleStore.getProgramRulesWithNoAction();
   }
 }

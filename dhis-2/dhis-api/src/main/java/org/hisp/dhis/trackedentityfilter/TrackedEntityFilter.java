@@ -57,13 +57,13 @@ public class TrackedEntityFilter extends BaseIdentifiableObject implements Metad
   /** Property indicating description of trackedEntityFilter */
   private String description;
 
-  /** Property indicating the filter's order in tracked entity instance search UI */
+  /** Property indicating the filter's order in tracked entity search UI */
   private int sortOrder;
 
   /** Property indicating the filter's rendering style */
   private ObjectStyle style;
 
-  /** Property to filter tracked entity instances based on event dates and statues */
+  /** Property to filter tracked entities based on event dates and statues */
   private List<EventFilter> eventFilters = new ArrayList<>();
 
   private EntityQueryCriteria entityQueryCriteria;

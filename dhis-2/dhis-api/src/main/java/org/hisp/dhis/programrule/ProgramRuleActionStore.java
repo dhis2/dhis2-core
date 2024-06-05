@@ -36,14 +36,6 @@ import org.hisp.dhis.dataelement.DataElement;
  * @author markusbekken
  */
 public interface ProgramRuleActionStore extends IdentifiableObjectStore<ProgramRuleAction> {
-  /**
-   * Get programRuleAction by program
-   *
-   * @param programRule {@link ProgramRule}
-   * @return ProgramRuleActionVariable list
-   */
-  List<ProgramRuleAction> get(ProgramRule programRule);
-
   List<ProgramRuleAction> getProgramActionsWithNoDataObject();
 
   List<ProgramRuleAction> getProgramActionsWithNoNotification();
