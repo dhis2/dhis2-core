@@ -131,7 +131,7 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
                 IndexedOrder.of(
                     analyticsSortingParams.getIndex(),
                     Order.of(
-                        OrderByQueryBuilderHelper.buildOrderSubQuery(
+                        SqlQueryHelper.buildOrderSubQuery(
                             analyticsSortingParams.getOrderBy(),
                             RenderableDataValue.of(
                                 EMPTY,

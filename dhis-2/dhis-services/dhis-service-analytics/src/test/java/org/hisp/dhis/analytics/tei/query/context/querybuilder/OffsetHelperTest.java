@@ -27,31 +27,41 @@
  */
 package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
-import static lombok.AccessLevel.PRIVATE;
+import java.util.Comparator;
+import java.util.Optional;
+import java.util.stream.Stream;
+import org.hisp.dhis.analytics.tei.query.context.querybuilder.OffsetHelper.Offset;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
-import com.google.common.collect.ImmutableMap;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import lombok.NoArgsConstructor;
+/** Tests for {@link OffsetHelper}. */
+class OffsetHelperTest {
 
-/** Utility class for miscellaneous helper methods, which didn't fit into any other class. */
-@NoArgsConstructor(access = PRIVATE)
-public class MiscHelper {
+  @ParameterizedTest(name = "testGetItemBasedOnOffset - {index}")
+  @CsvSource({"2,d", "1,e", "0,a", "-1,b", "-2,c"})
+  void testGetItemBasedOnOffset(String offsetParam, String expectedResponse) {
+    // Given
+    Stream<String> stream = Stream.of("a", "b", "c", "d", "e");
+    Comparator<String> comparator = Comparator.naturalOrder();
+    int offset = Integer.parseInt(offsetParam);
 
-  /**
-   * Merges the given maps into a single map. The order of the maps is important, as the maps are
-   * merged in the order they are provided, meaning that the last map will override any duplicate
-   * keys from the previous maps.
-   *
-   * @param maps the maps to merge
-   * @param <T> the type of the keys and values in the maps
-   * @return the merged map
-   */
-  @SafeVarargs
-  public static <T> Map<T, T> merge(Map<T, T>... maps) {
-    Map<T, T> result = new HashMap<>();
-    Arrays.stream(maps).forEach(result::putAll);
-    return ImmutableMap.copyOf(result);
+    // When
+    Optional<String> result = OffsetHelper.getItemBasedOnOffset(stream, comparator, offset);
+
+    // Then
+    Assertions.assertTrue(result.isPresent());
+    Assertions.assertEquals(expectedResponse, result.get());
+  }
+
+  @ParameterizedTest
+  @CsvSource({"1,1,asc", "2,2,asc", "0,1,desc", "-1,2,desc", "-2,3,desc"})
+  void testGetOffset(String offsetParam, String expectedOffset, String expectedDirection) {
+    // When
+    Offset offset = OffsetHelper.getOffset(Integer.parseInt(offsetParam));
+
+    // Then
+    Assertions.assertEquals(expectedOffset, offset.offset());
+    Assertions.assertEquals(expectedDirection, offset.direction());
   }
 }

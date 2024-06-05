@@ -69,7 +69,13 @@ public class OffsetHelper {
    * @param offset the offset
    * @return the offset as a string
    */
-  public static String getOffset(Integer offset) {
-    return String.valueOf(offset > 0 ? offset : abs(offset) + 1);
+  public static Offset getOffset(Integer offset) {
+    if (offset>0) {
+      return new Offset(String.valueOf(offset), "asc");
+    }
+    // this is due to the fact that the row_number() function in SQL starts at 1
+    return new Offset(String.valueOf(abs(offset) + 1), "desc");
   }
+
+  public record Offset(String offset, String direction) {}
 }

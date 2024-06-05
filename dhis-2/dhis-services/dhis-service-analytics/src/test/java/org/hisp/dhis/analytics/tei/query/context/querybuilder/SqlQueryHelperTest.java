@@ -27,10 +27,18 @@
  */
 package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import java.util.function.Consumer;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlParameterManager;
+import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -205,5 +213,167 @@ class SqlQueryHelperTest {
     assertEquals(
         "select innermost_evt.* from (select *, row_number() over (partition by programinstanceuid order by occurreddate desc, created desc ) as rn from analytics_tei_events_uid2 where status != 'SCHEDULE' and programuid = :1 and programstageuid = :2) innermost_evt where innermost_evt.rn = 4",
         statement);
+  }
+
+  @Test
+  void testBuildOderSubQuery_throws_when_undetected_type() {
+    DimensionParam dimensionParam = mock(DimensionParam.class);
+    DimensionIdentifier<DimensionParam> testedDimension = mock(DimensionIdentifier.class);
+    when(testedDimension.getDimension()).thenReturn(dimensionParam);
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> SqlQueryHelper.buildOrderSubQuery(testedDimension, () -> "field"));
+  }
+
+  @Test
+  void testBuildOderSubQuery_TE() {
+    DimensionParam dimensionParam = mock(DimensionParam.class);
+    DimensionIdentifier<DimensionParam> testedDimension = mock(DimensionIdentifier.class);
+    when(testedDimension.getDimension()).thenReturn(dimensionParam);
+
+    when(testedDimension.isTeiDimension()).thenReturn(true);
+
+    assertEquals(
+        "t_1.\"field\"",
+        SqlQueryHelper.buildOrderSubQuery(testedDimension, () -> "field").render());
+  }
+
+  @Test
+  void testBuildOderSubQuery_enrollment() {
+    DimensionParam dimensionParam = mock(DimensionParam.class);
+    DimensionIdentifier<DimensionParam> testedDimension = mock(DimensionIdentifier.class);
+    when(testedDimension.getDimension()).thenReturn(dimensionParam);
+
+    TrackedEntityType trackedEntityType = mock(TrackedEntityType.class);
+    when(trackedEntityType.getUid()).thenReturn("trackedEntityType");
+
+    ElementWithOffset program =
+        mockElementWithOffset(
+            Program.class,
+            "programUid",
+            p -> when(p.getTrackedEntityType()).thenReturn(trackedEntityType));
+
+    when(testedDimension.getProgram()).thenReturn(program);
+
+    when(testedDimension.isEnrollmentDimension()).thenReturn(true);
+
+    assertEquals(
+        """
+            (select field
+             from (select *,
+                   row_number() over ( partition by trackedentityinstanceuid
+                                       order by enrollmentdate desc ) as rn
+                   from analytics_tei_enrollments_trackedentitytype
+                   where programuid = 'programUid'
+                     and t_1.trackedentityinstanceuid = trackedentityinstanceuid) en
+             where en.rn = 1)""",
+        SqlQueryHelper.buildOrderSubQuery(testedDimension, () -> "field").render());
+  }
+
+  @Test
+  void testBuildOderSubQuery_event() {
+    DimensionParam dimensionParam = mock(DimensionParam.class);
+    DimensionIdentifier<DimensionParam> testedDimension = mock(DimensionIdentifier.class);
+    when(testedDimension.getDimension()).thenReturn(dimensionParam);
+
+    TrackedEntityType trackedEntityType = mock(TrackedEntityType.class);
+    when(trackedEntityType.getUid()).thenReturn("trackedEntityType");
+
+    ElementWithOffset<Program> program =
+        mockElementWithOffset(
+            Program.class,
+            "programUid",
+            p -> when(p.getTrackedEntityType()).thenReturn(trackedEntityType));
+
+    ElementWithOffset<ProgramStage> programStage =
+        mockElementWithOffset(ProgramStage.class, "programStageUid");
+
+    when(testedDimension.getProgram()).thenReturn(program);
+    when(testedDimension.getProgramStage()).thenReturn(programStage);
+
+    when(testedDimension.isEventDimension()).thenReturn(true);
+
+    assertEquals(
+        """
+            (select field
+             from (select *,
+                   row_number() over ( partition by programinstanceuid
+                                       order by occurreddate desc ) as rn
+                   from analytics_tei_events_trackedentitytype events
+                   where programstageuid = 'programStageUid'
+                     and programinstanceuid = (select programInstanceUid
+             from (select *,
+                   row_number() over ( partition by trackedentityinstanceuid
+                                       order by enrollmentdate desc ) as rn
+                   from analytics_tei_enrollments_trackedentitytype
+                   where programuid = 'programUid'
+                     and t_1.trackedentityinstanceuid = trackedentityinstanceuid) en
+             where en.rn = 1)) ev
+             where ev.rn = 1)""",
+        SqlQueryHelper.buildOrderSubQuery(testedDimension, () -> "field").render());
+  }
+
+  @Test
+  void testBuildOderSubQuery_data_element() {
+    DimensionParam dimensionParam = mock(DimensionParam.class);
+
+    when(dimensionParam.isOfType(any())).thenReturn(true);
+
+    DimensionIdentifier<DimensionParam> testedDimension = mock(DimensionIdentifier.class);
+    when(testedDimension.getDimension()).thenReturn(dimensionParam);
+
+    TrackedEntityType trackedEntityType = mock(TrackedEntityType.class);
+    when(trackedEntityType.getUid()).thenReturn("trackedEntityType");
+
+    ElementWithOffset<Program> program =
+        mockElementWithOffset(
+            Program.class,
+            "programUid",
+            p -> when(p.getTrackedEntityType()).thenReturn(trackedEntityType));
+
+    ElementWithOffset<ProgramStage> programStage =
+        mockElementWithOffset(ProgramStage.class, "programStageUid");
+
+    when(testedDimension.getProgram()).thenReturn(program);
+    when(testedDimension.getProgramStage()).thenReturn(programStage);
+
+    when(testedDimension.isEventDimension()).thenReturn(true);
+
+    assertEquals(
+        """
+            (select field
+             from analytics_tei_events_trackedentitytype
+             where programstageinstanceuid = (select programStageInstanceUid
+             from (select *,
+                   row_number() over ( partition by programinstanceuid
+                                       order by occurreddate desc ) as rn
+                   from analytics_tei_events_trackedentitytype events
+                   where programstageuid = 'programStageUid'
+                     and programinstanceuid = (select programInstanceUid
+             from (select *,
+                   row_number() over ( partition by trackedentityinstanceuid
+                                       order by enrollmentdate desc ) as rn
+                   from analytics_tei_enrollments_trackedentitytype
+                   where programuid = 'programUid'
+                     and t_1.trackedentityinstanceuid = trackedentityinstanceuid) en
+             where en.rn = 1)) ev
+             where ev.rn = 1))""",
+        SqlQueryHelper.buildOrderSubQuery(testedDimension, () -> "field").render());
+  }
+
+  private <T extends UidObject> ElementWithOffset<T> mockElementWithOffset(
+      Class<T> clazz, String uid) {
+    return mockElementWithOffset(clazz, uid, element -> {});
+  }
+
+  private <T extends UidObject> ElementWithOffset<T> mockElementWithOffset(
+      Class<T> clazz, String uid, Consumer<T> consumer) {
+    ElementWithOffset<T> elementWithOffset = mock(ElementWithOffset.class);
+    T element = mock(clazz);
+    consumer.accept(element);
+    when(elementWithOffset.getElement()).thenReturn(element);
+    when(element.getUid()).thenReturn(uid);
+    return elementWithOffset;
   }
 }

@@ -116,8 +116,7 @@ public class StatusQueryBuilder extends SqlQueryBuilderAdaptor {
               IndexedOrder.of(
                   sortingParam.getIndex(),
                   Order.of(
-                      OrderByQueryBuilderHelper.buildOrderSubQuery(
-                          sortingParam.getOrderBy(), () -> fieldName),
+                      SqlQueryHelper.buildOrderSubQuery(sortingParam.getOrderBy(), () -> fieldName),
                       sortingParam.getSortDirection())));
         });
 
