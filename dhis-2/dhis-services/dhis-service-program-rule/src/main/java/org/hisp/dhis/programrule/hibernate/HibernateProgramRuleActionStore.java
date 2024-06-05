@@ -34,7 +34,6 @@ import java.util.Map;
 import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionStore;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
@@ -94,13 +93,12 @@ public class HibernateProgramRuleActionStore
 
   @Override
   public List<ProgramRuleAction> getByDataElement(Collection<DataElement> dataElements) {
-    // language=hql
-    String hql =
-        """
-          from ProgramRuleAction pra
-          where pra.dataElement in :dataElements
-        """;
-
-    return getQuery(hql).setParameter("dataElements", dataElements).list();
+    return getQuery(
+            """
+                  from ProgramRuleAction pra
+                  where pra.dataElement in :dataElements
+                """)
+        .setParameter("dataElements", dataElements)
+        .list();
   }
 }
