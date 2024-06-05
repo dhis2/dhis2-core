@@ -30,6 +30,8 @@ package org.hisp.dhis.merge.dataelement;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataelement.DataElementGroupStore;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementOperandStore;
 import org.hisp.dhis.dataset.DataSetElement;
@@ -77,6 +79,7 @@ public class DefaultDataElementMergeHandler {
   private final DataElementOperandStore dataElementOperandStore;
   private final DataSetStore dataSetStore;
   private final SectionStore sectionStore;
+  private final DataElementGroupStore dataElementGroupStore;
 
   /**
    * Method retrieving {@link MinMaxDataElement}s by source {@link DataElement} references. All
@@ -269,6 +272,24 @@ public class DefaultDataElementMergeHandler {
         source -> {
           sections.forEach(s -> s.getDataElements().remove(source));
           sections.forEach(s -> s.getDataElements().add(target));
+        });
+  }
+
+  /**
+   * Method retrieving {@link DataElementGroup}s by source {@link DataElement} references. All
+   * retrieved {@link DataElementGroup}s will remove their source {@link DataElement}s and add the
+   * target {@link DataElement}.
+   *
+   * @param sources source {@link DataElement}s used to retrieve {@link DataElementGroup}s and then
+   *     removed from the {@link DataElementGroup}
+   * @param target {@link DataElement} which will be added to the {@link DataElementGroup}
+   */
+  public void handleDataElementGroup(List<DataElement> sources, DataElement target) {
+    List<DataElementGroup> dataElementGroups = dataElementGroupStore.getByDataElement(sources);
+    sources.forEach(
+        source -> {
+          dataElementGroups.forEach(deg -> deg.removeDataElement(source));
+          dataElementGroups.forEach(deg -> deg.addDataElement(target));
         });
   }
 }

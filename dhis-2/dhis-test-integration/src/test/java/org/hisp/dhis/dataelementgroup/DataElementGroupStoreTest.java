@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.section;
+package org.hisp.dhis.dataelementgroup;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -34,43 +34,39 @@ import java.util.List;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.Section;
-import org.hisp.dhis.dataset.SectionStore;
-import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.PeriodTypeEnum;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataelement.DataElementGroupStore;
+import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class SectionStoreTest extends TransactionalIntegrationTest {
+class DataElementGroupStoreTest extends SingleSetupIntegrationTestBase {
 
-  @Autowired private SectionStore sectionStore;
+  @Autowired private DataElementGroupStore store;
   @Autowired private IdentifiableObjectManager manager;
 
   @Test
-  @DisplayName("retrieving Sections by DataElement returns expected entries")
-  void sectionsByDataElementTest() {
+  @DisplayName("retrieving DataElementGroups by DataElement returns expected entries")
+  void dataSetElementByDataElementTest() {
     // given
     DataElement deW = createDataElementAndSave('W');
     DataElement deX = createDataElementAndSave('X');
     DataElement deY = createDataElementAndSave('Y');
     DataElement deZ = createDataElementAndSave('Z');
 
-    createSectionAndSave(deW, 'a');
-    createSectionAndSave(deX, 'b');
-    createSectionAndSave(deY, 'c');
-    createSectionAndSave(deZ, 'd');
+    createDataElementGroupAndSave('a', deW, deX);
+    createDataElementGroupAndSave('b', deY);
+    createDataElementGroupAndSave('c', deZ);
 
     // when
-    List<Section> sections = sectionStore.getByDataElement(List.of(deW, deX, deY));
+    List<DataElementGroup> dataElementGroups = store.getByDataElement(List.of(deW, deX, deY));
 
     // then
-    assertEquals(3, sections.size());
+    assertEquals(2, dataElementGroups.size());
     assertTrue(
-        sections.stream()
-            .flatMap(s -> s.getDataElements().stream())
+        dataElementGroups.stream()
+            .flatMap(deg -> deg.getMembers().stream())
             .toList()
             .containsAll(List.of(deW, deX, deY)));
   }
@@ -84,14 +80,9 @@ class SectionStoreTest extends TransactionalIntegrationTest {
     return de;
   }
 
-  private void createSectionAndSave(DataElement de, char c) {
-    DataSet ds = createDataSet(c, PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
-    manager.save(ds);
-
-    Section section = new Section();
-    section.setName("section " + c);
-    section.getDataElements().add(de);
-    section.setDataSet(ds);
-    manager.save(section);
+  private void createDataElementGroupAndSave(char c, DataElement... de) {
+    DataElementGroup deg = createDataElementGroup(c);
+    for (DataElement d : de) deg.addDataElement(d);
+    manager.save(deg);
   }
 }

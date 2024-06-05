@@ -42,6 +42,8 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataelement.DataElementGroupService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementOperandStore;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -105,6 +107,7 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
   @Autowired private DataElementOperandStore dataElementOperandStore;
   @Autowired private DataSetStore dataSetStore;
   @Autowired private SectionService sectionService;
+  @Autowired private DataElementGroupService dataElementGroupService;
 
   private DataElement deSource1;
   private DataElement deSource2;
@@ -1161,6 +1164,70 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesDeleted(report, sectionSources, sectionTarget, allDataElements);
+  }
+
+  // -------------------------------
+  // -- DataElementGroup --
+  // -------------------------------
+  @Test
+  @DisplayName(
+      "DataElementGroup references for DataElement are replaced as expected, source DataElements are not deleted")
+  void dataElementGroupMergeTest() throws ConflictException {
+    // given
+    DataElementGroup deg1 = createDataElementGroup('1');
+    deg1.addDataElement(deSource1);
+    DataElementGroup deg2 = createDataElementGroup('2');
+    deg2.addDataElement(deSource2);
+    DataElementGroup deg3 = createDataElementGroup('3');
+    deg3.addDataElement(deTarget);
+    identifiableObjectManager.save(deg1);
+    identifiableObjectManager.save(deg2);
+    identifiableObjectManager.save(deg3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<DataElementGroup> degSources =
+        dataElementGroupService.getByDataElement(List.of(deSource1, deSource2));
+    List<DataElementGroup> degTarget = dataElementGroupService.getByDataElement(List.of(deTarget));
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertMergeSuccessfulSourcesNotDeleted(report, degSources, degTarget, allDataElements);
+  }
+
+  @Test
+  @DisplayName(
+      "DataElementGroup references for DataElement are replaced as expected, source DataElements are deleted")
+  void dataElementGroupMergeSourceDeletedTest() throws ConflictException {
+    // given
+    DataElementGroup deg1 = createDataElementGroup('1');
+    deg1.addDataElement(deSource1);
+    DataElementGroup deg2 = createDataElementGroup('2');
+    deg2.addDataElement(deSource2);
+    DataElementGroup deg3 = createDataElementGroup('3');
+    deg3.addDataElement(deTarget);
+    identifiableObjectManager.save(deg1);
+    identifiableObjectManager.save(deg2);
+    identifiableObjectManager.save(deg3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDeleteSources(true);
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<DataElementGroup> degSources =
+        dataElementGroupService.getByDataElement(List.of(deSource1, deSource2));
+    List<DataElementGroup> degTarget = dataElementGroupService.getByDataElement(List.of(deTarget));
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertMergeSuccessfulSourcesDeleted(report, degSources, degTarget, allDataElements);
   }
 
   private void assertMergeSuccessfulSourcesNotDeleted(
