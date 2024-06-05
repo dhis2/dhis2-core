@@ -278,6 +278,8 @@ public class DhisWebApiWebSecurityConfig {
                   .hasAnyAuthority("ALL", "M_dhis-web-user")
                   .requestMatchers(new AntPathRequestMatcher("/dhis-web-aggregate-data-entry/**"))
                   .hasAnyAuthority("ALL", "M_dhis-web-aggregate-data-entry")
+                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-line-listing/**"))
+                  .hasAnyAuthority("ALL", "M_dhis-web-line-listing")
 
                   /////////////////////////////////////////////////////////////////////////////////////////////////
 
