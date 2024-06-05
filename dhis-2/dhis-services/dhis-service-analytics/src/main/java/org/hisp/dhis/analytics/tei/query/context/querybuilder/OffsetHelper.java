@@ -70,7 +70,7 @@ public class OffsetHelper {
    * @return the offset as a string
    */
   public static Offset getOffset(Integer offset) {
-    if (offset>0) {
+    if (offset > 0) {
       return new Offset(String.valueOf(offset), "asc");
     }
     // this is due to the fact that the row_number() function in SQL starts at 1
