@@ -27,7 +27,7 @@
     <Logger name="org.hibernate" level="ERROR" additivity="false"/>
 
     <Root level="WARN">
-      <AppenderRef ref="${env:LOG4J_APPENDER:-console}"/>
+      <AppenderRef ref="${sys:log4j.appender:-console}"/>
     </Root>
   </Loggers>
 </Configuration>
