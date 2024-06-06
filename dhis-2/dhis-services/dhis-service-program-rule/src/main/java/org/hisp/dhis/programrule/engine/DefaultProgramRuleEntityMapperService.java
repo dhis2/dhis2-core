@@ -387,12 +387,14 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                   FIELD, getAssignedParameter(pra), ATTRIBUTE_TYPE, getAttributeType(pra).name()));
       case SENDMESSAGE ->
           new RuleAction(
-              pra.getData(), SENDMESSAGE.name(), createValues(NOTIFICATION, pra.getTemplateUid()));
+              pra.getData(),
+              SENDMESSAGE.name(),
+              createValues(NOTIFICATION, pra.getNotificationTemplate().getUid()));
       case SCHEDULEMESSAGE ->
           new RuleAction(
               pra.getData(),
               SCHEDULEMESSAGE.name(),
-              createValues(NOTIFICATION, pra.getTemplateUid()));
+              createValues(NOTIFICATION, pra.getNotificationTemplate().getUid()));
       default -> null;
     };
   }

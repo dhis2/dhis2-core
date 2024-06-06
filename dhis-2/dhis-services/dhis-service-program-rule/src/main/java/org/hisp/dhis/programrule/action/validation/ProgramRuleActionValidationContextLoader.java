@@ -96,7 +96,7 @@ public class ProgramRuleActionValidationContextLoader {
                 ? preheat.get(
                     preheatIdentifier,
                     ProgramNotificationTemplate.class,
-                    ruleAction.getTemplateUid())
+                    ruleAction.getNotificationTemplate())
                 : null)
         .programStageSection(
             ruleAction.hasProgramStageSection()

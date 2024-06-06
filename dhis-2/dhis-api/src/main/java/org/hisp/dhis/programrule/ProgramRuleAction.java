@@ -33,7 +33,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.Set;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
@@ -43,6 +42,7 @@ import org.hisp.dhis.option.OptionGroup;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.translation.Translatable;
 
@@ -134,7 +134,7 @@ public class ProgramRuleAction extends BaseIdentifiableObject implements Metadat
    *   <li>sendmessage
    * </ul>
    */
-  private String templateUid;
+  private ProgramNotificationTemplate notificationTemplate;
 
   /**
    * Used to determine which widget to display data for the two action types:
@@ -265,7 +265,7 @@ public class ProgramRuleAction extends BaseIdentifiableObject implements Metadat
   }
 
   public boolean hasNotification() {
-    return StringUtils.isNotBlank(this.templateUid);
+    return notificationTemplate != null;
   }
 
   public boolean hasOption() {
@@ -322,12 +322,12 @@ public class ProgramRuleAction extends BaseIdentifiableObject implements Metadat
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getTemplateUid() {
-    return templateUid;
+  public ProgramNotificationTemplate getNotificationTemplate() {
+    return notificationTemplate;
   }
 
-  public void setTemplateUid(String programNotificationTemplate) {
-    this.templateUid = programNotificationTemplate;
+  public void setNotificationTemplate(ProgramNotificationTemplate notificationTemplate) {
+    this.notificationTemplate = notificationTemplate;
   }
 
   @JsonProperty("trackedEntityAttribute")

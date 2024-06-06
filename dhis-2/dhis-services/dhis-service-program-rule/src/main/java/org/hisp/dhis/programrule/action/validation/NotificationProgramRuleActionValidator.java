@@ -64,18 +64,14 @@ public class NotificationProgramRuleActionValidator implements ProgramRuleAction
 
     if (pnt == null) {
       // fetch it from database
-      pnt =
-          validationContext
-              .getProgramRuleActionValidationService()
-              .getNotificationTemplateService()
-              .getByUid(programRuleAction.getTemplateUid());
+      pnt = programRuleAction.getNotificationTemplate();
     }
 
     if (pnt == null) {
       log.debug(
           String.format(
               "ProgramNotificationTemplate id: %s for program rule: %s does not exist",
-              programRuleAction.getTemplateUid(), rule.getName()));
+              programRuleAction.getNotificationTemplate().getUid(), rule.getName()));
 
       return ProgramRuleActionValidationResult.builder()
           .valid(false)
@@ -83,7 +79,7 @@ public class NotificationProgramRuleActionValidator implements ProgramRuleAction
               new ErrorReport(
                   ProgramNotificationTemplate.class,
                   ErrorCode.E4034,
-                  programRuleAction.getTemplateUid(),
+                  programRuleAction.getNotificationTemplate().getUid(),
                   rule.getName()))
           .build();
     }
