@@ -29,6 +29,7 @@ package org.hisp.dhis.organisationunit;
 
 import static org.hisp.dhis.organisationunit.FeatureType.POINT;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -86,7 +87,7 @@ class OrganisationUnitStoreIntegrationTest extends TransactionalIntegrationTest 
         organisationUnitStore.getOrganisationUnitsByProgram(program.getUid());
 
     // Then
-    assertTrue(ous.size() == 1);
+    assertEquals(1, ous.size());
   }
 
   @Test
@@ -108,7 +109,7 @@ class OrganisationUnitStoreIntegrationTest extends TransactionalIntegrationTest 
         organisationUnitStore.getOrganisationUnitsByDataSet(dataSet.getUid());
 
     // Then
-    assertTrue(ous.size() == 1);
+    assertEquals(1, ous.size());
   }
 
   @Test
