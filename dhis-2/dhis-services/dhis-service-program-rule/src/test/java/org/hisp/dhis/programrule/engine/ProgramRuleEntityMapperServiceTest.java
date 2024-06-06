@@ -68,7 +68,6 @@ import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.hisp.dhis.rules.api.DataItem;
-import org.hisp.dhis.rules.models.Rule;
 import org.hisp.dhis.rules.models.RuleDataValue;
 import org.hisp.dhis.rules.models.RuleEnrollment;
 import org.hisp.dhis.rules.models.RuleEvent;
@@ -168,18 +167,9 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
   public void initTest() {
     subject =
         new DefaultProgramRuleEntityMapperService(
-            programRuleService, programRuleVariableService, constantService, i18nManager);
+            programRuleVariableService, constantService, i18nManager);
 
     setUpProgramRules();
-  }
-
-  @Test
-  void testMappedProgramRules() {
-    when(programRuleService.getAllProgramRule()).thenReturn(programRules);
-
-    List<Rule> rules = subject.toMappedProgramRules();
-
-    assertEquals(3, rules.size());
   }
 
   @Test

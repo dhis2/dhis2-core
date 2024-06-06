@@ -65,21 +65,6 @@ public interface ProgramRuleService {
    */
   ProgramRule getProgramRule(long id);
 
-  /**
-   * Returns a {@link ProgramRule}.
-   *
-   * @param uid the uid of the ProgramRule to return.
-   * @return the ProgramRule with the given uid
-   */
-  ProgramRule getProgramRule(String uid);
-
-  /**
-   * Returns all {@link ProgramRule}.
-   *
-   * @return a collection of all ProgramRule, or an empty collection if there are no ProgramRules.
-   */
-  List<ProgramRule> getAllProgramRule();
-
   List<ProgramRule> getProgramRulesLinkedToTeaOrDe();
 
   List<ProgramRule> getProgramRulesByActionTypes(Program program, Set<ProgramRuleActionType> types);

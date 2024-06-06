@@ -141,6 +141,8 @@ public class HtmlPushAnalyticsJob implements Job {
     if (url.contains("{locale}")) {
       Locale locale =
           (Locale) userSettingService.getUserSetting(UserSettingKey.DB_LOCALE, username);
+      if (locale == null)
+        locale = (Locale) userSettingService.getUserSetting(UserSettingKey.UI_LOCALE, username);
       url = url.replace("{locale}", locale == null ? "" : locale.toLanguageTag());
     }
     return url;
