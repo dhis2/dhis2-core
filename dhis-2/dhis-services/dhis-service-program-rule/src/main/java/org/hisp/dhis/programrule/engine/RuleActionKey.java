@@ -34,8 +34,5 @@ public class RuleActionKey {
   public static final String CONTENT = "content";
   public static final String FIELD = "field";
   public static final String ATTRIBUTE_TYPE = "attributeType";
-  public static final String LOCATION = "location";
   public static final String NOTIFICATION = "notification";
-  public static final String PROGRAM_STAGE = "programStage";
-  public static final String PROGRAM_STAGE_SECTION = "programStageSection";
 }
