@@ -44,6 +44,8 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -77,6 +79,8 @@ class ProgramRuleActionServiceTest extends TransactionalIntegrationTest {
   @Autowired private ProgramService programService;
 
   @Autowired private ProgramStageService programStageService;
+
+  @Autowired private ProgramNotificationTemplateService programNotificationTemplateService;
 
   @Override
   public void setUpTest() {
@@ -334,12 +338,17 @@ class ProgramRuleActionServiceTest extends TransactionalIntegrationTest {
             "$placeofliving",
             null,
             null);
-    actionI.setNotificationTemplate(
+
+    ProgramNotificationTemplate pnt =
         createProgramNotificationTemplate(
             "test123",
             3,
             NotificationTrigger.PROGRAM_RULE,
-            ProgramNotificationRecipient.USER_GROUP));
+            ProgramNotificationRecipient.USER_GROUP);
+
+    programNotificationTemplateService.save(pnt);
+
+    actionI.setNotificationTemplate(pnt);
     actionService.addProgramRuleAction(actionI);
     actionService.addProgramRuleAction(actionJ);
     programRuleA.setProgramRuleActions(Sets.newHashSet(actionI, actionJ));
