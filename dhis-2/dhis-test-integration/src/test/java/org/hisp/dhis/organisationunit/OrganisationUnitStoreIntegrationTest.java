@@ -121,12 +121,6 @@ class OrganisationUnitStoreIntegrationTest extends TransactionalIntegrationTest 
     assertTrue(ous.isEmpty());
   }
 
-  /*
-    public List<OrganisationUnit> getOrganisationUnitsByDataSet(String dataSetUid) {
-      String jpql =
-          "select distinct o from OrganisationUnit o join o.dataSets d where d.uid = :dataSetUid";
-  */
-
   @Test
   void verifyGetOrgUnitsWithinAGeoBox() throws IOException {
     // https://gist.github.com/luciano-fiandesio/ea682cd4b9a37c5b4bef93e3918b8cda
