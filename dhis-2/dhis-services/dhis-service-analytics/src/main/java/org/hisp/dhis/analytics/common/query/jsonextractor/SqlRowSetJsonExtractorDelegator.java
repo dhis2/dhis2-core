@@ -62,7 +62,6 @@ import org.hisp.dhis.common.ValueStatus;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.legend.LegendSet;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.jdbc.InvalidResultSetAccessException;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
@@ -166,7 +165,7 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
         .orElse(null);
   }
 
-  private static @Nullable JsonEvent getJsonEvent(
+  private static JsonEvent getJsonEvent(
       DimensionIdentifier<DimensionParam> dimensionIdentifier, JsonEnrollment jsonEnrollment) {
 
     if (isNull(jsonEnrollment)) {
