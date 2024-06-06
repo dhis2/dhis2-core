@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.user.User;
@@ -227,12 +228,20 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
       Collection<String> uids, Integer maxLevels);
 
   /**
-   * Returns OrganisationUnits which are associated with the given Program.
+   * Returns organisation units associated with the given data set uid.
    *
-   * @param program the {@link Program}.
-   * @return
+   * @param dataSetUid the {@link DataSet} uid.
+   * @return a list of {@link OrganisationUnit} found.
    */
-  List<OrganisationUnit> getOrganisationUnitsWithProgram(Program program);
+  List<OrganisationUnit> getDataSetOrganisationUnits(String dataSetUid);
+
+  /**
+   * Returns organisation units associated with the given program uid.
+   *
+   * @param programUid the {@link Program} uid.
+   * @return a list of {@link OrganisationUnit} found.
+   */
+  List<OrganisationUnit> getProgramOrganisationUnits(String programUid);
 
   /**
    * Returns all OrganisationUnits at a given hierarchical level. The root OrganisationUnits are at

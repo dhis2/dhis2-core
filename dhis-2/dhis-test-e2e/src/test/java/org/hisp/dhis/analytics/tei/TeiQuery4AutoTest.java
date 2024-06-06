@@ -314,7 +314,7 @@ public class TeiQuery4AutoTest extends AnalyticsApiTest {
             .add("relativePeriodDate=2018-01-28");
 
     // When
-    ApiResponse response = actions.query().get("", JSON, JSON, params);
+    ApiResponse response = actions.query().get("nEenWmSyUEp", JSON, JSON, params);
 
     // Then
     response

@@ -43,7 +43,6 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Zubair Asghar
@@ -70,7 +69,6 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
     return entry;
   }
 
-  @Transactional(readOnly = true)
   public ProgramNotificationTemplate getNotificationTemplate(RuleAction action) {
     String uid = action.getValues().get(NOTIFICATION);
     return programNotificationTemplateService.getByUid(uid);
@@ -80,7 +78,6 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
     return template.getUid() + enrollment.getUid();
   }
 
-  @Transactional(readOnly = true)
   public NotificationValidationResult validate(RuleEffect ruleEffect, Enrollment enrollment) {
     checkNotNull(ruleEffect, "Rule Effect cannot be null");
     checkNotNull(enrollment, "Enrollment cannot be null");

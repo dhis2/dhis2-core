@@ -6,6 +6,14 @@
 # Tei test@@http://localhost:8080/dhis/api/analytics/trackedEntities/query/nEenWmSyUEp.json?program=IpHINAT79UW&desc=IpHINAT79UW.A03MvHHogjR.ouname&relativePeriodDate=2016-01-01
 #######################################################
 
+# Analytics aggregate
+queryAnalyticsAggregateProgramOuDim@@http://localhost:8080/dhis/api/42/analytics?dimension=dx:FQ2o8UBlcrS,pe:LAST_5_YEARS,ou:PR-q04UBOqq3rp&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false&relativePeriodDate=2022-10-01
+queryAnalyticsAggregateDataSetOuDim@@http://localhost:8080/dhis/api/42/analytics?dimension=dx:FQ2o8UBlcrS,pe:LAST_5_YEARS,ou:DS-BfMAe6Itzgt&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false&relativePeriodDate=2022-10-01
+queryAnalyticsAggregateProgramDataSetOuDim@@http://localhost:8080/dhis/api/42/analytics?dimension=dx:FQ2o8UBlcrS,pe:LAST_5_YEARS,ou:DS-BfMAe6Itzgt;PR-q04UBOqq3rp&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false&relativePeriodDate=2022-10-01
+queryAnalyticsAggregateProgramOuFilter@@http://localhost:8080/dhis/api/42/analytics?dimension=dx:FQ2o8UBlcrS,pe:LAST_5_YEARS&filter=ou:PR-q04UBOqq3rp&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false&relativePeriodDate=2022-10-01
+queryAnalyticsAggregateDataSetOuFilter@@http://localhost:8080/dhis/api/42/analytics?dimension=dx:FQ2o8UBlcrS,pe:LAST_5_YEARS&filter=ou:DS-BfMAe6Itzgt&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false&relativePeriodDate=2022-10-01
+queryAnalyticsAggregateProgramDataSetOuFilter@@http://localhost:8080/dhis/api/42/analytics?dimension=dx:FQ2o8UBlcrS,pe:LAST_5_YEARS&filter=ou:DS-BfMAe6Itzgt;PR-q04UBOqq3rp&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false&relativePeriodDate=2022-10-01
+
 # TE query
 sortByTeDateDesc@@http://localhost:8080/dhis/api/analytics/trackedEntities/query/nEenWmSyUEp?dimension=ou:USER_ORGUNIT,gHGyrwKPzej,ciq2USN94oJ,cejWyOfXge6,IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6&headers=ouname,gHGyrwKPzej,ciq2USN94oJ,cejWyOfXge6,IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6,created&totalPages=false&rowContext=true&created=LAST_YEAR&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&desc=created&relativePeriodDate=2018-01-28
 sortByTeDateAsc@@http://localhost:8080/dhis/api/analytics/trackedEntities/query/nEenWmSyUEp?dimension=ou:USER_ORGUNIT,gHGyrwKPzej,ciq2USN94oJ,cejWyOfXge6,IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6&headers=ouname,gHGyrwKPzej,ciq2USN94oJ,cejWyOfXge6,IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6,created&totalPages=false&rowContext=true&created=YESTERDAY&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&asc=created&relativePeriodDate=2017-01-27
