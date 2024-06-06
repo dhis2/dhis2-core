@@ -30,13 +30,17 @@ package org.hisp.dhis.analytics.common.query.jsonextractor;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.nullsFirst;
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.isDataElement;
+import static org.hisp.dhis.analytics.tei.query.context.querybuilder.OffsetHelper.getItemBasedOnOffset;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.feedback.ErrorCode.E7250;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -44,19 +48,21 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType;
 import org.hisp.dhis.analytics.common.query.jsonextractor.JsonEnrollment.JsonEvent;
-import org.hisp.dhis.analytics.tei.query.context.querybuilder.OffsetHelper;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.ValueStatus;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.legend.LegendSet;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.jdbc.InvalidResultSetAccessException;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
@@ -81,10 +87,15 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
     OBJECT_MAPPER.findAndRegisterModules();
   }
 
+  @SneakyThrows
+  static List<JsonEnrollment> parseEnrollmentsFromJson(String json) {
+    return OBJECT_MAPPER.readValue(json, new TypeReference<>() {});
+  }
+
   private static final Comparator<JsonEnrollment> ENR_ENROLLMENT_DATE_COMPARATOR =
       comparing(JsonEnrollment::getEnrollmentDate, nullsFirst(naturalOrder())).reversed();
 
-  private static final Comparator<JsonEnrollment.JsonEvent> EVT_EXECUTION_DATE_COMPARATOR =
+  private static final Comparator<JsonEnrollment.JsonEvent> EVT_OCCURRED_DATE_COMPARATOR =
       comparing(JsonEnrollment.JsonEvent::getOccurredDate, nullsFirst(naturalOrder())).reversed();
 
   private final transient Map<String, DimensionIdentifier<DimensionParam>> dimIdByKey;
@@ -113,8 +124,7 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
       return super.getObject(columnLabel);
     }
     // if the column is not present in the rowset, we check if it is present in the json string
-    List<JsonEnrollment> enrollments =
-        OBJECT_MAPPER.readValue(super.getString("enrollments"), new TypeReference<>() {});
+    List<JsonEnrollment> enrollments = parseEnrollmentsFromJson(super.getString("enrollments"));
 
     DimensionIdentifier<DimensionParam> dimensionIdentifier = dimIdByKey.get(columnLabel);
 
@@ -130,68 +140,49 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
 
   private Object getObjectForEvents(
       List<JsonEnrollment> enrollments, DimensionIdentifier<DimensionParam> dimensionIdentifier) {
-    JsonEnrollment jsonEnrollment =
-        OffsetHelper.getItemBasedOnOffset(
-                enrollments.stream()
-                    // gets only enrollments whose program is the same as specified in the dimension
-                    .filter(
-                        jEnr ->
-                            jEnr.getProgramUid()
-                                .equals(dimensionIdentifier.getProgram().getElement().getUid())),
-                ENR_ENROLLMENT_DATE_COMPARATOR,
-                dimensionIdentifier.getProgram().getOffsetWithDefault())
-            .orElse(null);
-
-    if (jsonEnrollment == null) {
-      return null;
-    }
-
-    // sorts enrollments by enrollment date, descending
-    JsonEvent jsonEvent =
-        OffsetHelper.getItemBasedOnOffset(
-                CollectionUtils.emptyIfNull(jsonEnrollment.getEvents()).stream()
-                    // gets only events whose program stage is the same as specified in the
-                    // dimension
-                    .filter(
-                        jEvt ->
-                            jEvt.getProgramStageUid()
-                                .equals(
-                                    dimensionIdentifier.getProgramStage().getElement().getUid())),
-                EVT_EXECUTION_DATE_COMPARATOR,
-                dimensionIdentifier.getProgramStage().getOffsetWithDefault())
-            .orElse(null);
-
-    if (jsonEvent == null) {
-      return null;
-    }
-
-    return Optional.of(jsonEvent)
-        // extracts the value of the dimension from the event
-        .map(je -> getEventExtractor(dimensionIdentifier.getDimension()).apply(je))
+    return getJsonEnrollment(enrollments, dimensionIdentifier)
+        .map(jEnr -> getJsonEvent(dimensionIdentifier, jEnr))
+        .map(jEvt -> getEventExtractor(dimensionIdentifier.getDimension()).apply(jEvt))
         .orElse(null);
+  }
+
+  private static Optional<JsonEnrollment> getJsonEnrollment(
+      List<JsonEnrollment> enrollments, DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+    return getItemBasedOnOffset(
+        enrollments.stream()
+            // gets only enrollments whose program is the same as specified in the dimension
+            .filter(
+                jEnr ->
+                    jEnr.getProgramUid()
+                        .equals(dimensionIdentifier.getProgram().getElement().getUid())),
+        ENR_ENROLLMENT_DATE_COMPARATOR,
+        dimensionIdentifier.getProgram().getOffsetWithDefault());
   }
 
   private Object getObjectForEnrollments(
       List<JsonEnrollment> enrollments, DimensionIdentifier<DimensionParam> dimensionIdentifier) {
-    Stream<JsonEnrollment> jsonEnrollmentStream =
-        enrollments.stream()
-            // gets only enrollments whose program is the same as specified in the dimension
-            .filter(
-                jsonEnrollment ->
-                    jsonEnrollment
-                        .getProgramUid()
-                        .equals(dimensionIdentifier.getProgram().getElement().getUid()));
+    return getJsonEnrollment(enrollments, dimensionIdentifier)
+        .map(jEnr -> getEnrollmentExtractor(dimensionIdentifier.getDimension()).apply(jEnr))
+        .orElse(null);
+  }
 
-    return OffsetHelper.getItemBasedOnOffset(
-            jsonEnrollmentStream,
-            // sorts enrollments by enrollment date, descending
-            ENR_ENROLLMENT_DATE_COMPARATOR,
-            // skips the number of enrollments specified in the dimension (offset)
-            dimensionIdentifier.getProgram().getOffsetWithDefault())
-        // extracts the value of the dimension from the enrollment
-        .map(
-            jsonEnrollment ->
-                getEnrollmentExtractor(dimensionIdentifier.getDimension()).apply(jsonEnrollment))
+  private static @Nullable JsonEvent getJsonEvent(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier, JsonEnrollment jsonEnrollment) {
+
+    if (isNull(jsonEnrollment)) {
+      return null;
+    }
+
+    return getItemBasedOnOffset(
+            CollectionUtils.emptyIfNull(jsonEnrollment.getEvents()).stream()
+                // gets only events whose program stage is the same as specified in the
+                // dimension
+                .filter(
+                    jEvt ->
+                        jEvt.getProgramStageUid()
+                            .equals(dimensionIdentifier.getProgramStage().getElement().getUid())),
+            EVT_OCCURRED_DATE_COMPARATOR,
+            dimensionIdentifier.getProgramStage().getOffsetWithDefault())
         .orElse(null);
   }
 
@@ -218,7 +209,7 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
                 .map(Objects::toString)
                 .orElse(null);
 
-        if (Objects.isNull(rawValue)) {
+        if (isNull(rawValue)) {
           return null;
         }
 
@@ -278,5 +269,60 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
       return JsonEnrollment::getOrgUnitUid;
     }
     throw new IllegalQueryException(E7250, dimension.toString());
+  }
+
+  /**
+   * The method retrieves row context content that describes the origin of the data value,
+   * indicating whether it is set, not set, or undefined. The column index is used as the map key,
+   * and the corresponding value contains information about the origin, also known as the value
+   * status.
+   *
+   * @param columnName the {@link String}, grid row column name
+   * @return Map of column index and value status
+   */
+  public Map<String, Object> getRowContextItem(String columnName, int rowIndex) {
+
+    DimensionIdentifier<DimensionParam> dimensionIdentifier = dimIdByKey.get(columnName);
+
+    // RowContext makes sense for data element dimensions only
+    if (isNull(dimensionIdentifier)
+        || !dimensionIdentifier.isEventDimension()
+        || !isDataElement(dimensionIdentifier)) {
+      return Collections.emptyMap();
+    }
+
+    JsonEvent event =
+        getJsonEnrollment(
+                parseEnrollmentsFromJson(super.getString("enrollments")), dimensionIdentifier)
+            .map(jEnr -> getJsonEvent(dimensionIdentifier, jEnr))
+            .orElse(null);
+
+    Map<String, Object> rowContextItem = new HashMap<>();
+
+    boolean isStageDefined = event != null;
+    boolean isSet =
+        event != null
+            && event.getEventDataValues().containsKey(dimensionIdentifier.getDimension().getUid());
+    boolean isScheduled =
+        event != null
+            && StringUtils.equalsIgnoreCase(event.getStatus(), EventStatus.SCHEDULE.toString());
+
+    ValueStatus valueStatus = ValueStatus.SET;
+
+    if (!isStageDefined) {
+      valueStatus = ValueStatus.NOT_DEFINED;
+    } else if (isScheduled) {
+      valueStatus = ValueStatus.SCHEDULED;
+    } else if (!isSet) {
+      valueStatus = ValueStatus.NOT_SET;
+    }
+
+    if (valueStatus != ValueStatus.SET) {
+      Map<String, String> valueStatusMap = new HashMap<>();
+      valueStatusMap.put("valueStatus", valueStatus.getValue());
+      rowContextItem.put(Integer.toString(rowIndex), valueStatusMap);
+    }
+
+    return rowContextItem;
   }
 }

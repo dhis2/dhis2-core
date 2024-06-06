@@ -85,6 +85,7 @@ public class TeiQueryBuilder extends SqlQueryBuilderAdaptor {
                                                                                  'orgUnitName', ev.ouname,
                                                                                  'orgUnitCode', ev.oucode,
                                                                                  'orgUnitNameHierarchy', ev.ounamehierarchy,
+                                                                                 'status', ev.status,
                                                                                  'eventDataValues', ev.eventdatavalues))
                                                from analytics_tei_events_%s ev,
                                                     programstage ps

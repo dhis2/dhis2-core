@@ -72,6 +72,8 @@ class JsonEnrollment {
 
     private String orgUnitNameHierarchy;
 
+    private String status;
+
     private Map<String, Object> eventDataValues;
   }
 }

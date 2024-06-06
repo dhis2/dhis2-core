@@ -33,16 +33,12 @@ import static org.hisp.dhis.analytics.common.ValueTypeMapping.fromValueType;
 import static org.hisp.dhis.analytics.common.query.Field.ofUnquoted;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
-import static org.hisp.dhis.system.grid.ListGrid.EXISTS;
-import static org.hisp.dhis.system.grid.ListGrid.HAS_VALUE;
 import static org.hisp.dhis.system.grid.ListGrid.LEGEND;
-import static org.hisp.dhis.system.grid.ListGrid.STATUS;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
@@ -58,7 +54,6 @@ import org.hisp.dhis.analytics.common.query.Order;
 import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.analytics.tei.query.DataElementCondition;
 import org.hisp.dhis.analytics.tei.query.RenderableDataValue;
-import org.hisp.dhis.analytics.tei.query.StageExistsRenderable;
 import org.hisp.dhis.analytics.tei.query.SuffixedRenderableDataValue;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery;
@@ -103,17 +98,7 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
     GroupedDimensions groupedDimensions =
         getGroupedDimensions(acceptedHeaders, acceptedDimensions, acceptedSortingParams);
 
-    Stream.of(
-            // Fields holding the value of data elements
-            getValueFields(groupedDimensions),
-            // Fields holding the "exists" flag of the stages
-            getExistsFields(groupedDimensions),
-            // Fields holding the status of the stages (SCHEDULED, COMPLETE, etc)
-            getStatusFields(groupedDimensions),
-            // Fields holding the "hasValue" flag of the data elements
-            getHasValueFields(groupedDimensions))
-        .flatMap(Function.identity())
-        .forEach(builder::selectField);
+    getValueFields(groupedDimensions).forEach(builder::selectField);
 
     // Groupable conditions comes from dimensions
     acceptedDimensions.stream()
@@ -144,56 +129,6 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
                         analyticsSortingParams.getSortDirection()))));
 
     return builder.build();
-  }
-
-  /**
-   * Returns the fields holding the "hasValue" flag of the data elements.
-   *
-   * @param groupedDimensions the groupedDimensions.
-   * @return the stream of fields holding the "hasValue" flag of the data elements.
-   */
-  private Stream<Field> getHasValueFields(GroupedDimensions groupedDimensions) {
-    return groupedDimensions
-        .streamOfFirstDimensionInEachGroup()
-        .map(
-            dimensionIdentifier ->
-                ofUnquoted(
-                    EMPTY,
-                    () ->
-                        doubleQuote(dimensionIdentifier.getPrefix())
-                            + ".eventdatavalues :: jsonb ?? '"
-                            + dimensionIdentifier.getDimension().getUid()
-                            + "'",
-                    dimensionIdentifier + HAS_VALUE));
-  }
-
-  /**
-   * Returns the fields holding the status of the stages.
-   *
-   * @param groupedDimensions the groupedDimensions.
-   * @return the stream of fields holding the status of the stages.
-   */
-  private Stream<Field> getStatusFields(GroupedDimensions groupedDimensions) {
-    return groupedDimensions
-        .streamOfFirstDimensionInEachGroup()
-        .map(
-            dimensionIdentifier ->
-                ofUnquoted(
-                    EMPTY,
-                    () -> doubleQuote(dimensionIdentifier.getPrefix()) + STATUS,
-                    dimensionIdentifier.toString() + STATUS));
-  }
-
-  /**
-   * Returns the fields holding the "exists" flag of the stages.
-   *
-   * @param groupedDimensions the groupedDimensions.
-   * @return the stream of fields holding the "exists" flag of the stages.
-   */
-  private Stream<Field> getExistsFields(GroupedDimensions groupedDimensions) {
-    return groupedDimensions
-        .streamOfFirstDimensionInEachGroup()
-        .map(dim -> ofUnquoted(EMPTY, StageExistsRenderable.of(dim), dim.getKey() + EXISTS));
   }
 
   /**
