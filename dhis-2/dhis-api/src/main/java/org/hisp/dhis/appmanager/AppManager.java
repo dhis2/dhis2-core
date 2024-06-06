@@ -273,6 +273,7 @@ public interface AppManager {
    */
   public static List<App> filterAppsByPluginType(String pluginType, Collection<App> apps) {
     return apps.stream()
+        .filter(app -> app.getPluginType() != null)
         .filter(app -> app.getPluginType().equals(pluginType))
         .collect(Collectors.toList());
   }
