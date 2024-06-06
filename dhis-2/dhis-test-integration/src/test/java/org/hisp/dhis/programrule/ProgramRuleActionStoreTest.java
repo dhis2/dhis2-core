@@ -34,6 +34,8 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.notification.NotificationTrigger;
+import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -169,7 +171,12 @@ class ProgramRuleActionStoreTest extends SingleSetupIntegrationTestBase {
             "$placeofliving",
             null,
             null);
-    actionA.setTemplateUid("templateuid");
+    actionA.setNotificationTemplate(
+        createProgramNotificationTemplate(
+            "test123",
+            3,
+            NotificationTrigger.PROGRAM_RULE,
+            ProgramNotificationRecipient.USER_GROUP));
     actionStore.save(actionA);
     actionStore.save(actionB);
     actionStore.save(actionC);
