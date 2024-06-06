@@ -3,7 +3,7 @@ ALTER TABLE programruleaction ADD COLUMN notificationtemplateid INTEGER NULL;
 
 -- Update the new column with values from the old column
 UPDATE programruleaction pra
-SET notificationtemplateid = t.id
+SET notificationtemplateid = t.programnotificationtemplateid
     FROM programnotificationtemplate t
 WHERE pra.templateuid = t.uid;
 
