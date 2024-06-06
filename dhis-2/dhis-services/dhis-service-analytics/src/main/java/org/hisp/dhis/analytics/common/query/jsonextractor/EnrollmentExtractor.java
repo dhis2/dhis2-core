@@ -28,10 +28,12 @@
 package org.hisp.dhis.analytics.common.query.jsonextractor;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.Function;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension;
 
 /**
  * This enum represents a mapping between static dimensions and their corresponding getter method
@@ -47,15 +49,27 @@ enum EnrollmentExtractor {
   OUNAME(DimensionParam.StaticDimension.OUNAME, JsonEnrollment::getOrgUnitName),
   OUCODE(DimensionParam.StaticDimension.OUCODE, JsonEnrollment::getOrgUnitCode),
   OUNAMEHIERARCHY(
-      DimensionParam.StaticDimension.OUNAMEHIERARCHY, JsonEnrollment::getOrgUnitNameHierarchy);
+      DimensionParam.StaticDimension.OUNAMEHIERARCHY, JsonEnrollment::getOrgUnitNameHierarchy),
+  ENROLLMENT_STATUS(
+      List.of(StaticDimension.ENROLLMENT_STATUS, StaticDimension.PROGRAM_STATUS),
+      JsonEnrollment::getEnrollmentStatus);
 
-  private final DimensionParam.StaticDimension dimension;
+  // The static dimensions that this extractor is responsible for
+  private final List<DimensionParam.StaticDimension> dimensions;
 
+  // The function that extracts the value of the dimension from the enrollment
   @Getter private final Function<JsonEnrollment, Object> extractor;
+
+  EnrollmentExtractor(
+      StaticDimension staticDimension, Function<JsonEnrollment, Object> getOrgUnitNameHierarchy) {
+    this(List.of(staticDimension), getOrgUnitNameHierarchy);
+  }
 
   static EnrollmentExtractor byDimension(DimensionParam.StaticDimension dimension) {
     return Arrays.stream(values())
-        .filter(enrollmentExtractor -> enrollmentExtractor.dimension.equals(dimension))
+        .filter(
+            enrollmentExtractor ->
+                enrollmentExtractor.dimensions.stream().anyMatch(dimension::equals))
         .findFirst()
         .orElseThrow(
             () ->

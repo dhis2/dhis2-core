@@ -91,7 +91,9 @@ public class OrgUnitQueryBuilder implements SqlQueryBuilder {
         .map(
             dimId ->
                 GroupableCondition.of(
-                    dimId.getGroupId(), OrganisationUnitCondition.of(dimId, queryContext)))
+                    dimId.getGroupId(),
+                    SqlQueryHelper.buildExistsValueSubquery(
+                        dimId, OrganisationUnitCondition.of(dimId, queryContext))))
         .forEach(builder::groupableCondition);
 
     acceptedSortingParams.forEach(

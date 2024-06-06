@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
+import static java.util.function.Predicate.not;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.DIMENSION_SEPARATOR;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getPrefix;
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
@@ -78,12 +79,12 @@ public class PeriodQueryBuilder extends SqlQueryBuilderAdaptor {
     RenderableSqlQuery.RenderableSqlQueryBuilder builder = RenderableSqlQuery.builder();
 
     streamDimensions(acceptedHeaders, acceptedDimensions, acceptedSortingParams)
-        .filter(DimensionIdentifier::isTeiDimension)
+        .filter(DimensionIdentifier::isTeDimension)
         .map(PeriodQueryBuilder::asField)
         .forEach(builder::selectField);
 
     streamDimensions(acceptedHeaders, acceptedDimensions, acceptedSortingParams)
-        .filter(dimensionIdentifier -> !dimensionIdentifier.isTeiDimension())
+        .filter(not(DimensionIdentifier::isTeDimension))
         .map(PeriodQueryBuilder::asField)
         // non TEI periods are virtual fields, since those will be extracted from JSON
         .map(Field::asVirtual)
@@ -93,7 +94,9 @@ public class PeriodQueryBuilder extends SqlQueryBuilderAdaptor {
         .map(
             dimensionIdentifier ->
                 GroupableCondition.of(
-                    getGroupId(dimensionIdentifier), PeriodCondition.of(dimensionIdentifier, ctx)))
+                    getGroupId(dimensionIdentifier),
+                    SqlQueryHelper.buildExistsValueSubquery(
+                        dimensionIdentifier, PeriodCondition.of(dimensionIdentifier, ctx))))
         .forEach(builder::groupableCondition);
 
     acceptedSortingParams.forEach(

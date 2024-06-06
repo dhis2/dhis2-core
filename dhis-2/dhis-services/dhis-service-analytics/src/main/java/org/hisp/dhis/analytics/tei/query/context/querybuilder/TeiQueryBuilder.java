@@ -76,6 +76,7 @@ public class TeiQueryBuilder extends SqlQueryBuilderAdaptor {
                                               'orgUnitName', en.ouname,
                                               'orgUnitCode', en.oucode,
                                               'orgUnitNameHierarchy', en.ounamehierarchy,
+                                              'enrollmentStatus', en.enrollmentstatus,
                                               'events',
                                               coalesce( (select json_agg(json_build_object('programStageUid', ps.uid,
                                                                                  'eventUid', ev.programstageuid,

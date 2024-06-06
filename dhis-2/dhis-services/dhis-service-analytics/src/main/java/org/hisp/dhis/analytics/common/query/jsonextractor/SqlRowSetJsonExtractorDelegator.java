@@ -87,7 +87,7 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
   }
 
   @SneakyThrows
-  static List<JsonEnrollment> parseEnrollmentsFromJson(String json) {
+  private List<JsonEnrollment> parseEnrollmentsFromJson(String json) {
     return OBJECT_MAPPER.readValue(json, new TypeReference<>() {});
   }
 
@@ -304,7 +304,8 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
             && event.getEventDataValues().containsKey(dimensionIdentifier.getDimension().getUid());
     boolean isScheduled =
         event != null
-            && StringUtils.equalsIgnoreCase(event.getStatus(), EventStatus.SCHEDULE.toString());
+            && StringUtils.equalsIgnoreCase(
+                event.getEventStatus(), EventStatus.SCHEDULE.toString());
 
     ValueStatus valueStatus = ValueStatus.SET;
 

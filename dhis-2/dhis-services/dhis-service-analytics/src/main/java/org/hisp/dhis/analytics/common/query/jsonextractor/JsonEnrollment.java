@@ -52,6 +52,8 @@ class JsonEnrollment {
 
   private String orgUnitNameHierarchy;
 
+  private String enrollmentStatus;
+
   private Collection<JsonEvent> events;
 
   @Data
@@ -72,7 +74,7 @@ class JsonEnrollment {
 
     private String orgUnitNameHierarchy;
 
-    private String status;
+    private String eventStatus;
 
     private Map<String, Object> eventDataValues;
   }

@@ -37,7 +37,6 @@ import java.util.function.Consumer;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
-import org.hisp.dhis.analytics.tei.query.context.sql.SqlParameterManager;
 import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -48,175 +47,7 @@ import org.junit.jupiter.api.Test;
 class SqlQueryHelperTest {
 
   @Test
-  void testEnrollmentSelectPositiveOffset() {
-    // Given
-    int positiveOffset = 1;
-
-    Program program = new Program();
-    program.setUid("uid1");
-
-    ElementWithOffset<Program> programElement = ElementWithOffset.of(program, positiveOffset);
-
-    TrackedEntityType trackedEntityType = new TrackedEntityType();
-    trackedEntityType.setUid("uid2");
-
-    SqlParameterManager sqlParameterManager = new SqlParameterManager();
-
-    // When
-    String statement =
-        SqlQueryHelper.enrollmentSelect(programElement, trackedEntityType, sqlParameterManager);
-
-    // Then
-    assertEquals(
-        "select innermost_enr.* from (select *, row_number() over (partition by trackedentityinstanceuid order by enrollmentdate asc) as rn  from analytics_tei_enrollments_uid2 where programuid = :1) innermost_enr where innermost_enr.rn = 1",
-        statement);
-  }
-
-  @Test
-  void testEnrollmentSelectNegativeOffset() {
-    // Given
-    int negativeOffset = -1;
-
-    Program program = new Program();
-    program.setUid("uid1");
-
-    ElementWithOffset<Program> programElement = ElementWithOffset.of(program, negativeOffset);
-
-    TrackedEntityType trackedEntityType = new TrackedEntityType();
-    trackedEntityType.setUid("uid2");
-
-    SqlParameterManager sqlParameterManager = new SqlParameterManager();
-
-    // When
-    String statement =
-        SqlQueryHelper.enrollmentSelect(programElement, trackedEntityType, sqlParameterManager);
-
-    // Then
-    assertEquals(
-        "select innermost_enr.* from (select *, row_number() over (partition by trackedentityinstanceuid order by enrollmentdate desc) as rn  from analytics_tei_enrollments_uid2 where programuid = :1) innermost_enr where innermost_enr.rn = 2",
-        statement);
-  }
-
-  @Test
-  void testEnrollmentSelectZeroOffset() {
-    // Given
-    int zeroOffset = 0;
-
-    Program program = new Program();
-    program.setUid("uid1");
-
-    ElementWithOffset<Program> programElement = ElementWithOffset.of(program, zeroOffset);
-
-    TrackedEntityType trackedEntityType = new TrackedEntityType();
-    trackedEntityType.setUid("uid2");
-
-    SqlParameterManager sqlParameterManager = new SqlParameterManager();
-
-    // When
-    String statement =
-        SqlQueryHelper.enrollmentSelect(programElement, trackedEntityType, sqlParameterManager);
-
-    // Then
-    assertEquals(
-        "select innermost_enr.* from (select *, row_number() over (partition by trackedentityinstanceuid order by enrollmentdate desc) as rn  from analytics_tei_enrollments_uid2 where programuid = :1) innermost_enr where innermost_enr.rn = 1",
-        statement);
-  }
-
-  @Test
-  void testEventSelectZeroOffset() {
-    // Given
-    int zeroOffset = 0;
-
-    Program program = new Program();
-    program.setUid("uid1");
-
-    ProgramStage programStage = new ProgramStage();
-    programStage.setProgram(program);
-
-    ElementWithOffset<Program> programElement = ElementWithOffset.of(program, zeroOffset);
-    ElementWithOffset<ProgramStage> programStageElement =
-        ElementWithOffset.of(programStage, zeroOffset);
-
-    TrackedEntityType trackedEntityType = new TrackedEntityType();
-    trackedEntityType.setUid("uid2");
-
-    SqlParameterManager sqlParameterManager = new SqlParameterManager();
-
-    // When
-    String statement =
-        SqlQueryHelper.eventSelect(
-            programElement, programStageElement, trackedEntityType, sqlParameterManager);
-
-    // Then
-    assertEquals(
-        "select innermost_evt.* from (select *, row_number() over (partition by programinstanceuid order by occurreddate desc, created desc ) as rn from analytics_tei_events_uid2 where status != 'SCHEDULE' and programuid = :1 and programstageuid = :2) innermost_evt where innermost_evt.rn = 1",
-        statement);
-  }
-
-  @Test
-  void testEventSelectPositiveOffset() {
-    // Given
-    int positiveOffset = 2;
-
-    Program program = new Program();
-    program.setUid("uid1");
-
-    ProgramStage programStage = new ProgramStage();
-    programStage.setProgram(program);
-
-    ElementWithOffset<Program> programElement = ElementWithOffset.of(program, positiveOffset);
-    ElementWithOffset<ProgramStage> programStageElement =
-        ElementWithOffset.of(programStage, positiveOffset);
-
-    TrackedEntityType trackedEntityType = new TrackedEntityType();
-    trackedEntityType.setUid("uid2");
-
-    SqlParameterManager sqlParameterManager = new SqlParameterManager();
-
-    // When
-    String statement =
-        SqlQueryHelper.eventSelect(
-            programElement, programStageElement, trackedEntityType, sqlParameterManager);
-
-    // Then
-    assertEquals(
-        "select innermost_evt.* from (select *, row_number() over (partition by programinstanceuid order by occurreddate asc, created asc ) as rn from analytics_tei_events_uid2 where status != 'SCHEDULE' and programuid = :1 and programstageuid = :2) innermost_evt where innermost_evt.rn = 2",
-        statement);
-  }
-
-  @Test
-  void testEventSelectNegativeOffset() {
-    // Given
-    int positiveOffset = -3;
-
-    Program program = new Program();
-    program.setUid("uid1");
-
-    ProgramStage programStage = new ProgramStage();
-    programStage.setProgram(program);
-
-    ElementWithOffset<Program> programElement = ElementWithOffset.of(program, positiveOffset);
-    ElementWithOffset<ProgramStage> programStageElement =
-        ElementWithOffset.of(programStage, positiveOffset);
-
-    TrackedEntityType trackedEntityType = new TrackedEntityType();
-    trackedEntityType.setUid("uid2");
-
-    SqlParameterManager sqlParameterManager = new SqlParameterManager();
-
-    // When
-    String statement =
-        SqlQueryHelper.eventSelect(
-            programElement, programStageElement, trackedEntityType, sqlParameterManager);
-
-    // Then
-    assertEquals(
-        "select innermost_evt.* from (select *, row_number() over (partition by programinstanceuid order by occurreddate desc, created desc ) as rn from analytics_tei_events_uid2 where status != 'SCHEDULE' and programuid = :1 and programstageuid = :2) innermost_evt where innermost_evt.rn = 4",
-        statement);
-  }
-
-  @Test
-  void testBuildOderSubQuery_throws_when_undetected_type() {
+  void test_throws_when_undetected_type() {
     DimensionParam dimensionParam = mock(DimensionParam.class);
     DimensionIdentifier<DimensionParam> testedDimension = mock(DimensionIdentifier.class);
     when(testedDimension.getDimension()).thenReturn(dimensionParam);
@@ -224,31 +55,40 @@ class SqlQueryHelperTest {
     assertThrows(
         IllegalArgumentException.class,
         () -> SqlQueryHelper.buildOrderSubQuery(testedDimension, () -> "field"));
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> SqlQueryHelper.buildExistsValueSubquery(testedDimension, () -> "field"));
   }
 
   @Test
-  void testBuildOderSubQuery_TE() {
+  void test_subQuery_TE() {
     DimensionParam dimensionParam = mock(DimensionParam.class);
     DimensionIdentifier<DimensionParam> testedDimension = mock(DimensionIdentifier.class);
     when(testedDimension.getDimension()).thenReturn(dimensionParam);
 
-    when(testedDimension.isTeiDimension()).thenReturn(true);
+    when(testedDimension.isTeDimension()).thenReturn(true);
 
     assertEquals(
         "t_1.\"field\"",
         SqlQueryHelper.buildOrderSubQuery(testedDimension, () -> "field").render());
+
+    assertEquals(
+        "t_1.\"field\"",
+        SqlQueryHelper.buildExistsValueSubquery(testedDimension, () -> "field").render());
   }
 
   @Test
-  void testBuildOderSubQuery_enrollment() {
+  void test_subQuery_enrollment() {
     DimensionParam dimensionParam = mock(DimensionParam.class);
     DimensionIdentifier<DimensionParam> testedDimension = mock(DimensionIdentifier.class);
     when(testedDimension.getDimension()).thenReturn(dimensionParam);
+    when(testedDimension.getPrefix()).thenReturn("prefix");
 
     TrackedEntityType trackedEntityType = mock(TrackedEntityType.class);
     when(trackedEntityType.getUid()).thenReturn("trackedEntityType");
 
-    ElementWithOffset program =
+    ElementWithOffset<Program> program =
         mockElementWithOffset(
             Program.class,
             "programUid",
@@ -269,13 +109,26 @@ class SqlQueryHelperTest {
                      and t_1.trackedentityinstanceuid = trackedentityinstanceuid) en
              where en.rn = 1)""",
         SqlQueryHelper.buildOrderSubQuery(testedDimension, () -> "field").render());
+
+    assertEquals(
+        """
+            exists(select 1
+                   from (select *
+                         from (select *, row_number() over (partition by trackedentityinstanceuid order by enrollmentdate desc) as rn
+                               from analytics_tei_enrollments_trackedentitytype
+                               where programuid = 'programUid'
+                                 and trackedentityinstanceuid = t_1.trackedentityinstanceuid) en
+                         where en.rn = 1) as "prefix"
+                   where field)""",
+        SqlQueryHelper.buildExistsValueSubquery(testedDimension, () -> "field").render());
   }
 
   @Test
-  void testBuildOderSubQuery_event() {
+  void test_subQuery_event() {
     DimensionParam dimensionParam = mock(DimensionParam.class);
     DimensionIdentifier<DimensionParam> testedDimension = mock(DimensionIdentifier.class);
     when(testedDimension.getDimension()).thenReturn(dimensionParam);
+    when(testedDimension.getPrefix()).thenReturn("prefix");
 
     TrackedEntityType trackedEntityType = mock(TrackedEntityType.class);
     when(trackedEntityType.getUid()).thenReturn("trackedEntityType");
@@ -312,16 +165,36 @@ class SqlQueryHelperTest {
              where en.rn = 1)) ev
              where ev.rn = 1)""",
         SqlQueryHelper.buildOrderSubQuery(testedDimension, () -> "field").render());
+
+    assertEquals(
+        """
+            exists(select 1
+                   from (select *
+                         from (select *, row_number() over (partition by trackedentityinstanceuid order by enrollmentdate desc) as rn
+                               from analytics_tei_enrollments_trackedentitytype
+                               where programuid = 'programUid'
+                                 and trackedentityinstanceuid = t_1.trackedentityinstanceuid) en
+                         where en.rn = 1) as "enrollmentSubqueryAlias"
+                   where exists(select 1
+                   from (select *
+                         from (select *, row_number() over ( partition by programinstanceuid order by occurreddate desc ) as rn
+                               from analytics_tei_events_trackedentitytype
+                               where "enrollmentSubqueryAlias".programinstanceuid = programinstanceuid
+                                 and programstageuid = 'programStageUid') ev
+                         where ev.rn = 1) as "prefix"
+                   where field))""",
+        SqlQueryHelper.buildExistsValueSubquery(testedDimension, () -> "field").render());
   }
 
   @Test
-  void testBuildOderSubQuery_data_element() {
+  void test_subQuery_data_element() {
     DimensionParam dimensionParam = mock(DimensionParam.class);
 
     when(dimensionParam.isOfType(any())).thenReturn(true);
 
     DimensionIdentifier<DimensionParam> testedDimension = mock(DimensionIdentifier.class);
     when(testedDimension.getDimension()).thenReturn(dimensionParam);
+    when(testedDimension.getPrefix()).thenReturn("prefix");
 
     TrackedEntityType trackedEntityType = mock(TrackedEntityType.class);
     when(trackedEntityType.getUid()).thenReturn("trackedEntityType");
@@ -360,6 +233,28 @@ class SqlQueryHelperTest {
              where en.rn = 1)) ev
              where ev.rn = 1))""",
         SqlQueryHelper.buildOrderSubQuery(testedDimension, () -> "field").render());
+
+    assertEquals(
+        """
+            exists(select 1
+                   from (select *
+                         from (select *, row_number() over (partition by trackedentityinstanceuid order by enrollmentdate desc) as rn
+                               from analytics_tei_enrollments_trackedentitytype
+                               where programuid = 'programUid'
+                                 and trackedentityinstanceuid = t_1.trackedentityinstanceuid) en
+                         where en.rn = 1) as "enrollmentSubqueryAlias"
+                   where exists(select 1
+                   from (select *
+                         from (select *, row_number() over ( partition by programinstanceuid order by occurreddate desc ) as rn
+                               from analytics_tei_events_trackedentitytype
+                               where "enrollmentSubqueryAlias".programinstanceuid = programinstanceuid
+                                 and programstageuid = 'programStageUid') ev
+                         where ev.rn = 1) as "prefix"
+                   where exists(select 1
+                   from analytics_tei_events_trackedentitytype
+                   where "prefix".programstageinstanceuid = programstageinstanceuid
+                     and field)))""",
+        SqlQueryHelper.buildExistsValueSubquery(testedDimension, () -> "field").render());
   }
 
   private <T extends UidObject> ElementWithOffset<T> mockElementWithOffset(

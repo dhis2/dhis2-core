@@ -46,7 +46,8 @@ enum EventExtractor {
   OUCODE(DimensionParam.StaticDimension.OUCODE, JsonEnrollment.JsonEvent::getOrgUnitCode),
   OUNAMEHIERARCHY(
       DimensionParam.StaticDimension.OUNAMEHIERARCHY,
-      JsonEnrollment.JsonEvent::getOrgUnitNameHierarchy);
+      JsonEnrollment.JsonEvent::getOrgUnitNameHierarchy),
+  EVENT_STATUS(StaticDimension.EVENT_STATUS, JsonEnrollment.JsonEvent::getEventStatus);
 
   private final DimensionParam.StaticDimension dimension;
 

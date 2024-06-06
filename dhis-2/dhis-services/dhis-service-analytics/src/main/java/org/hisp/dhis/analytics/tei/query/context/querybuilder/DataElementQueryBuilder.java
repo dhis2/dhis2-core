@@ -106,7 +106,9 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
         .map(
             dimId ->
                 GroupableCondition.of(
-                    dimId.getGroupId(), DataElementCondition.of(queryContext, dimId)))
+                    dimId.getGroupId(),
+                    SqlQueryHelper.buildExistsValueSubquery(
+                        dimId, DataElementCondition.of(queryContext, dimId))))
         .forEach(builder::groupableCondition);
 
     // Order clause comes from sorting params

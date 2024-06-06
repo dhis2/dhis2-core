@@ -85,6 +85,7 @@ public class StatusQueryBuilder extends SqlQueryBuilderAdaptor {
     RenderableSqlQuery.RenderableSqlQueryBuilder builder = RenderableSqlQuery.builder();
 
     streamDimensions(acceptedHeaders, acceptedDimensions, acceptedSortingParams)
+        .filter(DimensionIdentifier::isTeDimension)
         .map(
             dimensionIdentifier -> {
               StaticDimension staticDimension =
@@ -98,12 +99,31 @@ public class StatusQueryBuilder extends SqlQueryBuilderAdaptor {
             })
         .forEach(builder::selectField);
 
+    streamDimensions(acceptedHeaders, acceptedDimensions, acceptedSortingParams)
+        .filter(Predicate.not(DimensionIdentifier::isTeDimension))
+        .map(
+            dimensionIdentifier -> {
+              StaticDimension staticDimension =
+                  dimensionIdentifier.getDimension().getStaticDimension();
+              String prefix = getPrefix(dimensionIdentifier, false);
+
+              return Field.ofUnquoted(
+                  doubleQuote(prefix),
+                  staticDimension::getColumnName,
+                  prefix + DIMENSION_SEPARATOR + staticDimension.getHeaderName());
+            })
+        // Fields that are not TE specific, are Virtual since they will be extracted from the JSON
+        .map(Field::asVirtual)
+        .forEach(builder::selectField);
+
     acceptedDimensions.stream()
         .filter(SqlQueryBuilders::hasRestrictions)
         .map(
             dimensionIdentifier ->
                 GroupableCondition.of(
-                    dimensionIdentifier.getGroupId(), StatusCondition.of(dimensionIdentifier, ctx)))
+                    dimensionIdentifier.getGroupId(),
+                    SqlQueryHelper.buildExistsValueSubquery(
+                        dimensionIdentifier, StatusCondition.of(dimensionIdentifier, ctx))))
         .forEach(builder::groupableCondition);
 
     acceptedSortingParams.forEach(

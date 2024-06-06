@@ -30,27 +30,17 @@ package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.text.StringSubstitutor.replace;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.isDataElement;
-import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.ANALYTICS_TEI_ENR;
-import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.ANALYTICS_TEI_EVT;
-import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.PS_UID;
-import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.P_UID;
 import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_ALIAS;
+import static org.hisp.dhis.commons.collection.CollectionUtils.merge;
 
 import java.util.Map;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
-import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.analytics.tei.query.context.querybuilder.OffsetHelper.Offset;
-import org.hisp.dhis.analytics.tei.query.context.sql.SqlParameterManager;
-import org.hisp.dhis.commons.collection.CollectionUtils;
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 
 /**
  * Helper class that contains methods used along with query generation. It's mainly referenced in
@@ -89,60 +79,42 @@ class SqlQueryHelper {
            where programstageinstanceuid = %s)"""
           .formatted(EVENT_ORDER_BY_SUBQUERY);
 
-  static String enrollmentSelect(
-      ElementWithOffset<Program> program,
-      TrackedEntityType trackedEntityType,
-      SqlParameterManager sqlParameterManager) {
-    Offset offset = OffsetHelper.getOffset(program.getOffsetWithDefault());
+  private static final String ENROLLMENT_EXISTS_SUBQUERY =
+      """
+          exists(select 1
+                 from (select *
+                       from (select *, row_number() over (partition by trackedentityinstanceuid order by enrollmentdate ${programOffsetDirection}) as rn
+                             from analytics_tei_enrollments_${trackedEntityTypeUid}
+                             where programuid = '${programUid}'
+                               and trackedentityinstanceuid = t_1.trackedentityinstanceuid) en
+                       where en.rn = 1) as "${enrollmentSubqueryAlias}"
+                 where ${enrollmentCondition})""";
 
-    return "select innermost_enr.*"
-        + " from (select *,"
-        + " row_number() over (partition by trackedentityinstanceuid order by enrollmentdate "
-        + offset.direction()
-        + ") as rn "
-        + " from "
-        + ANALYTICS_TEI_ENR
-        + trackedEntityType.getUid().toLowerCase()
-        + " where "
-        + P_UID
-        + " = "
-        + sqlParameterManager.bindParamAndGetIndex(program.getElement().getUid())
-        + ") innermost_enr"
-        + " where innermost_enr.rn = "
-        + offset.offset();
-  }
+  private static final String EVENT_EXISTS_SUBQUERY =
+      replace(
+          ENROLLMENT_EXISTS_SUBQUERY,
+          Map.of(
+              "enrollmentCondition",
+              """
+                  exists(select 1
+                         from (select *
+                               from (select *, row_number() over ( partition by programinstanceuid order by occurreddate ${programStageOffsetDirection} ) as rn
+                                     from analytics_tei_events_${trackedEntityTypeUid}
+                                     where "${enrollmentSubqueryAlias}".programinstanceuid = programinstanceuid
+                                       and programstageuid = '${programStageUid}') ev
+                               where ev.rn = 1) as "${eventSubqueryAlias}"
+                         where ${eventCondition})"""));
 
-  static String eventSelect(
-      ElementWithOffset<Program> program,
-      ElementWithOffset<ProgramStage> programStage,
-      TrackedEntityType trackedEntityType,
-      SqlParameterManager sqlParameterManager) {
-    Offset offset = OffsetHelper.getOffset(programStage.getOffsetWithDefault());
-
-    return "select innermost_evt.*"
-        + " from (select *,"
-        + " row_number() over (partition by programinstanceuid order by occurreddate "
-        + offset.direction()
-        + ", created "
-        + offset.direction()
-        + " ) as rn"
-        + " from "
-        + ANALYTICS_TEI_EVT
-        + trackedEntityType.getUid().toLowerCase()
-        + " where status != '"
-        + EventStatus.SCHEDULE
-        + "' and "
-        + P_UID
-        + " = "
-        + sqlParameterManager.bindParamAndGetIndex(program.getElement().getUid())
-        + " and "
-        + PS_UID
-        + " = "
-        + sqlParameterManager.bindParamAndGetIndex(programStage.getElement().getUid())
-        + ") innermost_evt"
-        + " where innermost_evt.rn = "
-        + offset.offset();
-  }
+  private static final String DATA_VALUES_EXISTS_SUBQUERY =
+      replace(
+          EVENT_EXISTS_SUBQUERY,
+          Map.of(
+              "eventCondition",
+              """
+                  exists(select 1
+                         from analytics_tei_events_${trackedEntityTypeUid}
+                         where "${eventSubqueryAlias}".programstageinstanceuid = programstageinstanceuid
+                           and ${eventDataValueCondition})"""));
 
   /**
    * Builds the order by sub-query for the given dimension identifier and field.
@@ -153,66 +125,108 @@ class SqlQueryHelper {
    */
   static Renderable buildOrderSubQuery(
       DimensionIdentifier<DimensionParam> dimId, Renderable field) {
-    String rendered = field.render();
     if (isDataElement(dimId)) {
       return () ->
           replace(
               DATA_VALUES_ORDER_BY_SUBQUERY,
-              CollectionUtils.merge(
-                  getEnrollmentPlaceholders(dimId, rendered),
-                  getEventPlaceholders(dimId, rendered),
-                  getDataElementPlaceholders(rendered)));
+              merge(
+                  getEnrollmentPlaceholders(dimId),
+                  getEventPlaceholders(dimId),
+                  Map.of(
+                      "selectedEnrollmentField", "programInstanceUid",
+                      "selectedEventField", "programStageInstanceUid",
+                      "dataElementField", field.render())));
     }
     if (dimId.isEventDimension() && !isDataElement(dimId)) {
       return () ->
           replace(
               EVENT_ORDER_BY_SUBQUERY,
-              CollectionUtils.merge(
-                  getEnrollmentPlaceholders(dimId, rendered),
-                  getEventPlaceholders(dimId, rendered)));
+              merge(
+                  getEnrollmentPlaceholders(dimId),
+                  getEventPlaceholders(dimId),
+                  Map.of(
+                      "selectedEnrollmentField",
+                      "programInstanceUid",
+                      "selectedEventField",
+                      field.render())));
     }
     if (dimId.isEnrollmentDimension()) {
       return () ->
-          replace(ENROLLMENT_ORDER_BY_SUBQUERY, getEnrollmentPlaceholders(dimId, rendered));
+          replace(
+              ENROLLMENT_ORDER_BY_SUBQUERY,
+              merge(
+                  getEnrollmentPlaceholders(dimId),
+                  Map.of("selectedEnrollmentField", field.render())));
     }
-    if (dimId.isTeiDimension()) {
+    if (dimId.isTeDimension()) {
       return Field.of(TEI_ALIAS, field, StringUtils.EMPTY);
     }
     throw new IllegalArgumentException("Unsupported dimension type: " + dimId);
   }
 
   /**
-   * Returns the placeholders for the data element field.
+   * Builds the exists value sub-query for the given dimension identifier and condition.
    *
-   * @param field the field to render
-   * @return the placeholders
+   * @param dimId the dimension identifier
+   * @param condition the condition to apply
+   * @return the renderable exists value sub-query
    */
-  private static Map<String, String> getDataElementPlaceholders(String field) {
-    return Map.of(
-        "selectedEnrollmentField", "programInstanceUid",
-        "selectedEventField", "programStageInstanceUid",
-        "dataElementField", field);
+  public static Renderable buildExistsValueSubquery(
+      DimensionIdentifier<DimensionParam> dimId, Renderable condition) {
+    if (isDataElement(dimId)) {
+      return () ->
+          replace(
+              DATA_VALUES_EXISTS_SUBQUERY,
+              merge(
+                  getEnrollmentPlaceholders(dimId),
+                  getEventPlaceholders(dimId),
+                  Map.of(
+                      "eventSubqueryAlias", dimId.getPrefix(),
+                      "enrollmentSubqueryAlias", "enrollmentSubqueryAlias",
+                      "eventDataValueCondition", condition.render())));
+    }
+    if (dimId.isEventDimension() && !isDataElement(dimId)) {
+      return () ->
+          replace(
+              EVENT_EXISTS_SUBQUERY,
+              merge(
+                  getEnrollmentPlaceholders(dimId),
+                  getEventPlaceholders(dimId),
+                  Map.of(
+                      "eventSubqueryAlias", dimId.getPrefix(),
+                      "enrollmentSubqueryAlias", "enrollmentSubqueryAlias",
+                      "eventCondition", condition.render())));
+    }
+    if (dimId.isEnrollmentDimension()) {
+      return () ->
+          replace(
+              ENROLLMENT_EXISTS_SUBQUERY,
+              merge(
+                  getEnrollmentPlaceholders(dimId),
+                  Map.of(
+                      "enrollmentSubqueryAlias", dimId.getPrefix(),
+                      "enrollmentCondition", condition.render())));
+    }
+    if (dimId.isTeDimension()) {
+      return Field.of(TEI_ALIAS, condition, StringUtils.EMPTY);
+    }
+    throw new IllegalArgumentException("Unsupported dimension type: " + dimId);
   }
 
   /**
-   * Returns the placeholders for the event field.
+   * Returns the placeholders for the event.
    *
    * @param dimId the dimension identifier
-   * @param field the field to render
    * @return the placeholders
    */
   private static Map<String, String> getEventPlaceholders(
-      DimensionIdentifier<DimensionParam> dimId, String field) {
+      DimensionIdentifier<DimensionParam> dimId) {
 
     String programStageUid = dimId.getProgramStage().getElement().getUid();
     Offset programStageOffset =
         OffsetHelper.getOffset(dimId.getProgramStage().getOffsetWithDefault());
 
     return Map.of(
-        "selectedEnrollmentField",
-        "programInstanceUid",
-        "selectedEventField",
-        field,
         "programStageUid",
         programStageUid,
         "programStageOffset",
@@ -222,14 +236,13 @@ class SqlQueryHelper {
   }
 
   /**
-   * Returns the placeholders for the enrollment field.
+   * Returns the placeholders for the enrollment.
    *
    * @param dimId the dimension identifier
-   * @param field the field to render
    * @return the placeholders
    */
   private static Map<String, String> getEnrollmentPlaceholders(
-      DimensionIdentifier<DimensionParam> dimId, String field) {
+      DimensionIdentifier<DimensionParam> dimId) {
 
     String trackedEntityTypeUid = dimId.getProgram().getElement().getTrackedEntityType().getUid();
 
@@ -237,7 +250,6 @@ class SqlQueryHelper {
     Offset programOffset = OffsetHelper.getOffset(dimId.getProgram().getOffsetWithDefault());
 
     return Map.of(
-        "selectedEnrollmentField", field,
         "trackedEntityTypeUid", StringUtils.lowerCase(trackedEntityTypeUid),
         "programUid", programUid,
         "programOffset", programOffset.offset(),
