@@ -74,8 +74,7 @@ class SqlQueryHelperTest {
         SqlQueryHelper.buildOrderSubQuery(testedDimension, () -> "field").render());
 
     assertEquals(
-        "t_1.\"field\"",
-        SqlQueryHelper.buildExistsValueSubquery(testedDimension, () -> "field").render());
+        "field", SqlQueryHelper.buildExistsValueSubquery(testedDimension, () -> "field").render());
   }
 
   @Test

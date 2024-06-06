@@ -208,7 +208,7 @@ class SqlQueryHelper {
                       "enrollmentCondition", condition.render())));
     }
     if (dimId.isTeDimension()) {
-      return Field.of(TEI_ALIAS, condition, StringUtils.EMPTY);
+      return condition;
     }
     throw new IllegalArgumentException("Unsupported dimension type: " + dimId);
   }
