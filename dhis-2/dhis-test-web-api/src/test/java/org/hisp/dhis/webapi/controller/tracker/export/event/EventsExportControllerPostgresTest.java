@@ -33,16 +33,20 @@ import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
 import java.util.Date;
+import java.util.Set;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
@@ -52,7 +56,10 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -80,6 +87,7 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
   private TrackedEntityType trackedEntityType;
   private Event event;
   private DataElement dataElement;
+  private TrackedEntityAttribute trackedEntityAttribute;
 
   @BeforeEach
   void setUp() {
@@ -91,6 +99,12 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
     user = createAndAddUser("username", orgUnit, ALL.name());
 
     trackedEntityType = trackedEntityTypeAccessible();
+    trackedEntityAttribute = createTrackedEntityAttribute('A');
+    manager.save(trackedEntityAttribute);
+
+    TrackedEntityTypeAttribute trackedEntityTypeAttribute =
+        new TrackedEntityTypeAttribute(trackedEntityType, trackedEntityAttribute);
+    manager.save(trackedEntityTypeAttribute);
 
     program = createProgram('A');
     program.getOrganisationUnits().add(orgUnit);
@@ -266,6 +280,41 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
         () -> assertEquals(3, pagerObject.getPageSize()),
         () -> assertHasNoMember(pagerObject, "prevPage"),
         () -> assertHasNoMember(pagerObject, "nextPage"));
+  }
+
+  @Test
+  void testFilterSqlInjectionWithResult() {
+    user.setTeiSearchOrganisationUnits(Set.of(orgUnit));
+    manager.update(user);
+    injectSecurityContextUser(user);
+    JsonMixed data =
+        GET("/tracker/events?fields=*&programStage=pSllsjpfLH2&filterAttributes="
+                + trackedEntityAttribute.getUid()
+                + ":eq:1%27+or+' 1'='1")
+            .content(HttpStatus.OK);
+    assertTrue(data.getArray("events").isEmpty());
+  }
+
+  @Test
+  void testFilterSqlInjectionNoResult() {
+    user.setTeiSearchOrganisationUnits(Set.of(orgUnit));
+    manager.update(user);
+    injectSecurityContextUser(user);
+
+    TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue();
+    attributeValue.setValue("test");
+    attributeValue.setAttribute(trackedEntityAttribute);
+    TrackedEntity te = trackedEntity(orgUnit);
+    attributeValue.setTrackedEntity(trackedEntity());
+    te.setTrackedEntityAttributeValues(Set.of(attributeValue));
+    manager.save(te);
+
+    JsonMixed data =
+        GET("/tracker/events?fields=*&programStage=pSllsjpfLH2&filterAttributes="
+                + trackedEntityAttribute.getUid()
+                + ":eq:test")
+            .content(HttpStatus.OK);
+    assertFalse(data.isEmpty());
   }
 
   private TrackedEntity trackedEntity() {

@@ -284,4 +284,8 @@ public class QueryFilter {
       return operator.equals(other.operator);
     }
   }
+
+  private String escape(String value) {
+    return value.replace("'", ("'" + "'")).replace("\\", ("\\" + "\\"));
+  }
 }
