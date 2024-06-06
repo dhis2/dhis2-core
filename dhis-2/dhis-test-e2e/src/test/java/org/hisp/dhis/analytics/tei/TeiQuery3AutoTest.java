@@ -1457,13 +1457,13 @@ public class TeiQuery3AutoTest extends AnalyticsApiTest {
     QueryParamsBuilder params =
         new QueryParamsBuilder()
             .add("includeMetadataDetails=true")
-            .add("asc=cejWyOfXge6")
+            .add("asc=gHGyrwKPzej")
             .add(
                 "headers=ouname,gHGyrwKPzej,ciq2USN94oJ,cejWyOfXge6,IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6")
             .add("displayProperty=NAME")
             .add("totalPages=false")
             .add("rowContext=true")
-            .add("pageSize=100")
+            .add("pageSize=8")
             .add("page=1")
             .add(
                 "dimension=ou:USER_ORGUNIT,gHGyrwKPzej,ciq2USN94oJ,cejWyOfXge6,IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6")
@@ -1477,14 +1477,14 @@ public class TeiQuery3AutoTest extends AnalyticsApiTest {
         .validate()
         .statusCode(200)
         .body("headers", hasSize(equalTo(6)))
-        .body("rows", hasSize(equalTo(100)))
-        .body("height", equalTo(100))
+        .body("rows", hasSize(equalTo(8)))
+        .body("height", equalTo(8))
         .body("width", equalTo(6))
         .body("headerWidth", equalTo(6));
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"pageSize\":100,\"isLastPage\":false},\"items\":{\"Mnp3oXrpAbK\":{\"uid\":\"Mnp3oXrpAbK\",\"code\":\"Female\",\"name\":\"Female\"},\"IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6\":{\"uid\":\"a3kGcGDCuk6\",\"code\":\"DE_2006098\",\"name\":\"MCH Apgar Score\",\"description\":\"Apgar is a quick test performed on a baby at 1 and 5 minutes after birth. The 1-minute score determines how well the baby tolerated the birthing process. The 5-minute score tells the doctor how well the baby is doing outside the mother's womb.\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"NUMBER\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"},\"bx6fsa0t90x\":{\"uid\":\"bx6fsa0t90x\",\"code\":\"DE_2006101\",\"name\":\"MCH BCG dose\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"BOOLEAN\",\"aggregationType\":\"SUM\",\"totalAggregationType\":\"SUM\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ciq2USN94oJ\":{\"uid\":\"ciq2USN94oJ\",\"code\":\"MMD_PER_STA\",\"name\":\"Civil status\",\"description\":\"Civil status\",\"dimensionItemType\":\"PROGRAM_ATTRIBUTE\",\"valueType\":\"TEXT\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"SUM\"},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"a3kGcGDCuk6\":{\"uid\":\"a3kGcGDCuk6\",\"code\":\"DE_2006098\",\"name\":\"MCH Apgar Score\",\"description\":\"Apgar is a quick test performed on a baby at 1 and 5 minutes after birth. The 1-minute score determines how well the baby tolerated the birthing process. The 5-minute score tells the doctor how well the baby is doing outside the mother's womb.\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"NUMBER\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"},\"cejWyOfXge6\":{\"uid\":\"cejWyOfXge6\",\"name\":\"Gender\",\"description\":\"Gender\",\"dimensionItemType\":\"PROGRAM_ATTRIBUTE\",\"valueType\":\"TEXT\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"SUM\"},\"gHGyrwKPzej\":{\"uid\":\"gHGyrwKPzej\",\"code\":\"MMD_PER_DOB\",\"name\":\"Birth date\",\"description\":\"Birth date\",\"dimensionItemType\":\"PROGRAM_ATTRIBUTE\",\"valueType\":\"DATE\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"SUM\"},\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x\":{\"uid\":\"bx6fsa0t90x\",\"code\":\"DE_2006101\",\"name\":\"MCH BCG dose\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"BOOLEAN\",\"aggregationType\":\"SUM\",\"totalAggregationType\":\"SUM\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"pC3N9N77UmT\":{\"uid\":\"pC3N9N77UmT\",\"name\":\"Gender\",\"options\":[{\"uid\":\"Mnp3oXrpAbK\",\"code\":\"Female\"}]},\"ouname\":{\"name\":\"Organisation Unit Name\",\"dimensionType\":\"ORGANISATION_UNIT\"}},\"dimensions\":{\"zDhUuAYrxNC\":[],\"lw1SqmMlnfh\":[],\"bx6fsa0t90x\":[],\"Qo571yj6Zcn\":[],\"DODgdr5Oo2v\":[],\"iESIqZ0R0R0\":[],\"n9nUvfpTsxQ\":[],\"kyIzQsj96BD\":[],\"xs8A6tQJY0s\":[],\"A4xFHyieXys\":[],\"OvY4VVhSDeJ\":[],\"RG7uGl4w5Jq\":[],\"spFvx9FndA4\":[],\"GUOBQt5K2WI\":[],\"Agywv2JGwuq\":[],\"lZGmxYbs97q\":[],\"VqEFza8wbwA\":[],\"ciq2USN94oJ\":[],\"ou\":[\"ImspTQPwCqd\"],\"w75KJ2mc4zz\":[],\"KmEUg2hHEtx\":[],\"G7vUx908SwP\":[],\"o9odfev2Ty5\":[],\"a3kGcGDCuk6\":[],\"FO4sWYJ64LQ\":[],\"NDXw0cluzSw\":[],\"ruQQnf6rswq\":[],\"cejWyOfXge6\":[\"Mnp3oXrpAbK\"],\"P2cwLGskgxn\":[],\"gHGyrwKPzej\":[],\"pe\":[],\"VHfUeXpawmE\":[],\"AuPLng5hLbE\":[],\"ZcBPrXKahq2\":[],\"H9IlTX2X6SL\":[]}}";
+        "{\"pager\":{\"page\":1,\"pageSize\":8,\"isLastPage\":false},\"items\":{\"IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6\":{\"uid\":\"a3kGcGDCuk6\",\"code\":\"DE_2006098\",\"name\":\"MCH Apgar Score\",\"description\":\"Apgar is a quick test performed on a baby at 1 and 5 minutes after birth. The 1-minute score determines how well the baby tolerated the birthing process. The 5-minute score tells the doctor how well the baby is doing outside the mother's womb.\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"NUMBER\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"},\"xjA5E9MimMU\":{\"uid\":\"xjA5E9MimMU\",\"name\":\"Civil status\",\"options\":[{\"uid\":\"wfkKVdPBzho\",\"code\":\"Single or widow\"}]},\"bx6fsa0t90x\":{\"uid\":\"bx6fsa0t90x\",\"code\":\"DE_2006101\",\"name\":\"MCH BCG dose\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"BOOLEAN\",\"aggregationType\":\"SUM\",\"totalAggregationType\":\"SUM\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ciq2USN94oJ\":{\"uid\":\"ciq2USN94oJ\",\"code\":\"MMD_PER_STA\",\"name\":\"Civil status\",\"description\":\"Civil status\",\"dimensionItemType\":\"PROGRAM_ATTRIBUTE\",\"valueType\":\"TEXT\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"SUM\"},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"a3kGcGDCuk6\":{\"uid\":\"a3kGcGDCuk6\",\"code\":\"DE_2006098\",\"name\":\"MCH Apgar Score\",\"description\":\"Apgar is a quick test performed on a baby at 1 and 5 minutes after birth. The 1-minute score determines how well the baby tolerated the birthing process. The 5-minute score tells the doctor how well the baby is doing outside the mother's womb.\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"NUMBER\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"},\"cejWyOfXge6\":{\"uid\":\"cejWyOfXge6\",\"name\":\"Gender\",\"description\":\"Gender\",\"dimensionItemType\":\"PROGRAM_ATTRIBUTE\",\"valueType\":\"TEXT\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"SUM\"},\"gHGyrwKPzej\":{\"uid\":\"gHGyrwKPzej\",\"code\":\"MMD_PER_DOB\",\"name\":\"Birth date\",\"description\":\"Birth date\",\"dimensionItemType\":\"PROGRAM_ATTRIBUTE\",\"valueType\":\"DATE\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"SUM\"},\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x\":{\"uid\":\"bx6fsa0t90x\",\"code\":\"DE_2006101\",\"name\":\"MCH BCG dose\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"BOOLEAN\",\"aggregationType\":\"SUM\",\"totalAggregationType\":\"SUM\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"wfkKVdPBzho\":{\"uid\":\"wfkKVdPBzho\",\"code\":\"Single or widow\",\"name\":\"Single or widow\"},\"ouname\":{\"name\":\"Organisation Unit Name\",\"dimensionType\":\"ORGANISATION_UNIT\"}},\"dimensions\":{\"zDhUuAYrxNC\":[],\"lw1SqmMlnfh\":[],\"bx6fsa0t90x\":[],\"Qo571yj6Zcn\":[],\"DODgdr5Oo2v\":[],\"iESIqZ0R0R0\":[],\"n9nUvfpTsxQ\":[],\"kyIzQsj96BD\":[],\"xs8A6tQJY0s\":[],\"A4xFHyieXys\":[],\"OvY4VVhSDeJ\":[],\"RG7uGl4w5Jq\":[],\"spFvx9FndA4\":[],\"GUOBQt5K2WI\":[],\"Agywv2JGwuq\":[],\"lZGmxYbs97q\":[],\"VqEFza8wbwA\":[],\"ciq2USN94oJ\":[\"wfkKVdPBzho\"],\"ou\":[\"ImspTQPwCqd\"],\"w75KJ2mc4zz\":[],\"KmEUg2hHEtx\":[],\"G7vUx908SwP\":[],\"o9odfev2Ty5\":[],\"a3kGcGDCuk6\":[],\"FO4sWYJ64LQ\":[],\"NDXw0cluzSw\":[],\"ruQQnf6rswq\":[],\"cejWyOfXge6\":[],\"P2cwLGskgxn\":[],\"gHGyrwKPzej\":[],\"pe\":[],\"VHfUeXpawmE\":[],\"AuPLng5hLbE\":[],\"ZcBPrXKahq2\":[],\"H9IlTX2X6SL\":[]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -1516,106 +1516,17 @@ public class TeiQuery3AutoTest extends AnalyticsApiTest {
         true);
 
     // Assert rows.
-    validateRow(response, 0, List.of("Kamaranka CHC", "", "", "Female", "", ""));
-    validateRow(response, 1, List.of("Sandayeima MCHP", "", "", "Female", "", ""));
-    validateRow(response, 2, List.of("Deima MCHP", "", "", "Female", "", ""));
-    validateRow(response, 3, List.of("Makoba Bana MCHP", "", "", "Female", "", ""));
-    validateRow(response, 4, List.of("Gloucester CHP", "", "", "Female", "", ""));
-    validateRow(response, 5, List.of("Moyowa MCHP", "", "", "Female", "", ""));
-    validateRow(response, 6, List.of("Newton CHC", "", "", "Female", "", ""));
-    validateRow(response, 7, List.of("Jao MCHP", "", "", "Female", "", ""));
-    validateRow(response, 8, List.of("Koakoyima CHC", "", "", "Female", "", ""));
-    validateRow(response, 9, List.of("Mile 38 CHP", "", "", "Female", "", ""));
-    validateRow(response, 10, List.of("Manowa CHC", "", "", "Female", "", ""));
-    validateRow(response, 11, List.of("Fogbo CHP", "", "", "Female", "", ""));
-    validateRow(response, 12, List.of("Hill Station MCHP", "", "", "Female", "", ""));
-    validateRow(response, 13, List.of("Moyeamoh CHP", "", "", "Female", "", ""));
-    validateRow(response, 14, List.of("Taiama (Kori) CHC", "", "", "Female", "", ""));
-    validateRow(response, 15, List.of("Kawula CHP", "", "", "Female", "", ""));
-    validateRow(response, 16, List.of("Kayongoro MCHP", "", "", "Female", "", ""));
-    validateRow(response, 17, List.of("Kissy Health Centre", "", "", "Female", "", ""));
-    validateRow(response, 18, List.of("Mogbuama MCHP", "", "", "Female", "", ""));
-    validateRow(response, 19, List.of("Madina Gbonkobor MCHP", "", "", "Female", "", ""));
-    validateRow(response, 20, List.of("Mano Yorgbo MCHP", "", "", "Female", "", ""));
-    validateRow(response, 21, List.of("Magbaingba MCHP", "", "", "Female", "", ""));
-    validateRow(response, 22, List.of("Kemedugu MCHP", "", "", "Female", "", ""));
-    validateRow(response, 23, List.of("Komrabai Ngolla MCHP", "", "", "Female", "", ""));
-    validateRow(response, 24, List.of("Kamakwie MCHP", "", "", "Female", "", ""));
-    validateRow(response, 25, List.of("Fullah Town (B.Sebora) MCHP", "", "", "Female", "", ""));
-    validateRow(response, 26, List.of("Sembeima MCHP", "", "", "Female", "", ""));
-    validateRow(response, 27, List.of("Gbangbatoke CHC", "", "", "Female", "", ""));
-    validateRow(response, 28, List.of("Maboni MCHP", "", "", "Female", "", ""));
-    validateRow(response, 29, List.of("UFC Nixon Hospital", "", "", "Female", "", ""));
-    validateRow(response, 30, List.of("Ngelehun CHC", "", "", "Female", "", ""));
-    validateRow(response, 31, List.of("Royeiben MCHP", "", "", "Female", "", ""));
-    validateRow(response, 32, List.of("Rothatha MCHP", "", "", "Female", "", ""));
-    validateRow(response, 33, List.of("Kundorma CHP", "", "", "Female", "", ""));
-    validateRow(response, 34, List.of("Kamagbewu MCHP", "", "", "Female", "", ""));
-    validateRow(response, 35, List.of("Baiima CHP", "", "", "Female", "", ""));
-    validateRow(response, 36, List.of("Mapailleh MCHP", "", "", "Female", "", ""));
-    validateRow(response, 37, List.of("Masiaka CHC", "", "", "Female", "", ""));
-    validateRow(response, 38, List.of("Bradford CHC", "", "", "Female", "", ""));
-    validateRow(response, 39, List.of("Tonko Maternity Clinic", "", "", "Female", "", ""));
-    validateRow(response, 40, List.of("Yarawadu MCHP", "", "", "Female", "", ""));
-    validateRow(response, 41, List.of("Mafoimara MCHP", "", "", "Female", "", ""));
-    validateRow(response, 42, List.of("Malama MCHP", "", "", "Female", "", ""));
-    validateRow(response, 43, List.of("Ngelehun CHC", "", "", "Female", "", ""));
-    validateRow(response, 44, List.of("Ngelehun CHC", "", "", "Female", "", ""));
-    validateRow(response, 45, List.of("Ngelehun CHC", "", "", "Female", "", ""));
-    validateRow(response, 46, List.of("Ngelehun CHC", "", "", "Female", "", ""));
-    validateRow(response, 47, List.of("Ngelehun CHC", "", "", "Female", "", ""));
-    validateRow(response, 48, List.of("Ngelehun CHC", "", "", "Female", "", ""));
-    validateRow(response, 49, List.of("Ngelehun CHC", "", "", "Female", "", ""));
-    validateRow(response, 50, List.of("Ngelehun CHC", "", "", "Female", "", ""));
-    validateRow(response, 51, List.of("Dulukoro MCHP", "", "", "Female", "", ""));
-    validateRow(response, 52, List.of("Konjo CHP", "", "", "Female", "", ""));
-    validateRow(response, 53, List.of("Mayossoh MCHP", "", "", "Female", "", ""));
-    validateRow(response, 54, List.of("Ngelehun CHC", "", "", "Female", "", ""));
-    validateRow(response, 55, List.of("Mamboma MCHP", "", "", "Female", "", ""));
-    validateRow(response, 56, List.of("Benguema MI Room", "", "", "Female", "", ""));
-    validateRow(response, 57, List.of("Moyollo MCHP", "", "", "Female", "", ""));
-    validateRow(response, 58, List.of("Sengema CHP", "", "", "Female", "", ""));
-    validateRow(response, 59, List.of("Makobeh MCHP", "", "", "Female", "", ""));
-    validateRow(response, 60, List.of("Maharie MCHP", "", "", "Female", "", ""));
-    validateRow(response, 61, List.of("Makeni-Rokfullah MCHP", "", "", "Female", "", ""));
-    validateRow(response, 62, List.of("Heremakono MCHP", "", "", "Female", "", ""));
-    validateRow(response, 63, List.of("Kondeya (Sandor) MCHP", "", "", "Female", "", ""));
-    validateRow(response, 64, List.of("Rogballan CHP", "", "", "Female", "", ""));
-    validateRow(response, 65, List.of("Kania MCHP", "", "", "Female", "", ""));
-    validateRow(response, 66, List.of("Conakry Dee CHC", "", "", "Female", "", ""));
-    validateRow(response, 67, List.of("Under five (Luawa) Clinic", "", "", "Female", "", ""));
-    validateRow(response, 68, List.of("Adonkia CHP", "", "", "Female", "", ""));
-    validateRow(response, 69, List.of("Kambama CHP", "", "", "Female", "", ""));
-    validateRow(response, 70, List.of("Kiampkakolo MCHP", "", "", "Female", "", ""));
-    validateRow(response, 71, List.of("Mogbasske CHP", "", "", "Female", "", ""));
-    validateRow(response, 72, List.of("Gbangadu MCHP", "", "", "Female", "", ""));
-    validateRow(response, 73, List.of("Taninahun (Malen) CHP", "", "", "Female", "", ""));
-    validateRow(response, 74, List.of("Foindu (Lower Bamabara) CHC", "", "", "Female", "", ""));
-    validateRow(response, 75, List.of("Fodaya MCHP", "", "", "Female", "", ""));
-    validateRow(response, 76, List.of("Bangoma MCHP", "", "", "Female", "", ""));
-    validateRow(response, 77, List.of("Kambawama MCHP", "", "", "Female", "", ""));
-    validateRow(response, 78, List.of("Tefeya CHP", "", "", "Female", "", ""));
-    validateRow(response, 79, List.of("Gbaama MCHP", "", "", "Female", "", ""));
-    validateRow(response, 80, List.of("Kayongoro MCHP", "", "", "Female", "", ""));
-    validateRow(response, 81, List.of("Marie Stopes (Gbense) Clinic", "", "", "Female", "", ""));
-    validateRow(response, 82, List.of("Kondeya (Sandor) MCHP", "", "", "Female", "", ""));
-    validateRow(response, 83, List.of("Wordu CHP", "", "", "Female", "", ""));
-    validateRow(response, 84, List.of("Juma MCHP", "", "", "Female", "", ""));
-    validateRow(response, 85, List.of("Teko Barracks Clinic", "", "", "Female", "", ""));
-    validateRow(response, 86, List.of("Kormende MCHP", "", "", "Female", "", ""));
-    validateRow(response, 87, List.of("Mogbwemo CHP", "", "", "Female", "", ""));
-    validateRow(response, 88, List.of("Under Fives Clinic", "", "", "Female", "", ""));
-    validateRow(response, 89, List.of("Needy CHC", "", "", "Female", "", ""));
-    validateRow(response, 90, List.of("Mogbuama MCHP", "", "", "Female", "", ""));
-    validateRow(response, 91, List.of("Thompson Bay MCHP", "", "", "Female", "", ""));
-    validateRow(response, 92, List.of("Koidu Under Five Clinic", "", "", "Female", "", ""));
-    validateRow(response, 93, List.of("Blessed Mokaba East", "", "", "Female", "", ""));
-    validateRow(response, 94, List.of("Gbainty Wallah CHP", "", "", "Female", "", ""));
-    validateRow(response, 95, List.of("Mabureh Mende MCHP", "", "", "Female", "", ""));
-    validateRow(response, 96, List.of("Sendugu CHC", "", "", "Female", "", ""));
-    validateRow(response, 97, List.of("Gbalahun CHP", "", "", "Female", "", ""));
-    validateRow(response, 98, List.of("Mambolo CHC", "", "", "Female", "", ""));
-    validateRow(response, 99, List.of("Rotifunk CHC", "", "", "Female", "", ""));
+    validateRow(
+        response,
+        0,
+        List.of("Ngelehun CHC", "1956-10-17 00:00:00.0", "Single or widow", "", "", ""));
+    validateRow(response, 1, List.of("Benduma MCHP", "1970-01-04 00:00:00.0", "", "", "", ""));
+    validateRow(response, 2, List.of("Mosagbe MCHP", "1970-01-05 00:00:00.0", "", "", "", ""));
+    validateRow(response, 3, List.of("Korgbotuma MCHP", "1970-01-07 00:00:00.0", "", "", "", ""));
+    validateRow(response, 4, List.of("Fogbo (WAR) MCHP", "1970-01-14 00:00:00.0", "", "", "", ""));
+    validateRow(response, 5, List.of("MadaKa MCHP", "1970-01-21 00:00:00.0", "", "", "", ""));
+    validateRow(response, 6, List.of("Kuntorloh CHP", "1970-01-24 00:00:00.0", "", "", "", ""));
+    validateRow(response, 7, List.of("Kagbulor CHP", "1970-01-26 00:00:00.0", "", "", "", ""));
   }
 
   @Test
@@ -1624,16 +1535,15 @@ public class TeiQuery3AutoTest extends AnalyticsApiTest {
     QueryParamsBuilder params =
         new QueryParamsBuilder()
             .add("includeMetadataDetails=true")
-            .add("asc=IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x")
-            .add(
-                "headers=ouname,gHGyrwKPzej,ciq2USN94oJ,IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6")
+            .add("headers=ouname,gHGyrwKPzej,ciq2USN94oJ,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6")
             .add("displayProperty=NAME")
             .add("totalPages=false")
             .add("rowContext=true")
-            .add("pageSize=100")
+            .add("pageSize=10")
             .add("page=1")
             .add(
                 "dimension=ou:USER_ORGUNIT,gHGyrwKPzej,ciq2USN94oJ,IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6")
+            .add("desc=IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6")
             .add("relativePeriodDate=2017-01-27");
 
     // When
@@ -1643,15 +1553,15 @@ public class TeiQuery3AutoTest extends AnalyticsApiTest {
     response
         .validate()
         .statusCode(200)
-        .body("headers", hasSize(equalTo(5)))
-        .body("rows", hasSize(equalTo(100)))
-        .body("height", equalTo(100))
-        .body("width", equalTo(5))
-        .body("headerWidth", equalTo(5));
+        .body("headers", hasSize(equalTo(4)))
+        .body("rows", hasSize(equalTo(10)))
+        .body("height", equalTo(10))
+        .body("width", equalTo(4))
+        .body("headerWidth", equalTo(4));
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"pageSize\":100,\"isLastPage\":false},\"items\":{\"gHGyrwKPzej\":{\"uid\":\"gHGyrwKPzej\",\"code\":\"MMD_PER_DOB\",\"name\":\"Birth date\",\"description\":\"Birth date\",\"dimensionItemType\":\"PROGRAM_ATTRIBUTE\",\"valueType\":\"DATE\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"SUM\"},\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6\":{\"uid\":\"a3kGcGDCuk6\",\"code\":\"DE_2006098\",\"name\":\"MCH Apgar Score\",\"description\":\"Apgar is a quick test performed on a baby at 1 and 5 minutes after birth. The 1-minute score determines how well the baby tolerated the birthing process. The 5-minute score tells the doctor how well the baby is doing outside the mother's womb.\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"NUMBER\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"},\"IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x\":{\"uid\":\"bx6fsa0t90x\",\"code\":\"DE_2006101\",\"name\":\"MCH BCG dose\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"BOOLEAN\",\"aggregationType\":\"SUM\",\"totalAggregationType\":\"SUM\"},\"bx6fsa0t90x\":{\"uid\":\"bx6fsa0t90x\",\"code\":\"DE_2006101\",\"name\":\"MCH BCG dose\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"BOOLEAN\",\"aggregationType\":\"SUM\",\"totalAggregationType\":\"SUM\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ciq2USN94oJ\":{\"uid\":\"ciq2USN94oJ\",\"code\":\"MMD_PER_STA\",\"name\":\"Civil status\",\"description\":\"Civil status\",\"dimensionItemType\":\"PROGRAM_ATTRIBUTE\",\"valueType\":\"TEXT\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"SUM\"},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"a3kGcGDCuk6\":{\"uid\":\"a3kGcGDCuk6\",\"code\":\"DE_2006098\",\"name\":\"MCH Apgar Score\",\"description\":\"Apgar is a quick test performed on a baby at 1 and 5 minutes after birth. The 1-minute score determines how well the baby tolerated the birthing process. The 5-minute score tells the doctor how well the baby is doing outside the mother's womb.\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"NUMBER\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"},\"ouname\":{\"name\":\"Organisation Unit Name\",\"dimensionType\":\"ORGANISATION_UNIT\"}},\"dimensions\":{\"zDhUuAYrxNC\":[],\"lw1SqmMlnfh\":[],\"bx6fsa0t90x\":[],\"Qo571yj6Zcn\":[],\"DODgdr5Oo2v\":[],\"iESIqZ0R0R0\":[],\"n9nUvfpTsxQ\":[],\"kyIzQsj96BD\":[],\"xs8A6tQJY0s\":[],\"A4xFHyieXys\":[],\"OvY4VVhSDeJ\":[],\"RG7uGl4w5Jq\":[],\"spFvx9FndA4\":[],\"GUOBQt5K2WI\":[],\"Agywv2JGwuq\":[],\"lZGmxYbs97q\":[],\"VqEFza8wbwA\":[],\"ciq2USN94oJ\":[],\"ou\":[\"ImspTQPwCqd\"],\"w75KJ2mc4zz\":[],\"KmEUg2hHEtx\":[],\"G7vUx908SwP\":[],\"o9odfev2Ty5\":[],\"a3kGcGDCuk6\":[],\"FO4sWYJ64LQ\":[],\"NDXw0cluzSw\":[],\"ruQQnf6rswq\":[],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"],\"P2cwLGskgxn\":[],\"gHGyrwKPzej\":[],\"pe\":[],\"VHfUeXpawmE\":[],\"AuPLng5hLbE\":[],\"ZcBPrXKahq2\":[],\"H9IlTX2X6SL\":[]}}";
+        "{\"pager\":{\"page\":1,\"pageSize\":10,\"isLastPage\":false},\"items\":{\"gHGyrwKPzej\":{\"uid\":\"gHGyrwKPzej\",\"code\":\"MMD_PER_DOB\",\"name\":\"Birth date\",\"description\":\"Birth date\",\"dimensionItemType\":\"PROGRAM_ATTRIBUTE\",\"valueType\":\"DATE\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"SUM\"},\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6\":{\"uid\":\"a3kGcGDCuk6\",\"code\":\"DE_2006098\",\"name\":\"MCH Apgar Score\",\"description\":\"Apgar is a quick test performed on a baby at 1 and 5 minutes after birth. The 1-minute score determines how well the baby tolerated the birthing process. The 5-minute score tells the doctor how well the baby is doing outside the mother's womb.\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"NUMBER\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"},\"IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x\":{\"uid\":\"bx6fsa0t90x\",\"code\":\"DE_2006101\",\"name\":\"MCH BCG dose\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"BOOLEAN\",\"aggregationType\":\"SUM\",\"totalAggregationType\":\"SUM\"},\"bx6fsa0t90x\":{\"uid\":\"bx6fsa0t90x\",\"code\":\"DE_2006101\",\"name\":\"MCH BCG dose\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"BOOLEAN\",\"aggregationType\":\"SUM\",\"totalAggregationType\":\"SUM\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ciq2USN94oJ\":{\"uid\":\"ciq2USN94oJ\",\"code\":\"MMD_PER_STA\",\"name\":\"Civil status\",\"description\":\"Civil status\",\"dimensionItemType\":\"PROGRAM_ATTRIBUTE\",\"valueType\":\"TEXT\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"SUM\"},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"a3kGcGDCuk6\":{\"uid\":\"a3kGcGDCuk6\",\"code\":\"DE_2006098\",\"name\":\"MCH Apgar Score\",\"description\":\"Apgar is a quick test performed on a baby at 1 and 5 minutes after birth. The 1-minute score determines how well the baby tolerated the birthing process. The 5-minute score tells the doctor how well the baby is doing outside the mother's womb.\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"NUMBER\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"},\"ouname\":{\"name\":\"Organisation Unit Name\",\"dimensionType\":\"ORGANISATION_UNIT\"}},\"dimensions\":{\"zDhUuAYrxNC\":[],\"lw1SqmMlnfh\":[],\"bx6fsa0t90x\":[],\"Qo571yj6Zcn\":[],\"DODgdr5Oo2v\":[],\"iESIqZ0R0R0\":[],\"n9nUvfpTsxQ\":[],\"kyIzQsj96BD\":[],\"xs8A6tQJY0s\":[],\"A4xFHyieXys\":[],\"OvY4VVhSDeJ\":[],\"RG7uGl4w5Jq\":[],\"spFvx9FndA4\":[],\"GUOBQt5K2WI\":[],\"Agywv2JGwuq\":[],\"lZGmxYbs97q\":[],\"VqEFza8wbwA\":[],\"ciq2USN94oJ\":[],\"ou\":[\"ImspTQPwCqd\"],\"w75KJ2mc4zz\":[],\"KmEUg2hHEtx\":[],\"G7vUx908SwP\":[],\"o9odfev2Ty5\":[],\"a3kGcGDCuk6\":[],\"FO4sWYJ64LQ\":[],\"NDXw0cluzSw\":[],\"ruQQnf6rswq\":[],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"],\"P2cwLGskgxn\":[],\"gHGyrwKPzej\":[],\"pe\":[],\"VHfUeXpawmE\":[],\"AuPLng5hLbE\":[],\"ZcBPrXKahq2\":[],\"H9IlTX2X6SL\":[]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -1665,15 +1575,6 @@ public class TeiQuery3AutoTest extends AnalyticsApiTest {
     validateHeader(
         response,
         3,
-        "IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x",
-        "MCH BCG dose, Child Programme, Birth",
-        "BOOLEAN",
-        "java.lang.Boolean",
-        false,
-        true);
-    validateHeader(
-        response,
-        4,
         "IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6",
         "MCH Apgar Score, Child Programme, Birth",
         "NUMBER",
@@ -1682,105 +1583,15 @@ public class TeiQuery3AutoTest extends AnalyticsApiTest {
         true);
 
     // Assert rows.
-    validateRow(response, 0, List.of("Needy CHC", "", "", "0", "0.0"));
-    validateRow(response, 1, List.of("Talia CHC", "", "", "0", "1.0"));
-    validateRow(response, 2, List.of("Wilberforce CHC", "", "", "0", "0.0"));
-    validateRow(response, 3, List.of("Gloucester CHP", "", "", "0", "1.0"));
-    validateRow(response, 4, List.of("Lengekoro MCHP", "", "", "0", "2.0"));
-    validateRow(response, 5, List.of("Sorbeh Grima MCHP", "", "", "0", "2.0"));
-    validateRow(response, 6, List.of("Komendeh (Nongowa) MCHP", "", "", "0", "2.0"));
-    validateRow(response, 7, List.of("Lango Town MCHP", "", "", "0", "1.0"));
-    validateRow(response, 8, List.of("Malama MCHP", "", "", "0", "2.0"));
-    validateRow(response, 9, List.of("Fankoya MCHP", "", "", "0", "1.0"));
-    validateRow(response, 10, List.of("Gbanja Town MCHP", "", "", "0", "1.0"));
-    validateRow(response, 11, List.of("Kabati CHP", "", "", "0", "2.0"));
-    validateRow(response, 12, List.of("Mogomgbay MCHP", "", "", "0", "2.0"));
-    validateRow(response, 13, List.of("Bomaru CHP", "", "", "0", "1.0"));
-    validateRow(response, 14, List.of("Kambia CHP", "", "", "0", "2.0"));
-    validateRow(response, 15, List.of("Blessed Mokaka East Clinic", "", "", "0", "1.0"));
-    validateRow(response, 16, List.of("Senekedugu MCHP", "", "", "0", "0.0"));
-    validateRow(response, 17, List.of("Maborie MCHP", "", "", "0", "2.0"));
-    validateRow(response, 18, List.of("Mateboi CHC", "", "", "0", "0.0"));
-    validateRow(response, 19, List.of("Sogballeh MCHP", "", "", "0", "1.0"));
-    validateRow(response, 20, List.of("Niagorehun CHP", "", "", "0", "2.0"));
-    validateRow(response, 21, List.of("Mokotawa CHP", "", "", "0", "0.0"));
-    validateRow(response, 22, List.of("Mabureh CHP", "", "", "0", "1.0"));
-    validateRow(response, 23, List.of("Gao MCHP", "", "", "0", "1.0"));
-    validateRow(response, 24, List.of("Gbamgbaia CHP", "", "", "0", "1.0"));
-    validateRow(response, 25, List.of("York CHC", "", "", "0", "0.0"));
-    validateRow(response, 26, List.of("Lungi Govt. Hospital, Port Loko", "", "", "0", "0.0"));
-    validateRow(response, 27, List.of("Mamanso Kafla MCHP", "", "", "0", "2.0"));
-    validateRow(response, 28, List.of("Kunsho CHP", "", "", "0", "2.0"));
-    validateRow(response, 29, List.of("Kamagbewu MCHP", "", "", "0", "0.0"));
-    validateRow(response, 30, List.of("Koindu CHC", "", "", "0", "0.0"));
-    validateRow(response, 31, List.of("Konjo CHP", "", "", "0", "0.0"));
-    validateRow(response, 32, List.of("Rorocks CHP", "", "", "0", "0.0"));
-    validateRow(response, 33, List.of("Rosengbeh MCHP", "", "", "0", "1.0"));
-    validateRow(response, 34, List.of("Bumbanday MCHP", "", "", "0", "1.0"));
-    validateRow(response, 35, List.of("Yalieboya CHP", "", "", "0", "2.0"));
-    validateRow(response, 36, List.of("Lyn Maternity MCHP", "", "", "0", "2.0"));
-    validateRow(response, 37, List.of("Bunumbu CHP", "", "", "0", "2.0"));
-    validateRow(response, 38, List.of("Sandaru (Gaura) MCHP", "", "", "0", "2.0"));
-    validateRow(response, 39, List.of("Needy CHC", "", "", "0", "1.0"));
-    validateRow(response, 40, List.of("Romeni MCHP", "", "", "0", "1.0"));
-    validateRow(response, 41, List.of("Tawahun MCHP", "", "", "0", "0.0"));
-    validateRow(response, 42, List.of("Fogbo CHP", "", "", "0", "0.0"));
-    validateRow(response, 43, List.of("Kornia MCHP", "", "", "0", "2.0"));
-    validateRow(response, 44, List.of("York CHC", "", "", "0", "0.0"));
-    validateRow(response, 45, List.of("Mamankie MCHP", "", "", "0", "2.0"));
-    validateRow(response, 46, List.of("Rogballan MCHP", "", "", "0", "2.0"));
-    validateRow(response, 47, List.of("Bureh MCHP", "", "", "0", "2.0"));
-    validateRow(response, 48, List.of("Pellie CHC", "", "", "0", "0.0"));
-    validateRow(response, 49, List.of("Fodaya MCHP", "", "", "0", "0.0"));
-    validateRow(response, 50, List.of("Makiteh MCHP", "", "", "0", "0.0"));
-    validateRow(response, 51, List.of("Gofor CHP", "", "", "0", "1.0"));
-    validateRow(response, 52, List.of("Mogbongisseh MCHP", "", "", "0", "2.0"));
-    validateRow(response, 53, List.of("Malama MCHP", "", "", "0", "2.0"));
-    validateRow(response, 54, List.of("Delken MCHP", "", "", "0", "1.0"));
-    validateRow(response, 55, List.of("MCH Static Pujehun", "", "", "0", "1.0"));
-    validateRow(response, 56, List.of("Connaught Hospital", "", "", "0", "0.0"));
-    validateRow(response, 57, List.of("Matotoka CHC", "", "", "0", "1.0"));
-    validateRow(response, 58, List.of("Kaimunday CHP", "", "", "0", "0.0"));
-    validateRow(response, 59, List.of("Kissy Koya MCHP", "", "", "0", "0.0"));
-    validateRow(response, 60, List.of("Air Port Centre, Lungi", "", "", "0", "2.0"));
-    validateRow(response, 61, List.of("Mbundorbu MCHP", "", "", "0", "2.0"));
-    validateRow(response, 62, List.of("UFC Port Loko", "", "", "0", "0.0"));
-    validateRow(response, 63, List.of("Njama MCHP", "", "", "0", "0.0"));
-    validateRow(response, 64, List.of("Moriba Town CHC", "", "", "0", "0.0"));
-    validateRow(response, 65, List.of("Bayama MCHP", "", "", "0", "1.0"));
-    validateRow(response, 66, List.of("Mabang MCHP", "", "", "0", "0.0"));
-    validateRow(response, 67, List.of("Gbainkfay MCHP", "", "", "0", "2.0"));
-    validateRow(response, 68, List.of("Kensay MCHP", "", "", "0", "2.0"));
-    validateRow(response, 69, List.of("Konjo (Dama) CHP", "", "", "0", "2.0"));
-    validateRow(response, 70, List.of("Rochen Malal MCHP", "", "", "0", "0.0"));
-    validateRow(response, 71, List.of("Ahmadiyya Muslim Hospital", "", "", "0", "2.0"));
-    validateRow(response, 72, List.of("Belentin MCHP", "", "", "0", "0.0"));
-    validateRow(response, 73, List.of("Damballa CHC", "", "", "0", "1.0"));
-    validateRow(response, 74, List.of("Sahun (Bumpeh) MCHP", "", "", "0", "1.0"));
-    validateRow(response, 75, List.of("Iscon CHP", "", "", "0", "2.0"));
-    validateRow(response, 76, List.of("Boroma MCHP", "", "", "0", "1.0"));
-    validateRow(response, 77, List.of("Kathanta Bana MCHP", "", "", "0", "1.0"));
-    validateRow(response, 78, List.of("Makobeh MCHP", "", "", "0", "0.0"));
-    validateRow(response, 79, List.of("Maboni MCHP", "", "", "0", "2.0"));
-    validateRow(response, 80, List.of("Bandajuma Yawei CHC", "", "", "0", "0.0"));
-    validateRow(response, 81, List.of("Arab Clinic", "", "", "0", "1.0"));
-    validateRow(response, 82, List.of("Fullah Town (M.Gbanti) MCHP", "", "", "0", "2.0"));
-    validateRow(response, 83, List.of("Borongoh Makarankay CHP", "", "", "0", "2.0"));
-    validateRow(response, 84, List.of("Koakor MCHP", "", "", "0", "0.0"));
-    validateRow(response, 85, List.of("Mateboi CHC", "", "", "0", "0.0"));
-    validateRow(response, 86, List.of("Kpandebu CHC", "", "", "0", "1.0"));
-    validateRow(response, 87, List.of("Mokongbetty MCHP", "", "", "0", "0.0"));
-    validateRow(response, 88, List.of("Nekabo CHC", "", "", "0", "2.0"));
-    validateRow(response, 89, List.of("Barmoi Luma MCHP", "", "", "0", "0.0"));
-    validateRow(response, 90, List.of("Dogoloya CHP", "", "", "0", "1.0"));
-    validateRow(response, 91, List.of("Bandajuma Sinneh MCHP", "", "", "0", "0.0"));
-    validateRow(response, 92, List.of("Rosinor CHP", "", "", "0", "1.0"));
-    validateRow(response, 93, List.of("Mabai (Kholifa Rowalla) MCHP", "", "", "0", "1.0"));
-    validateRow(response, 94, List.of("Wullah Thenkle MCHP", "", "", "0", "2.0"));
-    validateRow(response, 95, List.of("Bendu (Yawei) CHP", "", "", "0", "0.0"));
-    validateRow(response, 96, List.of("Saama MCHP", "", "", "0", "2.0"));
-    validateRow(response, 97, List.of("Pellie CHC", "", "", "0", "1.0"));
-    validateRow(response, 98, List.of("Kalainkay MCHP", "", "", "0", "1.0"));
-    validateRow(response, 99, List.of("Kaliyereh MCHP", "", "", "0", "0.0"));
+    validateRow(response, 0, List.of("Ngelehun CHC", "", "", "11.0"));
+    validateRow(response, 1, List.of("Ngelehun CHC", "", "", "11.0"));
+    validateRow(response, 2, List.of("Ngelehun CHC", "", "", "10.0"));
+    validateRow(response, 3, List.of("Ngelehun CHC", "", "", "10.0"));
+    validateRow(response, 4, List.of("Ngelehun CHC", "", "", "8.0"));
+    validateRow(response, 5, List.of("Ngelehun CHC", "", "", "8.0"));
+    validateRow(response, 6, List.of("Ngelehun CHC", "", "", "8.0"));
+    validateRow(response, 7, List.of("Ngelehun CHC", "", "", "8.0"));
+    validateRow(response, 8, List.of("Ngelehun CHC", "", "", "8.0"));
+    validateRow(response, 9, List.of("Ngelehun CHC", "", "", "8.0"));
   }
 }
