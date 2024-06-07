@@ -34,7 +34,6 @@ import static org.apache.commons.lang3.StringUtils.defaultString;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.substringAfter;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
-import static org.apache.commons.text.CaseUtils.toCamelCase;
 import static org.hisp.dhis.analytics.generator.GeneratorHelper.CLASS_NAME_PREFIX;
 import static org.hisp.dhis.analytics.generator.GeneratorHelper.FILE;
 import static org.hisp.dhis.analytics.generator.GeneratorHelper.MAX_TESTS_PER_CLASS;
@@ -90,10 +89,10 @@ class Main {
               defaultString(trimToNull(substringAfter(alias, ":")), alias.replace(SPACE, EMPTY));
 
           // Removes all non-numeric and non-alphabet characters and apply camel case.
-          alias = toCamelCase(alias, true, ' ').replaceAll("[^a-zA-Z0-9]", EMPTY);
+          alias = alias.replaceAll("[^a-zA-Z0-9]", EMPTY);
 
           // Generate the e2e test methods.
-          String testMethod = generateTestMethod("query" + alias, url);
+          String testMethod = generateTestMethod(alias, url);
           classContents.append(testMethod);
         }
       }
