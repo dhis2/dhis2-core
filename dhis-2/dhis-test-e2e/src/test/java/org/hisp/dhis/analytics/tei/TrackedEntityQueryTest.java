@@ -3183,7 +3183,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
 
   @Test
   public void headersContainsCustomLabels() {
-
     Map<String, String> headersCustomLabels =
         Map.of(
             "IpHINAT79UW.enrollmentdate",
@@ -3223,7 +3222,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
 
   @Test
   public void metaItemsContainsCustomLabels() {
-
     Map<String, String> metaCustomLabels =
         Map.of(
             "IpHINAT79UW.enrollmentdate",
@@ -3236,6 +3234,28 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Organisation Unit Name");
 
     metaCustomLabels.forEach(this::testMetaCustomLabel);
+  }
+
+  @Test
+  public void testInvalidProgram() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=HpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6:IN:2;5")
+            .add("headers=HpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6")
+            .add("pageSize=1");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(400)
+        .body("status", equalTo("ERROR"))
+        .body("httpStatusCode", equalTo(400))
+        .body("httpStatus", equalTo("Bad Request"))
+        .body("message", equalTo("Specified program HpHINAT79UW does not exist"));
   }
 
   private void testMetaCustomLabel(String header, String expected) {
