@@ -92,6 +92,16 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+/**
+ * All the tests in this class basically test the same thing:
+ *
+ * <p>- Create metadata which have source DataElement references
+ *
+ * <p>- Perform a DataElement merge, passing a target DataElement
+ *
+ * <p>- Check that source DataElements have had their references removed/replaced with the target
+ * DataElement
+ */
 class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
 
   @Autowired private DataElementService dataElementService;
@@ -1273,6 +1283,13 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
         indicatorStore.getIndicatorsWithNumeratorContaining(deTarget.getUid());
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
+    assertTrue(
+        indTarget.stream()
+            .allMatch(
+                i ->
+                    i.getNumerator()
+                        .equals(String.format("#{expression.with.de.uid.%s}", deTarget.getUid()))),
+        "all expressions match expected string");
     assertMergeSuccessfulSourcesNotDeleted(report, sourceIndicators1, indTarget, allDataElements);
   }
 
