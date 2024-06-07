@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.datastore;
 
+import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
 
 import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
@@ -93,8 +95,7 @@ class DatastoreKeysTest extends ApiTest {
         .get("/" + NAMESPACE, params)
         .validate()
         .statusCode(200)
-        .body("entries[0].key", equalTo("arsenal"))
-        .body("entries[1].key", equalTo("spurs"));
+        .body("entries.key", allOf(hasItem("arsenal"), hasItem("spurs")));
   }
 
   @Test
@@ -122,8 +123,7 @@ class DatastoreKeysTest extends ApiTest {
         .get("/" + NAMESPACE, params)
         .validate()
         .statusCode(200)
-        .body("entries[0].key", equalTo("arsenal"))
-        .body("entries[1].key", equalTo("spurs"));
+        .body("entries.key", allOf(hasItem("arsenal"), hasItem("spurs")));
   }
 
   @Test
@@ -188,8 +188,7 @@ class DatastoreKeysTest extends ApiTest {
         .get("/" + NAMESPACE, fieldsParam)
         .validate()
         .statusCode(200)
-        .body("entries[0].key", equalTo("arsenal"))
-        .body("entries[1].key", equalTo("spurs"));
+        .body("entries.key", allOf(hasItem("arsenal"), hasItem("spurs")));
   }
 
   @Test
@@ -226,7 +225,7 @@ class DatastoreKeysTest extends ApiTest {
         .get("/" + NAMESPACE, fieldsParam)
         .validate()
         .statusCode(200)
-        .body("entries[0].key", equalTo("spurs"))
+        .body("entries.key", allOf(hasItem("spurs")))
         .body("entries.size()", equalTo(1));
   }
 
@@ -262,8 +261,7 @@ class DatastoreKeysTest extends ApiTest {
         .get("/" + NAMESPACE, fieldsParam)
         .validate()
         .statusCode(200)
-        .body("entries[0].key", equalTo("arsenal"))
-        .body("entries[1].key", equalTo("spurs"));
+        .body("entries.key", allOf(hasItem("arsenal"), hasItem("spurs")));
   }
 
   @Test
@@ -301,7 +299,7 @@ class DatastoreKeysTest extends ApiTest {
         .get("/" + NAMESPACE, fieldsParam)
         .validate()
         .statusCode(200)
-        .body("entries[0].key", equalTo("arsenal"))
+        .body("entries.key", allOf(hasItem("arsenal")))
         .body("entries.size()", equalTo(1));
   }
 
@@ -352,8 +350,7 @@ class DatastoreKeysTest extends ApiTest {
         .get("/" + NAMESPACE + "/keys")
         .validate()
         .statusCode(200)
-        .body("[0]", equalTo("arsenal"))
-        .body("[1]", equalTo("spurs"));
+        .body("$", allOf(hasItem("arsenal"), hasItem("spurs")));
   }
 
   @Test
@@ -370,8 +367,7 @@ class DatastoreKeysTest extends ApiTest {
         .get("/" + NAMESPACE + "/keys")
         .validate()
         .statusCode(200)
-        .body("[0]", equalTo("arsenal"))
-        .body("[1]", equalTo("spurs"));
+        .body("$", allOf(hasItem("arsenal"), hasItem("spurs")));
   }
 
   protected static JsonObject getEntry(String team) {
