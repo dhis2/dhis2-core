@@ -56,7 +56,6 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitLevelComparator;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.filter.OrganisationUnitPolygonCoveringCoordinateFilter;
 import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -77,6 +76,7 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
   private final OrganisationUnitLevelStore organisationUnitLevelStore;
   private final ConfigurationService configurationService;
   private final UserSettingService userSettingService;
+
   private final Cache<Boolean> inUserOrgUnitHierarchyCache;
   private final Cache<Boolean> inUserOrgUnitSearchHierarchyCache;
 
@@ -280,8 +280,14 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<OrganisationUnit> getOrganisationUnitsWithProgram(Program program) {
-    return organisationUnitStore.getOrganisationUnitsWithProgram(program);
+  public List<OrganisationUnit> getDataSetOrganisationUnits(@Nonnull String dataSetUid) {
+    return organisationUnitStore.getOrganisationUnitsByDataSet(dataSetUid);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<OrganisationUnit> getProgramOrganisationUnits(@Nonnull String programUid) {
+    return organisationUnitStore.getOrganisationUnitsByProgram(programUid);
   }
 
   @Override
