@@ -42,6 +42,8 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.MergeReport;
+import org.hisp.dhis.merge.CommonMergeHandler;
+import org.hisp.dhis.merge.MergeHandler;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeRequest;
 import org.hisp.dhis.merge.MergeService;
@@ -61,9 +63,11 @@ public class DataElementMergeService implements MergeService {
 
   private final DataElementService dataElementService;
   private final DefaultDataElementMergeHandler dataElementMergeHandler;
+  private final CommonMergeHandler commonMergeHandler;
   private final MergeValidator validator;
   private final DataElementMergeValidator dataElementMergeValidator;
-  private ImmutableList<org.hisp.dhis.merge.dataelement.DataElementMergeHandler> handlers;
+  private ImmutableList<org.hisp.dhis.merge.dataelement.DataElementMergeHandler> mergeHandlers;
+  private ImmutableList<MergeHandler> commonMergeHandlers;
 
   @Override
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
@@ -107,7 +111,8 @@ public class DataElementMergeService implements MergeService {
 
     // merge metadata
     log.info("Handling DataElement reference associations");
-    handlers.forEach(h -> h.merge(sources, target));
+    mergeHandlers.forEach(h -> h.merge(sources, target));
+    commonMergeHandlers.forEach(h -> h.merge(sources, target));
 
     // handle deletes
     if (request.isDeleteSources()) handleDeleteSources(sources, mergeReport);
@@ -125,7 +130,7 @@ public class DataElementMergeService implements MergeService {
 
   @PostConstruct
   private void initMergeHandlers() {
-    handlers =
+    mergeHandlers =
         ImmutableList.<org.hisp.dhis.merge.dataelement.DataElementMergeHandler>builder()
             // metadata
             .add(dataElementMergeHandler::handlePredictor)
@@ -142,6 +147,11 @@ public class DataElementMergeService implements MergeService {
             .add(dataElementMergeHandler::handleDataElementGroup)
             .add(dataElementMergeHandler::handleSmsCode)
             // data
+            .build();
+
+    commonMergeHandlers =
+        ImmutableList.<MergeHandler>builder()
+            .add(commonMergeHandler::handleRefsInIndicatorExpression)
             .build();
   }
 }

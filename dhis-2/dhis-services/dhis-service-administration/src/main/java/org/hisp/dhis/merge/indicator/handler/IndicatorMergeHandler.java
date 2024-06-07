@@ -35,7 +35,6 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
@@ -152,36 +151,6 @@ public class IndicatorMergeHandler {
           s.removeIndicators(sources);
           s.addIndicator(target);
         });
-  }
-
-  /**
-   * Replace all {@link Indicator} refs in the numerator and denominator fields
-   *
-   * @param sources to be replaced
-   * @param target to replace each source
-   */
-  public void handleIndicatorRefsInIndicator(List<Indicator> sources, Indicator target) {
-    for (Indicator source : sources) {
-      // numerators
-      List<Indicator> numeratorIndicators =
-          indicatorService.getIndicatorsWithNumeratorContaining(UID.of(source.getUid()));
-
-      numeratorIndicators.forEach(
-          i -> {
-            String existingNumerator = i.getNumerator();
-            i.setNumerator(existingNumerator.replace(source.getUid(), target.getUid()));
-          });
-
-      // denominators
-      List<Indicator> denominatorIndicators =
-          indicatorService.getIndicatorsWithDenominatorContaining(UID.of(source.getUid()));
-
-      denominatorIndicators.forEach(
-          i -> {
-            String existingDenominator = i.getDenominator();
-            i.setDenominator(existingDenominator.replace(source.getUid(), target.getUid()));
-          });
-    }
   }
 
   /**

@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.persistence.PersistenceException;
@@ -57,6 +58,9 @@ import org.hisp.dhis.eventvisualization.EventVisualizationService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.MergeReport;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorStore;
+import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
@@ -108,6 +112,7 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
   @Autowired private DataSetStore dataSetStore;
   @Autowired private SectionService sectionService;
   @Autowired private DataElementGroupService dataElementGroupService;
+  @Autowired private IndicatorStore indicatorStore;
 
   private DataElement deSource1;
   private DataElement deSource2;
@@ -1228,6 +1233,260 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesDeleted(report, degSources, degTarget, allDataElements);
+  }
+
+  // -------------------------------
+  // -- Indicator numerator --
+  // -------------------------------
+  @Test
+  @DisplayName(
+      "Indicator numerator references for DataElement are replaced as expected, source DataElements are not deleted")
+  void indicatorNumeratorMergeTest() throws ConflictException {
+    // given
+    IndicatorType it = createIndicatorType('a');
+    identifiableObjectManager.save(it);
+    Indicator i1 = createIndicator('1', it);
+    i1.setNumerator(String.format("#{expression.with.de.uid.%s}", deSource1.getUid()));
+    Indicator i2 = createIndicator('2', it);
+    i2.setNumerator(String.format("#{expression.with.de.uid.%s}", deSource2.getUid()));
+    Indicator i3 = createIndicator('3', it);
+    i3.setNumerator(String.format("#{expression.with.de.uid.%s}", deTarget.getUid()));
+
+    identifiableObjectManager.save(i1);
+    identifiableObjectManager.save(i2);
+    identifiableObjectManager.save(i3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<Indicator> sourceIndicators1 =
+        indicatorStore.getIndicatorsWithNumeratorContaining(deSource1.getUid());
+    List<Indicator> sourceIndicators2 =
+        indicatorStore.getIndicatorsWithNumeratorContaining(deSource2.getUid());
+    sourceIndicators1.addAll(sourceIndicators2);
+
+    List<Indicator> indTarget =
+        indicatorStore.getIndicatorsWithNumeratorContaining(deTarget.getUid());
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertMergeSuccessfulSourcesNotDeleted(report, sourceIndicators1, indTarget, allDataElements);
+  }
+
+  @Test
+  @DisplayName(
+      "Indicator numerator references for DataElement are replaced as expected, source DataElements are deleted")
+  void indicatorNumeratorMergeSourcesDeletedTest() throws ConflictException {
+    // given
+    IndicatorType it = createIndicatorType('a');
+    identifiableObjectManager.save(it);
+    Indicator i1 = createIndicator('1', it);
+    i1.setNumerator(String.format("#{expression.with.de.uid.%s}", deSource1.getUid()));
+    Indicator i2 = createIndicator('2', it);
+    i2.setNumerator(String.format("#{expression.with.de.uid.%s}", deSource2.getUid()));
+    Indicator i3 = createIndicator('3', it);
+    i3.setNumerator(String.format("#{expression.with.de.uid.%s}", deTarget.getUid()));
+
+    identifiableObjectManager.save(i1);
+    identifiableObjectManager.save(i2);
+    identifiableObjectManager.save(i3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDeleteSources(true);
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<Indicator> sourceIndicators1 =
+        indicatorStore.getIndicatorsWithNumeratorContaining(deSource1.getUid());
+    List<Indicator> sourceIndicators2 =
+        indicatorStore.getIndicatorsWithNumeratorContaining(deSource2.getUid());
+    sourceIndicators1.addAll(sourceIndicators2);
+
+    List<Indicator> indTarget =
+        indicatorStore.getIndicatorsWithNumeratorContaining(deTarget.getUid());
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertMergeSuccessfulSourcesDeleted(report, sourceIndicators1, indTarget, allDataElements);
+  }
+
+  // -------------------------------
+  // -- Indicator denominator --
+  // -------------------------------
+  @Test
+  @DisplayName(
+      "Indicator denominator references for DataElement are replaced as expected, source DataElements are not deleted")
+  void indicatorDenominatorMergeTest() throws ConflictException {
+    // given
+    IndicatorType it = createIndicatorType('a');
+    identifiableObjectManager.save(it);
+    Indicator i1 = createIndicator('1', it);
+    i1.setDenominator(String.format("#{expression.with.de.uid.%s}", deSource1.getUid()));
+    Indicator i2 = createIndicator('2', it);
+    i2.setDenominator(String.format("#{expression.with.de.uid.%s}", deSource2.getUid()));
+    Indicator i3 = createIndicator('3', it);
+    i3.setDenominator(String.format("#{expression.with.de.uid.%s}", deTarget.getUid()));
+
+    identifiableObjectManager.save(i1);
+    identifiableObjectManager.save(i2);
+    identifiableObjectManager.save(i3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<Indicator> sourceIndicators1 =
+        indicatorStore.getIndicatorsWithDenominatorContaining(deSource1.getUid());
+    List<Indicator> sourceIndicators2 =
+        indicatorStore.getIndicatorsWithDenominatorContaining(deSource2.getUid());
+    sourceIndicators1.addAll(sourceIndicators2);
+
+    List<Indicator> indTarget =
+        indicatorStore.getIndicatorsWithDenominatorContaining(deTarget.getUid());
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertMergeSuccessfulSourcesNotDeleted(report, sourceIndicators1, indTarget, allDataElements);
+  }
+
+  @Test
+  @DisplayName(
+      "Indicator denominator references for DataElement are replaced as expected, source DataElements are deleted")
+  void indicatorDenominatorMergeSourcesDeletedTest() throws ConflictException {
+    // given
+    IndicatorType it = createIndicatorType('a');
+    identifiableObjectManager.save(it);
+    Indicator i1 = createIndicator('1', it);
+    i1.setDenominator(String.format("#{expression.with.de.uid.%s}", deSource1.getUid()));
+    Indicator i2 = createIndicator('2', it);
+    i2.setDenominator(String.format("#{expression.with.de.uid.%s}", deSource2.getUid()));
+    Indicator i3 = createIndicator('3', it);
+    i3.setDenominator(String.format("#{expression.with.de.uid.%s}", deTarget.getUid()));
+
+    identifiableObjectManager.save(i1);
+    identifiableObjectManager.save(i2);
+    identifiableObjectManager.save(i3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDeleteSources(true);
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<Indicator> sourceIndicators1 =
+        indicatorStore.getIndicatorsWithDenominatorContaining(deSource1.getUid());
+    List<Indicator> sourceIndicators2 =
+        indicatorStore.getIndicatorsWithDenominatorContaining(deSource2.getUid());
+    sourceIndicators1.addAll(sourceIndicators2);
+
+    List<Indicator> indTarget =
+        indicatorStore.getIndicatorsWithDenominatorContaining(deTarget.getUid());
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertMergeSuccessfulSourcesDeleted(report, sourceIndicators1, indTarget, allDataElements);
+  }
+
+  // ---------------------------------------
+  // -- Indicator numerator + denominator --
+  // ---------------------------------------
+  @Test
+  @DisplayName(
+      "Indicator numerator + denominator references for DataElement are replaced as expected, source DataElements are not deleted")
+  void indicatorNumeratorDenominatorMergeTest() throws ConflictException {
+    // given
+    IndicatorType it = createIndicatorType('a');
+    identifiableObjectManager.save(it);
+    Indicator i1 = createIndicator('1', it);
+    i1.setNumerator(String.format("#{expression.with.de.uid.%s}", deSource1.getUid()));
+    i1.setDenominator(String.format("#{expression.with.de.uid.%s}", deSource1.getUid()));
+    Indicator i2 = createIndicator('2', it);
+    i2.setNumerator(String.format("#{expression.with.de.uid.%s}", deSource2.getUid()));
+    i2.setDenominator(String.format("#{expression.with.de.uid.%s}", deSource2.getUid()));
+    Indicator i3 = createIndicator('3', it);
+    i3.setNumerator(String.format("#{expression.with.de.uid.%s}", deTarget.getUid()));
+    i3.setDenominator(String.format("#{expression.with.de.uid.%s}", deTarget.getUid()));
+
+    identifiableObjectManager.save(i1);
+    identifiableObjectManager.save(i2);
+    identifiableObjectManager.save(i3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    Set<Indicator> sourceIndicators1 =
+        new HashSet<>(
+            Set.copyOf(indicatorStore.getIndicatorsWithNumeratorContaining(deSource1.getUid())));
+    List<Indicator> sourceIndicators2 =
+        indicatorStore.getIndicatorsWithNumeratorContaining(deSource2.getUid());
+    List<Indicator> sourceIndicators3 =
+        indicatorStore.getIndicatorsWithDenominatorContaining(deSource1.getUid());
+    List<Indicator> sourceIndicators4 =
+        indicatorStore.getIndicatorsWithDenominatorContaining(deSource2.getUid());
+    sourceIndicators1.addAll(sourceIndicators2);
+    sourceIndicators1.addAll(sourceIndicators3);
+    sourceIndicators1.addAll(sourceIndicators4);
+
+    Set<Indicator> indTarget1 =
+        new HashSet<>(indicatorStore.getIndicatorsWithNumeratorContaining(deTarget.getUid()));
+    List<Indicator> indTarget2 =
+        indicatorStore.getIndicatorsWithDenominatorContaining(deTarget.getUid());
+    indTarget1.addAll(indTarget2);
+
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertMergeSuccessfulSourcesNotDeleted(report, sourceIndicators1, indTarget1, allDataElements);
+  }
+
+  @Test
+  @DisplayName(
+      "Indicator numerator + denominator references for DataElement are replaced as expected, source DataElements are deleted")
+  void indicatorNumeratorDenominatorMergeSourcesDeletedTest() throws ConflictException {
+    // given
+    IndicatorType it = createIndicatorType('a');
+    identifiableObjectManager.save(it);
+    Indicator i1 = createIndicator('1', it);
+    i1.setDenominator(String.format("#{expression.with.de.uid.%s}", deSource1.getUid()));
+    Indicator i2 = createIndicator('2', it);
+    i2.setDenominator(String.format("#{expression.with.de.uid.%s}", deSource2.getUid()));
+    Indicator i3 = createIndicator('3', it);
+    i3.setDenominator(String.format("#{expression.with.de.uid.%s}", deTarget.getUid()));
+
+    identifiableObjectManager.save(i1);
+    identifiableObjectManager.save(i2);
+    identifiableObjectManager.save(i3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDeleteSources(true);
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    Set<Indicator> sourceIndicators1 =
+        new HashSet<>(indicatorStore.getIndicatorsWithDenominatorContaining(deSource1.getUid()));
+    List<Indicator> sourceIndicators2 =
+        indicatorStore.getIndicatorsWithDenominatorContaining(deSource2.getUid());
+    sourceIndicators1.addAll(sourceIndicators2);
+
+    Set<Indicator> indTarget =
+        new HashSet<>(indicatorStore.getIndicatorsWithDenominatorContaining(deTarget.getUid()));
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertMergeSuccessfulSourcesDeleted(report, sourceIndicators1, indTarget, allDataElements);
   }
 
   private void assertMergeSuccessfulSourcesNotDeleted(
