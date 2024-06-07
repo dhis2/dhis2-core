@@ -168,6 +168,22 @@ public class HibernateOrganisationUnitStore
   }
 
   @Override
+  public List<OrganisationUnit> getOrganisationUnitsByProgram(String programUid) {
+    String jpql =
+        "select distinct o from OrganisationUnit o join o.programs p where p.uid = :programUid";
+
+    return getQuery(jpql).setParameter("programUid", programUid).list();
+  }
+
+  @Override
+  public List<OrganisationUnit> getOrganisationUnitsByDataSet(String dataSetUid) {
+    String jpql =
+        "select distinct o from OrganisationUnit o join o.dataSets d where d.uid = :dataSetUid";
+
+    return getQuery(jpql).setParameter("dataSetUid", dataSetUid).list();
+  }
+
+  @Override
   public Long getOrganisationUnitHierarchyMemberCount(
       OrganisationUnit parent, Object member, String collectionName) {
     final String hql =
