@@ -44,12 +44,9 @@ public interface ProgramRuleStore extends IdentifiableObjectStore<ProgramRule> {
    */
   List<ProgramRule> get(Program program);
 
-  /**
-   * Returns all {@link ProgramRule} by program.
-   *
-   * @return ProgramRule list
-   */
-  List<ProgramRule> getProgramRulesLinkedToTeaOrDe();
+  List<String> getDataElementsPresentInProgramRules();
+
+  List<String> getTrackedEntityAttributesPresentInProgramRules();
 
   List<ProgramRule> getProgramRulesByActionTypes(Program program, Set<ProgramRuleActionType> types);
 
