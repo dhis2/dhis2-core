@@ -234,12 +234,9 @@ class DefaultTrackedEntityService implements TrackedEntityService {
         trackedEntity.setProgramOwners(filteredProgramOwners);
       }
     } else {
-      trackedEntity =
-          mapTrackedEntity(
-              getTrackedEntity(uid),
-              params,
-              userService.getUserByUsername(getCurrentUsername()),
-              includeDeleted);
+      User user = userService.getUserByUsername(getCurrentUsername());
+
+      trackedEntity = mapTrackedEntity(getTrackedEntity(uid), params, user, null, includeDeleted);
 
       mapTrackedEntityTypeAttributes(trackedEntity);
     }
@@ -274,7 +271,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       throw new ForbiddenException(error);
     }
 
-    return mapTrackedEntity(trackedEntity, params, user, includeDeleted);
+    return mapTrackedEntity(trackedEntity, params, user, program, includeDeleted);
   }
 
   /**
@@ -319,6 +316,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       TrackedEntity trackedEntity,
       TrackedEntityParams params,
       User currentUser,
+      Program program,
       boolean includeDeleted) {
     TrackedEntity result = new TrackedEntity();
     result.setId(trackedEntity.getId());
@@ -341,12 +339,13 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       result.setRelationshipItems(getRelationshipItems(trackedEntity, currentUser, includeDeleted));
     }
     if (params.isIncludeEnrollments()) {
-      result.setEnrollments(getEnrollments(trackedEntity, currentUser, includeDeleted));
+      result.setEnrollments(getEnrollments(trackedEntity, currentUser, includeDeleted, program));
     }
     if (params.isIncludeProgramOwners()) {
       result.setProgramOwners(trackedEntity.getProgramOwners());
     }
-    result.setTrackedEntityAttributeValues(getTrackedEntityAttributeValues(trackedEntity));
+
+    result.setTrackedEntityAttributeValues(getTrackedEntityAttributeValues(trackedEntity, program));
 
     return result;
   }
@@ -367,29 +366,32 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   private Set<Enrollment> getEnrollments(
-      TrackedEntity trackedEntity, User user, boolean includeDeleted) {
-    Set<Enrollment> enrollments = new HashSet<>();
-
-    for (Enrollment enrollment : trackedEntity.getEnrollments()) {
-      if (trackerAccessManager.canRead(user, enrollment, false).isEmpty()
-          && (includeDeleted || !enrollment.isDeleted())) {
-        Set<Event> events = new HashSet<>();
-        for (Event event : enrollment.getEvents()) {
-          if (includeDeleted || !event.isDeleted()) {
-            events.add(event);
-          }
-        }
-        enrollment.setEvents(events);
-        enrollments.add(enrollment);
-      }
-    }
-    return enrollments;
+      TrackedEntity trackedEntity, User user, boolean includeDeleted, Program program) {
+    return trackedEntity.getEnrollments().stream()
+        .filter(e -> program == null || program.getUid().equals(e.getProgram().getUid()))
+        .filter(e -> includeDeleted || !e.isDeleted())
+        .filter(e -> trackerAccessManager.canRead(user, e, false).isEmpty())
+        .map(
+            e -> {
+              Set<Event> filteredEvents =
+                  e.getEvents().stream()
+                      .filter(event -> includeDeleted || !event.isDeleted())
+                      .collect(Collectors.toSet());
+              e.setEvents(filteredEvents);
+              return e;
+            })
+        .collect(Collectors.toSet());
   }
 
   private Set<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(
-      TrackedEntity trackedEntity) {
+      TrackedEntity trackedEntity, Program program) {
     Set<TrackedEntityAttribute> readableAttributes =
-        trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes();
+        new HashSet<>(trackedEntity.getTrackedEntityType().getTrackedEntityAttributes());
+
+    if (program != null) {
+      readableAttributes.addAll(program.getTrackedEntityAttributes());
+    }
+
     return trackedEntity.getTrackedEntityAttributeValues().stream()
         .filter(av -> readableAttributes.contains(av.getAttribute()))
         .collect(Collectors.toCollection(LinkedHashSet::new));
@@ -453,7 +455,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     }
 
     relationshipItem.setTrackedEntity(
-        mapTrackedEntity(trackedEntity, params, currentUser, includeDeleted));
+        mapTrackedEntity(trackedEntity, params, currentUser, null, includeDeleted));
     return relationshipItem;
   }
 

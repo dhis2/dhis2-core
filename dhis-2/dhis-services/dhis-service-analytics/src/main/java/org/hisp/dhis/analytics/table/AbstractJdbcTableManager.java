@@ -469,6 +469,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
                   .name(name)
                   .dataType(TEXT)
                   .selectExpression(prefix + "." + quote(name))
+                  .skipIndex(skipIndex(name))
                   .build();
             })
         .toList();
@@ -629,8 +630,19 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @return {@link Skip#SKIP} if index should be skipped, {@link Skip#INCLUDE} otherwise.
    */
   protected Skip skipIndex(DimensionalObject dimension) {
+    return skipIndex(dimension.getUid());
+  }
+
+  /**
+   * Indicates whether indexing should be skipped for the given dimensional identifier based on the
+   * system configuration.
+   *
+   * @param dimension the dimension identifier.
+   * @return {@link Skip#SKIP} if index should be skipped, {@link Skip#INCLUDE} otherwise.
+   */
+  protected Skip skipIndex(String dimension) {
     Set<String> dimensions = analyticsTableSettings.getSkipIndexDimensions();
-    return dimensions.contains(dimension.getUid()) ? Skip.SKIP : Skip.INCLUDE;
+    return dimensions.contains(dimension) ? Skip.SKIP : Skip.INCLUDE;
   }
 
   /**
