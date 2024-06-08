@@ -546,7 +546,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     columns.addAll(
         categoryService.getAttributeCategoryOptionGroupSetsNoAcl().stream()
-            .map(l -> toCharColumn(quote(l.getUid()), "acs", l.getCreated()))
+            .map(
+                acogs ->
+                    toCharColumn(
+                        quote(acogs.getUid()), "acs", skipIndex(acogs), acogs.getCreated()))
             .collect(Collectors.toList()));
     columns.addAll(addPeriodTypeColumns("dps"));
 
@@ -846,8 +849,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     return jdbcTemplate.queryForList(sql, Integer.class);
   }
 
-  private AnalyticsTableColumn toCharColumn(String name, String prefix, Date created) {
-    return new AnalyticsTableColumn(name, CHARACTER_11, prefix + "." + name).withCreated(created);
+  private AnalyticsTableColumn toCharColumn(
+      String name, String prefix, boolean skipIndex, Date created) {
+    return new AnalyticsTableColumn(name, CHARACTER_11, prefix + "." + name, skipIndex, created);
   }
 
   /**

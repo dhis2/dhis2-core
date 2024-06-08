@@ -549,7 +549,9 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             pt -> {
               String column = quote(pt.getName().toLowerCase());
-              return new AnalyticsTableColumn(column, TEXT, prefix + "." + column);
+              boolean skipIndex = skipIndex(pt.getName());
+              return new AnalyticsTableColumn(column, TEXT, prefix + "." + column)
+                  .withSkipIndex(skipIndex);
             })
         .collect(Collectors.toList());
   }
@@ -611,8 +613,19 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @return true if index should be skipped, false otherwise.
    */
   protected boolean skipIndex(DimensionalObject dimension) {
+    return skipIndex(dimension.getUid());
+  }
+
+  /**
+   * Indicates whether indexing should be skipped for the given dimensional identifier based on the
+   * system configuration.
+   *
+   * @param dimension the dimension identifier.
+   * @return true if index should be skipped, false otherwise.
+   */
+  protected boolean skipIndex(String dimension) {
     Set<String> dimensions = analyticsExportSettings.getSkipIndexDimensions();
-    return dimensions.contains(dimension.getUid());
+    return dimensions.contains(dimension);
   }
 
   // -------------------------------------------------------------------------
