@@ -546,10 +546,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     columns.addAll(
         categoryService.getAttributeCategoryOptionGroupSetsNoAcl().stream()
-            .map(
-                acogs ->
-                    toCharColumn(
-                        quote(acogs.getUid()), "acs", skipIndex(acogs), acogs.getCreated()))
+            .map(ag -> toCharColumn(quote(ag.getUid()), "acs", skipIndex(ag), ag.getCreated()))
             .collect(Collectors.toList()));
     columns.addAll(addPeriodTypeColumns("dps"));
 
