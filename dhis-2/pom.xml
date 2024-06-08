@@ -110,7 +110,7 @@
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
-    <nimbus.jose.jwt.version>9.39.3</nimbus.jose.jwt.version>
+    <nimbus.jose.jwt.version>9.40</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.3</com.google.zxing.core.version>
     <com.google.zxing.javase.version>3.5.3</com.google.zxing.javase.version>
 
@@ -178,7 +178,7 @@
     <!-- Apache Artemis -->
     <artemis.version>2.34.0</artemis.version>
     <netty-all.version>4.1.110.Final</netty-all.version>
-    <classgraph.version>4.8.172</classgraph.version>
+    <classgraph.version>4.8.173</classgraph.version>
 
     <!-- SMS/SMPP -->
     <sms-compression.version>0.2.1.1</sms-compression.version>
