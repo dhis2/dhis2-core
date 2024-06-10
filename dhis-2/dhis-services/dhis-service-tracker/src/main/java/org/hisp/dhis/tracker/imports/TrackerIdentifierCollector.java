@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
@@ -42,7 +41,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -87,23 +85,13 @@ public class TrackerIdentifierCollector {
     // Rule engine rules only know UIDs, so we need to be able to get
     // dataElements/attributes from rule actions
     // out of the preheat using UIDs
-    List<ProgramRule> programRules = programRuleService.getProgramRulesLinkedToTeaOrDe();
+    programRuleService
+        .getDataElementsPresentInProgramRules()
+        .forEach(de -> addIdentifier(map, DataElement.class, de));
 
-    Set<String> dataElements =
-        programRules.stream()
-            .flatMap(pr -> pr.getProgramRuleActions().stream())
-            .filter(a -> Objects.nonNull(a.getDataElement()))
-            .map(a -> a.getDataElement().getUid())
-            .collect(Collectors.toSet());
-    dataElements.forEach(de -> addIdentifier(map, DataElement.class, de));
-
-    Set<String> attributes =
-        programRules.stream()
-            .flatMap(pr -> pr.getProgramRuleActions().stream())
-            .filter(a -> Objects.nonNull(a.getAttribute()))
-            .map(a -> a.getAttribute().getUid())
-            .collect(Collectors.toSet());
-    attributes.forEach(attribute -> addIdentifier(map, TrackedEntityAttribute.class, attribute));
+    programRuleService
+        .getTrackedEntityAttributesPresentInProgramRules()
+        .forEach(attribute -> addIdentifier(map, TrackedEntityAttribute.class, attribute));
   }
 
   private void collectTrackedEntities(
