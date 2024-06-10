@@ -598,9 +598,6 @@ public class UserController extends AbstractCrudController<User> {
       HttpServletRequest request)
       throws IOException, ConflictException, ForbiddenException, NotFoundException {
     User inputUser = renderService.fromJson(request.getInputStream(), getEntityClass());
-
-    User user = getEntity(pvUid);
-
     return importReport(updateUser(pvUid, inputUser)).withPlainResponseBefore(DhisApiVersion.V38);
   }
 
@@ -677,10 +674,6 @@ public class UserController extends AbstractCrudController<User> {
   // -------------------------------------------------------------------------
   // PATCH
   // -------------------------------------------------------------------------
-
-  @Override
-  protected void prePatchEntity(User oldEntity, User newEntity) {}
-
   @Override
   protected void postPatchEntity(JsonPatch patch, User entityAfter) {
     // Make sure we always expire all the user's active sessions if we
