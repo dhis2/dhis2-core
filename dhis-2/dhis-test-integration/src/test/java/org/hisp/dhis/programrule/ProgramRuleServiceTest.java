@@ -436,9 +436,6 @@ class ProgramRuleServiceTest extends IntegrationTestBase {
     programRuleService.updateProgramRule(ruleG);
     programRuleService.updateProgramRule(ruleF);
 
-    dbmsManager.clearSession();
-    dbmsManager.flushSession();
-
     List<ProgramRule> rules =
         programRuleService.getProgramRulesByActionTypes(
             programB, ProgramRuleActionType.SERVER_SUPPORTED_TYPES, null);
