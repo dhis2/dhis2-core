@@ -41,7 +41,7 @@
         "idScheme": "UID",
         "identifier": "h4w96yEMlzO"
       },
-      "inactive": false,
+      "inactive": true,
       "deleted": false,
       "potentialDuplicate": false,
       "createdAtClient": "2018-10-01T12:17:30.163",
