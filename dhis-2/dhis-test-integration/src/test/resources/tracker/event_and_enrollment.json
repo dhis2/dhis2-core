@@ -43,7 +43,7 @@
         "idScheme": "UID",
         "identifier": "h4w96yEMlzO"
       },
-      "inactive": false,
+      "inactive": true,
       "deleted": false,
       "potentialDuplicate": false,
       "relationships": [],
