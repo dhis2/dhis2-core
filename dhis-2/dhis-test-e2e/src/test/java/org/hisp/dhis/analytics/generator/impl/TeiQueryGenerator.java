@@ -50,6 +50,11 @@ public class TeiQueryGenerator implements Generator {
   }
 
   @Override
+  public String getScenarioFile() {
+    return "te-query.json";
+  }
+
+  @Override
   public String getActionDeclaration() {
     return "private AnalyticsTeiActions actions = new AnalyticsTeiActions();";
   }

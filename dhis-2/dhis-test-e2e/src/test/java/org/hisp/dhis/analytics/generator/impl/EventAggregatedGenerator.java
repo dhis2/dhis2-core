@@ -50,6 +50,11 @@ public class EventAggregatedGenerator implements Generator {
   }
 
   @Override
+  public String getScenarioFile() {
+    return "event-aggregated.json";
+  }
+
+  @Override
   public String getActionDeclaration() {
     return "private final AnalyticsEventActions actions = new AnalyticsEventActions();";
   }

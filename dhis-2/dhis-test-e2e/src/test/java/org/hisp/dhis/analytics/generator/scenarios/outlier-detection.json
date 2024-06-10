@@ -1,0 +1,46 @@
+{
+  "scenarios": [
+    {
+      "name": "queryAnalyticsAggregateProgramOuDim",
+      "query": "/api/analytics?dimension=dx:FQ2o8UBlcrS,pe:LAST_5_YEARS,ou:PR-q04UBOqq3rp&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false&relativePeriodDate=2022-10-01",
+      "version": {
+        "min": "42"
+      }
+    },
+    {
+      "name": "queryAnalyticsAggregateDataSetOuDim",
+      "query": "/api/analytics?dimension=dx:FQ2o8UBlcrS,pe:LAST_5_YEARS,ou:DS-BfMAe6Itzgt&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false&relativePeriodDate=2022-10-01",
+      "version": {
+        "min": "42"
+      }
+    },
+    {
+      "name": "queryAnalyticsAggregateProgramDataSetOuDim",
+      "query": "/api/analytics?dimension=dx:FQ2o8UBlcrS,pe:LAST_5_YEARS,ou:DS-BfMAe6Itzgt;PR-q04UBOqq3rp&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false&relativePeriodDate=2022-10-01",
+      "version": {
+        "min": "42"
+      }
+    },
+    {
+      "name": "queryAnalyticsAggregateProgramOuFilter",
+      "query": "/api/analytics?dimension=dx:FQ2o8UBlcrS,pe:LAST_5_YEARS&filter=ou:PR-q04UBOqq3rp&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false&relativePeriodDate=2022-10-01",
+      "version": {
+        "min": "42"
+      }
+    },
+    {
+      "name": "queryAnalyticsAggregateDataSetOuFilter",
+      "query": "/api/analytics?dimension=dx:FQ2o8UBlcrS,pe:LAST_5_YEARS&filter=ou:DS-BfMAe6Itzgt&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false&relativePeriodDate=2022-10-01",
+      "version": {
+        "min": "42"
+      }
+    },
+    {
+      "name": "queryAnalyticsAggregateProgramDataSetOuFilter",
+      "query": "/api/analytics?dimension=dx:FQ2o8UBlcrS,pe:LAST_5_YEARS&filter=ou:DS-BfMAe6Itzgt;PR-q04UBOqq3rp&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false&relativePeriodDate=2022-10-01",
+      "version": {
+        "min": "42"
+      }
+    }
+  ]
+}

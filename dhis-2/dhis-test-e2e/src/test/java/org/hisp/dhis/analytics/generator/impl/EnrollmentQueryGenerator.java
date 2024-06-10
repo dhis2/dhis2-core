@@ -50,6 +50,11 @@ public class EnrollmentQueryGenerator implements Generator {
   }
 
   @Override
+  public String getScenarioFile() {
+    return "enroll-query.json";
+  }
+
+  @Override
   public String getActionDeclaration() {
     return "private final AnalyticsEnrollmentsActions actions = new AnalyticsEnrollmentsActions();";
   }

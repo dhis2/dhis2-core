@@ -50,6 +50,11 @@ public class EventQueryGenerator implements Generator {
   }
 
   @Override
+  public String getScenarioFile() {
+    return "event-query.json";
+  }
+
+  @Override
   public String getActionDeclaration() {
     return "private final AnalyticsEventActions actions = new AnalyticsEventActions();";
   }

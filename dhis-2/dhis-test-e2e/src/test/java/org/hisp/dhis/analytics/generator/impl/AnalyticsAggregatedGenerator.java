@@ -47,6 +47,11 @@ public class AnalyticsAggregatedGenerator implements Generator {
   }
 
   @Override
+  public String getScenarioFile() {
+    return "aggregated.json";
+  }
+
+  @Override
   public String getActionDeclaration() {
     return "private final RestApiActions actions = new RestApiActions(\"" + getAction() + "\");";
   }

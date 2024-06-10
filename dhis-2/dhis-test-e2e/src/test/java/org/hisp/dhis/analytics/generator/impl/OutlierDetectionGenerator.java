@@ -50,6 +50,11 @@ public class OutlierDetectionGenerator implements Generator {
   }
 
   @Override
+  public String getScenarioFile() {
+    return "outlier-detection.json";
+  }
+
+  @Override
   public String getActionDeclaration() {
     return "private AnalyticsOutlierDetectionActions actions = new AnalyticsOutlierDetectionActions();";
   }

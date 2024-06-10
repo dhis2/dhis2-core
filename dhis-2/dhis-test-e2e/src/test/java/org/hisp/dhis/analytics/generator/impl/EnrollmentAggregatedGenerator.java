@@ -50,6 +50,11 @@ public class EnrollmentAggregatedGenerator implements Generator {
   }
 
   @Override
+  public String getScenarioFile() {
+    return "enroll-aggregated.json";
+  }
+
+  @Override
   public String getActionDeclaration() {
     return "private final AnalyticsEnrollmentsActions actions = new AnalyticsEnrollmentsActions();";
   }
