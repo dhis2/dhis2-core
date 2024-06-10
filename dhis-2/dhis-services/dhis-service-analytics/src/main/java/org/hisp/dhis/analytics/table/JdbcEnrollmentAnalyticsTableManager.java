@@ -51,6 +51,7 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -117,16 +118,19 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
               .name("createdbyname")
               .dataType(VARCHAR_255)
               .selectExpression("pi.createdbyuserinfo ->> 'firstName' as createdbyname")
+              .skipIndex(Skip.SKIP)
               .build(),
           AnalyticsTableColumn.builder()
               .name("createdbylastname")
               .dataType(VARCHAR_255)
               .selectExpression("pi.createdbyuserinfo ->> 'surname' as createdbylastname")
+              .skipIndex(Skip.SKIP)
               .build(),
           AnalyticsTableColumn.builder()
               .name("createdbydisplayname")
               .dataType(VARCHAR_255)
               .selectExpression(getDisplayName("createdbyuserinfo", "pi", "createdbydisplayname"))
+              .skipIndex(Skip.SKIP)
               .build(),
           AnalyticsTableColumn.builder()
               .name("lastupdatedbyusername")
@@ -137,17 +141,20 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
               .name("lastupdatedbyname")
               .dataType(VARCHAR_255)
               .selectExpression("pi.lastupdatedbyuserinfo ->> 'firstName' as lastupdatedbyname")
+              .skipIndex(Skip.SKIP)
               .build(),
           AnalyticsTableColumn.builder()
               .name("lastupdatedbylastname")
               .dataType(VARCHAR_255)
               .selectExpression("pi.lastupdatedbyuserinfo ->> 'surname' as lastupdatedbylastname")
+              .skipIndex(Skip.SKIP)
               .build(),
           AnalyticsTableColumn.builder()
               .name("lastupdatedbydisplayname")
               .dataType(VARCHAR_255)
               .selectExpression(
                   getDisplayName("lastupdatedbyuserinfo", "pi", "lastupdatedbydisplayname"))
+              .skipIndex(Skip.SKIP)
               .build(),
           AnalyticsTableColumn.builder()
               .name("enrollmentstatus")

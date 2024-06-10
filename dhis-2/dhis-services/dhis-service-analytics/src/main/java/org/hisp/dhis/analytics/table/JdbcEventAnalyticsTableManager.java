@@ -189,16 +189,19 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               .name("createdbyname")
               .dataType(VARCHAR_255)
               .selectExpression("psi.createdbyuserinfo ->> 'firstName' as createdbyname")
+              .skipIndex(Skip.SKIP)
               .build(),
           AnalyticsTableColumn.builder()
               .name("createdbylastname")
               .dataType(VARCHAR_255)
               .selectExpression("psi.createdbyuserinfo ->> 'surname' as createdbylastname")
+              .skipIndex(Skip.SKIP)
               .build(),
           AnalyticsTableColumn.builder()
               .name("createdbydisplayname")
               .dataType(VARCHAR_255)
               .selectExpression(getDisplayName("createdbyuserinfo", "psi", "createdbydisplayname"))
+              .skipIndex(Skip.SKIP)
               .build(),
           AnalyticsTableColumn.builder()
               .name("lastupdatedbyusername")
@@ -209,17 +212,20 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               .name("lastupdatedbyname")
               .dataType(VARCHAR_255)
               .selectExpression("psi.lastupdatedbyuserinfo ->> 'firstName' as lastupdatedbyname")
+              .skipIndex(Skip.SKIP)
               .build(),
           AnalyticsTableColumn.builder()
               .name("lastupdatedbylastname")
               .dataType(VARCHAR_255)
               .selectExpression("psi.lastupdatedbyuserinfo ->> 'surname' as lastupdatedbylastname")
+              .skipIndex(Skip.SKIP)
               .build(),
           AnalyticsTableColumn.builder()
               .name("lastupdatedbydisplayname")
               .dataType(VARCHAR_255)
               .selectExpression(
                   getDisplayName("lastupdatedbyuserinfo", "psi", "lastupdatedbydisplayname"))
+              .skipIndex(Skip.SKIP)
               .build(),
           AnalyticsTableColumn.builder()
               .name("psistatus")

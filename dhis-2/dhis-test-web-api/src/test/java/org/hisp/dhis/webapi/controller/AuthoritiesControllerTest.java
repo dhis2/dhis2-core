@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -51,7 +50,33 @@ class AuthoritiesControllerTest extends DhisControllerConvenienceTest {
     List<String> listAuthNames =
         systemAuthorities.asList(JsonObject.class).stream()
             .map(o -> o.getString("name").string().toLowerCase())
-            .collect(toList());
+            .toList();
+
     assertTrue(ListUtils.isSorted(listAuthNames, String::compareToIgnoreCase));
+  }
+
+  @Test
+  void testGetAllAuthorities() {
+    JsonArray systemAuthorities = GET("/authorities").content().getArray("systemAuthorities");
+    assertTrue(systemAuthorities.size() > 10);
+
+    // Get all authority ids/names
+    List<String> listIds =
+        systemAuthorities.asList(JsonObject.class).stream()
+            .map(o -> o.getString("id").string())
+            .toList();
+
+    // Authorities from AppManager.getApps()
+    assertTrue(listIds.contains("M_androidsettingsapp"));
+
+    // Authorities from AppManager.BUNDLED_APPS
+    List<String> moduleAuths = listIds.stream().filter(id -> id.startsWith("M_dhis-web-")).toList();
+    assertTrue(moduleAuths.size() > 4);
+
+    // Authorities from schemaService
+    assertTrue(listIds.contains("F_USER_ADD"));
+
+    // System authorities fom Authorities enum
+    assertTrue(listIds.contains("ALL"));
   }
 }

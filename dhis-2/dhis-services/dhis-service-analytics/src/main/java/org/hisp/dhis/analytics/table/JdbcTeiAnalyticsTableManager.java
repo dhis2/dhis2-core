@@ -62,6 +62,7 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -240,16 +241,19 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
               .name("createdbyname")
               .dataType(VARCHAR_255)
               .selectExpression("tei.createdbyuserinfo ->> 'firstName' as createdbyname")
+              .skipIndex(Skip.SKIP)
               .build(),
           AnalyticsTableColumn.builder()
               .name("createdbylastname")
               .dataType(VARCHAR_255)
               .selectExpression("tei.createdbyuserinfo ->> 'surname' as createdbylastname")
+              .skipIndex(Skip.SKIP)
               .build(),
           AnalyticsTableColumn.builder()
               .name("createdbydisplayname")
               .dataType(VARCHAR_255)
               .selectExpression(getDisplayName("createdbyuserinfo", "tei", "createdbydisplayname"))
+              .skipIndex(Skip.SKIP)
               .build(),
           AnalyticsTableColumn.builder()
               .name("lastupdatedbyusername")
@@ -260,17 +264,20 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
               .name("lastupdatedbyname")
               .dataType(VARCHAR_255)
               .selectExpression("tei.lastupdatedbyuserinfo ->> 'firstName' as lastupdatedbyname")
+              .skipIndex(Skip.SKIP)
               .build(),
           AnalyticsTableColumn.builder()
               .name("lastupdatedbylastname")
               .dataType(VARCHAR_255)
               .selectExpression("tei.lastupdatedbyuserinfo ->> 'surname' as lastupdatedbylastname")
+              .skipIndex(Skip.SKIP)
               .build(),
           AnalyticsTableColumn.builder()
               .name("lastupdatedbydisplayname")
               .dataType(VARCHAR_255)
               .selectExpression(
                   getDisplayName("lastupdatedbyuserinfo", "tei", "lastupdatedbydisplayname"))
+              .skipIndex(Skip.SKIP)
               .build());
 
   public JdbcTeiAnalyticsTableManager(
