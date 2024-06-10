@@ -88,22 +88,29 @@ public class HibernateProgramRuleStore extends HibernateIdentifiableObjectStore<
   }
 
   @Override
-  public List<ProgramRule> getProgramRulesLinkedToTeaOrDe() {
+  public List<String> getDataElementsPresentInProgramRules() {
 
-    String jql =
-        "SELECT distinct pr FROM ProgramRule pr, Program p "
-            + "JOIN FETCH pr.programRuleActions pra "
-            + "WHERE p.uid = pr.program.uid AND "
-            + "(pra.dataElement IS NOT NULL OR pra.attribute IS NOT NULL)";
-    Session session = getSession();
-    return session.createQuery(jql, ProgramRule.class).getResultList();
+    String sql =
+        "SELECT distinct de.uid "
+            + "FROM ProgramRuleAction pra join dataelement de ON pra.dataelementid = de.dataelementid";
+    return jdbcTemplate.queryForList(sql, String.class);
+  }
+
+  @Override
+  public List<String> getTrackedEntityAttributesPresentInProgramRules() {
+
+    String sql =
+        "SELECT distinct tea.uid "
+            + "FROM ProgramRuleAction pra JOIN trackedentityattribute tea "
+            + "ON pra.trackedentityattributeid = tea.trackedentityattributeid";
+    return jdbcTemplate.queryForList(sql, String.class);
   }
 
   @Override
   public List<ProgramRule> getProgramRulesByActionTypes(
       Program program, Set<ProgramRuleActionType> actionTypes) {
     final String hql =
-        "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra "
+        "SELECT distinct pr FROM ProgramRule pr JOIN pr.programRuleActions pra "
             + "WHERE pr.program = :program AND pra.programRuleActionType IN ( :actionTypes ) ";
 
     return getQuery(hql)
@@ -116,8 +123,8 @@ public class HibernateProgramRuleStore extends HibernateIdentifiableObjectStore<
   public List<ProgramRule> getProgramRulesByActionTypes(
       Program program, Set<ProgramRuleActionType> types, String programStageUid) {
     final String hql =
-        "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra "
-            + "LEFT JOIN FETCH pr.programStage ps "
+        "SELECT distinct pr FROM ProgramRule pr JOIN pr.programRuleActions pra "
+            + "LEFT JOIN pr.programStage ps "
             + "WHERE pr.program = :programId AND pra.programRuleActionType IN ( :implementableTypes ) "
             + "AND (pr.programStage IS NULL OR ps.uid = :programStageUid )";
 
