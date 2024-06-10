@@ -153,20 +153,37 @@ public class JCloudsAppStorageService implements AppStorageService {
     String namespace = dhis.getNamespace();
     Set<String> namespaces = new HashSet<>();
     if (namespace != null && !namespace.isEmpty()) namespaces.add(namespace);
-    List<AppNamespaceProtection> additionalNamespaces = dhis.getAdditionalNamespaces();
+    List<AppNamespace> additionalNamespaces = dhis.getAdditionalNamespaces();
     if (additionalNamespaces != null)
       additionalNamespaces.forEach(ns -> namespaces.add(ns.getNamespace()));
 
     if (!namespaces.isEmpty()) {
       for (String ns : namespaces) {
-        Optional<App> other = appCache.getAll().filter(a -> a.usesNamespace(ns)).findFirst();
+        Optional<App> other =
+            appCache.getAll().filter(a -> a.getNamespaces().contains(ns)).findFirst();
         if (other.isPresent() && !other.get().getKey().equals(app.getKey())) {
           log.error(
-              String.format(
-                  "Failed to install app '%s': Namespace '%s' already taken.",
-                  app.getName(), namespace));
-
+              "Failed to install app '{}': Namespace '{}' already taken.",
+              app.getName(),
+              namespace);
           app.setAppState(AppStatus.NAMESPACE_TAKEN);
+          return false;
+        }
+      }
+    }
+
+    if (additionalNamespaces != null) {
+      for (AppNamespace ns : additionalNamespaces) {
+        if (ns.getNamespace() == null
+            || ns.getNamespace().isEmpty()
+            || ns.getAuthorities() == null
+            || ns.getAuthorities().isEmpty()) {
+          log.error(
+              "Failed to install app '{}': Required property is undefined, namespace '{}', authorities '{}'.",
+              app.getName(),
+              ns.getNamespace(),
+              ns.getAuthorities());
+          app.setAppState(AppStatus.NAMESPACE_INVALID);
           return false;
         }
       }

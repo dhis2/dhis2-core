@@ -44,5 +44,5 @@ public class AppDhis implements Serializable {
 
   @JsonProperty private String href;
   @JsonProperty private String namespace;
-  @JsonProperty private List<AppNamespaceProtection> additionalNamespaces;
+  @JsonProperty private List<AppNamespace> additionalNamespaces;
 }

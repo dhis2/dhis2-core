@@ -35,11 +35,19 @@ import lombok.Data;
  * @author Jan Bernitt
  */
 @Data
-public class AppNamespaceProtection implements Serializable {
+public class AppNamespace implements Serializable {
 
   private static final long serialVersionUID = -1653792127753819375L;
 
+  /** The namespace name an app wants to use in a protected manner */
   private String namespace;
+
+  /** A user must have one of these authorities to be able to use the namespace */
   private Set<String> authorities;
+
+  /**
+   * Can be set to true, to opt-out of protected reads. Otherwise, both reads and writes are
+   * protected by the {@link #authorities}
+   */
   private boolean unprotectedReads;
 }

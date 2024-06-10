@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.appmanager;
 
+import static java.util.stream.Collectors.toUnmodifiableSet;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -457,12 +459,32 @@ public class App implements Serializable {
     return (this.appType == AppType.APP) && (this.pluginLaunchPath != null);
   }
 
-  public boolean usesNamespace(@Nonnull String ns) {
+  @JsonIgnore
+  @Nonnull
+  public Set<String> getNamespaces() {
     AppDhis dhis = getActivities().getDhis();
-    if (ns.equals(dhis.getNamespace())) return true;
-    List<AppNamespaceProtection> additionalNamespaces = dhis.getAdditionalNamespaces();
-    if (additionalNamespaces == null || additionalNamespaces.isEmpty()) return false;
+    String namespace = dhis.getNamespace();
+    List<AppNamespace> additionalNamespaces = dhis.getAdditionalNamespaces();
+    if (namespace == null && additionalNamespaces == null) return Set.of();
+    if (namespace == null)
+      return additionalNamespaces.stream()
+          .map(AppNamespace::getNamespace)
+          .collect(toUnmodifiableSet());
+    if (additionalNamespaces == null || additionalNamespaces.isEmpty()) return Set.of(namespace);
+    Set<String> namespaces = new HashSet<>();
+    namespaces.add(namespace);
+    additionalNamespaces.forEach(ns -> namespaces.add(ns.getNamespace()));
+    return namespaces;
+  }
+
+  @JsonIgnore
+  @Nonnull
+  public Set<String> getAdditionalAuthorities() {
+    AppDhis dhis = getActivities().getDhis();
+    List<AppNamespace> additionalNamespaces = dhis.getAdditionalNamespaces();
+    if (additionalNamespaces == null || additionalNamespaces.isEmpty()) return Set.of();
     return additionalNamespaces.stream()
-        .anyMatch(protection -> ns.equals(protection.getNamespace()));
+        .flatMap(ns -> ns.getAuthorities().stream())
+        .collect(toUnmodifiableSet());
   }
 }

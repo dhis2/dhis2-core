@@ -427,13 +427,13 @@ public class DefaultAppManager implements AppManager {
       datastoreService.addProtection(
           new DatastoreNamespaceProtection(namespace, RESTRICTED, authorities));
     }
-    List<AppNamespaceProtection> additionalNamespaces = dhis.getAdditionalNamespaces();
+    List<AppNamespace> additionalNamespaces = dhis.getAdditionalNamespaces();
     if (additionalNamespaces != null && !additionalNamespaces.isEmpty()) {
-      for (AppNamespaceProtection protection : additionalNamespaces) {
-        ProtectionType reads = protection.isUnprotectedReads() ? NONE : RESTRICTED;
+      for (AppNamespace ns : additionalNamespaces) {
+        ProtectionType reads = ns.isUnprotectedReads() ? NONE : RESTRICTED;
         datastoreService.addProtection(
             new DatastoreNamespaceProtection(
-                protection.getNamespace(), reads, RESTRICTED, protection.getAuthorities()));
+                ns.getNamespace(), reads, RESTRICTED, ns.getAuthorities()));
       }
     }
   }
@@ -444,10 +444,9 @@ public class DefaultAppManager implements AppManager {
     if (namespace != null && !namespace.isEmpty()) {
       datastoreService.removeProtection(namespace);
     }
-    List<AppNamespaceProtection> additionalNamespaces = dhis.getAdditionalNamespaces();
+    List<AppNamespace> additionalNamespaces = dhis.getAdditionalNamespaces();
     if (additionalNamespaces != null && !additionalNamespaces.isEmpty()) {
-      additionalNamespaces.forEach(
-          protection -> datastoreService.removeProtection(protection.getNamespace()));
+      additionalNamespaces.forEach(ns -> datastoreService.removeProtection(ns.getNamespace()));
     }
   }
 
