@@ -64,7 +64,7 @@ public class GeneratorHelper {
   static final String CLASS_NAME_PREFIX = GEN.getClassNamePrefix();
   static final String SCENARIO_FILE = GEN.getScenarioFile();
   static final String SCENARIO_FILE_LOCATION =
-      "/src/test/java/org/hisp/dhis/analytics/generator/"
+      "./src/test/java/org/hisp/dhis/analytics/generator/"
           + GEN.getScenarioFolder()
           + "/"
           + SCENARIO_FILE;
@@ -74,6 +74,8 @@ public class GeneratorHelper {
   static final String ACTION_INSTANCE = GEN.getActionDeclaration();
   static final String PACKAGE = GEN.getPackage();
   static final String TOP_CLASS_COMMENT = GEN.getTopClassComment();
+  static final String TEST_OUTPUT_LOCATION =
+      "./src/test/java/org/hisp/dhis/analytics/generator/output/";
 
   /**
    * Generic header of the class including imports and class declaration. Some imports might be

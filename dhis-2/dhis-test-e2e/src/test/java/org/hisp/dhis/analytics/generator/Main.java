@@ -36,6 +36,7 @@ import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.analytics.generator.GeneratorHelper.CLASS_NAME_PREFIX;
 import static org.hisp.dhis.analytics.generator.GeneratorHelper.MAX_TESTS_PER_CLASS;
 import static org.hisp.dhis.analytics.generator.GeneratorHelper.SCENARIO_FILE_LOCATION;
+import static org.hisp.dhis.analytics.generator.GeneratorHelper.TEST_OUTPUT_LOCATION;
 import static org.hisp.dhis.analytics.generator.GeneratorHelper.generateTestMethod;
 import static org.hisp.dhis.analytics.generator.GeneratorHelper.getClassDeclaration;
 import static org.hisp.dhis.analytics.generator.GeneratorHelper.getPackageAndImports;
@@ -68,7 +69,10 @@ class Main {
 
     for (int i = 0; i < classes.size(); i++) {
       String className = CLASS_NAME_PREFIX + (i + 1) + "AutoTest";
-      BufferedWriter writer = new BufferedWriter(new FileWriter(className + ".java"));
+      File file = new File(TEST_OUTPUT_LOCATION + className + ".java");
+      file.getParentFile().mkdirs();
+
+      BufferedWriter writer = new BufferedWriter(new FileWriter(file));
 
       StringBuilder classContents = new StringBuilder(getPackageAndImports());
       classContents.append(getClassDeclaration(className));
@@ -106,7 +110,7 @@ class Main {
 
   private static Map<String, String> loadTestQueries() throws Exception {
     JsonObject json =
-        ((JsonFileReader) new FileReaderUtils().read(new File("." + SCENARIO_FILE_LOCATION))).get();
+        ((JsonFileReader) new FileReaderUtils().read(new File(SCENARIO_FILE_LOCATION))).get();
     List<JsonElement> scenarios = json.getAsJsonArray("scenarios").asList();
 
     Map<String, String> queries = new LinkedHashMap<>();
