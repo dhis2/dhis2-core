@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,31 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.programrule;
+package org.hisp.dhis.appmanager;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
-import java.util.Set;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.program.Program;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
-/**
- * @author markusbekken
- */
-public interface ProgramRuleStore extends IdentifiableObjectStore<ProgramRule> {
-  /**
-   * Get programRule by program
-   *
-   * @param program {@link Program}
-   * @return ProgramRuleVariable list
-   */
-  List<ProgramRule> get(Program program);
+class AppManagerTest {
 
-  List<String> getDataElementsPresentInProgramRules();
+  @Test
+  @DisplayName("filter by plugin type should not thrown a null pointer exception")
+  void filterByPluginTypeTest() {
+    // given 2 apps, 1 with a plugin type and 1 with none
+    App app1 = new App();
+    app1.setName("app 1");
+    app1.setVersion("v1");
+    app1.setPluginType("plugin1");
 
-  List<String> getTrackedEntityAttributesPresentInProgramRules();
+    App app2 = new App();
+    app2.setName("app 2");
+    app2.setVersion("v2");
 
-  List<ProgramRule> getProgramRulesByActionTypes(Program program, Set<ProgramRuleActionType> types);
+    // when filtering by plugin type
+    List<App> filteredApps =
+        assertDoesNotThrow(() -> AppManager.filterAppsByPluginType("plugin1", List.of(app1, app2)));
 
-  List<ProgramRule> getProgramRulesByActionTypes(
-      Program program, Set<ProgramRuleActionType> serverSupportedTypes, String programStageUid);
+    // then 1 app is returned and no error is thrown
+    assertEquals(1, filteredApps.size());
+    assertEquals("app 1", filteredApps.get(0).getName());
+  }
 }
