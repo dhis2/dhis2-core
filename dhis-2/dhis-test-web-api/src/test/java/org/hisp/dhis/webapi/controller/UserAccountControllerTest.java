@@ -448,6 +448,16 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
     switchContextToUser(adminCreatedUser);
     GET("/me").content(HttpStatus.OK);
 
+    List<User> allUsers = userService.getAllUsers();
+
+    User samewisegamgee = userService.getUserByUsername("samewisegamgee");
+    samewisegamgee.setIdToken("idToken");
+    samewisegamgee.setRestoreToken("$2a$10$fScYIKiJx6sBWBm/U0QgR.fPlLJeMXOu0CmuharO7v5XVOSZRZ.p.");
+    samewisegamgee.setRestoreExpiry(DateUtils.getDate(2040, 11, 22, 4, 20));
+    userService.updateUser(samewisegamgee);
+
+    List<User> allUsersAgain = userService.getAllUsers();
+
     assertWebMessage(
         "OK",
         200,

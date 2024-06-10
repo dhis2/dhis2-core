@@ -555,6 +555,9 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
     this.lastLogin = lastLogin;
   }
 
+  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Property(value = PropertyType.PASSWORD, access = Property.Access.WRITE_ONLY)
   public String getIdToken() {
     return idToken;
   }

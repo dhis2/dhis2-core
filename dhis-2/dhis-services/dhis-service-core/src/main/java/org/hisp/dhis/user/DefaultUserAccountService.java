@@ -29,6 +29,7 @@ package org.hisp.dhis.user;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -132,6 +133,7 @@ public class DefaultUserAccountService implements UserAccountService {
     String idToken = idAndRestoreToken[0];
     String restoreToken = idAndRestoreToken[1];
 
+    List<User> allUsers = userService.getAllUsers();
     User user = userService.getUserByIdToken(idToken);
     if (user == null) {
       throw new BadRequestException("Invitation link not valid");
