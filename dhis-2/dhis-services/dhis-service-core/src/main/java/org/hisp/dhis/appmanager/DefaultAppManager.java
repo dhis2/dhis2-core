@@ -439,9 +439,15 @@ public class DefaultAppManager implements AppManager {
   }
 
   private void unregisterDatastoreProtection(App app) {
-    String namespace = app.getActivities().getDhis().getNamespace();
+    AppDhis dhis = app.getActivities().getDhis();
+    String namespace = dhis.getNamespace();
     if (namespace != null && !namespace.isEmpty()) {
       datastoreService.removeProtection(namespace);
+    }
+    List<AppNamespaceProtection> additionalNamespaces = dhis.getAdditionalNamespaces();
+    if (additionalNamespaces != null && !additionalNamespaces.isEmpty()) {
+      additionalNamespaces.forEach(
+          protection -> datastoreService.removeProtection(protection.getNamespace()));
     }
   }
 

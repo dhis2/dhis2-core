@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.appmanager;
 
+import java.io.Serializable;
 import java.util.Set;
 import lombok.Data;
 
@@ -34,7 +35,9 @@ import lombok.Data;
  * @author Jan Bernitt
  */
 @Data
-public class AppNamespaceProtection {
+public class AppNamespaceProtection implements Serializable {
+
+  private static final long serialVersionUID = -1653792127753819375L;
 
   private String namespace;
   private Set<String> authorities;

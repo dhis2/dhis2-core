@@ -43,8 +43,6 @@ public class AppDhis implements Serializable {
   private static final long serialVersionUID = -8854371580010728182L;
 
   @JsonProperty private String href;
-
   @JsonProperty private String namespace;
-
   @JsonProperty private List<AppNamespaceProtection> additionalNamespaces;
 }
