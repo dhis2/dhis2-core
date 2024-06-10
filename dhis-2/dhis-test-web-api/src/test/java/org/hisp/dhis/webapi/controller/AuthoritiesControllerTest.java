@@ -60,7 +60,7 @@ class AuthoritiesControllerTest extends DhisControllerConvenienceTest {
     JsonArray systemAuthorities = GET("/authorities").content().getArray("systemAuthorities");
     assertTrue(systemAuthorities.size() > 10);
 
-    // Get all authority ids/names
+    // Get all authority ids
     List<String> listIds =
         systemAuthorities.asList(JsonObject.class).stream()
             .map(o -> o.getString("id").string())
