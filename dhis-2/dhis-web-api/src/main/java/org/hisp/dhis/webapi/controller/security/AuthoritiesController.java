@@ -30,16 +30,23 @@ package org.hisp.dhis.webapi.controller.security;
 import static java.util.Collections.singletonMap;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.appmanager.AndroidSettingsApp;
 import org.hisp.dhis.appmanager.App;
+import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.SystemAuthoritiesProvider;
 import org.hisp.dhis.webapi.controller.Server;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -58,19 +65,34 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/authorities")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class AuthoritiesController {
-  @Autowired private I18nManager i18nManager;
 
+  @Autowired private I18nManager i18nManager;
   @Autowired private SystemAuthoritiesProvider authoritiesProvider;
+  @Autowired private SchemaService schemaService;
+  @Autowired private AppManager appManager;
 
   @GetMapping
   public Map<String, List<Map<String, String>>> getAuthorities(HttpServletResponse response) {
     I18n i18n = i18nManager.getI18n();
-    List<String> authorities = new ArrayList<>(authoritiesProvider.getSystemAuthorities());
+
+    List<String> authorities = new ArrayList<>();
+
+    Collection<String> systemAuthorities = authoritiesProvider.getSystemAuthorities();
+    authorities.addAll(systemAuthorities);
+
+    Collection<String> schemaAuthorities = schemaService.collectAuthorities();
+    authorities.addAll(schemaAuthorities);
+
+    Collection<String> appAuthorities = getAppAuthorities();
+    authorities.addAll(appAuthorities);
+
+    List<String> bundledAppsAuthorities = getBundledAppsAuthorities();
+    authorities.addAll(bundledAppsAuthorities);
+
     List<Map<String, String>> entries = new ArrayList<>();
     for (String auth : authorities) {
-      String name = getAuthName(auth, i18n);
-
       Map<String, String> authority = new LinkedHashMap<>();
+      String name = getAuthName(auth, i18n);
       authority.put("id", auth);
       authority.put("name", name);
       entries.add(authority);
@@ -79,14 +101,35 @@ public class AuthoritiesController {
     return singletonMap("systemAuthorities", entries);
   }
 
+  public Collection<String> getAppAuthorities() {
+    Set<String> authorities = new HashSet<>();
+    appManager.getApps(null).stream()
+        .filter(app -> !StringUtils.isEmpty(app.getShortName()) && !app.isBundled())
+        .forEach(
+            app -> {
+              authorities.add(app.getSeeAppAuthority());
+              authorities.addAll(app.getAuthorities());
+            });
+    authorities.add(AndroidSettingsApp.AUTHORITY);
+    return authorities;
+  }
+
+  private List<String> getBundledAppsAuthorities() {
+    List<String> authorities = new ArrayList<>();
+    Set<String> bundledApps = AppManager.BUNDLED_APPS;
+    for (String app : bundledApps) {
+      String key = "M_dhis-web-" + app;
+      authorities.add(key);
+    }
+    return authorities;
+  }
+
   private static String getAuthName(String auth, I18n i18n) {
     auth = i18n.getString(auth);
-
     // Custom App doesn't have translation for See App authority
     if (auth.startsWith(App.SEE_APP_AUTHORITY_PREFIX)) {
       auth = auth.replaceFirst(App.SEE_APP_AUTHORITY_PREFIX, "").replace("_", " ") + " app";
     }
-
     return auth;
   }
 }
