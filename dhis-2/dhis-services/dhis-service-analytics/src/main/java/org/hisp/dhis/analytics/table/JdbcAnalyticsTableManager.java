@@ -60,6 +60,7 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.category.CategoryService;
@@ -533,6 +534,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             .dataType(DOUBLE)
             .nullable(NULL)
             .valueType(FACT)
+            .skipIndex(Skip.SKIP)
             .selectExpression("daysxvalue")
             .build(),
         AnalyticsTableColumn.builder()
@@ -540,6 +542,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             .dataType(INTEGER)
             .nullable(NOT_NULL)
             .valueType(FACT)
+            .skipIndex(Skip.SKIP)
             .selectExpression("daysno")
             .build(),
         AnalyticsTableColumn.builder()
@@ -554,6 +557,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             .dataType(TEXT)
             .nullable(NULL)
             .valueType(FACT)
+            .skipIndex(Skip.SKIP)
             .selectExpression("textvalue")
             .build());
   }
@@ -622,24 +626,28 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         AnalyticsTableColumn.builder()
             .name("avg_middle_value")
             .dataType(DOUBLE)
+            .skipIndex(Skip.SKIP)
             .selectExpression("stats.avg_middle_value")
             .build(),
         // median
         AnalyticsTableColumn.builder()
             .name("percentile_middle_value")
             .dataType(DOUBLE)
+            .skipIndex(Skip.SKIP)
             .selectExpression("stats.percentile_middle_value")
             .build(),
         // median of absolute deviations "MAD"
         AnalyticsTableColumn.builder()
             .name("mad")
             .dataType(DOUBLE)
+            .skipIndex(Skip.SKIP)
             .selectExpression("stats.mad")
             .build(),
         // standard deviation
         AnalyticsTableColumn.builder()
             .name("std_dev")
             .dataType(DOUBLE)
+            .skipIndex(Skip.SKIP)
             .selectExpression("stats.std_dev")
             .build());
   }
