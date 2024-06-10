@@ -33,7 +33,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.DxfNamespaces;
 
 /**
@@ -453,5 +455,14 @@ public class App implements Serializable {
 
   public Boolean hasPluginEntrypoint() {
     return (this.appType == AppType.APP) && (this.pluginLaunchPath != null);
+  }
+
+  public boolean usesNamespace(@Nonnull String ns) {
+    AppDhis dhis = getActivities().getDhis();
+    if (ns.equals(dhis.getNamespace())) return true;
+    List<AppNamespaceProtection> additionalNamespaces = dhis.getAdditionalNamespaces();
+    if (additionalNamespaces == null || additionalNamespaces.isEmpty()) return false;
+    return additionalNamespaces.stream()
+        .anyMatch(protection -> ns.equals(protection.getNamespace()));
   }
 }

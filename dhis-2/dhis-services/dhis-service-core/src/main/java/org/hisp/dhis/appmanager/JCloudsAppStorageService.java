@@ -38,9 +38,11 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
@@ -147,25 +149,28 @@ public class JCloudsAppStorageService implements AppStorageService {
     // Allow install if namespace was taken by another version of this app
     // -----------------------------------------------------------------
 
-    String namespace = app.getActivities().getDhis().getNamespace();
+    AppDhis dhis = app.getActivities().getDhis();
+    String namespace = dhis.getNamespace();
+    Set<String> namespaces = new HashSet<>();
+    if (namespace != null && !namespace.isEmpty()) namespaces.add(namespace);
+    List<AppNamespaceProtection> additionalNamespaces = dhis.getAdditionalNamespaces();
+    if (additionalNamespaces != null)
+      additionalNamespaces.forEach(ns -> namespaces.add(ns.getNamespace()));
 
-    if (namespace != null && !namespace.isEmpty()) {
-      Optional<App> other =
-          appCache
-              .getAll()
-              .filter(a -> namespace.equals(a.getActivities().getDhis().getNamespace()))
-              .findFirst();
-      if (other.isPresent() && !other.get().getKey().equals(app.getKey())) {
-        log.error(
-            String.format(
-                "Failed to install app '%s': Namespace '%s' already taken.",
-                app.getName(), namespace));
+    if (!namespaces.isEmpty()) {
+      for (String ns : namespaces) {
+        Optional<App> other = appCache.getAll().filter(a -> a.usesNamespace(ns)).findFirst();
+        if (other.isPresent() && !other.get().getKey().equals(app.getKey())) {
+          log.error(
+              String.format(
+                  "Failed to install app '%s': Namespace '%s' already taken.",
+                  app.getName(), namespace));
 
-        app.setAppState(AppStatus.NAMESPACE_TAKEN);
-        return false;
+          app.setAppState(AppStatus.NAMESPACE_TAKEN);
+          return false;
+        }
       }
     }
-
     return true;
   }
 

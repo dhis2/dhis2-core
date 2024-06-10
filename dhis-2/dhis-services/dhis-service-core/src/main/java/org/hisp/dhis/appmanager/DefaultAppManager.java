@@ -30,6 +30,8 @@ package org.hisp.dhis.appmanager;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+import static org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType.NONE;
+import static org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType.RESTRICTED;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -413,7 +415,8 @@ public class DefaultAppManager implements AppManager {
   }
 
   private void registerDatastoreProtection(App app) {
-    String namespace = app.getActivities().getDhis().getNamespace();
+    AppDhis dhis = app.getActivities().getDhis();
+    String namespace = dhis.getNamespace();
     if (namespace != null && !namespace.isEmpty()) {
       String[] authorities =
           app.getShortName() == null
@@ -422,7 +425,16 @@ public class DefaultAppManager implements AppManager {
                 Authorities.M_DHIS_WEB_APP_MANAGEMENT.toString(), app.getSeeAppAuthority()
               };
       datastoreService.addProtection(
-          new DatastoreNamespaceProtection(namespace, ProtectionType.RESTRICTED, authorities));
+          new DatastoreNamespaceProtection(namespace, RESTRICTED, authorities));
+    }
+    List<AppNamespaceProtection> additionalNamespaces = dhis.getAdditionalNamespaces();
+    if (additionalNamespaces != null && !additionalNamespaces.isEmpty()) {
+      for (AppNamespaceProtection protection : additionalNamespaces) {
+        ProtectionType reads = protection.isUnprotectedReads() ? NONE : RESTRICTED;
+        datastoreService.addProtection(
+            new DatastoreNamespaceProtection(
+                protection.getNamespace(), reads, RESTRICTED, protection.getAuthorities()));
+      }
     }
   }
 

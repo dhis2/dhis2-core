@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,24 +27,16 @@
  */
 package org.hisp.dhis.appmanager;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
-import java.util.List;
-import lombok.Getter;
-import lombok.Setter;
+import java.util.Set;
+import lombok.Data;
 
 /**
- * @author Saptarshi
+ * @author Jan Bernitt
  */
-@Setter
-@Getter
-public class AppDhis implements Serializable {
-  /** Determines if a de-serialized file is compatible with this class. */
-  private static final long serialVersionUID = -8854371580010728182L;
+@Data
+public class AppNamespaceProtection {
 
-  @JsonProperty private String href;
-
-  @JsonProperty private String namespace;
-
-  @JsonProperty private List<AppNamespaceProtection> additionalNamespaces;
+  private String namespace;
+  private Set<String> authorities;
+  private boolean unprotectedReads;
 }
