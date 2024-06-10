@@ -168,7 +168,6 @@ import org.hisp.dhis.schema.descriptors.TrackedEntityProgramIndicatorDimensionSc
 import org.hisp.dhis.schema.descriptors.TrackedEntityTypeAttributeSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.TrackedEntityTypeSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.UserAccessSchemaDescriptor;
-import org.hisp.dhis.schema.descriptors.UserCredentialsSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.UserGroupAccessSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.UserGroupSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.UserRoleSchemaDescriptor;
@@ -283,7 +282,6 @@ public class DefaultSchemaService implements SchemaService {
     register(new TrackedEntityTypeAttributeSchemaDescriptor());
     register(new TrackedEntityDataElementDimensionSchemaDescriptor());
     register(new TrackedEntityProgramIndicatorDimensionSchemaDescriptor());
-    register(new UserCredentialsSchemaDescriptor());
     register(new UserGroupSchemaDescriptor());
     register(new UserRoleSchemaDescriptor());
     register(new UserSchemaDescriptor());

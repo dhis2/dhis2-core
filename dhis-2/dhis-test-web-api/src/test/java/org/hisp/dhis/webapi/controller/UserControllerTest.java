@@ -40,23 +40,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.jsontree.JsonArray;
-import org.hisp.dhis.jsontree.JsonBoolean;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.message.FakeMessageSender;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -191,33 +183,6 @@ class UserControllerTest extends DhisControllerConvenienceTest {
     assertEquals(
         "User account does not have a valid email address",
         POST("/users/" + peter.getUid() + "/reset").error(HttpStatus.CONFLICT).getMessage());
-  }
-
-  @Test
-  void testUpdateValueInLegacyUserCredentials() {
-    assertStatus(
-        HttpStatus.OK,
-        PATCH(
-            "/users/{id}",
-            peter.getUid() + "?importReportMode=ERRORS",
-            Body("[{'op': 'add', 'path': '/openId', 'value': 'mapping value'}]")));
-
-    User user = userService.getUser(peter.getUid());
-    assertEquals("mapping value", user.getOpenId());
-  }
-
-  @Test
-  void testUpdateOpenIdInLegacyFormat() {
-    assertStatus(
-        HttpStatus.OK,
-        PATCH(
-            "/users/{id}",
-            peter.getUid() + "?importReportMode=ERRORS",
-            Body("[{'op': 'add', 'path': '/userCredentials/openId', 'value': 'mapping value'}]")));
-
-    User user = userService.getUser(peter.getUid());
-    assertEquals("mapping value", user.getOpenId());
-    assertEquals("mapping value", user.getUserCredentials().getOpenId());
   }
 
   @Test
@@ -472,33 +437,6 @@ class UserControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testUpdateRolesLegacy() {
-    UserRole userRole = createUserRole("ROLE_B", "ALL");
-    userService.addUserRole(userRole);
-    String newRoleUid = userService.getUserRoleByName("ROLE_B").getUid();
-
-    User peterBefore = userService.getUser(this.peter.getUid());
-    String mainRoleUid = peterBefore.getUserRoles().iterator().next().getUid();
-
-    assertStatus(
-        HttpStatus.OK,
-        PATCH(
-            "/users/{id}",
-            this.peter.getUid() + "?importReportMode=ERRORS",
-            Body(
-                "[{'op':'add','path':'/userCredentials/userRoles','value':[{'id':'"
-                    + newRoleUid
-                    + "'},{'id':'"
-                    + mainRoleUid
-                    + "'}]}]")));
-
-    User peterAfter = userService.getUser(this.peter.getUid());
-    Set<UserRole> userRoles = peterAfter.getUserRoles();
-
-    assertEquals(2, userRoles.size());
-  }
-
-  @Test
   void testAddGroups() {
     UserGroup userGroupA = createUserGroup('A', emptySet());
     manager.save(userGroupA);
@@ -666,31 +604,6 @@ class UserControllerTest extends DhisControllerConvenienceTest {
         "Password must have at least 8, and at most 72 characters",
         POST("/users/" + peter.getUid() + "/replica", "{'username':'peter2','password':'lame'}")
             .content(HttpStatus.CONFLICT));
-  }
-
-  @Test
-  void testGetUserLegacyUserCredentialsIdPresent() {
-    JsonObject response = GET("/users/{id}", peter.getUid()).content();
-    JsonObject userCredentials = response.getObject("userCredentials");
-    JsonValue id = userCredentials.get("id");
-    assertTrue(id.exists());
-  }
-
-  @Test
-  void testNewTwoFAStatusExistsInUserCredentials() {
-    JsonObject response = GET("/users/{id}", peter.getUid()).content();
-    JsonObject userCredentials = response.getObject("userCredentials");
-    Boolean twoFA = userCredentials.get("twoFA").as(JsonBoolean.class).bool();
-    assertFalse(twoFA);
-
-    User user = userService.getUserByUsername(peter.getUsername());
-    user.setSecret("secret");
-    userService.updateUser(user);
-
-    response = GET("/users/{id}", peter.getUid()).content();
-    userCredentials = response.getObject("userCredentials");
-    twoFA = userCredentials.get("twoFA").as(JsonBoolean.class).bool();
-    assertTrue(twoFA);
   }
 
   @Test
@@ -937,24 +850,6 @@ class UserControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testPostJsonObjectInvalidUsernameLegacyFormat() {
-    JsonWebMessage msg =
-        assertWebMessage(
-            "Conflict",
-            409,
-            "ERROR",
-            "One or more errors occurred, please see full details in import report.",
-            POST(
-                    "/users/",
-                    "{'surname':'S.','firstName':'Harry','userCredentials':{'username':'_Harrys'}}")
-                .content(HttpStatus.CONFLICT));
-    JsonErrorReport report =
-        msg.getResponse()
-            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4049);
-    assertEquals("username", report.getErrorProperty());
-  }
-
-  @Test
   void testPostJsonObjectInvalidUsername() {
     JsonWebMessage msg =
         assertWebMessage(
@@ -968,78 +863,6 @@ class UserControllerTest extends DhisControllerConvenienceTest {
         msg.getResponse()
             .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4049);
     assertEquals("username", report.getErrorProperty());
-  }
-
-  @Test
-  void testPutLegacyFormat() {
-    JsonObject user = GET("/users/{id}", peter.getUid()).content();
-
-    String jsonString = "{'openId':'test'}";
-    JsonElement jsonElement = new Gson().fromJson(jsonString, JsonElement.class);
-
-    com.google.gson.JsonObject asJsonObject =
-        new Gson().fromJson(user.toString(), JsonElement.class).getAsJsonObject();
-    asJsonObject.add("userCredentials", jsonElement);
-
-    PUT("/37/users/" + peter.getUid(), asJsonObject.toString());
-
-    User userAfter = userService.getUser(peter.getUid());
-    assertEquals("test", userAfter.getOpenId());
-  }
-
-  @Test
-  void testRemoveCogCatDimFromUserCredentialsLegacyFormat() {
-    CategoryOption coA = createCategoryOption('A');
-    CategoryOption coB = createCategoryOption('B');
-    categoryService.addCategoryOption(coA);
-    categoryService.addCategoryOption(coB);
-
-    Category caA = createCategory('A', coA);
-    Category caB = createCategory('B', coB);
-    categoryService.addCategory(caA);
-    categoryService.addCategory(caB);
-
-    Set<Category> catDimensionConstraints = Sets.newHashSet(caA, caB);
-
-    CategoryOptionGroupSet categoryOptionGroupSet = new CategoryOptionGroupSet();
-    categoryOptionGroupSet.setAutoFields();
-    categoryOptionGroupSet.setDataDimensionType(DataDimensionType.DISAGGREGATION);
-    categoryOptionGroupSet.setName("cogA");
-    categoryOptionGroupSet.setShortName("cogA");
-    manager.save(categoryOptionGroupSet);
-
-    User userByUsername = userService.getUserByUsername(peter.getUsername());
-
-    userByUsername.setCogsDimensionConstraints(Sets.newHashSet(categoryOptionGroupSet));
-    userByUsername.setCatDimensionConstraints(catDimensionConstraints);
-
-    userService.updateUser(userByUsername);
-
-    JsonObject user = GET("/users/{id}", peter.getUid()).content();
-
-    JsonArray constraints = user.getArray("catDimensionConstraints");
-    assertEquals(2, constraints.size());
-
-    String emptyCatDim = "{'catDimensionConstraints':[]}";
-    JsonElement emptyCatDimJsonElm = new Gson().fromJson(emptyCatDim, JsonElement.class);
-    String emptyCogDim = "{'cogsDimensionConstraints':[]}";
-    JsonElement emptyCogDimJsonElm = new Gson().fromJson(emptyCogDim, JsonElement.class);
-
-    com.google.gson.JsonObject userJsonObject =
-        new Gson().fromJson(user.toString(), JsonElement.class).getAsJsonObject();
-
-    userJsonObject.add("userCredentials", emptyCatDimJsonElm);
-    userJsonObject.add("userCredentials", emptyCogDimJsonElm);
-
-    PUT("/37/users/" + peter.getUid(), userJsonObject.toString());
-
-    User userAfter = userService.getUser(peter.getUid());
-    Set<CategoryOptionGroupSet> cogsDimensionConstraintsAfter =
-        userAfter.getCogsDimensionConstraints();
-    Set<Category> catDimensionConstraintsAfter = userAfter.getCatDimensionConstraints();
-
-    assertEquals(0, cogsDimensionConstraintsAfter.size());
-    assertEquals(0, catDimensionConstraintsAfter.size());
   }
 
   @Test
@@ -1136,16 +959,6 @@ class UserControllerTest extends DhisControllerConvenienceTest {
         ((FakeMessageSender) messageSender).getMessagesByEmail(email);
     assertTrue(messagesByEmail.size() > 0);
     return messagesByEmail.get(0);
-  }
-
-  @Test
-  void testIllegalUpdateNoPermission() {
-    switchContextToUser(this.peter);
-    assertEquals(
-        "You don't have the proper permissions to update this user.",
-        PUT("/37/users/" + peter.getUid(), "{\"userCredentials\":{\"twoFA\":true}}")
-            .error(HttpStatus.FORBIDDEN)
-            .getMessage());
   }
 
   @Test

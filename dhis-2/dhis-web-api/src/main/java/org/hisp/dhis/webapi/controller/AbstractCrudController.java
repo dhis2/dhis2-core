@@ -36,7 +36,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 
-import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -58,7 +57,6 @@ import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
-import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
@@ -231,23 +229,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
   }
 
   private T doPatch(JsonPatch patch, T persistedObject) throws JsonPatchException {
-    // TODO: To remove when we remove old UserCredentials compatibility
-    if (persistedObject instanceof User) {
-      for (JsonPatchOperation op : patch.getOperations()) {
-        JsonPointer userCredentials = op.getPath().matchProperty("userCredentials");
-        if (userCredentials != null) {
-          op.setPath(JsonPointer.empty().append(userCredentials));
-        }
-      }
-    }
 
     final T patchedObject = jsonPatchManager.apply(patch, persistedObject);
-
-    // TODO: To remove when we remove old UserCredentials compatibility
-    if (patchedObject instanceof User) {
-      User patchingUser = (User) patchedObject;
-      patchingUser.removeLegacyUserCredentials();
-    }
 
     if (patchedObject instanceof User) {
       // Reset to avoid non owning properties (here UserGroups) to be
