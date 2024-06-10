@@ -58,7 +58,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -97,6 +97,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -189,16 +191,19 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               .name("createdbyname")
               .dataType(VARCHAR_255)
               .selectExpression("psi.createdbyuserinfo ->> 'firstName' as createdbyname")
+              .skipIndex(Skip.SKIP)
               .build(),
           AnalyticsTableColumn.builder()
               .name("createdbylastname")
               .dataType(VARCHAR_255)
               .selectExpression("psi.createdbyuserinfo ->> 'surname' as createdbylastname")
+              .skipIndex(Skip.SKIP)
               .build(),
           AnalyticsTableColumn.builder()
               .name("createdbydisplayname")
               .dataType(VARCHAR_255)
               .selectExpression(getDisplayName("createdbyuserinfo", "psi", "createdbydisplayname"))
+              .skipIndex(Skip.SKIP)
               .build(),
           AnalyticsTableColumn.builder()
               .name("lastupdatedbyusername")
@@ -209,17 +214,20 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               .name("lastupdatedbyname")
               .dataType(VARCHAR_255)
               .selectExpression("psi.lastupdatedbyuserinfo ->> 'firstName' as lastupdatedbyname")
+              .skipIndex(Skip.SKIP)
               .build(),
           AnalyticsTableColumn.builder()
               .name("lastupdatedbylastname")
               .dataType(VARCHAR_255)
               .selectExpression("psi.lastupdatedbyuserinfo ->> 'surname' as lastupdatedbylastname")
+              .skipIndex(Skip.SKIP)
               .build(),
           AnalyticsTableColumn.builder()
               .name("lastupdatedbydisplayname")
               .dataType(VARCHAR_255)
               .selectExpression(
                   getDisplayName("lastupdatedbyuserinfo", "psi", "lastupdatedbydisplayname"))
+              .skipIndex(Skip.SKIP)
               .build(),
           AnalyticsTableColumn.builder()
               .name("psistatus")

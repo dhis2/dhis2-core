@@ -41,7 +41,6 @@ import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 
-import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -49,7 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -60,6 +59,7 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.category.CategoryService;
@@ -83,6 +83,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.google.common.collect.Sets;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * This class manages the analytics tables. The analytics table is a denormalized table designed for
@@ -533,6 +537,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             .dataType(DOUBLE)
             .nullable(NULL)
             .valueType(FACT)
+            .skipIndex(Skip.SKIP)
             .selectExpression("daysxvalue")
             .build(),
         AnalyticsTableColumn.builder()
@@ -540,6 +545,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             .dataType(INTEGER)
             .nullable(NOT_NULL)
             .valueType(FACT)
+            .skipIndex(Skip.SKIP)
             .selectExpression("daysno")
             .build(),
         AnalyticsTableColumn.builder()
@@ -554,6 +560,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             .dataType(TEXT)
             .nullable(NULL)
             .valueType(FACT)
+            .skipIndex(Skip.SKIP)
             .selectExpression("textvalue")
             .build());
   }
@@ -622,24 +629,28 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         AnalyticsTableColumn.builder()
             .name("avg_middle_value")
             .dataType(DOUBLE)
+            .skipIndex(Skip.SKIP)
             .selectExpression("stats.avg_middle_value")
             .build(),
         // median
         AnalyticsTableColumn.builder()
             .name("percentile_middle_value")
             .dataType(DOUBLE)
+            .skipIndex(Skip.SKIP)
             .selectExpression("stats.percentile_middle_value")
             .build(),
         // median of absolute deviations "MAD"
         AnalyticsTableColumn.builder()
             .name("mad")
             .dataType(DOUBLE)
+            .skipIndex(Skip.SKIP)
             .selectExpression("stats.mad")
             .build(),
         // standard deviation
         AnalyticsTableColumn.builder()
             .name("std_dev")
             .dataType(DOUBLE)
+            .skipIndex(Skip.SKIP)
             .selectExpression("stats.std_dev")
             .build());
   }
