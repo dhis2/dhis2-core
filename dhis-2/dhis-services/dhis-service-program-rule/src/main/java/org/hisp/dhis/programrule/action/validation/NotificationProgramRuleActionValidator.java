@@ -59,31 +59,6 @@ public class NotificationProgramRuleActionValidator implements ProgramRuleAction
           .build();
     }
 
-    // fetch notification from preheat
-    ProgramNotificationTemplate pnt = validationContext.getNotificationTemplate();
-
-    if (pnt == null) {
-      // fetch it from database
-      pnt = programRuleAction.getNotificationTemplate();
-    }
-
-    if (pnt == null) {
-      log.debug(
-          String.format(
-              "ProgramNotificationTemplate id: %s for program rule: %s does not exist",
-              programRuleAction.getNotificationTemplate().getUid(), rule.getName()));
-
-      return ProgramRuleActionValidationResult.builder()
-          .valid(false)
-          .errorReport(
-              new ErrorReport(
-                  ProgramNotificationTemplate.class,
-                  ErrorCode.E4034,
-                  programRuleAction.getNotificationTemplate().getUid(),
-                  rule.getName()))
-          .build();
-    }
-
     return ProgramRuleActionValidationResult.builder().valid(true).build();
   }
 }
