@@ -610,7 +610,8 @@ class JdbcEventStore implements EventStore {
    * by a range of operators. All searching is using lower() since attribute values are
    * case-insensitive.
    */
-  private String joinAttributeValue(EventQueryParams params) {
+  private String joinAttributeValue(
+      EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     StringBuilder sql = new StringBuilder();
 
     for (Entry<TrackedEntityAttribute, List<QueryFilter>> queryItem :
@@ -639,14 +640,22 @@ class JdbcEventStore implements EventStore {
 
       sql.append(
           getAttributeFilterQuery(
-              queryItem.getValue(), teaCol, teaValueCol, tea.getValueType().isNumeric()));
+              mapSqlParameterSource,
+              queryItem.getValue(),
+              teaCol,
+              teaValueCol,
+              tea.getValueType().isNumeric()));
     }
 
     return sql.toString();
   }
 
   private String getAttributeFilterQuery(
-      List<QueryFilter> filters, String teaCol, String teaValueCol, boolean isNumericTea) {
+      MapSqlParameterSource mapSqlParameterSource,
+      List<QueryFilter> filters,
+      String teaCol,
+      String teaValueCol,
+      boolean isNumericTea) {
 
     if (filters.isEmpty()) {
       return "";
@@ -673,20 +682,27 @@ class JdbcEventStore implements EventStore {
     }
 
     List<String> filterStrings = new ArrayList<>();
-    for (QueryFilter filter : filters) {
+
+    for (int i = 0; i < filters.size(); i++) {
+      QueryFilter filter = filters.get(i);
       StringBuilder filterString = new StringBuilder();
       final String queryCol =
           isNumericTea ? castToNumber(teaValueCol + ".value") : lower(teaValueCol + ".value");
-      final Object encodedFilter =
+      int itemType = isNumericTea ? Types.NUMERIC : Types.VARCHAR;
+      String parameterKey = "attributeFilter_%s_%d".formatted(teaValueCol.replace("\"", ""), i);
+      mapSqlParameterSource.addValue(
+          parameterKey,
           isNumericTea
-              ? Double.valueOf(filter.getFilter())
-              : StringUtils.lowerCase(filter.getSqlFilter(filter.getFilter()));
+              ? Double.valueOf(filter.getSqlBindFilter())
+              : StringUtils.lowerCase(filter.getSqlBindFilter()),
+          itemType);
+
       filterString
           .append(queryCol)
           .append(SPACE)
           .append(filter.getSqlOperator())
           .append(SPACE)
-          .append(encodedFilter);
+          .append(":" + parameterKey);
       filterStrings.add(filterString.toString());
     }
     query.append(String.join(AND, filterStrings));
@@ -873,7 +889,7 @@ class JdbcEventStore implements EventStore {
         .append("left join userinfo au on (ev.assigneduserid=au.userinfoid) ");
 
     // JOIN attributes we need to filter on.
-    fromBuilder.append(joinAttributeValue(params));
+    fromBuilder.append(joinAttributeValue(params, mapSqlParameterSource));
 
     // LEFT JOIN not filterable attributes we need to sort on.
     fromBuilder.append(getFromSubQueryJoinOrderByAttributes(params));
