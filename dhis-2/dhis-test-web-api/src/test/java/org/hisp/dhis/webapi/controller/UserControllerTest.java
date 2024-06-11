@@ -962,6 +962,16 @@ class UserControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
+  void testIllegalUpdateNoPermission() {
+    switchContextToUser(this.peter);
+    assertEquals(
+        "You don't have the proper permissions to update this user.",
+        PUT("/37/users/" + peter.getUid(), "{\"firstName\":\"nils\"}")
+            .error(HttpStatus.FORBIDDEN)
+            .getMessage());
+  }
+
+  @Test
   void testReset2FAPrivilegedWithNonAdminUser() {
     User newUser = makeUser("X", List.of("ALL"));
     newUser.setEmail("valid@email.com");
