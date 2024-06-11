@@ -46,22 +46,20 @@ public class JsonExtractorUtils {
       return null;
     }
 
-    return withOutTrailingZeroes(DateUtils.toLongDateNoT(Date.from(date.atZone(ZoneId.systemDefault()).toInstant())));
+    return withOutTrailingZeroes(
+        DateUtils.toLongDateNoT(Date.from(date.atZone(ZoneId.systemDefault()).toInstant())));
   }
 
   /**
-   * Removes trailing zeroes from the date string
-   * Examples:
-   * - "2020-01-01T00:00:00.000" -> "2020-01-01T00:00:00.0"
-   * - "2020-01-01T00:00:00.100" -> "2020-01-01T00:00:00.1"
-   * - "2020-01-01T00:00:00.010" -> "2020-01-01T00:00:00.01"
-   * - "2020-01-01T00:00:00.001" -> "2020-01-01T00:00:00.001"
+   * Removes trailing zeroes from the date string Examples: - "2020-01-01T00:00:00.000" ->
+   * "2020-01-01T00:00:00.0" - "2020-01-01T00:00:00.100" -> "2020-01-01T00:00:00.1" -
+   * "2020-01-01T00:00:00.010" -> "2020-01-01T00:00:00.01" - "2020-01-01T00:00:00.001" ->
+   * "2020-01-01T00:00:00.001"
+   *
    * @param date date string
    * @return date string without trailing zeroes
    */
   private static String withOutTrailingZeroes(String date) {
-    return ENDING_WITH_DOT.matcher(
-        TRAILING_ZEROES.matcher(date).replaceAll(""))
-        .replaceAll(".0");
+    return ENDING_WITH_DOT.matcher(TRAILING_ZEROES.matcher(date).replaceAll("")).replaceAll(".0");
   }
 }
