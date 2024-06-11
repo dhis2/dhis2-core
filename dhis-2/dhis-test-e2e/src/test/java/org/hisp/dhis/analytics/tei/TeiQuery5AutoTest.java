@@ -331,12 +331,7 @@ public class TeiQuery5AutoTest extends AnalyticsApiTest {
     validateRow( // last row
         response,
         19,
-        List.of(
-            "Bucksal Clinic",
-            "Jeremy",
-            "Graham",
-            "Bucksal Clinic",
-            "2015-08-06 21:20:49.387"));
+        List.of("Bucksal Clinic", "Jeremy", "Graham", "Bucksal Clinic", "2015-08-06 21:20:49.387"));
   }
 
   @Test
