@@ -94,6 +94,22 @@ public interface OrganisationUnitStore
   List<OrganisationUnit> getOrganisationUnitsWithProgram(Program program);
 
   /**
+   * Retrieves organisation units associated with the given program uid.
+   *
+   * @param programUid the {@link Program} uid.
+   * @return a list of {@link OrganisationUnit} found.
+   */
+  List<OrganisationUnit> getOrganisationUnitsByProgram(String programUid);
+
+  /**
+   * Retrieves organisation units associated with the given data set uid.
+   *
+   * @param dataSetUid the {@link DataSet} uid.
+   * @return a list of {@link OrganisationUnit} found.
+   */
+  List<OrganisationUnit> getOrganisationUnitsByDataSet(String dataSetUid);
+
+  /**
    * Returns the count of OrganisationUnits which are part of the sub-hierarchy of the given parent
    * OrganisationUnit and members of the given object based on the collection of the given
    * collection name.

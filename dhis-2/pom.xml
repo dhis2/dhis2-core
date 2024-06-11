@@ -110,7 +110,7 @@
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
-    <nimbus.jose.jwt.version>9.39.3</nimbus.jose.jwt.version>
+    <nimbus.jose.jwt.version>9.40</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.3</com.google.zxing.core.version>
     <com.google.zxing.javase.version>3.5.3</com.google.zxing.javase.version>
 
@@ -140,8 +140,8 @@
     <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
 
     <!-- Velocity -->
-    <velocity.version>1.7</velocity.version>
-    <velocity-tools.version>2.0</velocity-tools.version>
+    <velocity.version>2.3</velocity.version>
+    <velocity-tools.version>3.1</velocity-tools.version>
 
     <!-- Jackson -->
     <jackson.version>2.17.1</jackson.version>
@@ -706,12 +706,12 @@
       <!-- Velocity -->
       <dependency>
         <groupId>org.apache.velocity</groupId>
-        <artifactId>velocity</artifactId>
+        <artifactId>velocity-engine-core</artifactId>
         <version>${velocity.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.apache.velocity</groupId>
-        <artifactId>velocity-tools</artifactId>
+        <groupId>org.apache.velocity.tools</groupId>
+        <artifactId>velocity-tools-generic</artifactId>
         <version>${velocity-tools.version}</version>
         <exclusions>
           <exclusion>
@@ -2045,7 +2045,7 @@ jasperreports.version=${jasperreports.version}
               <!-- Needed by dhis-web modules -->
               <ignoredUnusedDeclaredDependency>io.lettuce:lettuce-core</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.apache.struts:struts2-spring-plugin</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.apache.velocity:velocity-tools</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.apache.velocity.tools:velocity-tools-generic</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.springframework:spring-context-support</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.apache.xmlgraphics:batik-codec</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>commons-fileupload:commons-fileupload</ignoredUnusedDeclaredDependency>
