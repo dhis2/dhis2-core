@@ -161,7 +161,8 @@ class SqlQueryHelperTest {
                    from analytics_tei_enrollments_trackedentitytype
                    where programuid = 'programUid'
                      and t_1.trackedentityinstanceuid = trackedentityinstanceuid) en
-             where en.rn = 1)) ev
+             where en.rn = 1)
+                     and status != 'SCHEDULE') ev
              where ev.rn = 1)""",
         SqlQueryHelper.buildOrderSubQuery(testedDimension, () -> "field").render());
 
@@ -179,7 +180,8 @@ class SqlQueryHelperTest {
                          from (select *, row_number() over ( partition by programinstanceuid order by occurreddate desc ) as rn
                                from analytics_tei_events_trackedentitytype
                                where "enrollmentSubqueryAlias".programinstanceuid = programinstanceuid
-                                 and programstageuid = 'programStageUid') ev
+                                 and programstageuid = 'programStageUid'
+                                 and status != 'SCHEDULE') ev
                          where ev.rn = 1) as "prefix"
                    where field))""",
         SqlQueryHelper.buildExistsValueSubquery(testedDimension, () -> "field").render());
@@ -229,7 +231,8 @@ class SqlQueryHelperTest {
                    from analytics_tei_enrollments_trackedentitytype
                    where programuid = 'programUid'
                      and t_1.trackedentityinstanceuid = trackedentityinstanceuid) en
-             where en.rn = 1)) ev
+             where en.rn = 1)
+                     and status != 'SCHEDULE') ev
              where ev.rn = 1))""",
         SqlQueryHelper.buildOrderSubQuery(testedDimension, () -> "field").render());
 
@@ -247,7 +250,8 @@ class SqlQueryHelperTest {
                          from (select *, row_number() over ( partition by programinstanceuid order by occurreddate desc ) as rn
                                from analytics_tei_events_trackedentitytype
                                where "enrollmentSubqueryAlias".programinstanceuid = programinstanceuid
-                                 and programstageuid = 'programStageUid') ev
+                                 and programstageuid = 'programStageUid'
+                                 and status != 'SCHEDULE') ev
                          where ev.rn = 1) as "prefix"
                    where exists(select 1
                    from analytics_tei_events_trackedentitytype
