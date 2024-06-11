@@ -35,7 +35,6 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.IntStream;
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.actions.analytics.AnalyticsTeiActions;
 import org.hisp.dhis.dto.ApiResponse;
