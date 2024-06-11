@@ -1383,6 +1383,16 @@
         <artifactId>gt-referencing</artifactId>
         <version>${geotools.version}</version>
       </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-epsg-hsql</artifactId>
+        <version>${geotools.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-cql</artifactId>
+        <version>${geotools.version}</version>
+      </dependency>
 
       <!-- JAXB -->
       <dependency>
@@ -2032,6 +2042,8 @@ jasperreports.version=${jasperreports.version}
             <failOnWarning>true</failOnWarning>
             <ignoredUnusedDeclaredDependencies>
               <ignoredUnusedDeclaredDependency>org.geotools:gt-main</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.geotools:gt-epsg-hsql</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.geotools:gt-cql</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>net.postgis:postgis-jdbc</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-starter-tomcat</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.flywaydb:flyway-database-postgresql</ignoredUnusedDeclaredDependency>
