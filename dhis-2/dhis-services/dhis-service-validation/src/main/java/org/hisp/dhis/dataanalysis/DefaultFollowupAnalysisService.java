@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dataanalysis;
 
-import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
+import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
 
 import java.util.Collection;
 import java.util.HashSet;

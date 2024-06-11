@@ -25,29 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.appmanager;
+package org.hisp.dhis.datastore;
+
+import static org.hisp.dhis.common.collection.CollectionUtils.union;
 
 import java.io.Serializable;
 import java.util.Set;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import lombok.Data;
 
 /**
+ * A {@link DatastoreNamespace} is the input declaration for a {@link DatastoreNamespaceProtection}
+ * object.
+ *
+ * <p>Note that this type needs to be {@link Serializable} as it is put in a cache as part of the
+ * {@link org.hisp.dhis.appmanager.App}.
+ *
  * @author Jan Bernitt
  */
 @Data
-public class AppNamespace implements Serializable {
+public class DatastoreNamespace implements Serializable {
 
   private static final long serialVersionUID = -1653792127753819375L;
 
   /** The namespace name an app wants to use in a protected manner */
-  private String namespace;
+  @CheckForNull private String namespace;
 
-  /** A user must have one of these authorities to be able to use the namespace */
-  private Set<String> authorities;
+  /** A user must have one of these authorities to be able to read/write the namespace */
+  @CheckForNull private Set<String> authorities;
 
-  /**
-   * Can be set to true, to opt-out of protected reads. Otherwise, both reads and writes are
-   * protected by the {@link #authorities}
-   */
-  private boolean unprotectedReads;
+  /** A user must have one of these authorities to be able to read the namespace */
+  @CheckForNull private Set<String> readAuthorities;
+
+  /** A user must have one of these authorities to be able to write the namespace */
+  @CheckForNull private Set<String> writeAuthorities;
+
+  @Nonnull
+  public Set<String> getAllAuthorities() {
+    return union(authorities, readAuthorities, writeAuthorities);
+  }
 }

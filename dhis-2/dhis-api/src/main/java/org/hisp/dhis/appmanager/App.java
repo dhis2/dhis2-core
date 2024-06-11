@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.datastore.DatastoreNamespace;
 
 /**
  * @author Saptarshi
@@ -464,11 +465,11 @@ public class App implements Serializable {
   public Set<String> getNamespaces() {
     AppDhis dhis = getActivities().getDhis();
     String namespace = dhis.getNamespace();
-    List<AppNamespace> additionalNamespaces = dhis.getAdditionalNamespaces();
+    List<DatastoreNamespace> additionalNamespaces = dhis.getAdditionalNamespaces();
     if (namespace == null && additionalNamespaces == null) return Set.of();
     if (namespace == null)
       return additionalNamespaces.stream()
-          .map(AppNamespace::getNamespace)
+          .map(DatastoreNamespace::getNamespace)
           .collect(toUnmodifiableSet());
     if (additionalNamespaces == null || additionalNamespaces.isEmpty()) return Set.of(namespace);
     Set<String> namespaces = new HashSet<>();
@@ -481,10 +482,10 @@ public class App implements Serializable {
   @Nonnull
   public Set<String> getAdditionalAuthorities() {
     AppDhis dhis = getActivities().getDhis();
-    List<AppNamespace> additionalNamespaces = dhis.getAdditionalNamespaces();
+    List<DatastoreNamespace> additionalNamespaces = dhis.getAdditionalNamespaces();
     if (additionalNamespaces == null || additionalNamespaces.isEmpty()) return Set.of();
     return additionalNamespaces.stream()
-        .flatMap(ns -> ns.getAuthorities().stream())
+        .flatMap(ns -> ns.getAllAuthorities().stream())
         .collect(toUnmodifiableSet());
   }
 }

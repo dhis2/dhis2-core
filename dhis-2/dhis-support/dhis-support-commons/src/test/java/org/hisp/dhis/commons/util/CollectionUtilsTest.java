@@ -27,14 +27,14 @@
  */
 package org.hisp.dhis.commons.util;
 
-import static org.hisp.dhis.commons.collection.CollectionUtils.addIfNotNull;
-import static org.hisp.dhis.commons.collection.CollectionUtils.emptyIfNull;
-import static org.hisp.dhis.commons.collection.CollectionUtils.firstMatch;
-import static org.hisp.dhis.commons.collection.CollectionUtils.flatMapToSet;
-import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
-import static org.hisp.dhis.commons.collection.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
-import static org.hisp.dhis.commons.collection.CollectionUtils.mapToSet;
+import static org.hisp.dhis.common.collection.CollectionUtils.addIfNotNull;
+import static org.hisp.dhis.common.collection.CollectionUtils.emptyIfNull;
+import static org.hisp.dhis.common.collection.CollectionUtils.firstMatch;
+import static org.hisp.dhis.common.collection.CollectionUtils.flatMapToSet;
+import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
+import static org.hisp.dhis.common.collection.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.common.collection.CollectionUtils.mapToList;
+import static org.hisp.dhis.common.collection.CollectionUtils.mapToSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -46,7 +46,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.junit.jupiter.api.Test;

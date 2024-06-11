@@ -50,6 +50,7 @@ import java.util.zip.ZipFile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.datastore.DatastoreNamespace;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
 import org.hisp.dhis.jclouds.JCloudsStore;
@@ -153,7 +154,7 @@ public class JCloudsAppStorageService implements AppStorageService {
     String namespace = dhis.getNamespace();
     Set<String> namespaces = new HashSet<>();
     if (namespace != null && !namespace.isEmpty()) namespaces.add(namespace);
-    List<AppNamespace> additionalNamespaces = dhis.getAdditionalNamespaces();
+    List<DatastoreNamespace> additionalNamespaces = dhis.getAdditionalNamespaces();
     if (additionalNamespaces != null)
       additionalNamespaces.forEach(ns -> namespaces.add(ns.getNamespace()));
 
@@ -173,16 +174,15 @@ public class JCloudsAppStorageService implements AppStorageService {
     }
 
     if (additionalNamespaces != null) {
-      for (AppNamespace ns : additionalNamespaces) {
+      for (DatastoreNamespace ns : additionalNamespaces) {
         if (ns.getNamespace() == null
             || ns.getNamespace().isEmpty()
-            || ns.getAuthorities() == null
-            || ns.getAuthorities().isEmpty()) {
+            || ns.getAllAuthorities().isEmpty()) {
           log.error(
               "Failed to install app '{}': Required property is undefined, namespace '{}', authorities '{}'.",
               app.getName(),
               ns.getNamespace(),
-              ns.getAuthorities());
+              ns.getAllAuthorities());
           app.setAppState(AppStatus.NAMESPACE_INVALID);
           return false;
         }

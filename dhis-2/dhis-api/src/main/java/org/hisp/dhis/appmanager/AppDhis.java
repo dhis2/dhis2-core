@@ -32,6 +32,7 @@ import java.io.Serializable;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
+import org.hisp.dhis.datastore.DatastoreNamespace;
 
 /**
  * @author Saptarshi
@@ -44,5 +45,5 @@ public class AppDhis implements Serializable {
 
   @JsonProperty private String href;
   @JsonProperty private String namespace;
-  @JsonProperty private List<AppNamespace> additionalNamespaces;
+  @JsonProperty private List<DatastoreNamespace> additionalNamespaces;
 }
