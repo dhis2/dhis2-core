@@ -146,7 +146,7 @@ public class DateUtils {
       DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
 
   private static final DateTimeFormatter LONG_DATE_FORMAT_NO_T =
-      DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.S");
+      DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
   private static final DateTimeFormatter HTTP_DATE_FORMAT =
       DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss 'GMT'").withLocale(Locale.ENGLISH);

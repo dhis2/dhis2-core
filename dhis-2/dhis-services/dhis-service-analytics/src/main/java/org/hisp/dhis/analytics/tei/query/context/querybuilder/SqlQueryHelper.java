@@ -68,7 +68,8 @@ class SqlQueryHelper {
                                      order by occurreddate ${programStageOffsetDirection} ) as rn
                  from analytics_tei_events_${trackedEntityTypeUid} events
                  where programstageuid = '${programStageUid}'
-                   and programinstanceuid = %s) ev
+                   and programinstanceuid = %s
+                   and status != 'SCHEDULE') ev
            where ev.rn = ${programStageOffset})"""
           .formatted(ENROLLMENT_ORDER_BY_SUBQUERY);
 
@@ -101,7 +102,8 @@ class SqlQueryHelper {
                                from (select *, row_number() over ( partition by programinstanceuid order by occurreddate ${programStageOffsetDirection} ) as rn
                                      from analytics_tei_events_${trackedEntityTypeUid}
                                      where "${enrollmentSubqueryAlias}".programinstanceuid = programinstanceuid
-                                       and programstageuid = '${programStageUid}') ev
+                                       and programstageuid = '${programStageUid}'
+                                       and status != 'SCHEDULE') ev
                                where ev.rn = 1) as "${eventSubqueryAlias}"
                          where ${eventCondition})"""));
 
