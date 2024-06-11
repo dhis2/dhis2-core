@@ -28,6 +28,7 @@
 package org.hisp.dhis.appmanager;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType.RESTRICTED;
@@ -436,7 +437,11 @@ public class DefaultAppManager implements AppManager {
         if (ns.getWriteAuthorities() != null) writeAuthorities.addAll(ns.getWriteAuthorities());
         datastoreService.addProtection(
             new DatastoreNamespaceProtection(
-                ns.getNamespace(), RESTRICTED, readAuthorities, RESTRICTED, writeAuthorities));
+                requireNonNull(ns.getNamespace()),
+                RESTRICTED,
+                readAuthorities,
+                RESTRICTED,
+                writeAuthorities));
       }
     }
   }

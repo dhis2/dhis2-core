@@ -32,7 +32,6 @@ import static java.util.stream.Collectors.toUnmodifiableSet;
 import static lombok.AccessLevel.PRIVATE;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -157,9 +156,19 @@ public class CollectionUtils {
   @Nonnull
   @SafeVarargs
   public static <T> List<T> concat(Collection<T>... collections) {
-    return Arrays.stream(collections).flatMap(Collection::stream).collect(toList());
+    return Stream.of(collections).flatMap(Collection::stream).toList();
   }
 
+  /**
+   * Union of at least 2 sets, any argument may be {@code null}.
+   *
+   * @param a one set
+   * @param b another set
+   * @param more optionally more sets
+   * @return the union of the values of any given sets ignoring {@code null} sets (not {@code null}
+   *     values)
+   * @param <T> type of the elements in the set
+   */
   @Nonnull
   @SafeVarargs
   public static <T> Set<T> union(
