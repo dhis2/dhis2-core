@@ -80,7 +80,7 @@ class CollectionUtilsTest {
   }
 
   @Test
-  public void testMapToSet() {
+  void testMapToSet() {
     DataElement deA = new DataElement();
     DataElement deB = new DataElement();
     DataElement deC = new DataElement();
@@ -107,9 +107,9 @@ class CollectionUtilsTest {
   void testFirstMatch() {
     List<String> collection = List.of("a", "b", "c");
 
-    assertEquals("a", firstMatch(collection, (v) -> "a".equals(v)));
-    assertEquals("b", firstMatch(collection, (v) -> "b".equals(v)));
-    assertNull(firstMatch(collection, (v) -> "x".equals(v)));
+    assertEquals("a", firstMatch(collection, "a"::equals));
+    assertEquals("b", firstMatch(collection, "b"::equals));
+    assertNull(firstMatch(collection, "x"::equals));
   }
 
   @Test

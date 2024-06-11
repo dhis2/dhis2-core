@@ -132,24 +132,25 @@ public class JCloudsAppStorageService implements AppStorageService {
   }
 
   private boolean validateApp(App app, Cache<App> appCache) {
-    // -----------------------------------------------------------------
-    // Check if app with same key is currently being deleted
-    // (deletion_in_progress)
-    // -----------------------------------------------------------------
+    validateAppDeletionNotInProgress(app, appCache);
+    validateAppNamespaceNotAlreadyInUse(app, appCache);
+    validateAppAdditionalNamespacesAreWellDefined(app);
+    return app.getAppState().ok();
+  }
+
+  private void validateAppDeletionNotInProgress(App app, Cache<App> appCache) {
+    if (!app.getAppState().ok()) return;
     Optional<App> existingApp = appCache.getIfPresent(app.getKey());
     if (existingApp.isPresent()
         && existingApp.get().getAppState() == AppStatus.DELETION_IN_PROGRESS) {
       log.error("Failed to install app: App with same name is currently being deleted");
 
       app.setAppState(AppStatus.DELETION_IN_PROGRESS);
-      return false;
     }
+  }
 
-    // -----------------------------------------------------------------
-    // Check for namespace and if it's already taken by another app
-    // Allow install if namespace was taken by another version of this app
-    // -----------------------------------------------------------------
-
+  private void validateAppNamespaceNotAlreadyInUse(App app, Cache<App> appCache) {
+    if (!app.getAppState().ok()) return;
     AppDhis dhis = app.getActivities().getDhis();
     String namespace = dhis.getNamespace();
     Set<String> namespaces = new HashSet<>();
@@ -158,21 +159,23 @@ public class JCloudsAppStorageService implements AppStorageService {
     if (additionalNamespaces != null)
       additionalNamespaces.forEach(ns -> namespaces.add(ns.getNamespace()));
 
-    if (!namespaces.isEmpty()) {
-      for (String ns : namespaces) {
-        Optional<App> other =
-            appCache.getAll().filter(a -> a.getNamespaces().contains(ns)).findFirst();
-        if (other.isPresent() && !other.get().getKey().equals(app.getKey())) {
-          log.error(
-              "Failed to install app '{}': Namespace '{}' already taken.",
-              app.getName(),
-              namespace);
-          app.setAppState(AppStatus.NAMESPACE_TAKEN);
-          return false;
-        }
+    if (namespaces.isEmpty()) return;
+    for (String ns : namespaces) {
+      Optional<App> other =
+          appCache.getAll().filter(a -> a.getNamespaces().contains(ns)).findFirst();
+      if (other.isPresent() && !other.get().getKey().equals(app.getKey())) {
+        log.error(
+            "Failed to install app '{}': Namespace '{}' already taken.", app.getName(), namespace);
+        app.setAppState(AppStatus.NAMESPACE_TAKEN);
+        return;
       }
     }
+  }
 
+  private void validateAppAdditionalNamespacesAreWellDefined(App app) {
+    if (!app.getAppState().ok()) return;
+    List<DatastoreNamespace> additionalNamespaces =
+        app.getActivities().getDhis().getAdditionalNamespaces();
     if (additionalNamespaces != null) {
       for (DatastoreNamespace ns : additionalNamespaces) {
         if (ns.getNamespace() == null
@@ -184,11 +187,10 @@ public class JCloudsAppStorageService implements AppStorageService {
               ns.getNamespace(),
               ns.getAllAuthorities());
           app.setAppState(AppStatus.NAMESPACE_INVALID);
-          return false;
+          return;
         }
       }
     }
-    return true;
   }
 
   @Override
