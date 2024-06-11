@@ -171,7 +171,7 @@ public class InternalMapObject {
     }
 
     try {
-      return DataUtilities.createType(GEOMETRIES, "geometry:" + type + ":srid=3785");
+      return DataUtilities.createType(GEOMETRIES, "geometry:" + type + ":srid=3857");
     } catch (SchemaException ex) {
       throw new RuntimeException("failed to create geometry", ex);
     }
