@@ -37,12 +37,12 @@ import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 
 public interface ProgramRuleEngine {
-  List<RuleEffects> evaluateEnrollmentAndEvents(
+  RuleEngineEffects evaluateEnrollmentAndEvents(
       Enrollment enrollment,
       Set<Event> events,
       List<TrackedEntityAttributeValue> trackedEntityAttributeValues);
 
-  List<RuleEffects> evaluateProgramEvents(Set<Event> events, Program program);
+  RuleEngineEffects evaluateProgramEvents(Set<Event> events, Program program);
 
   /**
    * To getDescription rule condition in order to fetch its description

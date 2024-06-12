@@ -55,7 +55,7 @@ class RuleEngineValidator implements Validator<Event> {
             .map(e -> e.executeRuleAction(bundle, event))
             .filter(Optional::isPresent)
             .map(Optional::get)
-            .collect(Collectors.toList());
+            .toList();
 
     addIssuesToReporter(reporter, event, programRuleIssues);
   }

@@ -32,12 +32,12 @@ import static org.hisp.dhis.tracker.imports.programrule.IssueType.ERROR;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.programrule.engine.ValidationEffect;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.programrule.IssueType;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.imports.programrule.executor.ValidationExecutor;
-import org.hisp.dhis.tracker.imports.programrule.executor.ValidationRuleAction;
 
 /**
  * This executor shows errors on a completed event calculated by Rule Engine. @Author Enrico
@@ -45,7 +45,7 @@ import org.hisp.dhis.tracker.imports.programrule.executor.ValidationRuleAction;
  */
 @RequiredArgsConstructor
 public class ShowErrorOnCompleteExecutor implements ValidationExecutor<Event> {
-  private final ValidationRuleAction ruleAction;
+  private final ValidationEffect ruleAction;
 
   @Override
   public IssueType getIssueType() {
@@ -59,7 +59,7 @@ public class ShowErrorOnCompleteExecutor implements ValidationExecutor<Event> {
 
   @Override
   public String getDataElementUid() {
-    return ruleAction.getField();
+    return ruleAction.field();
   }
 
   @Override

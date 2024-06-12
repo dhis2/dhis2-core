@@ -20,30 +20,23 @@
  * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * LOSS OF USE, effect.data(), OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.hisp.dhis.tracker.imports.programrule;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.ListUtils;
-import org.hisp.dhis.programrule.ProgramRuleActionType;
-import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleEffects;
+import org.hisp.dhis.programrule.engine.ValidationEffect;
+import org.hisp.dhis.programrule.engine.RuleEngineEffects;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor;
-import org.hisp.dhis.tracker.imports.programrule.executor.ValidationRuleAction;
 import org.hisp.dhis.tracker.imports.programrule.executor.enrollment.AssignAttributeExecutor;
 import org.hisp.dhis.tracker.imports.programrule.executor.enrollment.RuleEngineErrorExecutor;
 import org.hisp.dhis.tracker.imports.programrule.executor.enrollment.SetMandatoryFieldExecutor;
@@ -53,26 +46,32 @@ import org.hisp.dhis.tracker.imports.programrule.executor.enrollment.ShowWarning
 import org.hisp.dhis.tracker.imports.programrule.executor.enrollment.ShowWarningOnCompleteExecutor;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 @Service("org.hisp.dhis.tracker.imports.programrule.RuleActionEnrollmentMapper")
 @RequiredArgsConstructor
 class RuleActionEnrollmentMapper {
   private final SystemSettingManager systemSettingManager;
 
   public Map<Enrollment, List<RuleActionExecutor<Enrollment>>> mapRuleEffects(
-      List<RuleEffects> ruleEffects, TrackerBundle bundle) {
-    return ruleEffects.stream()
-        .filter(RuleEffects::isEnrollment)
-        .filter(e -> bundle.findEnrollmentByUid(e.getTrackerObjectUid()).isPresent())
+          RuleEngineEffects ruleEffects, TrackerBundle bundle) {
+    return ruleEffects.enrollmentValidationEffects()
+            .keySet()
+            .stream()
+        .filter(e -> bundle.findEnrollmentByUid(e).isPresent())
         .collect(
             Collectors.toMap(
-                e -> bundle.findEnrollmentByUid(e.getTrackerObjectUid()).get(),
+                e -> bundle.findEnrollmentByUid(e).get(),
                 e ->
                     mapRuleEffects(
-                        bundle.findEnrollmentByUid(e.getTrackerObjectUid()).get(), e, bundle)));
+                        bundle.findEnrollmentByUid(e).get(), ruleEffects.enrollmentValidationEffects().get(e), bundle)));
   }
 
   private List<RuleActionExecutor<Enrollment>> mapRuleEffects(
-      Enrollment enrollment, RuleEffects ruleEffects, TrackerBundle bundle) {
+          Enrollment enrollment, List<ValidationEffect> ruleValidationEffects, TrackerBundle bundle) {
     List<Attribute> payloadTeiAttributes =
         bundle
             .findTrackedEntityByUid(enrollment.getTrackedEntity())
@@ -80,43 +79,22 @@ class RuleActionEnrollmentMapper {
             .orElse(Collections.emptyList());
     List<Attribute> attributes = ListUtils.union(enrollment.getAttributes(), payloadTeiAttributes);
 
-    return ruleEffects.getRuleEffects().stream()
+    return ruleValidationEffects.stream()
         .map(
             effect ->
-                buildEnrollmentRuleActionExecutor(
-                    effect.getRuleId(), effect.getData(), effect.getRuleAction(), attributes))
-        .filter(Objects::nonNull)
+                buildEnrollmentRuleActionExecutor(effect, attributes))
         .toList();
   }
 
-  private RuleActionExecutor<Enrollment> buildEnrollmentRuleActionExecutor(
-      String ruleId, String data, RuleAction ruleAction, List<Attribute> attributes) {
-    if (ruleAction.getType().equals(ProgramRuleActionType.ASSIGN.name())) {
-      return new AssignAttributeExecutor(
-          systemSettingManager, ruleId, data, ruleAction.field(), attributes);
-    }
-    if (ruleAction.getType().equals(ProgramRuleActionType.SETMANDATORYFIELD.name())) {
-      return new SetMandatoryFieldExecutor(ruleId, ruleAction.field());
-    }
-    if (ruleAction.getType().equals(ProgramRuleActionType.SHOWERROR.name())) {
-      return new ShowErrorExecutor(
-          new ValidationRuleAction(ruleId, data, ruleAction.field(), ruleAction.content()));
-    }
-    if (ruleAction.getType().equals(ProgramRuleActionType.SHOWWARNING.name())) {
-      return new ShowWarningExecutor(
-          new ValidationRuleAction(ruleId, data, ruleAction.field(), ruleAction.content()));
-    }
-    if (ruleAction.getType().equals(ProgramRuleActionType.ERRORONCOMPLETE.name())) {
-      return new ShowErrorOnCompleteExecutor(
-          new ValidationRuleAction(ruleId, data, ruleAction.field(), ruleAction.content()));
-    }
-    if (ruleAction.getType().equals(ProgramRuleActionType.WARNINGONCOMPLETE.name())) {
-      return new ShowWarningOnCompleteExecutor(
-          new ValidationRuleAction(ruleId, data, ruleAction.field(), ruleAction.content()));
-    }
-    if (ruleAction.getType().equals("ERROR")) {
-      return new RuleEngineErrorExecutor(ruleId, data);
-    }
-    return null;
+  private RuleActionExecutor<Enrollment> buildEnrollmentRuleActionExecutor(ValidationEffect validationEffect, List<Attribute> attributes) {
+      return switch (validationEffect.type()) {
+          case ASSIGN -> new AssignAttributeExecutor(systemSettingManager, validationEffect.ruleId(), validationEffect.data(), validationEffect.field(), attributes);
+          case SETMANDATORYFIELD -> new SetMandatoryFieldExecutor(validationEffect.ruleId(), validationEffect.field());
+          case SHOWERROR -> new ShowErrorExecutor(validationEffect);
+          case SHOWWARNING -> new ShowWarningExecutor(validationEffect);
+          case ERRORONCOMPLETE -> new ShowErrorOnCompleteExecutor(validationEffect);
+          case WARNINGONCOMPLETE -> new ShowWarningOnCompleteExecutor(validationEffect);
+          case ERROR -> new RuleEngineErrorExecutor(validationEffect.ruleId(), validationEffect.data());
+      };
   }
 }

@@ -32,6 +32,7 @@ import static org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue.warning
 
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.programrule.engine.ValidationEffect;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.programrule.IssueType;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
@@ -46,33 +47,29 @@ public interface ValidationExecutor<T> extends RuleActionExecutor<T> {
 
   boolean needsToRun(T t);
 
-  default Optional<ProgramRuleIssue> execute(ValidationRuleAction ruleAction, T t) {
+  default Optional<ProgramRuleIssue> execute(ValidationEffect ruleAction, T t) {
     if (needsToRun(t)) {
       return mapToIssue(ruleAction);
     }
     return Optional.empty();
   }
 
-  private Optional<ProgramRuleIssue> mapToIssue(ValidationRuleAction ruleAction) {
-    StringBuilder validationMessage = new StringBuilder(ruleAction.getContent());
-    String data = ruleAction.getData();
+  private Optional<ProgramRuleIssue> mapToIssue(ValidationEffect ruleAction) {
+    StringBuilder validationMessage = new StringBuilder(ruleAction.content());
+    String data = ruleAction.data();
     if (!StringUtils.isEmpty(data)) {
       validationMessage.append(" ").append(data);
     }
-    String field = ruleAction.getField();
+    String field = ruleAction.field();
     if (!StringUtils.isEmpty(field)) {
       validationMessage.append(" (").append(field).append(")");
     }
 
-    switch (getIssueType()) {
-      case WARNING:
-        return Optional.of(
-            warning(ruleAction.getRuleUid(), ValidationCode.E1300, validationMessage.toString()));
-      case ERROR:
-        return Optional.of(
-            error(ruleAction.getRuleUid(), ValidationCode.E1300, validationMessage.toString()));
-      default:
-        return Optional.empty();
-    }
+      return switch (getIssueType()) {
+          case WARNING -> Optional.of(
+                  warning(ruleAction.ruleId(), ValidationCode.E1300, validationMessage.toString()));
+          case ERROR -> Optional.of(
+                  error(ruleAction.ruleId(), ValidationCode.E1300, validationMessage.toString()));
+      };
   }
 }

@@ -45,7 +45,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Zubair Asghar
  */
-class TrackerSideEffectDataBundleTest {
+class TrackerSideValidationEffectDataBundleTest {
 
   @Test
   void testSideEffectDataBundleForEnrollment() {

@@ -42,7 +42,8 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.programrule.engine.NotificationEffect;
+import org.hisp.dhis.programrule.engine.ValidationEffect;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 
@@ -72,10 +73,10 @@ public class TrackerSideEffectDataBundle implements Message {
   @JsonProperty private List<SideEffectTrigger> triggers = new ArrayList<>();
 
   @JsonProperty @Builder.Default
-  private Map<String, List<RuleEffect>> enrollmentRuleEffects = new HashMap<>();
+  private Map<String, List<NotificationEffect>> enrollmentRuleEffects = new HashMap<>();
 
   @JsonProperty @Builder.Default
-  private Map<String, List<RuleEffect>> eventRuleEffects = new HashMap<>();
+  private Map<String, List<NotificationEffect>> eventRuleEffects = new HashMap<>();
 
   @JsonProperty private TrackerImportStrategy importStrategy;
 

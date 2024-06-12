@@ -38,13 +38,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.programrule.engine.ValidationEffect;
+import org.hisp.dhis.programrule.engine.RuleEngineEffects;
 import org.hisp.dhis.rules.models.RuleEffect;
-import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.FlushMode;
@@ -111,7 +112,7 @@ public class TrackerBundle {
   @Builder.Default private List<Relationship> relationships = new ArrayList<>();
 
   /** Rule effects for Enrollments. */
-  @Builder.Default private List<RuleEffects> ruleEffects = new ArrayList<>();
+  @Builder.Default private RuleEngineEffects ruleEffects;
 
   /** Rule action executors for Enrollments. */
   @Builder.Default
@@ -171,16 +172,12 @@ public class TrackerBundle {
     return entities.stream().filter(e -> Objects.equals(e.getUid(), uid)).findFirst();
   }
 
-  public Map<String, List<RuleEffect>> getEnrollmentRuleEffects() {
-    return ruleEffects.stream()
-        .filter(RuleEffects::isEnrollment)
-        .collect(Collectors.toMap(RuleEffects::getTrackerObjectUid, RuleEffects::getRuleEffects));
+  public Map<String, List<ValidationEffect>> getEnrollmentRuleEffects() {
+    return ruleEffects.enrollmentEffects();
   }
 
-  public Map<String, List<RuleEffect>> getEventRuleEffects() {
-    return ruleEffects.stream()
-        .filter(RuleEffects::isEvent)
-        .collect(Collectors.toMap(RuleEffects::getTrackerObjectUid, RuleEffects::getRuleEffects));
+  public Map<String, List<ValidationEffect>> getEventRuleEffects() {
+    return ruleEffects.eventEffects();
   }
 
   public TrackerImportStrategy setStrategy(TrackerDto dto, TrackerImportStrategy strategy) {

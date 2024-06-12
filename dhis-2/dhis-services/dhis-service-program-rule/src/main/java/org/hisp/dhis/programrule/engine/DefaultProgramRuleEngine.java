@@ -44,6 +44,7 @@ import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.rules.api.RuleEngine;
 import org.hisp.dhis.rules.api.RuleEngineContext;
+import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.rules.models.RuleEnrollment;
 import org.hisp.dhis.rules.models.RuleEvent;
@@ -86,7 +87,7 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
   }
 
   @Override
-  public List<RuleEffects> evaluateEnrollmentAndEvents(
+  public RuleEngineEffects evaluateEnrollmentAndEvents(
       Enrollment enrollment,
       Set<Event> events,
       List<TrackedEntityAttributeValue> trackedEntityAttributeValues) {
@@ -94,18 +95,47 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
         getProgramRules(
             enrollment.getProgram(),
             events.stream().map(Event::getProgramStage).distinct().toList());
-    return evaluateProgramRulesForMultipleTrackerObjects(
-        getRuleEnrollment(enrollment, trackedEntityAttributeValues),
-        enrollment.getProgram(),
-        getRuleEvents(events),
-        rules);
+    List<RuleEffects> ruleEffects = evaluateProgramRulesForMultipleTrackerObjects(
+            getRuleEnrollment(enrollment, trackedEntityAttributeValues),
+            enrollment.getProgram(),
+            getRuleEvents(events),
+            rules);
+    return map(ruleEffects);
+  }
+
+  private RuleEngineEffects map(List<RuleEffects> ruleEffects) {
+    Map<String, List<ValidationEffect>> enrollmentValidationEffects = ruleEffects.stream()
+            .filter(RuleEffects::isEnrollment)
+            .collect(Collectors.toMap(RuleEffects::getTrackerObjectUid, e -> mapValidationEffect(e.getRuleEffects())));
+    Map<String, List<ValidationEffect>> eventValidaitonEffects = ruleEffects.stream()
+            .filter(RuleEffects::isEvent)
+            .collect(Collectors.toMap(RuleEffects::getTrackerObjectUid, e -> mapValidationEffect(e.getRuleEffects())));
+    Map<String, List<NotificationEffect>> enrollmentNotificationEffects = ruleEffects.stream()
+            .filter(RuleEffects::isEnrollment)
+            .collect(Collectors.toMap(RuleEffects::getTrackerObjectUid, e -> mapNotificationEffect(e.getRuleEffects())));
+    Map<String, List<NotificationEffect>> eventNotificationEffects = ruleEffects.stream()
+            .filter(RuleEffects::isEvent)
+            .collect(Collectors.toMap(RuleEffects::getTrackerObjectUid, e -> mapNotificationEffect(e.getRuleEffects())));
+    return new RuleEngineEffects(enrollmentValidationEffects, eventValidaitonEffects, enrollmentNotificationEffects, eventNotificationEffects);
+  }
+
+  private List<ValidationEffect> mapValidationEffect(List<RuleEffect> effects) {
+    return effects.stream()
+            .filter(e -> ValidationActionType.contains(e.getRuleAction().getType()))
+            .map(e -> new ValidationEffect(e.getRuleId(), e.getData(), e.getRuleAction().field(), e.getRuleAction().content(), ValidationActionType.valueOf(e.getRuleAction().getType()))).toList();
+  }
+
+  private List<NotificationEffect> mapNotificationEffect(List<RuleEffect> effects) {
+    return effects.stream()
+            .filter(e -> NotificationActionType.contains(e.getRuleAction().getType()))
+            .map(e -> new NotificationEffect(e.getRuleId(), e.getData(), e.getRuleAction().field(), e.getRuleAction().content(), ValidationActionType.valueOf(e.getRuleAction().getType()))).toList();
   }
 
   @Override
-  public List<RuleEffects> evaluateProgramEvents(Set<Event> events, Program program) {
+  public RuleEngineEffects evaluateProgramEvents(Set<Event> events, Program program) {
     List<ProgramRule> rules = implementableRuleService.getProgramRules(program, null);
-    return evaluateProgramRulesForMultipleTrackerObjects(
-        null, program, getRuleEvents(events), rules);
+    return map(evaluateProgramRulesForMultipleTrackerObjects(
+        null, program, getRuleEvents(events), rules));
   }
 
   @Override

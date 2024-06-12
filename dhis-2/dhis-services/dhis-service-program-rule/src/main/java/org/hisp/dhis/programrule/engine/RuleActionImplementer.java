@@ -29,7 +29,6 @@ package org.hisp.dhis.programrule.engine;
 
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleEffect;
 
 /**
@@ -40,21 +39,21 @@ import org.hisp.dhis.rules.models.RuleEffect;
  * <p>Created by zubair@dhis2.org on 04.01.18.
  */
 public interface RuleActionImplementer {
-  boolean accept(RuleAction ruleAction);
+  boolean accept(NotificationEffect notificationEffect);
 
   /**
    * This method is directly called by SideEffectHandlerService to implement actions
    *
-   * @param ruleEffect received tracker importer
+   * @param notificationEffect received tracker importer
    * @param enrollment enrollment to implement the action against
    */
-  void implement(RuleEffect ruleEffect, Enrollment enrollment);
+  void implement(NotificationEffect notificationEffect, Enrollment enrollment);
 
   /**
    * This method is directly called by SideEffectHandlerService to implement actions
    *
-   * @param ruleEffect received tracker importer
+   * @param notificationEffect received tracker importer
    * @param event event to implement the action against
    */
-  void implement(RuleEffect ruleEffect, Event event);
+  void implement(NotificationEffect notificationEffect, Event event);
 }

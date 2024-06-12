@@ -32,20 +32,20 @@ import static org.hisp.dhis.tracker.imports.programrule.IssueType.WARNING;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.program.EnrollmentStatus;
+import org.hisp.dhis.programrule.engine.ValidationEffect;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.programrule.IssueType;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.imports.programrule.executor.ValidationExecutor;
-import org.hisp.dhis.tracker.imports.programrule.executor.ValidationRuleAction;
 
 /**
  * This executor shows warnings on a completed enrollment calculated by Rule Engine. @Author Enrico
  * Colasante
  */
-@RequiredArgsConstructor
+ @RequiredArgsConstructor
 public class ShowWarningOnCompleteExecutor implements ValidationExecutor<Enrollment> {
-  private final ValidationRuleAction ruleAction;
+  private final ValidationEffect ruleAction;
 
   @Override
   public boolean needsToRun(Enrollment enrollment) {
