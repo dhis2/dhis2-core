@@ -48,7 +48,7 @@ import static org.hisp.dhis.analytics.data.SubexpressionPeriodOffsetUtils.getPar
 import static org.hisp.dhis.analytics.data.SubexpressionPeriodOffsetUtils.joinPeriodOffsetValues;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.commons.collection.CollectionUtils.addUnique;
+import static org.hisp.dhis.common.collection.CollectionUtils.addUnique;
 import static org.hisp.dhis.parser.expression.ParserUtils.castSql;
 import static org.hisp.dhis.subexpression.SubexpressionDimensionItem.getItemColumnName;
 import static org.hisp.dhis.system.util.SqlUtils.quote;

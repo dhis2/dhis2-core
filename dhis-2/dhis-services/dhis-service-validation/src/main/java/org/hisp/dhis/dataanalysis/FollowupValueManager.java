@@ -28,7 +28,7 @@
 package org.hisp.dhis.dataanalysis;
 
 import static java.util.Collections.emptyList;
-import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
+import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
 import static org.hisp.dhis.query.JpaQueryUtils.generateHqlQueryForSharingCheck;
 
 import java.util.List;
