@@ -29,7 +29,7 @@ package org.hisp.dhis.system.grid;
 
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.common.ValueType.getValueTypeFromSqlType;
-import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
+import static org.hisp.dhis.common.collection.CollectionUtils.mapToList;
 import static org.hisp.dhis.feedback.ErrorCode.E7230;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;

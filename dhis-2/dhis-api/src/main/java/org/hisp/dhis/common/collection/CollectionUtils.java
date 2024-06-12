@@ -25,14 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.collection;
+package org.hisp.dhis.common.collection;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toUnmodifiableSet;
 import static lombok.AccessLevel.PRIVATE;
 
 import com.google.common.collect.ImmutableMap;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -50,6 +50,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -136,7 +137,6 @@ public class CollectionUtils {
    * Returns all elements which are contained by {@code collection1} but not contained by {@code
    * collection2} as an immutable list.
    *
-   * @param <T>
    * @param collection1 the first collection.
    * @param collection2 the second collection.
    * @return all elements in {@code collection1} not in {@code collection2}.
@@ -151,13 +151,58 @@ public class CollectionUtils {
    * Returns a list that contains all the members of one or more collections. No check for
    * duplicates is made.
    *
-   * @param <T>
    * @param collections the collections to be concatenated.
    * @return the concatenated collections.
    */
+  @Nonnull
   @SafeVarargs
   public static <T> List<T> concat(Collection<T>... collections) {
-    return Arrays.stream(collections).flatMap(Collection::stream).collect(toList());
+    return Stream.of(collections).flatMap(Collection::stream).toList();
+  }
+
+  /**
+   * Union of at least 2 sets, any argument may be {@code null}.
+   *
+   * @param a one set
+   * @param b another set
+   * @param more optionally more sets
+   * @return the union of the values of any given sets ignoring {@code null} sets (not {@code null}
+   *     values)
+   * @param <T> type of the elements in the set
+   */
+  @Nonnull
+  @SafeVarargs
+  public static <T> Set<T> union(
+      @CheckForNull Set<T> a, @CheckForNull Set<T> b, @CheckForNull Set<T>... more) {
+    boolean emptyMore = more == null || more.length == 0;
+    boolean emptyA = a == null || a.isEmpty();
+    boolean emptyB = b == null || b.isEmpty();
+    // 3/3 empty => empty
+    if (emptyMore && emptyA && emptyB) return Set.of();
+    // 2/3 empty => return non-empty
+    if (emptyMore && emptyA) return b;
+    if (emptyMore && emptyB) return a;
+    if (emptyA && emptyB) return union(more);
+    // 1/3 empty => union of non-empty two
+    if (emptyMore) return union(a, b);
+    if (emptyA) return union(b, union(more));
+    if (emptyB) return union(a, union(more));
+    // none is empty => union of all
+    return union(union(a, b), union(more));
+  }
+
+  @Nonnull
+  private static <T> Set<T> union(@Nonnull Set<T> a, @Nonnull Set<T> b) {
+    return Stream.concat(a.stream(), b.stream()).collect(toUnmodifiableSet());
+  }
+
+  @Nonnull
+  @SafeVarargs
+  private static <T> Set<T> union(@Nonnull Set<T>... more) {
+    return Stream.of(more)
+        .filter(Objects::nonNull)
+        .flatMap(Collection::stream)
+        .collect(toUnmodifiableSet());
   }
 
   /**
