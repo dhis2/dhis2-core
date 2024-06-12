@@ -52,7 +52,10 @@ class NotificationHelper {
 
   public void createLogEntry(ProgramNotificationTemplate template, Enrollment enrollment) {
     String key = generateKey(template, enrollment);
-    ExternalNotificationLogEntry entry = createLogEntry(key, template.getUid());
+    ExternalNotificationLogEntry entry = new ExternalNotificationLogEntry();
+    entry.setLastSentAt(new Date());
+    entry.setKey(key);
+    entry.setNotificationTemplateUid(template.getUid());
     entry.setNotificationTriggeredBy(NotificationTriggerEvent.PROGRAM);
     entry.setAllowMultiple(template.isSendRepeatable());
 
@@ -66,11 +69,12 @@ class NotificationHelper {
 
   public NotificationValidationResult validate(
       ProgramNotificationTemplate template, Enrollment enrollment) {
+    if (template == null) {
+      return NotificationValidationResult.invalid();
+    }
+
     if (enrollment == null) {
-      return NotificationValidationResult.builder()
-          .valid(true)
-          .needsToCreatelogEntry(false)
-          .build();
+      return NotificationValidationResult.valid(false);
     }
 
     ExternalNotificationLogEntry logEntry =
@@ -78,23 +82,10 @@ class NotificationHelper {
 
     // template has already been delivered and repeated delivery not allowed
     if (logEntry != null && !logEntry.isAllowMultiple()) {
-      return NotificationValidationResult.builder().valid(false).build();
+      return NotificationValidationResult.invalid();
     }
 
-    return NotificationValidationResult.builder()
-        .valid(true)
-        .needsToCreatelogEntry(logEntry == null)
-        .build();
-  }
-
-  private ExternalNotificationLogEntry createLogEntry(String key, String templateUid) {
-    ExternalNotificationLogEntry entry = new ExternalNotificationLogEntry();
-    entry.setLastSentAt(new Date());
-    entry.setKey(key);
-    entry.setNotificationTemplateUid(templateUid);
-    entry.setAllowMultiple(false);
-
-    return entry;
+    return NotificationValidationResult.valid(logEntry == null);
   }
 
   private String generateKey(ProgramNotificationTemplate template, Enrollment enrollment) {
