@@ -764,7 +764,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
 
-    params.addOrganisationUnits(Set.of(orgUnit));
+    params.addOrganisationUnit(orgUnit);
     params.setOrganisationUnitMode(SELECTED);
     params.setTrackedEntityInstanceUids(Set.of("QS6w44flWAf", "dUE514NMOlo"));
     params.setTrackedEntityType(trackedEntityType);
@@ -781,7 +781,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
 
-    params.addOrganisationUnits(Set.of(orgUnit));
+    params.addOrganisationUnit(orgUnit);
     params.setOrganisationUnitMode(SELECTED);
     params.setTrackedEntityInstanceUids(Set.of("QS6w44flWAf", "dUE514NMOlo"));
     params.setTrackedEntityType(trackedEntityType);
