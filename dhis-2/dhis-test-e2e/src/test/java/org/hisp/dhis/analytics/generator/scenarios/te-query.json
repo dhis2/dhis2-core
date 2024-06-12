@@ -30,7 +30,7 @@
     },
     {
       "name": "sortByGlobalOuAsc",
-      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp?dimension=gHGyrwKPzej,ciq2USN94oJ,IpHINAT79UW.ZzYYXq4fJie.GQY2lXrypjO,ou:USER_ORGUNIT&headers=ouname&totalPages=false&rowContext=true&programStatus=IpHINAT79UW.ACTIVE&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&asc=ouname&relativePeriodDate=2017-01-27",
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp?dimension=gHGyrwKPzej,ciq2USN94oJ,IpHINAT79UW.ZzYYXq4fJie.GQY2lXrypjO,ou:USER_ORGUNIT&headers=ouname&totalPages=false&rowContext=true&programStatus=IpHINAT79UW.ACTIVE&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&asc=oucode&relativePeriodDate=2017-01-27",
       "version": {
         "min": 41
       }
@@ -65,7 +65,7 @@
     },
     {
       "name": "sortByEnrollmentOuAsc",
-      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp?dimension=ou:USER_ORGUNIT,gHGyrwKPzej,ciq2USN94oJ&headers=ouname,gHGyrwKPzej,ciq2USN94oJ,IpHINAT79UW.ouname&totalPages=false&rowContext=true&displayProperty=NAME&pageSize=20&page=1&includeMetadataDetails=true&asc=IpHINAT79UW.ouname&relativePeriodDate=2017-01-27",
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp?dimension=ou:USER_ORGUNIT,gHGyrwKPzej,ciq2USN94oJ&headers=ouname,w75KJ2mc4zz,zDhUuAYrxNC,IpHINAT79UW.ouname,lastupdated&totalPages=false&rowContext=true&displayProperty=NAME&pageSize=20&page=1&includeMetadataDetails=true&asc=IpHINAT79UW.ouname,lastupdated&relativePeriodDate=2017-01-27",
       "version": {
         "min": 41
       }
