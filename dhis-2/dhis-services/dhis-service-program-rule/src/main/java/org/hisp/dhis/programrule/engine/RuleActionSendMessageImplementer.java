@@ -44,6 +44,7 @@ import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  *
@@ -79,6 +80,7 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
   }
 
   @Override
+  @Transactional
   public void implement(RuleEffect ruleEffect, Enrollment enrollment) {
     NotificationValidationResult result = validate(ruleEffect, enrollment);
 
@@ -104,6 +106,7 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
   }
 
   @Override
+  @Transactional
   public void implement(RuleEffect ruleEffect, Event event) {
     checkNotNull(event, "Event cannot be null");
 

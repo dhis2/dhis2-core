@@ -53,10 +53,6 @@ public interface ProgramRuleStore extends IdentifiableObjectStore<ProgramRule> {
    */
   ProgramRule getByName(String name, Program program);
 
-  List<String> getDataElementsPresentInProgramRules();
-
-  List<String> getTrackedEntityAttributesPresentInProgramRules();
-
   /**
    * Get validation by {@link Program}
    *
@@ -66,19 +62,25 @@ public interface ProgramRuleStore extends IdentifiableObjectStore<ProgramRule> {
    */
   List<ProgramRule> get(Program program, String key);
 
-  List<ProgramRule> getProgramRulesByActionTypes(Program program, Set<ProgramRuleActionType> types);
+  List<ProgramRule> getProgramRulesByActionTypes(
+      Program program, Set<ProgramRuleActionType> actionTypes);
 
   List<ProgramRule> getProgramRulesByActionTypes(
-      Program program, Set<ProgramRuleActionType> serverSupportedTypes, String programStageUid);
+      Program program, Set<ProgramRuleActionType> actionTypes, String programStageUid);
 
-  List<ProgramRule> getProgramRulesWithNoCondition();
+  List<String> getDataElementsPresentInProgramRules(Set<ProgramRuleActionType> actionTypes);
 
-  List<ProgramRule> getProgramRulesWithNoPriority();
+  List<String> getTrackedEntityAttributesPresentInProgramRules(
+      Set<ProgramRuleActionType> actionTypes);
 
   List<ProgramRule> getProgramRulesByEvaluationTime(ProgramRuleActionEvaluationTime evaluationTime);
 
   List<ProgramRule> getProgramRulesByEvaluationEnvironment(
       ProgramRuleActionEvaluationEnvironment environment);
+
+  List<ProgramRule> getProgramRulesWithNoCondition();
+
+  List<ProgramRule> getProgramRulesWithNoPriority();
 
   List<ProgramRule> getProgramRulesWithNoAction();
 }
