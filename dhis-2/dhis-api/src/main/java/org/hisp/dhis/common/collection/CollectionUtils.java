@@ -33,7 +33,6 @@ import static lombok.AccessLevel.PRIVATE;
 
 import com.google.common.collect.ImmutableMap;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -400,7 +399,7 @@ public class CollectionUtils {
   @SafeVarargs
   public static <T> Map<T, T> merge(Map<T, T>... maps) {
     Map<T, T> result = new HashMap<>();
-    Arrays.stream(maps).forEach(result::putAll);
+    Stream.of(maps).forEach(result::putAll);
     return ImmutableMap.copyOf(result);
   }
 }

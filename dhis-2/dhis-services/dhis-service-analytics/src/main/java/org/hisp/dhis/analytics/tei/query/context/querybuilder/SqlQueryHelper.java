@@ -31,7 +31,7 @@ import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.text.StringSubstitutor.replace;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.isDataElement;
 import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_ALIAS;
-import static org.hisp.dhis.commons.collection.CollectionUtils.merge;
+import static org.hisp.dhis.common.collection.CollectionUtils.merge;
 
 import java.util.Map;
 import lombok.NoArgsConstructor;
