@@ -68,6 +68,7 @@ public class GeneratorHelper {
           + GEN.getScenarioFolder()
           + "/"
           + SCENARIO_FILE;
+  static final String[] SCENARIOS = GEN.getScenarios();
   static final boolean ASSERT_META_DATA = GEN.assertMetaData();
   static final boolean ASSERT_ROW_INDEX = GEN.assertRowIndex();
   static final String ACTION = GEN.getAction();

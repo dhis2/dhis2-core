@@ -34,6 +34,19 @@ import org.hisp.dhis.analytics.generator.Generator;
  * "/analytics/events/query/{program}?" endpoint.
  */
 public class EventQueryGenerator implements Generator {
+  private String[] scenarios = new String[] {};
+
+  public EventQueryGenerator() {}
+
+  public EventQueryGenerator(String... scenarios) {
+    this.scenarios = scenarios;
+  }
+
+  @Override
+  public String[] getScenarios() {
+    return scenarios;
+  }
+
   @Override
   public int getMaxTestsPerClass() {
     return 4;

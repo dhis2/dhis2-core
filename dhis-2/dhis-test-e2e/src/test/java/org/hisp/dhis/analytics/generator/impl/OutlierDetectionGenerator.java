@@ -34,6 +34,19 @@ import org.hisp.dhis.analytics.generator.Generator;
  * "/analytics/outlierDetection?{PARAMS...}" endpoint.
  */
 public class OutlierDetectionGenerator implements Generator {
+  private String[] scenarios = new String[] {};
+
+  public OutlierDetectionGenerator() {}
+
+  public OutlierDetectionGenerator(String... scenarios) {
+    this.scenarios = scenarios;
+  }
+
+  @Override
+  public String[] getScenarios() {
+    return scenarios;
+  }
+
   @Override
   public int getMaxTestsPerClass() {
     return 4;

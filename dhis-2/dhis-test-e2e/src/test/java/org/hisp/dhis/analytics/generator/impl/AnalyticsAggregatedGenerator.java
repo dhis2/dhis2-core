@@ -31,6 +31,19 @@ import org.hisp.dhis.analytics.generator.Generator;
 
 /** Set of behaviour and settings required by the test generation of "/analytics?" endpoint. */
 public class AnalyticsAggregatedGenerator implements Generator {
+  private String[] scenarios = new String[] {};
+
+  public AnalyticsAggregatedGenerator() {}
+
+  public AnalyticsAggregatedGenerator(String... scenarios) {
+    this.scenarios = scenarios;
+  }
+
+  @Override
+  public String[] getScenarios() {
+    return scenarios;
+  }
+
   @Override
   public int getMaxTestsPerClass() {
     return 6;

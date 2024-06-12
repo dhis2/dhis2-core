@@ -34,6 +34,19 @@ import org.hisp.dhis.analytics.generator.Generator;
  * "/analytics/enrollments/query/{program}?" endpoint.
  */
 public class EnrollmentQueryGenerator implements Generator {
+  private String[] scenarios = new String[] {};
+
+  public EnrollmentQueryGenerator() {}
+
+  public EnrollmentQueryGenerator(String... scenarios) {
+    this.scenarios = scenarios;
+  }
+
+  @Override
+  public String[] getScenarios() {
+    return scenarios;
+  }
+
   @Override
   public int getMaxTestsPerClass() {
     return 4;

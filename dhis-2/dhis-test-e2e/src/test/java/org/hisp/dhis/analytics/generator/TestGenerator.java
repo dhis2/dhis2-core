@@ -27,11 +27,14 @@
  */
 package org.hisp.dhis.analytics.generator;
 
-import org.hisp.dhis.analytics.generator.impl.AnalyticsAggregatedGenerator;
+import org.hisp.dhis.analytics.generator.impl.TeiQueryGenerator;
 
 /** This class simply hold the generator implementation to be used during the code generation. */
 public class TestGenerator {
   static Generator get() {
-    return new AnalyticsAggregatedGenerator();
+    return new TeiQueryGenerator("sortByTeDateDesc", "sortByTeDateAsc");
+
+    // To generate all e2e tests just return the default constructor.
+    // ie.: return new TeiQueryGenerator();
   }
 }

@@ -61,6 +61,15 @@ public interface Generator {
   String getScenarioFile();
 
   /**
+   * Returns specific scenarios for test generation. If empty, ALL scenarios will be generated.
+   *
+   * @return the scenarios.
+   */
+  default String[] getScenarios() {
+    return new String[] {};
+  }
+
+  /**
    * The folder where the input test scenarios are living.
    *
    * @return the file name.

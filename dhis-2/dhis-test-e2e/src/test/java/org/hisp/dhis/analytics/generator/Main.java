@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics.generator;
 
+import static org.apache.commons.lang3.ArrayUtils.contains;
+import static org.apache.commons.lang3.ArrayUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.defaultString;
@@ -35,6 +37,7 @@ import static org.apache.commons.lang3.StringUtils.substringAfter;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.analytics.generator.GeneratorHelper.CLASS_NAME_PREFIX;
 import static org.hisp.dhis.analytics.generator.GeneratorHelper.MAX_TESTS_PER_CLASS;
+import static org.hisp.dhis.analytics.generator.GeneratorHelper.SCENARIOS;
 import static org.hisp.dhis.analytics.generator.GeneratorHelper.SCENARIO_FILE_LOCATION;
 import static org.hisp.dhis.analytics.generator.GeneratorHelper.TEST_OUTPUT_LOCATION;
 import static org.hisp.dhis.analytics.generator.GeneratorHelper.generateTestMethod;
@@ -122,9 +125,11 @@ class Main {
       String query = trimToNull(attrMap.get("query").getAsString());
       int minVersion = attrMap.get("version").getAsJsonObject().get("min").getAsInt();
 
-      // Ignore names and queries that are null/empty.
-      if (name != null && query != null && minVersion <= VERSION) {
-        queries.put(name, query);
+      if (isEmpty(SCENARIOS) || contains(SCENARIOS, name)) {
+        // Ignore names and queries that are null/empty.
+        if (name != null && query != null && minVersion <= VERSION) {
+          queries.put(name, query);
+        }
       }
     }
 
