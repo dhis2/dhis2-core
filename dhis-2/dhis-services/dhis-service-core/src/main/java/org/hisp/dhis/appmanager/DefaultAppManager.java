@@ -31,6 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+import static org.hisp.dhis.common.collection.CollectionUtils.union;
 import static org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType.RESTRICTED;
 
 import java.io.BufferedInputStream;
@@ -436,11 +437,10 @@ public class DefaultAppManager implements AppManager {
         app.getActivities().getDhis().getAdditionalNamespaces();
     if (additionalNamespaces == null || additionalNamespaces.isEmpty()) return;
     for (DatastoreNamespace ns : additionalNamespaces) {
-      Set<String> authorities = ns.getAuthorities() == null ? Set.of() : ns.getAuthorities();
-      Set<String> readAuthorities = new HashSet<>(authorities);
-      Set<String> writeAuthorities = new HashSet<>(authorities);
-      if (ns.getReadAuthorities() != null) readAuthorities.addAll(ns.getReadAuthorities());
-      if (ns.getWriteAuthorities() != null) writeAuthorities.addAll(ns.getWriteAuthorities());
+      Set<String> readAuthorities = union(ns.getAuthorities(), ns.getReadAuthorities());
+      Set<String> writeAuthorities = union(ns.getAuthorities(), ns.getWriteAuthorities());
+      if (writeAuthorities.isEmpty() && !readAuthorities.isEmpty())
+        writeAuthorities = readAuthorities;
       String namespace = requireNonNull(ns.getNamespace());
       datastoreService.addProtection(
           new DatastoreNamespaceProtection(

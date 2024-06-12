@@ -29,6 +29,7 @@ package org.hisp.dhis.datastore;
 
 import static org.hisp.dhis.common.collection.CollectionUtils.union;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 import java.util.Set;
 import javax.annotation.CheckForNull;
@@ -50,16 +51,16 @@ public class DatastoreNamespace implements Serializable {
   private static final long serialVersionUID = -1653792127753819375L;
 
   /** The namespace name an app wants to use in a protected manner */
-  @CheckForNull private String namespace;
+  @JsonProperty @CheckForNull private String namespace;
 
   /** A user must have one of these authorities to be able to read/write the namespace */
-  @CheckForNull private Set<String> authorities;
+  @JsonProperty @CheckForNull private Set<String> authorities;
 
   /** A user must have one of these authorities to be able to read the namespace */
-  @CheckForNull private Set<String> readAuthorities;
+  @JsonProperty @CheckForNull private Set<String> readAuthorities;
 
   /** A user must have one of these authorities to be able to write the namespace */
-  @CheckForNull private Set<String> writeAuthorities;
+  @JsonProperty @CheckForNull private Set<String> writeAuthorities;
 
   @Nonnull
   public Set<String> getAllAuthorities() {

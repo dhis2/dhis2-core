@@ -36,6 +36,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -470,6 +471,7 @@ public class App implements Serializable {
     if (namespace == null)
       return additionalNamespaces.stream()
           .map(DatastoreNamespace::getNamespace)
+          .filter(Objects::nonNull)
           .collect(toUnmodifiableSet());
     if (additionalNamespaces == null || additionalNamespaces.isEmpty()) return Set.of(namespace);
     Set<String> namespaces = new HashSet<>();
