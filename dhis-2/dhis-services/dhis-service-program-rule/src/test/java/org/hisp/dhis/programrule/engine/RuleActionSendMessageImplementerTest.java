@@ -39,11 +39,9 @@ import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.notification.ProgramNotificationInstance;
-import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
+import org.hisp.dhis.program.notification.ProgramNotificationService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
-import org.hisp.dhis.program.notification.template.snapshot.NotificationTemplateService;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleEffect;
@@ -55,7 +53,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class RuleActionScheduleMessageImplementerTest {
+class RuleActionSendMessageImplementerTest {
 
   private static final String TEMPLATE_UID = "templateUid";
   private static final String RULE_UID = "ruleUid";
@@ -68,86 +66,63 @@ class RuleActionScheduleMessageImplementerTest {
 
   @InjectMocks private NotificationHelper notificationHelper;
 
-  @Mock private ProgramNotificationInstanceService programNotificationInstanceService;
+  @Mock private ProgramNotificationService programNotificationService;
 
-  @Mock private NotificationTemplateService notificationTemplateService;
-
-  private RuleActionScheduleMessageImplementer ruleActionScheduleMessageImplementer =
-      new RuleActionScheduleMessageImplementer(
-          notificationHelper, programNotificationInstanceService, notificationTemplateService);
+  private RuleActionSendMessageImplementer ruleActionScheduleMessageImplementer;
 
   @BeforeEach
   void setUp() {
     ruleActionScheduleMessageImplementer =
-        new RuleActionScheduleMessageImplementer(
-            notificationHelper, programNotificationInstanceService, notificationTemplateService);
+        new RuleActionSendMessageImplementer(notificationHelper, programNotificationService);
   }
 
   @Test
   void shouldFailValidationForEnrollmentWhenTemplateIsNotFound() {
     when(programNotificationTemplateService.getByUid(TEMPLATE_UID)).thenReturn(null);
 
-    ruleActionScheduleMessageImplementer.implement(ruleEffectValidDate(), enrollment());
+    ruleActionScheduleMessageImplementer.implement(ruleEffect(), enrollment());
 
-    verify(notificationTemplateService, never())
-        .createNotificationInstance(any(), any(String.class));
-    verify(programNotificationInstanceService, never()).save(any());
-    verify(notificationLoggingService, never()).save(any());
-  }
-
-  @Test
-  void shouldFailValidationForEnrollmentWhenDateIsInvalid() {
-    when(programNotificationTemplateService.getByUid(TEMPLATE_UID)).thenReturn(template());
-
-    ruleActionScheduleMessageImplementer.implement(ruleEffectInvalidDate(), enrollment());
-
-    verify(notificationTemplateService, never())
-        .createNotificationInstance(any(), any(String.class));
-    verify(programNotificationInstanceService, never()).save(any());
+    verify(programNotificationService, never()).sendProgramRuleTriggeredNotifications(any(), any());
     verify(notificationLoggingService, never()).save(any());
   }
 
   @Test
   void shouldFailValidationForEnrollmentWhenNotRepeatableNotificationLogIsPresent() {
     ProgramNotificationTemplate template = template();
-    RuleEffect ruleEffect = ruleEffectValidDate();
+    RuleEffect ruleEffect = ruleEffect();
     when(programNotificationTemplateService.getByUid(TEMPLATE_UID)).thenReturn(template);
     when(notificationLoggingService.getByKey(TEMPLATE_UID.concat(ENROLLMENT_UID)))
         .thenReturn(notRepeatableNotificationLog());
     ruleActionScheduleMessageImplementer.implement(ruleEffect, enrollment());
 
-    verify(notificationTemplateService, never())
-        .createNotificationInstance(any(), any(String.class));
-    verify(programNotificationInstanceService, never()).save(any());
+    verify(programNotificationService, never()).sendProgramRuleTriggeredNotifications(any(), any());
     verify(notificationLoggingService, never()).save(any());
   }
 
   @Test
   void shouldPassValidationForEnrollmentWhenRepeatableNotificationLogIsPresent() {
     ProgramNotificationTemplate template = template();
-    RuleEffect ruleEffect = ruleEffectValidDate();
+    RuleEffect ruleEffect = ruleEffect();
     when(programNotificationTemplateService.getByUid(TEMPLATE_UID)).thenReturn(template);
     when(notificationLoggingService.getByKey(TEMPLATE_UID.concat(ENROLLMENT_UID)))
         .thenReturn(repeatableNotificationLog());
-    when(notificationTemplateService.createNotificationInstance(template, ruleEffect.getData()))
-        .thenReturn(new ProgramNotificationInstance());
     ruleActionScheduleMessageImplementer.implement(ruleEffect, enrollment());
 
-    verify(programNotificationInstanceService, times(1)).save(any());
+    verify(programNotificationService, times(1))
+        .sendProgramRuleTriggeredNotifications(any(), any());
     verify(notificationLoggingService, never()).save(any());
   }
 
   @Test
   void shouldPassValidationForEnrollmentWhenNoNotificationLogIsPresent() {
     ProgramNotificationTemplate template = template();
-    RuleEffect ruleEffect = ruleEffectValidDate();
+    RuleEffect ruleEffect = ruleEffect();
     when(programNotificationTemplateService.getByUid(TEMPLATE_UID)).thenReturn(template);
     when(notificationLoggingService.getByKey(TEMPLATE_UID.concat(ENROLLMENT_UID))).thenReturn(null);
-    when(notificationTemplateService.createNotificationInstance(template, ruleEffect.getData()))
-        .thenReturn(new ProgramNotificationInstance());
     ruleActionScheduleMessageImplementer.implement(ruleEffect, enrollment());
 
-    verify(programNotificationInstanceService, times(1)).save(any());
+    verify(programNotificationService, times(1))
+        .sendProgramRuleTriggeredNotifications(any(), any());
     verify(notificationLoggingService, times(1)).save(any());
   }
 
@@ -155,80 +130,61 @@ class RuleActionScheduleMessageImplementerTest {
   void shouldFailValidationForEventWhenTemplateIsNotFound() {
     when(programNotificationTemplateService.getByUid(TEMPLATE_UID)).thenReturn(null);
 
-    ruleActionScheduleMessageImplementer.implement(ruleEffectValidDate(), event());
+    ruleActionScheduleMessageImplementer.implement(ruleEffect(), event());
 
-    verify(notificationTemplateService, never())
-        .createNotificationInstance(any(), any(String.class));
-    verify(programNotificationInstanceService, never()).save(any());
-    verify(notificationLoggingService, never()).save(any());
-  }
-
-  @Test
-  void shouldFailValidationForEventWhenDateIsInvalid() {
-    when(programNotificationTemplateService.getByUid(TEMPLATE_UID)).thenReturn(template());
-
-    ruleActionScheduleMessageImplementer.implement(ruleEffectInvalidDate(), event());
-
-    verify(notificationTemplateService, never())
-        .createNotificationInstance(any(), any(String.class));
-    verify(programNotificationInstanceService, never()).save(any());
+    verify(programNotificationService, never()).sendProgramRuleTriggeredNotifications(any(), any());
     verify(notificationLoggingService, never()).save(any());
   }
 
   @Test
   void shouldFailValidationForEventWhenNotRepeatableNotificationLogIsPresent() {
     ProgramNotificationTemplate template = template();
-    RuleEffect ruleEffect = ruleEffectValidDate();
+    RuleEffect ruleEffect = ruleEffect();
     when(programNotificationTemplateService.getByUid(TEMPLATE_UID)).thenReturn(template);
     when(notificationLoggingService.getByKey(TEMPLATE_UID.concat(ENROLLMENT_UID)))
         .thenReturn(notRepeatableNotificationLog());
     ruleActionScheduleMessageImplementer.implement(ruleEffect, event());
 
-    verify(notificationTemplateService, never())
-        .createNotificationInstance(any(), any(String.class));
-    verify(programNotificationInstanceService, never()).save(any());
+    verify(programNotificationService, never()).sendProgramRuleTriggeredNotifications(any(), any());
     verify(notificationLoggingService, never()).save(any());
   }
 
   @Test
   void shouldPassValidationForProgramEventWhenNotRepeatableNotificationLogIsPresent() {
     ProgramNotificationTemplate template = template();
-    RuleEffect ruleEffect = ruleEffectValidDate();
+    RuleEffect ruleEffect = ruleEffect();
     when(programNotificationTemplateService.getByUid(TEMPLATE_UID)).thenReturn(template);
-    when(notificationTemplateService.createNotificationInstance(template, ruleEffect.getData()))
-        .thenReturn(new ProgramNotificationInstance());
     ruleActionScheduleMessageImplementer.implement(ruleEffect, programEvent());
 
-    verify(programNotificationInstanceService, times(1)).save(any());
+    verify(programNotificationService, times(1))
+        .sendProgramRuleTriggeredEventNotifications(any(), any());
     verify(notificationLoggingService, never()).save(any());
   }
 
   @Test
   void shouldPassValidationForEventWhenRepeatableNotificationLogIsPresent() {
     ProgramNotificationTemplate template = template();
-    RuleEffect ruleEffect = ruleEffectValidDate();
+    RuleEffect ruleEffect = ruleEffect();
     when(programNotificationTemplateService.getByUid(TEMPLATE_UID)).thenReturn(template);
     when(notificationLoggingService.getByKey(TEMPLATE_UID.concat(ENROLLMENT_UID)))
         .thenReturn(repeatableNotificationLog());
-    when(notificationTemplateService.createNotificationInstance(template, ruleEffect.getData()))
-        .thenReturn(new ProgramNotificationInstance());
     ruleActionScheduleMessageImplementer.implement(ruleEffect, event());
 
-    verify(programNotificationInstanceService, times(1)).save(any());
+    verify(programNotificationService, times(1))
+        .sendProgramRuleTriggeredEventNotifications(any(), any());
     verify(notificationLoggingService, never()).save(any());
   }
 
   @Test
   void shouldPassValidationForEventWhenNoNotificationLogIsPresent() {
     ProgramNotificationTemplate template = template();
-    RuleEffect ruleEffect = ruleEffectValidDate();
+    RuleEffect ruleEffect = ruleEffect();
     when(programNotificationTemplateService.getByUid(TEMPLATE_UID)).thenReturn(template);
     when(notificationLoggingService.getByKey(TEMPLATE_UID.concat(ENROLLMENT_UID))).thenReturn(null);
-    when(notificationTemplateService.createNotificationInstance(template, ruleEffect.getData()))
-        .thenReturn(new ProgramNotificationInstance());
     ruleActionScheduleMessageImplementer.implement(ruleEffect, event());
 
-    verify(programNotificationInstanceService, times(1)).save(any());
+    verify(programNotificationService, times(1))
+        .sendProgramRuleTriggeredEventNotifications(any(), any());
     verify(notificationLoggingService, times(1)).save(any());
   }
 
@@ -270,19 +226,11 @@ class RuleActionScheduleMessageImplementerTest {
     return event;
   }
 
-  private RuleEffect ruleEffectInvalidDate() {
+  private RuleEffect ruleEffect() {
     return new RuleEffect(
         RULE_UID,
         new RuleAction(
             "data", ProgramRuleActionType.SENDMESSAGE.name(), Map.of(NOTIFICATION, TEMPLATE_UID)),
         "");
-  }
-
-  private RuleEffect ruleEffectValidDate() {
-    return new RuleEffect(
-        RULE_UID,
-        new RuleAction(
-            "data", ProgramRuleActionType.SENDMESSAGE.name(), Map.of(NOTIFICATION, TEMPLATE_UID)),
-        "2020-10-10");
   }
 }
