@@ -42,7 +42,6 @@ import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Zubair Asghar
@@ -52,7 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Component("org.hisp.dhis.programrule.engine.RuleActionScheduleMessageImplementer")
 public class RuleActionScheduleMessageImplementer implements RuleActionImplementer {
   public static final String LOG_MESSAGE = "Notification with id:%s has been scheduled";
-  private final NotificationHelper notificationRuleActionImplementer;
+  private final NotificationHelper notificationHelper;
   private final ProgramNotificationInstanceService programNotificationInstanceService;
 
   private final NotificationTemplateService notificationTemplateService;
@@ -63,13 +62,9 @@ public class RuleActionScheduleMessageImplementer implements RuleActionImplement
   }
 
   @Override
-  @Transactional
   public void implement(RuleEffect ruleEffect, Enrollment enrollment) {
     ProgramNotificationTemplate template =
-        notificationRuleActionImplementer.getNotificationTemplate(ruleEffect.getRuleAction());
-    if (template == null) {
-      return;
-    }
+        notificationHelper.getNotificationTemplate(ruleEffect.getRuleAction());
 
     String date = StringUtils.unwrap(ruleEffect.getData(), '\'');
 
@@ -77,8 +72,7 @@ public class RuleActionScheduleMessageImplementer implements RuleActionImplement
       return;
     }
 
-    NotificationValidationResult result =
-        notificationRuleActionImplementer.validate(template, enrollment);
+    NotificationValidationResult result = notificationHelper.validate(template, enrollment);
 
     if (result.isValid()) {
       ProgramNotificationInstance notificationInstance =
@@ -90,20 +84,16 @@ public class RuleActionScheduleMessageImplementer implements RuleActionImplement
 
       log.info(String.format(LOG_MESSAGE, template.getUid()));
 
-      if (result.isNeedsToCreatelogEntry()) {
-        notificationRuleActionImplementer.createLogEntry(template, enrollment);
+      if (result.needsToCreateLogEntry()) {
+        notificationHelper.createLogEntry(template, enrollment);
       }
     }
   }
 
   @Override
-  @Transactional
   public void implement(RuleEffect ruleEffect, Event event) {
     ProgramNotificationTemplate template =
-        notificationRuleActionImplementer.getNotificationTemplate(ruleEffect.getRuleAction());
-    if (template == null) {
-      return;
-    }
+        notificationHelper.getNotificationTemplate(ruleEffect.getRuleAction());
 
     String date = StringUtils.unwrap(ruleEffect.getData(), '\'');
 
@@ -112,7 +102,7 @@ public class RuleActionScheduleMessageImplementer implements RuleActionImplement
     }
 
     NotificationValidationResult result =
-        notificationRuleActionImplementer.validate(template, event.getEnrollment());
+        notificationHelper.validate(template, event.getEnrollment());
 
     if (result.isValid()) {
       ProgramNotificationInstance notificationInstance =
@@ -124,8 +114,8 @@ public class RuleActionScheduleMessageImplementer implements RuleActionImplement
 
       log.info(String.format(LOG_MESSAGE, template.getUid()));
 
-      if (result.isNeedsToCreatelogEntry()) {
-        notificationRuleActionImplementer.createLogEntry(template, event.getEnrollment());
+      if (result.needsToCreateLogEntry()) {
+        notificationHelper.createLogEntry(template, event.getEnrollment());
       }
     }
   }

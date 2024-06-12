@@ -66,9 +66,6 @@ public class RuleActionSendMessageImplementer implements RuleActionImplementer {
   public void implement(RuleEffect ruleEffect, Enrollment enrollment) {
     ProgramNotificationTemplate template =
         notificationRuleActionImplementer.getNotificationTemplate(ruleEffect.getRuleAction());
-    if (template == null) {
-      return;
-    }
 
     NotificationValidationResult result =
         notificationRuleActionImplementer.validate(template, enrollment);
@@ -76,7 +73,7 @@ public class RuleActionSendMessageImplementer implements RuleActionImplementer {
     if (result.isValid()) {
       programNotificationService.sendProgramRuleTriggeredNotifications(template, enrollment);
 
-      if (result.isNeedsToCreatelogEntry()) {
+      if (result.needsToCreateLogEntry()) {
         notificationRuleActionImplementer.createLogEntry(template, enrollment);
       }
     }
@@ -86,10 +83,6 @@ public class RuleActionSendMessageImplementer implements RuleActionImplementer {
   public void implement(RuleEffect ruleEffect, Event event) {
     ProgramNotificationTemplate template =
         notificationRuleActionImplementer.getNotificationTemplate(ruleEffect.getRuleAction());
-    if (template == null) {
-      return;
-    }
-
     NotificationValidationResult result =
         notificationRuleActionImplementer.validate(template, event.getEnrollment());
 
@@ -97,7 +90,7 @@ public class RuleActionSendMessageImplementer implements RuleActionImplementer {
 
       programNotificationService.sendProgramRuleTriggeredEventNotifications(template, event);
 
-      if (result.isNeedsToCreatelogEntry()) {
+      if (result.needsToCreateLogEntry()) {
         notificationRuleActionImplementer.createLogEntry(template, event.getEnrollment());
       }
     }
