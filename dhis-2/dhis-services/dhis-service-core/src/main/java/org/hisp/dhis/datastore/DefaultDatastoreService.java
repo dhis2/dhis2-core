@@ -212,13 +212,13 @@ public class DefaultDatastoreService implements DatastoreService {
   private boolean userHasNamespaceReadAccess(DatastoreNamespaceProtection protection) {
     return protection == null
         || protection.getReads() == ProtectionType.NONE
-        || currentUserHasAuthority(protection.getAuthorities());
+        || currentUserHasAuthority(protection.getReadAuthorities());
   }
 
   private boolean userHasNamespaceWriteAccess(DatastoreNamespaceProtection protection) {
     return protection == null
         || protection.getWrites() == ProtectionType.NONE
-        || currentUserHasAuthority(protection.getAuthorities());
+        || currentUserHasAuthority(protection.getWriteAuthorities());
   }
 
   /**
@@ -271,7 +271,7 @@ public class DefaultDatastoreService implements DatastoreService {
     DatastoreNamespaceProtection protection = protectionByNamespace.get(namespace);
     return protection == null
         || protection.getReads() != ProtectionType.HIDDEN
-        || currentUserHasAuthority(protection.getAuthorities());
+        || currentUserHasAuthority(protection.getReadAuthorities());
   }
 
   private boolean currentUserHasAuthority(Set<String> authorities) {

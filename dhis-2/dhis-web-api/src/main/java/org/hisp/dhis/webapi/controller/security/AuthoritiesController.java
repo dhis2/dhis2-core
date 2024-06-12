@@ -109,6 +109,7 @@ public class AuthoritiesController {
             app -> {
               authorities.add(app.getSeeAppAuthority());
               authorities.addAll(app.getAuthorities());
+              authorities.addAll(app.getAdditionalAuthorities());
             });
     authorities.add(AndroidSettingsApp.AUTHORITY);
     return authorities;
