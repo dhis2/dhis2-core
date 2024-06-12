@@ -54,8 +54,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Component("org.hisp.dhis.programrule.engine.RuleActionSendMessageImplementer")
 public class RuleActionSendMessageImplementer implements RuleActionImplementer {
+  private final NotificationHelper notificationHelper;
   private final ProgramNotificationService programNotificationService;
-  private final NotificationHelper notificationRuleActionImplementer;
 
   @Override
   public boolean accept(RuleAction ruleAction) {
@@ -65,16 +65,15 @@ public class RuleActionSendMessageImplementer implements RuleActionImplementer {
   @Override
   public void implement(RuleEffect ruleEffect, Enrollment enrollment) {
     ProgramNotificationTemplate template =
-        notificationRuleActionImplementer.getNotificationTemplate(ruleEffect.getRuleAction());
+        notificationHelper.getNotificationTemplate(ruleEffect.getRuleAction());
 
-    NotificationValidationResult result =
-        notificationRuleActionImplementer.validate(template, enrollment);
+    NotificationValidationResult result = notificationHelper.validate(template, enrollment);
 
     if (result.isValid()) {
       programNotificationService.sendProgramRuleTriggeredNotifications(template, enrollment);
 
       if (result.needsToCreateLogEntry()) {
-        notificationRuleActionImplementer.createLogEntry(template, enrollment);
+        notificationHelper.createLogEntry(template, enrollment);
       }
     }
   }
@@ -82,16 +81,16 @@ public class RuleActionSendMessageImplementer implements RuleActionImplementer {
   @Override
   public void implement(RuleEffect ruleEffect, Event event) {
     ProgramNotificationTemplate template =
-        notificationRuleActionImplementer.getNotificationTemplate(ruleEffect.getRuleAction());
+        notificationHelper.getNotificationTemplate(ruleEffect.getRuleAction());
     NotificationValidationResult result =
-        notificationRuleActionImplementer.validate(template, event.getEnrollment());
+        notificationHelper.validate(template, event.getEnrollment());
 
     if (result.isValid()) {
 
       programNotificationService.sendProgramRuleTriggeredEventNotifications(template, event);
 
       if (result.needsToCreateLogEntry()) {
-        notificationRuleActionImplementer.createLogEntry(template, event.getEnrollment());
+        notificationHelper.createLogEntry(template, event.getEnrollment());
       }
     }
   }
