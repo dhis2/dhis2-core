@@ -34,9 +34,9 @@ import org.springframework.context.ApplicationEvent;
  * @author Zubair Asghar.
  */
 public class ProgramRuleStageEvent extends ApplicationEvent {
-  private long template;
+  private final long template;
 
-  private Event event;
+  private final Event event;
 
   public ProgramRuleStageEvent(Object source, long template, Event event) {
     super(source);
