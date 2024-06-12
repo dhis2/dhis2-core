@@ -120,15 +120,18 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
           new AnalyticsTableColumn(
               quote("createdbyname"),
               VARCHAR_255,
-              "pi.createdbyuserinfo ->> 'firstName' as createdbyname"),
+              "pi.createdbyuserinfo ->> 'firstName' as createdbyname",
+              true),
           new AnalyticsTableColumn(
               quote("createdbylastname"),
               VARCHAR_255,
-              "pi.createdbyuserinfo ->> 'surname' as createdbylastname"),
+              "pi.createdbyuserinfo ->> 'surname' as createdbylastname",
+              true),
           new AnalyticsTableColumn(
               quote("createdbydisplayname"),
               VARCHAR_255,
-              getDisplayName("createdbyuserinfo", "pi", "createdbydisplayname")),
+              getDisplayName("createdbyuserinfo", "pi", "createdbydisplayname"),
+              true),
           new AnalyticsTableColumn(
               quote("lastupdatedbyusername"),
               VARCHAR_255,
@@ -136,15 +139,18 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
           new AnalyticsTableColumn(
               quote("lastupdatedbyname"),
               VARCHAR_255,
-              "pi.lastupdatedbyuserinfo ->> 'firstName' as lastupdatedbyname"),
+              "pi.lastupdatedbyuserinfo ->> 'firstName' as lastupdatedbyname",
+              true),
           new AnalyticsTableColumn(
               quote("lastupdatedbylastname"),
               VARCHAR_255,
-              "pi.lastupdatedbyuserinfo ->> 'surname' as lastupdatedbylastname"),
+              "pi.lastupdatedbyuserinfo ->> 'surname' as lastupdatedbylastname",
+              true),
           new AnalyticsTableColumn(
               quote("lastupdatedbydisplayname"),
               VARCHAR_255,
-              getDisplayName("lastupdatedbyuserinfo", "pi", "lastupdatedbydisplayname")),
+              getDisplayName("lastupdatedbyuserinfo", "pi", "lastupdatedbydisplayname"),
+              true),
           new AnalyticsTableColumn(quote("enrollmentstatus"), VARCHAR_50, "pi.status"),
           new AnalyticsTableColumn(
               quote("longitude"),

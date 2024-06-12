@@ -528,10 +528,10 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
    */
   private List<AnalyticsTableColumn> getValueColumns() {
     return List.of(
-        new AnalyticsTableColumn(quote("daysxvalue"), DOUBLE, "daysxvalue"),
-        new AnalyticsTableColumn(quote("daysno"), INTEGER, NOT_NULL, "daysno"),
+        new AnalyticsTableColumn(quote("daysxvalue"), DOUBLE, "daysxvalue", true),
+        new AnalyticsTableColumn(quote("daysno"), INTEGER, NOT_NULL, "daysno").withSkipIndex(true),
         new AnalyticsTableColumn(quote("value"), DOUBLE, "value"),
-        new AnalyticsTableColumn(quote("textvalue"), TEXT, "textvalue"));
+        new AnalyticsTableColumn(quote("textvalue"), TEXT, "textvalue", true));
   }
 
   /**

@@ -548,8 +548,9 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     return PeriodType.getAvailablePeriodTypes().stream()
         .map(
             pt -> {
-              String column = quote(pt.getName().toLowerCase());
-              boolean skipIndex = skipIndex(pt.getName());
+              String name = pt.getName().toLowerCase();
+              String column = quote(name);
+              boolean skipIndex = skipIndex(name);
               return new AnalyticsTableColumn(column, TEXT, prefix + "." + column)
                   .withSkipIndex(skipIndex);
             })
