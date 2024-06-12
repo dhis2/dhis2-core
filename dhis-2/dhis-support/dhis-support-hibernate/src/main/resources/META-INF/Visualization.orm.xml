@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings xmlns="http://www.hibernate.org/xsd/orm/mapping">
+    <description>mapping.xml document auto-generated from legacy hbm.xml format via transformation - /Users/viet/code/dhis2code/hbm-transform/transformer/target/classes/org/hisp/dhis/visualization/hibernate/Visualization.hbm.xml</description>
+    <persistence-unit-metadata/>
+    <attribute-accessor>property</attribute-accessor>
+    <default-cascade>none</default-cascade>
+    <default-lazy>true</default-lazy>
+    <entity class="org.hisp.dhis.visualization.Visualization" metadata-complete="true">
+        <table name="visualization"/>
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <caching include="all" access="READ_WRITE"/>
+        <batch-size>-1</batch-size>
+        <mutable>true</mutable>
+        <optimistic-lock>version</optimistic-lock>
+        <polymorphism>implicit</polymorphism>
+        <attributes>
+            <id name="id">
+                <column name="visualizationid"/>
+            </id>
+            <basic name="uid" fetch="EAGER" optional="false" optimistic-lock="true">
+                <column name="uid" unique="true" nullable="false" length="11"/>
+            </basic>
+            <basic name="code" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="code" unique="true" nullable="true" length="50"/>
+            </basic>
+            <basic name="created" fetch="EAGER" optional="false" optimistic-lock="true"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="false" optimistic-lock="true"/>
+            <basic name="measureCriteria" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="regression" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="cumulativeValues" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="cumulative" unique="false"/>
+            </basic>
+            <basic name="topLimit" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="rowTotals" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="colTotals" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="rowSubTotals" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="colSubTotals" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="numberType" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="type" fetch="EAGER" optional="false" optimistic-lock="true"/>
+            <basic name="regressionType" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="series" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="aggregationType" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="completedOnly" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="completedonly" unique="false"/>
+            </basic>
+            <basic name="favorites" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="subscribers" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="userOrganisationUnit" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="userOrganisationUnitChildren" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="userOrganisationUnitGrandChildren" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="userOrgUnitType" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="startDate" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="endDate" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="fontStyle" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="outlierAnalysis" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="seriesKey" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="axes" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="icons" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="sorting" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="colorSet" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="percentStackedValues" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="title" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="subtitle" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="name" fetch="EAGER" optional="false" optimistic-lock="true">
+                <column name="name" unique="false" nullable="false" length="230"/>
+            </basic>
+            <basic name="description" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="hideTitle" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="hideSubtitle" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="hideEmptyRows" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="hideEmptyColumns" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="fixColumnHeaders" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="fixRowHeaders" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="hideLegend" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="noSpaceBetweenColumns" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="showHierarchy" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="showDimensionLabels" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="skipRounding" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="showData" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="sortOrder" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="hideEmptyRowItems" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="digitGroupSeparator" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="displayDensity" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="fontSize" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="translations" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="sharing" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="attributeValues" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="lastupdatedby" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_lastupdateby_userid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="relatives" target-entity="org.hisp.dhis.period.RelativePeriods" fetch="EAGER" fetch-mode="SELECT" optional="true">
+                <join-column name="relativeperiodsid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_visualization_relativeperiodsid"/>
+                <cascade>
+                    <cascade-all/>
+                    <cascade-delete/>
+                </cascade>
+            </many-to-one>
+            <many-to-one name="createdBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="userid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_visualization_userid"/>
+                <cascade/>
+            </many-to-one>
+            <one-to-many name="interpretations" target-entity="org.hisp.dhis.interpretation.Interpretation" orphan-removal="false">
+                <sort>unsorted</sort>
+                <foreign-key/>
+                <cascade/>
+            </one-to-many>
+            <many-to-many name="dataElementGroupSetDimensions" target-entity="org.hisp.dhis.dataelement.DataElementGroupSetDimension">
+                <order-column name="sort_order"/>
+            </many-to-many>
+            <many-to-many name="organisationUnitGroupSetDimensions" target-entity="org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension">
+                <order-column name="sort_order"/>
+            </many-to-many>
+            <many-to-many name="optionalAxes" target-entity="org.hisp.dhis.visualization.Axis">
+                <order-column name="sort_order"/>
+            </many-to-many>
+            <many-to-many name="dataDimensionItems" target-entity="org.hisp.dhis.common.DataDimensionItem">
+                <order-column name="sort_order"/>
+            </many-to-many>
+            <many-to-many name="organisationUnits" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit">
+                <order-column name="sort_order"/>
+            </many-to-many>
+            <many-to-many name="categoryOptionGroupSetDimensions" target-entity="org.hisp.dhis.category.CategoryOptionGroupSetDimension">
+                <order-column name="sort_order"/>
+            </many-to-many>
+            <many-to-many name="itemOrganisationUnitGroups" target-entity="org.hisp.dhis.organisationunit.OrganisationUnitGroup">
+                <order-column name="sort_order"/>
+            </many-to-many>
+            <many-to-many name="categoryDimensions" target-entity="org.hisp.dhis.category.CategoryDimension">
+                <order-column name="sort_order"/>
+            </many-to-many>
+            <many-to-many name="periods" target-entity="org.hisp.dhis.period.Period">
+                <order-column name="sort_order"/>
+            </many-to-many>
+            <element-collection name="columnDimensions">
+                <order-column name="sort_order"/>
+                <column name="dimension" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <collection-table name="visualization_columns"/>
+            </element-collection>
+            <element-collection name="rowDimensions">
+                <order-column name="sort_order"/>
+                <column name="dimension" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <collection-table name="visualization_rows"/>
+            </element-collection>
+            <element-collection name="filterDimensions">
+                <order-column name="sort_order"/>
+                <column name="dimension" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <collection-table name="visualization_filters"/>
+            </element-collection>
+            <element-collection name="yearlySeries">
+                <order-column name="sort_order"/>
+                <column name="yearlyseries" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <collection-table name="visualization_yearlyseries"/>
+            </element-collection>
+            <element-collection name="organisationUnitLevels">
+                <order-column name="sort_order"/>
+                <column name="orgunitlevel" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <collection-table name="visualization_orgunitlevels"/>
+            </element-collection>
+            <embedded name="reportingParams"/>
+            <embedded name="legendDefinitions"/>
+        </attributes>
+    </entity>
+    <embeddable class="reportingParams_1" metadata-complete="true">
+        <attributes>
+            <basic name="reportingPeriod" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="paramreportingperiod" unique="false"/>
+            </basic>
+            <basic name="organisationUnit" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="paramorganisationunit" unique="false"/>
+            </basic>
+            <basic name="parentOrganisationUnit" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="paramparentorganisationunit" unique="false"/>
+            </basic>
+            <basic name="grandParentOrganisationUnit" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="paramgrandparentorganisationunit" unique="false"/>
+            </basic>
+        </attributes>
+    </embeddable>
+    <embeddable class="org.hisp.dhis.visualization.LegendDefinitions" metadata-complete="true">
+        <attributes>
+            <basic name="legendDisplayStyle" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="legendDisplayStrategy" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="showKey" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="legendshowkey" unique="false">
+                    <default>false</default>
+                </column>
+            </basic>
+            <many-to-one name="legendSet" target-entity="org.hisp.dhis.legend.LegendSet" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="legendsetid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_visualization_legendsetid"/>
+                <cascade/>
+            </many-to-one>
+        </attributes>
+    </embeddable>
+</entity-mappings>

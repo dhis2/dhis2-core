@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings xmlns="http://www.hibernate.org/xsd/orm/mapping">
+    <description>mapping.xml document auto-generated from legacy hbm.xml format via transformation - /Users/viet/code/dhis2code/hbm-transform/transformer/target/classes/org/hisp/dhis/notification/hibernate/ExternalNotificationLogEntry.hbm.xml</description>
+    <persistence-unit-metadata/>
+    <attribute-accessor>property</attribute-accessor>
+    <default-cascade>none</default-cascade>
+    <default-lazy>true</default-lazy>
+    <entity class="org.hisp.dhis.notification.logging.ExternalNotificationLogEntry" metadata-complete="true">
+        <table name="externalnotificationlogentry"/>
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <batch-size>-1</batch-size>
+        <mutable>true</mutable>
+        <optimistic-lock>version</optimistic-lock>
+        <polymorphism>implicit</polymorphism>
+        <attributes>
+            <id name="id">
+                <column name="externalnotificationlogentryid"/>
+            </id>
+            <basic name="uid" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="uid" unique="true" length="11"/>
+            </basic>
+            <basic name="created" fetch="EAGER" optional="false" optimistic-lock="true"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="false" optimistic-lock="true"/>
+            <basic name="lastSentAt" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="lastsentat" unique="false" nullable="true"/>
+            </basic>
+            <basic name="retries" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="retries" unique="false" nullable="true"/>
+            </basic>
+            <basic name="key" fetch="EAGER" optional="false" optimistic-lock="true">
+                <column name="key" unique="true" nullable="false"/>
+            </basic>
+            <basic name="notificationTemplateUid" fetch="EAGER" optional="false" optimistic-lock="true">
+                <column name="templateuid" unique="false" nullable="false"/>
+            </basic>
+            <basic name="allowMultiple" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="allowmultiple" unique="false"/>
+            </basic>
+            <basic name="notificationTriggeredBy" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="triggerby" unique="false"/>
+            </basic>
+        </attributes>
+    </entity>
+</entity-mappings>

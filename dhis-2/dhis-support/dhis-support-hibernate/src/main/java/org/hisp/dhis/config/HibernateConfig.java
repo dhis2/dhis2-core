@@ -38,17 +38,20 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.SharedCacheMode;
 import javax.persistence.ValidationMode;
+import javax.persistence.spi.PersistenceUnitInfo;
+import javax.persistence.spi.PersistenceUnitTransactionType;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ArrayUtils;
 import org.hibernate.SessionFactory;
 import org.hibernate.cache.ehcache.internal.EhcacheRegionFactory;
 import org.hibernate.cfg.AvailableSettings;
+import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.hisp.dhis.cache.DefaultHibernateCacheManager;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dbms.HibernateDbmsManager;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.hibernate.DhisPersistenceUnitInfo;
 import org.hisp.dhis.hibernate.EntityManagerBeanDefinitionRegistrarPostProcessor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
@@ -61,6 +64,8 @@ import org.springframework.dao.annotation.PersistenceExceptionTranslationPostPro
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.persistenceunit.DefaultPersistenceUnitManager;
+import org.springframework.orm.jpa.persistenceunit.PersistenceUnitManager;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -126,18 +131,27 @@ public class HibernateConfig {
     HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
     adapter.setDatabasePlatform(dhisConfig.getProperty(ConfigurationKey.CONNECTION_DIALECT));
     adapter.setGenerateDdl(shouldGenerateDDL(dhisConfig));
-    LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
-    factory.setJpaVendorAdapter(adapter);
-    factory.setPersistenceUnitName("dhis");
-    factory.setPersistenceProvider(new org.hibernate.jpa.HibernatePersistenceProvider());
-    factory.setDataSource(dataSource);
-    factory.setPackagesToScan("org.hisp.dhis");
-    factory.setSharedCacheMode(SharedCacheMode.ENABLE_SELECTIVE);
-    factory.setValidationMode(ValidationMode.AUTO);
-    factory.setJpaProperties(getAdditionalProperties(dhisConfig));
-    factory.setMappingResources(loadResources());
-    factory.afterPropertiesSet();
-    return factory.getObject();
+
+    LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
+    em.setDataSource(dataSource);
+    em.setPersistenceProviderClass(HibernatePersistenceProvider.class);
+    em.setJpaVendorAdapter(adapter);
+    em.setPersistenceUnitManager(persistenceUnitManager(dataSource));
+    em.setJpaProperties(getAdditionalProperties(dhisConfig));
+    em.setPackagesToScan("org.hisp.dhis");
+    em.setMappingResources(loadResources().toArray(new String[0]));
+    em.afterPropertiesSet();
+
+    return em.getObject();
+  }
+
+  @Bean
+  public DefaultPersistenceUnitManager persistenceUnitManager(DataSource dataSource) {
+    DefaultPersistenceUnitManager persistenceUnitManager = new DefaultPersistenceUnitManager();
+    persistenceUnitManager.setDefaultDataSource(dataSource);
+    persistenceUnitManager.setPackagesToScan("org.hisp.dhis");
+    persistenceUnitManager.setMappingResources(loadResources().toArray(new String[0]));
+    return persistenceUnitManager;
   }
 
   /**
@@ -154,6 +168,12 @@ public class HibernateConfig {
       properties.put(AvailableSettings.CACHE_REGION_FACTORY, EhcacheRegionFactory.class.getName());
       properties.put(AvailableSettings.USE_QUERY_CACHE, dhisConfig.getProperty(USE_QUERY_CACHE));
     }
+    properties.setProperty(
+        AvailableSettings.DIALECT, dhisConfig.getProperty(ConfigurationKey.CONNECTION_DIALECT));
+    properties.setProperty(
+        AvailableSettings.HBM2DDL_AUTO, dhisConfig.getProperty(ConfigurationKey.CONNECTION_SCHEMA));
+    properties.setProperty(
+        AvailableSettings.URL, dhisConfig.getProperty(ConfigurationKey.CONNECTION_URL));
 
     // TODO: this is anti-pattern and should be turn off
     properties.put("hibernate.allow_update_outside_transaction", "true");
@@ -166,21 +186,112 @@ public class HibernateConfig {
    *
    * @return Array of Strings representing the mapping files
    */
-  private String[] loadResources() {
+  private List<String> loadResources() {
     try {
       PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-      Resource[] resources = resolver.getResources("classpath*:org/hisp/dhis/**/*.hbm.xml");
+      //      Resource[] hbmFiles = resolver.getResources("classpath*:org/hisp/dhis/**/*.hbm.xml");
 
+      Resource[] ormFiles = resolver.getResources("classpath*:META-INF/*.orm.xml");
       List<String> list = new ArrayList<>();
-      for (Resource resource : resources) {
+      for (Resource resource : ormFiles) {
         String url = resource.getURL().toString();
         list.add(url);
       }
-      return list.toArray(new String[0]);
+
+      return list;
     } catch (IOException e) {
       log.error(e.getMessage(), e);
     }
-    return ArrayUtils.EMPTY_STRING_ARRAY;
+    return List.of();
+  }
+
+  class DhisPersistenceUnitManager implements PersistenceUnitManager {
+    private final DhisConfigurationProvider dhisConfig;
+    private final DataSource dataSource;
+
+    public DhisPersistenceUnitManager(DhisConfigurationProvider dhisConfig, DataSource dataSource) {
+      this.dhisConfig = dhisConfig;
+      this.dataSource = dataSource;
+    }
+
+    @Override
+    public PersistenceUnitInfo obtainDefaultPersistenceUnitInfo() throws IllegalStateException {
+      return DhisPersistenceUnitInfo.builder()
+          .nonJtaDataSource(dataSource)
+          .jtaDataSource(dataSource)
+          .persistenceProviderClassName("org.hibernate.jpa.HibernatePersistenceProvider")
+          .persistenceUnitName("dhis")
+          .properties(getAdditionalProperties(dhisConfig))
+          .validationMode(ValidationMode.AUTO)
+          .transactionType(PersistenceUnitTransactionType.RESOURCE_LOCAL)
+          .sharedCacheMode(SharedCacheMode.ENABLE_SELECTIVE)
+          .mappingFileNames(loadResources())
+          .build();
+    }
+
+    @Override
+    public PersistenceUnitInfo obtainPersistenceUnitInfo(String persistenceUnitName)
+        throws IllegalArgumentException, IllegalStateException {
+      return obtainDefaultPersistenceUnitInfo();
+    }
+
+    /**
+     * Returns additional properties to be used by the {@link
+     * LocalContainerEntityManagerFactoryBean}
+     */
+    private Properties getAdditionalProperties(DhisConfigurationProvider dhisConfig) {
+      Properties properties = new Properties();
+      properties.put(
+          "hibernate.current_session_context_class",
+          "org.springframework.orm.hibernate5.SpringSessionContext");
+
+      if (dhisConfig.getProperty(USE_SECOND_LEVEL_CACHE).equals("true")) {
+        properties.put(AvailableSettings.USE_SECOND_LEVEL_CACHE, "true");
+        properties.put(
+            AvailableSettings.CACHE_REGION_FACTORY, EhcacheRegionFactory.class.getName());
+        properties.put(AvailableSettings.USE_QUERY_CACHE, dhisConfig.getProperty(USE_QUERY_CACHE));
+      }
+      properties.setProperty(
+          AvailableSettings.DIALECT, dhisConfig.getProperty(ConfigurationKey.CONNECTION_DIALECT));
+      properties.setProperty(
+          AvailableSettings.HBM2DDL_AUTO,
+          dhisConfig.getProperty(ConfigurationKey.CONNECTION_SCHEMA));
+
+      // TODO: this is anti-pattern and should be turn off
+      properties.put("hibernate.allow_update_outside_transaction", "true");
+
+      return properties;
+    }
+
+    /**
+     * Loads all the hibernate mapping files from the classpath
+     *
+     * @return Array of Strings representing the mapping files
+     */
+    private List<String> loadResources() {
+      try {
+        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+        //      Resource[] hbmFiles =
+        // resolver.getResources("classpath*:org/hisp/dhis/**/*.hbm.xml");
+
+        Resource[] ormFiles = resolver.getResources("classpath:*.orm.xml");
+
+        List<String> list = new ArrayList<>();
+        for (Resource resource : ormFiles) {
+          String url = resource.getURL().toString();
+          list.add(url);
+        }
+
+        for (Resource resource : ormFiles) {
+          String url = resource.getURL().toString();
+          list.add(url);
+        }
+        return list;
+      } catch (IOException e) {
+        log.error(e.getMessage(), e);
+      }
+      return List.of();
+    }
   }
 
   /**

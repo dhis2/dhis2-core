@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings xmlns="http://www.hibernate.org/xsd/orm/mapping">
+    <description>mapping.xml document auto-generated from legacy hbm.xml format via transformation - /Users/viet/code/dhis2code/hbm-transform/transformer/target/classes/org/hisp/dhis/trackedentitydatavalue/hibernate/TrackedEntityDataValueChangeLog.hbm.xml</description>
+    <persistence-unit-metadata/>
+    <attribute-accessor>property</attribute-accessor>
+    <default-cascade>none</default-cascade>
+    <default-lazy>true</default-lazy>
+    <entity class="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog" metadata-complete="true">
+        <table name="trackedEntityDataValueAudit"/>
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <batch-size>-1</batch-size>
+        <mutable>true</mutable>
+        <optimistic-lock>version</optimistic-lock>
+        <polymorphism>implicit</polymorphism>
+        <attributes>
+            <id name="id">
+                <column name="trackedentitydatavalueauditid"/>
+            </id>
+            <basic name="value" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="created" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="providedElsewhere" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="modifiedBy" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="auditType" fetch="EAGER" optional="false" optimistic-lock="true">
+                <column name="audittype" unique="false" nullable="false" length="100"/>
+            </basic>
+            <many-to-one name="event" target-entity="org.hisp.dhis.program.Event" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="eventid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_entityinstancedatavalueaudit_programstageinstanceid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="dataElement" target-entity="org.hisp.dhis.dataelement.DataElement" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="dataelementid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_entityinstancedatavalueaudit_dataelementid"/>
+                <cascade/>
+            </many-to-one>
+        </attributes>
+    </entity>
+</entity-mappings>

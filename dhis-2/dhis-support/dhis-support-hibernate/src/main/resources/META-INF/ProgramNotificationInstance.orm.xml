@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings xmlns="http://www.hibernate.org/xsd/orm/mapping">
+    <description>mapping.xml document auto-generated from legacy hbm.xml format via transformation - /Users/viet/code/dhis2code/hbm-transform/transformer/target/classes/org/hisp/dhis/program/hibernate/ProgramNotificationInstance.hbm.xml</description>
+    <persistence-unit-metadata/>
+    <attribute-accessor>property</attribute-accessor>
+    <default-cascade>none</default-cascade>
+    <default-lazy>true</default-lazy>
+    <entity class="org.hisp.dhis.program.notification.ProgramNotificationInstance" metadata-complete="true">
+        <table name="programnotificationinstance"/>
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <batch-size>-1</batch-size>
+        <mutable>true</mutable>
+        <optimistic-lock>version</optimistic-lock>
+        <polymorphism>implicit</polymorphism>
+        <attributes>
+            <id name="id">
+                <column name="programnotificationinstanceid"/>
+            </id>
+            <basic name="uid" fetch="EAGER" optional="false" optimistic-lock="true">
+                <column name="uid" unique="true" nullable="false" length="11"/>
+            </basic>
+            <basic name="code" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="code" unique="true" nullable="true" length="50"/>
+            </basic>
+            <basic name="created" fetch="EAGER" optional="false" optimistic-lock="true"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="false" optimistic-lock="true"/>
+            <basic name="name" fetch="EAGER" optional="false" optimistic-lock="true">
+                <column name="name" unique="false" nullable="false" length="230"/>
+            </basic>
+            <basic name="programNotificationTemplateSnapshot" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="programnotificationtemplatesnapshot" unique="false"/>
+            </basic>
+            <basic name="scheduledAt" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="scheduledat" unique="false" nullable="true"/>
+            </basic>
+            <basic name="programNotificationTemplateId" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="programnotificationtemplateid" unique="false" nullable="true"/>
+            </basic>
+            <basic name="sentAt" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="sentAt" unique="false" nullable="true"/>
+            </basic>
+            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="lastupdatedby" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_lastupdateby_userid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="enrollment" target-entity="org.hisp.dhis.program.Enrollment" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="enrollmentid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_programstagenotification_pi"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="event" target-entity="org.hisp.dhis.program.Event" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="eventid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_programstagenotification_psi"/>
+                <cascade/>
+            </many-to-one>
+        </attributes>
+    </entity>
+</entity-mappings>

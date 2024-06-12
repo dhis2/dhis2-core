@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings xmlns="http://www.hibernate.org/xsd/orm/mapping">
+    <description>mapping.xml document auto-generated from legacy hbm.xml format via transformation - /Users/viet/code/dhis2code/hbm-transform/transformer/target/classes/org/hisp/dhis/message/hibernate/Message.hbm.xml</description>
+    <persistence-unit-metadata/>
+    <attribute-accessor>property</attribute-accessor>
+    <default-cascade>none</default-cascade>
+    <default-lazy>true</default-lazy>
+    <entity class="org.hisp.dhis.message.Message" metadata-complete="true">
+        <table name="message"/>
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <batch-size>-1</batch-size>
+        <mutable>true</mutable>
+        <optimistic-lock>version</optimistic-lock>
+        <polymorphism>implicit</polymorphism>
+        <attributes>
+            <id name="id">
+                <column name="messageid"/>
+            </id>
+            <basic name="uid" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="uid" unique="false" length="11"/>
+            </basic>
+            <basic name="created" fetch="EAGER" optional="false" optimistic-lock="true"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="false" optimistic-lock="true"/>
+            <basic name="text" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="messagetext" unique="false"/>
+            </basic>
+            <basic name="internal" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="internal" unique="false"/>
+            </basic>
+            <basic name="metaData" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="metadata" unique="false"/>
+            </basic>
+            <many-to-one name="sender" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="userid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_message_userid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-many name="attachments" target-entity="org.hisp.dhis.fileresource.FileResource">
+                <sort>unsorted</sort>
+            </many-to-many>
+        </attributes>
+    </entity>
+</entity-mappings>

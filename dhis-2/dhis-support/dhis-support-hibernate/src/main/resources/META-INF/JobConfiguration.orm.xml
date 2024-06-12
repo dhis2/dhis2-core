@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings  version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm" >
+    <description>mapping.xml document auto-generated from legacy hbm.xml format via transformation - /Users/viet/code/dhis2code/hbm-transform/transformer/target/classes/org/hisp/dhis/scheduling/hibernate/JobConfiguration.hbm.xml</description>
+    <persistence-unit-metadata/>
+    <entity class="org.hisp.dhis.scheduling.JobConfiguration" metadata-complete="true">
+        <table name="jobconfiguration"/>
+        <attributes>
+            <id name="id">
+                <column name="jobconfigurationid"/>
+            </id>
+            <basic name="uid" fetch="EAGER" optional="false" >
+                <column name="uid" unique="true" nullable="false" length="11"/>
+            </basic>
+            <basic name="code" fetch="EAGER" optional="true" >
+                <column name="code" unique="true" nullable="true" length="50"/>
+            </basic>
+            <basic name="created" fetch="EAGER" optional="false" />
+            <basic name="lastUpdated" fetch="EAGER" optional="false" />
+            <basic name="name" fetch="EAGER" optional="false" >
+                <column name="name" unique="true" nullable="false" length="230"/>
+            </basic>
+            <basic name="queueName" fetch="EAGER" optional="true" >
+                <column name="queuename" unique="false" length="50"/>
+            </basic>
+            <basic name="queuePosition" fetch="EAGER" optional="true" >
+                <column name="queueposition" unique="false"/>
+            </basic>
+            <basic name="cronExpression" fetch="EAGER" optional="true" />
+            <basic name="delay" fetch="EAGER" optional="true" />
+            <basic name="jobType" fetch="EAGER" optional="false" >
+                <column name="jobtype" unique="false" nullable="false" updatable="false" length="120"/>
+            </basic>
+            <basic name="schedulingType" fetch="EAGER" optional="false" >
+                <column name="schedulingtype" unique="false" nullable="false" length="12"/>
+            </basic>
+            <basic name="jobStatus" fetch="EAGER" optional="false" >
+                <column name="jobstatus" unique="false" nullable="false" updatable="false" length="120"/>
+            </basic>
+            <basic name="lastExecutedStatus" fetch="EAGER" optional="false" >
+                <column name="lastexecutedstatus" unique="false" nullable="false" updatable="false" length="120"/>
+            </basic>
+            <basic name="executedBy" fetch="EAGER" optional="true" >
+                <column name="executedby" unique="false" length="11"/>
+            </basic>
+            <basic name="lastExecuted" fetch="EAGER" optional="true" />
+            <basic name="lastFinished" fetch="EAGER" optional="true" >
+                <column name="lastfinished" unique="false" insertable="false" updatable="false"/>
+            </basic>
+            <basic name="lastAlive" fetch="EAGER" optional="true" >
+                <column name="lastalive" unique="false" insertable="false" updatable="false"/>
+            </basic>
+            <basic name="enabled" fetch="EAGER" optional="false" />
+            <basic name="jobParameters" fetch="EAGER" optional="true" >
+                <column name="jsonbjobparameters" unique="false"/>
+            </basic>
+            <basic name="errorCodes" fetch="EAGER" optional="true" >
+                <column name="errorcodes" unique="false" insertable="false" updatable="false"/>
+            </basic>
+            <many-to-one  name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" maps-id="userid" fetch="LAZY"  optional="true">
+                <join-column  name="lastupdatedby" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <cascade/>
+            </many-to-one>
+        </attributes>
+    </entity>
+</entity-mappings>

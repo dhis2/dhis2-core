@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings xmlns="http://www.hibernate.org/xsd/orm/mapping">
+    <description>mapping.xml document auto-generated from legacy hbm.xml format via transformation - /Users/viet/code/dhis2code/hbm-transform/transformer/target/classes/org/hisp/dhis/period/hibernate/PeriodType.hbm.xml</description>
+    <persistence-unit-metadata/>
+    <attribute-accessor>property</attribute-accessor>
+    <default-cascade>none</default-cascade>
+    <default-lazy>true</default-lazy>
+    <entity class="org.hisp.dhis.period.PeriodType" metadata-complete="true">
+        <table name="periodtype"/>
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <caching include="all" access="READ_WRITE"/>
+        <batch-size>-1</batch-size>
+        <mutable>true</mutable>
+        <optimistic-lock>version</optimistic-lock>
+        <polymorphism>implicit</polymorphism>
+        <discriminator-column name="name"/>
+        <attributes>
+            <id name="id">
+                <column name="periodtypeid"/>
+            </id>
+        </attributes>
+    </entity>
+    <entity class="org.hisp.dhis.period.DailyPeriodType" metadata-complete="true">
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <batch-size>-1</batch-size>
+        <discriminator-value>Daily</discriminator-value>
+        <attributes/>
+    </entity>
+    <entity class="org.hisp.dhis.period.WeeklyPeriodType" metadata-complete="true">
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <batch-size>-1</batch-size>
+        <discriminator-value>Weekly</discriminator-value>
+        <attributes/>
+    </entity>
+    <entity class="org.hisp.dhis.period.WeeklyWednesdayPeriodType" metadata-complete="true">
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <batch-size>-1</batch-size>
+        <discriminator-value>WeeklyWednesday</discriminator-value>
+        <attributes/>
+    </entity>
+    <entity class="org.hisp.dhis.period.WeeklyThursdayPeriodType" metadata-complete="true">
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <batch-size>-1</batch-size>
+        <discriminator-value>WeeklyThursday</discriminator-value>
+        <attributes/>
+    </entity>
+    <entity class="org.hisp.dhis.period.WeeklySaturdayPeriodType" metadata-complete="true">
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <batch-size>-1</batch-size>
+        <discriminator-value>WeeklySaturday</discriminator-value>
+        <attributes/>
+    </entity>
+    <entity class="org.hisp.dhis.period.WeeklySundayPeriodType" metadata-complete="true">
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <batch-size>-1</batch-size>
+        <discriminator-value>WeeklySunday</discriminator-value>
+        <attributes/>
+    </entity>
+    <entity class="org.hisp.dhis.period.BiWeeklyPeriodType" metadata-complete="true">
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <batch-size>-1</batch-size>
+        <discriminator-value>BiWeekly</discriminator-value>
+        <attributes/>
+    </entity>
+    <entity class="org.hisp.dhis.period.MonthlyPeriodType" metadata-complete="true">
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <batch-size>-1</batch-size>
+        <discriminator-value>Monthly</discriminator-value>
+        <attributes/>
+    </entity>
+    <entity class="org.hisp.dhis.period.BiMonthlyPeriodType" metadata-complete="true">
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <batch-size>-1</batch-size>
+        <discriminator-value>BiMonthly</discriminator-value>
+        <attributes/>
+    </entity>
+    <entity class="org.hisp.dhis.period.QuarterlyPeriodType" metadata-complete="true">
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <batch-size>-1</batch-size>
+        <discriminator-value>Quarterly</discriminator-value>
+        <attributes/>
+    </entity>
+    <entity class="org.hisp.dhis.period.QuarterlyNovemberPeriodType" metadata-complete="true">
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <batch-size>-1</batch-size>
+        <discriminator-value>QuarterlyNov</discriminator-value>
+        <attributes/>
+    </entity>
+    <entity class="org.hisp.dhis.period.SixMonthlyPeriodType" metadata-complete="true">
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <batch-size>-1</batch-size>
+        <discriminator-value>SixMonthly</discriminator-value>
+        <attributes/>
+    </entity>
+    <entity class="org.hisp.dhis.period.SixMonthlyAprilPeriodType" metadata-complete="true">
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <batch-size>-1</batch-size>
+        <discriminator-value>SixMonthlyApril</discriminator-value>
+        <attributes/>
+    </entity>
+    <entity class="org.hisp.dhis.period.SixMonthlyNovemberPeriodType" metadata-complete="true">
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <batch-size>-1</batch-size>
+        <discriminator-value>SixMonthlyNov</discriminator-value>
+        <attributes/>
+    </entity>
+    <entity class="org.hisp.dhis.period.YearlyPeriodType" metadata-complete="true">
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <batch-size>-1</batch-size>
+        <discriminator-value>Yearly</discriminator-value>
+        <attributes/>
+    </entity>
+    <entity class="org.hisp.dhis.period.TwoYearlyPeriodType" metadata-complete="true">
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <batch-size>-1</batch-size>
+        <discriminator-value>TwoYearly</discriminator-value>
+        <attributes/>
+    </entity>
+    <entity class="org.hisp.dhis.period.FinancialAprilPeriodType" metadata-complete="true">
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <batch-size>-1</batch-size>
+        <discriminator-value>FinancialApril</discriminator-value>
+        <attributes/>
+    </entity>
+    <entity class="org.hisp.dhis.period.FinancialJulyPeriodType" metadata-complete="true">
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <batch-size>-1</batch-size>
+        <discriminator-value>FinancialJuly</discriminator-value>
+        <attributes/>
+    </entity>
+    <entity class="org.hisp.dhis.period.FinancialOctoberPeriodType" metadata-complete="true">
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <batch-size>-1</batch-size>
+        <discriminator-value>FinancialOct</discriminator-value>
+        <attributes/>
+    </entity>
+    <entity class="org.hisp.dhis.period.FinancialNovemberPeriodType" metadata-complete="true">
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <batch-size>-1</batch-size>
+        <discriminator-value>FinancialNov</discriminator-value>
+        <attributes/>
+    </entity>
+</entity-mappings>

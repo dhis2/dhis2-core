@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings xmlns="http://www.hibernate.org/xsd/orm/mapping">
+    <description>mapping.xml document auto-generated from legacy hbm.xml format via transformation - /Users/viet/code/dhis2code/hbm-transform/transformer/target/classes/org/hisp/dhis/dataset/hibernate/DataSetNotificationTemplate.hbm.xml</description>
+    <persistence-unit-metadata/>
+    <attribute-accessor>property</attribute-accessor>
+    <default-cascade>none</default-cascade>
+    <default-lazy>true</default-lazy>
+    <entity class="org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate" metadata-complete="true">
+        <table name="datasetnotificationtemplate"/>
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <batch-size>-1</batch-size>
+        <mutable>true</mutable>
+        <optimistic-lock>version</optimistic-lock>
+        <polymorphism>implicit</polymorphism>
+        <attributes>
+            <id name="id">
+                <column name="datasetnotificationtemplateid"/>
+            </id>
+            <basic name="uid" fetch="EAGER" optional="false" optimistic-lock="true">
+                <column name="uid" unique="true" nullable="false" length="11"/>
+            </basic>
+            <basic name="code" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="code" unique="true" nullable="true" length="50"/>
+            </basic>
+            <basic name="created" fetch="EAGER" optional="false" optimistic-lock="true"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="false" optimistic-lock="true"/>
+            <basic name="name" fetch="EAGER" optional="false" optimistic-lock="true">
+                <column name="name" unique="false" nullable="false" length="230"/>
+            </basic>
+            <basic name="subjectTemplate" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="subjecttemplate" unique="false" nullable="true" length="100"/>
+            </basic>
+            <basic name="messageTemplate" fetch="EAGER" optional="false" optimistic-lock="true">
+                <column name="messagetemplate" unique="false" nullable="false"/>
+            </basic>
+            <basic name="relativeScheduledDays" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="relativeScheduledDays" unique="false" nullable="true"/>
+            </basic>
+            <basic name="notifyParentOrganisationUnitOnly" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="notifyparentorganisationunitonly" unique="false"/>
+            </basic>
+            <basic name="notifyUsersInHierarchyOnly" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="notifyusersinhierarchyonly" unique="false"/>
+            </basic>
+            <basic name="sendStrategy" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="sendstrategy" unique="false" length="50"/>
+            </basic>
+            <basic name="dataSetNotificationTrigger" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="datasetnotificationtrigger" unique="false"/>
+            </basic>
+            <basic name="notificationRecipient" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="notificationrecipienttype" unique="false"/>
+            </basic>
+            <basic name="translations" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="lastupdatedby" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_lastupdateby_userid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="recipientUserGroup" target-entity="org.hisp.dhis.user.UserGroup" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="usergroupid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_datasetnotification_usergroup"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-many name="dataSets" target-entity="org.hisp.dhis.dataset.DataSet">
+                <sort>unsorted</sort>
+            </many-to-many>
+            <element-collection name="deliveryChannels" fetch-mode="SELECT">
+                <sort>unsorted</sort>
+                <column name="deliverychannel" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <collection-table name="datasetnotificationtemplate_deliverychannel"/>
+            </element-collection>
+        </attributes>
+    </entity>
+</entity-mappings>

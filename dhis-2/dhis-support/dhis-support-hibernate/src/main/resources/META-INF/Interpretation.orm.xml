@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings xmlns="http://www.hibernate.org/xsd/orm/mapping">
+    <description>mapping.xml document auto-generated from legacy hbm.xml format via transformation - /Users/viet/code/dhis2code/hbm-transform/transformer/target/classes/org/hisp/dhis/interpretation/hibernate/Interpretation.hbm.xml</description>
+    <persistence-unit-metadata/>
+    <attribute-accessor>property</attribute-accessor>
+    <default-cascade>none</default-cascade>
+    <default-lazy>true</default-lazy>
+    <entity class="org.hisp.dhis.interpretation.Interpretation" metadata-complete="true">
+        <table name="interpretation"/>
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <caching include="all" access="READ_WRITE"/>
+        <batch-size>-1</batch-size>
+        <mutable>true</mutable>
+        <optimistic-lock>version</optimistic-lock>
+        <polymorphism>implicit</polymorphism>
+        <attributes>
+            <id name="id">
+                <column name="interpretationid"/>
+            </id>
+            <basic name="uid" fetch="EAGER" optional="false" optimistic-lock="true">
+                <column name="uid" unique="false" nullable="false" length="11"/>
+            </basic>
+            <basic name="lastUpdated" fetch="EAGER" optional="false" optimistic-lock="true"/>
+            <basic name="text" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="interpretationtext" unique="false"/>
+            </basic>
+            <basic name="created" fetch="EAGER" optional="false" optimistic-lock="true"/>
+            <basic name="likes" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="sharing" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="mentions" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <many-to-one name="visualization" target-entity="org.hisp.dhis.visualization.Visualization" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="visualizationid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_interpretation_visualizationid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="eventVisualization" target-entity="org.hisp.dhis.eventvisualization.EventVisualization" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="eventvisualizationid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_interpretation_evisualizationid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="map" target-entity="org.hisp.dhis.mapping.Map" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="mapid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_interpretation_mapid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="eventReport" target-entity="org.hisp.dhis.eventreport.EventReport" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="eventreportid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_interpretation_eventreportid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="eventChart" target-entity="org.hisp.dhis.eventchart.EventChart" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="eventchartid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_interpretation_eventchartid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="dataSet" target-entity="org.hisp.dhis.dataset.DataSet" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="datasetid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_interpretation_datasetid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="period" target-entity="org.hisp.dhis.period.Period" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="periodid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_interpretation_periodid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="organisationUnit" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="organisationunitid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_interpretation_organisationunitid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="createdBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="userid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_interpretation_userid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-many name="comments" target-entity="org.hisp.dhis.interpretation.InterpretationComment">
+                <order-column name="sort_order"/>
+            </many-to-many>
+            <many-to-many name="likedBy" target-entity="org.hisp.dhis.user.User">
+                <sort>unsorted</sort>
+            </many-to-many>
+        </attributes>
+    </entity>
+</entity-mappings>

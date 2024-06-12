@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings xmlns="http://www.hibernate.org/xsd/orm/mapping">
+    <description>mapping.xml document auto-generated from legacy hbm.xml format via transformation - /Users/viet/code/dhis2code/hbm-transform/transformer/target/classes/org/hisp/dhis/mapping/hibernate/MapView.hbm.xml</description>
+    <persistence-unit-metadata/>
+    <attribute-accessor>property</attribute-accessor>
+    <default-cascade>none</default-cascade>
+    <default-lazy>true</default-lazy>
+    <entity class="org.hisp.dhis.mapping.MapView" metadata-complete="true">
+        <table name="mapview"/>
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <caching include="all" access="READ_WRITE"/>
+        <batch-size>-1</batch-size>
+        <mutable>true</mutable>
+        <optimistic-lock>version</optimistic-lock>
+        <polymorphism>implicit</polymorphism>
+        <attributes>
+            <id name="id">
+                <column name="mapviewid"/>
+            </id>
+            <basic name="uid" fetch="EAGER" optional="false" optimistic-lock="true">
+                <column name="uid" unique="true" nullable="false" length="11"/>
+            </basic>
+            <basic name="code" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="code" unique="true" nullable="true" length="50"/>
+            </basic>
+            <basic name="created" fetch="EAGER" optional="false" optimistic-lock="true"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="false" optimistic-lock="true"/>
+            <basic name="name" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="description" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="layer" fetch="EAGER" optional="false" optimistic-lock="true"/>
+            <basic name="startDate" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="endDate" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="userOrganisationUnit" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="userOrganisationUnitChildren" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="userOrganisationUnitGrandChildren" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="aggregationType" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="programStatus" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="followUp" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="followup" unique="false"/>
+            </basic>
+            <basic name="organisationUnitSelectionMode" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="method" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="classes" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="colorLow" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="colorHigh" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="colorScale" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="noDataColor" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="organisationUnitColor" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="radiusLow" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="radiusHigh" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="opacity" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="areaRadius" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="hidden" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="labels" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="labelFontSize" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="labelFontWeight" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="labelFontStyle" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="labelFontColor" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="labelTemplate" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="eventClustering" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="eventCoordinateField" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="orgUnitField" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="eventPointColor" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="eventPointRadius" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="thematicMapType" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="thematicmaptype" unique="false" length="50"/>
+            </basic>
+            <basic name="renderingStrategy" fetch="EAGER" optional="false" optimistic-lock="true">
+                <column name="renderingstrategy" unique="false" nullable="false" length="50"/>
+            </basic>
+            <basic name="eventStatus" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="eventstatus" unique="false" length="50"/>
+            </basic>
+            <basic name="config" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="styleDataItem" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="translations" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="userOrgUnitType" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="lastupdatedby" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_lastupdateby_userid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="relatives" target-entity="org.hisp.dhis.period.RelativePeriods" fetch="EAGER" fetch-mode="SELECT" optional="true">
+                <join-column name="relativeperiodsid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_mapview_relativeperiodsid"/>
+                <cascade>
+                    <cascade-all/>
+                    <cascade-delete/>
+                </cascade>
+            </many-to-one>
+            <many-to-one name="program" target-entity="org.hisp.dhis.program.Program" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="programid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_mapview_programid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="programStage" target-entity="org.hisp.dhis.program.ProgramStage" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="programstageid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_mapview_programstageid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="trackedEntityType" target-entity="org.hisp.dhis.trackedentity.TrackedEntityType" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="trackedentitytypeid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_mapview_trackedentitytypeid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="legendSet" target-entity="org.hisp.dhis.legend.LegendSet" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="legendsetid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_mapview_maplegendsetid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="organisationUnitGroupSet" target-entity="org.hisp.dhis.organisationunit.OrganisationUnitGroupSet" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="orgunitgroupsetid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_mapview_orgunitgroupsetid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-many name="dataDimensionItems" target-entity="org.hisp.dhis.common.DataDimensionItem">
+                <order-column name="sort_order"/>
+            </many-to-many>
+            <many-to-many name="organisationUnits" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit">
+                <order-column name="sort_order"/>
+            </many-to-many>
+            <many-to-many name="periods" target-entity="org.hisp.dhis.period.Period">
+                <order-column name="sort_order"/>
+            </many-to-many>
+            <many-to-many name="categoryDimensions" target-entity="org.hisp.dhis.category.CategoryDimension">
+                <order-column name="sort_order"/>
+            </many-to-many>
+            <many-to-many name="organisationUnitGroupSetDimensions" target-entity="org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension">
+                <order-column name="sort_order"/>
+            </many-to-many>
+            <many-to-many name="categoryOptionGroupSetDimensions" target-entity="org.hisp.dhis.category.CategoryOptionGroupSetDimension">
+                <order-column name="sort_order"/>
+            </many-to-many>
+            <many-to-many name="itemOrganisationUnitGroups" target-entity="org.hisp.dhis.organisationunit.OrganisationUnitGroup">
+                <order-column name="sort_order"/>
+            </many-to-many>
+            <many-to-many name="attributeDimensions" target-entity="org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension">
+                <order-column name="sort_order"/>
+            </many-to-many>
+            <many-to-many name="dataElementDimensions" target-entity="org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension">
+                <order-column name="sort_order"/>
+            </many-to-many>
+            <element-collection name="organisationUnitLevels">
+                <order-column name="sort_order"/>
+                <column name="orgunitlevel" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <collection-table name="mapview_orgunitlevels"/>
+            </element-collection>
+            <element-collection name="columnDimensions">
+                <order-column name="sort_order"/>
+                <column name="dimension" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <collection-table name="mapview_columns"/>
+            </element-collection>
+            <element-collection name="filterDimensions">
+                <order-column name="sort_order"/>
+                <column name="dimension" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <collection-table name="mapview_filters"/>
+            </element-collection>
+        </attributes>
+    </entity>
+</entity-mappings>

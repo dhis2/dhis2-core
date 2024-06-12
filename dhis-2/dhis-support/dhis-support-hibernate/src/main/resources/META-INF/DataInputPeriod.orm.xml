@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings xmlns="http://www.hibernate.org/xsd/orm/mapping">
+    <description>mapping.xml document auto-generated from legacy hbm.xml format via transformation - /Users/viet/code/dhis2code/hbm-transform/transformer/target/classes/org/hisp/dhis/dataset/hibernate/DataInputPeriod.hbm.xml</description>
+    <persistence-unit-metadata/>
+    <attribute-accessor>property</attribute-accessor>
+    <default-cascade>none</default-cascade>
+    <default-lazy>true</default-lazy>
+    <entity class="org.hisp.dhis.dataset.DataInputPeriod" metadata-complete="true">
+        <table name="datainputperiod"/>
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <caching include="all" access="READ_WRITE"/>
+        <batch-size>-1</batch-size>
+        <mutable>true</mutable>
+        <optimistic-lock>version</optimistic-lock>
+        <polymorphism>implicit</polymorphism>
+        <attributes>
+            <id name="id">
+                <column name="datainputperiodid"/>
+            </id>
+            <basic name="openingDate" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="openingdate" unique="false" nullable="true"/>
+            </basic>
+            <basic name="closingDate" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="closingdate" unique="false" nullable="true"/>
+            </basic>
+            <many-to-one name="period" target-entity="org.hisp.dhis.period.Period" fetch="LAZY" fetch-mode="SELECT" optional="false">
+                <join-column name="periodid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_datainputperiod_period"/>
+                <cascade/>
+            </many-to-one>
+        </attributes>
+    </entity>
+</entity-mappings>

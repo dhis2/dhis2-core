@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings xmlns="http://www.hibernate.org/xsd/orm/mapping">
+    <description>mapping.xml document auto-generated from legacy hbm.xml format via transformation - /Users/viet/code/dhis2code/hbm-transform/transformer/target/classes/org/hisp/dhis/reservedvalue/hibernate/ReservedValue.hbm.xml</description>
+    <persistence-unit-metadata/>
+    <attribute-accessor>property</attribute-accessor>
+    <default-cascade>none</default-cascade>
+    <default-lazy>true</default-lazy>
+    <named-native-query name="getRandomGeneratedValuesNotAvailableNamedQuery">
+        <query>SELECT value
+        FROM
+        trackedentityattributevalue teav
+        WHERE
+        teav.trackedentityattributeid = :teaId
+        and LOWER(teav.value) in (:values)
+        UNION
+        SELECT value FROM reservedvalue rs
+        WHERE
+        rs.ownerObject = :ownerObject
+        and rs.ownerUid = :ownerUid
+        and rs.key = :key
+        and LOWER(rs.value) in (:values)</query>
+        <cacheable>false</cacheable>
+        <read-only>false</read-only>
+    </named-native-query>
+    <entity class="org.hisp.dhis.reservedvalue.ReservedValue" metadata-complete="true">
+        <table name="reservedvalue"/>
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <batch-size>-1</batch-size>
+        <mutable>true</mutable>
+        <optimistic-lock>version</optimistic-lock>
+        <polymorphism>implicit</polymorphism>
+        <attributes>
+            <id name="id">
+                <column name="reservedvalueid"/>
+            </id>
+            <basic name="expiryDate" fetch="EAGER" optional="false" optimistic-lock="true"/>
+            <basic name="created" fetch="EAGER" optional="false" optimistic-lock="true"/>
+            <basic name="ownerObject" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="ownerUid" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="key" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="value" fetch="EAGER" optional="true" optimistic-lock="true"/>
+        </attributes>
+    </entity>
+</entity-mappings>

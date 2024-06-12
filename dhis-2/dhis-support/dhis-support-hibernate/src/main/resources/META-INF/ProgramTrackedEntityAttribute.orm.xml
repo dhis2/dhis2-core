@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings xmlns="http://www.hibernate.org/xsd/orm/mapping">
+    <description>mapping.xml document auto-generated from legacy hbm.xml format via transformation - /Users/viet/code/dhis2code/hbm-transform/transformer/target/classes/org/hisp/dhis/program/hibernate/ProgramTrackedEntityAttribute.hbm.xml</description>
+    <persistence-unit-metadata/>
+    <attribute-accessor>property</attribute-accessor>
+    <default-cascade>none</default-cascade>
+    <default-lazy>true</default-lazy>
+    <entity class="org.hisp.dhis.program.ProgramTrackedEntityAttribute" metadata-complete="true">
+        <table name="program_attributes"/>
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <batch-size>-1</batch-size>
+        <mutable>true</mutable>
+        <optimistic-lock>version</optimistic-lock>
+        <polymorphism>implicit</polymorphism>
+        <attributes>
+            <id name="id">
+                <column name="programtrackedentityattributeid"/>
+            </id>
+            <basic name="uid" fetch="EAGER" optional="false" optimistic-lock="true">
+                <column name="uid" unique="true" nullable="false" length="11"/>
+            </basic>
+            <basic name="code" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="code" unique="true" nullable="true" length="50"/>
+            </basic>
+            <basic name="created" fetch="EAGER" optional="false" optimistic-lock="true"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="false" optimistic-lock="true"/>
+            <basic name="displayInList" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="displayinlist" unique="false"/>
+            </basic>
+            <basic name="mandatory" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="mandatory" unique="false"/>
+            </basic>
+            <basic name="sortOrder" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="sort_order" unique="false"/>
+            </basic>
+            <basic name="allowFutureDate" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="allowFutureDate" unique="false"/>
+            </basic>
+            <basic name="renderOptionsAsRadio" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="renderoptionsasradio" unique="false"/>
+            </basic>
+            <basic name="renderType" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="rendertype" unique="false"/>
+            </basic>
+            <basic name="searchable" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="searchable" unique="false"/>
+            </basic>
+            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="lastupdatedby" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_lastupdateby_userid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="program" target-entity="org.hisp.dhis.program.Program" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="programid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_programtrackedentityattribute_programid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="attribute" target-entity="org.hisp.dhis.trackedentity.TrackedEntityAttribute" fetch="LAZY" fetch-mode="SELECT" optional="false">
+                <join-column name="trackedentityattributeid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_program_attributeid"/>
+                <cascade/>
+            </many-to-one>
+        </attributes>
+    </entity>
+</entity-mappings>

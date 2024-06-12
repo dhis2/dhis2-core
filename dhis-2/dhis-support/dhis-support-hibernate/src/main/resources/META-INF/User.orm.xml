@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings xmlns="http://www.hibernate.org/xsd/orm/mapping">
+    <description>mapping.xml document auto-generated from legacy hbm.xml format via transformation - /Users/viet/code/dhis2code/hbm-transform/transformer/target/classes/org/hisp/dhis/user/hibernate/User.hbm.xml</description>
+    <persistence-unit-metadata/>
+    <attribute-accessor>property</attribute-accessor>
+    <default-cascade>none</default-cascade>
+    <default-lazy>true</default-lazy>
+    <entity class="org.hisp.dhis.user.User" metadata-complete="true">
+        <table name="userinfo"/>
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <caching include="all" access="READ_WRITE"/>
+        <batch-size>-1</batch-size>
+        <lazy>false</lazy>
+        <mutable>true</mutable>
+        <optimistic-lock>version</optimistic-lock>
+        <polymorphism>implicit</polymorphism>
+        <attributes>
+            <id name="id">
+                <column name="userinfoid"/>
+            </id>
+            <basic name="uid" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="uid" unique="false" length="11"/>
+            </basic>
+            <basic name="code" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="code" unique="true" nullable="true" length="50"/>
+            </basic>
+            <basic name="lastUpdated" fetch="EAGER" optional="false" optimistic-lock="true"/>
+            <basic name="created" fetch="EAGER" optional="false" optimistic-lock="true"/>
+            <basic name="surname" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="firstName" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="email" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="phoneNumber" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="jobTitle" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="introduction" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="gender" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="birthday" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="nationality" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="employer" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="education" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="interests" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="languages" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="welcomeMessage" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="lastCheckedInterpretations" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="whatsApp" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="skype" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="facebookMessenger" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="telegram" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="twitter" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="dataViewMaxOrganisationUnitLevel" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="dataviewmaxorgunitlevel" unique="false"/>
+            </basic>
+            <basic name="attributeValues" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="uuid" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="uuid" unique="true" nullable="true"/>
+            </basic>
+            <basic name="username" fetch="EAGER" optional="false" optimistic-lock="true">
+                <column name="username" unique="true" nullable="false"/>
+            </basic>
+            <basic name="password" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="password" unique="false" nullable="true" length="60"/>
+            </basic>
+            <basic name="secret" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="externalAuth" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="externalauth" unique="false"/>
+            </basic>
+            <basic name="openId" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="openid" unique="true"/>
+            </basic>
+            <basic name="ldapId" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="ldapid" unique="true"/>
+            </basic>
+            <basic name="passwordLastUpdated" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="lastLogin" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="idToken" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="restoreToken" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="restoreExpiry" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="selfRegistered" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="invitation" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="disabled" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="accountExpiry" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="lastupdatedby" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_lastupdateby_userid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="avatar" target-entity="org.hisp.dhis.fileresource.FileResource" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="avatar" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_user_fileresourceid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="createdBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="creatoruserid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_user_userid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-many name="groups" target-entity="org.hisp.dhis.user.UserGroup">
+                <sort>unsorted</sort>
+            </many-to-many>
+            <many-to-many name="organisationUnits" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit">
+                <sort>unsorted</sort>
+            </many-to-many>
+            <many-to-many name="dataViewOrganisationUnits" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit">
+                <sort>unsorted</sort>
+            </many-to-many>
+            <many-to-many name="teiSearchOrganisationUnits" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit">
+                <sort>unsorted</sort>
+            </many-to-many>
+            <many-to-many name="userRoles" target-entity="org.hisp.dhis.user.UserRole">
+                <sort>unsorted</sort>
+            </many-to-many>
+            <many-to-many name="cogsDimensionConstraints" target-entity="org.hisp.dhis.category.CategoryOptionGroupSet">
+                <sort>unsorted</sort>
+            </many-to-many>
+            <many-to-many name="catDimensionConstraints" target-entity="org.hisp.dhis.category.Category">
+                <sort>unsorted</sort>
+            </many-to-many>
+            <element-collection name="apps">
+                <order-column name="sort_order"/>
+                <column name="app" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <collection-table name="userapps"/>
+            </element-collection>
+            <element-collection name="previousPasswords">
+                <order-column name="list_index"/>
+                <column name="previouspassword" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <collection-table name="previouspasswords"/>
+            </element-collection>
+        </attributes>
+    </entity>
+</entity-mappings>

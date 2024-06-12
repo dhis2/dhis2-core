@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings xmlns="http://www.hibernate.org/xsd/orm/mapping">
+    <description>mapping.xml document auto-generated from legacy hbm.xml format via transformation - /Users/viet/code/dhis2code/hbm-transform/transformer/target/classes/org/hisp/dhis/period/hibernate/RelativePeriods.hbm.xml</description>
+    <persistence-unit-metadata/>
+    <attribute-accessor>property</attribute-accessor>
+    <default-cascade>none</default-cascade>
+    <default-lazy>true</default-lazy>
+    <entity class="org.hisp.dhis.period.RelativePeriods" metadata-complete="true">
+        <table name="relativeperiods"/>
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <caching include="all" access="READ_WRITE"/>
+        <batch-size>-1</batch-size>
+        <mutable>true</mutable>
+        <optimistic-lock>version</optimistic-lock>
+        <polymorphism>implicit</polymorphism>
+        <attributes>
+            <id name="id">
+                <column name="relativeperiodsid"/>
+            </id>
+            <basic name="thisDay" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="yesterday" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="last3Days" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="last7Days" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="last14Days" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="last30Days" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="last60Days" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="last90Days" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="last180Days" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="thisMonth" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="lastMonth" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="thisBimonth" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="lastBimonth" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="thisQuarter" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="lastQuarter" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="thisSixMonth" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="lastSixMonth" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="weeksThisYear" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="monthsThisYear" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="biMonthsThisYear" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="quartersThisYear" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="thisYear" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="monthsLastYear" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="quartersLastYear" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="lastYear" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="last5Years" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="last10Years" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="last12Months" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="last6Months" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="last3Months" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="last6BiMonths" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="last4Quarters" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="last2SixMonths" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="thisFinancialYear" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="lastFinancialYear" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="last5FinancialYears" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="last10FinancialYears" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="thisWeek" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="lastWeek" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="thisBiWeek" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="lastBiWeek" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="last4Weeks" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="last4BiWeeks" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="last12Weeks" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="last52Weeks" fetch="EAGER" optional="true" optimistic-lock="true"/>
+        </attributes>
+    </entity>
+</entity-mappings>

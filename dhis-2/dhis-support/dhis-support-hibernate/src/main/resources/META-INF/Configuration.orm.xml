@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings  xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence/orm
+      http://xmlns.jcp.org/xml/ns/persistence/orm_2_1.xsd"
+  version="2.1">
+    <description>mapping.xml document auto-generated from legacy hbm.xml format via transformation - /Users/viet/code/dhis2code/hbm-transform/transformer/target/classes/org/hisp/dhis/configuration/hibernate/Configuration.hbm.xml</description>
+    <persistence-unit-metadata/>
+    <entity class="org.hisp.dhis.configuration.Configuration" metadata-complete="true">
+        <table name="configuration"/>
+        <attributes>
+            <id name="id">
+                <column name="configurationid"/>
+            </id>
+            <basic name="systemId" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="systemid" unique="false"/>
+            </basic>
+            <many-to-one name="systemUpdateNotificationRecipients" target-entity="org.hisp.dhis.user.UserGroup" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="systemupdatenotificationrecipientsid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_configuration_systemupdatenotification_recipients"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="feedbackRecipients" target-entity="org.hisp.dhis.user.UserGroup" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="feedbackrecipientsid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_configuration_feedback_recipients"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="offlineOrganisationUnitLevel" target-entity="org.hisp.dhis.organisationunit.OrganisationUnitLevel" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="offlineorgunitlevelid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_configuration_offline_orgunit_level"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="infrastructuralIndicators" target-entity="org.hisp.dhis.indicator.IndicatorGroup" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="infrastructuralindicatorsid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_configuration_infrastructural_indicators"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="infrastructuralDataElements" target-entity="org.hisp.dhis.dataelement.DataElementGroup" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="infrastructuraldataelementsid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_configuration_infrastructural_dataelements"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="infrastructuralPeriodType" target-entity="org.hisp.dhis.period.PeriodType" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="infrastructuralperiodtypeid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_configuration_infrastructural_periodtype"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="selfRegistrationRole" target-entity="org.hisp.dhis.user.UserRole" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="selfregistrationrole" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_configuration_selfregistrationrole"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="selfRegistrationOrgUnit" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="selfregistrationorgunit" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_configuration_selfregistrationorgunit"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="facilityOrgUnitGroupSet" target-entity="org.hisp.dhis.organisationunit.OrganisationUnitGroupSet" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="facilityorgunitgroupset" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_configuration_facilityorgunitgroupset"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="facilityOrgUnitLevel" target-entity="org.hisp.dhis.organisationunit.OrganisationUnitLevel" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="facilityorgunitlevel" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_configuration_facilityorgunitlevel"/>
+                <cascade/>
+            </many-to-one>
+            <element-collection name="corsWhitelist">
+                <sort>unsorted</sort>
+                <column name="corswhitelist" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <collection-table name="configuration_corswhitelist"/>
+            </element-collection>
+        </attributes>
+    </entity>
+</entity-mappings>

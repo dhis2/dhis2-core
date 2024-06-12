@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings xmlns="http://www.hibernate.org/xsd/orm/mapping">
+    <description>mapping.xml document auto-generated from legacy hbm.xml format via transformation - /Users/viet/code/dhis2code/hbm-transform/transformer/target/classes/org/hisp/dhis/relationship/hibernate/RelationshipConstraint.hbm.xml</description>
+    <persistence-unit-metadata/>
+    <attribute-accessor>property</attribute-accessor>
+    <default-cascade>none</default-cascade>
+    <default-lazy>true</default-lazy>
+    <entity class="org.hisp.dhis.relationship.RelationshipConstraint" metadata-complete="true">
+        <table name="relationshipconstraint"/>
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <caching include="all" access="READ_WRITE"/>
+        <batch-size>-1</batch-size>
+        <mutable>true</mutable>
+        <optimistic-lock>version</optimistic-lock>
+        <polymorphism>implicit</polymorphism>
+        <attributes>
+            <id name="id">
+                <column name="relationshipconstraintid"/>
+            </id>
+            <basic name="relationshipEntity" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="entity" unique="false"/>
+            </basic>
+            <basic name="trackerDataView" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="dataview" unique="false"/>
+            </basic>
+            <many-to-one name="trackedEntityType" target-entity="org.hisp.dhis.trackedentity.TrackedEntityType" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="trackedentitytypeid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_relationshipconstraint_trackedentitytype_trackedentitytypeid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="program" target-entity="org.hisp.dhis.program.Program" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="programid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_relationshipconstraint_program_programid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="programStage" target-entity="org.hisp.dhis.program.ProgramStage" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="programstageid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_relationshipconstraint_programstage_programstageid"/>
+                <cascade/>
+            </many-to-one>
+        </attributes>
+    </entity>
+</entity-mappings>

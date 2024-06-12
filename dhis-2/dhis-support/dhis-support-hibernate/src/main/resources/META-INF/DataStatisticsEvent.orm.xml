@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings xmlns="http://www.hibernate.org/xsd/orm/mapping">
+    <description>mapping.xml document auto-generated from legacy hbm.xml format via transformation - /Users/viet/code/dhis2code/hbm-transform/transformer/target/classes/org/hisp/dhis/datastatistics/hibernate/DataStatisticsEvent.hbm.xml</description>
+    <persistence-unit-metadata/>
+    <attribute-accessor>property</attribute-accessor>
+    <default-cascade>none</default-cascade>
+    <default-lazy>true</default-lazy>
+    <entity class="org.hisp.dhis.datastatistics.DataStatisticsEvent" metadata-complete="true">
+        <table name="datastatisticsevent"/>
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <batch-size>-1</batch-size>
+        <mutable>true</mutable>
+        <optimistic-lock>version</optimistic-lock>
+        <polymorphism>implicit</polymorphism>
+        <attributes>
+            <id name="id">
+                <column name="eventid"/>
+            </id>
+            <basic name="eventType" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="eventtype" unique="false"/>
+            </basic>
+            <basic name="timestamp" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="timestamp" unique="false"/>
+            </basic>
+            <basic name="username" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="username" unique="false"/>
+            </basic>
+            <basic name="favoriteUid" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="favoriteuid" unique="false"/>
+            </basic>
+        </attributes>
+    </entity>
+</entity-mappings>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings xmlns="http://www.hibernate.org/xsd/orm/mapping">
+    <description>mapping.xml document auto-generated from legacy hbm.xml format via transformation - /Users/viet/code/dhis2code/hbm-transform/transformer/target/classes/org/hisp/dhis/message/hibernate/MessageConversation.hbm.xml</description>
+    <persistence-unit-metadata/>
+    <attribute-accessor>property</attribute-accessor>
+    <default-cascade>none</default-cascade>
+    <default-lazy>true</default-lazy>
+    <filter-def name="userMessageUser">
+        <filter-param name="userid" type="long"/>
+    </filter-def>
+    <entity class="org.hisp.dhis.message.MessageConversation" metadata-complete="true">
+        <table name="messageconversation"/>
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <batch-size>-1</batch-size>
+        <mutable>true</mutable>
+        <optimistic-lock>version</optimistic-lock>
+        <polymorphism>implicit</polymorphism>
+        <attributes>
+            <id name="id">
+                <column name="messageconversationid"/>
+            </id>
+            <basic name="uid" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="uid" unique="false" length="11"/>
+            </basic>
+            <basic name="messageCount" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="messagecount" unique="false"/>
+            </basic>
+            <basic name="created" fetch="EAGER" optional="false" optimistic-lock="true"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="false" optimistic-lock="true"/>
+            <basic name="subject" fetch="EAGER" optional="false" optimistic-lock="true">
+                <column name="subject" unique="false" nullable="false"/>
+            </basic>
+            <basic name="extMessageId" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="extmessageid" unique="false" nullable="true"/>
+            </basic>
+            <basic name="messageType" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="messageType" unique="false"/>
+            </basic>
+            <basic name="priority" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="priority" unique="false"/>
+            </basic>
+            <basic name="status" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="status" unique="false"/>
+            </basic>
+            <basic name="lastMessage" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="lastmessage" unique="false"/>
+            </basic>
+            <many-to-one name="assignee" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="user_assigned" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_messageconversation_user_user_assigned"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="lastSender" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="lastsenderid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_messageconversation_lastsender_userid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="createdBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="userid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_messageconversation_user_userid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-many name="userMessages" target-entity="org.hisp.dhis.message.UserMessage">
+                <sort>unsorted</sort>
+            </many-to-many>
+            <many-to-many name="messages" target-entity="org.hisp.dhis.message.Message">
+                <order-column name="sort_order"/>
+            </many-to-many>
+        </attributes>
+    </entity>
+</entity-mappings>

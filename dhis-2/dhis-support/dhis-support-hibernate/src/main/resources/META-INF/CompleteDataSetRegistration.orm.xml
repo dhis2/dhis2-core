@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings xmlns="http://www.hibernate.org/xsd/orm/mapping">
+    <description>mapping.xml document auto-generated from legacy hbm.xml format via transformation - /Users/viet/code/dhis2code/hbm-transform/transformer/target/classes/org/hisp/dhis/dataset/hibernate/CompleteDataSetRegistration.hbm.xml</description>
+    <persistence-unit-metadata/>
+    <attribute-accessor>property</attribute-accessor>
+    <default-cascade>none</default-cascade>
+    <default-lazy>true</default-lazy>
+    <entity class="org.hisp.dhis.dataset.CompleteDataSetRegistration" metadata-complete="true">
+        <table name="completedatasetregistration"/>
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <batch-size>-1</batch-size>
+        <mutable>true</mutable>
+        <optimistic-lock>version</optimistic-lock>
+        <id-class/>
+        <polymorphism>implicit</polymorphism>
+        <attributes>
+            <basic name="date" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="date" unique="false"/>
+            </basic>
+            <basic name="storedBy" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="storedby" unique="false"/>
+            </basic>
+            <basic name="lastUpdated" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="lastupdated" unique="false"/>
+            </basic>
+            <basic name="lastUpdatedBy" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="lastupdatedby" unique="false"/>
+            </basic>
+            <basic name="completed" fetch="EAGER" optional="false" optimistic-lock="true">
+                <column name="completed" unique="false" nullable="false"/>
+            </basic>
+            <many-to-one name="dataSet" target-entity="org.hisp.dhis.dataset.DataSet" fetch="LAZY" id="true">
+                <join-column name="datasetid"/>
+                <foreign-key name="fk_datasetcompleteregistration_datasetid"/>
+                <on-delete>no-action</on-delete>
+            </many-to-one>
+            <many-to-one name="period" target-entity="org.hisp.dhis.period.Period" fetch="LAZY" id="true">
+                <join-column name="periodid"/>
+                <foreign-key name="fk_datasetcompleteregistration_periodid"/>
+                <on-delete>no-action</on-delete>
+            </many-to-one>
+            <many-to-one name="source" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit" fetch="LAZY" id="true">
+                <join-column name="sourceid"/>
+                <foreign-key name="fk_completedatasetregistration_organisationunitid"/>
+                <on-delete>no-action</on-delete>
+            </many-to-one>
+            <many-to-one name="attributeOptionCombo" target-entity="org.hisp.dhis.category.CategoryOptionCombo" fetch="LAZY" id="true">
+                <join-column name="attributeoptioncomboid"/>
+                <foreign-key name="fk_completedatasetregistration_attributeoptioncomboid"/>
+                <on-delete>no-action</on-delete>
+            </many-to-one>
+        </attributes>
+    </entity>
+</entity-mappings>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings xmlns="http://www.hibernate.org/xsd/orm/mapping">
+    <description>mapping.xml document auto-generated from legacy hbm.xml format via transformation - /Users/viet/code/dhis2code/hbm-transform/transformer/target/classes/org/hisp/dhis/program/hibernate/ProgramMessage.hbm.xml</description>
+    <persistence-unit-metadata/>
+    <attribute-accessor>property</attribute-accessor>
+    <default-cascade>none</default-cascade>
+    <default-lazy>true</default-lazy>
+    <entity class="org.hisp.dhis.program.message.ProgramMessage" metadata-complete="true">
+        <table name="programmessage"/>
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <batch-size>-1</batch-size>
+        <mutable>true</mutable>
+        <optimistic-lock>version</optimistic-lock>
+        <polymorphism>implicit</polymorphism>
+        <attributes>
+            <id name="id">
+                <column name="id"/>
+            </id>
+            <basic name="uid" fetch="EAGER" optional="false" optimistic-lock="true">
+                <column name="uid" unique="true" nullable="false" length="11"/>
+            </basic>
+            <basic name="code" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="code" unique="true" nullable="true" length="50"/>
+            </basic>
+            <basic name="created" fetch="EAGER" optional="false" optimistic-lock="true"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="false" optimistic-lock="true"/>
+            <basic name="text" fetch="EAGER" optional="false" optimistic-lock="true">
+                <column name="text" unique="false" nullable="false" length="500"/>
+            </basic>
+            <basic name="subject" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="subject" unique="false" nullable="true" length="200"/>
+            </basic>
+            <basic name="processedDate" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="processeddate" unique="false" nullable="true"/>
+            </basic>
+            <basic name="notificationTemplate" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="translations" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="messageStatus" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="lastupdatedby" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_lastupdateby_userid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="enrollment" target-entity="org.hisp.dhis.program.Enrollment" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="enrollmentid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_programmessage_programinstanceid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="event" target-entity="org.hisp.dhis.program.Event" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="eventid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_programmessage_programstageinstanceid"/>
+                <cascade/>
+            </many-to-one>
+            <element-collection name="deliveryChannels" fetch-mode="SELECT">
+                <sort>unsorted</sort>
+                <column name="deliverychannel" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <collection-table name="programmessage_deliverychannels"/>
+            </element-collection>
+            <embedded name="recipients"/>
+        </attributes>
+    </entity>
+    <embeddable class="org.hisp.dhis.program.message.ProgramMessageRecipients" metadata-complete="true">
+        <attributes>
+            <many-to-one name="trackedEntity" target-entity="org.hisp.dhis.trackedentity.TrackedEntity" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="trackedEntityId" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_programmessage_trackedentityinstanceid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="organisationUnit" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="organisationUnitId" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_programmessage_organisationunitid"/>
+                <cascade/>
+            </many-to-one>
+            <element-collection name="phoneNumbers" fetch-mode="JOIN">
+                <sort>unsorted</sort>
+                <column name="phoneNumber" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <collection-table name="programmessage_phonenumbers"/>
+            </element-collection>
+            <element-collection name="emailAddresses" fetch-mode="JOIN">
+                <sort>unsorted</sort>
+                <column name="email" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <collection-table name="programmessage_emailAddresses"/>
+            </element-collection>
+        </attributes>
+    </embeddable>
+</entity-mappings>

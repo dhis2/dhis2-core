@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings xmlns="http://www.hibernate.org/xsd/orm/mapping">
+    <description>mapping.xml document auto-generated from legacy hbm.xml format via transformation - /Users/viet/code/dhis2code/hbm-transform/transformer/target/classes/org/hisp/dhis/period/hibernate/Period.hbm.xml</description>
+    <persistence-unit-metadata/>
+    <attribute-accessor>property</attribute-accessor>
+    <default-cascade>none</default-cascade>
+    <default-lazy>true</default-lazy>
+    <entity class="org.hisp.dhis.period.Period" metadata-complete="true">
+        <table name="period"/>
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <caching include="all" access="READ_WRITE"/>
+        <batch-size>-1</batch-size>
+        <mutable>true</mutable>
+        <optimistic-lock>version</optimistic-lock>
+        <polymorphism>implicit</polymorphism>
+        <attributes>
+            <id name="id">
+                <column name="periodid"/>
+            </id>
+            <basic name="startDate" fetch="EAGER" optional="false" optimistic-lock="true">
+                <column name="startdate" unique="false" nullable="false"/>
+            </basic>
+            <basic name="endDate" fetch="EAGER" optional="false" optimistic-lock="true">
+                <column name="enddate" unique="false" nullable="false"/>
+            </basic>
+            <many-to-one name="periodType" target-entity="org.hisp.dhis.period.PeriodType" fetch="EAGER" fetch-mode="SELECT" optional="true">
+                <join-column name="periodtypeid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_period_periodtypeid"/>
+                <cascade/>
+            </many-to-one>
+        </attributes>
+    </entity>
+</entity-mappings>

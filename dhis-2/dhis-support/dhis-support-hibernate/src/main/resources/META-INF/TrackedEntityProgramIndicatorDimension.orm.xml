@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings xmlns="http://www.hibernate.org/xsd/orm/mapping">
+    <description>mapping.xml document auto-generated from legacy hbm.xml format via transformation - /Users/viet/code/dhis2code/hbm-transform/transformer/target/classes/org/hisp/dhis/trackedentity/hibernate/TrackedEntityProgramIndicatorDimension.hbm.xml</description>
+    <persistence-unit-metadata/>
+    <attribute-accessor>property</attribute-accessor>
+    <default-cascade>none</default-cascade>
+    <default-lazy>true</default-lazy>
+    <entity class="org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension" metadata-complete="true">
+        <table name="trackedentityprogramindicatordimension"/>
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <batch-size>-1</batch-size>
+        <mutable>true</mutable>
+        <optimistic-lock>version</optimistic-lock>
+        <polymorphism>implicit</polymorphism>
+        <attributes>
+            <id name="id">
+                <column name="trackedentityprogramindicatordimensionid"/>
+            </id>
+            <basic name="filter" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <many-to-one name="programIndicator" target-entity="org.hisp.dhis.program.ProgramIndicator" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="programindicatorid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_teprogramindicatordimension_programindicatorid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="legendSet" target-entity="org.hisp.dhis.legend.LegendSet" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="legendsetid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_teprogramindicatordimension_legendsetid"/>
+                <cascade/>
+            </many-to-one>
+        </attributes>
+    </entity>
+</entity-mappings>

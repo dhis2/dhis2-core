@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings xmlns="http://www.hibernate.org/xsd/orm/mapping">
+    <description>mapping.xml document auto-generated from legacy hbm.xml format via transformation - /Users/viet/code/dhis2code/hbm-transform/transformer/target/classes/org/hisp/dhis/program/hibernate/AnalyticsPeriodBoundary.hbm.xml</description>
+    <persistence-unit-metadata/>
+    <attribute-accessor>property</attribute-accessor>
+    <default-cascade>none</default-cascade>
+    <default-lazy>true</default-lazy>
+    <entity class="org.hisp.dhis.program.AnalyticsPeriodBoundary" metadata-complete="true">
+        <table name="periodboundary"/>
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <caching include="all" access="READ_WRITE"/>
+        <batch-size>-1</batch-size>
+        <mutable>true</mutable>
+        <optimistic-lock>version</optimistic-lock>
+        <polymorphism>implicit</polymorphism>
+        <attributes>
+            <id name="id">
+                <column name="periodboundaryid"/>
+            </id>
+            <basic name="uid" fetch="EAGER" optional="false" optimistic-lock="true">
+                <column name="uid" unique="true" nullable="false" length="11"/>
+            </basic>
+            <basic name="code" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="code" unique="true" nullable="true" length="50"/>
+            </basic>
+            <basic name="created" fetch="EAGER" optional="false" optimistic-lock="true"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="false" optimistic-lock="true"/>
+            <basic name="boundaryTarget" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="analyticsPeriodBoundaryType" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="offsetPeriods" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="lastupdatedby" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_lastupdateby_userid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="offsetPeriodType" target-entity="org.hisp.dhis.period.PeriodType" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="offsetperiodtypeid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_periodboundary_periodtype"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="programIndicator" target-entity="org.hisp.dhis.program.ProgramIndicator" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="programindicatorid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_periodboundary_programindicator"/>
+                <cascade/>
+            </many-to-one>
+        </attributes>
+    </entity>
+</entity-mappings>

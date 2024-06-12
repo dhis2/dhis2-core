@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings xmlns="http://www.hibernate.org/xsd/orm/mapping">
+    <description>mapping.xml document auto-generated from legacy hbm.xml format via transformation - /Users/viet/code/dhis2code/hbm-transform/transformer/target/classes/org/hisp/dhis/relationship/hibernate/Relationship.hbm.xml</description>
+    <persistence-unit-metadata/>
+    <attribute-accessor>property</attribute-accessor>
+    <default-cascade>none</default-cascade>
+    <default-lazy>true</default-lazy>
+    <entity class="org.hisp.dhis.relationship.Relationship" metadata-complete="true">
+        <table name="relationship"/>
+        <dynamic-insert>false</dynamic-insert>
+        <dynamic-update>false</dynamic-update>
+        <select-before-update>false</select-before-update>
+        <caching include="all" access="READ_WRITE"/>
+        <batch-size>-1</batch-size>
+        <mutable>true</mutable>
+        <optimistic-lock>version</optimistic-lock>
+        <polymorphism>implicit</polymorphism>
+        <attributes>
+            <id name="id">
+                <column name="relationshipid"/>
+            </id>
+            <basic name="uid" fetch="EAGER" optional="false" optimistic-lock="true">
+                <column name="uid" unique="true" nullable="false" length="11"/>
+            </basic>
+            <basic name="code" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="code" unique="true" nullable="true" length="50"/>
+            </basic>
+            <basic name="created" fetch="EAGER" optional="false" optimistic-lock="true"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="false" optimistic-lock="true"/>
+            <basic name="style" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="style" unique="false"/>
+            </basic>
+            <basic name="key" fetch="EAGER" optional="false" optimistic-lock="true">
+                <column name="key" unique="false" nullable="false" length="255"/>
+            </basic>
+            <basic name="invertedKey" fetch="EAGER" optional="false" optimistic-lock="true">
+                <column name="inverted_key" unique="false" nullable="false" length="255"/>
+            </basic>
+            <basic name="deleted" fetch="EAGER" optional="true" optimistic-lock="true">
+                <column name="deleted" unique="false"/>
+            </basic>
+            <basic name="createdAtClient" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="lastupdatedby" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_lastupdateby_userid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="relationshipType" target-entity="org.hisp.dhis.relationship.RelationshipType" fetch="LAZY" fetch-mode="SELECT" optional="false">
+                <join-column name="relationshiptypeid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_relationship_relationshiptypeid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="from" target-entity="org.hisp.dhis.relationship.RelationshipItem" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="from_relationshipitemid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_relationship_from_relationshipitemid"/>
+                <cascade>
+                    <cascade-all/>
+                    <cascade-delete/>
+                </cascade>
+            </many-to-one>
+            <many-to-one name="to" target-entity="org.hisp.dhis.relationship.RelationshipItem" fetch="LAZY" fetch-mode="SELECT" optional="true">
+                <join-column name="to_relationshipitemid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_relationship_to_relationshipitemid"/>
+                <cascade>
+                    <cascade-all/>
+                    <cascade-delete/>
+                </cascade>
+            </many-to-one>
+        </attributes>
+    </entity>
+</entity-mappings>
