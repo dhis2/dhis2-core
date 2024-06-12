@@ -164,15 +164,18 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
           new AnalyticsTableColumn(
               quote("createdbyname"),
               VARCHAR_255,
-              "psi.createdbyuserinfo ->> 'firstName' as createdbyname"),
+              "psi.createdbyuserinfo ->> 'firstName' as createdbyname",
+              true),
           new AnalyticsTableColumn(
               quote("createdbylastname"),
               VARCHAR_255,
-              "psi.createdbyuserinfo ->> 'surname' as createdbylastname"),
+              "psi.createdbyuserinfo ->> 'surname' as createdbylastname",
+              true),
           new AnalyticsTableColumn(
               quote("createdbydisplayname"),
               VARCHAR_255,
-              getDisplayName("createdbyuserinfo", "psi", "createdbydisplayname")),
+              getDisplayName("createdbyuserinfo", "psi", "createdbydisplayname"),
+              true),
           new AnalyticsTableColumn(
               quote("lastupdatedbyusername"),
               VARCHAR_255,
@@ -180,15 +183,18 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
           new AnalyticsTableColumn(
               quote("lastupdatedbyname"),
               VARCHAR_255,
-              "psi.lastupdatedbyuserinfo ->> 'firstName' as lastupdatedbyname"),
+              "psi.lastupdatedbyuserinfo ->> 'firstName' as lastupdatedbyname",
+              true),
           new AnalyticsTableColumn(
               quote("lastupdatedbylastname"),
               VARCHAR_255,
-              "psi.lastupdatedbyuserinfo ->> 'surname' as lastupdatedbylastname"),
+              "psi.lastupdatedbyuserinfo ->> 'surname' as lastupdatedbylastname",
+              true),
           new AnalyticsTableColumn(
               quote("lastupdatedbydisplayname"),
               VARCHAR_255,
-              getDisplayName("lastupdatedbyuserinfo", "psi", "lastupdatedbydisplayname")),
+              getDisplayName("lastupdatedbyuserinfo", "psi", "lastupdatedbydisplayname"),
+              true),
           new AnalyticsTableColumn(quote("pistatus"), VARCHAR_50, "pi.status"),
           new AnalyticsTableColumn(quote("psistatus"), VARCHAR_50, "psi.status"),
           new AnalyticsTableColumn(quote("psigeometry"), GEOMETRY, "psi.geometry")
