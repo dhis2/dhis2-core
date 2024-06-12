@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,17 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.hibernate.jsonb.type;
+package org.hisp.dhis.datastore;
 
-import org.hisp.dhis.common.collection.CollectionUtils;
-import org.hisp.dhis.user.sharing.Sharing;
+import static org.hisp.dhis.common.collection.CollectionUtils.union;
 
-public class SharingJsonBinaryType extends JsonBinaryType {
-  @Override
-  protected Object convertJsonToObject(String content) {
-    Sharing sharing = (Sharing) super.convertJsonToObject(content);
-    sharing.setUsers(CollectionUtils.emptyIfNull(sharing.getUsers()));
-    sharing.setUserGroups(CollectionUtils.emptyIfNull(sharing.getUserGroups()));
-    return sharing;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.io.Serializable;
+import java.util.Set;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import lombok.Data;
+
+/**
+ * A {@link DatastoreNamespace} is the input declaration for a {@link DatastoreNamespaceProtection}
+ * object.
+ *
+ * <p>Note that this type needs to be {@link Serializable} as it is put in a cache as part of the
+ * {@link org.hisp.dhis.appmanager.App}.
+ *
+ * @author Jan Bernitt
+ */
+@Data
+public class DatastoreNamespace implements Serializable {
+
+  private static final long serialVersionUID = -1653792127753819375L;
+
+  /** The namespace name an app wants to use in a protected manner */
+  @JsonProperty @CheckForNull private String namespace;
+
+  /** A user must have one of these authorities to be able to read/write the namespace */
+  @JsonProperty @CheckForNull private Set<String> authorities;
+
+  /** A user must have one of these authorities to be able to read the namespace */
+  @JsonProperty @CheckForNull private Set<String> readAuthorities;
+
+  /** A user must have one of these authorities to be able to write the namespace */
+  @JsonProperty @CheckForNull private Set<String> writeAuthorities;
+
+  @Nonnull
+  public Set<String> getAllAuthorities() {
+    return union(authorities, readAuthorities, writeAuthorities);
   }
 }

@@ -27,14 +27,20 @@
  */
 package org.hisp.dhis.appmanager;
 
+import static java.util.stream.Collectors.toUnmodifiableSet;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.datastore.DatastoreNamespace;
 
 /**
  * @author Saptarshi
@@ -453,5 +459,35 @@ public class App implements Serializable {
 
   public Boolean hasPluginEntrypoint() {
     return (this.appType == AppType.APP) && (this.pluginLaunchPath != null);
+  }
+
+  @JsonIgnore
+  @Nonnull
+  public Set<String> getNamespaces() {
+    AppDhis dhis = getActivities().getDhis();
+    String namespace = dhis.getNamespace();
+    List<DatastoreNamespace> additionalNamespaces = dhis.getAdditionalNamespaces();
+    if (namespace == null && additionalNamespaces == null) return Set.of();
+    if (namespace == null)
+      return additionalNamespaces.stream()
+          .map(DatastoreNamespace::getNamespace)
+          .filter(Objects::nonNull)
+          .collect(toUnmodifiableSet());
+    if (additionalNamespaces == null || additionalNamespaces.isEmpty()) return Set.of(namespace);
+    Set<String> namespaces = new HashSet<>();
+    namespaces.add(namespace);
+    additionalNamespaces.forEach(ns -> namespaces.add(ns.getNamespace()));
+    return namespaces;
+  }
+
+  @JsonIgnore
+  @Nonnull
+  public Set<String> getAdditionalAuthorities() {
+    AppDhis dhis = getActivities().getDhis();
+    List<DatastoreNamespace> additionalNamespaces = dhis.getAdditionalNamespaces();
+    if (additionalNamespaces == null || additionalNamespaces.isEmpty()) return Set.of();
+    return additionalNamespaces.stream()
+        .flatMap(ns -> ns.getAllAuthorities().stream())
+        .collect(toUnmodifiableSet());
   }
 }
