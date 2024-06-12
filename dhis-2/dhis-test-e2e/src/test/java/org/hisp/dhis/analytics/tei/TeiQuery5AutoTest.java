@@ -253,8 +253,8 @@ public class TeiQuery5AutoTest extends AnalyticsApiTest {
     QueryParamsBuilder params =
         new QueryParamsBuilder()
             .add("includeMetadataDetails=true")
-            .add("asc=IpHINAT79UW.ouname")
-            .add("headers=ouname,gHGyrwKPzej,ciq2USN94oJ,IpHINAT79UW.ouname")
+            .add("asc=IpHINAT79UW.oucode,lastupdated")
+            .add("headers=ouname,w75KJ2mc4zz,zDhUuAYrxNC,IpHINAT79UW.ouname,lastupdated")
             .add("displayProperty=NAME")
             .add("totalPages=false")
             .add("rowContext=true")
@@ -270,15 +270,15 @@ public class TeiQuery5AutoTest extends AnalyticsApiTest {
     response
         .validate()
         .statusCode(200)
-        .body("headers", hasSize(equalTo(4)))
+        .body("headers", hasSize(equalTo(5)))
         .body("rows", hasSize(equalTo(20)))
         .body("height", equalTo(20))
-        .body("width", equalTo(4))
-        .body("headerWidth", equalTo(4));
+        .body("width", equalTo(5))
+        .body("headerWidth", equalTo(5));
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"pageSize\":20,\"isLastPage\":false},\"items\":{\"gHGyrwKPzej\":{\"uid\":\"gHGyrwKPzej\",\"code\":\"MMD_PER_DOB\",\"name\":\"Birth date\",\"description\":\"Birth date\",\"dimensionItemType\":\"PROGRAM_ATTRIBUTE\",\"valueType\":\"DATE\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"SUM\"},\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"uid\":\"ZzYYXq4fJie\",\"name\":\"Baby Postnatal\",\"description\":\"Baby Postnatal\"},\"ciq2USN94oJ\":{\"uid\":\"ciq2USN94oJ\",\"code\":\"MMD_PER_STA\",\"name\":\"Civil status\",\"description\":\"Civil status\",\"dimensionItemType\":\"PROGRAM_ATTRIBUTE\",\"valueType\":\"TEXT\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"SUM\"},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"IpHINAT79UW.ouname\":{\"name\":\"Organisation Unit Name\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"ouname\":{\"name\":\"Organisation Unit Name\",\"dimensionType\":\"ORGANISATION_UNIT\"}},\"dimensions\":{\"zDhUuAYrxNC\":[],\"lw1SqmMlnfh\":[],\"Qo571yj6Zcn\":[],\"DODgdr5Oo2v\":[],\"iESIqZ0R0R0\":[],\"n9nUvfpTsxQ\":[],\"kyIzQsj96BD\":[],\"xs8A6tQJY0s\":[],\"A4xFHyieXys\":[],\"OvY4VVhSDeJ\":[],\"RG7uGl4w5Jq\":[],\"spFvx9FndA4\":[],\"GUOBQt5K2WI\":[],\"Agywv2JGwuq\":[],\"lZGmxYbs97q\":[],\"VqEFza8wbwA\":[],\"ciq2USN94oJ\":[],\"ou\":[\"ImspTQPwCqd\"],\"w75KJ2mc4zz\":[],\"KmEUg2hHEtx\":[],\"G7vUx908SwP\":[],\"o9odfev2Ty5\":[],\"FO4sWYJ64LQ\":[],\"NDXw0cluzSw\":[],\"ruQQnf6rswq\":[],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"],\"P2cwLGskgxn\":[],\"gHGyrwKPzej\":[],\"pe\":[],\"VHfUeXpawmE\":[],\"AuPLng5hLbE\":[],\"ZcBPrXKahq2\":[],\"H9IlTX2X6SL\":[]}}";
+        "{\"pager\":{\"isLastPage\":false,\"pageSize\":20,\"page\":1},\"items\":{\"gHGyrwKPzej\":{\"uid\":\"gHGyrwKPzej\",\"aggregationType\":\"NONE\",\"code\":\"MMD_PER_DOB\",\"valueType\":\"DATE\",\"name\":\"Birth date\",\"description\":\"Birth date\",\"dimensionItemType\":\"PROGRAM_ATTRIBUTE\",\"totalAggregationType\":\"SUM\"},\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"valueType\":\"TEXT\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"totalAggregationType\":\"SUM\"},\"zDhUuAYrxNC\":{\"uid\":\"zDhUuAYrxNC\",\"aggregationType\":\"NONE\",\"valueType\":\"TEXT\",\"name\":\"Last name\",\"description\":\"Last name\",\"dimensionItemType\":\"PROGRAM_ATTRIBUTE\",\"totalAggregationType\":\"SUM\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"uid\":\"ZzYYXq4fJie\",\"name\":\"Baby Postnatal\",\"description\":\"Baby Postnatal\"},\"ciq2USN94oJ\":{\"uid\":\"ciq2USN94oJ\",\"aggregationType\":\"NONE\",\"code\":\"MMD_PER_STA\",\"valueType\":\"TEXT\",\"name\":\"Civil status\",\"description\":\"Civil status\",\"dimensionItemType\":\"PROGRAM_ATTRIBUTE\",\"totalAggregationType\":\"SUM\"},\"ou\":{\"uid\":\"ou\",\"dimensionType\":\"ORGANISATION_UNIT\",\"name\":\"Organisation unit\"},\"w75KJ2mc4zz\":{\"uid\":\"w75KJ2mc4zz\",\"aggregationType\":\"NONE\",\"code\":\"MMD_PER_NAM\",\"valueType\":\"TEXT\",\"name\":\"First name\",\"description\":\"First name\",\"dimensionItemType\":\"PROGRAM_ATTRIBUTE\",\"totalAggregationType\":\"SUM\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"ouname\":{\"dimensionType\":\"ORGANISATION_UNIT\",\"name\":\"Organisation Unit Name\"}},\"dimensions\":{\"zDhUuAYrxNC\":[],\"lw1SqmMlnfh\":[],\"Qo571yj6Zcn\":[],\"DODgdr5Oo2v\":[],\"iESIqZ0R0R0\":[],\"n9nUvfpTsxQ\":[],\"kyIzQsj96BD\":[],\"xs8A6tQJY0s\":[],\"A4xFHyieXys\":[],\"OvY4VVhSDeJ\":[],\"RG7uGl4w5Jq\":[],\"spFvx9FndA4\":[],\"GUOBQt5K2WI\":[],\"Agywv2JGwuq\":[],\"lZGmxYbs97q\":[],\"VqEFza8wbwA\":[],\"ciq2USN94oJ\":[\"wfkKVdPBzho\",\"Yjte6foKMny\"],\"ou\":[\"ImspTQPwCqd\"],\"w75KJ2mc4zz\":[],\"KmEUg2hHEtx\":[],\"G7vUx908SwP\":[],\"o9odfev2Ty5\":[],\"FO4sWYJ64LQ\":[],\"NDXw0cluzSw\":[],\"ruQQnf6rswq\":[],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"],\"P2cwLGskgxn\":[],\"gHGyrwKPzej\":[],\"pe\":[],\"VHfUeXpawmE\":[],\"AuPLng5hLbE\":[],\"ZcBPrXKahq2\":[],\"H9IlTX2X6SL\":[]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -286,9 +286,9 @@ public class TeiQuery5AutoTest extends AnalyticsApiTest {
     validateHeader(
         response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 1, "gHGyrwKPzej", "Birth date", "DATE", "java.time.LocalDate", false, true);
+        response, 1, "w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 2, "ciq2USN94oJ", "Civil status", "TEXT", "java.lang.String", false, true);
+        response, 2, "zDhUuAYrxNC", "Last name", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response,
         3,
@@ -300,26 +300,38 @@ public class TeiQuery5AutoTest extends AnalyticsApiTest {
         true);
 
     // Assert rows.
-    validateRow(response, 0, List.of(" Panderu MCHP", "", "", " Panderu MCHP"));
-    validateRow(response, 1, List.of(" Panderu MCHP", "", "", " Panderu MCHP"));
-    validateRow(response, 2, List.of(" Panderu MCHP", "", "", " Panderu MCHP"));
-    validateRow(response, 3, List.of(" Panderu MCHP", "", "", " Panderu MCHP"));
-    validateRow(response, 4, List.of(" Panderu MCHP", "", "", " Panderu MCHP"));
-    validateRow(response, 5, List.of(" Panderu MCHP", "", "", " Panderu MCHP"));
-    validateRow(response, 6, List.of(" Panderu MCHP", "", "", " Panderu MCHP"));
-    validateRow(response, 7, List.of(" Panderu MCHP", "", "", " Panderu MCHP"));
-    validateRow(response, 8, List.of(" Panderu MCHP", "", "", " Panderu MCHP"));
-    validateRow(response, 9, List.of(" Panderu MCHP", "", "", " Panderu MCHP"));
-    validateRow(response, 10, List.of(" Panderu MCHP", "", "", " Panderu MCHP"));
-    validateRow(response, 11, List.of(" Panderu MCHP", "", "", " Panderu MCHP"));
-    validateRow(response, 12, List.of(" Panderu MCHP", "", "", " Panderu MCHP"));
-    validateRow(response, 13, List.of(" Panderu MCHP", "", "", " Panderu MCHP"));
-    validateRow(response, 14, List.of("Adonkia CHP", "", "", "Adonkia CHP"));
-    validateRow(response, 15, List.of("Adonkia CHP", "", "", "Adonkia CHP"));
-    validateRow(response, 16, List.of("Adonkia CHP", "", "", "Adonkia CHP"));
-    validateRow(response, 17, List.of("Adonkia CHP", "", "", "Adonkia CHP"));
-    validateRow(response, 18, List.of("Adonkia CHP", "", "", "Adonkia CHP"));
-    validateRow(response, 19, List.of("Adonkia CHP", "", "", "Adonkia CHP"));
+    validateRow(
+        response,
+        0,
+        List.of(
+            "Praise Foundation CHC",
+            "Beverly",
+            "Armstrong",
+            "Praise Foundation CHC",
+            "2015-08-06 21:20:47.477"));
+    validateRow(
+        response,
+        1,
+        List.of(
+            "Praise Foundation CHC",
+            "Mark",
+            "Long",
+            "Praise Foundation CHC",
+            "2015-08-06 21:20:50.688"));
+    validateRow(
+        response,
+        2,
+        List.of(
+            "Praise Foundation CHC",
+            "Evelyn",
+            "Smith",
+            "Praise Foundation CHC",
+            "2015-08-06 21:20:50.693"));
+
+    validateRow( // last row
+        response,
+        19,
+        List.of("Bucksal Clinic", "Jeremy", "Graham", "Bucksal Clinic", "2015-08-06 21:20:49.387"));
   }
 
   @Test
