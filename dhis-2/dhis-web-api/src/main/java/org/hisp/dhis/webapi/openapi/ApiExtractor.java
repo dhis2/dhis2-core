@@ -126,7 +126,7 @@ final class ApiExtractor {
       if (!controllers.contains(controller)) return false;
       if (paths.isEmpty() && domains.isEmpty()) return true;
       if (!paths.isEmpty() && paths(controller).noneMatch(paths::contains)) return false;
-      Class<?> domain = domain(controller);
+      Class<?> domain = OpenApiAnnotations.getDomain(controller);
       return domains.isEmpty()
           || domains.contains(domain.getName())
           || domains.contains(domain.getSimpleName());
@@ -149,18 +149,6 @@ final class ApiExtractor {
     @Nonnull
     private static String normalisePath(@Nonnull String path) {
       return path.startsWith("/api/") ? path.substring(4) : path;
-    }
-
-    private static Class<?> domain(Class<?> controller) {
-      OpenApi.Document doc = controller.getAnnotation(OpenApi.Document.class);
-      Class<?> domain = OpenApi.EntityType.class;
-      if (doc != null) {
-        domain = doc.domain();
-      }
-      if (domain == OpenApi.EntityType.class) {
-        domain = OpenApiAnnotations.getEntityType(controller);
-      }
-      return domain == null ? Object.class : domain;
     }
   }
 
@@ -204,7 +192,8 @@ final class ApiExtractor {
             n -> !n.isEmpty(),
             () -> source.getSimpleName().replace("Controller", ""));
     Class<?> entityClass = OpenApiAnnotations.getEntityType(source);
-    Api.Controller controller = new Api.Controller(api, source, entityClass, name);
+    Class<?> domain = OpenApiAnnotations.getDomain(source);
+    Api.Controller controller = new Api.Controller(api, source, entityClass, name, domain);
     whenAnnotated(
         source, RequestMapping.class, a -> controller.getPaths().addAll(List.of(a.value())));
 

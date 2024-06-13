@@ -31,6 +31,7 @@ import java.util.List;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.jsontree.Required;
 import org.hisp.dhis.jsontree.Validation;
 import org.intellij.lang.annotations.Language;
@@ -45,10 +46,8 @@ import org.intellij.lang.annotations.Language;
  *
  * @author Jan Bernitt
  * @since 2.42
- * @implNote this type is intentionally default visible to not pollute the global namespace with the
- *     type names as they have fairly common names.
  */
-interface OpenApi extends JsonObject {
+public interface OpenApiObject extends JsonObject {
 
   @Required
   default String openapi() {
@@ -56,27 +55,27 @@ interface OpenApi extends JsonObject {
   }
 
   @Required
-  default Info info() {
-    return get("info", Info.class);
+  default InfoObject info() {
+    return get("info", InfoObject.class);
   }
 
-  default JsonList<Server> servers() {
-    return getList("servers", Server.class);
+  default JsonList<ServerObject> servers() {
+    return getList("servers", ServerObject.class);
   }
 
-  default JsonMap<PathItem> paths() {
-    return getMap("paths", PathItem.class);
+  default JsonMap<PathItemObject> paths() {
+    return getMap("paths", PathItemObject.class);
   }
 
-  default Components components() {
-    return get("components", Components.class);
+  default ComponentsObject components() {
+    return get("components", ComponentsObject.class);
   }
 
-  default JsonList<Tag> tags() {
-    return getList("tags", Tag.class);
+  default JsonList<TagObject> tags() {
+    return getList("tags", TagObject.class);
   }
 
-  interface Info extends JsonObject {
+  interface InfoObject extends JsonObject {
     @Required
     default String title() {
       return getString("title").string();
@@ -97,7 +96,7 @@ interface OpenApi extends JsonObject {
     }
   }
 
-  interface Tag extends JsonObject {
+  interface TagObject extends JsonObject {
     @Required
     default String name() {
       return getString("name").string();
@@ -113,7 +112,7 @@ interface OpenApi extends JsonObject {
     }
   }
 
-  interface Server extends JsonObject {
+  interface ServerObject extends JsonObject {
     @Required
     default String url() {
       return getString("url").string();
@@ -125,7 +124,7 @@ interface OpenApi extends JsonObject {
     }
   }
 
-  interface PathItem extends JsonObject {
+  interface PathItemObject extends JsonObject {
 
     default String $ref() {
       return getString("$ref").string();
@@ -140,51 +139,63 @@ interface OpenApi extends JsonObject {
       return getString("description").string();
     }
 
-    default Operation get() {
-      return get("get", Operation.class);
+    default OperationObject get() {
+      return get("get", OperationObject.class);
     }
 
-    default Operation put() {
-      return get("put", Operation.class);
+    default OperationObject put() {
+      return get("put", OperationObject.class);
     }
 
-    default Operation post() {
-      return get("post", Operation.class);
+    default OperationObject post() {
+      return get("post", OperationObject.class);
     }
 
-    default Operation delete() {
-      return get("delete", Operation.class);
+    default OperationObject delete() {
+      return get("delete", OperationObject.class);
     }
 
-    default Operation options() {
-      return get("options", Operation.class);
+    default OperationObject options() {
+      return get("options", OperationObject.class);
     }
 
-    default Operation head() {
-      return get("head", Operation.class);
+    default OperationObject head() {
+      return get("head", OperationObject.class);
     }
 
-    default Operation patch() {
-      return get("patch", Operation.class);
+    default OperationObject patch() {
+      return get("patch", OperationObject.class);
     }
 
-    default Operation trace() {
-      return get("trace", Operation.class);
-    }
-  }
-
-  interface Components extends JsonObject {
-
-    default JsonMap<Schema> schemas() {
-      return getMap("schemas", Schema.class);
-    }
-
-    default JsonMap<Parameter> parameters() {
-      return getMap("parameters", Parameter.class);
+    default OperationObject trace() {
+      return get("trace", OperationObject.class);
     }
   }
 
-  interface Operation extends JsonObject {
+  interface ComponentsObject extends JsonObject {
+
+    default JsonMap<SchemaObject> schemas() {
+      return getMap("schemas", SchemaObject.class);
+    }
+
+    default JsonMap<ParameterObject> parameters() {
+      return getMap("parameters", ParameterObject.class);
+    }
+  }
+
+  interface OperationObject extends JsonObject {
+
+    default String operationId() {
+      return getString("").string();
+    }
+
+    default String x_domain() {
+      return getString("x-domain").string();
+    }
+
+    default String x_group() {
+      return getString("x-group").string();
+    }
 
     default List<String> tags() {
       return getArray("tags").stringValues();
@@ -199,20 +210,16 @@ interface OpenApi extends JsonObject {
       return getString("description").string();
     }
 
-    default String operationId() {
-      return getString("").string();
+    default JsonList<ParameterObject> parameters() {
+      return getList("parameters", ParameterObject.class);
     }
 
-    default JsonList<Parameter> parameters() {
-      return getList("parameters", Parameter.class);
+    default RequestBodyObject requestBody() {
+      return get("requestBody", RequestBodyObject.class);
     }
 
-    default RequestBody requestBody() {
-      return get("requestBody", RequestBody.class);
-    }
-
-    default JsonMap<Response> responses() {
-      return getMap("responses", Response.class);
+    default JsonMap<ResponseObject> responses() {
+      return getMap("responses", ResponseObject.class);
     }
 
     default boolean deprecated() {
@@ -220,7 +227,7 @@ interface OpenApi extends JsonObject {
     }
   }
 
-  interface Parameter extends JsonObject {
+  interface ParameterObject extends JsonObject {
     @Required
     default String name() {
       return getString("name").string();
@@ -247,17 +254,29 @@ interface OpenApi extends JsonObject {
     default boolean allowEmptyValue() {
       return getBoolean("allowEmptyValue").booleanValue(false);
     }
+
+    default ParameterObject resolve() {
+      JsonString $ref = getString("$ref");
+      if (!$ref.exists()) return this;
+      String comp = $ref.string();
+      String path = "components.parameters{" + comp.substring(24) + "}";
+      return node().getRoot().lift(getAccessStore()).asObject().get(path, ParameterObject.class);
+    }
+
+    default boolean isShared() {
+      return node().getPath().startsWith("$.components");
+    }
   }
 
-  interface RequestBody extends JsonObject {
+  interface RequestBodyObject extends JsonObject {
     @Language("markdown")
     default String description() {
       return getString("description").string();
     }
 
     @Required
-    default JsonMap<MediaType> content() {
-      return getMap("content", MediaType.class);
+    default JsonMap<MediaTypeObject> content() {
+      return getMap("content", MediaTypeObject.class);
     }
 
     default boolean required() {
@@ -265,25 +284,25 @@ interface OpenApi extends JsonObject {
     }
   }
 
-  interface MediaType extends JsonObject {
-    default Schema schema() {
-      return get("schema", Schema.class);
+  interface MediaTypeObject extends JsonObject {
+    default SchemaObject schema() {
+      return get("schema", SchemaObject.class);
     }
   }
 
-  interface Response extends JsonObject {
+  interface ResponseObject extends JsonObject {
     @Required
     @Language("markdown")
     default String description() {
       return getString("description").string();
     }
 
-    default JsonMap<MediaType> content() {
-      return getMap("content", MediaType.class);
+    default JsonMap<MediaTypeObject> content() {
+      return getMap("content", MediaTypeObject.class);
     }
   }
 
-  interface Schema extends JsonObject {
+  interface SchemaObject extends JsonObject {
 
     // TODO Schema resolve(); always returns the referenced schema if a $ref was used otherwise the
     // inline defined schema
@@ -326,8 +345,8 @@ interface OpenApi extends JsonObject {
     array types
      */
 
-    default Schema items() {
-      return get("items", Schema.class);
+    default SchemaObject items() {
+      return get("items", SchemaObject.class);
     }
 
     /*
@@ -339,23 +358,23 @@ interface OpenApi extends JsonObject {
     }
 
     /**
-     * @return the {@link Schema} of any property that is not explicitly described in {@link
+     * @return the {@link SchemaObject} of any property that is not explicitly described in {@link
      *     #properties()}
      */
-    default Schema additionalProperties() {
-      return get("additionalProperties", Schema.class);
+    default SchemaObject additionalProperties() {
+      return get("additionalProperties", SchemaObject.class);
     }
 
-    default JsonMap<Schema> properties() {
-      return getMap("properties", Schema.class);
+    default JsonMap<SchemaObject> properties() {
+      return getMap("properties", SchemaObject.class);
     }
 
     /*
     type composition (non concrete types)
      */
 
-    default JsonList<Schema> oneOf() {
-      return getList("oneOf", Schema.class);
+    default JsonList<SchemaObject> oneOf() {
+      return getList("oneOf", SchemaObject.class);
     }
   }
 }

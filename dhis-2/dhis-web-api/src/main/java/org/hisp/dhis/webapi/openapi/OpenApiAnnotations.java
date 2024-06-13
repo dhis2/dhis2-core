@@ -102,4 +102,17 @@ class OpenApiAnnotations {
     B value = whenPresent.apply(target.getAnnotation(type));
     return test.test(value) ? value : otherwise.get();
   }
+
+  @Nonnull
+  static Class<?> getDomain(@Nonnull Class<?> controller) {
+    OpenApi.Document doc = controller.getAnnotation(OpenApi.Document.class);
+    Class<?> domain = OpenApi.EntityType.class;
+    if (doc != null) {
+      domain = doc.domain();
+    }
+    if (domain == OpenApi.EntityType.class) {
+      domain = getEntityType(controller);
+    }
+    return domain == null ? Object.class : domain;
+  }
 }

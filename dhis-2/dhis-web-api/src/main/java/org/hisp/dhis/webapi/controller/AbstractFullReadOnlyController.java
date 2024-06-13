@@ -406,7 +406,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
   @OpenApi.Param(name = "filter", value = String[].class)
   @OpenApi.Params(WebOptions.class)
   @OpenApi.Response(OpenApi.EntityType.class)
-  @GetMapping("/{uid}")
+  @GetMapping("/{uid:[a-zA-Z0-9]{11}}")
   @SuppressWarnings("unchecked")
   public @ResponseBody ResponseEntity<?> getObject(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
@@ -458,7 +458,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
   @OpenApi.Param(name = "fields", value = String[].class)
   @OpenApi.Params(WebOptions.class)
-  @GetMapping("/{uid}/{property}")
+  @GetMapping("/{uid:[a-zA-Z0-9]{11}}/{property}")
   public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
       @OpenApi.Param(PropertyNames.class) @PathVariable("property") String pvProperty,

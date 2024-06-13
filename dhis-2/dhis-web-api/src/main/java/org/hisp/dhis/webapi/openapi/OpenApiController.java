@@ -29,11 +29,15 @@ package org.hisp.dhis.webapi.openapi;
 
 import static java.util.stream.Collectors.toSet;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.UncheckedIOException;
 import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.servlet.http.HttpServletRequest;
@@ -58,6 +62,73 @@ public class OpenApiController {
   private final ApplicationContext context;
 
   /*
+   * HTML
+   */
+
+  @GetMapping(value = "/openapi.html", produces = TEXT_HTML_VALUE)
+  public void getFullOpenApiHtml(
+      @RequestParam(required = false, defaultValue = "false") boolean failOnNameClash,
+      @RequestParam(required = false, defaultValue = "false") boolean failOnInconsistency,
+      HttpServletRequest request,
+      HttpServletResponse response) {
+
+    StringWriter json = new StringWriter();
+    writeDocument(
+        request,
+        Set.of(),
+        Set.of(),
+        failOnNameClash,
+        failOnInconsistency,
+        () -> new PrintWriter(json),
+        OpenApiGenerator::generateJson);
+
+    getWriter(response, TEXT_HTML_VALUE).get().write(OpenApiRenderer.render(json.toString()));
+  }
+
+  @GetMapping(value = "/openapi/openapi.html", produces = TEXT_HTML_VALUE)
+  public void getOpenApiHtml(
+      @RequestParam(required = false) Set<String> path,
+      @RequestParam(required = false) Set<String> domain,
+      @RequestParam(required = false, defaultValue = "false") boolean failOnNameClash,
+      @RequestParam(required = false, defaultValue = "false") boolean failOnInconsistency,
+      HttpServletRequest request,
+      HttpServletResponse response) {
+
+    StringWriter json = new StringWriter();
+    writeDocument(
+        request,
+        path,
+        domain,
+        failOnNameClash,
+        failOnInconsistency,
+        () -> new PrintWriter(json),
+        OpenApiGenerator::generateJson);
+
+    getWriter(response, TEXT_HTML_VALUE).get().write(OpenApiRenderer.render(json.toString()));
+  }
+
+  @GetMapping(value = "/{path}/openapi.html", produces = TEXT_HTML_VALUE)
+  public void getPathOpenApiHtml(
+      @PathVariable String path,
+      @RequestParam(required = false, defaultValue = "false") boolean failOnNameClash,
+      @RequestParam(required = false, defaultValue = "false") boolean failOnInconsistency,
+      HttpServletRequest request,
+      HttpServletResponse response) {
+
+    StringWriter json = new StringWriter();
+    writeDocument(
+        request,
+        Set.of("/" + path),
+        Set.of(),
+        failOnNameClash,
+        failOnInconsistency,
+        () -> new PrintWriter(json),
+        OpenApiGenerator::generateJson);
+
+    getWriter(response, TEXT_HTML_VALUE).get().write(OpenApiRenderer.render(json.toString()));
+  }
+
+  /*
    * YAML
    */
 
@@ -69,12 +140,11 @@ public class OpenApiController {
       HttpServletResponse response) {
     writeDocument(
         request,
-        response,
         Set.of(),
         Set.of(),
         failOnNameClash,
         failOnInconsistency,
-        APPLICATION_X_YAML,
+        getYamlWriter(response),
         OpenApiGenerator::generateYaml);
   }
 
@@ -87,12 +157,11 @@ public class OpenApiController {
       HttpServletResponse response) {
     writeDocument(
         request,
-        response,
         Set.of("/" + path),
         Set.of(),
         failOnNameClash,
         failOnInconsistency,
-        APPLICATION_X_YAML,
+        getYamlWriter(response),
         OpenApiGenerator::generateYaml);
   }
 
@@ -106,12 +175,11 @@ public class OpenApiController {
       HttpServletResponse response) {
     writeDocument(
         request,
-        response,
         path,
         domain,
         failOnNameClash,
         failOnInconsistency,
-        APPLICATION_X_YAML,
+        getYamlWriter(response),
         OpenApiGenerator::generateYaml);
   }
 
@@ -127,12 +195,11 @@ public class OpenApiController {
       HttpServletResponse response) {
     writeDocument(
         request,
-        response,
         Set.of(),
         Set.of(),
         failOnNameClash,
         failOnInconsistency,
-        APPLICATION_JSON_VALUE,
+        getJsonWriter(response),
         OpenApiGenerator::generateJson);
   }
 
@@ -145,12 +212,11 @@ public class OpenApiController {
       HttpServletResponse response) {
     writeDocument(
         request,
-        response,
         Set.of("/" + path),
         Set.of(),
         failOnNameClash,
         failOnInconsistency,
-        APPLICATION_JSON_VALUE,
+        getJsonWriter(response),
         OpenApiGenerator::generateJson);
   }
 
@@ -164,23 +230,40 @@ public class OpenApiController {
       HttpServletResponse response) {
     writeDocument(
         request,
-        response,
         path,
         domain,
         failOnNameClash,
         failOnInconsistency,
-        APPLICATION_JSON_VALUE,
+        getJsonWriter(response),
         OpenApiGenerator::generateJson);
+  }
+
+  private Supplier<PrintWriter> getYamlWriter(HttpServletResponse response) {
+    return getWriter(response, APPLICATION_X_YAML);
+  }
+
+  private Supplier<PrintWriter> getJsonWriter(HttpServletResponse response) {
+    return getWriter(response, APPLICATION_JSON_VALUE);
+  }
+
+  private Supplier<PrintWriter> getWriter(HttpServletResponse response, String contentType) {
+    return () -> {
+      response.setContentType(contentType);
+      try {
+        return response.getWriter();
+      } catch (IOException ex) {
+        throw new UncheckedIOException(ex);
+      }
+    };
   }
 
   private void writeDocument(
       HttpServletRequest request,
-      HttpServletResponse response,
       @CheckForNull Set<String> paths,
       @CheckForNull Set<String> domains,
       boolean failOnNameClash,
       boolean failOnInconsistency,
-      String contentType,
+      Supplier<PrintWriter> getWriter,
       BiFunction<Api, String, String> writer) {
     Api api =
         ApiExtractor.extractApi(
@@ -195,12 +278,8 @@ public class OpenApiController {
             .failOnNameClash(failOnNameClash)
             .failOnInconsistency(failOnInconsistency)
             .build());
-    response.setContentType(contentType);
-    try {
-      response.getWriter().write(writer.apply(api, getServerUrl(request)));
-    } catch (IOException ex) {
-      throw new UncheckedIOException(ex);
-    }
+
+    getWriter.get().write(writer.apply(api, getServerUrl(request)));
   }
 
   private Set<Class<?>> getAllControllerClasses() {

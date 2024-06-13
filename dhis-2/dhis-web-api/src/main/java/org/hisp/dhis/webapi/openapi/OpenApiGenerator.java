@@ -216,14 +216,14 @@ public class OpenApiGenerator extends JsonGenerator {
   }
 
   private void generatePaths() {
-    api.getEndpoints().forEach(this::generatePath);
+    api.getEndpoints().forEach(this::generatePathItem);
   }
 
-  private void generatePath(String path, Map<RequestMethod, Api.Endpoint> endpoints) {
-    addObjectMember(path, () -> endpoints.forEach(this::generatePathMethod));
+  private void generatePathItem(String path, Map<RequestMethod, Api.Endpoint> endpoints) {
+    addObjectMember(path, () -> endpoints.forEach(this::generateOperation));
   }
 
-  private void generatePathMethod(RequestMethod method, Api.Endpoint endpoint) {
+  private void generateOperation(RequestMethod method, Api.Endpoint endpoint) {
     Set<String> tags = Set.of(endpoint.getGroup().tag());
     addObjectMember(
         method.name().toLowerCase(),
@@ -232,6 +232,8 @@ public class OpenApiGenerator extends JsonGenerator {
           addStringMember("x-maturity", getMaturityTag(endpoint.getMaturity()));
           addStringMultilineMember("description", endpoint.getDescription().orElse(NO_DESCRIPTION));
           addStringMember("operationId", getUniqueOperationId(endpoint));
+          addStringMember("x-domain", endpoint.getIn().getDomain().getSimpleName());
+          addStringMember("x-group", endpoint.getGroup().tag());
           addInlineArrayMember("tags", List.copyOf(tags));
           addArrayMember(
               "parameters", endpoint.getParameters().values(), this::generateParameterOrRef);
