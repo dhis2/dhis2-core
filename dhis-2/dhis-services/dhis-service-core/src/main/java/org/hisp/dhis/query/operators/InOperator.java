@@ -32,8 +32,6 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.Collection;
 import java.util.Date;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.query.Type;
 import org.hisp.dhis.query.Typed;
 import org.hisp.dhis.query.planner.QueryPath;
@@ -49,21 +47,6 @@ public class InOperator<T extends Comparable<? super T>> extends Operator<T> {
 
   public InOperator(String name, Collection<T> arg) {
     super(name, Typed.from(Collection.class), arg);
-  }
-
-  @Override
-  public Criterion getHibernateCriterion(QueryPath queryPath) {
-    Property property = queryPath.getProperty();
-
-    if (property.isCollection()) {
-      return Restrictions.in(
-          queryPath.getPath(),
-          getValue(Collection.class, queryPath.getProperty().getItemKlass(), args.get(0)));
-    }
-
-    return Restrictions.in(
-        queryPath.getPath(),
-        getValue(Collection.class, queryPath.getProperty().getKlass(), args.get(0)));
   }
 
   @Override

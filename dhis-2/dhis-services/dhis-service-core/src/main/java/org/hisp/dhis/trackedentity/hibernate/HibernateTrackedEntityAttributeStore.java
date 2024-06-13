@@ -143,7 +143,7 @@ public class HibernateTrackedEntityAttributeStore
 
     Query<String> query = getTypedQuery(hql);
 
-    Iterator<String> it = query.iterate();
+    Iterator<String> it = query.stream().iterator();
 
     if (it.hasNext()) {
       return Optional.of(it.next());

@@ -80,7 +80,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.activemq</groupId>
-      <artifactId>artemis-jms-client</artifactId>
+      <artifactId>artemis-jakarta-client</artifactId>
     </dependency>
     <dependency>
       <groupId>jakarta.jms</groupId>

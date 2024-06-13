@@ -29,7 +29,6 @@ package org.hisp.dhis.artemis.audit.listener;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -161,11 +160,7 @@ public abstract class AbstractHibernateListener {
    * @return Map<String, Object> with key is property name and value is property value.
    */
   protected Object createAuditEntry(
-      Object entity,
-      Object[] state,
-      EventSource session,
-      Serializable id,
-      EntityPersister persister) {
+      Object entity, Object[] state, EventSource session, Object id, EntityPersister persister) {
     Map<String, Object> objectMap = new HashMap<>();
     Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(entity));
     Map<String, Property> properties = schema.getFieldNameMapProperties();
@@ -202,8 +197,7 @@ public abstract class AbstractHibernateListener {
     return objectMap;
   }
 
-  private HibernateProxy createProxy(
-      Serializable id, EventSource session, EntityPersister persister) {
+  private HibernateProxy createProxy(Object id, EventSource session, EntityPersister persister) {
     try {
       return (HibernateProxy) persister.createProxy(id, session);
     } catch (Exception ex) {

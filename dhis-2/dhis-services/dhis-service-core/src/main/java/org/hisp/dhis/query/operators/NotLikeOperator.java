@@ -30,8 +30,6 @@ package org.hisp.dhis.query.operators;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.query.Type;
 import org.hisp.dhis.query.Typed;
@@ -45,24 +43,11 @@ public class NotLikeOperator<T extends Comparable<? super T>> extends Operator<T
 
   private final JpaQueryUtils.StringSearchMode jpaMatchMode;
 
-  private final org.hibernate.criterion.MatchMode matchMode;
-
   public NotLikeOperator(
       T arg, boolean caseSensitive, org.hisp.dhis.query.operators.MatchMode matchMode) {
     super("!like", Typed.from(String.class), arg);
     this.caseSensitive = caseSensitive;
-    this.matchMode = getMatchMode(matchMode);
     this.jpaMatchMode = getNotLikeJpaMatchMode(matchMode);
-  }
-
-  @Override
-  public Criterion getHibernateCriterion(QueryPath queryPath) {
-    if (caseSensitive) {
-      return Restrictions.like(
-          queryPath.getPath(), String.valueOf(args.get(0)).replace("%", "\\%"), matchMode);
-    }
-    return Restrictions.ilike(
-        queryPath.getPath(), String.valueOf(args.get(0)).replace("%", "\\%"), matchMode);
   }
 
   @Override

@@ -39,9 +39,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import jakarta.jms.JMSException;
+import jakarta.jms.TextMessage;
 import java.io.IOException;
-import javax.jms.JMSException;
-import javax.jms.TextMessage;
 import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.common.AsyncTaskExecutor;

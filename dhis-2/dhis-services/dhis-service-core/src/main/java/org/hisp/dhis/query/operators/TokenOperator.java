@@ -30,8 +30,6 @@ package org.hisp.dhis.query.operators;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.query.Typed;
 import org.hisp.dhis.query.planner.QueryPath;
@@ -42,20 +40,12 @@ import org.hisp.dhis.query.planner.QueryPath;
 public class TokenOperator<T extends Comparable<? super T>> extends Operator<T> {
   private final boolean caseSensitive;
 
-  private final org.hibernate.criterion.MatchMode matchMode;
+  private final MatchMode matchMode;
 
   public TokenOperator(T arg, boolean caseSensitive, MatchMode matchMode) {
     super("token", Typed.from(String.class), arg);
+    this.matchMode = matchMode;
     this.caseSensitive = caseSensitive;
-    this.matchMode = getMatchMode(matchMode);
-  }
-
-  @Override
-  public Criterion getHibernateCriterion(QueryPath queryPath) {
-    String value = caseSensitive ? getValue(String.class) : getValue(String.class).toLowerCase();
-
-    return Restrictions.sqlRestriction(
-        "c_." + queryPath.getPath() + " ~* '" + TokenUtils.createRegex(value) + "'");
   }
 
   @Override

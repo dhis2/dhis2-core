@@ -30,7 +30,6 @@ package org.hisp.dhis.query.operators;
 import static java.util.Arrays.asList;
 
 import java.util.List;
-import org.hibernate.criterion.MatchMode;
 
 /**
  * @author Henning Håkonsen

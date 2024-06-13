@@ -54,7 +54,7 @@ public class DeletedObjectPostInsertEventListener implements PostCommitInsertEve
   }
 
   @Override
-  public boolean requiresPostCommitHanding(EntityPersister persister) {
+  public boolean requiresPostCommitHandling(EntityPersister persister) {
     return true;
   }
 

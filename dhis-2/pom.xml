@@ -1424,7 +1424,7 @@
       <!-- Apache Artemis -->
       <dependency>
         <groupId>org.apache.activemq</groupId>
-        <artifactId>artemis-jms-client</artifactId>
+        <artifactId>artemis-jakarta-client</artifactId>
         <version>${artemis.version}</version>
       </dependency>
       <dependency>
@@ -1434,7 +1434,7 @@
       </dependency>
       <dependency>
         <groupId>org.apache.activemq</groupId>
-        <artifactId>artemis-server</artifactId>
+        <artifactId>artemis-jakarta-server</artifactId>
         <version>${artemis.version}</version>
         <exclusions>
           <exclusion>

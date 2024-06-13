@@ -32,8 +32,6 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.Collection;
 import java.util.Date;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.query.QueryException;
 import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.query.Type;
@@ -47,24 +45,6 @@ import org.hisp.dhis.schema.Property;
 public class LessThanOperator<T extends Comparable<? super T>> extends Operator<T> {
   public LessThanOperator(T arg) {
     super("lt", Typed.from(String.class, Boolean.class, Number.class, Date.class), arg);
-  }
-
-  @Override
-  public Criterion getHibernateCriterion(QueryPath queryPath) {
-    Property property = queryPath.getProperty();
-
-    if (property.isCollection()) {
-      Integer value = QueryUtils.parseValue(Integer.class, args.get(0));
-
-      if (value == null) {
-        throw new QueryException(
-            "Left-side is collection, and right-side is not a valid integer, so can't compare by size.");
-      }
-
-      return Restrictions.sizeLt(queryPath.getPath(), value);
-    }
-
-    return Restrictions.lt(queryPath.getPath(), args.get(0));
   }
 
   @Override

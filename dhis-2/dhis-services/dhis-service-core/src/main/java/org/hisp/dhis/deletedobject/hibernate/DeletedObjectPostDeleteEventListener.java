@@ -73,7 +73,7 @@ public class DeletedObjectPostDeleteEventListener implements PostCommitDeleteEve
   }
 
   @Override
-  public boolean requiresPostCommitHanding(EntityPersister persister) {
+  public boolean requiresPostCommitHandling(EntityPersister persister) {
     return true;
   }
 

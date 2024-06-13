@@ -81,12 +81,12 @@ public class PostDeleteAuditListener extends AbstractHibernateListener
   }
 
   @Override
-  public boolean requiresPostCommitHanding(EntityPersister entityPersister) {
-    return true;
+  public void onPostDeleteCommitFailed(PostDeleteEvent event) {
+    log.debug("onPostDeleteCommitFailed: " + event);
   }
 
   @Override
-  public void onPostDeleteCommitFailed(PostDeleteEvent event) {
-    log.debug("onPostDeleteCommitFailed: " + event);
+  public boolean requiresPostCommitHandling(EntityPersister persister) {
+    return true;
   }
 }

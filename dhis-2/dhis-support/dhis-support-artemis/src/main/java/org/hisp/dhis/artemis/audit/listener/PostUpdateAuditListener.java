@@ -85,7 +85,7 @@ public class PostUpdateAuditListener extends AbstractHibernateListener
   }
 
   @Override
-  public boolean requiresPostCommitHanding(EntityPersister entityPersister) {
+  public boolean requiresPostCommitHandling(EntityPersister entityPersister) {
     return true;
   }
 

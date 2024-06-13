@@ -35,7 +35,6 @@ import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.hibernate.criterion.Criterion;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryUtils;
@@ -131,27 +130,10 @@ public abstract class Operator<T extends Comparable<? super T>> {
     return typed.isValid(klass);
   }
 
-  public abstract Criterion getHibernateCriterion(QueryPath queryPath);
-
   public abstract <Y> Predicate getPredicate(
       CriteriaBuilder builder, Root<Y> root, QueryPath queryPath);
 
   public abstract boolean test(Object value);
-
-  org.hibernate.criterion.MatchMode getMatchMode(MatchMode matchMode) {
-    switch (matchMode) {
-      case EXACT:
-        return org.hibernate.criterion.MatchMode.EXACT;
-      case START:
-        return org.hibernate.criterion.MatchMode.START;
-      case END:
-        return org.hibernate.criterion.MatchMode.END;
-      case ANYWHERE:
-        return org.hibernate.criterion.MatchMode.ANYWHERE;
-      default:
-        return null;
-    }
-  }
 
   protected JpaQueryUtils.StringSearchMode getJpaMatchMode(MatchMode matchMode) {
     switch (matchMode) {
