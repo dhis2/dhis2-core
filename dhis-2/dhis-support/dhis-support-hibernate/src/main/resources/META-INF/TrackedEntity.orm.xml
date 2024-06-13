@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<entity-mappings xmlns="http://www.hibernate.org/xsd/orm/mapping">
-    <description>mapping.xml document auto-generated from legacy hbm.xml format via transformation - /Users/viet/code/dhis2code/hbm-transform/transformer/target/classes/org/hisp/dhis/trackedentity/hibernate/TrackedEntity.hbm.xml</description>
-    <persistence-unit-metadata/>
-    <attribute-accessor>property</attribute-accessor>
-    <default-cascade>none</default-cascade>
-    <default-lazy>true</default-lazy>
+<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
+    
+    
+    
     <named-native-query name="updateTrackedEntitiesLastUpdated">
         <query>update trackedentity set lastUpdated = :lastUpdated, lastupdatedbyuserinfo = CAST(:lastupdatedbyuserinfo as jsonb) WHERE uid in :trackedEntities</query>
         <cacheable>false</cacheable>

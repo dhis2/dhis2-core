@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<entity-mappings  version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm" >
-    <description>mapping.xml document auto-generated from legacy hbm.xml format via transformation - /Users/viet/code/dhis2code/hbm-transform/transformer/target/classes/org/hisp/dhis/scheduling/hibernate/JobConfiguration.hbm.xml</description>
-    <persistence-unit-metadata/>
+<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
+    
+    
     <entity class="org.hisp.dhis.scheduling.JobConfiguration" metadata-complete="true">
         <table name="jobconfiguration"/>
         <attributes>
@@ -56,7 +56,7 @@
             <basic name="errorCodes" fetch="EAGER" optional="true" >
                 <column name="errorcodes" unique="false" insertable="false" updatable="false"/>
             </basic>
-            <many-to-one  name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" maps-id="userid" fetch="LAZY"  optional="true">
+            <many-to-one  name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY"  optional="true">
                 <join-column  name="lastupdatedby" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <cascade/>
             </many-to-one>
