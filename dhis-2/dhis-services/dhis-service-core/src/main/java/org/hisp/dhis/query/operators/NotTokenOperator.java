@@ -39,10 +39,11 @@ import org.hisp.dhis.query.planner.QueryPath;
  */
 public class NotTokenOperator<T extends Comparable<? super T>> extends Operator<T> {
   private final boolean caseSensitive;
+  private final MatchMode matchMode;
 
-  public NotTokenOperator(
-      T arg, boolean caseSensitive, org.hisp.dhis.query.operators.MatchMode matchMode) {
+  public NotTokenOperator(T arg, boolean caseSensitive, MatchMode matchMode) {
     super("!token", Typed.from(String.class), arg);
+    this.matchMode = matchMode;
     this.caseSensitive = caseSensitive;
   }
 
