@@ -35,7 +35,7 @@ import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.BulkSmsRequestEntity;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 
 /**
@@ -70,7 +70,7 @@ public class BulkSmsHttpGateway extends SmsGateway {
             new BulkSmsRequestEntity(text, recipients),
             getAuthenticationHeaderParameters(bulkSmsGatewayConfig));
 
-    HttpStatus httpStatus =
+    HttpStatusCode httpStatus =
         send(bulkSmsGatewayConfig.getUrlTemplate(), request, HttpMethod.POST, String.class);
 
     return wrapHttpStatus(httpStatus);

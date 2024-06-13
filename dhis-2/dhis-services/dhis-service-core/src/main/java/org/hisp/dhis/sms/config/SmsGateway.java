@@ -42,6 +42,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
@@ -97,10 +98,10 @@ public abstract class SmsGateway {
   protected abstract OutboundMessageResponse send(
       String subject, String text, Set<String> recipients, SmsGatewayConfig gatewayConfig);
 
-  public HttpStatus send(
+  public HttpStatusCode send(
       String urlTemplate, HttpEntity<?> request, HttpMethod httpMethod, Class<?> klass) {
     ResponseEntity<?> response;
-    HttpStatus statusCode;
+    HttpStatusCode statusCode;
 
     try {
       response = restTemplate.exchange(urlTemplate, httpMethod, request, klass);
@@ -125,7 +126,7 @@ public abstract class SmsGateway {
     return statusCode;
   }
 
-  public OutboundMessageResponse wrapHttpStatus(HttpStatus httpStatus) {
+  public OutboundMessageResponse wrapHttpStatus(HttpStatusCode httpStatus) {
     GatewayResponse gatewayResponse;
 
     OutboundMessageResponse status = new OutboundMessageResponse();
