@@ -53,17 +53,19 @@ public class OpenApiRenderer {
   private static final String CSS =
       """
           :root {
-            --bg-page: #f1f1f9;
-            --bg-open: white;
-            --color-delete: #F72585;
-            --color-patch: #7209B7;
-            --color-post: #3F37C9;
-            --color-put: #560BAD;
-            --color-options: #B5179E;
-            --color-get: #4895EF;
-            --color-trace: #4CC9F0;
-            --color-head: #3A0CA3;
-          }
+               --bg-page: #f1f1f9;
+               --bg-open: white;
+               --bg-menu: #2A5298;
+               --color-delete: #c62828;
+               --color-patch: #c9a21a;
+               --color-post: #2A5298;
+               --color-put: #469421;
+               --color-options: #B5179E;
+               --color-get: #147cd7;
+               --color-trace: #4CC9F0;
+               --color-head: #3A0CA3;
+               --color-dep: #ddd;
+           }
           html {
             background-color: var(--bg-open);
             height: 100%;
@@ -71,7 +73,7 @@ public class OpenApiRenderer {
           body {
             background-color: var(--bg-page);
             margin: 0;
-            padding-right: 50px;
+            padding-right: 40px;
             min-height: 100%;
             font-family: Inter, sans-serif;
             font-size: 16px;
@@ -79,6 +81,24 @@ public class OpenApiRenderer {
           }
           body[desc-] p {
             display: none;
+          }
+          h1 {
+               margin: 0;
+               color: rgb(33, 41, 52);
+               font-family: monospace;
+               font-size: 110%;
+               font-weight: normal;
+               text-align: left;
+           }
+          h2 {
+              display: inline;
+              font-size: 100%;
+              font-weight: normal;
+          }
+          h3 {
+              font-size: 105%;
+              display: inline;
+              text-transform: capitalize;
           }
           code {
             font-family: "Liberation Mono", monospace;
@@ -102,18 +122,15 @@ public class OpenApiRenderer {
               background-position: 5px 5px;
           }
           .filters {
-               position: fixed;
-               top: 55px;
-               left: 50%;
-               margin-left: -300px;
-               width: 600px;
-               text-align: center;
-               display: inline-block;
-               background-color: #c5e3fc;
-               padding: 5px;
-               border: 4px solid #147cd7;
-               border-top-width: 0;
-           }
+                position: fixed;
+                top: 60px;
+                right: 0;
+                width: 100px;
+                text-align: left;
+                display: inline-block;
+                background-color: var(--bg-page);
+                padding: 0.5rem;
+          }
           .domains {
             padding-top: 65px;
             max-width: 100rem;
@@ -138,12 +155,13 @@ public class OpenApiRenderer {
             content: '-';
           }
           .domains > details[open] {
-            border-top: 4px solid #2196f3;
+            border-top: 4px solid var(--bg-menu);
           }
           .domains > details[open] > summary {
-               background-color: #2196f3;
+               background-color: var(--bg-menu);
                color: white;
                margin-top: 0;
+               border-bottom-right-radius: 5px;
           }
           details.op {
               padding: 5px 0;
@@ -168,6 +186,7 @@ public class OpenApiRenderer {
             padding: 0 0.5em;
             border-width: 0 0 0 4px;
             border-style: solid;
+            font-weight: bold;
           }
           .GET > summary > code:first-child, button.GET { border-color: var(--color-get); color: var(--color-get); }
           .POST > summary > code:first-child, button.POST { border-color: var(--color-post); color: var(--color-post); }
@@ -177,43 +196,56 @@ public class OpenApiRenderer {
           .OPTIONS > summary > code:first-child { border-color: var(--color-options); color: var(--color-options); }
           .HEAD > summary > code:first-child { border-color: var(--color-head); color: var(--color-head); }
           .TRACE > summary > code:first-child { border-color: var(--color-trace); color: var(--color-trace); }
+          .dep { border-color: var(--color-dep); }
           #body[get-] details.GET,
           #body[post-] details.POST,
           #body[put-] details.PUT,
           #body[patch-] details.PATCH,
-          #body[delete-] details.DELETE { display: none; }
+          #body[delete-] details.DELETE,
+          #body[dep-] details.dep,
+          #body[dep-] dt.dep, #body[dep-] dt.dep + dd { display: none; }
 
           button {
               border: none;
               background-color: transparent;
               font-weight: bold;
-              display: inline-block;
               border-left: 4px solid transparent;
               cursor: pointer;
-              margin-left: 1em;
+              display: block;
           }
           #body[get-] button.GET,
           #body[post-] button.POST,
           #body[put-] button.PUT,
           #body[patch-] button.PATCH,
           #body[delete-] button.DELETE,
+          #body[dep-] button.dep,
           #body[desc-] button.desc { text-decoration: line-through; color: #777777 }
 
           details[open] > summary {
 
           }
+          .dep { text-decoration: line-through; }
           dl {
             margin: 0.5em 0;
           }
           dt {
               margin: 0.5em 0;
           }
+          dd {
+            margin-right: 40px;
+          }
           header, p {
             line-height: 1.5em;
+            color: #333;
+            font-size: 95%;
           }
           dt code {
             padding: 0.125em 0.5em;
             background-color: antiquewhite;
+          }
+          dt.dep code {
+            background-color: var(--color-dep);
+            color: #777;
           }
           """;
 
@@ -302,18 +334,20 @@ public class OpenApiRenderer {
   }
 
   private void renderMenu() {
-    appendTag("aside", Map.of("class", "nav"), () -> appendPlain("DHIS2 API Documentation"));
+    appendTag("aside", Map.of("class", "nav"), () -> appendTag("h1", "DHIS2 API Documentation"));
     appendTag(
         "aside",
         Map.of("class", "filters"),
         () -> {
-          appendPlain("\uD83C\uDF13 Filters ");
-          renderToggleButton("&#128195; descriptions", "desc", "desc-");
+          appendPlain("◑ Filters ");
+          renderToggleButton("&#128172; bla bla", "desc", "desc-");
           renderToggleButton("GET", "GET", "get-");
           renderToggleButton("POST", "POST", "post-");
           renderToggleButton("PUT", "PUT", "put-");
           renderToggleButton("PATCH", "PATCH", "patch-");
           renderToggleButton("DELETE", "DELETE", "delete-");
+
+          renderToggleButton("deprecated", "dep", "dep-");
         });
   }
 
@@ -333,7 +367,7 @@ public class OpenApiRenderer {
               appendTag(
                   "details",
                   () -> {
-                    appendTag("summary", domain.domain());
+                    appendTag("summary", () -> appendTag("h2", domain.domain()));
                     for (GroupItem group : domain.groups().values()) {
                       appendTag(
                           "section",
@@ -343,7 +377,7 @@ public class OpenApiRenderer {
                                 "details",
                                 Map.of("open", ""),
                                 () -> {
-                                  appendTag("summary", group.group());
+                                  appendTag("summary", () -> appendTag("h3", group.group()));
                                   for (OperationItem op : group.operations()) {
                                     renderOperation(op.path(), op.method(), op.operation());
                                   }
@@ -373,7 +407,7 @@ public class OpenApiRenderer {
     if (!op.exists()) return;
     appendTag(
         "details",
-        Map.of("class", method + " op"),
+        Map.of("class", method + " op " + (op.deprecated() ? "dep" : "")),
         () -> {
           appendTag(
               "summary",
@@ -401,7 +435,10 @@ public class OpenApiRenderer {
                       .map(ParameterObject::resolve)
                       .forEach(
                           p -> {
-                            appendTag("dt", () -> appendTag("code", p.name()));
+                            appendTag(
+                                "dt",
+                                Map.of("class", p.deprecated() ? "dep" : ""),
+                                () -> appendTag("code", p.name()));
                             appendTag("dd", () -> appendTag("p", p.description()));
                           }));
         });
@@ -428,6 +465,7 @@ public class OpenApiRenderer {
   }
 
   private void appendAttr(String name, String value) {
+    if (name == null || name.isEmpty()) return;
     out.append(' ').append(name);
     if (value != null && !value.isEmpty()) out.append('=').append('"').append(value).append('"');
   }
