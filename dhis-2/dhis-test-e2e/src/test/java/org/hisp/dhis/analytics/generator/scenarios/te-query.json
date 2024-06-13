@@ -84,9 +84,6 @@
         "min": 41
       }
     },
-
-
-
     {
       "name": "singleOrgUnitLongitudeAsc",
       "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?dimension=ou:jNb63DIHuwU,RG7uGl4w5Jq,lw1SqmMlnfh:GT:180&headers=ouname,RG7uGl4w5Jq,lw1SqmMlnfh&totalPages=false&rowContext=true&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&asc=RG7uGl4w5Jq&relativePeriodDate=2024-06-13",
