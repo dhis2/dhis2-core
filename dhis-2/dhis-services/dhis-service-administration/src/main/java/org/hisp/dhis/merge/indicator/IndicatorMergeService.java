@@ -107,7 +107,6 @@ public class IndicatorMergeService implements MergeService {
             .add(indicatorMergeHandler::handleDataSets)
             .add(indicatorMergeHandler::handleIndicatorGroups)
             .add(indicatorMergeHandler::handleSections)
-            .add(indicatorMergeHandler::handleIndicatorRefsInCustomForms)
             .add(indicatorMergeHandler::handleDataDimensionItems)
             .add(indicatorMergeHandler::handleVisualizations)
             .build();
@@ -115,6 +114,7 @@ public class IndicatorMergeService implements MergeService {
     commonMergeHandlers =
         ImmutableList.<MergeHandler>builder()
             .add(commonMergeHandler::handleRefsInIndicatorExpression)
+            .add(commonMergeHandler::handleRefsInCustomForms)
             .build();
   }
 }

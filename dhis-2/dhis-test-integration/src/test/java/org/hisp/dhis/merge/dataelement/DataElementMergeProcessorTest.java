@@ -1552,6 +1552,47 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     assertMergeSuccessfulSourcesNotDeleted(report, sourceForms, targetForms, allDataElements);
   }
 
+  @Test
+  @DisplayName(
+      "DataEntryForm html references for DataElement are replaced as expected, source DataElements are deleted")
+  void formHtmlMergeSourceDeletedTest() throws ConflictException {
+    // given
+    DataEntryForm form1 =
+        createDataEntryForm(
+            'a', String.format("<body>form-with.#{%s}.uid11</body>", deSource1.getUid()));
+    DataEntryForm form2 =
+        createDataEntryForm(
+            'b', String.format("<body>form-with.#{%s}.uid11</body>", deSource2.getUid()));
+    DataEntryForm form3 =
+        createDataEntryForm(
+            'c', String.format("<body>form-with.#{%s}.uid11</body>", deTarget.getUid()));
+    identifiableObjectManager.save(form1);
+    identifiableObjectManager.save(form2);
+    identifiableObjectManager.save(form3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDeleteSources(true);
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    Set<DataEntryForm> sourceForms =
+        new HashSet<>(
+            Set.copyOf(dataEntryFormStore.getDataEntryFormsHtmlContaining(deSource1.getUid())));
+    List<DataEntryForm> sourceForms2 =
+        dataEntryFormStore.getDataEntryFormsHtmlContaining(deSource2.getUid());
+    sourceForms.addAll(sourceForms2);
+
+    Set<DataEntryForm> targetForms =
+        new HashSet<>(dataEntryFormStore.getDataEntryFormsHtmlContaining(deTarget.getUid()));
+
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertMergeSuccessfulSourcesDeleted(report, sourceForms, targetForms, allDataElements);
+  }
+
   private void assertMergeSuccessfulSourcesNotDeleted(
       MergeReport report,
       Collection<?> sources,

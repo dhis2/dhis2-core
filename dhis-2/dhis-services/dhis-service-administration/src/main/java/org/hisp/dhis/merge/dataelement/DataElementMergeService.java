@@ -152,6 +152,7 @@ public class DataElementMergeService implements MergeService {
     commonMergeHandlers =
         ImmutableList.<MergeHandler>builder()
             .add(commonMergeHandler::handleRefsInIndicatorExpression)
+            .add(commonMergeHandler::handleRefsInCustomForms)
             .build();
   }
 }

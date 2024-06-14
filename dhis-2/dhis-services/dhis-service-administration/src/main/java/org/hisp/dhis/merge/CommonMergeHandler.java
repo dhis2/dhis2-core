@@ -31,12 +31,17 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.collection.CollectionUtils;
+import org.hisp.dhis.dataentryform.DataEntryForm;
+import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.springframework.stereotype.Service;
 
 /**
- * Merge handler for metadata entities.
+ * Common Merge handler for metadata entities. The merge operations here are shared by many merge
+ * use cases (e.g. Indicator merge & DataElement merge), hence the need for common handlers, to
+ * reuse code and avoid duplication.
  *
  * @author david mackessy
  */
@@ -45,6 +50,7 @@ import org.springframework.stereotype.Service;
 public class CommonMergeHandler {
 
   private final IndicatorService indicatorService;
+  private final DataEntryFormService dataEntryFormService;
 
   /**
    * Replace all {@link BaseIdentifiableObject} refs in the numerator and denominator fields of
@@ -75,6 +81,27 @@ public class CommonMergeHandler {
             String existingDenominator = i.getDenominator();
             i.setDenominator(existingDenominator.replace(source.getUid(), target.getUid()));
           });
+    }
+  }
+
+  /**
+   * Replace all {@link BaseIdentifiableObject} refs in the htmlCode fields
+   *
+   * @param sources to be replaced
+   * @param target to replace each source
+   */
+  public <T extends BaseIdentifiableObject> void handleRefsInCustomForms(
+      List<T> sources, T target) {
+    for (T source : sources) {
+      List<DataEntryForm> forms =
+          dataEntryFormService.getDataEntryFormsWithHtmlContaining(source.getUid());
+
+      if (CollectionUtils.isNotEmpty(forms)) {
+        for (DataEntryForm dataEntryForm : forms) {
+          String existingHtml = dataEntryForm.getHtmlCode();
+          dataEntryForm.setHtmlCode(existingHtml.replace(source.getUid(), target.getUid()));
+        }
+      }
     }
   }
 }
