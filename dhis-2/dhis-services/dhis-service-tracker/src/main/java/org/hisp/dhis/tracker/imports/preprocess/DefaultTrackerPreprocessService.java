@@ -48,7 +48,9 @@ public class DefaultTrackerPreprocessService implements TrackerPreprocessService
   @Override
   public TrackerBundle preprocess(TrackerBundle bundle) {
     for (BundlePreProcessor preProcessor : preProcessors) {
-      preProcessor.process(bundle);
+      if (preProcessor.needsToRun(bundle.getImportStrategy())) {
+        preProcessor.process(bundle);
+      }
     }
 
     return bundle;
