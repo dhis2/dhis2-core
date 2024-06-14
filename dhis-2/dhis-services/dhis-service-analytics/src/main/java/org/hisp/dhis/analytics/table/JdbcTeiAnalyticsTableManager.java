@@ -45,7 +45,6 @@ import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
 import static org.hisp.dhis.db.model.DataType.VARCHAR_255;
 import static org.hisp.dhis.db.model.DataType.VARCHAR_50;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
-import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.ArrayList;
@@ -62,6 +61,7 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -160,13 +160,11 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
           AnalyticsTableColumn.builder()
               .name("featuretype")
               .dataType(VARCHAR_255)
-              .nullable(NULL)
               .selectExpression("tei.featuretype")
               .build(),
           AnalyticsTableColumn.builder()
               .name("coordinates")
               .dataType(TEXT)
-              .nullable(NULL)
               .selectExpression("tei.coordinates")
               .build(),
           AnalyticsTableColumn.builder()
@@ -177,55 +175,26 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
           AnalyticsTableColumn.builder()
               .name("potentialduplicate")
               .dataType(BOOLEAN)
-              .nullable(NULL)
               .selectExpression("tei.potentialduplicate")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("uidlevel1")
-              .dataType(CHARACTER_11)
-              .nullable(NULL)
-              .selectExpression("ous.uidlevel1")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("uidlevel2")
-              .dataType(CHARACTER_11)
-              .nullable(NULL)
-              .selectExpression("ous.uidlevel2")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("uidlevel3")
-              .dataType(CHARACTER_11)
-              .nullable(NULL)
-              .selectExpression("ous.uidlevel3")
-              .build(),
-          AnalyticsTableColumn.builder()
-              .name("uidlevel4")
-              .dataType(CHARACTER_11)
-              .nullable(NULL)
-              .selectExpression("ous.uidlevel4")
               .build(),
           AnalyticsTableColumn.builder()
               .name("ou")
               .dataType(CHARACTER_11)
-              .nullable(NULL)
               .selectExpression("ou.uid")
               .build(),
           AnalyticsTableColumn.builder()
               .name("ouname")
               .dataType(VARCHAR_255)
-              .nullable(NULL)
               .selectExpression("ou.name")
               .build(),
           AnalyticsTableColumn.builder()
               .name("oucode")
               .dataType(VARCHAR_50)
-              .nullable(NULL)
               .selectExpression("ou.code")
               .build(),
           AnalyticsTableColumn.builder()
               .name("oulevel")
               .dataType(INTEGER)
-              .nullable(NULL)
               .selectExpression("ous.level")
               .build());
 
@@ -240,16 +209,19 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
               .name("createdbyname")
               .dataType(VARCHAR_255)
               .selectExpression("tei.createdbyuserinfo ->> 'firstName' as createdbyname")
+              .skipIndex(Skip.SKIP)
               .build(),
           AnalyticsTableColumn.builder()
               .name("createdbylastname")
               .dataType(VARCHAR_255)
               .selectExpression("tei.createdbyuserinfo ->> 'surname' as createdbylastname")
+              .skipIndex(Skip.SKIP)
               .build(),
           AnalyticsTableColumn.builder()
               .name("createdbydisplayname")
               .dataType(VARCHAR_255)
               .selectExpression(getDisplayName("createdbyuserinfo", "tei", "createdbydisplayname"))
+              .skipIndex(Skip.SKIP)
               .build(),
           AnalyticsTableColumn.builder()
               .name("lastupdatedbyusername")
@@ -260,17 +232,20 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
               .name("lastupdatedbyname")
               .dataType(VARCHAR_255)
               .selectExpression("tei.lastupdatedbyuserinfo ->> 'firstName' as lastupdatedbyname")
+              .skipIndex(Skip.SKIP)
               .build(),
           AnalyticsTableColumn.builder()
               .name("lastupdatedbylastname")
               .dataType(VARCHAR_255)
               .selectExpression("tei.lastupdatedbyuserinfo ->> 'surname' as lastupdatedbylastname")
+              .skipIndex(Skip.SKIP)
               .build(),
           AnalyticsTableColumn.builder()
               .name("lastupdatedbydisplayname")
               .dataType(VARCHAR_255)
               .selectExpression(
                   getDisplayName("lastupdatedbyuserinfo", "tei", "lastupdatedbydisplayname"))
+              .skipIndex(Skip.SKIP)
               .build());
 
   public JdbcTeiAnalyticsTableManager(
@@ -360,13 +335,12 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
 
     List<AnalyticsTableColumn> columns = new ArrayList<>(getFixedColumns());
 
-    String selectExpression =
+    String enrolledInProgramExpression =
         """
         \s exists(select 1 from enrollment pi_0 \
         where pi_0.trackedentityid = tei.trackedentityid \
         and pi_0.programid = ${programId})""";
 
-    // Review this logic, it could result in many columns
     CollectionUtils.emptyIfNull(programsByTetUid.get(tet.getUid()))
         .forEach(
             program ->
@@ -376,7 +350,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
                         .dataType(BOOLEAN)
                         .selectExpression(
                             replace(
-                                selectExpression,
+                                enrolledInProgramExpression,
                                 Map.of("programId", String.valueOf(program.getId()))))
                         .build()));
 
@@ -464,6 +438,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
   private List<AnalyticsTableColumn> getFixedColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
     columns.addAll(FIXED_GROUP_BY_COLS);
+    columns.addAll(getOrganisationUnitLevelColumns());
     columns.add(getOrganisationUnitNameHierarchyColumn());
     columns.addAll(FIXED_NON_GROUP_BY_COLS);
 

@@ -549,6 +549,44 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
+  void shouldOrderTrackedEntitiesByInactiveDesc()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
+            .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
+            .trackedEntityTypeUid(trackedEntityType.getUid())
+            .user(importUser)
+            .orderBy("inactive", SortDirection.DESC)
+            .build();
+
+    List<String> trackedEntities = getTrackedEntities(params);
+
+    assertEquals(List.of("QS6w44flWAf", "dUE514NMOlo"), trackedEntities);
+  }
+
+  @Test
+  void shouldOrderTrackedEntitiesByInactiveAsc()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
+            .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
+            .trackedEntityTypeUid(trackedEntityType.getUid())
+            .user(importUser)
+            .orderBy("inactive", SortDirection.ASC)
+            .build();
+
+    List<String> trackedEntities = getTrackedEntities(params);
+
+    assertEquals(List.of("dUE514NMOlo", "QS6w44flWAf"), trackedEntities);
+  }
+
+  @Test
   void shouldReturnPaginatedEnrollmentsGivenNonDefaultPageSize()
       throws ForbiddenException, BadRequestException {
     EnrollmentOperationParams operationParams =

@@ -53,7 +53,7 @@ public class TeiQuery4AutoTest extends AnalyticsApiTest {
     QueryParamsBuilder params =
         new QueryParamsBuilder()
             .add("includeMetadataDetails=true")
-            .add("asc=ouname")
+            .add("asc=oucode")
             .add("headers=ouname")
             .add("displayProperty=NAME")
             .add("totalPages=false")
@@ -89,106 +89,15 @@ public class TeiQuery4AutoTest extends AnalyticsApiTest {
         response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
 
     // Assert rows.
-    validateRow(response, 0, List.of(" Panderu MCHP"));
-    validateRow(response, 1, List.of(" Panderu MCHP"));
-    validateRow(response, 2, List.of(" Panderu MCHP"));
-    validateRow(response, 3, List.of(" Panderu MCHP"));
-    validateRow(response, 4, List.of(" Panderu MCHP"));
-    validateRow(response, 5, List.of(" Panderu MCHP"));
-    validateRow(response, 6, List.of(" Panderu MCHP"));
-    validateRow(response, 7, List.of(" Panderu MCHP"));
-    validateRow(response, 8, List.of(" Panderu MCHP"));
-    validateRow(response, 9, List.of(" Panderu MCHP"));
-    validateRow(response, 10, List.of(" Panderu MCHP"));
-    validateRow(response, 11, List.of(" Panderu MCHP"));
-    validateRow(response, 12, List.of(" Panderu MCHP"));
-    validateRow(response, 13, List.of(" Panderu MCHP"));
-    validateRow(response, 14, List.of("Adonkia CHP"));
-    validateRow(response, 15, List.of("Adonkia CHP"));
-    validateRow(response, 16, List.of("Adonkia CHP"));
-    validateRow(response, 17, List.of("Adonkia CHP"));
-    validateRow(response, 18, List.of("Adonkia CHP"));
-    validateRow(response, 19, List.of("Adonkia CHP"));
-    validateRow(response, 20, List.of("Adonkia CHP"));
-    validateRow(response, 21, List.of("Adonkia CHP"));
-    validateRow(response, 22, List.of("Adonkia CHP"));
-    validateRow(response, 23, List.of("Adonkia CHP"));
-    validateRow(response, 24, List.of("Adonkia CHP"));
-    validateRow(response, 25, List.of("Adonkia CHP"));
-    validateRow(response, 26, List.of("Adonkia CHP"));
-    validateRow(response, 27, List.of("Adonkia CHP"));
-    validateRow(response, 28, List.of("Adonkia CHP"));
-    validateRow(response, 29, List.of("Adonkia CHP"));
-    validateRow(response, 30, List.of("Adonkia CHP"));
-    validateRow(response, 31, List.of("Adonkia CHP"));
-    validateRow(response, 32, List.of("Adonkia CHP"));
-    validateRow(response, 33, List.of("Adonkia CHP"));
-    validateRow(response, 34, List.of("Adonkia CHP"));
-    validateRow(response, 35, List.of("Adonkia CHP"));
-    validateRow(response, 36, List.of("Adonkia CHP"));
-    validateRow(response, 37, List.of("Adonkia CHP"));
-    validateRow(response, 38, List.of("Afro Arab Clinic"));
-    validateRow(response, 39, List.of("Afro Arab Clinic"));
-    validateRow(response, 40, List.of("Afro Arab Clinic"));
-    validateRow(response, 41, List.of("Afro Arab Clinic"));
-    validateRow(response, 42, List.of("Afro Arab Clinic"));
-    validateRow(response, 43, List.of("Afro Arab Clinic"));
-    validateRow(response, 44, List.of("Afro Arab Clinic"));
-    validateRow(response, 45, List.of("Afro Arab Clinic"));
-    validateRow(response, 46, List.of("Afro Arab Clinic"));
-    validateRow(response, 47, List.of("Afro Arab Clinic"));
-    validateRow(response, 48, List.of("Afro Arab Clinic"));
-    validateRow(response, 49, List.of("Afro Arab Clinic"));
-    validateRow(response, 50, List.of("Agape CHP"));
-    validateRow(response, 51, List.of("Agape CHP"));
-    validateRow(response, 52, List.of("Agape CHP"));
-    validateRow(response, 53, List.of("Agape CHP"));
-    validateRow(response, 54, List.of("Agape CHP"));
-    validateRow(response, 55, List.of("Agape CHP"));
-    validateRow(response, 56, List.of("Agape CHP"));
-    validateRow(response, 57, List.of("Agape CHP"));
-    validateRow(response, 58, List.of("Agape CHP"));
-    validateRow(response, 59, List.of("Agape CHP"));
-    validateRow(response, 60, List.of("Agape CHP"));
-    validateRow(response, 61, List.of("Agape CHP"));
-    validateRow(response, 62, List.of("Agape CHP"));
-    validateRow(response, 63, List.of("Agape CHP"));
-    validateRow(response, 64, List.of("Agape CHP"));
-    validateRow(response, 65, List.of("Agape CHP"));
-    validateRow(response, 66, List.of("Agape CHP"));
-    validateRow(response, 67, List.of("Agape CHP"));
-    validateRow(response, 68, List.of("Agape CHP"));
-    validateRow(response, 69, List.of("Agape CHP"));
-    validateRow(response, 70, List.of("Agape CHP"));
-    validateRow(response, 71, List.of("Ahamadyya Mission Cl"));
-    validateRow(response, 72, List.of("Ahamadyya Mission Cl"));
-    validateRow(response, 73, List.of("Ahamadyya Mission Cl"));
-    validateRow(response, 74, List.of("Ahamadyya Mission Cl"));
-    validateRow(response, 75, List.of("Ahamadyya Mission Cl"));
-    validateRow(response, 76, List.of("Ahamadyya Mission Cl"));
-    validateRow(response, 77, List.of("Ahamadyya Mission Cl"));
-    validateRow(response, 78, List.of("Ahamadyya Mission Cl"));
-    validateRow(response, 79, List.of("Ahamadyya Mission Cl"));
-    validateRow(response, 80, List.of("Ahamadyya Mission Cl"));
-    validateRow(response, 81, List.of("Ahamadyya Mission Cl"));
-    validateRow(response, 82, List.of("Ahamadyya Mission Cl"));
-    validateRow(response, 83, List.of("Ahamadyya Mission Cl"));
-    validateRow(response, 84, List.of("Ahamadyya Mission Cl"));
-    validateRow(response, 85, List.of("Ahamadyya Mission Cl"));
-    validateRow(response, 86, List.of("Ahamadyya Mission Cl"));
-    validateRow(response, 87, List.of("Ahamadyya Mission Cl"));
-    validateRow(response, 88, List.of("Ahmadiyya Muslim Hospital"));
-    validateRow(response, 89, List.of("Ahmadiyya Muslim Hospital"));
-    validateRow(response, 90, List.of("Ahmadiyya Muslim Hospital"));
-    validateRow(response, 91, List.of("Ahmadiyya Muslim Hospital"));
-    validateRow(response, 92, List.of("Ahmadiyya Muslim Hospital"));
-    validateRow(response, 93, List.of("Ahmadiyya Muslim Hospital"));
-    validateRow(response, 94, List.of("Ahmadiyya Muslim Hospital"));
-    validateRow(response, 95, List.of("Ahmadiyya Muslim Hospital"));
-    validateRow(response, 96, List.of("Ahmadiyya Muslim Hospital"));
-    validateRow(response, 97, List.of("Ahmadiyya Muslim Hospital"));
-    validateRow(response, 98, List.of("Ahmadiyya Muslim Hospital"));
-    validateRow(response, 99, List.of("Ahmadiyya Muslim Hospital"));
+    validateRow(response, 0, List.of("Praise Foundation CHC"));
+    validateRow(response, 10, List.of("Praise Foundation CHC"));
+    validateRow(response, 11, List.of("Bucksal Clinic"));
+    validateRow(response, 26, List.of("Bucksal Clinic"));
+    validateRow(response, 27, List.of("Harvest Time MCHP"));
+    validateRow(response, 35, List.of("Harvest Time MCHP"));
+    validateRow(response, 36, List.of("Yemoh Town CHC"));
+    validateRow(response, 48, List.of("Yemoh Town CHC"));
+    validateRow(response, 49, List.of("Bandajuma MCHP"));
   }
 
   @Test

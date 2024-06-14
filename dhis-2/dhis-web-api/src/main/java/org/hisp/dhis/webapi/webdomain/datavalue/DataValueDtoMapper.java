@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.webdomain.datavalue;
 
-import static org.hisp.dhis.commons.collection.CollectionUtils.mapToSet;
+import static org.hisp.dhis.common.collection.CollectionUtils.mapToSet;
 
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;

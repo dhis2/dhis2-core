@@ -27,11 +27,15 @@
  */
 package org.hisp.dhis.appmanager;
 
+import lombok.Getter;
+
+@Getter
 public enum AppStatus {
   OK("ok"),
   INVALID_BUNDLED_APP_OVERRIDE("invalid_bundled_app_override"),
   INVALID_CORE_APP("invalid_core_app"),
   NAMESPACE_TAKEN("namespace_defined_in_manifest_is_in_use"),
+  NAMESPACE_INVALID("namespace_invalid"),
   INVALID_ZIP_FORMAT("zip_file_could_not_be_read"),
   MISSING_MANIFEST("missing_manifest"),
   INVALID_MANIFEST_JSON("invalid_json_in_app_manifest_file"),
@@ -43,7 +47,7 @@ public enum AppStatus {
   NOT_APPROVED("not_approved"),
   DELETION_IN_PROGRESS("deletion_in_progress");
 
-  private String message;
+  private final String message;
 
   AppStatus(String message) {
     this.message = message;
@@ -51,9 +55,5 @@ public enum AppStatus {
 
   public boolean ok() {
     return this == OK;
-  }
-
-  public String getMessage() {
-    return message;
   }
 }

@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Set;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
-import org.hibernate.Session;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRule;
@@ -67,15 +66,25 @@ public class HibernateProgramRuleStore extends HibernateIdentifiableObjectStore<
   }
 
   @Override
-  public List<ProgramRule> getProgramRulesLinkedToTeaOrDe() {
+  public List<String> getDataElementsPresentInProgramRules() {
 
-    String jql =
-        "SELECT distinct pr FROM ProgramRule pr, Program p "
-            + "JOIN FETCH pr.programRuleActions pra "
-            + "WHERE p.uid = pr.program.uid AND "
-            + "(pra.dataElement IS NOT NULL OR pra.attribute IS NOT NULL)";
-    Session session = getSession();
-    return session.createQuery(jql, ProgramRule.class).getResultList();
+    String sql =
+        """
+            SELECT distinct de.uid
+            FROM ProgramRuleAction pra join dataelement de ON pra.dataelementid = de.dataelementid
+        """;
+    return jdbcTemplate.queryForList(sql, String.class);
+  }
+
+  @Override
+  public List<String> getTrackedEntityAttributesPresentInProgramRules() {
+
+    String sql =
+        """
+            SELECT distinct tea.uid
+            FROM ProgramRuleAction pra JOIN trackedentityattribute tea ON pra.trackedentityattributeid = tea.trackedentityattributeid
+        """;
+    return jdbcTemplate.queryForList(sql, String.class);
   }
 
   @Override
