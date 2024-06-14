@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.dataentry;
 
-import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
+import static org.hisp.dhis.common.collection.CollectionUtils.mapToList;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;

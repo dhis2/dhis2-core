@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.data;
 import static java.util.Arrays.asList;
 import static java.util.Collections.sort;
 import static java.util.stream.Collectors.toUnmodifiableList;
+import static org.apache.commons.lang3.StringUtils.substringAfter;
 import static org.hisp.dhis.DhisConvenienceTest.createCategory;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.hisp.dhis.DhisConvenienceTest.createIndicator;
@@ -48,6 +49,8 @@ import static org.hisp.dhis.common.DisplayProperty.SHORTNAME;
 import static org.hisp.dhis.common.IdScheme.NAME;
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.feedback.ErrorCode.E7124;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_DATASET;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_PROGRAM;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_FINANCIAL_YEAR_START;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -293,6 +296,64 @@ class DimensionalObjectProducerTest {
     assertKeywordForDimensionalObject(refDimensionKeywords.getKeywords().get(2), level2Ou2);
     assertKeywordForDimensionalObject(refDimensionKeywords.getKeywords().get(3), ou1);
     assertKeywordForDimensionalObject(refDimensionKeywords.getKeywords().get(4), ou2);
+  }
+
+  @Test
+  void testGetOrgUnitDimensionWithWithDataSet() {
+    // Given
+    OrganisationUnit ou1 = createOrganisationUnit('A');
+    OrganisationUnit ou2 = createOrganisationUnit('B');
+    List<OrganisationUnit> organisationUnits = new ArrayList<>(asList(ou1, ou2));
+    List<String> itemsUid = List.of("DS-lyLU2wR22tC");
+
+    // When
+    when(organisationUnitService.getDataSetOrganisationUnits(
+            substringAfter("DS-lyLU2wR22tC", KEY_DATASET)))
+        .thenReturn(new ArrayList<>(asList(ou1, ou2)));
+
+    BaseDimensionalObject dimensionalObject =
+        target.getOrgUnitDimension(itemsUid, DisplayProperty.NAME, organisationUnits, UID);
+
+    // Then
+    assertEquals("ou", dimensionalObject.getDimension());
+    assertEquals("ou", dimensionalObject.getUid());
+    assertEquals(ORGANISATION_UNIT, dimensionalObject.getDimensionType());
+    assertEquals("Organisation unit", dimensionalObject.getDimensionDisplayName());
+
+    sort(dimensionalObject.getItems());
+    OrganisationUnit refOu1 = (OrganisationUnit) dimensionalObject.getItems().get(0);
+    OrganisationUnit refOu2 = (OrganisationUnit) dimensionalObject.getItems().get(1);
+    assertOrgUnits(ou1, refOu1);
+    assertOrgUnits(ou2, refOu2);
+  }
+
+  @Test
+  void testGetOrgUnitDimensionWithWithProgram() {
+    // Given
+    OrganisationUnit ou1 = createOrganisationUnit('A');
+    OrganisationUnit ou2 = createOrganisationUnit('B');
+    List<OrganisationUnit> organisationUnits = new ArrayList<>(asList(ou1, ou2));
+    List<String> itemsUid = List.of("PR-lxAQ7Zs9VYR");
+
+    // When
+    when(organisationUnitService.getProgramOrganisationUnits(
+            substringAfter("PR-lxAQ7Zs9VYR", KEY_PROGRAM)))
+        .thenReturn(new ArrayList<>(asList(ou1, ou2)));
+
+    BaseDimensionalObject dimensionalObject =
+        target.getOrgUnitDimension(itemsUid, DisplayProperty.NAME, organisationUnits, UID);
+
+    // Then
+    assertEquals("ou", dimensionalObject.getDimension());
+    assertEquals("ou", dimensionalObject.getUid());
+    assertEquals(ORGANISATION_UNIT, dimensionalObject.getDimensionType());
+    assertEquals("Organisation unit", dimensionalObject.getDimensionDisplayName());
+
+    sort(dimensionalObject.getItems());
+    OrganisationUnit refOu1 = (OrganisationUnit) dimensionalObject.getItems().get(0);
+    OrganisationUnit refOu2 = (OrganisationUnit) dimensionalObject.getItems().get(1);
+    assertOrgUnits(ou1, refOu1);
+    assertOrgUnits(ou2, refOu2);
   }
 
   @Test

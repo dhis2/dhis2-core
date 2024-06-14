@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.resolver;
 
-import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
+import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 
 import com.google.common.base.Joiner;

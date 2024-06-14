@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,31 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.programrule;
+package org.hisp.dhis.datastore;
 
-import java.util.List;
+import static org.hisp.dhis.common.collection.CollectionUtils.union;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.io.Serializable;
 import java.util.Set;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.program.Program;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import lombok.Data;
 
 /**
- * @author markusbekken
+ * A {@link DatastoreNamespace} is the input declaration for a {@link DatastoreNamespaceProtection}
+ * object.
+ *
+ * <p>Note that this type needs to be {@link Serializable} as it is put in a cache as part of the
+ * {@link org.hisp.dhis.appmanager.App}.
+ *
+ * @author Jan Bernitt
  */
-public interface ProgramRuleStore extends IdentifiableObjectStore<ProgramRule> {
-  /**
-   * Get programRule by program
-   *
-   * @param program {@link Program}
-   * @return ProgramRuleVariable list
-   */
-  List<ProgramRule> get(Program program);
+@Data
+public class DatastoreNamespace implements Serializable {
 
-  List<String> getDataElementsPresentInProgramRules();
+  private static final long serialVersionUID = -1653792127753819375L;
 
-  List<String> getTrackedEntityAttributesPresentInProgramRules();
+  /** The namespace name an app wants to use in a protected manner */
+  @JsonProperty @CheckForNull private String namespace;
 
-  List<ProgramRule> getProgramRulesByActionTypes(Program program, Set<ProgramRuleActionType> types);
+  /** A user must have one of these authorities to be able to read/write the namespace */
+  @JsonProperty @CheckForNull private Set<String> authorities;
 
-  List<ProgramRule> getProgramRulesByActionTypes(
-      Program program, Set<ProgramRuleActionType> serverSupportedTypes, String programStageUid);
+  /** A user must have one of these authorities to be able to read the namespace */
+  @JsonProperty @CheckForNull private Set<String> readAuthorities;
+
+  /** A user must have one of these authorities to be able to write the namespace */
+  @JsonProperty @CheckForNull private Set<String> writeAuthorities;
+
+  @Nonnull
+  public Set<String> getAllAuthorities() {
+    return union(authorities, readAuthorities, writeAuthorities);
+  }
 }
