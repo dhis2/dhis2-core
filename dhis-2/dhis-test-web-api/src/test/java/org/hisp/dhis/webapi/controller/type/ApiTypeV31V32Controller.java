@@ -41,7 +41,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  */
 @OpenApi.Ignore
 @Controller
-@RequestMapping("/type/testV31V32")
+@RequestMapping("/api/type/testV31V32")
 @ApiVersion({DhisApiVersion.V31, DhisApiVersion.V32})
 public class ApiTypeV31V32Controller {
   @GetMapping

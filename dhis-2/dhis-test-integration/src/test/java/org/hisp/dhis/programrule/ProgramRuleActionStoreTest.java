@@ -30,7 +30,6 @@ package org.hisp.dhis.programrule;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.List;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.program.Program;
@@ -63,63 +62,6 @@ class ProgramRuleActionStoreTest extends SingleSetupIntegrationTestBase {
     programService.addProgram(programA);
     programRuleStore.save(programRuleA);
     dataElementService.addDataElement(dataElementA);
-  }
-
-  @Test
-  void testGetByProgram() {
-    ProgramRuleAction actionA =
-        new ProgramRuleAction(
-            "ActionA",
-            programRuleA,
-            ProgramRuleActionType.ASSIGN,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            "$myvar",
-            "true",
-            null,
-            null);
-    ProgramRuleAction actionB =
-        new ProgramRuleAction(
-            "ActionB",
-            programRuleA,
-            ProgramRuleActionType.DISPLAYTEXT,
-            null,
-            null,
-            null,
-            null,
-            null,
-            "con",
-            "Hello",
-            "$placeofliving",
-            null,
-            null);
-    ProgramRuleAction actionC =
-        new ProgramRuleAction(
-            "ActionC",
-            programRuleA,
-            ProgramRuleActionType.HIDEFIELD,
-            dataElementA,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null);
-    actionStore.save(actionA);
-    actionStore.save(actionB);
-    actionStore.save(actionC);
-    List<ProgramRuleAction> vars = actionStore.get(programRuleA);
-    assertEquals(3, vars.size());
-    assertTrue(vars.contains(actionA));
-    assertTrue(vars.contains(actionB));
-    assertTrue(vars.contains(actionC));
   }
 
   @Test

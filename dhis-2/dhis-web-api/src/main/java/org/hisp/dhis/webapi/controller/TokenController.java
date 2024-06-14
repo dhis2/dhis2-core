@@ -50,12 +50,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags({"user", "login"})
+@OpenApi.Document(domain = Server.class)
 @Controller
-@RequestMapping(value = TokenController.RESOURCE_PATH)
+@RequestMapping("/api/tokens")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class TokenController {
-  public static final String RESOURCE_PATH = "/tokens";
 
   private static final String TOKEN_CACHE_KEY = "keyGoogleAccessToken";
 

@@ -63,10 +63,10 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
@@ -367,7 +367,7 @@ class EventExporterTest extends TrackerTest {
         operationParamsBuilder
             .enrollments(Set.of("nxP7UnKhomJ"))
             .programStageUid(programStage.getUid())
-            .programStatus(ProgramStatus.ACTIVE)
+            .enrollmentStatus(EnrollmentStatus.ACTIVE)
             .dataElementFilters(
                 Map.of(dataElement.getUid(), List.of(new QueryFilter(QueryOperator.LIKE, "%val%"))))
             .build();

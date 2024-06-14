@@ -88,7 +88,7 @@ public class DefaultStartupRoutineExecutor implements StartupRoutineExecutor {
     int index = 1;
 
     for (StartupRoutine routine : startupRoutines) {
-      if (!(testing && routine.skipInTests())) {
+      if (!(testing && routine.skipInTests() || routine.skip())) {
         log.info(
             "Executing startup routine ["
                 + index
@@ -102,6 +102,8 @@ public class DefaultStartupRoutineExecutor implements StartupRoutineExecutor {
         routine.execute();
 
         ++index;
+      } else {
+        log.warn("Skipped startup routine {}", routine.getName());
       }
     }
 

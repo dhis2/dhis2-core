@@ -29,8 +29,10 @@ package org.hisp.dhis.pushanalysis.scheduling;
 
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.email.EmailService;
 import org.hisp.dhis.scheduling.Job;
@@ -41,7 +43,10 @@ import org.hisp.dhis.scheduling.parameters.HtmlPushAnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.HtmlPushAnalyticsJobParameters.ViewMode;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.UserSettingService;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -72,6 +77,7 @@ public class HtmlPushAnalyticsJob implements Job {
   private final EmailService emailService;
   private final SystemSettingManager settings;
   private final UserService userService;
+  private final UserSettingService userSettingService;
   private final RestTemplate restTemplate;
 
   @Override
@@ -98,14 +104,15 @@ public class HtmlPushAnalyticsJob implements Job {
     String subject = config.getName();
     if (params.getMode() == ViewMode.EXECUTOR) {
       String viewerId = config.getExecutedBy();
-      String viewer = userService.getUser(viewerId).getUsername();
-      String viewerUrl = url.replace("{username}", viewer);
+      User viewer = userService.getUser(viewerId);
+      String viewerName = viewer.getUsername();
+      String viewerUrl = substituteUrl(url, viewerName);
       progress.startingStage(
-          "Fetching push analytics HTML for user %s (%s)".formatted(viewer, viewerUrl));
+          "Fetching push analytics HTML for user %s (%s)".formatted(viewerName, viewerUrl));
       String body = progress.runStage(() -> getPushAnalyticsHtmlBody(viewerUrl));
       progress.startingStage(
           "Sending push analytics to %d receivers as viewed by %s"
-              .formatted(receiversEmailsByUsername.size(), viewer));
+              .formatted(receiversEmailsByUsername.size(), viewerName));
       progress.runStage(
           () ->
               emailService.sendEmail(
@@ -115,18 +122,30 @@ public class HtmlPushAnalyticsJob implements Job {
           "Sending push analytics to %d receivers as viewed by themselves"
               .formatted(receiversEmailsByUsername.size()),
           SKIP_ITEM);
-      progress.runStage(
-          receiversEmailsByUsername.entrySet().stream(),
-          e -> "For user %s (%s)".formatted(e.getKey(), url.replace("{username}", e.getKey())),
+      progress.runStageInParallel(
+          8,
+          receiversEmailsByUsername.entrySet(),
+          e -> "For user %s (%s)".formatted(e.getKey(), substituteUrl(url, e.getKey())),
           e -> {
             String body =
-                progress.runStage(
-                    () -> getPushAnalyticsHtmlBody(url.replace("{username}", e.getKey())));
+                progress.runStage(() -> getPushAnalyticsHtmlBody(substituteUrl(url, e.getKey())));
             emailService.sendEmail(subject, body, Set.of(e.getValue()));
-          },
-          "%d successful, %d failed"::formatted);
+          });
     }
     progress.completedProcess(null);
+  }
+
+  @Nonnull
+  private String substituteUrl(String urlTemplate, String username) {
+    String url = urlTemplate.replace("{username}", username);
+    if (url.contains("{locale}")) {
+      Locale locale =
+          (Locale) userSettingService.getUserSetting(UserSettingKey.DB_LOCALE, username);
+      if (locale == null)
+        locale = (Locale) userSettingService.getUserSetting(UserSettingKey.UI_LOCALE, username);
+      url = url.replace("{locale}", locale == null ? "" : locale.toLanguageTag());
+    }
+    return url;
   }
 
   private Map<String, String> stageComputeReceivers(

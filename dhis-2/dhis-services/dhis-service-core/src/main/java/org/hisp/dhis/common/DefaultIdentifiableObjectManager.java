@@ -65,8 +65,8 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
+import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
-import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.schema.Schema;
@@ -836,6 +836,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     }
 
     switch (property) {
+      case ID:
       case UID:
         return store.getByUid(identifiers);
       case CODE:

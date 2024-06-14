@@ -323,6 +323,8 @@ public enum ConfigurationKey {
   /** Datacenter location (not required). */
   FILESTORE_LOCATION("filestore.location", "", false),
 
+  FILESTORE_ENDPOINT("filestore.endpoint", "", false),
+
   /** Public identity / username. */
   FILESTORE_IDENTITY("filestore.identity", "", false),
 
@@ -349,6 +351,9 @@ public enum ConfigurationKey {
   /** EHCache replication remote object port. */
   CLUSTER_CACHE_REMOTE_OBJECT_PORT("cluster.cache.remote.object.port", "0", false),
 
+  /** Enable redis cache. (default: false) */
+  REDIS_ENABLED("redis.enabled", Constants.OFF, false),
+
   /** Redis host to use for cache. (default: localhost) */
   REDIS_HOST("redis.host", "localhost", false),
 
@@ -360,9 +365,6 @@ public enum ConfigurationKey {
 
   /** Use SSL for connecting to redis. (default: false) */
   REDIS_USE_SSL("redis.use.ssl", Constants.OFF, false),
-
-  /** Enable redis cache. (default: false) */
-  REDIS_ENABLED("redis.enabled", Constants.OFF, false),
 
   /**
    * Allows Flyway migrations to be run "out of order".
@@ -383,8 +385,10 @@ public enum ConfigurationKey {
   /** Use unlogged tables during analytics export. (default: ON) */
   ANALYTICS_TABLE_UNLOGGED("analytics.table.unlogged", Constants.ON),
 
-  /** Order analytics tables data on insert. */
-  ANALYTICS_TABLE_ORDERING("analytics.table.ordering", Constants.OFF),
+  /**
+   * Skip building indexes on analytics tables for the comma-separated list of UIDs. Experimental.
+   */
+  ANALYTICS_TABLE_SKIP_INDEX("analytics.table.skip_index", "", false),
 
   /**
    * Artemis support mode, 2 modes supported: EMBEDDED (starts up an embedded Artemis which lives in

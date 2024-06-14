@@ -55,10 +55,10 @@ import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
@@ -68,10 +68,10 @@ import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.hisp.dhis.rules.api.DataItem;
-import org.hisp.dhis.rules.models.Rule;
 import org.hisp.dhis.rules.models.RuleDataValue;
 import org.hisp.dhis.rules.models.RuleEnrollment;
 import org.hisp.dhis.rules.models.RuleEvent;
+import org.hisp.dhis.rules.models.RuleEventStatus;
 import org.hisp.dhis.rules.models.RuleVariable;
 import org.hisp.dhis.rules.models.RuleVariableAttribute;
 import org.hisp.dhis.rules.models.RuleVariableCalculatedValue;
@@ -167,18 +167,9 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
   public void initTest() {
     subject =
         new DefaultProgramRuleEntityMapperService(
-            programRuleService, programRuleVariableService, constantService, i18nManager);
+            programRuleVariableService, constantService, i18nManager);
 
     setUpProgramRules();
-  }
-
-  @Test
-  void testMappedProgramRules() {
-    when(programRuleService.getAllProgramRule()).thenReturn(programRules);
-
-    List<Rule> rules = subject.toMappedProgramRules();
-
-    assertEquals(3, rules.size());
   }
 
   @Test
@@ -219,17 +210,8 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
   }
 
   @Test
-  void testMappedRuleEventsWithFilter() {
-    List<RuleEvent> ruleEvents =
-        subject.toMappedRuleEvents(Sets.newHashSet(eventA, eventB), eventB);
-
-    assertEquals(1, ruleEvents.size());
-    assertEquals(expectedRuleEvent, ruleEvents.get(0));
-  }
-
-  @Test
   void testMappedRuleEvents() {
-    List<RuleEvent> ruleEvents = subject.toMappedRuleEvents(Sets.newHashSet(eventA, eventB), null);
+    List<RuleEvent> ruleEvents = subject.toMappedRuleEvents(Sets.newHashSet(eventA, eventB));
 
     assertEquals(2, ruleEvents.size());
   }
@@ -421,7 +403,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
     enrollmentB = new Enrollment(now, now, trackedEntity, program);
     enrollment = new Enrollment(now, now, trackedEntity, program);
     enrollment.setOrganisationUnit(organisationUnit);
-    enrollment.setStatus(ProgramStatus.ACTIVE);
+    enrollment.setStatus(EnrollmentStatus.ACTIVE);
     enrollment.setAutoFields();
     enrollment.setEnrollmentDate(now);
     enrollment.setOccurredDate(now);
@@ -448,9 +430,9 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
             eventA.getUid(),
             programStage.getUid(),
             programStage.getName(),
-            RuleEvent.Status.valueOf(eventA.getStatus().name()),
+            RuleEventStatus.valueOf(eventA.getStatus().name()),
             Instant.Companion.fromEpochMilliseconds(now.getTime()),
-            LocalDateTime.Companion.parse(DateUtils.toIso8601NoTz(now)).getDate(),
+            LocalDateTime.Formats.INSTANCE.getISO().parse(DateUtils.toIso8601NoTz(now)).getDate(),
             null,
             organisationUnit.getUid(),
             organisationUnit.getCode(),

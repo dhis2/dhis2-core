@@ -71,7 +71,7 @@ import lombok.Value;
  * @author Jan Bernitt
  */
 @Value(staticConstructor = "of")
-public class ConsistentAnnotatedElement implements AnnotatedElement {
+class ConsistentAnnotatedElement implements AnnotatedElement {
   AnnotatedElement target;
 
   @Override

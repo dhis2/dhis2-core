@@ -70,4 +70,11 @@ public abstract class AbstractStartupRoutine implements StartupRoutine {
   public boolean skipInTests() {
     return skipInTests;
   }
+
+  @Override
+  public boolean skip() {
+    String skipProperty = "dhis.skip.startup." + this.getName();
+    String shouldSkip = System.getProperty(skipProperty);
+    return "true".equalsIgnoreCase(shouldSkip);
+  }
 }

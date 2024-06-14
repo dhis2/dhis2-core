@@ -27,17 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.schema.descriptors.DataApprovalLevelSchemaDescriptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-@OpenApi.Tags("metadata")
 @Controller
-@RequestMapping(value = DataApprovalLevelSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/dataApprovalLevels")
 public class DataApprovalLevelController extends AbstractCrudController<DataApprovalLevel> {
   @Autowired private DataApprovalLevelService dataApprovalLevelService;
 

@@ -31,10 +31,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.OpenApi;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Shared(value = false, reason = "should be inlined in Access")
 @JacksonXmlRootElement(localName = "data", namespace = DxfNamespaces.DXF_2_0)
 public class AccessData {
   private boolean write;

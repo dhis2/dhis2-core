@@ -54,6 +54,7 @@ import static org.hisp.dhis.db.model.Table.STAGING_TABLE_SUFFIX;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -78,7 +79,6 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
-import org.hisp.dhis.analytics.table.util.PartitionUtils;
 import org.hisp.dhis.analytics.util.AnalyticsTableAsserter;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -115,8 +115,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
-
-// import com.google.common.collect.Lists;
 
 /**
  * @author Luciano Fiandesio
@@ -160,7 +158,11 @@ class JdbcEventAnalyticsTableManagerTest {
           .map(
               pt -> {
                 String column = pt.getName().toLowerCase();
-                return new AnalyticsTableColumn(column, TEXT, "dps" + "." + quote(column));
+                return AnalyticsTableColumn.builder()
+                    .name(column)
+                    .dataType(TEXT)
+                    .selectExpression("dps" + "." + quote(column))
+                    .build();
               })
           .toList();
 
@@ -330,11 +332,11 @@ class JdbcEventAnalyticsTableManagerTest {
     assertThat(
         lastUpdated.getSelectExpression(),
         is(
-            "CASE WHEN psi.lastupdatedatclient IS NOT NULL THEN psi.lastupdatedatclient ELSE psi.lastupdated END"));
+            "case when psi.lastupdatedatclient is not null then psi.lastupdatedatclient else psi.lastupdated end"));
     assertThat(
         created.getSelectExpression(),
         is(
-            "CASE WHEN psi.createdatclient IS NOT NULL THEN psi.createdatclient ELSE psi.created END"));
+            "case when psi.createdatclient is not null then psi.createdatclient else psi.created end"));
   }
 
   @Test
@@ -620,9 +622,11 @@ class JdbcEventAnalyticsTableManagerTest {
             getYearQueryForCurrentYear(programA, true, availableDataYears), Integer.class))
         .thenReturn(List.of(2018, 2019));
 
-    subject.populateTable(
-        params, PartitionUtils.getTablePartitions(subject.getAnalyticsTables(params)).get(0));
+    List<AnalyticsTable> analyticsTables = subject.getAnalyticsTables(params);
+    assertFalse(analyticsTables.isEmpty());
+    AnalyticsTablePartition partition = new AnalyticsTablePartition(analyticsTables.get(0));
 
+    subject.populateTable(params, partition);
     verify(jdbcTemplate).execute(sql.capture());
 
     String ouQuery =
@@ -670,9 +674,11 @@ class JdbcEventAnalyticsTableManagerTest {
             getYearQueryForCurrentYear(programA, true, availableDataYears), Integer.class))
         .thenReturn(List.of(2018, 2019));
 
-    subject.populateTable(
-        params, PartitionUtils.getTablePartitions(subject.getAnalyticsTables(params)).get(0));
+    List<AnalyticsTable> analyticsTables = subject.getAnalyticsTables(params);
+    assertFalse(analyticsTables.isEmpty());
+    AnalyticsTablePartition partition = new AnalyticsTablePartition(analyticsTables.get(0));
 
+    subject.populateTable(params, partition);
     verify(jdbcTemplate).execute(sql.capture());
 
     String ouQuery =
@@ -688,7 +694,6 @@ class JdbcEventAnalyticsTableManagerTest {
 
   @Test
   void verifyOrgUnitOwnershipJoinsWhenPopulatingEventAnalyticsTable() {
-    // Given fixtures/expectations
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
     when(databaseInfoProvider.getDatabaseInfo())
         .thenReturn(DatabaseInfo.builder().spatialSupport(true).build());
@@ -719,11 +724,12 @@ class JdbcEventAnalyticsTableManagerTest {
             getYearQueryForCurrentYear(programA, true, availableDataYears), Integer.class))
         .thenReturn(List.of(2018, 2019));
 
-    // When
-    subject.populateTable(
-        params, PartitionUtils.getTablePartitions(subject.getAnalyticsTables(params)).get(0));
+    List<AnalyticsTable> analyticsTables = subject.getAnalyticsTables(params);
+    assertFalse(analyticsTables.isEmpty());
+    AnalyticsTablePartition partition = new AnalyticsTablePartition(analyticsTables.get(0));
 
-    // Then
+    subject.populateTable(params, partition);
+
     verify(jdbcTemplate).execute(sql.capture());
 
     String ouEnrollmentLeftJoin =
@@ -761,7 +767,7 @@ class JdbcEventAnalyticsTableManagerTest {
                 + ") is not null "
                 + "and ("
                 + getDateLinkedToStatus()
-                + ") > '1000-01-01' and psi.deleted is false ) "
+                + ") > '1000-01-01' and psi.deleted = false ) "
                 + "as temp where temp.supportedyear >= "
                 + startYear
                 + " and temp.supportedyear <= "
@@ -942,7 +948,7 @@ class JdbcEventAnalyticsTableManagerTest {
                 + ") is not null "
                 + "and ("
                 + getDateLinkedToStatus()
-                + ") > '1000-01-01' and psi.deleted is false and ("
+                + ") > '1000-01-01' and psi.deleted = false and ("
                 + getDateLinkedToStatus()
                 + ") >= '2018-01-01') "
                 + "as temp where temp.supportedyear >= "
@@ -959,8 +965,11 @@ class JdbcEventAnalyticsTableManagerTest {
             .withToday(today)
             .build();
 
-    subject.populateTable(
-        params, PartitionUtils.getTablePartitions(subject.getAnalyticsTables(params)).get(0));
+    List<AnalyticsTable> analyticsTables = subject.getAnalyticsTables(params);
+    assertFalse(analyticsTables.isEmpty());
+    AnalyticsTablePartition partition = new AnalyticsTablePartition(analyticsTables.get(0));
+
+    subject.populateTable(params, partition);
 
     verify(jdbcTemplate).execute(sql.capture());
 
@@ -1001,7 +1010,7 @@ class JdbcEventAnalyticsTableManagerTest {
             + getDateLinkedToStatus()
             + ") is not null and ("
             + getDateLinkedToStatus()
-            + ") > '1000-01-01' and psi.deleted is false ";
+            + ") > '1000-01-01' and psi.deleted = false ";
 
     if (withExecutionDate) {
       sql += "and (" + getDateLinkedToStatus() + ") >= '2018-01-01'";

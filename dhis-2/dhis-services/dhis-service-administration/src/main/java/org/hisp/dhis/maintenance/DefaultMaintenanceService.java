@@ -133,7 +133,7 @@ public class DefaultMaintenanceService implements MaintenanceService {
   public int deleteSoftDeletedTrackedEntities() {
     int result = maintenanceStore.deleteSoftDeletedTrackedEntities();
 
-    log.info("Permanently deleted soft deleted tracked entity instances: " + result);
+    log.info("Permanently deleted soft deleted tracked entities: {}", result);
 
     return result;
   }

@@ -46,6 +46,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.Status;
@@ -54,7 +55,6 @@ import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceOwner;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
-import org.hisp.dhis.schema.descriptors.FileResourceSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -75,9 +75,8 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * @author Halvdan Hoem Grelland
  */
-@OpenApi.Tags("system")
 @RestController
-@RequestMapping(value = FileResourceSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/fileResources")
 @Slf4j
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
@@ -166,9 +165,9 @@ public class FileResourceController extends AbstractFullReadOnlyController<FileR
       @RequestParam MultipartFile file,
       @RequestParam(defaultValue = "DATA_VALUE") FileResourceDomain domain,
       @RequestParam(required = false) String uid)
-      throws WebMessageException, IOException {
+      throws IOException, ConflictException {
     FileResource fileResource;
-    if (domain.equals(FileResourceDomain.CUSTOM_ICON)) {
+    if (domain.equals(FileResourceDomain.ICON)) {
       validateCustomIconFile(file);
       fileResource = fileResourceUtils.saveFileResource(uid, resizeToDefaultIconSize(file), domain);
     } else {

@@ -47,13 +47,17 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.gson.JsonObject;
+import io.restassured.http.Header;
+import io.restassured.http.Headers;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
+import org.apache.http.HttpHeaders;
 import org.hamcrest.Matcher;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.dto.ApiResponse;
@@ -73,6 +77,8 @@ import org.skyscreamer.jsonassert.JSONAssert;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class TrackerExportTest extends TrackerApiTest {
+  private static final String DEFAULT_JSON_CONTENT_TYPE_WITH_HTML_REQUEST =
+      "%s do not default to application/json format when the Accept header is html";
   private static final String TE = "Kj6vYde4LHh";
 
   private static final String TE_POTENTIAL_DUPLICATE = "Nav6inZRw1u";
@@ -99,32 +105,35 @@ public class TrackerExportTest extends TrackerApiTest {
 
     TrackerApiResponse response =
         trackerImportExportActions.postAndGetJobReport(
-            new File("src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json"));
+            new File(
+                "src/test/resources/tracker/importer/trackedEntities/trackedEntitiesWithEnrollmentsAndEvents.json"));
 
-    trackedEntityA = response.validateSuccessfulImport().extractImportedTeis().get(0);
-    trackedEntityB = response.validateSuccessfulImport().extractImportedTeis().get(1);
+    trackedEntityA = response.validateSuccessfulImport().extractImportedTrackedEntities().get(0);
+    trackedEntityB = response.validateSuccessfulImport().extractImportedTrackedEntities().get(1);
 
     enrollment = response.extractImportedEnrollments().get(0);
 
     event = response.extractImportedEvents().get(0);
 
     trackedEntityToTrackedEntityRelationship =
-        importRelationshipBetweenTeis(trackedEntityA, trackedEntityB)
+        importRelationshipBetweenTrackedEntities(trackedEntityA, trackedEntityB)
             .extractImportedRelationships()
             .get(0);
     enrollmentToTrackedEntityRelationship =
-        importRelationshipEnrollmentToTei(enrollment, trackedEntityB)
+        importRelationshipEnrollmentToTrackedEntity(enrollment, trackedEntityB)
             .extractImportedRelationships()
             .get(0);
 
     eventToTrackedEntityRelationship =
-        importRelationshipEventToTei(event, trackedEntityB).extractImportedRelationships().get(0);
+        importRelationshipEventToTrackedEntity(event, trackedEntityB)
+            .extractImportedRelationships()
+            .get(0);
 
     trackedEntityWithEnrollmentAndEventsTemplate =
         new FileReaderUtils()
             .read(
                 new File(
-                    "src/test/resources/tracker/importer/teis/teiWithEnrollmentAndEventsNested.json"))
+                    "src/test/resources/tracker/importer/trackedEntities/trackedEntityWithEnrollmentAndEventsNested.json"))
             .get(JsonObject.class);
   }
 
@@ -213,7 +222,7 @@ public class TrackerExportTest extends TrackerApiTest {
 
     trackerImportExportActions
         .getTrackedEntity(
-            response.extractImportedTeis().get(0),
+            response.extractImportedTrackedEntities().get(0),
             new QueryParamsBuilder().add("fields", "enrollments"))
         .validate()
         .statusCode(200)
@@ -242,7 +251,7 @@ public class TrackerExportTest extends TrackerApiTest {
   }
 
   @Test
-  public void shouldGetTrackedEntitiesWithSofDeletedEventsWhenIncludeDeletedInRequest() {
+  public void shouldGetTrackedEntitiesWithSoftDeletedEventsWhenIncludeDeletedInRequest() {
     TrackerApiResponse response =
         trackerImportExportActions
             .postAndGetJobReport(
@@ -259,12 +268,12 @@ public class TrackerExportTest extends TrackerApiTest {
                 .add("fields", "enrollments")
                 .add("program", "f1AyMswryyQ")
                 .add("orgUnit", "O6uvpzGd5pu")
-                .add("trackedEntity", response.extractImportedTeis().get(0)))
+                .add("trackedEntity", response.extractImportedTrackedEntities().get(0)))
         .validate()
         .statusCode(200)
         .body(
             "trackedEntities.enrollments.flatten().findAll { it.trackedEntity == '"
-                + response.extractImportedTeis().get(0)
+                + response.extractImportedTrackedEntities().get(0)
                 + "' }.events.flatten()",
             empty());
 
@@ -274,7 +283,7 @@ public class TrackerExportTest extends TrackerApiTest {
                 .add("fields", "enrollments")
                 .add("program", "f1AyMswryyQ")
                 .add("orgUnit", "O6uvpzGd5pu")
-                .add("trackedEntity", response.extractImportedTeis().get(0))
+                .add("trackedEntity", response.extractImportedTrackedEntities().get(0))
                 .add("includeDeleted", "true"))
         .validate()
         .statusCode(200)
@@ -463,10 +472,10 @@ public class TrackerExportTest extends TrackerApiTest {
   }
 
   @Test
-  public void shouldReturnFilteredEvent() {
+  public void shouldReturnEventWithEnrollmentOccurredOnADateWhenBeforeAndAfterIsTheSameDate() {
     trackerImportExportActions
         .get(
-            "events?enrollmentOccurredAfter=2019-08-16&enrollmentOccurredBefore=2019-08-20&event=ZwwuwNp6gVd")
+            "events?enrollmentOccurredAfter=2019-08-19&enrollmentOccurredBefore=2019-08-19&event=ZwwuwNp6gVd")
         .validate()
         .statusCode(200)
         .rootPath("events[0]")
@@ -542,6 +551,88 @@ public class TrackerExportTest extends TrackerApiTest {
         .body("trackedEntities", iterableWithSize(1))
         .body("trackedEntities[0].trackedEntity", equalTo(TE_POTENTIAL_DUPLICATE))
         .body("trackedEntities[0].potentialDuplicate", equalTo(true));
+  }
+
+  @Test
+  void whenGetEventsShouldDefaultToJsonContentTypeWithHtmlAcceptHeader() {
+    ApiResponse response =
+        trackerImportExportActions.getWithHeaders(
+            "events?event=" + event,
+            null,
+            new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
+
+    List<String> events = response.extractList("events.event.flatten()");
+    assertEquals(
+        List.of(event),
+        events,
+        String.format(DEFAULT_JSON_CONTENT_TYPE_WITH_HTML_REQUEST, "Events"));
+  }
+
+  @Test
+  void whenGetEventsCsvShouldGetCsvContentTypeWithHtmlAcceptHeader() {
+    ApiResponse response =
+        trackerImportExportActions.getWithHeaders(
+            "events.csv?event=" + event,
+            null,
+            new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
+
+    assertTrue(response.getContentType().contains("application/csv"));
+  }
+
+  @Test
+  void whenGetTrackedEntitiesShouldDefaultToJsonContentTypeWithHtmlAcceptHeader() {
+    ApiResponse response =
+        trackerImportExportActions.getWithHeaders(
+            "trackedEntities?trackedEntities=" + trackedEntityA,
+            null,
+            new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
+
+    List<String> trackedEntities = response.extractList("trackedEntities.trackedEntity.flatten()");
+    assertEquals(
+        List.of(trackedEntityA),
+        trackedEntities,
+        String.format(DEFAULT_JSON_CONTENT_TYPE_WITH_HTML_REQUEST, "Tracked Entities"));
+  }
+
+  @Test
+  void whenGetTrackedEntitiesCsvShouldGetCsvContentTypeWithHtmlAcceptHeader() {
+    ApiResponse response =
+        trackerImportExportActions.getWithHeaders(
+            "trackedEntities.csv?trackedEntities=" + trackedEntityA,
+            null,
+            new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
+
+    assertTrue(response.getContentType().contains("application/csv"));
+  }
+
+  @Test
+  void whenGetEnrollmentsShouldDefaultToJsonContentTypeWithHtmlAcceptHeader() {
+    ApiResponse response =
+        trackerImportExportActions.getWithHeaders(
+            "enrollments?enrollments=" + enrollment,
+            null,
+            new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
+
+    List<String> enrollments = response.extractList("enrollments.enrollment.flatten()");
+    assertEquals(
+        List.of(enrollment),
+        enrollments,
+        String.format(DEFAULT_JSON_CONTENT_TYPE_WITH_HTML_REQUEST, "Enrollments"));
+  }
+
+  @Test
+  void whenGetRelationshipsShouldDefaultToJsonContentTypeWithHtmlAcceptHeader() {
+    ApiResponse response =
+        trackerImportExportActions.getWithHeaders(
+            "relationships?trackedEntity=" + trackedEntityA,
+            null,
+            new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
+
+    List<String> relationships = response.extractList("relationships.relationship.flatten()");
+    assertEquals(
+        List.of(trackedEntityToTrackedEntityRelationship),
+        relationships,
+        String.format(DEFAULT_JSON_CONTENT_TYPE_WITH_HTML_REQUEST, "Relationships"));
   }
 
   private static QueryParamsBuilder paramsForTrackedEntitiesIncludingPotentialDuplicate() {

@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.data;
 import static java.util.Arrays.asList;
 import static java.util.Collections.sort;
 import static java.util.stream.Collectors.toUnmodifiableList;
+import static org.apache.commons.lang3.StringUtils.substringAfter;
 import static org.hisp.dhis.DhisConvenienceTest.createCategory;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.hisp.dhis.DhisConvenienceTest.createIndicator;
@@ -48,6 +49,8 @@ import static org.hisp.dhis.common.DisplayProperty.SHORTNAME;
 import static org.hisp.dhis.common.IdScheme.NAME;
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.feedback.ErrorCode.E7124;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_DATASET;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_PROGRAM;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_FINANCIAL_YEAR_START;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -65,7 +68,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
-import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -92,8 +94,8 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -114,8 +116,6 @@ class DimensionalObjectProducerTest {
   @Mock private OrganisationUnitService organisationUnitService;
 
   @Mock private DimensionService dimensionService;
-
-  @Mock private AnalyticsSecurityManager securityManager;
 
   @Mock private SystemSettingManager systemSettingManager;
 
@@ -299,6 +299,64 @@ class DimensionalObjectProducerTest {
   }
 
   @Test
+  void testGetOrgUnitDimensionWithWithDataSet() {
+    // Given
+    OrganisationUnit ou1 = createOrganisationUnit('A');
+    OrganisationUnit ou2 = createOrganisationUnit('B');
+    List<OrganisationUnit> organisationUnits = new ArrayList<>(asList(ou1, ou2));
+    List<String> itemsUid = List.of("DS-lyLU2wR22tC");
+
+    // When
+    when(organisationUnitService.getDataSetOrganisationUnits(
+            substringAfter("DS-lyLU2wR22tC", KEY_DATASET)))
+        .thenReturn(new ArrayList<>(asList(ou1, ou2)));
+
+    BaseDimensionalObject dimensionalObject =
+        target.getOrgUnitDimension(itemsUid, DisplayProperty.NAME, organisationUnits, UID);
+
+    // Then
+    assertEquals("ou", dimensionalObject.getDimension());
+    assertEquals("ou", dimensionalObject.getUid());
+    assertEquals(ORGANISATION_UNIT, dimensionalObject.getDimensionType());
+    assertEquals("Organisation unit", dimensionalObject.getDimensionDisplayName());
+
+    sort(dimensionalObject.getItems());
+    OrganisationUnit refOu1 = (OrganisationUnit) dimensionalObject.getItems().get(0);
+    OrganisationUnit refOu2 = (OrganisationUnit) dimensionalObject.getItems().get(1);
+    assertOrgUnits(ou1, refOu1);
+    assertOrgUnits(ou2, refOu2);
+  }
+
+  @Test
+  void testGetOrgUnitDimensionWithWithProgram() {
+    // Given
+    OrganisationUnit ou1 = createOrganisationUnit('A');
+    OrganisationUnit ou2 = createOrganisationUnit('B');
+    List<OrganisationUnit> organisationUnits = new ArrayList<>(asList(ou1, ou2));
+    List<String> itemsUid = List.of("PR-lxAQ7Zs9VYR");
+
+    // When
+    when(organisationUnitService.getProgramOrganisationUnits(
+            substringAfter("PR-lxAQ7Zs9VYR", KEY_PROGRAM)))
+        .thenReturn(new ArrayList<>(asList(ou1, ou2)));
+
+    BaseDimensionalObject dimensionalObject =
+        target.getOrgUnitDimension(itemsUid, DisplayProperty.NAME, organisationUnits, UID);
+
+    // Then
+    assertEquals("ou", dimensionalObject.getDimension());
+    assertEquals("ou", dimensionalObject.getUid());
+    assertEquals(ORGANISATION_UNIT, dimensionalObject.getDimensionType());
+    assertEquals("Organisation unit", dimensionalObject.getDimensionDisplayName());
+
+    sort(dimensionalObject.getItems());
+    OrganisationUnit refOu1 = (OrganisationUnit) dimensionalObject.getItems().get(0);
+    OrganisationUnit refOu2 = (OrganisationUnit) dimensionalObject.getItems().get(1);
+    assertOrgUnits(ou1, refOu1);
+    assertOrgUnits(ou2, refOu2);
+  }
+
+  @Test
   void testGetDimensionWhenOrgUnitsAreNotFound() {
     List<String> nonExistingItemsUid = List.of("LEVEL-Achv9EO3hR1", "OU_GROUP-Blhv9EO3hR1");
 
@@ -436,11 +494,7 @@ class DimensionalObjectProducerTest {
     List<String> items = List.of("ALL_ITEMS");
     category.setCategoryOptions(List.of(new CategoryOption()));
 
-    UserDetailsImpl currentUserDetails = new UserDetailsImpl();
-    currentUserDetails.setAllAuthorities(Set.of("ALL"));
-    currentUserDetails.setUsername("admin");
-    currentUserDetails.setSuper(true);
-    injectSecurityContext(currentUserDetails);
+    injectSecurityContext(new SystemUser());
 
     // when
     when(idObjectManager.get(DYNAMIC_DIM_CLASSES, UID, categoryUid)).thenReturn(category);

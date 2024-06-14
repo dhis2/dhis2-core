@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
+import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedUidsParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
@@ -38,10 +39,13 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.EnrollmentOperationParamsBuilder;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.webdomain.EndDateTime;
+import org.hisp.dhis.webapi.webdomain.StartDateTime;
 import org.springframework.stereotype.Component;
 
 /**
@@ -75,6 +79,13 @@ class EnrollmentRequestParamsMapper {
 
     orgUnitMode = validateOrgUnitModeForEnrollmentsAndEvents(orgUnits, orgUnitMode);
 
+    EnrollmentStatus enrollmentStatus =
+        validateDeprecatedParameter(
+            "programStatus",
+            enrollmentRequestParams.getProgramStatus(),
+            "status",
+            enrollmentRequestParams.getStatus());
+
     validateOrderParams(enrollmentRequestParams.getOrder(), ORDERABLE_FIELD_NAMES);
     validateRequestParams(enrollmentRequestParams);
 
@@ -87,24 +98,20 @@ class EnrollmentRequestParamsMapper {
 
     EnrollmentOperationParamsBuilder builder =
         EnrollmentOperationParams.builder()
-            .programUid(
-                enrollmentRequestParams.getProgram() != null
-                    ? enrollmentRequestParams.getProgram().getValue()
-                    : null)
-            .programStatus(enrollmentRequestParams.getProgramStatus())
+            .programUid(applyIfNotNull(enrollmentRequestParams.getProgram(), UID::getValue))
+            .enrollmentStatus(enrollmentStatus)
             .followUp(enrollmentRequestParams.getFollowUp())
-            .lastUpdated(enrollmentRequestParams.getUpdatedAfter())
+            .lastUpdated(
+                applyIfNotNull(enrollmentRequestParams.getUpdatedAfter(), StartDateTime::toDate))
             .lastUpdatedDuration(enrollmentRequestParams.getUpdatedWithin())
-            .programStartDate(enrollmentRequestParams.getEnrolledAfter())
-            .programEndDate(enrollmentRequestParams.getEnrolledBefore())
+            .programStartDate(
+                applyIfNotNull(enrollmentRequestParams.getEnrolledAfter(), StartDateTime::toDate))
+            .programEndDate(
+                applyIfNotNull(enrollmentRequestParams.getEnrolledBefore(), EndDateTime::toDate))
             .trackedEntityTypeUid(
-                enrollmentRequestParams.getTrackedEntityType() != null
-                    ? enrollmentRequestParams.getTrackedEntityType().getValue()
-                    : null)
+                applyIfNotNull(enrollmentRequestParams.getTrackedEntityType(), UID::getValue))
             .trackedEntityUid(
-                enrollmentRequestParams.getTrackedEntity() != null
-                    ? enrollmentRequestParams.getTrackedEntity().getValue()
-                    : null)
+                applyIfNotNull(enrollmentRequestParams.getTrackedEntity(), UID::getValue))
             .orgUnitUids(UID.toValueSet(orgUnits))
             .orgUnitMode(orgUnitMode)
             .includeDeleted(enrollmentRequestParams.isIncludeDeleted())
@@ -132,24 +139,30 @@ class EnrollmentRequestParamsMapper {
   private void validateRequestParams(EnrollmentRequestParams params) throws BadRequestException {
     if (params.getProgram() != null && params.getTrackedEntityType() != null) {
       throw new BadRequestException(
-          "Program and tracked entity cannot be specified simultaneously");
+          "`program` and `trackedEntityType` cannot be specified simultaneously");
     }
 
     if (params.getProgram() == null) {
       if (params.getProgramStatus() != null) {
-        throw new BadRequestException("Program must be defined when `programStatus` is defined");
+        throw new BadRequestException("`program` must be defined when `programStatus` is defined");
+      }
+      if (params.getStatus() != null) {
+        throw new BadRequestException("`program` must be defined when `status` is defined");
       }
 
       if (params.getFollowUp() != null) {
-        throw new BadRequestException("Program must be defined when `followUp` status is defined");
+        throw new BadRequestException(
+            "`program` must be defined when `followUp` status is defined");
       }
 
       if (params.getEnrolledAfter() != null) {
-        throw new BadRequestException("Program must be defined when `enrolledAfter` is specified");
+        throw new BadRequestException(
+            "`program` must be defined when `enrolledAfter` is specified");
       }
 
       if (params.getEnrolledBefore() != null) {
-        throw new BadRequestException("Program must be defined when `enrolledBefore` is specified");
+        throw new BadRequestException(
+            "`program` must be defined when `enrolledBefore` is specified");
       }
     }
 

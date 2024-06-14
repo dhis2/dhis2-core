@@ -30,6 +30,7 @@ package org.hisp.dhis.programrule;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.program.Program;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author markusbekken
@@ -65,31 +66,11 @@ public interface ProgramRuleService {
    */
   ProgramRule getProgramRule(long id);
 
-  /**
-   * Returns a {@link ProgramRule}.
-   *
-   * @param uid the uid of the ProgramRule to return.
-   * @return the ProgramRule with the given uid
-   */
-  ProgramRule getProgramRule(String uid);
+  @Transactional(readOnly = true)
+  List<String> getDataElementsPresentInProgramRules();
 
-  /**
-   * Returns a {@link ProgramRule}.
-   *
-   * @param name the name of the ProgramRule to return.
-   * @param program {@link Program}.
-   * @return the ProgramRule with the given name
-   */
-  ProgramRule getProgramRuleByName(String name, Program program);
-
-  /**
-   * Returns all {@link ProgramRule}.
-   *
-   * @return a collection of all ProgramRule, or an empty collection if there are no ProgramRules.
-   */
-  List<ProgramRule> getAllProgramRule();
-
-  List<ProgramRule> getProgramRulesLinkedToTeaOrDe();
+  @Transactional(readOnly = true)
+  List<String> getTrackedEntityAttributesPresentInProgramRules();
 
   List<ProgramRule> getProgramRulesByActionTypes(Program program, Set<ProgramRuleActionType> types);
 
@@ -103,27 +84,4 @@ public interface ProgramRuleService {
    * @return ProgramRule list
    */
   List<ProgramRule> getProgramRule(Program program);
-
-  /**
-   * Get validation by {@link Program}
-   *
-   * @param program Program
-   * @param key Search Program Rule by key
-   * @return ProgramRule list
-   */
-  List<ProgramRule> getProgramRules(Program program, String key);
-
-  /**
-   * @return all {@link ProgramRule} with no priority
-   */
-  List<ProgramRule> getProgramRulesWithNoPriority();
-
-  List<ProgramRule> getProgramRulesWithNoCondition();
-
-  List<ProgramRule> getProgramRulesByEvaluationTime(ProgramRuleActionEvaluationTime evaluationTime);
-
-  List<ProgramRule> getProgramRulesByEvaluationEnvironment(
-      ProgramRuleActionEvaluationEnvironment evaluationEnvironment);
-
-  List<ProgramRule> getProgramRulesWithNoAction();
 }

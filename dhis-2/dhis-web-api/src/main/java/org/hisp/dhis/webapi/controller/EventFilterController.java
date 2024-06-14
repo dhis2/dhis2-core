@@ -30,10 +30,8 @@ package org.hisp.dhis.webapi.controller;
 import java.util.List;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.programstagefilter.EventFilter;
 import org.hisp.dhis.programstagefilter.EventFilterService;
-import org.hisp.dhis.schema.descriptors.EventFilterSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -41,9 +39,8 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
-@OpenApi.Tags("tracker")
 @RestController
-@RequestMapping(value = EventFilterSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/eventFilters")
 @ApiVersion(include = {DhisApiVersion.ALL, DhisApiVersion.DEFAULT})
 public class EventFilterController extends AbstractCrudController<EventFilter> {
   private final EventFilterService eventFilterService;

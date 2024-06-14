@@ -33,11 +33,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import lombok.RequiredArgsConstructor;
+import java.util.function.Function;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
@@ -45,6 +47,7 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.AuthorityType;
 import org.hisp.dhis.security.acl.AccessStringHelper.Permission;
+import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -57,11 +60,32 @@ import org.springframework.stereotype.Service;
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@RequiredArgsConstructor
 @Service("org.hisp.dhis.security.acl.AclService")
 public class DefaultAclService implements AclService {
 
   private final SchemaService schemaService;
+  private final Cache<CurrentUserGroupInfo> userGroupInfoCache;
+
+  public DefaultAclService(SchemaService schemaService, CacheProvider cacheProvider) {
+    this.schemaService = schemaService;
+    this.userGroupInfoCache = cacheProvider.createCurrentUserGroupInfoCache();
+  }
+
+  @Override
+  public CurrentUserGroupInfo getCurrentUserGroupInfo(
+      String userUid, Function<String, CurrentUserGroupInfo> cacheSupplier) {
+    return userGroupInfoCache.get(userUid, cacheSupplier);
+  }
+
+  @Override
+  public void invalidateCurrentUserGroupInfoCache() {
+    userGroupInfoCache.invalidateAll();
+  }
+
+  @Override
+  public void invalidateCurrentUserGroupInfoCache(String userUid) {
+    userGroupInfoCache.invalidate(userUid);
+  }
 
   @Override
   public boolean isSupported(String type) {
@@ -364,7 +388,7 @@ public class DefaultAclService implements AclService {
   @Override
   public boolean canDataRead(User user, IdentifiableObject object) {
     // TODO: MAS UserDetails.fromUser(user) needs further refactoring
-    return canDataRead(UserDetails.fromUser(user), object);
+    return canDataRead(UserDetails.fromUserDontLoadOrgUnits(user), object);
   }
 
   @Override

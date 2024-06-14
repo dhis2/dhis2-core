@@ -28,6 +28,7 @@
 package org.hisp.dhis.scheduling;
 
 import static java.lang.String.format;
+import static java.lang.System.currentTimeMillis;
 import static java.util.stream.Collectors.joining;
 import static org.hisp.dhis.eventhook.EventUtils.schedulerCompleted;
 import static org.hisp.dhis.eventhook.EventUtils.schedulerFailed;
@@ -93,7 +94,9 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
     JobConfiguration config = jobConfigurationStore.getByUid(defaults.uid());
     if (config == null) {
       jobConfigurationService.createDefaultJob(JobType.HOUSEKEEPING, actingUser);
-    } else if (config.getJobStatus() != JobStatus.SCHEDULED) {
+    } else if (config.getJobStatus() != JobStatus.SCHEDULED
+        && (config.getLastAlive() == null
+            || currentTimeMillis() - config.getLastAlive().getTime() > 60_000)) {
       finishRunCancel(config.getUid());
     }
   }
@@ -168,7 +171,7 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
       authenticationService.obtainSystemAuthentication();
     }
     JobConfiguration job = jobConfigurationStore.getByUid(jobId);
-    if (job == null) return NoopJobProgress.INSTANCE;
+    if (job == null) return JobProgress.noop();
     return startRecording(job, observer);
   }
 
@@ -258,14 +261,14 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
     JobProgress tracker =
         job.getJobType().isUsingNotifications()
             ? new NotifierJobProgress(notifier, job)
-            : NoopJobProgress.INSTANCE;
+            : JobProgress.noop();
     boolean logInfoOnDebug =
         job.getSchedulingType() != SchedulingType.ONCE_ASAP
             && job.getLastExecuted() != null
             && Duration.between(job.getLastExecuted().toInstant(), Instant.now()).getSeconds()
                 < systemSettings.getIntSetting(SettingKey.JOBS_LOG_DEBUG_BELOW_SECONDS);
     RecordingJobProgress progress =
-        new RecordingJobProgress(messages, job, tracker, true, observer, logInfoOnDebug);
+        new RecordingJobProgress(messages, job, tracker, true, observer, logInfoOnDebug, false);
     recordingsById.put(job.getUid(), progress);
     return progress;
   }

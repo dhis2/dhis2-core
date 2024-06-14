@@ -27,13 +27,14 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static java.lang.String.format;
 import static java.lang.String.join;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getStartDate;
+import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_32;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
@@ -54,6 +55,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -61,6 +63,7 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
@@ -84,36 +87,159 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Component("org.hisp.dhis.analytics.TeiEventsAnalyticsTableManager")
 public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager {
+
+  private static final String EVENT_DATA_VALUE_REBUILDER =
+      """
+            (select json_object_agg(l2.keys, l2.datavalue) as value
+             from (select l1.uid,
+                          l1.keys,
+                          json_strip_nulls(json_build_object(
+                                  'value', l1.eventdatavalues -> l1.keys ->> 'value',
+                                  'created', l1.eventdatavalues -> l1.keys ->> 'created',
+                                  'storedBy', l1.eventdatavalues -> l1.keys ->> 'storedBy',
+                                  'lastUpdated', l1.eventdatavalues -> l1.keys ->> 'lastUpdated',
+                                  'providedElsewhere', l1.eventdatavalues -> l1.keys -> 'providedElsewhere',
+                                  'value_name', (select ou.name
+                                                 from organisationunit ou
+                                                 where ou.uid = l1.eventdatavalues -> l1.keys ->> 'value'),
+                                  'value_code', (select ou.code
+                                                 from organisationunit ou
+                                                 where ou.uid = l1.eventdatavalues -> l1.keys ->> 'value'))) as datavalue
+                   from (select inner_evt.*, jsonb_object_keys(inner_evt.eventdatavalues) keys
+                         from event inner_evt) as l1) as l2
+             where l2.uid = psi.uid
+             group by l2.uid)::jsonb
+      """;
+
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
-          new AnalyticsTableColumn("trackedentityinstanceuid", CHARACTER_11, NOT_NULL, "tei.uid"),
-          new AnalyticsTableColumn("programuid", CHARACTER_11, NULL, "p.uid"),
-          new AnalyticsTableColumn("programinstanceuid", CHARACTER_11, NULL, "pi.uid"),
-          new AnalyticsTableColumn("programstageuid", CHARACTER_11, NULL, "ps.uid"),
-          new AnalyticsTableColumn("programstageinstanceuid", CHARACTER_11, NULL, "psi.uid"),
-          new AnalyticsTableColumn("occurreddate", TIMESTAMP, "psi.occurreddate"),
-          new AnalyticsTableColumn("lastupdated", TIMESTAMP, "psi.lastupdated"),
-          new AnalyticsTableColumn("created", TIMESTAMP, "psi.created"),
-          new AnalyticsTableColumn("scheduleddate", TIMESTAMP, "psi.scheduleddate"),
-          new AnalyticsTableColumn("status", VARCHAR_50, "psi.status"),
-          new AnalyticsTableColumn("psigeometry", GEOMETRY, "psi.geometry", IndexType.GIST),
-          new AnalyticsTableColumn(
-              "psilongitude",
-              DOUBLE,
-              "case when 'POINT' = GeometryType(psi.geometry) then ST_X(psi.geometry) end"),
-          new AnalyticsTableColumn(
-              "psilatitude",
-              DOUBLE,
-              "case when 'POINT' = GeometryType(psi.geometry) then ST_Y(psi.geometry) end"),
-          new AnalyticsTableColumn("uidlevel1", CHARACTER_11, NULL, "ous.uidlevel1"),
-          new AnalyticsTableColumn("uidlevel2", CHARACTER_11, NULL, "ous.uidlevel2"),
-          new AnalyticsTableColumn("uidlevel3", CHARACTER_11, NULL, "ous.uidlevel3"),
-          new AnalyticsTableColumn("uidlevel4", CHARACTER_11, NULL, "ous.uidlevel4"),
-          new AnalyticsTableColumn("ou", CHARACTER_11, NULL, "ou.uid"),
-          new AnalyticsTableColumn("ouname", VARCHAR_255, NULL, "ou.name"),
-          new AnalyticsTableColumn("oucode", CHARACTER_32, NULL, "ou.code"),
-          new AnalyticsTableColumn("oulevel", INTEGER, NULL, "ous.level"),
-          new AnalyticsTableColumn("eventdatavalues", JSONB, "psi.eventdatavalues"));
+          AnalyticsTableColumn.builder()
+              .name("trackedentityinstanceuid")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("tei.uid")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("programuid")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("p.uid")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("programinstanceuid")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("pi.uid")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("programstageuid")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("ps.uid")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("programstageinstanceuid")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("psi.uid")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("occurreddate")
+              .dataType(TIMESTAMP)
+              .selectExpression("psi.occurreddate")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("lastupdated")
+              .dataType(TIMESTAMP)
+              .selectExpression("psi.lastupdated")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("created")
+              .dataType(TIMESTAMP)
+              .selectExpression("psi.created")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("scheduleddate")
+              .dataType(TIMESTAMP)
+              .selectExpression("psi.scheduleddate")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("status")
+              .dataType(VARCHAR_50)
+              .selectExpression("psi.status")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("psigeometry")
+              .dataType(GEOMETRY)
+              .selectExpression("psi.geometry")
+              .indexType(IndexType.GIST)
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("psilongitude")
+              .dataType(DOUBLE)
+              .selectExpression(
+                  "case when 'POINT' = GeometryType(psi.geometry) then ST_X(psi.geometry) end")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("psilatitude")
+              .dataType(DOUBLE)
+              .selectExpression(
+                  "case when 'POINT' = GeometryType(psi.geometry) then ST_Y(psi.geometry) end")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("uidlevel1")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("ous.uidlevel1")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("uidlevel2")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("ous.uidlevel2")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("uidlevel3")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("ous.uidlevel3")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("uidlevel4")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("ous.uidlevel4")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("ou")
+              .dataType(CHARACTER_11)
+              .nullable(NULL)
+              .selectExpression("ou.uid")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("ouname")
+              .dataType(VARCHAR_255)
+              .nullable(NULL)
+              .selectExpression("ou.name")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("oucode")
+              .dataType(CHARACTER_32)
+              .nullable(NULL)
+              .selectExpression("ou.code")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("oulevel")
+              .dataType(INTEGER)
+              .nullable(NULL)
+              .selectExpression("ous.level")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("eventdatavalues")
+              .dataType(JSONB)
+              .selectExpression(EVENT_DATA_VALUE_REBUILDER)
+              .skipIndex(Skip.SKIP)
+              .build());
 
   private static final String AND = " and (";
 
@@ -196,23 +322,26 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
   }
 
   private List<Integer> getDataYears(AnalyticsTableUpdateParams params, TrackedEntityType tet) {
-    StringBuilder sql =
-        new StringBuilder("select temp.supportedyear from")
-            .append(
-                " (select distinct extract(year from "
-                    + eventDateExpression
-                    + ") as supportedyear ")
-            .append(" from trackedentity tei ")
-            .append(
-                " inner join trackedentitytype tet on tet.trackedentitytypeid = tei.trackedentitytypeid ")
-            .append(" inner join enrollment pi on pi.trackedentityid = tei.trackedentityid ")
-            .append(" inner join event psi on psi.enrollmentid = pi.enrollmentid")
-            .append(" where psi.lastupdated <= '" + toLongDate(params.getStartTime()) + "' ")
-            .append(" and tet.trackedentitytypeid = " + tet.getId() + " ")
-            .append(AND + eventDateExpression + ") is not null ")
-            .append(AND + eventDateExpression + ") > '1000-01-01' ")
-            .append(" and psi.deleted is false ")
-            .append(" and tei.deleted is false");
+    StringBuilder sql = new StringBuilder();
+    sql.append(
+        replace(
+            """
+            select temp.supportedyear from \
+            (select distinct extract(year from ${eventDateExpression}) as supportedyear \
+            from trackedentity tei \
+            inner join trackedentitytype tet on tet.trackedentitytypeid = tei.trackedentitytypeid \
+            inner join enrollment pi on pi.trackedentityid = tei.trackedentityid \
+            inner join event psi on psi.enrollmentid = pi.enrollmentid \
+            where psi.lastupdated <= '${startTime}' \
+            and tet.trackedentitytypeid = ${tetId} \
+            and (${eventDateExpression}) is not null \
+            and (${eventDateExpression}) > '1000-01-01' \
+            and psi.deleted = false \
+            and tei.deleted = false\s""",
+            Map.of(
+                "eventDateExpression", eventDateExpression,
+                "startTime", toLongDate(params.getStartTime()),
+                "tetId", String.valueOf(tet.getId()))));
 
     if (params.getFromDate() != null) {
       sql.append(AND + eventDateExpression + ") >= '" + toMediumDate(params.getFromDate()) + "'");
@@ -225,19 +354,23 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
     Integer latestDataYear = availableDataYears.get(availableDataYears.size() - 1);
 
     sql.append(
-        " ) as temp where temp.supportedyear >= "
-            + firstDataYear
-            + " and temp.supportedyear <= "
-            + latestDataYear);
+        replace(
+            """
+             ) as temp where temp.supportedyear >= ${firstDataYear} \
+             and temp.supportedyear <= ${latestDataYear}\s""",
+            Map.of(
+                "firstDataYear", String.valueOf(firstDataYear),
+                "latestDataYear", String.valueOf(latestDataYear))));
 
     return jdbcTemplate.queryForList(sql.toString(), Integer.class);
   }
 
   private List<AnalyticsTableColumn> getColumns() {
-    List<AnalyticsTableColumn> analyticsTableColumnList = new ArrayList<>(FIXED_COLS);
-    analyticsTableColumnList.add(getOrganisationUnitNameHierarchyColumn());
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
+    columns.addAll(FIXED_COLS);
+    columns.add(getOrganisationUnitNameHierarchyColumn());
 
-    return analyticsTableColumnList;
+    return columns;
   }
 
   @Override
@@ -252,8 +385,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
    * @param partition the {@link AnalyticsTablePartition} to populate.
    */
   @Override
-  protected void populateTable(
-      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+  public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
     String partitionClause = getPartitionClause(partition);
@@ -271,28 +403,31 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
     }
 
     removeLastComma(sql)
-        .append(" from event psi")
         .append(
-            " inner join enrollment pi on pi.enrollmentid = psi.enrollmentid"
-                + " and pi.deleted is false")
-        .append(
-            " inner join trackedentity tei on tei.trackedentityid = pi.trackedentityid"
-                + " and tei.deleted is false"
-                + " and tei.trackedentitytypeid = "
-                + partition.getMasterTable().getTrackedEntityType().getId()
-                + " and tei.lastupdated < '"
-                + toLongDate(params.getStartTime())
-                + "'")
-        .append(" left join programstage ps on ps.programstageid = psi.programstageid")
-        .append(" left join program p on p.programid = ps.programid")
-        .append(" left join organisationunit ou on psi.organisationunitid = ou.organisationunitid")
-        .append(
-            " left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid")
-        .append(" where psi.status in (" + join(",", EXPORTABLE_EVENT_STATUSES) + ") ")
-        .append(partitionClause)
-        .append(" and psi.deleted is false ");
+            replace(
+                """
+                \s from event psi \
+                inner join enrollment pi on pi.enrollmentid = psi.enrollmentid \
+                and pi.deleted = false \
+                inner join trackedentity tei on tei.trackedentityid = pi.trackedentityid \
+                and tei.deleted = false \
+                and tei.trackedentitytypeid = ${tetId} \
+                and tei.lastupdated < '${startTime}' \
+                left join programstage ps on ps.programstageid = psi.programstageid \
+                left join program p on p.programid = ps.programid \
+                left join organisationunit ou on psi.organisationunitid = ou.organisationunitid \
+                left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
+                where psi.status in (${statuses}) \
+                ${partitionClause} \
+                and psi.deleted = false\s""",
+                Map.of(
+                    "tetId",
+                        String.valueOf(partition.getMasterTable().getTrackedEntityType().getId()),
+                    "startTime", toLongDate(params.getStartTime()),
+                    "statuses", join(",", EXPORTABLE_EVENT_STATUSES),
+                    "partitionClause", partitionClause)));
 
-    invokeTimeAndLog(sql.toString(), tableName);
+    invokeTimeAndLog(sql.toString(), "Populating table: '{}'", tableName);
   }
 
   /**
@@ -304,25 +439,15 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
   private String getPartitionClause(AnalyticsTablePartition partition) {
     String start = toLongDate(partition.getStartDate());
     String end = toLongDate(partition.getEndDate());
-    String latestFilter = format("and psi.lastupdated >= '%s' ", start);
+    String latestFilter = format("and psi.lastupdated >= '{}' ", start);
     String partitionFilter =
         format(
-            "and (%s) >= '%s' and (%s) < '%s' ",
-            eventDateExpression, start, eventDateExpression, end);
+            "and ({}) >= '{}' and ({}) < '{}' ",
+            eventDateExpression,
+            start,
+            eventDateExpression,
+            end);
 
     return partition.isLatestPartition() ? latestFilter : partitionFilter;
-  }
-
-  /**
-   * Indicates whether data was created or updated for the given time range since last successful
-   * "latest" table partition update.
-   *
-   * @param startDate the start date.
-   * @param endDate the end date.
-   * @return true if updated data exists.
-   */
-  @Override
-  protected boolean hasUpdatedLatestData(Date startDate, Date endDate) {
-    return false;
   }
 }

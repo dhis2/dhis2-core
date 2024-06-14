@@ -41,12 +41,13 @@ import org.hisp.dhis.common.UID;
  * @author Enrico Colasante
  */
 @OpenApi.Shared(pattern = TRACKER)
+@OpenApi.Identifiable(as = org.hisp.dhis.user.User.class)
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
-  @OpenApi.Property({UID.class, User.class})
+  @OpenApi.Property({UID.class, org.hisp.dhis.user.User.class})
   @JsonProperty
   private String uid;
 

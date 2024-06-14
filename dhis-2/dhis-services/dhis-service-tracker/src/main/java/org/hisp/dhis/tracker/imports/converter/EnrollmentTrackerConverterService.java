@@ -39,13 +39,13 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.tracker.imports.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors;
 import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Service;
 
 /**
@@ -148,18 +148,15 @@ public class EnrollmentTrackerConverterService
     dbEnrollment.setFollowup(enrollment.isFollowUp());
     dbEnrollment.setGeometry(enrollment.getGeometry());
 
-    if (enrollment.getStatus() == null) {
-      enrollment.setStatus(EnrollmentStatus.ACTIVE);
-    }
-
-    ProgramStatus previousStatus = dbEnrollment.getStatus();
-    dbEnrollment.setStatus(enrollment.getStatus().getProgramStatus());
+    EnrollmentStatus previousStatus = dbEnrollment.getStatus();
+    dbEnrollment.setStatus(
+        ObjectUtils.firstNonNull(enrollment.getStatus(), EnrollmentStatus.ACTIVE));
 
     if (previousStatus != dbEnrollment.getStatus()) {
       if (dbEnrollment.isCompleted()) {
         dbEnrollment.setCompletedDate(now);
         dbEnrollment.setCompletedBy(preheat.getUsername());
-      } else if (dbEnrollment.getStatus().equals(ProgramStatus.CANCELLED)) {
+      } else if (EnrollmentStatus.CANCELLED == dbEnrollment.getStatus()) {
         dbEnrollment.setCompletedDate(now);
       }
     }

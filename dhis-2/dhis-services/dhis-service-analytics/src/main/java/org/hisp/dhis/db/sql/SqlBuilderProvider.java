@@ -33,6 +33,7 @@ import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.stereotype.Service;
 
+/** Provider of {@link SqlBuilder} implementations. */
 @Service
 public class SqlBuilderProvider {
   private final SqlBuilder sqlBuilder;
@@ -59,10 +60,11 @@ public class SqlBuilderProvider {
    */
   private SqlBuilder getSqlBuilder(AnalyticsTableSettings config) {
     Database database = config.getAnalyticsDatabase();
+
     Objects.requireNonNull(database);
-    switch (database) {
-      default:
-        return new PostgreSqlBuilder();
-    }
+
+    return switch (database) {
+      default -> new PostgreSqlBuilder();
+    };
   }
 }

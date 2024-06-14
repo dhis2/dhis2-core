@@ -65,7 +65,6 @@ class SchemaBasedControllerTest extends DhisControllerIntegrationTest {
           "identifiableObject", // depends on files
           "dashboard", // uses JSONB functions (improve test setup)
           "pushanalysis", // uses dashboards (see above)
-          "programInstance", // no POST endpoint
           "metadataVersion", // no POST endpoint
           "softDeletableObject", // depends on programInstance (see above)
           "relationship", // generator insufficient for embedded fields

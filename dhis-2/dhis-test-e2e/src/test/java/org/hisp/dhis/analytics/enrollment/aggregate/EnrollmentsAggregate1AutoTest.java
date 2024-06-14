@@ -67,8 +67,8 @@ public class EnrollmentsAggregate1AutoTest extends AnalyticsApiTest {
         .validate()
         .statusCode(200)
         .body("headers", hasSize(equalTo(4)))
-        .body("rows", hasSize(equalTo(2)))
-        .body("height", equalTo(2))
+        .body("rows", hasSize(equalTo(3)))
+        .body("height", equalTo(3))
         .body("width", equalTo(4))
         .body("headerWidth", equalTo(4));
 
@@ -87,7 +87,7 @@ public class EnrollmentsAggregate1AutoTest extends AnalyticsApiTest {
 
     // Assert rows.
     validateRow(response, List.of("5", "DiszpKrYNg8", "2023", "Female"));
-    validateRow(response, List.of("6", "DiszpKrYNg8", "2023", "Male"));
+    validateRow(response, List.of("5", "DiszpKrYNg8", "2023", "Male"));
   }
 
   @Test
@@ -137,8 +137,8 @@ public class EnrollmentsAggregate1AutoTest extends AnalyticsApiTest {
 
     // Assert rows.
     validateRow(response, List.of("3", "DiszpKrYNg8", "2023", "0"));
-    validateRow(response, List.of("6", "DiszpKrYNg8", "2023", "1"));
-    validateRow(response, List.of("2", "DiszpKrYNg8", "2023", ""));
+    validateRow(response, List.of("5", "DiszpKrYNg8", "2023", "1"));
+    validateRow(response, List.of("3", "DiszpKrYNg8", "2023", ""));
   }
 
   @Test
@@ -162,8 +162,8 @@ public class EnrollmentsAggregate1AutoTest extends AnalyticsApiTest {
         .validate()
         .statusCode(200)
         .body("headers", hasSize(equalTo(5)))
-        .body("rows", hasSize(equalTo(6)))
-        .body("height", equalTo(6))
+        .body("rows", hasSize(equalTo(7)))
+        .body("height", equalTo(7))
         .body("width", equalTo(5))
         .body("headerWidth", equalTo(5));
 
@@ -194,7 +194,7 @@ public class EnrollmentsAggregate1AutoTest extends AnalyticsApiTest {
     validateRow(response, List.of("3", "DiszpKrYNg8", "2023", "Female", "1"));
     validateRow(response, List.of("1", "DiszpKrYNg8", "2023", "Female", ""));
     validateRow(response, List.of("2", "DiszpKrYNg8", "2023", "Male", "0"));
-    validateRow(response, List.of("3", "DiszpKrYNg8", "2023", "Male", "1"));
+    validateRow(response, List.of("2", "DiszpKrYNg8", "2023", "Male", "1"));
     validateRow(response, List.of("1", "DiszpKrYNg8", "2023", "Male", ""));
   }
 
@@ -247,6 +247,5 @@ public class EnrollmentsAggregate1AutoTest extends AnalyticsApiTest {
     validateRow(response, List.of("4", "DiszpKrYNg8", "202301", "Male"));
     validateRow(response, List.of("1", "DiszpKrYNg8", "202302", "Male"));
     validateRow(response, List.of("1", "DiszpKrYNg8", "202305", "Female"));
-    validateRow(response, List.of("1", "DiszpKrYNg8", "202305", "Male"));
   }
 }

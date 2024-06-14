@@ -188,10 +188,9 @@ public class HibernatePotentialDuplicateStore
     }
 
     NativeQuery<BigInteger> query =
-        getSession()
-            .createNativeQuery(
-                "select count(potentialduplicateid) from potentialduplicate pd "
-                    + "where (pd.original = :original and pd.duplicate = :duplicate) or (pd.original = :duplicate and pd.duplicate = :original)");
+        nativeSynchronizedQuery(
+            "select count(potentialduplicateid) from potentialduplicate pd "
+                + "where (pd.original = :original and pd.duplicate = :duplicate) or (pd.original = :duplicate and pd.duplicate = :original)");
 
     query.setParameter("original", potentialDuplicate.getOriginal());
     query.setParameter("duplicate", potentialDuplicate.getDuplicate());

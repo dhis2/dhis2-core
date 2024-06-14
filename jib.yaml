@@ -30,11 +30,11 @@ layers:
       files:
         - src: ${unarchivedWarDir}
           dest: ${imageAppRoot}
-        - src: "dhis-2/dhis-web/dhis-web-portal/src/main/jib/usr/local/tomcat/conf/server.xml"
+        - src: "dhis-2/dhis-web-server/src/main/jib/usr/local/tomcat/conf/server.xml"
           dest: "/usr/local/tomcat/conf/server.xml"
-        - src: "dhis-2/dhis-web/dhis-web-portal/src/main/jib/usr/local/tomcat/conf/Catalina/localhost"
+        - src: "dhis-2/dhis-web-server/src/main/jib/usr/local/tomcat/conf/Catalina/localhost"
           dest: "/usr/local/tomcat/conf/Catalina/localhost"
-        - src: "dhis-2/dhis-web/dhis-web-portal/src/main/jib/opt/dhis2"
+        - src: "dhis-2/dhis-web-server/src/main/jib/opt/dhis2"
           dest: "/opt/dhis2"
           properties:
             user: ${imageUser}

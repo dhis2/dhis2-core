@@ -35,8 +35,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.util.Constant;
@@ -140,7 +140,7 @@ public class TrackedEntityEnrollmentSupplier extends JdbcAbstractPreheatSupplier
 
           Enrollment newPi = new Enrollment();
           newPi.setUid(resultSet.getString(PI_UID_COLUMN_ALIAS));
-          newPi.setStatus(ProgramStatus.valueOf(resultSet.getString(PI_STATUS_COLUMN_ALIAS)));
+          newPi.setStatus(EnrollmentStatus.valueOf(resultSet.getString(PI_STATUS_COLUMN_ALIAS)));
 
           Program program = new Program();
           program.setUid(resultSet.getString(PR_UID_COLUMN_ALIAS));

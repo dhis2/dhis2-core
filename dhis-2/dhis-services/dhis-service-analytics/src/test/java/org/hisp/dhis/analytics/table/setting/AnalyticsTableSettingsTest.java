@@ -31,6 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
+import java.util.Set;
+import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -70,5 +72,35 @@ class AnalyticsTableSettingsTest {
         .thenReturn(ConfigurationKey.ANALYTICS_DATABASE.getDefaultValue());
 
     assertEquals(Database.POSTGRESQL, settings.getAnalyticsDatabase());
+  }
+
+  @Test
+  void testGetSkipIndexDimensionsDefault() {
+    when(config.getProperty(ConfigurationKey.ANALYTICS_TABLE_SKIP_INDEX))
+        .thenReturn(ConfigurationKey.ANALYTICS_TABLE_SKIP_INDEX.getDefaultValue());
+
+    assertEquals(Set.of(), settings.getSkipIndexDimensions());
+  }
+
+  @Test
+  void testGetSkipIndexDimensions() {
+    when(config.getProperty(ConfigurationKey.ANALYTICS_TABLE_SKIP_INDEX))
+        .thenReturn("kJ7yGrfR413, Hg5tGfr2fas  , Ju71jG19Kaq,b5TgfRL9pUq");
+
+    assertEquals(
+        Set.of("kJ7yGrfR413", "Hg5tGfr2fas", "Ju71jG19Kaq", "b5TgfRL9pUq"),
+        settings.getSkipIndexDimensions());
+  }
+
+  @Test
+  void testToSet() {
+    Set<String> expected = Set.of("kJ7yGrfR413", "Hg5tGfr2fas", "Ju71jG19Kaq", "b5TgfRL9pUq");
+    assertEquals(expected, settings.toSet("kJ7yGrfR413, Hg5tGfr2fas  , Ju71jG19Kaq,b5TgfRL9pUq"));
+  }
+
+  @Test
+  void testToSkip() {
+    assertEquals(Skip.INCLUDE, settings.toSkip(true));
+    assertEquals(Skip.SKIP, settings.toSkip(false));
   }
 }

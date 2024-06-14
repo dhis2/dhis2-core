@@ -29,7 +29,6 @@ package org.hisp.dhis.program;
 
 import java.util.Date;
 import java.util.List;
-import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -40,50 +39,14 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
   String ID = EnrollmentStore.class.getName();
 
-  /**
-   * Count all enrollments by enrollment query params.
-   *
-   * @param params EnrollmentQueryParams to use
-   * @return Count of matching enrollments
-   */
-  int countEnrollments(EnrollmentQueryParams params);
-
-  /**
-   * Get all enrollments by enrollment query params.
-   *
-   * @param params EnrollmentQueryParams to use
-   * @return Enrollments matching params
-   */
-  List<Enrollment> getEnrollments(EnrollmentQueryParams params);
-
-  /**
-   * Retrieve enrollments on a program
-   *
-   * @param program Program
-   * @return Enrollment list
-   */
+  /** Get enrollments into a program. */
   List<Enrollment> get(Program program);
 
-  /**
-   * Retrieve enrollments on a program by status
-   *
-   * @param program Program
-   * @param status Status of program-instance, include STATUS_ACTIVE, STATUS_COMPLETED and
-   *     STATUS_CANCELLED
-   * @return Enrollment list
-   */
-  List<Enrollment> get(Program program, ProgramStatus status);
+  /** Get enrollments into a program that are in given status. */
+  List<Enrollment> get(Program program, EnrollmentStatus status);
 
-  /**
-   * Retrieve enrollments on a TrackedEntity with a status by a program
-   *
-   * @param entityInstance TrackedEntity
-   * @param program Program
-   * @param status Status of program-instance, include STATUS_ACTIVE, STATUS_COMPLETED and
-   *     STATUS_CANCELLED
-   * @return Enrollment list
-   */
-  List<Enrollment> get(TrackedEntity entityInstance, Program program, ProgramStatus status);
+  /** Get a tracked entities enrollments into a program that are in given status. */
+  List<Enrollment> get(TrackedEntity trackedEntity, Program program, EnrollmentStatus status);
 
   /**
    * Checks for the existence of an enrollment by UID, Deleted enrollments are not taken into
@@ -102,14 +65,6 @@ public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
    * @return true/false depending on result
    */
   boolean existsIncludingDeleted(String uid);
-
-  /**
-   * Returns UIDs of existing enrollments (including deleted) from the provided UIDs
-   *
-   * @param uids enrollment UIDs to check
-   * @return List containing UIDs of existing enrollments (including deleted)
-   */
-  List<String> getUidsIncludingDeleted(List<String> uids);
 
   /**
    * Fetches enrollments matching the given list of UIDs
@@ -139,41 +94,9 @@ public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
   List<Enrollment> getByPrograms(List<Program> programs);
 
   /**
-   * Return all enrollment by type.
-   *
-   * <p>Warning: this is meant to be used for WITHOUT_REGISTRATION programs only, be careful if you
-   * need it for other uses.
-   *
-   * @param type ProgramType to fetch by
-   * @return List of all enrollments that matches the wanted type
-   */
-  List<Enrollment> getByType(ProgramType type);
-
-  /**
    * Hard deletes a {@link Enrollment}.
    *
    * @param enrollment the enrollment to delete.
    */
   void hardDelete(Enrollment enrollment);
-
-  /**
-   * Executes a query to fetch all {@see Enrollment} matching the Program/TrackedEntity list.
-   *
-   * <p>Resulting SQL query:
-   *
-   * <pre>{@code
-   * select enrollmentid, programid, trackedentityid
-   *     from enrollment
-   *     where (programid = 726 and trackedentityid = 19 and status = 'ACTIVE')
-   *        or (programid = 726 and trackedentityid = 18 and status = 'ACTIVE')
-   *        or (programid = 726 and trackedentityid = 17 and status = 'ACTIVE')
-   * }</pre>
-   *
-   * @param programTePair a List of Pair, where the left side is a {@see Program} and the right side
-   *     is a {@see TrackedEntity}
-   * @param programStatus filter on the status of all the Program
-   * @return a List of {@see Enrollment}
-   */
-  List<Enrollment> getByProgramAndTrackedEntity(
-      List<Pair<Program, TrackedEntity>> programTePair, ProgramStatus programStatus);
 }

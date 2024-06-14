@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+  <Appenders>
+    <Console name="console_color" target="SYSTEM_OUT" follow="true">
+      <PatternLayout
+        pattern="%d{HH:mm:ss.SSS} %highlight{${LOG_LEVEL_PATTERN:-%5p}}{FATAL=red blink, ERROR=red, WARN=yellow bold, INFO=green, DEBUG=green bold, TRACE=blue} [%15.15t] %style{%-40.40C{1.}}{cyan} : %m%n%throwable"/>
+    </Console>
+    <Console name="console" target="SYSTEM_OUT">
+      <PatternLayout pattern="* %-5p %d{ISO8601} %m (%F [%t]) %X{sessionId} %X{xRequestID}%n"/>
+    </Console>
+  </Appenders>
+
+  <Loggers>
+    <Logger name="org.hisp.dhis" level="INFO" additivity="true"/>
+    <Logger name="org.hisp.dhis.webapi.mvc" level="WARN" additivity="false"/>
+    <Logger
+      name="org.hibernate.cache.ehcache.internal.strategy.AbstractReadWriteEhcacheAccessStrategy"
+      level="ERROR" additivity="false"/>
+    <Logger name="org.hibernate.cache.ehcache.AbstractEhcacheRegionFactory" level="ERROR"
+      additivity="false"/>
+    <Logger name="org.hibernate.engine.internal.StatefulPersistenceContext" level="ERROR"
+      additivity="false"/>
+    <Logger name="org.springframework.web.servlet.view.ContentNegotiatingViewResolver" level="ERROR"
+      additivity="false"/>
+    <Logger name="org.hibernate.orm.deprecation" level="ERROR" additivity="false"/>
+    <Logger name="org.apache.activemq" level="ERROR" additivity="false"/>
+    <Logger name="org.hibernate" level="ERROR" additivity="false"/>
+
+    <Root level="WARN">
+      <AppenderRef ref="${sys:log4j.appender:-console}"/>
+    </Root>
+  </Loggers>
+</Configuration>

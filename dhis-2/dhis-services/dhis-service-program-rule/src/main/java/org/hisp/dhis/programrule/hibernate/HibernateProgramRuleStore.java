@@ -27,21 +27,15 @@
  */
 package org.hisp.dhis.programrule.hibernate;
 
-import java.math.BigInteger;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
-import org.hibernate.Session;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.ProgramRuleActionEvaluationEnvironment;
-import org.hisp.dhis.programrule.ProgramRuleActionEvaluationTime;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleStore;
-import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -72,33 +66,32 @@ public class HibernateProgramRuleStore extends HibernateIdentifiableObjectStore<
   }
 
   @Override
-  public ProgramRule getByName(String name, Program program) {
-    CriteriaBuilder builder = getCriteriaBuilder();
+  public List<String> getDataElementsPresentInProgramRules() {
 
-    return getSingleResult(
-        builder,
-        newJpaParameters()
-            .addPredicate(root -> builder.equal(root.get("name"), name))
-            .addPredicate(root -> builder.equal(root.get("program"), program)));
+    String sql =
+        """
+            SELECT distinct de.uid
+            FROM ProgramRuleAction pra join dataelement de ON pra.dataelementid = de.dataelementid
+        """;
+    return jdbcTemplate.queryForList(sql, String.class);
   }
 
   @Override
-  public List<ProgramRule> getProgramRulesLinkedToTeaOrDe() {
+  public List<String> getTrackedEntityAttributesPresentInProgramRules() {
 
-    String jql =
-        "SELECT distinct pr FROM ProgramRule pr, Program p "
-            + "JOIN FETCH pr.programRuleActions pra "
-            + "WHERE p.uid = pr.program.uid AND "
-            + "(pra.dataElement IS NOT NULL OR pra.attribute IS NOT NULL)";
-    Session session = getSession();
-    return session.createQuery(jql, ProgramRule.class).getResultList();
+    String sql =
+        """
+            SELECT distinct tea.uid
+            FROM ProgramRuleAction pra JOIN trackedentityattribute tea ON pra.trackedentityattributeid = tea.trackedentityattributeid
+        """;
+    return jdbcTemplate.queryForList(sql, String.class);
   }
 
   @Override
   public List<ProgramRule> getProgramRulesByActionTypes(
       Program program, Set<ProgramRuleActionType> actionTypes) {
     final String hql =
-        "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra "
+        "SELECT distinct pr FROM ProgramRule pr JOIN pr.programRuleActions pra "
             + "WHERE pr.program = :program AND pra.programRuleActionType IN ( :actionTypes ) ";
 
     return getQuery(hql)
@@ -111,8 +104,8 @@ public class HibernateProgramRuleStore extends HibernateIdentifiableObjectStore<
   public List<ProgramRule> getProgramRulesByActionTypes(
       Program program, Set<ProgramRuleActionType> types, String programStageUid) {
     final String hql =
-        "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra "
-            + "LEFT JOIN FETCH pr.programStage ps "
+        "SELECT distinct pr FROM ProgramRule pr JOIN pr.programRuleActions pra "
+            + "LEFT JOIN pr.programStage ps "
             + "WHERE pr.program = :programId AND pra.programRuleActionType IN ( :implementableTypes ) "
             + "AND (pr.programStage IS NULL OR ps.uid = :programStageUid )";
 
@@ -121,87 +114,5 @@ public class HibernateProgramRuleStore extends HibernateIdentifiableObjectStore<
         .setParameter("implementableTypes", types)
         .setParameter("programStageUid", programStageUid)
         .getResultList();
-  }
-
-  @Override
-  public List<ProgramRule> get(Program program, String key) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    return getList(
-        builder,
-        newJpaParameters()
-            .addPredicate(root -> builder.equal(root.get("program"), program))
-            .addPredicate(
-                root ->
-                    JpaQueryUtils.stringPredicateIgnoreCase(
-                        builder, root.get("name"), key, JpaQueryUtils.StringSearchMode.ANYWHERE))
-            .addOrder(root -> builder.asc(root.get("name"))));
-  }
-
-  @Override
-  public List<ProgramRule> getProgramRulesWithNoCondition() {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    return getList(
-        builder, newJpaParameters().addPredicate(root -> builder.isNull(root.get("condition"))));
-  }
-
-  @Override
-  public List<ProgramRule> getProgramRulesWithNoPriority() {
-    final String jql =
-        "FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra "
-            + "WHERE pr.priority IS NULL AND pra.programRuleActionType = :actionType";
-
-    return getQuery(jql).setParameter("actionType", ProgramRuleActionType.ASSIGN).getResultList();
-  }
-
-  @Override
-  public List<ProgramRule> getProgramRulesByEvaluationTime(
-      ProgramRuleActionEvaluationTime evaluationTime) {
-    Session session = getSession();
-    session.clear(); // TODO Why?
-
-    final String jql =
-        "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra "
-            + "WHERE pra.programRuleActionEvaluationTime = :defaultEvaluationTime OR pra.programRuleActionEvaluationTime = :evaluationTime";
-
-    return getQuery(jql)
-        .setParameter("defaultEvaluationTime", ProgramRuleActionEvaluationTime.getDefault())
-        .setParameter("evaluationTime", evaluationTime)
-        .getResultList();
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  public List<ProgramRule> getProgramRulesByEvaluationEnvironment(
-      ProgramRuleActionEvaluationEnvironment environment) {
-    List<BigInteger> bigIntegerList =
-        getSession()
-            .createNativeQuery(
-                "select pra.programruleactionid from programrule pr JOIN programruleaction pra ON pr.programruleid=pra.programruleid "
-                    + "where environments@> '[\""
-                    + environment
-                    + "\"]';")
-            .list();
-    List<Long> idList =
-        bigIntegerList.stream()
-            .map(item -> Long.valueOf(item.longValue()))
-            .collect(Collectors.toList());
-
-    Session session = getSession();
-    session.clear();
-    return session
-        .createQuery(
-            "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pra.id in (:ids)",
-            ProgramRule.class)
-        .setParameterList("ids", idList)
-        .getResultList();
-  }
-
-  @Override
-  public List<ProgramRule> getProgramRulesWithNoAction() {
-    final String jql = "FROM ProgramRule pr WHERE pr.programRuleActions IS EMPTY";
-
-    return getQuery(jql).getResultList();
   }
 }

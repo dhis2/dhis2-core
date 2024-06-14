@@ -95,7 +95,6 @@ import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.dxf2.deprecated.tracker.event.EventStore;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.option.Option;
@@ -117,7 +116,7 @@ import org.hisp.dhis.program.ProgramOwnershipHistory;
 import org.hisp.dhis.program.ProgramOwnershipHistoryService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
-import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -131,7 +130,6 @@ import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests event and enrollment analytics services.
@@ -161,8 +159,6 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
   @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
   @Autowired private IdentifiableObjectManager idObjectManager;
-
-  @Autowired private EventStore eventStore;
 
   @Autowired private ProgramOwnershipHistoryService programOwnershipHistoryService;
 
@@ -464,7 +460,6 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     addProgramOwnershipHistory(programA, teiA, ouG, feb15Noon, mar15);
     trackedEntityProgramOwnerService.createOrUpdateTrackedEntityProgramOwner(teiA, programA, ouH);
 
-    // Program Stage Instances (Events)
     Event eventA1 = createEvent(psA, piA, ouI);
     eventA1.setScheduledDate(jan15);
     eventA1.setOccurredDate(jan15);
@@ -493,8 +488,8 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     eventA3.setAttributeOptionCombo(cocDefault);
 
     Event eventB1 = createEvent(psB, piB, ouI);
-    eventB1.setScheduledDate(jan15);
-    eventB1.setOccurredDate(jan15);
+    eventB1.setScheduledDate(jan1);
+    eventB1.setOccurredDate(jan1);
     eventB1.setUid("event0000B1");
     eventB1.setEventDataValues(
         Set.of(new EventDataValue(deA.getUid(), "10"), new EventDataValue(deB.getUid(), "A")));
@@ -509,8 +504,8 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     eventB2.setAttributeOptionCombo(cocDefault);
 
     Event eventB3 = createEvent(psB, piB, ouJ);
-    eventB3.setScheduledDate(jan15);
-    eventB3.setOccurredDate(jan15);
+    eventB3.setScheduledDate(jan1);
+    eventB3.setOccurredDate(jan1);
     eventB3.setUid("event0000B3");
     eventB3.setEventDataValues(
         Set.of(new EventDataValue(deA.getUid(), "30"), new EventDataValue(deB.getUid(), "C")));
@@ -562,8 +557,9 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     eventM1.setUid("event0000M1");
     eventM1.setEventDataValues(Set.of(new EventDataValue(deM.getUid(), "abc,def,ghi,jkl")));
     eventM1.setAttributeOptionCombo(cocDefault);
+    idObjectManager.save(eventA2);
 
-    saveEvents(
+    idObjectManager.save(
         List.of(
             eventA1, eventA2, eventA3, eventB1, eventB2, eventB3, eventB4, eventB5, eventB6,
             eventB7, eventB8, eventM1));
@@ -588,18 +584,9 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         Date.from(LocalDateTime.now().plusSeconds(1).atZone(ZoneId.systemDefault()).toInstant());
 
     // Generate resource tables and analytics tables
-    analyticsTableGenerator.generateTables(
+    analyticsTableGenerator.generateAnalyticsTables(
         AnalyticsTableUpdateParams.newBuilder().withStartTime(oneSecondFromNow).build(),
-        NoopJobProgress.INSTANCE);
-  }
-
-  /**
-   * Saves events. Since the store is called directly, wraps the call in a transaction. Since
-   * transactional methods must be overridable, the method is protected.
-   */
-  @Transactional
-  protected void saveEvents(List<Event> events) {
-    eventStore.saveEvents(events);
+        JobProgress.noop());
   }
 
   /** Adds a program ownership history entry. */
@@ -693,6 +680,20 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         exception.getMessage(),
         containsString(
             "Current user is constrained by a dimension but has access to no dimension items"));
+  }
+
+  @Test
+  void testEnrollmentWithCategoryDimensionRestriction() {
+    injectSecurityContextUser(userA);
+    EventQueryParams params = getEnrollmentQueryBuilderA().build();
+    Grid grid = enrollmentTarget.getEnrollments(params);
+
+    assertGridContains(
+        // Headers
+        List.of("enrollmentdate", "ou", "tei", "teaAttribuU"),
+        // Grid
+        List.of(List.of("2017-01-01 00:00:00.0", "ouabcdefghE", "trackEntInA", "ouabcdefghF")),
+        grid);
   }
 
   // -------------------------------------------------------------------------

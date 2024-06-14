@@ -28,12 +28,13 @@
 package org.hisp.dhis.common;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hisp.dhis.analytics.SortOrder;
-import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.EnrollmentStatus;
 
 /**
  * @author Jan Bernitt
@@ -57,25 +58,27 @@ public class EnrollmentAnalyticsQueryCriteria extends AnalyticsPagingCriteria {
 
   private String timeField;
 
-  private Set<String> dimension;
+  private Set<String> dimension = new HashSet<>();
 
-  private Set<String> filter;
+  private Set<String> filter = new HashSet<>();
 
   /**
    * This parameter selects the headers to be returned as part of the response. The implementation
    * for this Set will be LinkedHashSet as the ordering is important.
    */
-  private Set<String> headers;
+  private Set<String> headers = new HashSet<>();
 
   private OrganisationUnitSelectionMode ouMode;
 
-  private Set<String> asc;
+  private Set<String> asc = new HashSet<>();
 
-  private Set<String> desc;
+  private Set<String> desc = new HashSet<>();
 
   private boolean skipMeta;
 
   private boolean skipData;
+
+  private boolean skipRounding;
 
   private boolean completedOnly;
 
@@ -95,7 +98,7 @@ public class EnrollmentAnalyticsQueryCriteria extends AnalyticsPagingCriteria {
    */
   private IdScheme outputIdScheme;
 
-  private Set<ProgramStatus> programStatus;
+  private Set<EnrollmentStatus> programStatus = new HashSet<>();
 
   private DisplayProperty displayProperty;
 

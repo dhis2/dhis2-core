@@ -44,7 +44,7 @@ import org.hibernate.Session;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.common.adapter.Sharing_;
-import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
@@ -339,30 +339,31 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
   }
 
   @Override
+  public CurrentUserGroupInfo getCurrentUserGroupInfo(String userUid) {
+    return aclService.getCurrentUserGroupInfo(userUid, this::fetchCurrentUserGroupInfo);
+  }
+
   // TODO: MAS can this be removed and we rely on first fetch on login? make sure current logged in
   // users are get invalidated when group changes
-  public CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID) {
+  private CurrentUserGroupInfo fetchCurrentUserGroupInfo(String userUid) {
     CriteriaBuilder builder = getCriteriaBuilder();
     CriteriaQuery<Object[]> query = builder.createQuery(Object[].class);
     Root<User> root = query.from(User.class);
-    query.where(builder.equal(root.get("uid"), userUID));
+    query.where(builder.equal(root.get("uid"), userUid));
     query.select(builder.array(root.get("uid"), root.join("groups", JoinType.LEFT).get("uid")));
 
     Session session = getSession();
     List<Object[]> results = session.createQuery(query).getResultList();
 
     CurrentUserGroupInfo currentUserGroupInfo = new CurrentUserGroupInfo();
+    currentUserGroupInfo.setUserUID(userUid);
 
     if (CollectionUtils.isEmpty(results)) {
-      currentUserGroupInfo.setUserUID(userUID);
+      currentUserGroupInfo.setUserUID(userUid);
       return currentUserGroupInfo;
     }
 
     for (Object[] result : results) {
-      if (currentUserGroupInfo.getUserUID() == null) {
-        currentUserGroupInfo.setUserUID(result[0].toString());
-      }
-
       if (result[1] != null) {
         currentUserGroupInfo.getUserGroupUIDs().add(result[1].toString());
       }

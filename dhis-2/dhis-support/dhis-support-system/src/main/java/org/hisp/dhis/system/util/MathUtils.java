@@ -91,21 +91,24 @@ public class MathUtils {
   }
 
   /**
-   * Returns a rounded off number.
-   *
-   * <p>
-   *
-   * <ul>
-   *   <li>If value is exclusively between 1 and -1 it will have 2 decimals.
-   *   <li>If value if greater or equal to 1 the value will have 1 decimal.
-   * </ul>
+   * Returns a rounded off number. Rounding on 2 digits
    *
    * @param value the value to round off.
    * @return a rounded off number.
    */
   public static double getRounded(double value) {
-    int scale = (value < 1d && value > -1d) ? 2 : 1;
+    return getRounded(value, 2);
+  }
 
+  /**
+   * Returns a rounded off number.
+   *
+   * <p>Rounding on scale
+   *
+   * @param value the value to round off.
+   * @return a rounded off number.
+   */
+  public static double getRounded(double value, int scale) {
     return Precision.round(value, scale);
   }
 
@@ -118,6 +121,19 @@ public class MathUtils {
   public static Object getRoundedObject(Object value) {
     return value != null && Double.class.equals(value.getClass())
         ? getRounded((Double) value)
+        : value;
+  }
+
+  /**
+   * Returns a rounded off number. If the value class is not Double, the value is returned
+   * unchanged.
+   *
+   * @param value the value to return and potentially round off.
+   * @param scale the rounding scale.
+   */
+  public static Object getRoundedObject(Object value, int scale) {
+    return value != null && Double.class.equals(value.getClass())
+        ? getRounded((Double) value, scale)
         : value;
   }
 

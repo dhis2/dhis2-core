@@ -41,7 +41,7 @@
         "idScheme": "UID",
         "identifier": "h4w96yEMlzO"
       },
-      "inactive": false,
+      "inactive": true,
       "deleted": false,
       "potentialDuplicate": false,
       "createdAtClient": "2018-10-01T12:17:30.163",
@@ -328,6 +328,29 @@
       "enrolledAt": "2021-02-28T12:05:00.000",
       "occurredAt": "2021-02-28T12:05:00.000",
       "scheduledAt": "2021-02-28T12:05:00.000",
+      "followUp": false,
+      "deleted": false,
+      "events": [],
+      "relationships": [],
+      "attributes": [],
+      "notes": []
+    },
+    {
+      "enrollment": "nxP8UnKhomJ",
+      "createdAtClient": "2017-01-26T13:48:13.363",
+      "trackedEntity": "QS6w44flWAf",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "shPjYNifvMK"
+      },
+      "status": "ACTIVE",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "uoNW0E3xXUy"
+      },
+      "enrolledAt": "2021-04-28T12:05:00.000",
+      "occurredAt": "2021-04-28T12:05:00.000",
+      "scheduledAt": "2021-04-28T12:05:00.000",
       "followUp": false,
       "deleted": false,
       "events": [],

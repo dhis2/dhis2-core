@@ -68,9 +68,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Stian Sandvold
  */
-@OpenApi.Tags({"user", "query"})
+@OpenApi.Document(domain = UserDatastoreEntry.class)
 @Controller
-@RequestMapping("/userDataStore")
+@RequestMapping("/api/userDataStore")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
 public class UserDatastoreController extends AbstractDatastoreController {

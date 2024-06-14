@@ -43,6 +43,31 @@ import org.hisp.dhis.program.Program;
  */
 public interface OrganisationUnitStore
     extends IdentifiableObjectStore<OrganisationUnit>, OrganisationUnitDataIntegrityProvider {
+
+  /**
+   * Returns all OrganisationUnits that the user has access to.
+   *
+   * @param username of the user.
+   * @return
+   */
+  List<String> getOrganisationUnitsUidsByUser(String username);
+
+  /**
+   * Returns all search scope OrganisationUnits that the user has access to.
+   *
+   * @param username of the user.
+   * @return
+   */
+  List<String> getSearchOrganisationUnitsUidsByUser(String username);
+
+  /**
+   * Returns all data view scope OrganisationUnits that the user has access to.
+   *
+   * @param username of the user.
+   * @return
+   */
+  List<String> getDataViewOrganisationUnitsUidsByUser(String username);
+
   /**
    * Returns all OrganisationUnits by lastUpdated.
    *
@@ -67,6 +92,22 @@ public interface OrganisationUnitStore
    * @return
    */
   List<OrganisationUnit> getOrganisationUnitsWithProgram(Program program);
+
+  /**
+   * Retrieves organisation units associated with the given program uid.
+   *
+   * @param programUid the {@link Program} uid.
+   * @return a list of {@link OrganisationUnit} found.
+   */
+  List<OrganisationUnit> getOrganisationUnitsByProgram(String programUid);
+
+  /**
+   * Retrieves organisation units associated with the given data set uid.
+   *
+   * @param dataSetUid the {@link DataSet} uid.
+   * @return a list of {@link OrganisationUnit} found.
+   */
+  List<OrganisationUnit> getOrganisationUnitsByDataSet(String dataSetUid);
 
   /**
    * Returns the count of OrganisationUnits which are part of the sub-hierarchy of the given parent

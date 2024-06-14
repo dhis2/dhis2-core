@@ -94,11 +94,20 @@ public abstract class DhisMockMvcControllerTest extends DhisConvenienceTest impl
     return webRequest(buildMockRequest(method, url, headers, contentType, content));
   }
 
+  private String makeApiUrl(String path) {
+    if (path.startsWith("/api/")) {
+      return path;
+    }
+    return "/api/" + path;
+  }
+
   protected MockHttpServletRequestBuilder buildMockRequest(
       HttpMethod method, String url, List<Header> headers, String contentType, String content) {
+
     MockHttpServletRequestBuilder request =
         MockMvcRequestBuilders.request(
-            org.springframework.http.HttpMethod.resolve(method.name()), url);
+            org.springframework.http.HttpMethod.resolve(method.name()), makeApiUrl(url));
+
     for (Header header : headers) {
       request.header(header.getName(), header.getValue());
     }

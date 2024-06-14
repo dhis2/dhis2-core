@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
 
 import java.util.Date;
@@ -41,9 +42,9 @@ import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceParam;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.schema.descriptors.ProgramNotificationInstanceSchemaDescriptor;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -53,9 +54,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Zubair Asghar
  */
-@OpenApi.Tags("tracker")
+@OpenApi.Document(domain = ProgramNotificationInstance.class)
 @Controller
-@RequestMapping(value = ProgramNotificationInstanceSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/programNotificationInstances")
 @ApiVersion(include = {DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class ProgramNotificationInstanceController {
   private final ProgramNotificationInstanceService programNotificationInstanceService;
@@ -73,7 +74,7 @@ public class ProgramNotificationInstanceController {
     this.eventService = eventService;
   }
 
-  @PreAuthorize("hasRole('ALL')")
+  @RequiresAuthority(anyOf = ALL)
   @GetMapping(produces = {"application/json"})
   public @ResponseBody Page<ProgramNotificationInstance> getScheduledMessage(
       @Deprecated(since = "2.41") @RequestParam(required = false) UID programInstance,

@@ -100,7 +100,7 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
 
     TrackerImportParams params = TrackerImportParams.builder().userId(superUser.getUid()).build();
     assertNoDataErrors(
-        trackerImportService.importTracker(params, fromJson("tracker/single_tei.json")));
+        trackerImportService.importTracker(params, fromJson("tracker/single_te.json")));
 
     trackedEntity = trackedEntityService.getTrackedEntity("IOR1AXXl24H");
 
@@ -158,7 +158,7 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
       shouldGetChangeLogPagerWithNextAttributeWhenMultipleAttributesImportedAndFirstPageRequested() {
     JsonPage changeLogs =
         GET(
-                "/tracker/trackedEntities/{id}/changeLogs?page={page}&pageSize={pageSize}",
+                "40/tracker/trackedEntities/{id}/changeLogs?page={page}&pageSize={pageSize}",
                 trackedEntity.getUid(),
                 "1",
                 "1")
@@ -176,7 +176,7 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
                 2,
                 1,
                 String.format(
-                    "http://localhost/tracker/trackedEntities/%s/changeLogs",
+                    "http://localhost/api/40/tracker/trackedEntities/%s/changeLogs",
                     trackedEntity.getUid())));
   }
 
@@ -202,7 +202,7 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
                 1,
                 1,
                 String.format(
-                    "http://localhost/tracker/trackedEntities/%s/changeLogs",
+                    "http://localhost/api/tracker/trackedEntities/%s/changeLogs",
                     trackedEntity.getUid())),
         () ->
             assertPagerLink(
@@ -210,7 +210,7 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
                 3,
                 1,
                 String.format(
-                    "http://localhost/tracker/trackedEntities/%s/changeLogs",
+                    "http://localhost/api/tracker/trackedEntities/%s/changeLogs",
                     trackedEntity.getUid())));
   }
 
@@ -236,7 +236,7 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
                 2,
                 1,
                 String.format(
-                    "http://localhost/tracker/trackedEntities/%s/changeLogs",
+                    "http://localhost/api/tracker/trackedEntities/%s/changeLogs",
                     trackedEntity.getUid())),
         () -> assertHasNoMember(pager, "nextPage"));
   }

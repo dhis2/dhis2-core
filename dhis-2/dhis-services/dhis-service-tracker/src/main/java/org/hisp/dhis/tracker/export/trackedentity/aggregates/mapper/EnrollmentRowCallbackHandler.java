@@ -33,8 +33,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.EnrollmentQuery;
@@ -94,7 +94,7 @@ public class EnrollmentRowCallbackHandler extends AbstractMapper<Enrollment> {
     final boolean followUp = rs.getBoolean(EnrollmentQuery.getColumnName(COLUMNS.FOLLOWUP));
     enrollment.setFollowup(rs.wasNull() ? null : followUp);
     enrollment.setStatus(
-        ProgramStatus.valueOf(rs.getString(EnrollmentQuery.getColumnName(COLUMNS.STATUS))));
+        EnrollmentStatus.valueOf(rs.getString(EnrollmentQuery.getColumnName(COLUMNS.STATUS))));
     enrollment.setEnrollmentDate(
         rs.getTimestamp(EnrollmentQuery.getColumnName(COLUMNS.ENROLLMENTDATE)));
     enrollment.setOccurredDate(

@@ -28,6 +28,7 @@
 package org.hisp.dhis.common;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -36,7 +37,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.EnrollmentStatus;
 
 /**
  * This class contains all the criteria that can be used to execute a DHIS2 Events analytics query
@@ -79,20 +80,20 @@ public class EventsAnalyticsQueryCriteria extends AnalyticsPagingCriteria {
    * organisation units and organisation unit group sets. Parameter can be repeated any number of
    * times.
    */
-  private Set<String> dimension;
+  private Set<String> dimension = new HashSet<>();
 
   /**
    * Filters to apply to the analytics: a Set of identifiers including data elements, attributes,
    * periods, organisation units and organisation unit group sets. Parameter can be repeated any
    * number of times.
    */
-  private Set<String> filter;
+  private Set<String> filter = new HashSet<>();
 
   /**
    * This parameter selects the headers to be returned as part of the response. The implementation
    * for this Set will be LinkedHashSet as the ordering is important.
    */
-  private Set<String> headers;
+  private Set<String> headers = new HashSet<>();
 
   /**
    * Whether to include names of organisation unit ancestors and hierarchy paths of organisation
@@ -101,10 +102,10 @@ public class EventsAnalyticsQueryCriteria extends AnalyticsPagingCriteria {
   private boolean hierarchyMeta;
 
   /** Specify ths status of events to include. */
-  private Set<EventStatus> eventStatus;
+  private Set<EventStatus> eventStatus = new HashSet<>();
 
   /** Specify the enrollment status of events to include. */
-  private Set<ProgramStatus> programStatus;
+  private Set<EnrollmentStatus> programStatus = new HashSet<>();
 
   /** Overrides the start date of the relative period. */
   private Date relativePeriodDate;
@@ -216,13 +217,13 @@ public class EventsAnalyticsQueryCriteria extends AnalyticsPagingCriteria {
    * Dimensions identifier to be sorted ascending, can reference event date, org unit name and code
    * and any item identifiers.
    */
-  private Set<String> asc;
+  private Set<String> asc = new HashSet<>();
 
   /**
    * Dimensions identifier to be sorted descending, can reference event date, org unit name and code
    * and any item identifiers.
    */
-  private Set<String> desc;
+  private Set<String> desc = new HashSet<>();
 
   /** Whether to only return events which have coordinates. */
   private boolean coordinatesOnly;

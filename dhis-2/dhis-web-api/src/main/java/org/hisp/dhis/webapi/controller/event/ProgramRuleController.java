@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller.event;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import lombok.AllArgsConstructor;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.Status;
@@ -40,7 +39,6 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.engine.ProgramRuleEngineService;
 import org.hisp.dhis.rules.models.RuleValidationResult;
-import org.hisp.dhis.schema.descriptors.ProgramRuleSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -53,10 +51,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author markusbekken
  */
-@OpenApi.Tags("tracker")
 @Controller
 @AllArgsConstructor
-@RequestMapping(value = ProgramRuleSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/programRules")
 public class ProgramRuleController extends AbstractCrudController<ProgramRule> {
   private final I18nManager i18nManager;
 

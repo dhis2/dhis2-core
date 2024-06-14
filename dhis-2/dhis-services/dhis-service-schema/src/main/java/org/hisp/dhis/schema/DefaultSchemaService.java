@@ -120,7 +120,6 @@ import org.hisp.dhis.schema.descriptors.MapViewSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.MessageConversationSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.MetadataVersionSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.MinMaxDataElementSchemaDescriptor;
-import org.hisp.dhis.schema.descriptors.OAuth2ClientSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ObjectStyleSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.OptionGroupSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.OptionGroupSetSchemaDescriptor;
@@ -152,7 +151,6 @@ import org.hisp.dhis.schema.descriptors.ProgramTrackedEntityAttributeSchemaDescr
 import org.hisp.dhis.schema.descriptors.PushAnalysisSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.RelationshipConstraintSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.RelationshipItemSchemaDescriptor;
-import org.hisp.dhis.schema.descriptors.RelationshipSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.RelationshipTypeSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ReportSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ReportingRateSchemaDescriptor;
@@ -251,7 +249,6 @@ public class DefaultSchemaService implements SchemaService {
     register(new MapViewSchemaDescriptor());
     register(new MessageConversationSchemaDescriptor());
     register(new MetadataVersionSchemaDescriptor());
-    register(new OAuth2ClientSchemaDescriptor());
     register(new OptionSchemaDescriptor());
     register(new OptionSetSchemaDescriptor());
     register(new OrganisationUnitGroupSchemaDescriptor());
@@ -310,7 +307,6 @@ public class DefaultSchemaService implements SchemaService {
     register(new CategoryOptionGroupSetDimensionSchemaDescriptor());
     register(new DataElementGroupSetDimensionSchemaDescriptor());
     register(new OrganisationUnitGroupSetDimensionSchemaDescriptor());
-    register(new RelationshipSchemaDescriptor());
     register(new KeyJsonValueSchemaDescriptor());
     register(new EventFilterSchemaDescriptor());
     register(new VisualizationSchemaDescriptor());

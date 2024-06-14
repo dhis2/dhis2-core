@@ -117,7 +117,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.velocity</groupId>
-      <artifactId>velocity</artifactId>
+      <artifactId>velocity-engine-core</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hibernate</groupId>
@@ -177,6 +177,10 @@
     <dependency>
       <groupId>org.jfree</groupId>
       <artifactId>jfreechart</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jfree</groupId>
+      <artifactId>jcommon</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>

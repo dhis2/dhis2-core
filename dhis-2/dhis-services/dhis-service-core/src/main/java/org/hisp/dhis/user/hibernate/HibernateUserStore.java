@@ -76,6 +76,7 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccountExpiryInfo;
+import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserStore;
@@ -111,6 +112,13 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
 
     this.schemaService = schemaService;
     this.queryCacheManager = queryCacheManager;
+  }
+
+  @Override
+  public void save(@Nonnull User user, boolean clearSharing) {
+    super.save(user, clearSharing);
+
+    aclService.invalidateCurrentUserGroupInfoCache(user.getUid());
   }
 
   @Override
@@ -490,7 +498,9 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
               and u.userinfoid in (select m.userid from usergroup g inner join usergroupmembers m on m.usergroupid = g.usergroupid where g.uid = :group);
             """;
     NativeQuery<?> emailsByUsername =
-        getSession().createNativeQuery(sql).setParameter("group", userGroupId);
+        nativeSynchronizedQuery(sql)
+            .addSynchronizedEntityClass(UserGroup.class)
+            .setParameter("group", userGroupId);
     return emailsByUsername.stream()
         .collect(
             toMap(
@@ -502,7 +512,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   @SuppressWarnings("unchecked")
   public String getDisplayName(String userUid) {
     String sql = "select concat(firstname, ' ', surname) from userinfo where uid =:uid";
-    Query<String> query = getSession().createNativeQuery(sql);
+    Query<String> query = nativeSynchronizedQuery(sql);
     query.setParameter("uid", userUid);
     return getSingleResult(query);
   }

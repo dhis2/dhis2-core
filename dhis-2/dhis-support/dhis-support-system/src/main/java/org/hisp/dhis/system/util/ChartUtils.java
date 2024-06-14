@@ -37,7 +37,7 @@ public class ChartUtils {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
 
     try {
-      org.jfree.chart.ChartUtils.writeChartAsPNG(out, jFreeChart, width, height);
+      org.jfree.chart.ChartUtilities.writeChartAsPNG(out, jFreeChart, width, height);
       out.flush();
 
       return out.toByteArray();

@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import org.hisp.dhis.common.ErrorCodeException;
-import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.junit.jupiter.api.function.Executable;
@@ -149,6 +149,26 @@ public final class Assertions {
         () ->
             String.format(
                 "expected string to start with '%s', got '%s' instead", expected, actual));
+  }
+
+  /**
+   * Asserts that the given string neither null, a length of zero nor whitespace only.
+   *
+   * @param actual the string.
+   */
+  public static void assertNotBlank(String actual) {
+    assertNotNull(actual);
+    assertTrue(!actual.isBlank());
+  }
+
+  /**
+   * Asserts that the given string neither null or a length of zero.
+   *
+   * @param actual the string.
+   */
+  public static void assertNotEmpty(String actual) {
+    assertNotNull(actual);
+    assertTrue(!actual.isEmpty());
   }
 
   /**

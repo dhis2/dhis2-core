@@ -63,16 +63,28 @@ class PostgreSqlBuilderTest {
 
   private List<Index> getIndexesA() {
     return List.of(
-        new Index("in_immunization_data", "immunization", List.of("data")),
-        new Index("in_immunization_period_created", "immunization", List.of("period", "created")),
-        new Index("in_immunization_user", "immunization", IndexType.GIN, List.of("user")),
-        new Index(
-            "in_immunization_data_period",
-            "immunization",
-            IndexType.BTREE,
-            Unique.NON_UNIQUE,
-            List.of("data", "period"),
-            IndexFunction.LOWER));
+        Index.builder()
+            .name("in_immunization_data")
+            .tableName("immunization")
+            .columns(List.of("data"))
+            .build(),
+        Index.builder()
+            .name("in_immunization_period_created")
+            .tableName("immunization")
+            .columns(List.of("period", "created"))
+            .build(),
+        Index.builder()
+            .name("in_immunization_user")
+            .tableName("immunization")
+            .indexType(IndexType.GIN)
+            .columns(List.of("user"))
+            .build(),
+        Index.builder()
+            .name("in_immunization_data_period")
+            .tableName("immunization")
+            .columns(List.of("data", "period"))
+            .function(IndexFunction.LOWER)
+            .build());
   }
 
   private Table getTableB() {
@@ -89,23 +101,31 @@ class PostgreSqlBuilderTest {
 
   private Table getTableC() {
     List<Column> columns =
-        List.of(new Column("vitamin_a", DataType.BIGINT), new Column("vitamin_d", DataType.BIGINT));
+        List.of(
+            new Column("id", DataType.BIGINT, Nullable.NOT_NULL),
+            new Column("vitamin_a", DataType.BIGINT),
+            new Column("vitamin_d", DataType.BIGINT));
 
-    return new Table("nutrition", columns, List.of(), List.of(), Logged.LOGGED, getTableB());
+    List<String> primaryKey = List.of("id");
+
+    return new Table("nutrition", columns, primaryKey, List.of(), Logged.LOGGED, getTableB());
   }
 
   // Data types
 
   @Test
-  void testDataType() {
+  void testDataTypes() {
     assertEquals("double precision", sqlBuilder.dataTypeDouble());
     assertEquals("geometry", sqlBuilder.dataTypeGeometry());
   }
 
+  // Index types
+
   @Test
-  void testIndexType() {
+  void testIndexTypes() {
     assertEquals("btree", sqlBuilder.indexTypeBtree());
     assertEquals("gist", sqlBuilder.indexTypeGist());
+    assertEquals("gin", sqlBuilder.indexTypeGin());
   }
 
   // Capabilities
@@ -180,6 +200,12 @@ class PostgreSqlBuilderTest {
     assertEquals("\"categories_options\"", sqlBuilder.qualifyTable("categories_options"));
   }
 
+  @Test
+  void testDateTrunc() {
+    assertEquals(
+        "date_trunc('month', pe.startdate)", sqlBuilder.dateTrunc("month", "pe.startdate"));
+  }
+
   // Statements
 
   @Test
@@ -188,7 +214,7 @@ class PostgreSqlBuilderTest {
 
     String expected =
         """
-        create table \"immunization\" ("id" bigint not null, "data" char(11) not null, \
+        create table "immunization" ("id" bigint not null, "data" char(11) not null, \
         "period\" varchar(50) not null, "created" timestamp null, "user" jsonb null, \
         "value" double precision null, primary key ("id"));""";
 
@@ -214,8 +240,8 @@ class PostgreSqlBuilderTest {
 
     String expected =
         """
-        create table "nutrition" ("vitamin_a" bigint null, \
-        "vitamin_d" bigint null) inherits ("vaccination");""";
+        create table "nutrition" ("id" bigint not null, "vitamin_a" bigint null, \
+        "vitamin_d" bigint null, primary key ("id")) inherits ("vaccination");""";
 
     assertEquals(expected, sqlBuilder.createTable(table));
   }
@@ -324,6 +350,14 @@ class PostgreSqlBuilderTest {
   }
 
   @Test
+  void testCountRows() {
+    String expected = """
+        select count(*) as row_count from "immunization";""";
+
+    assertEquals(expected, sqlBuilder.countRows(getTableA()));
+  }
+
+  @Test
   void testCreateIndexA() {
     List<Index> indexes = getIndexesA();
 
@@ -361,5 +395,26 @@ class PostgreSqlBuilderTest {
         "create index \"in_immunization_data_period\" on \"immunization\" using btree(lower(\"data\"), lower(\"period\"));";
 
     assertEquals(expected, sqlBuilder.createIndex(indexes.get(3)));
+  }
+
+  @Test
+  void testCreateIndexWithDescNullsLast() {
+    // given
+    String expected =
+        "create unique index \"index_a\" on \"table_a\" using btree(\"column_a\" desc nulls last);";
+    Index index =
+        Index.builder()
+            .name("index_a")
+            .tableName("table_a")
+            .unique(Unique.UNIQUE)
+            .columns(List.of("column_a"))
+            .sortOrder("desc nulls last")
+            .build();
+
+    // when
+    String createIndexStmt = sqlBuilder.createIndex(index);
+
+    // then
+    assertEquals(expected, createIndexStmt);
   }
 }

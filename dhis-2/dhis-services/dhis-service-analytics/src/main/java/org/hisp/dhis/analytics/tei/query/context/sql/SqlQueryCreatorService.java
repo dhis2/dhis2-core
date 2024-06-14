@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics.tei.query.context.sql;
 
+import static java.util.function.Predicate.not;
+
 import java.util.List;
 import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +37,7 @@ import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
-import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.common.collection.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -88,10 +90,19 @@ public class SqlQueryCreatorService {
     return SqlQueryCreator.of(queryContext, renderableSqlQuery);
   }
 
+  /**
+   * Checks if the acceptedDimensions list does not contain the parsedHeader. As an exception,
+   * duplicates are allowed if the dimension has a legendSet.
+   *
+   * @param acceptedDimensions the list of accepted dimensions
+   * @param parsedHeader the parsed header
+   * @return true if the acceptedDimensions list does not contain the parsedHeader
+   */
   private boolean notContains(
       List<DimensionIdentifier<DimensionParam>> acceptedDimensions,
       DimensionIdentifier<DimensionParam> parsedHeader) {
     return acceptedDimensions.stream()
+        .filter(not(DimensionIdentifier::hasLegendSet))
         .noneMatch(
             dimensionIdentifier ->
                 StringUtils.equalsIgnoreCase(

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
+import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.web.WebClient.Header;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
@@ -61,11 +62,11 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
@@ -375,6 +376,7 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
     assertEquals("no-cache, private", response.header("Cache-Control"));
     assertEquals(Long.toString(file.getContentLength()), response.header("Content-Length"));
     assertEquals("filename=" + file.getName(), response.header("Content-Disposition"));
+    assertContains("script-src 'none';", response.header("Content-Security-Policy"));
     assertEquals("file content", response.content("text/plain"));
   }
 
@@ -420,6 +422,7 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
     assertEquals(HttpStatus.NOT_MODIFIED, response.status());
     assertEquals("\"" + file.getUid() + "\"", response.header("Etag"));
     assertEquals("no-cache, private", response.header("Cache-Control"));
+    assertContains("script-src 'none';", response.header("Content-Security-Policy"));
     assertFalse(response.hasBody());
   }
 
@@ -758,7 +761,7 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
     enrollment.setAutoFields();
     enrollment.setEnrollmentDate(new Date());
     enrollment.setOccurredDate(new Date());
-    enrollment.setStatus(ProgramStatus.COMPLETED);
+    enrollment.setStatus(EnrollmentStatus.COMPLETED);
     manager.save(enrollment);
     return enrollment;
   }

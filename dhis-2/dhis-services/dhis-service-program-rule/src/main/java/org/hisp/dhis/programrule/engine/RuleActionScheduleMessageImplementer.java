@@ -36,9 +36,7 @@ import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.notification.logging.NotificationTriggerEvent;
 import org.hisp.dhis.notification.logging.NotificationValidationResult;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
@@ -49,7 +47,6 @@ import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Zubair Asghar
@@ -70,15 +67,9 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
   public RuleActionScheduleMessageImplementer(
       ProgramNotificationTemplateService programNotificationTemplateService,
       NotificationLoggingService notificationLoggingService,
-      EnrollmentService enrollmentService,
-      EventService eventService,
       ProgramNotificationInstanceService programNotificationInstanceService,
       NotificationTemplateService notificationTemplateService) {
-    super(
-        programNotificationTemplateService,
-        notificationLoggingService,
-        enrollmentService,
-        eventService);
+    super(programNotificationTemplateService, notificationLoggingService);
     this.programNotificationInstanceService = programNotificationInstanceService;
     this.notificationTemplateService = notificationTemplateService;
   }
@@ -89,7 +80,6 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
   }
 
   @Override
-  @Transactional
   public void implement(RuleEffect ruleEffect, Enrollment enrollment) {
     NotificationValidationResult result = validate(ruleEffect, enrollment);
 
@@ -128,7 +118,6 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
   }
 
   @Override
-  @Transactional
   public void implement(RuleEffect ruleEffect, Event event) {
     checkNotNull(event, "Event cannot be null");
 

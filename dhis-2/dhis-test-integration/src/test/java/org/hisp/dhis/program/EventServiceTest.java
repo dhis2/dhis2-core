@@ -74,7 +74,7 @@ class EventServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private ProgramStageService programStageService;
 
-  @Autowired private TrackedEntityService entityInstanceService;
+  @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private EnrollmentService enrollmentService;
 
@@ -130,9 +130,9 @@ class EventServiceTest extends TransactionalIntegrationTest {
 
   private Event eventD2;
 
-  private TrackedEntity entityInstanceA;
+  private TrackedEntity trackedEntityA;
 
-  private TrackedEntity entityInstanceB;
+  private TrackedEntity trackedEntityB;
 
   private Program programA;
 
@@ -144,19 +144,19 @@ class EventServiceTest extends TransactionalIntegrationTest {
     organisationUnitService.addOrganisationUnit(organisationUnitA);
     organisationUnitB = createOrganisationUnit('B');
     organisationUnitService.addOrganisationUnit(organisationUnitB);
-    entityInstanceA = createTrackedEntity(organisationUnitA);
-    entityInstanceService.addTrackedEntity(entityInstanceA);
-    entityInstanceB = createTrackedEntity(organisationUnitB);
-    entityInstanceService.addTrackedEntity(entityInstanceB);
+    trackedEntityA = createTrackedEntity(organisationUnitA);
+    trackedEntityService.addTrackedEntity(trackedEntityA);
+    trackedEntityB = createTrackedEntity(organisationUnitB);
+    trackedEntityService.addTrackedEntity(trackedEntityB);
     TrackedEntityAttribute attribute = createTrackedEntityAttribute('A');
     attribute.setValueType(ValueType.PHONE_NUMBER);
     attributeService.addTrackedEntityAttribute(attribute);
     TrackedEntityAttributeValue attributeValue =
-        createTrackedEntityAttributeValue('A', entityInstanceA, attribute);
+        createTrackedEntityAttributeValue('A', trackedEntityA, attribute);
     attributeValue.setValue("123456789");
     attributeValueService.addTrackedEntityAttributeValue(attributeValue);
-    entityInstanceA.getTrackedEntityAttributeValues().add(attributeValue);
-    entityInstanceService.updateTrackedEntity(entityInstanceA);
+    trackedEntityA.getTrackedEntityAttributeValues().add(attributeValue);
+    trackedEntityService.updateTrackedEntity(trackedEntityA);
     /** Program A */
     programA = createProgram('A', new HashSet<>(), organisationUnitA);
     programService.addProgram(programA);
@@ -205,7 +205,7 @@ class EventServiceTest extends TransactionalIntegrationTest {
     programStages.add(stageD);
     programB.setProgramStages(programStages);
     programService.updateProgram(programB);
-    /** Enrollment and Program Stage Instance */
+    /** Enrollment and event */
     DateTime testDate1 = DateTime.now();
     testDate1.withTimeAtStartOfDay();
     testDate1 = testDate1.minusDays(70);
@@ -213,10 +213,10 @@ class EventServiceTest extends TransactionalIntegrationTest {
     DateTime testDate2 = DateTime.now();
     testDate2.withTimeAtStartOfDay();
     enrollmentDate = testDate2.toDate();
-    enrollmentA = new Enrollment(enrollmentDate, incidenDate, entityInstanceA, programA);
+    enrollmentA = new Enrollment(enrollmentDate, incidenDate, trackedEntityA, programA);
     enrollmentA.setUid("UID-PIA");
     enrollmentService.addEnrollment(enrollmentA);
-    enrollmentB = new Enrollment(enrollmentDate, incidenDate, entityInstanceB, programB);
+    enrollmentB = new Enrollment(enrollmentDate, incidenDate, trackedEntityB, programB);
     enrollmentService.addEnrollment(enrollmentB);
     eventA = new Event(enrollmentA, stageA);
     eventA.setScheduledDate(enrollmentDate);
@@ -267,15 +267,6 @@ class EventServiceTest extends TransactionalIntegrationTest {
     eventService.deleteEvent(eventB);
     assertNull(eventService.getEvent(idA));
     assertNull(eventService.getEvent(idB));
-  }
-
-  @Test
-  void testUpdateEvent() {
-    long idA = eventService.addEvent(eventA);
-    assertNotNull(eventService.getEvent(idA));
-    eventA.setName("B");
-    eventService.updateEvent(eventA);
-    assertEquals("B", eventService.getEvent(idA).getName());
   }
 
   @Test

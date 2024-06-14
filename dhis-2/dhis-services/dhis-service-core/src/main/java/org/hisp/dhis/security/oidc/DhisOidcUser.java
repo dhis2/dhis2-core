@@ -32,6 +32,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
@@ -136,36 +138,63 @@ public class DhisOidcUser extends DefaultOAuth2User implements UserDetails, Oidc
     return user.getSurname();
   }
 
+  @Nonnull
   @Override
   public Set<String> getUserGroupIds() {
     return user.getUserGroupIds();
   }
 
+  @Nonnull
   @Override
   public Set<String> getAllAuthorities() {
     return user.getAllAuthorities();
   }
 
+  @Nonnull
   @Override
   public Set<String> getUserOrgUnitIds() {
     return user.getUserOrgUnitIds();
   }
 
+  @Nonnull
+  @Override
+  public Set<String> getUserSearchOrgUnitIds() {
+    return user.getUserSearchOrgUnitIds();
+  }
+
+  @Nonnull
+  @Override
+  public Set<String> getUserDataOrgUnitIds() {
+    return user.getUserDataOrgUnitIds();
+  }
+
   @Override
   public boolean hasAnyAuthority(Collection<String> auths) {
-    return false;
+    return user.hasAnyAuthority(auths);
+  }
+
+  @Override
+  public boolean hasAnyAuthorities(Collection<Authorities> auths) {
+    return hasAnyAuthority(Authorities.toStringList(auths));
   }
 
   @Override
   public boolean isAuthorized(String auth) {
-    return false;
+    return user.isAuthorized(auth);
   }
 
+  @Override
+  public boolean isAuthorized(@Nonnull Authorities auth) {
+    return isAuthorized(auth.toString());
+  }
+
+  @Nonnull
   @Override
   public Map<String, Serializable> getUserSettings() {
     return user.getUserSettings();
   }
 
+  @Nonnull
   @Override
   public Set<String> getUserRoleIds() {
     return user.getUserRoleIds();

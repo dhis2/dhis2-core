@@ -30,12 +30,12 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_SKIP_TEST;
+import static org.hisp.dhis.security.Authorities.F_PREDICTOR_RUN;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.Date;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -47,10 +47,9 @@ import org.hisp.dhis.predictor.PredictionService;
 import org.hisp.dhis.predictor.PredictionSummary;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorService;
-import org.hisp.dhis.schema.descriptors.PredictorSchemaDescriptor;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -63,10 +62,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Ken Haase (ken@dhis2.org)
  */
-@OpenApi.Tags("metadata")
 @Controller
 @Slf4j
-@RequestMapping(value = PredictorSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/predictors")
 public class PredictorController extends AbstractCrudController<Predictor> {
   @Autowired private PredictorService predictorService;
 
@@ -79,7 +77,7 @@ public class PredictorController extends AbstractCrudController<Predictor> {
   @RequestMapping(
       value = "/{uid}/run",
       method = {RequestMethod.POST, RequestMethod.PUT})
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PREDICTOR_RUN')")
+  @RequiresAuthority(anyOf = F_PREDICTOR_RUN)
   @ResponseBody
   public WebMessage runPredictor(
       @PathVariable("uid") String uid,
@@ -104,7 +102,7 @@ public class PredictorController extends AbstractCrudController<Predictor> {
   @RequestMapping(
       value = "/run",
       method = {RequestMethod.POST, RequestMethod.PUT})
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PREDICTOR_RUN')")
+  @RequiresAuthority(anyOf = F_PREDICTOR_RUN)
   @ResponseBody
   public WebMessage runPredictors(
       @RequestParam Date startDate, @RequestParam Date endDate, TranslateParams translateParams) {

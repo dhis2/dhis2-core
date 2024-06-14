@@ -40,11 +40,11 @@ public class PotentialDuplicatesActions extends RestApiActions {
     super("/potentialDuplicates");
   }
 
-  public String createAndValidatePotentialDuplicate(String teiA, String teiB, String status) {
+  public String createAndValidatePotentialDuplicate(String teA, String teB, String status) {
     JsonObject object =
         new JsonObjectBuilder()
-            .addProperty("original", teiA)
-            .addProperty("duplicate", teiB)
+            .addProperty("original", teA)
+            .addProperty("duplicate", teB)
             .addProperty("status", "OPEN")
             .build();
 
@@ -61,15 +61,15 @@ public class PotentialDuplicatesActions extends RestApiActions {
     return uid;
   }
 
-  public String createAndValidatePotentialDuplicate(String teiA, String teiB) {
-    return createAndValidatePotentialDuplicate(teiA, teiB, "OPEN");
+  public String createAndValidatePotentialDuplicate(String teA, String teB) {
+    return createAndValidatePotentialDuplicate(teA, teB, "OPEN");
   }
 
-  public ApiResponse postPotentialDuplicate(String teiA, String teiB, String status) {
+  public ApiResponse postPotentialDuplicate(String teA, String teB, String status) {
     JsonObject object =
         new JsonObjectBuilder()
-            .addProperty("original", teiA)
-            .addProperty("duplicate", teiB)
+            .addProperty("original", teA)
+            .addProperty("duplicate", teB)
             .addProperty("status", status)
             .build();
 

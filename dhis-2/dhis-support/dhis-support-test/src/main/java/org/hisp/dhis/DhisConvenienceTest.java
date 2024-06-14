@@ -126,6 +126,7 @@ import org.hisp.dhis.fileresource.ExternalFileResource;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.hibernate.HibernateService;
+import org.hisp.dhis.icon.Icon;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
@@ -152,6 +153,7 @@ import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.AnalyticsPeriodBoundaryType;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
@@ -160,7 +162,6 @@ import org.hisp.dhis.program.ProgramSection;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageSection;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.message.ProgramMessage;
@@ -180,6 +181,7 @@ import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -1530,7 +1532,7 @@ public abstract class DhisConvenienceTest {
     mapView.setLayer(layer);
     mapView.setAggregationType(AggregationType.SUM);
     mapView.setThematicMapType(ThematicMapType.CHOROPLETH);
-    mapView.setProgramStatus(ProgramStatus.COMPLETED);
+    mapView.setProgramStatus(EnrollmentStatus.COMPLETED);
     mapView.setOrganisationUnitSelectionMode(OrganisationUnitSelectionMode.DESCENDANTS);
     mapView.setRenderingStrategy(MapViewRenderingStrategy.SINGLE);
     mapView.setUserOrgUnitType(UserOrgUnitType.DATA_CAPTURE);
@@ -2143,9 +2145,9 @@ public abstract class DhisConvenienceTest {
   }
 
   public static TrackedEntityAttributeValue createTrackedEntityAttributeValue(
-      char uniqueChar, TrackedEntity entityInstance, TrackedEntityAttribute attribute) {
+      char uniqueChar, TrackedEntity trackedEntity, TrackedEntityAttribute attribute) {
     TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue();
-    attributeValue.setTrackedEntity(entityInstance);
+    attributeValue.setTrackedEntity(trackedEntity);
     attributeValue.setAttribute(attribute);
     attributeValue.setValue("Attribute" + uniqueChar);
 
@@ -2216,6 +2218,19 @@ public abstract class DhisConvenienceTest {
     fileResource.setAutoFields();
 
     return fileResource;
+  }
+
+  public static Icon createIcon(char uniqueChar, Set<String> keywords, FileResource fileResource) {
+
+    Icon icon = new Icon();
+    icon.setAutoFields();
+    icon.setKey("iconKey" + uniqueChar);
+    icon.setDescription("description");
+    icon.setKeywords(keywords);
+    icon.setFileResource(fileResource);
+    icon.setCustom(true);
+
+    return icon;
   }
 
   /**
@@ -2505,7 +2520,7 @@ public abstract class DhisConvenienceTest {
     Set<String> authorities = new HashSet<>();
 
     if (allAuth) {
-      authorities.add(UserRole.AUTHORITY_ALL);
+      authorities.add(Authorities.ALL.toString());
     }
 
     if (auths != null) {
@@ -2548,6 +2563,10 @@ public abstract class DhisConvenienceTest {
     return createUserInternal(username, Optional.of(uid), null, authorities);
   }
 
+  protected User createUserWithAuthority(String username, Authorities... authorities) {
+    return createUserWithAuth(username, Authorities.toStringArray(authorities));
+  }
+
   protected User createUserWithAuth(String username, String... authorities) {
     return createUserInternal(username, Optional.empty(), null, authorities);
   }
@@ -2580,6 +2599,10 @@ public abstract class DhisConvenienceTest {
     userService.addUser(user);
 
     return user;
+  }
+
+  protected User createAndAddAdminUserWithAuth(Authorities... authorities) {
+    return createAndAddAdminUser(Authorities.toStringArray(authorities));
   }
 
   protected User createAndAddAdminUser(String... authorities) {
@@ -2799,12 +2822,25 @@ public abstract class DhisConvenienceTest {
     return createAndAddUser(false, userName, null);
   }
 
+  protected User createAndAddUserWithAuth(
+      Set<OrganisationUnit> organisationUnits,
+      Set<OrganisationUnit> dataViewOrganisationUnits,
+      Authorities... auths) {
+    return createAndAddUser(
+        organisationUnits, dataViewOrganisationUnits, Authorities.toStringArray(auths));
+  }
+
   protected User createAndAddUser(
       Set<OrganisationUnit> organisationUnits,
       Set<OrganisationUnit> dataViewOrganisationUnits,
       String... auths) {
     return createAndAddUser(
         false, CodeGenerator.generateUid(), organisationUnits, dataViewOrganisationUnits, auths);
+  }
+
+  protected User createAndAddUserWithAuth(
+      String userName, OrganisationUnit orgUnit, Authorities... auths) {
+    return createAndAddUser(userName, orgUnit, Authorities.toStringArray(auths));
   }
 
   protected User createAndAddUser(String userName, OrganisationUnit orgUnit, String... auths) {

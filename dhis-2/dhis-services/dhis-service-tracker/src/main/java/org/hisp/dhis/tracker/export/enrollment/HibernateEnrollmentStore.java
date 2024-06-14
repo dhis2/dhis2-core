@@ -30,7 +30,7 @@ package org.hisp.dhis.tracker.export.enrollment;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.util.DateUtils.nowMinusDuration;
-import static org.hisp.dhis.util.DateUtils.toLongDate;
+import static org.hisp.dhis.util.DateUtils.toLongDateWithMillis;
 import static org.hisp.dhis.util.DateUtils.toLongGmtDate;
 
 import java.util.List;
@@ -156,7 +156,11 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
               + toLongGmtDate(nowMinusDuration(params.getLastUpdatedDuration()))
               + "'";
     } else if (params.hasLastUpdated()) {
-      hql += hlp.whereAnd() + "en.lastUpdated >= '" + toLongDate(params.getLastUpdated()) + "'";
+      hql +=
+          hlp.whereAnd()
+              + "en.lastUpdated >= '"
+              + toLongDateWithMillis(params.getLastUpdated())
+              + "'";
     }
 
     if (params.hasTrackedEntity()) {
@@ -186,8 +190,8 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
       hql += hlp.whereAnd() + "en.program.uid = '" + params.getProgram().getUid() + "'";
     }
 
-    if (params.hasProgramStatus()) {
-      hql += hlp.whereAnd() + "en." + STATUS + " = '" + params.getProgramStatus() + "'";
+    if (params.hasEnrollmentStatus()) {
+      hql += hlp.whereAnd() + "en." + STATUS + " = '" + params.getEnrollmentStatus() + "'";
     }
 
     if (params.hasFollowUp()) {
@@ -198,13 +202,16 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
       hql +=
           hlp.whereAnd()
               + "en.enrollmentDate >= '"
-              + toLongDate(params.getProgramStartDate())
+              + toLongDateWithMillis(params.getProgramStartDate())
               + "'";
     }
 
     if (params.hasProgramEndDate()) {
       hql +=
-          hlp.whereAnd() + "en.enrollmentDate <= '" + toLongDate(params.getProgramEndDate()) + "'";
+          hlp.whereAnd()
+              + "en.enrollmentDate <= '"
+              + toLongDateWithMillis(params.getProgramEndDate())
+              + "'";
     }
 
     if (!params.isIncludeDeleted()) {

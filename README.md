@@ -115,7 +115,7 @@ It should now be available at `http://localhost:8080`.
 To build using a custom tag run
 
 ```sh
-mvn -DskipTests -Dmaven.test.skip=true -f dhis-2/dhis-web/dhis-web-portal/pom.xml jib:dockerBuild -Djib.to.image=dhis2/core-dev:mytag
+mvn -DskipTests -Dmaven.test.skip=true -f dhis-2/dhis-web-server/pom.xml jib:dockerBuild -Djib.to.image=dhis2/core-dev:mytag
 ```
 
 For more configuration options related to Jib or Docker go to the
