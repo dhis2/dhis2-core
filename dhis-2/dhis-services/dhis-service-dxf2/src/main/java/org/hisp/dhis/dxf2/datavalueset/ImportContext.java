@@ -207,10 +207,6 @@ public final class ImportContext {
   }
 
   public boolean currentUserCanAttributeData() {
-    if (currentUser.isSuper()) {
-      return true;
-    }
-
     return currentUser.isAuthorized(Authorities.F_DATAVALUE_ATTRIBUTE.name());
   }
 
