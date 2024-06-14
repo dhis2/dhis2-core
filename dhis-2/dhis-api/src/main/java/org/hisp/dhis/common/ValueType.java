@@ -41,7 +41,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.opengis.geometry.primitive.Point;
 
 /**
@@ -67,7 +66,6 @@ public enum ValueType {
   INTEGER_POSITIVE(Integer.class, true),
   INTEGER_NEGATIVE(Integer.class, true),
   INTEGER_ZERO_OR_POSITIVE(Integer.class, true),
-  TRACKER_ASSOCIATE(TrackedEntity.class, false),
   USERNAME(String.class, true),
   COORDINATE(Point.class, true),
   ORGANISATION_UNIT(OrganisationUnit.class, false),

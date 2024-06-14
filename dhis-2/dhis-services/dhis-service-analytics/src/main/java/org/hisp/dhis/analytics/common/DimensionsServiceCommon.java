@@ -37,7 +37,6 @@ import static org.hisp.dhis.common.ValueType.INTEGER_POSITIVE;
 import static org.hisp.dhis.common.ValueType.INTEGER_ZERO_OR_POSITIVE;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.PERCENTAGE;
-import static org.hisp.dhis.common.ValueType.TRACKER_ASSOCIATE;
 import static org.hisp.dhis.common.ValueType.TRUE_ONLY;
 import static org.hisp.dhis.common.ValueType.UNIT_INTERVAL;
 
@@ -59,7 +58,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 public class DimensionsServiceCommon {
 
   protected static final EnumSet<ValueType> QUERY_DISALLOWED_VALUE_TYPES =
-      EnumSet.of(IMAGE, FILE_RESOURCE, TRACKER_ASSOCIATE);
+      EnumSet.of(IMAGE, FILE_RESOURCE);
 
   protected static final EnumSet<ValueType> AGGREGATE_ALLOWED_VALUE_TYPES =
       EnumSet.of(
