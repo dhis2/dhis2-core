@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.preprocess;
 
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 
 /**
@@ -40,4 +41,8 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
  */
 public interface BundlePreProcessor {
   void process(TrackerBundle bundle);
+
+  default boolean needsToRun(TrackerImportStrategy strategy) {
+    return !strategy.isDelete();
+  }
 }
