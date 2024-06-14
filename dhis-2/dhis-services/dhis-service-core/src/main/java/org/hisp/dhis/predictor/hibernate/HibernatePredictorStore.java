@@ -39,6 +39,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorStore;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -93,5 +94,22 @@ public class HibernatePredictorStore extends HibernateIdentifiableObjectStore<Pr
         """;
 
     return nativeSynchronizedTypedQuery(sql).setParameter("dataElements", dataElements).list();
+  }
+
+  @Override
+  public List<Predictor> getAllWithGeneratorExpressionContainingDataElement(
+      @Nonnull List<String> dataElementUids) {
+    String whereMultiLike = SqlUtils.whereMultiLike("e.expression", dataElementUids);
+
+    return getQuery(
+            """
+            select p from Predictor p
+            join p.generator,
+            Expression as e
+            %s
+            group by p
+            """
+                .formatted(whereMultiLike))
+        .getResultList();
   }
 }

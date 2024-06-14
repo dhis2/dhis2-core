@@ -29,6 +29,7 @@ package org.hisp.dhis.predictor;
 
 import java.util.Collection;
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 
@@ -39,4 +40,7 @@ public interface PredictorStore extends IdentifiableObjectStore<Predictor> {
   String ID = PredictorStore.class.getName();
 
   List<Predictor> getAllByDataElement(Collection<DataElement> dataElements);
+
+  List<Predictor> getAllWithGeneratorExpressionContainingDataElement(
+      @Nonnull List<String> dataElements);
 }

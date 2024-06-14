@@ -31,8 +31,10 @@ import com.google.common.collect.Sets;
 import java.sql.Array;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.CodeGenerator;
 
 /**
@@ -145,5 +147,23 @@ public class SqlUtils {
    */
   public static String lower(String value) {
     return "lower(" + value + ")";
+  }
+
+  public static String whereMultiLike(@Nonnull String column, @Nonnull List<String> likeTargets) {
+    if (likeTargets.isEmpty())
+      throw new IllegalArgumentException("SQL multi like must have at least one target");
+    StringBuilder multiLike =
+        new StringBuilder(" WHERE " + column + " like " + "'%" + likeTargets.get(0) + "%'");
+
+    for (int i = 1; i < likeTargets.size(); ++i) {
+      multiLike
+          .append(" OR ")
+          .append(column)
+          .append(" like ")
+          .append("'%")
+          .append(likeTargets.get(i))
+          .append("%'");
+    }
+    return multiLike.toString();
   }
 }

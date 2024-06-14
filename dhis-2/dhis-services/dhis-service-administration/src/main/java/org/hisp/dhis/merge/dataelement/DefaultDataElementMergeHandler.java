@@ -29,6 +29,8 @@ package org.hisp.dhis.merge.dataelement;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupStore;
@@ -40,10 +42,11 @@ import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.SectionStore;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationService;
+import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.hisp.dhis.predictor.Predictor;
-import org.hisp.dhis.predictor.PredictorService;
+import org.hisp.dhis.predictor.PredictorStore;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramStageSection;
@@ -70,7 +73,7 @@ public class DefaultDataElementMergeHandler {
   private final MinMaxDataElementService minMaxDataElementService;
   private final EventVisualizationService eventVisualizationService;
   private final SMSCommandService smsCommandService;
-  private final PredictorService predictorService;
+  private final PredictorStore predictorStore;
   private final ProgramStageDataElementService programStageDataElementService;
   private final ProgramStageSectionService programStageSectionService;
   private final ProgramNotificationTemplateService programNotificationTemplateService;
@@ -136,8 +139,32 @@ public class DefaultDataElementMergeHandler {
    *     org.hisp.dhis.predictor.Predictor}
    */
   public void handlePredictor(List<DataElement> sources, DataElement target) {
-    List<Predictor> predictors = predictorService.getAllByDataElement(sources);
+    List<Predictor> predictors = predictorStore.getAllByDataElement(sources);
     predictors.forEach(p -> p.setOutput(target));
+  }
+
+  /**
+   * Method retrieving {@link Predictor}s which have a source {@link DataElement} reference in its
+   * generator {@link Expression}. All retrieved {@link Predictor}s will have their generator {@link
+   * Expression} {@link DataElement} {@link UID} replaced with the target {@link DataElement} {@link
+   * UID}
+   *
+   * @param sources source {@link DataElement}s used to retrieve {@link Predictor}s
+   * @param target {@link DataElement} which will replace the {@link DataElement} {@link UID} in a
+   *     {@link Predictor} {@link Expression}
+   */
+  public void handlePredictorGeneratorExpression(List<DataElement> sources, DataElement target) {
+    List<Predictor> predictors =
+        predictorStore.getAllWithGeneratorExpressionContainingDataElement(
+            IdentifiableObjectUtils.getUidsNonNull(sources));
+    for (DataElement source : sources) {
+      predictors.forEach(
+          p -> {
+            Expression generator = p.getGenerator();
+            generator.setExpression(
+                generator.getExpression().replace(source.getUid(), target.getUid()));
+          });
+    }
   }
 
   /**

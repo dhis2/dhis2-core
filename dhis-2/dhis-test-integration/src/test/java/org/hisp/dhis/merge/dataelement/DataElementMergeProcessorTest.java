@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.merge.dataelement;
 
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUidsNonNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -72,7 +73,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.predictor.Predictor;
-import org.hisp.dhis.predictor.PredictorService;
+import org.hisp.dhis.predictor.PredictorStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
@@ -112,7 +113,7 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
   @Autowired private EventVisualizationService eventVisualizationService;
   @Autowired private OrganisationUnitService orgUnitService;
   @Autowired private SMSCommandService smsCommandService;
-  @Autowired private PredictorService predictorService;
+  @Autowired private PredictorStore predictorStore;
   @Autowired private CategoryService categoryService;
   @Autowired private ProgramStageDataElementService programStageDataElementService;
   @Autowired private ProgramStageSectionService programStageSectionService;
@@ -130,6 +131,7 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
   private DataElement deSource1;
   private DataElement deSource2;
   private DataElement deTarget;
+  private DataElement deRandom;
   private OrganisationUnit ou1;
   private OrganisationUnit ou2;
   private OrganisationUnit ou3;
@@ -142,9 +144,11 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     deSource1 = createDataElement('A');
     deSource2 = createDataElement('B');
     deTarget = createDataElement('C');
+    deRandom = createDataElement('D');
     dataElementService.addDataElement(deSource1);
     dataElementService.addDataElement(deSource2);
     dataElementService.addDataElement(deTarget);
+    dataElementService.addDataElement(deRandom);
 
     // org unit
     ou1 = createOrganisationUnit('A');
@@ -171,7 +175,7 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     List<OrganisationUnit> orgUnits = orgUnitService.getAllOrganisationUnits();
 
     // then
-    assertEquals(3, dataElements.size());
+    assertEquals(4, dataElements.size());
     assertEquals(3, orgUnits.size());
   }
 
@@ -429,9 +433,9 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     Predictor predictor2 = createPredictor('2', deSource2);
     Predictor predictor3 = createPredictor('3', deTarget);
 
-    predictorService.addPredictor(predictor1);
-    predictorService.addPredictor(predictor2);
-    predictorService.addPredictor(predictor3);
+    identifiableObjectManager.save(predictor1);
+    identifiableObjectManager.save(predictor2);
+    identifiableObjectManager.save(predictor3);
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -441,8 +445,8 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
 
     // then
     List<Predictor> predictorSources =
-        predictorService.getAllByDataElement(List.of(deSource1, deSource2));
-    List<Predictor> predictorTarget = predictorService.getAllByDataElement(List.of(deTarget));
+        predictorStore.getAllByDataElement(List.of(deSource1, deSource2));
+    List<Predictor> predictorTarget = predictorStore.getAllByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesNotDeleted(
@@ -458,12 +462,12 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     Predictor predictor2 = createPredictor('2', deSource2);
     Predictor predictor3 = createPredictor('3', deTarget);
 
-    predictorService.addPredictor(predictor1);
-    predictorService.addPredictor(predictor2);
-    predictorService.addPredictor(predictor3);
+    identifiableObjectManager.save(predictor1);
+    identifiableObjectManager.save(predictor2);
+    identifiableObjectManager.save(predictor3);
 
     List<Predictor> predictorsSetup =
-        predictorService.getAllByDataElement(List.of(deSource1, deSource2, deTarget));
+        predictorStore.getAllByDataElement(List.of(deSource1, deSource2, deTarget));
     assertEquals(3, predictorsSetup.size());
 
     // params
@@ -475,8 +479,72 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
 
     // then
     List<Predictor> predictorSources =
-        predictorService.getAllByDataElement(List.of(deSource1, deSource2));
-    List<Predictor> predictorTarget = predictorService.getAllByDataElement(List.of(deTarget));
+        predictorStore.getAllByDataElement(List.of(deSource1, deSource2));
+    List<Predictor> predictorTarget = predictorStore.getAllByDataElement(List.of(deTarget));
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertMergeSuccessfulSourcesDeleted(report, predictorSources, predictorTarget, allDataElements);
+  }
+
+  @Test
+  @DisplayName(
+      "Predictor generator expression references with DataElement are replaced as expected, source DataElements are not deleted")
+  void predictorGeneratorMergeTest() throws ConflictException {
+    // given
+    Predictor predictor1 = createPredictorWithGenerator('1', deRandom, deSource1);
+    Predictor predictor2 = createPredictorWithGenerator('2', deRandom, deSource2);
+    Predictor predictor3 = createPredictorWithGenerator('3', deRandom, deTarget);
+
+    identifiableObjectManager.save(predictor1);
+    identifiableObjectManager.save(predictor2);
+    identifiableObjectManager.save(predictor3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<Predictor> predictorSources =
+        predictorStore.getAllWithGeneratorExpressionContainingDataElement(
+            getUidsNonNull(List.of(deSource1, deSource2)));
+    List<Predictor> predictorTarget =
+        predictorStore.getAllWithGeneratorExpressionContainingDataElement(
+            getUidsNonNull(List.of(deTarget)));
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertMergeSuccessfulSourcesNotDeleted(
+        report, predictorSources, predictorTarget, allDataElements);
+  }
+
+  @Test
+  @DisplayName(
+      "Predictor generator expression references with DataElement are replaced as expected, source DataElements are deleted")
+  void predictorGeneratorMergeSourcesDeletedTest() throws ConflictException {
+    // given
+    Predictor predictor1 = createPredictorWithGenerator('1', deRandom, deSource1);
+    Predictor predictor2 = createPredictorWithGenerator('2', deRandom, deSource2);
+    Predictor predictor3 = createPredictorWithGenerator('3', deRandom, deTarget);
+
+    identifiableObjectManager.save(predictor1);
+    identifiableObjectManager.save(predictor2);
+    identifiableObjectManager.save(predictor3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDeleteSources(true);
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<Predictor> predictorSources =
+        predictorStore.getAllWithGeneratorExpressionContainingDataElement(
+            getUidsNonNull(List.of(deSource1, deSource2)));
+    List<Predictor> predictorTarget =
+        predictorStore.getAllWithGeneratorExpressionContainingDataElement(
+            getUidsNonNull(List.of(deTarget)));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesDeleted(report, predictorSources, predictorTarget, allDataElements);
@@ -1079,7 +1147,7 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
         allDataSetElsDataElement.contains(deTarget),
         "only the target data element should be present in data set elements");
     assertEquals(0, dseSources.size());
-    assertEquals(4, allDataElements.size());
+    assertEquals(5, allDataElements.size());
     assertFalse(allDataElements.contains(deSource1));
     assertFalse(allDataElements.contains(deSource2));
     assertEquals(3, dseTarget.size());
@@ -1599,9 +1667,9 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
       Collection<?> target,
       Collection<DataElement> dataElements) {
     assertFalse(report.hasErrorMessages());
-    assertEquals(0, sources.size());
-    assertEquals(3, target.size());
-    assertEquals(3, dataElements.size());
+    assertEquals(0, sources.size(), "Expect 0 source data elements present");
+    assertEquals(3, target.size(), "Expect 3 target data elements present");
+    assertEquals(4, dataElements.size(), "Expect 4 data elements present");
     assertTrue(dataElements.containsAll(List.of(deTarget, deSource1, deSource2)));
   }
 
@@ -1611,9 +1679,9 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
       Collection<?> target,
       Collection<DataElement> dataElements) {
     assertFalse(report.hasErrorMessages());
-    assertEquals(0, sources.size());
-    assertEquals(3, target.size());
-    assertEquals(1, dataElements.size());
+    assertEquals(0, sources.size(), "Expect 0 source data elements present");
+    assertEquals(3, target.size(), "Expect 3 target data elements present");
+    assertEquals(2, dataElements.size(), "Expect 2 data elements present");
     assertTrue(dataElements.contains(deTarget));
   }
 
@@ -1639,17 +1707,30 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     return smsCode;
   }
 
-  private Predictor createPredictor(char id, DataElement de) {
+  private Predictor createPredictor(
+      char id, DataElement de, DataElement generator, DataElement skipTest) {
     return createPredictor(
         de,
         coc1,
         String.valueOf(id),
-        new Expression(String.valueOf(id), "test" + id),
-        new Expression(String.valueOf(id), "test2" + id),
+        new Expression(String.format("#{%s.uid00001}", generator.getUid()), "test" + id),
+        new Expression(String.format("#{%s.uid00001}", skipTest.getUid()), "test2" + id),
         PeriodType.getPeriodType(PeriodTypeEnum.DAILY),
         oul,
         0,
         0,
         0);
+  }
+
+  private Predictor createPredictorWithGenerator(char id, DataElement de, DataElement generator) {
+    return createPredictor(id, de, generator, deRandom);
+  }
+
+  private Predictor createPredictorWithSkipTest(char id, DataElement de, DataElement skipTest) {
+    return createPredictor(id, de, deRandom, skipTest);
+  }
+
+  private Predictor createPredictor(char id, DataElement de) {
+    return createPredictor(id, de, deRandom, deRandom);
   }
 }
