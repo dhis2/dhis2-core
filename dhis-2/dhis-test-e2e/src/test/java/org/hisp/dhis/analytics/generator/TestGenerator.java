@@ -33,11 +33,7 @@ import org.hisp.dhis.analytics.generator.impl.TeiQueryGenerator;
 public class TestGenerator {
   static Generator get() {
     return new TeiQueryGenerator(
-        "singleOrgUnitLongitudeAsc",
-        "singleOrgUnitInBooleanFilter",
-        "singleOrgUnitInBooleanFilter",
-        "singleOrgUnitProgramStatusFilterMultipleInBoolean",
-        "multiOrgUnitProgramStatusFilterMultipleInBoolean");
+        "multiOrgUnitProgramStatusFilterMultipleInBoolean", "singleOrgUnitInBooleanFilter");
 
     // To generate all e2e tests just return the default constructor.
     // ie.: return new TeiQueryGenerator();
