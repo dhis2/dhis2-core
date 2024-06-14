@@ -388,6 +388,35 @@
       "notes": []
     }
   ],
-  "relationships": [],
+  "relationships": [
+    {
+      "relationship": "Nva3Xj2j75W",
+      "relationshipType": {
+        "idScheme": "UID",
+        "identifier": "xLmPUYJX9I7"
+      },
+      "deleted": false,
+      "from": {
+        "trackedEntity": "NCc1rCEOKaY"
+      },
+      "to": {
+        "trackedEntity": "PB9VMezGkwA"
+      }
+    },
+    {
+      "relationship": "HiXiipNGsxT",
+      "relationshipType": {
+        "idScheme": "UID",
+        "identifier": "xLmPUYJX9I7"
+      },
+      "deleted": false,
+      "from": {
+        "trackedEntity": "NCc1rCEOKaY"
+      },
+      "to": {
+        "trackedEntity": "N0wuhEwexUW"
+      }
+    }
+  ],
   "username": "system-process"
 }

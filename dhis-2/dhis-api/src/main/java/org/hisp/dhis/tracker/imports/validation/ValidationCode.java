@@ -175,8 +175,6 @@ public enum ValidationCode {
   E4020("User: `{0}`, has no write access to relationship: `{1}`."),
   E5000(
       "\"{0}\" `{1}` cannot be persisted because \"{2}\" `{3}` referenced by it cannot be persisted."),
-  E5001(
-      "\"{0}\" `{1}` cannot be deleted because \"{2}\" `{3}` referenced by it cannot be deleted."),
   E9999("N/A");
 
   private final String message;
