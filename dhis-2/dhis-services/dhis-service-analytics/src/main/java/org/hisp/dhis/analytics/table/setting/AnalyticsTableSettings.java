@@ -32,6 +32,7 @@ import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.db.model.Logged.LOGGED;
 import static org.hisp.dhis.db.model.Logged.UNLOGGED;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_SKIP_COLUMN;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_SKIP_INDEX;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_UNLOGGED;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_PERIOD_YEARS_OFFSET;
@@ -111,13 +112,22 @@ public class AnalyticsTableSettings {
   }
 
   /**
-   * Returns a set of dimension identifiers (UID) for which to skip building indexes for analytics
-   * tables.
+   * Returns a set of dimension identifiers for which to skip building indexes for columns on
+   * analytics tables.
    *
    * @return a set of dimension identifiers.
    */
   public Set<String> getSkipIndexDimensions() {
     return toSet(config.getProperty(ANALYTICS_TABLE_SKIP_INDEX));
+  }
+
+  /**
+   * Returns a set of dimension identifiers for which to skip creating columns for analytics tables.
+   *
+   * @return a set of dimension identifiers.
+   */
+  public Set<String> getSkipColumnDimensions() {
+    return toSet(config.getProperty(ANALYTICS_TABLE_SKIP_COLUMN));
   }
 
   /**
