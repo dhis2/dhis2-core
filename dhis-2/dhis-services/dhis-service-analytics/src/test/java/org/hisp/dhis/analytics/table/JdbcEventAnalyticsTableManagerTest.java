@@ -945,8 +945,10 @@ class JdbcEventAnalyticsTableManagerTest {
             "select temp.supportedyear from (select distinct extract(year from "
                 + DATE_CLAUSE
                 + ") as supportedyear "
-                + "from event psi inner join enrollment pi on psi.enrollmentid = pi.enrollmentid "
-                + "where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and ("
+                + "from event psi "
+                + "inner join enrollment pi on psi.enrollmentid = pi.enrollmentid "
+                + "where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 "
+                + "and ("
                 + DATE_CLAUSE
                 + ") is not null "
                 + "and ("
