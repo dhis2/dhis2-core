@@ -979,14 +979,13 @@ class JdbcEventAnalyticsTableManagerTest {
     verify(jdbcTemplate).execute(sql.capture());
 
     String ouQuery =
-        "(select ou.%s from organisationunit ou where ou.uid = "
-            + "(select value from trackedentityattributevalue where trackedentityid=pi.trackedentityid and "
-            + "trackedentityattributeid=9999)) as \""
-            + tea.getUid()
-            + "\"";
+        """
+        (select ou.%s from organisationunit ou where ou.uid = \
+        (select value from trackedentityattributevalue where trackedentityid=pi.trackedentityid and \
+        trackedentityattributeid=9999)) as %s""";
 
-    assertThat(sql.getValue(), containsString(String.format(ouQuery, "uid")));
-    assertThat(sql.getValue(), containsString(String.format(ouQuery, "name")));
+    assertThat(sql.getValue(), containsString(String.format(ouQuery, "uid", quote(tea.getUid()))));
+    assertThat(sql.getValue(), containsString(String.format(ouQuery, "name", quote(tea.getUid()))));
   }
 
   private String toSelectExpression(String template, String uid) {
