@@ -386,9 +386,16 @@ public enum ConfigurationKey {
   ANALYTICS_TABLE_UNLOGGED("analytics.table.unlogged", Constants.ON),
 
   /**
-   * Skip building indexes on analytics tables for the comma-separated list of UIDs. Experimental.
+   * Skip building indexes for dimensional columns on analytics tables for the comma-separated list
+   * of dimension identifiers. Experimental.
    */
   ANALYTICS_TABLE_SKIP_INDEX("analytics.table.skip_index", "", false),
+
+  /**
+   * Skip creating columns for analytics tables for the comma-separated list of dimensional
+   * identifiers. Experimental.
+   */
+  ANALYTICS_TABLE_SKIP_COLUMN("analytics.table.skip_column", "", false),
 
   /**
    * Artemis support mode, 2 modes supported: EMBEDDED (starts up an embedded Artemis which lives in
