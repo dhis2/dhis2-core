@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static java.util.function.Predicate.not;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getStartDate;
 import static org.hisp.dhis.commons.util.TextUtils.format;
@@ -472,6 +473,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
                   .skipIndex(skipIndex(name))
                   .build();
             })
+        .filter(not(this::skipColumn))
         .toList();
   }
 
@@ -643,6 +645,18 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   protected Skip skipIndex(String dimension) {
     Set<String> dimensions = analyticsTableSettings.getSkipIndexDimensions();
     return dimensions.contains(dimension) ? Skip.SKIP : Skip.INCLUDE;
+  }
+
+  /**
+   * Indicates whether the column should be skipped for the given {@link AnalyticsTableColumn} based
+   * on the system configuration. The matching is performed using the {@code name} property of the
+   * given column.
+   *
+   * @param column the {@link AnalyticsTableColumn}.
+   * @return true if the column should be skipped, false otherwise.
+   */
+  protected boolean skipColumn(AnalyticsTableColumn column) {
+    return analyticsTableSettings.getSkipColumnDimensions().contains(column.getName());
   }
 
   /**
