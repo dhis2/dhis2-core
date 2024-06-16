@@ -32,6 +32,8 @@ import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.db.model.Logged.LOGGED;
 import static org.hisp.dhis.db.model.Logged.UNLOGGED;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE_CATALOG;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE_DRIVER_FILENAME;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_SKIP_COLUMN;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_SKIP_INDEX;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_UNLOGGED;
@@ -109,6 +111,24 @@ public class AnalyticsTableSettings {
     String value = config.getProperty(ANALYTICS_DATABASE);
     String valueUpperCase = StringUtils.trimToEmpty(value).toUpperCase();
     return getAndValidateDatabase(valueUpperCase);
+  }
+
+  /**
+   * Returns the analytics database JDBC catalog name.
+   *
+   * @return the analytics database JDBC catalog name.
+   */
+  public String getAnalyticsDatabaseCatalog() {
+    return config.getProperty(ANALYTICS_DATABASE_CATALOG);
+  }
+
+  /**
+   * Returns the analytics database JDBC driver filename.
+   *
+   * @return the analytics database JDBC driver filename.
+   */
+  public String getAnalyticsDatabaseDriverFilename() {
+    return config.getProperty(ANALYTICS_DATABASE_DRIVER_FILENAME);
   }
 
   /**
