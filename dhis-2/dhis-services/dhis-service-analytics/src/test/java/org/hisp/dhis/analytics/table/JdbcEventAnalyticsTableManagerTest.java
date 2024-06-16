@@ -1005,9 +1005,10 @@ class JdbcEventAnalyticsTableManagerTest {
             + "extract(year from "
             + DATE_CLAUSE
             + ") as supportedyear "
-            + "from event psi inner join "
-            + "enrollment pi on psi.enrollmentid = pi.enrollmentid where psi.lastupdated <= '"
-            + "2019-08-01T00:00:00' and pi.programid = "
+            + "from event psi "
+            + "inner join enrollment pi on psi.enrollmentid = pi.enrollmentid "
+            + "where psi.lastupdated <= '2019-08-01T00:00:00' "
+            + "and pi.programid = "
             + program.getId()
             + " and ("
             + DATE_CLAUSE
