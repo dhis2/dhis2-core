@@ -28,7 +28,7 @@
 package org.hisp.dhis.validation.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
+import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
 
 import java.util.ArrayList;
 import java.util.Collection;

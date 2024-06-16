@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static org.hisp.dhis.commons.collection.CollectionUtils.emptyIfNull;
+import static org.hisp.dhis.common.collection.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 

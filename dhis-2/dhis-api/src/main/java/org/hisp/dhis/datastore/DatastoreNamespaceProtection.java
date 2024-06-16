@@ -27,10 +27,11 @@
  */
 package org.hisp.dhis.datastore;
 
-import static java.util.Arrays.asList;
+import static org.hisp.dhis.common.collection.CollectionUtils.union;
 
-import java.util.HashSet;
 import java.util.Set;
+import javax.annotation.Nonnull;
+import lombok.Value;
 
 /**
  * The {@link DatastoreNamespaceProtection} is a configuration for a particular namespace and the
@@ -40,11 +41,11 @@ import java.util.Set;
  *
  * @author Jan Bernitt
  */
+@Value
 public class DatastoreNamespaceProtection {
 
   /**
-   * Protection rules apply to users that do not have at least one of the required {@link
-   * #authorities}.
+   * Protection rules apply to users that do not have at least one of the required authorities.
    *
    * <p>All superusers always have read and write access.
    */
@@ -65,55 +66,42 @@ public class DatastoreNamespaceProtection {
     RESTRICTED
   }
 
-  private final String namespace;
-
-  private final ProtectionType reads;
-
-  private final ProtectionType writes;
-
-  private final Set<String> authorities;
+  @Nonnull String namespace;
+  @Nonnull ProtectionType reads;
+  @Nonnull ProtectionType writes;
+  @Nonnull Set<String> readAuthorities;
+  @Nonnull Set<String> writeAuthorities;
 
   public DatastoreNamespaceProtection(
-      String namespace, ProtectionType readWrite, String... authorities) {
+      @Nonnull String namespace,
+      @Nonnull ProtectionType readWrite,
+      @Nonnull String... authorities) {
     this(namespace, readWrite, readWrite, authorities);
   }
 
   public DatastoreNamespaceProtection(
-      String namespace, ProtectionType reads, ProtectionType writes, String... authorities) {
-    this(namespace, reads, writes, new HashSet<>(asList(authorities)));
+      @Nonnull String namespace,
+      @Nonnull ProtectionType reads,
+      @Nonnull ProtectionType writes,
+      @Nonnull String... authorities) {
+    this(namespace, reads, Set.of(authorities), writes, Set.of(authorities));
   }
 
   public DatastoreNamespaceProtection(
-      String namespace, ProtectionType reads, ProtectionType writes, Set<String> authorities) {
+      @Nonnull String namespace,
+      @Nonnull ProtectionType reads,
+      @Nonnull Set<String> readAuthorities,
+      @Nonnull ProtectionType writes,
+      @Nonnull Set<String> writeAuthorities) {
     this.namespace = namespace;
-    this.reads = reads;
-    this.writes = writes;
-    this.authorities = authorities;
+    this.reads = readAuthorities.isEmpty() ? ProtectionType.NONE : reads;
+    this.writes = writeAuthorities.isEmpty() ? ProtectionType.NONE : writes;
+    this.readAuthorities = readAuthorities;
+    this.writeAuthorities = writeAuthorities;
   }
 
-  public String getNamespace() {
-    return namespace;
-  }
-
-  /**
-   * @return true when the {@link org.hisp.dhis.user.sharing.Sharing} of a {@link DatastoreEntry}
-   *     should be checked in addition to authority based checks, else false.
-   */
-  public Set<String> getAuthorities() {
-    return authorities;
-  }
-
-  public ProtectionType getReads() {
-    return reads;
-  }
-
-  public ProtectionType getWrites() {
-    return writes;
-  }
-
-  @Override
-  public String toString() {
-    return String.format(
-        "KeyJsonNamespaceProtection{%s r:%s w:%s [%s]}", namespace, reads, writes, authorities);
+  @Nonnull
+  public Set<String> getAllAuthorities() {
+    return union(readAuthorities, writeAuthorities);
   }
 }

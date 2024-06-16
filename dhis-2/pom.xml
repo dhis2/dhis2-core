@@ -115,7 +115,7 @@
     <com.google.zxing.javase.version>3.5.3</com.google.zxing.javase.version>
 
     <!-- Spring -->
-    <spring.version>5.3.36</spring.version>
+    <spring.version>5.3.37</spring.version>
     <spring-data-redis.version>2.7.18</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.4</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
@@ -126,7 +126,7 @@
     <lettuce.version>6.3.2.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-database-postgresql.version>10.14.0</flyway-database-postgresql.version>
+    <flyway-database-postgresql.version>10.15.0</flyway-database-postgresql.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <hibernate-types.version>2.21.1</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
@@ -177,7 +177,7 @@
 
     <!-- Apache Artemis -->
     <artemis.version>2.34.0</artemis.version>
-    <netty-all.version>4.1.110.Final</netty-all.version>
+    <netty-all.version>4.1.111.Final</netty-all.version>
     <classgraph.version>4.8.173</classgraph.version>
 
     <!-- SMS/SMPP -->
@@ -1863,7 +1863,7 @@
         <plugin>
           <groupId>org.sonarsource.scanner.maven</groupId>
           <artifactId>sonar-maven-plugin</artifactId>
-          <version>3.11.0.3922</version>
+          <version>4.0.0.4121</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
