@@ -25,16 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.util;
+package org.hisp.dhis.common.collection;
 
-import static org.hisp.dhis.commons.collection.CollectionUtils.addIfNotNull;
-import static org.hisp.dhis.commons.collection.CollectionUtils.emptyIfNull;
-import static org.hisp.dhis.commons.collection.CollectionUtils.firstMatch;
-import static org.hisp.dhis.commons.collection.CollectionUtils.flatMapToSet;
-import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
-import static org.hisp.dhis.commons.collection.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
-import static org.hisp.dhis.commons.collection.CollectionUtils.mapToSet;
+import static org.hisp.dhis.common.collection.CollectionUtils.addIfNotNull;
+import static org.hisp.dhis.common.collection.CollectionUtils.emptyIfNull;
+import static org.hisp.dhis.common.collection.CollectionUtils.firstMatch;
+import static org.hisp.dhis.common.collection.CollectionUtils.flatMapToSet;
+import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
+import static org.hisp.dhis.common.collection.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.common.collection.CollectionUtils.mapToList;
+import static org.hisp.dhis.common.collection.CollectionUtils.mapToSet;
+import static org.hisp.dhis.common.collection.CollectionUtils.union;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -46,7 +47,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.junit.jupiter.api.Test;
@@ -80,7 +80,7 @@ class CollectionUtilsTest {
   }
 
   @Test
-  public void testMapToSet() {
+  void testMapToSet() {
     DataElement deA = new DataElement();
     DataElement deB = new DataElement();
     DataElement deC = new DataElement();
@@ -107,9 +107,9 @@ class CollectionUtilsTest {
   void testFirstMatch() {
     List<String> collection = List.of("a", "b", "c");
 
-    assertEquals("a", firstMatch(collection, (v) -> "a".equals(v)));
-    assertEquals("b", firstMatch(collection, (v) -> "b".equals(v)));
-    assertNull(firstMatch(collection, (v) -> "x".equals(v)));
+    assertEquals("a", firstMatch(collection, "a"::equals));
+    assertEquals("b", firstMatch(collection, "b"::equals));
+    assertNull(firstMatch(collection, "x"::equals));
   }
 
   @Test
@@ -179,5 +179,63 @@ class CollectionUtilsTest {
     assertFalse(isNotEmpty(List.of()));
     assertFalse(isNotEmpty(null));
     assertTrue(isNotEmpty(List.of("One", "Two")));
+  }
+
+  @Test
+  void testUnion_Empty() {
+    assertEquals(Set.of(), union(null, null));
+    assertEquals(Set.of(), union(null, Set.of()));
+    assertEquals(Set.of(), union(Set.of(), null));
+    assertEquals(Set.of(), union(Set.of(), Set.of()));
+  }
+
+  @Test
+  void testUnion_EmptyMore() {
+    assertEquals(Set.of(), union(null, null, (Set<Object>) null));
+    assertEquals(Set.of(), union(null, null, (Set<Object>[]) null));
+    assertEquals(Set.of(), union(null, null, Set.of()));
+    assertEquals(Set.of(), union(null, Set.of(), (Set<Object>) null));
+    assertEquals(Set.of(), union(null, Set.of(), (Set<Object>[]) null));
+    assertEquals(Set.of(), union(null, Set.of(), Set.of()));
+    assertEquals(Set.of(), union(Set.of(), null, (Set<Object>) null));
+    assertEquals(Set.of(), union(Set.of(), null, (Set<Object>[]) null));
+    assertEquals(Set.of(), union(Set.of(), null, Set.of()));
+    assertEquals(Set.of(), union(Set.of(), Set.of(), (Set<Object>) null));
+    assertEquals(Set.of(), union(Set.of(), Set.of(), (Set<Object>[]) null));
+    assertEquals(Set.of(), union(Set.of(), Set.of(), Set.of()));
+  }
+
+  @Test
+  void testUnion_One() {
+    assertEquals(Set.of("a"), union(Set.of("a"), null));
+    assertEquals(Set.of("a"), union(Set.of("a"), Set.of()));
+    assertEquals(Set.of("a"), union(null, Set.of("a")));
+    assertEquals(Set.of("a"), union(Set.of(), Set.of("a")));
+  }
+
+  @Test
+  void testUnion_Two() {
+    assertEquals(Set.of("a", "b"), union(Set.of("a"), Set.of("b")));
+    assertEquals(Set.of("a", "b"), union(Set.of("b"), Set.of("a")));
+    assertEquals(Set.of("a", "b"), union(Set.of(), Set.of("b", "a")));
+    assertEquals(Set.of("a", "b"), union(Set.of("b", "a"), Set.of()));
+  }
+
+  @Test
+  void testUnion_More() {
+    assertEquals(Set.of("a", "b"), union(null, Set.of("a"), Set.of("b")));
+    assertEquals(Set.of("a", "b"), union(null, Set.of("b"), Set.of("a")));
+    assertEquals(Set.of("a", "b"), union(null, Set.of(), Set.of("b", "a")));
+    assertEquals(Set.of("a", "b"), union(null, Set.of("b", "a"), Set.of()));
+
+    assertEquals(Set.of("a", "b"), union(Set.of("a"), null, Set.of("b")));
+    assertEquals(Set.of("a", "b"), union(Set.of("b"), null, Set.of("a")));
+    assertEquals(Set.of("a", "b"), union(Set.of(), null, Set.of("b", "a")));
+    assertEquals(Set.of("a", "b"), union(Set.of("b", "a"), null, Set.of()));
+
+    assertEquals(Set.of("a", "b", "c"), union(Set.of("a"), Set.of("c"), Set.of("b")));
+    assertEquals(Set.of("a", "b", "c"), union(Set.of("b"), Set.of("c"), Set.of("a")));
+    assertEquals(Set.of("a", "b", "c"), union(Set.of(), Set.of("c"), Set.of("b", "a")));
+    assertEquals(Set.of("a", "b", "c"), union(Set.of("b", "a"), Set.of("c"), Set.of()));
   }
 }
