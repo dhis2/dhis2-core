@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.common.processing;
 
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptySet;
-import static java.util.Collections.unmodifiableList;
 import static org.hisp.dhis.analytics.EventOutputType.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.DATE_FILTERS;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.DIMENSIONS;
@@ -47,7 +46,6 @@ import static org.hisp.dhis.feedback.ErrorCode.E7251;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Streams;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -108,7 +106,7 @@ public class CommonQueryRequestMapper {
   /**
    * Maps the input request into the respective queryable objects.
    *
-   * @param request the input {@CommonQueryRequest}.
+   * @param request the input {@link CommonQueryRequest}.
    * @return the {@link CommonParams}.
    */
   public CommonParams map(CommonQueryRequest request, CommonQueryRequest originalRequest) {
@@ -168,7 +166,7 @@ public class CommonQueryRequestMapper {
       CommonQueryRequest request, List<Program> programs, List<OrganisationUnit> userOrgUnits) {
 
     return HEADERS.getUidsGetter().apply(request).stream()
-        .map(header -> toDimensionIdentifier(header, HEADERS, request, programs, userOrgUnits))
+        .map(header -> toDimIdentifiers(header, HEADERS, request, programs, userOrgUnits))
         .collect(Collectors.toSet());
   }
 
@@ -221,7 +219,7 @@ public class CommonQueryRequestMapper {
     return AnalyticsSortingParams.builder()
         .index(index)
         .sortDirection(SortDirection.of(parts[1]))
-        .orderBy(toDimensionIdentifier(parts[0], SORTING, request, programs, userOrgUnits))
+        .orderBy(toDimIdentifiers(parts[0], SORTING, request, programs, userOrgUnits))
         .build();
   }
 
@@ -265,27 +263,34 @@ public class CommonQueryRequestMapper {
       CommonQueryRequest queryRequest,
       List<Program> programs,
       List<OrganisationUnit> userOrgUnits) {
-    List<DimensionIdentifier<DimensionParam>> dimensionParams = new ArrayList<>();
 
-    Stream.of(DIMENSIONS, FILTERS, DATE_FILTERS)
-        .forEach(
-            dimensionParamType -> {
-              // A Collection of dimensions or filters coming from the request.
-              Collection<String> dimensionsOrFilter =
-                  dimensionParamType.getUidsGetter().apply(queryRequest);
+    return Stream.of(DIMENSIONS, FILTERS, DATE_FILTERS)
+        .flatMap(type -> streamByType(type, queryRequest, programs, userOrgUnits))
+        .toList();
+  }
 
-              dimensionParams.addAll(
-                  dimensionsOrFilter.stream()
-                      .map(CommonQueryRequestMapper::splitOnOrIfNecessary)
-                      .map(
-                          dof ->
-                              toDimensionIdentifier(
-                                  dof, dimensionParamType, queryRequest, programs, userOrgUnits))
-                      .flatMap(Collection::stream)
-                      .toList());
-            });
+  /**
+   * Streams the dimensions for the given {@link DimensionParamType} and maps them to {@link
+   * DimensionIdentifier} objects.
+   *
+   * @param dimensionParamType the {@link DimensionParamType}.
+   * @param queryRequest the {@link CommonQueryRequest}.
+   * @param programs the list of {@link Program}.
+   * @param userOrgUnits the list of {@link OrganisationUnit}.
+   * @return the {@link Stream} of {@link DimensionIdentifier}.
+   */
+  private Stream<DimensionIdentifier<DimensionParam>> streamByType(
+      DimensionParamType dimensionParamType,
+      CommonQueryRequest queryRequest,
+      List<Program> programs,
+      List<OrganisationUnit> userOrgUnits) {
+    // A Collection of dimensions or filters coming from the request.
+    Collection<String> dimensionString = dimensionParamType.getUidsGetter().apply(queryRequest);
 
-    return unmodifiableList(dimensionParams);
+    return dimensionString.stream()
+        .map(CommonQueryRequestMapper::splitOnOr)
+        .map(dim -> toDimIdentifiers(dim, dimensionParamType, queryRequest, programs, userOrgUnits))
+        .flatMap(Collection::stream);
   }
 
   /**
@@ -300,7 +305,7 @@ public class CommonQueryRequestMapper {
    * @return a {@link List} of {@link DimensionIdentifier}.
    * @throws IllegalQueryException if "dimensionOrFilter" is not well-formed.
    */
-  private List<DimensionIdentifier<DimensionParam>> toDimensionIdentifier(
+  private List<DimensionIdentifier<DimensionParam>> toDimIdentifiers(
       List<String> dimensions,
       DimensionParamType dimensionParamType,
       CommonQueryRequest queryRequest,
@@ -309,7 +314,7 @@ public class CommonQueryRequestMapper {
     return dimensions.stream()
         .map(
             dimensionAsString ->
-                toDimensionIdentifier(
+                toDimIdentifiers(
                     dimensionAsString, dimensionParamType, queryRequest, programs, userOrgUnits))
         .map(this::withGroupId)
         .toList();
@@ -338,7 +343,7 @@ public class CommonQueryRequestMapper {
    * @param dimensionAsString, in the format dim_OR_anotherDim.
    * @return the {@link List} of String.
    */
-  private static List<String> splitOnOrIfNecessary(String dimensionAsString) {
+  private static List<String> splitOnOr(String dimensionAsString) {
     return stream(DIMENSION_OR_SEPARATOR.split(dimensionAsString)).toList();
   }
 
@@ -353,13 +358,13 @@ public class CommonQueryRequestMapper {
    * @return the {@link DimensionIdentifier}.
    * @throws IllegalQueryException if "dimensionOrFilter" is not well-formed.
    */
-  private DimensionIdentifier<DimensionParam> toDimensionIdentifier(
+  private DimensionIdentifier<DimensionParam> toDimIdentifiers(
       String dimensionOrFilter,
       DimensionParamType dimensionParamType,
       CommonQueryRequest queryRequest,
       List<Program> programs,
       List<OrganisationUnit> userOrgUnits) {
-    return toDimensionIdentifier(
+    return toDimIdentifiers(
         dimensionOrFilter,
         dimensionParamType,
         queryRequest.getRelativePeriodDate(),
@@ -382,7 +387,7 @@ public class CommonQueryRequestMapper {
    * @return the {@link DimensionIdentifier}.
    * @throws IllegalQueryException if "dimensionOrFilter" is not well-formed.
    */
-  public DimensionIdentifier<DimensionParam> toDimensionIdentifier(
+  public DimensionIdentifier<DimensionParam> toDimIdentifiers(
       String dimensionOrFilter,
       DimensionParamType dimensionParamType,
       Date relativePeriodDate,

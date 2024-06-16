@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,54 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.job;
+package org.hisp.dhis.appmanager;
 
-import java.io.IOException;
-import javax.jms.JMSException;
-import javax.jms.TextMessage;
-import org.hisp.dhis.artemis.MessageManager;
-import org.hisp.dhis.common.AsyncTaskExecutor;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.render.RenderService;
-import org.springframework.stereotype.Component;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * @author Zubair Asghar
- */
-@Component
-public abstract class BaseMessageManager {
-  private final MessageManager messageManager;
+import java.util.List;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
-  private final AsyncTaskExecutor taskExecutor;
+class AppManagerTest {
 
-  private final RenderService renderService;
+  @Test
+  @DisplayName("filter by plugin type should not thrown a null pointer exception")
+  void filterByPluginTypeTest() {
+    // given 2 apps, 1 with a plugin type and 1 with none
+    App app1 = new App();
+    app1.setName("app 1");
+    app1.setVersion("v1");
+    app1.setPluginType("plugin1");
 
-  public BaseMessageManager(
-      MessageManager messageManager, AsyncTaskExecutor taskExecutor, RenderService renderService) {
-    this.messageManager = messageManager;
-    this.taskExecutor = taskExecutor;
-    this.renderService = renderService;
+    App app2 = new App();
+    app2.setName("app 2");
+    app2.setVersion("v2");
+
+    // when filtering by plugin type
+    List<App> filteredApps =
+        assertDoesNotThrow(() -> AppManager.filterAppsByPluginType("plugin1", List.of(app1, app2)));
+
+    // then 1 app is returned and no error is thrown
+    assertEquals(1, filteredApps.size());
+    assertEquals("app 1", filteredApps.get(0).getName());
   }
-
-  public String addJob(TrackerSideEffectDataBundle sideEffectDataBundle) {
-    String jobId = CodeGenerator.generateUid();
-    sideEffectDataBundle.setJobId(jobId);
-
-    messageManager.sendQueue(getTopic(), sideEffectDataBundle);
-
-    return jobId;
-  }
-
-  public void executeJob(Runnable runnable) {
-    taskExecutor.executeTask(runnable);
-  }
-
-  public TrackerSideEffectDataBundle toBundle(TextMessage message)
-      throws JMSException, IOException {
-    String payload = message.getText();
-
-    return renderService.fromJson(payload, TrackerSideEffectDataBundle.class);
-  }
-
-  public abstract String getTopic();
 }

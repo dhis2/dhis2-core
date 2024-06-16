@@ -25,14 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.programrule.engine;
+package org.hisp.dhis.period;
 
-public class RuleActionKey {
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
-  private RuleActionKey() {}
+import java.util.Date;
+import java.util.Objects;
+import java.util.function.Supplier;
 
-  public static final String CONTENT = "content";
-  public static final String FIELD = "field";
-  public static final String ATTRIBUTE_TYPE = "attributeType";
-  public static final String NOTIFICATION = "notification";
+public record DateField(Date date, String dateField) {
+
+  public static DateField withDefaultsIfNecessary(DateField dateField) {
+    if (Objects.isNull(dateField)) {
+      return new DateField(new Date(), "");
+    }
+    return new DateField(
+        defaultIfNull(dateField.date(), Date::new),
+        defaultIfNull(dateField.dateField(), () -> EMPTY));
+  }
+
+  private static <T> T defaultIfNull(T item, Supplier<T> itemSupplier) {
+    return Objects.isNull(item) ? itemSupplier.get() : item;
+  }
+
+  public static DateField withDefaults() {
+    return new DateField(new Date(), EMPTY);
+  }
+
+  public DateField withDate(Date date) {
+    return new DateField(date, dateField);
+  }
 }

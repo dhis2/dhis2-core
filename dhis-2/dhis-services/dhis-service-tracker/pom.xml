@@ -79,10 +79,6 @@
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
-      <artifactId>spring-jms</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
       <artifactId>spring-beans</artifactId>
     </dependency>
     <dependency>
@@ -102,10 +98,6 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.geronimo.specs</groupId>
-      <artifactId>geronimo-jms_2.0_spec</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>

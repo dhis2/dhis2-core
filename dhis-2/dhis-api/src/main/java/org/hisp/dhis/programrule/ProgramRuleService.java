@@ -30,6 +30,7 @@ package org.hisp.dhis.programrule;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.program.Program;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author markusbekken
@@ -65,6 +66,12 @@ public interface ProgramRuleService {
    */
   ProgramRule getProgramRule(long id);
 
+  @Transactional(readOnly = true)
+  List<String> getDataElementsPresentInProgramRules();
+
+  @Transactional(readOnly = true)
+  List<String> getTrackedEntityAttributesPresentInProgramRules();
+
   /**
    * Returns a {@link ProgramRule}.
    *
@@ -88,8 +95,6 @@ public interface ProgramRuleService {
    * @return a collection of all ProgramRule, or an empty collection if there are no ProgramRules.
    */
   List<ProgramRule> getAllProgramRule();
-
-  List<ProgramRule> getProgramRulesLinkedToTeaOrDe();
 
   List<ProgramRule> getProgramRulesByActionTypes(Program program, Set<ProgramRuleActionType> types);
 
