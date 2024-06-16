@@ -151,6 +151,9 @@ class JdbcEventAnalyticsTableManagerTest {
 
   private static final String FROM_CLAUSE = "from event where eventid=psi.eventid";
 
+  private static final String DATE_CLAUSE =
+      "CASE WHEN 'SCHEDULE' = psi.status THEN psi.scheduleddate ELSE psi.occurreddate END";
+
   private static final int OU_NAME_HIERARCHY_COUNT = 1;
 
   private List<AnalyticsTableColumn> periodColumns =
@@ -759,14 +762,14 @@ class JdbcEventAnalyticsTableManagerTest {
     when(organisationUnitService.getFilledOrganisationUnitLevels()).thenReturn(ouLevels);
     when(jdbcTemplate.queryForList(
             "select temp.supportedyear from (select distinct extract(year from "
-                + getDateLinkedToStatus()
+                + DATE_CLAUSE
                 + ") as supportedyear "
                 + "from event psi inner join enrollment pi on psi.enrollmentid = pi.enrollmentid "
                 + "where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and ("
-                + getDateLinkedToStatus()
+                + DATE_CLAUSE
                 + ") is not null "
                 + "and ("
-                + getDateLinkedToStatus()
+                + DATE_CLAUSE
                 + ") > '1000-01-01' and psi.deleted = false ) "
                 + "as temp where temp.supportedyear >= "
                 + startYear
@@ -940,16 +943,16 @@ class JdbcEventAnalyticsTableManagerTest {
 
     when(jdbcTemplate.queryForList(
             "select temp.supportedyear from (select distinct extract(year from "
-                + getDateLinkedToStatus()
+                + DATE_CLAUSE
                 + ") as supportedyear "
                 + "from event psi inner join enrollment pi on psi.enrollmentid = pi.enrollmentid "
                 + "where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and ("
-                + getDateLinkedToStatus()
+                + DATE_CLAUSE
                 + ") is not null "
                 + "and ("
-                + getDateLinkedToStatus()
+                + DATE_CLAUSE
                 + ") > '1000-01-01' and psi.deleted = false and ("
-                + getDateLinkedToStatus()
+                + DATE_CLAUSE
                 + ") >= '2018-01-01') "
                 + "as temp where temp.supportedyear >= "
                 + startYear
@@ -1000,20 +1003,20 @@ class JdbcEventAnalyticsTableManagerTest {
     String sql =
         "select temp.supportedyear from (select distinct "
             + "extract(year from "
-            + getDateLinkedToStatus()
+            + DATE_CLAUSE
             + ") as supportedyear "
             + "from event psi inner join "
             + "enrollment pi on psi.enrollmentid = pi.enrollmentid where psi.lastupdated <= '"
             + "2019-08-01T00:00:00' and pi.programid = "
             + program.getId()
             + " and ("
-            + getDateLinkedToStatus()
+            + DATE_CLAUSE
             + ") is not null and ("
-            + getDateLinkedToStatus()
+            + DATE_CLAUSE
             + ") > '1000-01-01' and psi.deleted = false ";
 
     if (withExecutionDate) {
-      sql += "and (" + getDateLinkedToStatus() + ") >= '2018-01-01'";
+      sql += "and (" + DATE_CLAUSE + ") >= '2018-01-01'";
     }
 
     sql +=
@@ -1023,9 +1026,5 @@ class JdbcEventAnalyticsTableManagerTest {
             + latestYear;
 
     return sql;
-  }
-
-  private String getDateLinkedToStatus() {
-    return "CASE WHEN 'SCHEDULE' = psi.status THEN psi.scheduleddate ELSE psi.occurreddate END";
   }
 }
