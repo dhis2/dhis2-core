@@ -72,7 +72,7 @@ public class TrackedEntityInstance {
 
   private List<ProgramOwner> programOwners = new ArrayList<>();
 
-  private Boolean inactive;
+  private boolean inactive;
 
   private Boolean deleted = false;
 
@@ -225,11 +225,11 @@ public class TrackedEntityInstance {
   @JsonProperty
   @JacksonXmlElementWrapper(localName = "inactive", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "inactive", namespace = DxfNamespaces.DXF_2_0)
-  public Boolean isInactive() {
+  public boolean isInactive() {
     return inactive;
   }
 
-  public void setInactive(Boolean inactive) {
+  public void setInactive(boolean inactive) {
     this.inactive = inactive;
   }
 

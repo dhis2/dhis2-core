@@ -40,7 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.analytics.AnalyticsExportSettings;
+import org.hisp.dhis.analytics.AnalyticsTableSettings;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
@@ -101,7 +101,7 @@ public class DefaultResourceTableService implements ResourceTableService {
 
   private final StatementBuilder statementBuilder;
 
-  private final AnalyticsExportSettings analyticsExportSettings;
+  private final AnalyticsTableSettings analyticsTableSettings;
 
   private final PeriodDataProvider periodDataProvider;
 
@@ -113,7 +113,7 @@ public class DefaultResourceTableService implements ResourceTableService {
             null,
             organisationUnitService,
             organisationUnitService.getNumberOfOrganisationalLevels(),
-            analyticsExportSettings.getTableType()));
+            analyticsTableSettings.getTableType()));
   }
 
   @Override
@@ -123,7 +123,7 @@ public class DefaultResourceTableService implements ResourceTableService {
         new DataSetOrganisationUnitCategoryResourceTable(
             idObjectManager.getAllNoAcl(DataSet.class),
             categoryService.getDefaultCategoryOptionCombo(),
-            analyticsExportSettings.getTableType()));
+            analyticsTableSettings.getTableType()));
   }
 
   @Override
@@ -132,7 +132,7 @@ public class DefaultResourceTableService implements ResourceTableService {
     resourceTableStore.generateResourceTable(
         new CategoryOptionComboNameResourceTable(
             idObjectManager.getAllNoAcl(CategoryCombo.class),
-            analyticsExportSettings.getTableType()));
+            analyticsTableSettings.getTableType()));
   }
 
   @Override
@@ -141,7 +141,7 @@ public class DefaultResourceTableService implements ResourceTableService {
     resourceTableStore.generateResourceTable(
         new DataElementGroupSetResourceTable(
             idObjectManager.getDataDimensionsNoAcl(DataElementGroupSet.class),
-            analyticsExportSettings.getTableType()));
+            analyticsTableSettings.getTableType()));
   }
 
   @Override
@@ -150,7 +150,7 @@ public class DefaultResourceTableService implements ResourceTableService {
     resourceTableStore.generateResourceTable(
         new IndicatorGroupSetResourceTable(
             idObjectManager.getAllNoAcl(IndicatorGroupSet.class),
-            analyticsExportSettings.getTableType()));
+            analyticsTableSettings.getTableType()));
   }
 
   @Override
@@ -161,7 +161,7 @@ public class DefaultResourceTableService implements ResourceTableService {
             idObjectManager.getDataDimensionsNoAcl(OrganisationUnitGroupSet.class),
             statementBuilder.supportsPartialIndexes(),
             organisationUnitService.getNumberOfOrganisationalLevels(),
-            analyticsExportSettings.getTableType()));
+            analyticsTableSettings.getTableType()));
   }
 
   @Override
@@ -171,7 +171,7 @@ public class DefaultResourceTableService implements ResourceTableService {
         new CategoryResourceTable(
             idObjectManager.getDataDimensionsNoAcl(Category.class),
             idObjectManager.getDataDimensionsNoAcl(CategoryOptionGroupSet.class),
-            analyticsExportSettings.getTableType()));
+            analyticsTableSettings.getTableType()));
   }
 
   @Override
@@ -179,8 +179,7 @@ public class DefaultResourceTableService implements ResourceTableService {
   public void generateDataElementTable() {
     resourceTableStore.generateResourceTable(
         new DataElementResourceTable(
-            idObjectManager.getAllNoAcl(DataElement.class),
-            analyticsExportSettings.getTableType()));
+            idObjectManager.getAllNoAcl(DataElement.class), analyticsTableSettings.getTableType()));
   }
 
   @Override
@@ -188,11 +187,11 @@ public class DefaultResourceTableService implements ResourceTableService {
   public void generateDatePeriodTable() {
     List<Integer> availableYears =
         periodDataProvider.getAvailableYears(
-            analyticsExportSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
+            analyticsTableSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
     checkYearsOffset(availableYears);
 
     resourceTableStore.generateResourceTable(
-        new DatePeriodResourceTable(availableYears, analyticsExportSettings.getTableType()));
+        new DatePeriodResourceTable(availableYears, analyticsTableSettings.getTableType()));
   }
 
   /**
@@ -207,7 +206,7 @@ public class DefaultResourceTableService implements ResourceTableService {
    * @param yearsToCheck the list of years to be checked.
    */
   private void checkYearsOffset(List<Integer> yearsToCheck) {
-    Integer maxYearsOffset = analyticsExportSettings.getMaxPeriodYearsOffset();
+    Integer maxYearsOffset = analyticsTableSettings.getMaxPeriodYearsOffset();
 
     if (maxYearsOffset != null) {
       int minRangeAllowed = Year.now().minus(maxYearsOffset, YEARS).getValue();
@@ -241,20 +240,20 @@ public class DefaultResourceTableService implements ResourceTableService {
   public void generatePeriodTable() {
     resourceTableStore.generateResourceTable(
         new PeriodResourceTable(
-            periodService.getAllPeriods(), analyticsExportSettings.getTableType()));
+            periodService.getAllPeriods(), analyticsTableSettings.getTableType()));
   }
 
   @Override
   @Transactional
   public void generateCategoryOptionComboTable() {
     resourceTableStore.generateResourceTable(
-        new CategoryOptionComboResourceTable(null, analyticsExportSettings.getTableType()));
+        new CategoryOptionComboResourceTable(null, analyticsTableSettings.getTableType()));
   }
 
   @Override
   public void generateDataApprovalRemapLevelTable() {
     resourceTableStore.generateResourceTable(
-        new DataApprovalRemapLevelResourceTable(null, analyticsExportSettings.getTableType()));
+        new DataApprovalRemapLevelResourceTable(null, analyticsTableSettings.getTableType()));
   }
 
   @Override
@@ -265,7 +264,7 @@ public class DefaultResourceTableService implements ResourceTableService {
     if (!orgUnitLevels.isEmpty()) {
       resourceTableStore.generateResourceTable(
           new DataApprovalMinLevelResourceTable(
-              orgUnitLevels, analyticsExportSettings.getTableType()));
+              orgUnitLevels, analyticsTableSettings.getTableType()));
     }
   }
 

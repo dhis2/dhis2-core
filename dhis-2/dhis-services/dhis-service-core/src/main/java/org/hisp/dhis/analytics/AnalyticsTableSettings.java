@@ -28,14 +28,17 @@
 package org.hisp.dhis.analytics;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_INDEX_CATEGORY;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_INDEX_CATEGORY_OPTION_GROUP_SET;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_INDEX_DATA_ELEMENT_GROUP_SET;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_INDEX_ORG_UNIT_GROUP_SET;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_ORDERING;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_SKIP_COLUMN;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_SKIP_INDEX;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_UNLOGGED;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_PERIOD_YEARS_OFFSET;
 
+import com.google.common.collect.Lists;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -49,7 +52,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class AnalyticsExportSettings {
+public class AnalyticsTableSettings {
   private final DhisConfigurationProvider config;
 
   private final SystemSettingManager systemSettingManager;
@@ -86,38 +89,38 @@ public class AnalyticsExportSettings {
   }
 
   /**
-   * Indicates whether to skip indexing of data element group set analytics table columns.
+   * Returns a set of dimension identifiers (UID) for which to skip building indexes for analytics
+   * tables.
    *
-   * @return true if indexing should be skipped, false if not.
+   * @return a set of dimension identifiers.
    */
-  public boolean skipIndexDataElementGroupSetColumns() {
-    return config.isEnabled(ANALYTICS_TABLE_INDEX_DATA_ELEMENT_GROUP_SET);
+  public Set<String> getSkipIndexDimensions() {
+    return toSet(config.getProperty(ANALYTICS_TABLE_SKIP_INDEX));
   }
 
   /**
-   * Indicates whether to skip indexing of category analytics table columns.
+   * Returns a set of dimension identifiers for which to skip creating columns for analytics tables.
    *
-   * @return true if indexing should be skipped, false if not.
+   * @return a set of dimension identifiers.
    */
-  public boolean skipIndexCategoryColumns() {
-    return config.isEnabled(ANALYTICS_TABLE_INDEX_CATEGORY);
+  public Set<String> getSkipColumnDimensions() {
+    return toSet(config.getProperty(ANALYTICS_TABLE_SKIP_COLUMN));
   }
 
   /**
-   * Indicates whether to skip indexing of category option group set analytics table columns.
+   * Splits the given value on comma, and returns the values as a set.
    *
-   * @return true if indexing should be skipped, false if not.
+   * @param value the value.
+   * @return a set of values.
    */
-  public boolean skipIndexCategoryOptionGroupSetColumns() {
-    return config.isEnabled(ANALYTICS_TABLE_INDEX_CATEGORY_OPTION_GROUP_SET);
-  }
+  Set<String> toSet(String value) {
+    if (isBlank(value)) {
+      return Set.of();
+    }
 
-  /**
-   * Indicates whether to skip indexing of organisation unit group set analytics table columns.
-   *
-   * @return true if indexing should be skipped, false if not.
-   */
-  public boolean skipIndexOrgUnitGroupSetColumns() {
-    return config.isEnabled(ANALYTICS_TABLE_INDEX_ORG_UNIT_GROUP_SET);
+    return Lists.newArrayList(value.split(",")).stream()
+        .filter(Objects::nonNull)
+        .map(String::trim)
+        .collect(Collectors.toSet());
   }
 }

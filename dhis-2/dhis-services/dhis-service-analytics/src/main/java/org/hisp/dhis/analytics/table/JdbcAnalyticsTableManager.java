@@ -48,11 +48,11 @@ import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.AnalyticsTableSettings;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.ColumnDataType;
@@ -129,7 +129,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
       PartitionManager partitionManager,
       DatabaseInfo databaseInfo,
       JdbcTemplate jdbcTemplate,
-      AnalyticsExportSettings analyticsExportSettings,
+      AnalyticsTableSettings analyticsExportSettings,
       PeriodDataProvider periodDataProvider) {
     super(
         idObjectManager,
@@ -392,7 +392,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
       sql += "and " + whereClause + " ";
     }
 
-    if (analyticsExportSettings.isTableOrdering()) {
+    if (analyticsTableSettings.isTableOrdering()) {
       sql += "order by de.uid, co.uid";
     }
 
@@ -459,50 +459,44 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
 
     for (DataElementGroupSet groupSet : dataElementGroupSets) {
       String name = quote(groupSet.getUid());
-      boolean skipIndex = analyticsExportSettings.skipIndexDataElementGroupSetColumns();
       columns.add(
           new AnalyticsTableColumn(
-              name, CHARACTER_11, "degs." + name, skipIndex, groupSet.getCreated()));
+              name, CHARACTER_11, "degs." + name, skipIndex(groupSet), groupSet.getCreated()));
     }
 
     for (OrganisationUnitGroupSet groupSet : orgUnitGroupSets) {
       String name = quote(groupSet.getUid());
-      boolean skipIndex = analyticsExportSettings.skipIndexOrgUnitGroupSetColumns();
       columns.add(
           new AnalyticsTableColumn(
-              name, CHARACTER_11, "ougs." + name, skipIndex, groupSet.getCreated()));
+              name, CHARACTER_11, "ougs." + name, skipIndex(groupSet), groupSet.getCreated()));
     }
 
     for (CategoryOptionGroupSet groupSet : disaggregationCategoryOptionGroupSets) {
       String name = quote(groupSet.getUid());
-      boolean skipIndex = analyticsExportSettings.skipIndexCategoryOptionGroupSetColumns();
       columns.add(
           new AnalyticsTableColumn(
-              name, CHARACTER_11, "dcs." + name, skipIndex, groupSet.getCreated()));
+              name, CHARACTER_11, "dcs." + name, skipIndex(groupSet), groupSet.getCreated()));
     }
 
     for (CategoryOptionGroupSet groupSet : attributeCategoryOptionGroupSets) {
       String name = quote(groupSet.getUid());
-      boolean skipIndex = analyticsExportSettings.skipIndexCategoryOptionGroupSetColumns();
       columns.add(
           new AnalyticsTableColumn(
-              name, CHARACTER_11, "acs." + name, skipIndex, groupSet.getCreated()));
+              name, CHARACTER_11, "acs." + name, skipIndex(groupSet), groupSet.getCreated()));
     }
 
     for (Category category : disaggregationCategories) {
       String name = quote(category.getUid());
-      boolean skipIndex = analyticsExportSettings.skipIndexCategoryColumns();
       columns.add(
           new AnalyticsTableColumn(
-              name, CHARACTER_11, "dcs." + name, skipIndex, category.getCreated()));
+              name, CHARACTER_11, "dcs." + name, skipIndex(category), category.getCreated()));
     }
 
     for (Category category : attributeCategories) {
       String name = quote(category.getUid());
-      boolean skipIndex = analyticsExportSettings.skipIndexCategoryColumns();
       columns.add(
           new AnalyticsTableColumn(
-              name, CHARACTER_11, "acs." + name, skipIndex, category.getCreated()));
+              name, CHARACTER_11, "acs." + name, skipIndex(category), category.getCreated()));
     }
 
     for (OrganisationUnitLevel level : levels) {
@@ -534,10 +528,10 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
    */
   private List<AnalyticsTableColumn> getValueColumns() {
     return List.of(
-        new AnalyticsTableColumn(quote("daysxvalue"), DOUBLE, "daysxvalue"),
-        new AnalyticsTableColumn(quote("daysno"), INTEGER, NOT_NULL, "daysno"),
+        new AnalyticsTableColumn(quote("daysxvalue"), DOUBLE, "daysxvalue", true),
+        new AnalyticsTableColumn(quote("daysno"), INTEGER, NOT_NULL, "daysno").withSkipIndex(true),
         new AnalyticsTableColumn(quote("value"), DOUBLE, "value"),
-        new AnalyticsTableColumn(quote("textvalue"), TEXT, "textvalue"));
+        new AnalyticsTableColumn(quote("textvalue"), TEXT, "textvalue", true));
   }
 
   /**

@@ -34,12 +34,16 @@ import static org.hisp.dhis.analytics.ValidationHelper.validateRow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
+import java.util.Map;
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.skyscreamer.jsonassert.JSONAssert;
 
 /**
  * Groups e2e tests for "/analytics" endpoint.
@@ -47,6 +51,7 @@ import org.junit.jupiter.api.Test;
  * @author dusan bernat
  */
 public class AnalyticsQueryTest extends AnalyticsApiTest {
+
   private RestApiActions analyticsActions;
 
   @BeforeAll
@@ -457,5 +462,77 @@ public class AnalyticsQueryTest extends AnalyticsApiTest {
     validateRow(response, List.of("PLq9sJluXvc.REPORTING_RATE", "2023", "ImspTQPwCqd", "0"));
 
     validateRow(response, List.of("PLq9sJluXvc.REPORTING_RATE", "2023", "PMa2VCrupOd", "0"));
+  }
+
+  @Test
+  public void queryProgramTrackedEntityAttributeDimensionItemValueType() throws JSONException {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=ou:USER_ORGUNIT")
+            .add("skipData=false")
+            .add("includeNumDen=true")
+            .add("displayProperty=NAME")
+            .add("skipMeta=false")
+            .add("dimension=dx:IpHINAT79UW.w75KJ2mc4zz,pe:LAST_YEAR")
+            .add("relativePeriodDate=2024-05-22");
+
+    // When
+    ApiResponse response = analyticsActions.get(params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(8)))
+        .body("rows", hasSize(equalTo(19)))
+        .body("height", equalTo(19))
+        .body("width", equalTo(8))
+        .body("headerWidth", equalTo(8));
+
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"dx\":{\"name\":\"Data\"},\"pe\":{\"name\":\"Period\"},\"ou\":{\"name\":\"Organisation unit\"},\"2023\":{\"name\":\"2023\"},\"LAST_YEAR\":{\"name\":\"Last year\"},\"IpHINAT79UW.w75KJ2mc4zz\":{\"name\":\"Child Programme First name\"}},\"dimensions\":{\"dx\":[\"IpHINAT79UW.w75KJ2mc4zz\"],\"pe\":[\"2023\"],\"ou\":[\"ImspTQPwCqd\"],\"co\":[]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    JSONAssert.assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Assert headers.
+    validateHeader(response, 0, "dx", "Data", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 1, "pe", "Period", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 2, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+    validateHeader(
+        response, 3, "numerator", "Numerator", "NUMBER", "java.lang.Double", false, false);
+    validateHeader(
+        response, 4, "denominator", "Denominator", "NUMBER", "java.lang.Double", false, false);
+    validateHeader(response, 5, "factor", "Factor", "NUMBER", "java.lang.Double", false, false);
+    validateHeader(
+        response, 6, "multiplier", "Multiplier", "NUMBER", "java.lang.Double", false, false);
+    validateHeader(response, 7, "divisor", "Divisor", "NUMBER", "java.lang.Double", false, false);
+
+    // Assert rows.
+    validateRow(
+        response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Antonio", "", "", "", "", ""));
+    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Jane", "", "", "", "", ""));
+    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Jane", "", "", "", "", ""));
+    validateRow(
+        response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Jonathan", "", "", "", "", ""));
+    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Walter", "", "", "", "", ""));
+    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Helen", "", "", "", "", ""));
+    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Andrea", "", "", "", "", ""));
+    validateRow(
+        response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Matthew", "", "", "", "", ""));
+    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Tammy", "", "", "", "", ""));
+    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Joan", "", "", "", "", ""));
+    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Scott", "", "", "", "", ""));
+    validateRow(
+        response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Patricia", "", "", "", "", ""));
+    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Sandra", "", "", "", "", ""));
+    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Maria", "", "", "", "", ""));
+    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Aaron", "", "", "", "", ""));
+    validateRow(
+        response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Catherine", "", "", "", "", ""));
+    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Evelyn", "", "", "", "", ""));
+    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Ruth", "", "", "", "", ""));
+    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Gary", "", "", "", "", ""));
   }
 }

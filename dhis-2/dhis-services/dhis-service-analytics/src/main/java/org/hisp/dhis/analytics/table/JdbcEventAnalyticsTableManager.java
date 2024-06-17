@@ -56,11 +56,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.AnalyticsTableSettings;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.ColumnDataType;
@@ -114,7 +114,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       PartitionManager partitionManager,
       DatabaseInfo databaseInfo,
       JdbcTemplate jdbcTemplate,
-      AnalyticsExportSettings analyticsExportSettings,
+      AnalyticsTableSettings analyticsExportSettings,
       PeriodDataProvider periodDataProvider) {
     super(
         idObjectManager,
@@ -164,15 +164,18 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
           new AnalyticsTableColumn(
               quote("createdbyname"),
               VARCHAR_255,
-              "psi.createdbyuserinfo ->> 'firstName' as createdbyname"),
+              "psi.createdbyuserinfo ->> 'firstName' as createdbyname",
+              true),
           new AnalyticsTableColumn(
               quote("createdbylastname"),
               VARCHAR_255,
-              "psi.createdbyuserinfo ->> 'surname' as createdbylastname"),
+              "psi.createdbyuserinfo ->> 'surname' as createdbylastname",
+              true),
           new AnalyticsTableColumn(
               quote("createdbydisplayname"),
               VARCHAR_255,
-              getDisplayName("createdbyuserinfo", "psi", "createdbydisplayname")),
+              getDisplayName("createdbyuserinfo", "psi", "createdbydisplayname"),
+              true),
           new AnalyticsTableColumn(
               quote("lastupdatedbyusername"),
               VARCHAR_255,
@@ -180,15 +183,18 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
           new AnalyticsTableColumn(
               quote("lastupdatedbyname"),
               VARCHAR_255,
-              "psi.lastupdatedbyuserinfo ->> 'firstName' as lastupdatedbyname"),
+              "psi.lastupdatedbyuserinfo ->> 'firstName' as lastupdatedbyname",
+              true),
           new AnalyticsTableColumn(
               quote("lastupdatedbylastname"),
               VARCHAR_255,
-              "psi.lastupdatedbyuserinfo ->> 'surname' as lastupdatedbylastname"),
+              "psi.lastupdatedbyuserinfo ->> 'surname' as lastupdatedbylastname",
+              true),
           new AnalyticsTableColumn(
               quote("lastupdatedbydisplayname"),
               VARCHAR_255,
-              getDisplayName("lastupdatedbyuserinfo", "psi", "lastupdatedbydisplayname")),
+              getDisplayName("lastupdatedbyuserinfo", "psi", "lastupdatedbydisplayname"),
+              true),
           new AnalyticsTableColumn(quote("pistatus"), VARCHAR_50, "pi.status"),
           new AnalyticsTableColumn(quote("psistatus"), VARCHAR_50, "psi.status"),
           new AnalyticsTableColumn(quote("psigeometry"), GEOMETRY, "psi.geometry")
@@ -245,7 +251,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     List<Integer> availableDataYears =
         periodDataProvider.getAvailableYears(
-            analyticsExportSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
+            analyticsTableSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
 
     return params.isLatestUpdate()
         ? getLatestAnalyticsTables(params)
@@ -445,7 +451,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     List<Integer> availableDataYears =
         periodDataProvider.getAvailableYears(
-            analyticsExportSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
+            analyticsTableSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
     Integer firstDataYear = availableDataYears.get(0);
     Integer latestDataYear = availableDataYears.get(availableDataYears.size() - 1);
 
@@ -528,10 +534,14 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
       for (Category category : categories) {
         if (category.isDataDimension()) {
+          boolean skipIndex = skipIndex(category);
           columns.add(
               new AnalyticsTableColumn(
-                      quote(category.getUid()), CHARACTER_11, "acs." + quote(category.getUid()))
-                  .withCreated(category.getCreated()));
+                  quote(category.getUid()),
+                  CHARACTER_11,
+                  "acs." + quote(category.getUid()),
+                  skipIndex,
+                  category.getCreated()));
         }
       }
     }
@@ -542,7 +552,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     columns.addAll(
         categoryService.getAttributeCategoryOptionGroupSetsNoAcl().stream()
-            .map(l -> toCharColumn(quote(l.getUid()), "acs", l.getCreated()))
+            .map(ags -> toCharColumn(quote(ags.getUid()), "acs", skipIndex(ags), ags.getCreated()))
             .collect(Collectors.toList()));
     columns.addAll(addPeriodTypeColumns("dps"));
 
@@ -842,8 +852,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     return jdbcTemplate.queryForList(sql, Integer.class);
   }
 
-  private AnalyticsTableColumn toCharColumn(String name, String prefix, Date created) {
-    return new AnalyticsTableColumn(name, CHARACTER_11, prefix + "." + name).withCreated(created);
+  private AnalyticsTableColumn toCharColumn(
+      String name, String prefix, boolean skipIndex, Date created) {
+    return new AnalyticsTableColumn(name, CHARACTER_11, prefix + "." + name, skipIndex, created);
   }
 
   /**

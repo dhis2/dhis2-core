@@ -42,11 +42,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.AnalyticsTableSettings;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.ColumnDataType;
@@ -88,7 +88,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
       PartitionManager partitionManager,
       DatabaseInfo databaseInfo,
       JdbcTemplate jdbcTemplate,
-      AnalyticsExportSettings analyticsExportSettings,
+      AnalyticsTableSettings analyticsExportSettings,
       PeriodDataProvider periodDataProvider) {
     super(
         idObjectManager,
@@ -268,10 +268,9 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
 
     for (OrganisationUnitGroupSet groupSet : orgUnitGroupSets) {
       String name = quote(groupSet.getUid());
-      boolean skipIndex = analyticsExportSettings.skipIndexOrgUnitGroupSetColumns();
       columns.add(
           new AnalyticsTableColumn(
-              name, CHARACTER_11, "ougs." + name, skipIndex, groupSet.getCreated()));
+              name, CHARACTER_11, "ougs." + name, skipIndex(groupSet), groupSet.getCreated()));
     }
 
     for (OrganisationUnitLevel level : levels) {
@@ -283,18 +282,16 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
 
     for (CategoryOptionGroupSet groupSet : attributeCategoryOptionGroupSets) {
       String name = quote(groupSet.getUid());
-      boolean skipIndex = analyticsExportSettings.skipIndexCategoryOptionGroupSetColumns();
       columns.add(
           new AnalyticsTableColumn(
-              name, CHARACTER_11, "acs." + name, skipIndex, groupSet.getCreated()));
+              name, CHARACTER_11, "acs." + name, skipIndex(groupSet), groupSet.getCreated()));
     }
 
     for (Category category : attributeCategories) {
       String name = quote(category.getUid());
-      boolean skipIndex = analyticsExportSettings.skipIndexCategoryColumns();
       columns.add(
           new AnalyticsTableColumn(
-              name, CHARACTER_11, "acs." + name, skipIndex, category.getCreated()));
+              name, CHARACTER_11, "acs." + name, skipIndex(category), category.getCreated()));
     }
 
     columns.addAll(addPeriodTypeColumns("ps"));

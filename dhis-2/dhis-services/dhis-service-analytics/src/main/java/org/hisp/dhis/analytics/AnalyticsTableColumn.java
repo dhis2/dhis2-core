@@ -97,6 +97,22 @@ public class AnalyticsTableColumn {
    * @param dataType analytics table column data type.
    * @param alias source table column alias and name.
    * @param skipIndex whether to skip index.
+   */
+  public AnalyticsTableColumn(
+      String name, ColumnDataType dataType, String alias, boolean skipIndex) {
+    this.name = name;
+    this.dataType = dataType;
+    this.alias = alias;
+    this.skipIndex = skipIndex;
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param name analytics table column name.
+   * @param dataType analytics table column data type.
+   * @param alias source table column alias and name.
+   * @param skipIndex whether to skip index.
    * @param created the date of creation.
    */
   public AnalyticsTableColumn(

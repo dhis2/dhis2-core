@@ -25,48 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.appmanager;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.junit.jupiter.api.BeforeEach;
+import java.util.List;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith(MockitoExtension.class)
-class AnalyticsExportSettingsTest {
-
-  @Mock private DhisConfigurationProvider config;
-
-  @Mock private SystemSettingManager systemSettings;
-
-  private AnalyticsExportSettings settings;
-
-  @BeforeEach
-  public void before() {
-    settings = new AnalyticsExportSettings(config, systemSettings);
-  }
+class AppManagerTest {
 
   @Test
-  void testSkipIndexCategoryColumns() {
-    when(config.isEnabled(ConfigurationKey.ANALYTICS_TABLE_INDEX_DATA_ELEMENT_GROUP_SET))
-        .thenReturn(true);
-    when(config.isEnabled(ConfigurationKey.ANALYTICS_TABLE_INDEX_CATEGORY)).thenReturn(true);
-    when(config.isEnabled(ConfigurationKey.ANALYTICS_TABLE_INDEX_CATEGORY_OPTION_GROUP_SET))
-        .thenReturn(false);
-    when(config.isEnabled(ConfigurationKey.ANALYTICS_TABLE_INDEX_ORG_UNIT_GROUP_SET))
-        .thenReturn(false);
+  @DisplayName("filter by plugin type should not thrown a null pointer exception")
+  void filterByPluginTypeTest() {
+    // given 2 apps, 1 with a plugin type and 1 with none
+    App app1 = new App();
+    app1.setName("app 1");
+    app1.setVersion("v1");
+    app1.setPluginType("plugin1");
 
-    assertTrue(settings.skipIndexDataElementGroupSetColumns());
-    assertTrue(settings.skipIndexCategoryColumns());
-    assertFalse(settings.skipIndexCategoryOptionGroupSetColumns());
-    assertFalse(settings.skipIndexOrgUnitGroupSetColumns());
+    App app2 = new App();
+    app2.setName("app 2");
+    app2.setVersion("v2");
+
+    // when filtering by plugin type
+    List<App> filteredApps =
+        assertDoesNotThrow(() -> AppManager.filterAppsByPluginType("plugin1", List.of(app1, app2)));
+
+    // then 1 app is returned and no error is thrown
+    assertEquals(1, filteredApps.size());
+    assertEquals("app 1", filteredApps.get(0).getName());
   }
 }

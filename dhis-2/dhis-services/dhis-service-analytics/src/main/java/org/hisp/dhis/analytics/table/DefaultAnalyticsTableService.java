@@ -131,8 +131,10 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     clock.logTime("Created analytics tables");
 
     List<AnalyticsTablePartition> partitions = PartitionUtils.getTablePartitions(tables);
+    int partitionSize = partitions.size();
 
-    progress.startingStage("Populating analytics tables " + tableType, partitions.size());
+    progress.startingStage(
+        "Populating " + partitionSize + " analytics tables " + tableType, partitionSize);
     populateTables(params, partitions, progress);
     clock.logTime("Populated analytics tables");
 
@@ -150,7 +152,10 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     }
 
     List<AnalyticsIndex> indexes = getIndexes(partitions);
-    progress.startingStage("Creating indexes " + tableType, indexes.size(), SKIP_ITEM_OUTLIER);
+    int indexSize = indexes.size();
+
+    progress.startingStage(
+        "Creating " + indexSize + " indexes " + tableType, indexSize, SKIP_ITEM_OUTLIER);
     createIndexes(indexes, progress);
     clock.logTime("Created indexes");
 

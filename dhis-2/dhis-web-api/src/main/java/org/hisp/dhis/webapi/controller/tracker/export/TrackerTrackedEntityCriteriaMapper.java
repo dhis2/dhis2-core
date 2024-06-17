@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.applyIfNonEmpty;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAndFilterUids;
@@ -72,6 +73,8 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.webdomain.EndDateTime;
+import org.hisp.dhis.webapi.webdomain.StartDateTime;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -166,19 +169,23 @@ public class TrackerTrackedEntityCriteriaMapper {
         .setProgramStage(programStage)
         .setProgramStatus(criteria.getProgramStatus())
         .setFollowUp(criteria.getFollowUp())
-        .setLastUpdatedStartDate(criteria.getUpdatedAfter())
-        .setLastUpdatedEndDate(criteria.getUpdatedBefore())
+        .setLastUpdatedStartDate(applyIfNotNull(criteria.getUpdatedAfter(), StartDateTime::toDate))
+        .setLastUpdatedEndDate(applyIfNotNull(criteria.getUpdatedBefore(), EndDateTime::toDate))
         .setLastUpdatedDuration(criteria.getUpdatedWithin())
-        .setProgramEnrollmentStartDate(criteria.getEnrollmentEnrolledAfter())
-        .setProgramEnrollmentEndDate(criteria.getEnrollmentEnrolledBefore())
-        .setProgramIncidentStartDate(criteria.getEnrollmentOccurredAfter())
-        .setProgramIncidentEndDate(criteria.getEnrollmentOccurredBefore())
+        .setProgramEnrollmentStartDate(
+            applyIfNotNull(criteria.getEnrollmentEnrolledAfter(), StartDateTime::toDate))
+        .setProgramEnrollmentEndDate(
+            applyIfNotNull(criteria.getEnrollmentEnrolledBefore(), EndDateTime::toDate))
+        .setProgramIncidentStartDate(
+            applyIfNotNull(criteria.getEnrollmentOccurredAfter(), StartDateTime::toDate))
+        .setProgramIncidentEndDate(
+            applyIfNotNull(criteria.getEnrollmentOccurredBefore(), EndDateTime::toDate))
         .setTrackedEntityType(trackedEntityType)
         .addOrganisationUnits(orgUnits)
         .setOrganisationUnitMode(criteria.getOuMode())
         .setEventStatus(criteria.getEventStatus())
-        .setEventStartDate(criteria.getEventOccurredAfter())
-        .setEventEndDate(criteria.getEventOccurredBefore())
+        .setEventStartDate(applyIfNotNull(criteria.getEventOccurredAfter(), StartDateTime::toDate))
+        .setEventEndDate(applyIfNotNull(criteria.getEventOccurredBefore(), EndDateTime::toDate))
         .setUserWithAssignedUsers(criteria.getAssignedUserMode(), user, assignedUserIds)
         .setTrackedEntityInstanceUids(trackedEntities)
         .setAttributes(attributeItems)

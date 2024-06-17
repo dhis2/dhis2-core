@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.webapi.controller.event.webrequest.tracker.FieldTranslatorSupport.translate;
 
-import java.util.Date;
 import java.util.Optional;
 import lombok.Data;
 import lombok.Getter;
@@ -38,6 +37,8 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
+import org.hisp.dhis.webapi.webdomain.EndDateTime;
+import org.hisp.dhis.webapi.webdomain.StartDateTime;
 
 /** Represents query parameters sent to {@link TrackerEnrollmentsExportController}. */
 @Data
@@ -53,13 +54,13 @@ public class TrackerEnrollmentCriteria extends PagingAndSortingCriteriaAdapter {
 
   private Boolean followUp;
 
-  private Date updatedAfter;
+  private StartDateTime updatedAfter;
 
   private String updatedWithin;
 
-  private Date enrolledAfter;
+  private StartDateTime enrolledAfter;
 
-  private Date enrolledBefore;
+  private EndDateTime enrolledBefore;
 
   private String trackedEntityType;
 

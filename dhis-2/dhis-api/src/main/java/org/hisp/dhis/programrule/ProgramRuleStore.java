@@ -53,13 +53,9 @@ public interface ProgramRuleStore extends IdentifiableObjectStore<ProgramRule> {
    */
   ProgramRule getByName(String name, Program program);
 
-  /**
-   * Returns all {@link ProgramRule} by program.
-   *
-   * @param programStageIds
-   * @return ProgramRule list
-   */
-  List<ProgramRule> getProgramRulesLinkedToTeaOrDe();
+  List<String> getDataElementsPresentInProgramRules();
+
+  List<String> getTrackedEntityAttributesPresentInProgramRules();
 
   /**
    * Get validation by {@link Program}

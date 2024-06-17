@@ -232,7 +232,7 @@ public class JdbcEventStore implements EventStore {
           .put(EVENT_CREATED_ID, "psi_created")
           .put(EVENT_LAST_UPDATED_ID, "psi_lastupdated")
           .put(EVENT_COMPLETED_BY_ID, "psi_completedby")
-          .put(EVENT_ATTRIBUTE_OPTION_COMBO_ID, "psi_aoc")
+          .put(EVENT_ATTRIBUTE_OPTION_COMBO_ID, "coc_uid")
           .put(EVENT_COMPLETED_DATE_ID, "psi_completeddate")
           .put(EVENT_DELETED, "psi_deleted")
           .put("assignedUser", "user_assigned_username")
@@ -1284,7 +1284,7 @@ public class JdbcEventStore implements EventStore {
     }
 
     if (params.getStartDate() != null) {
-      mapSqlParameterSource.addValue("startDate", params.getStartDate(), Types.DATE);
+      mapSqlParameterSource.addValue("startDate", params.getStartDate(), Types.TIMESTAMP);
 
       fromBuilder
           .append(hlp.whereAnd())
@@ -1706,7 +1706,7 @@ public class JdbcEventStore implements EventStore {
     }
 
     if (params.getStartDate() != null) {
-      mapSqlParameterSource.addValue("startDate", params.getStartDate(), Types.DATE);
+      mapSqlParameterSource.addValue("startDate", params.getStartDate(), Types.TIMESTAMP);
 
       sqlBuilder
           .append(hlp.whereAnd())
@@ -1745,7 +1745,7 @@ public class JdbcEventStore implements EventStore {
     }
 
     if (params.getDueDateStart() != null) {
-      mapSqlParameterSource.addValue("startDueDate", params.getDueDateStart(), Types.DATE);
+      mapSqlParameterSource.addValue("startDueDate", params.getDueDateStart(), Types.TIMESTAMP);
 
       sqlBuilder
           .append(hlp.whereAnd())
@@ -1755,7 +1755,7 @@ public class JdbcEventStore implements EventStore {
     }
 
     if (params.getDueDateEnd() != null) {
-      mapSqlParameterSource.addValue("endDueDate", params.getDueDateEnd(), Types.DATE);
+      mapSqlParameterSource.addValue("endDueDate", params.getDueDateEnd(), Types.TIMESTAMP);
 
       sqlBuilder
           .append(hlp.whereAnd())

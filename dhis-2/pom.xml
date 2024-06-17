@@ -99,12 +99,12 @@
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
-    <nimbus.jose.jwt.version>9.38</nimbus.jose.jwt.version>
+    <nimbus.jose.jwt.version>9.40</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.3</com.google.zxing.core.version>
     <com.google.zxing.javase.version>3.5.3</com.google.zxing.javase.version>
 
     <!-- Spring -->
-    <spring.version>5.3.34</spring.version>
+    <spring.version>5.3.37</spring.version>
     <spring-data-redis.version>2.7.18</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.4</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
@@ -149,8 +149,9 @@
     <jclouds.version>2.6.0</jclouds.version>
 
     <!-- Reporting -->
-    <jasperreports.version>6.21.3</jasperreports.version>
-    <jfreechart.version>1.5.4</jfreechart.version>
+    <jasperreports.version>6.20.0</jasperreports.version>
+    <jfreechart.version>1.0.19</jfreechart.version>
+    <jfreechart-common.version>1.0.23</jfreechart-common.version>
     <htmlparser.version>2.1</htmlparser.version>
     <htmllexer.version>2.1</htmllexer.version>
     <poi.version>5.2.5</poi.version>
@@ -160,13 +161,13 @@
     <batik-transcoder.version>1.17</batik-transcoder.version>
     <fop.version>2.9</fop.version>
     <mapstruct.version>1.5.5.Final</mapstruct.version>
-    <geotools.version>29.5</geotools.version>
+    <geotools.version>29.6</geotools.version>
     <jts.version>1.19.0</jts.version>
 
     <!-- Apache Artemis -->
-    <artemis.version>2.33.0</artemis.version>
-    <netty-all.version>4.1.109.Final</netty-all.version>
-    <classgraph.version>4.8.172</classgraph.version>
+    <artemis.version>2.35.0</artemis.version>
+    <netty-all.version>4.1.111.Final</netty-all.version>
+    <classgraph.version>4.8.173</classgraph.version>
 
     <!-- SMS/SMPP -->
     <sms-compression.version>0.2.1.1</sms-compression.version>
@@ -175,14 +176,14 @@
     <jsmpp.version>3.0.1</jsmpp.version>
     <json-path.version>2.9.0</json-path.version>
     <jsoup.version>1.17.2</jsoup.version>
-    <jetty.version>10.0.20</jetty.version>
+    <jetty.version>10.0.21</jetty.version>
 
     <!-- Div. utils -->
-    <version.debezium>2.6.1.Final</version.debezium>
-    <guava.version>33.2.0-jre</guava.version>
+    <version.debezium>2.6.2.Final</version.debezium>
+    <guava.version>33.2.1-jre</guava.version>
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
-    <google-api-client.version>2.4.1</google-api-client.version>
+    <google-api-client.version>2.6.0</google-api-client.version>
     <lombok.version>1.18.32</lombok.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
     <joda-time.version>2.12.7</joda-time.version>
@@ -193,7 +194,7 @@
     <commons-text.version>1.12.0</commons-text.version>
     <commons-fileupload.version>1.5</commons-fileupload.version>
     <commons-math3.version>3.6.1</commons-math3.version>
-    <commons-validator.version>1.8.0</commons-validator.version>
+    <commons-validator.version>1.9.0</commons-validator.version>
     <commons-io.version>2.16.1</commons-io.version>
     <commons-codec.version>1.17.0</commons-codec.version>
     <commons-jexl.version>2.1.1</commons-jexl.version>
@@ -204,7 +205,7 @@
 
     <!-- Monitoring -->
     <micrometer-spring-legacy.version>1.3.20</micrometer-spring-legacy.version>
-    <micrometer.version>1.12.5</micrometer.version>
+    <micrometer.version>1.12.6</micrometer.version>
 
     <!-- Logging -->
     <log4j.version>2.23.1</log4j.version>
@@ -226,24 +227,24 @@
     <javax.persistence-api.version>2.2</javax.persistence-api.version>
 
     <!-- Maven plugin versions -->
-    <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
+    <maven-surefire-plugin.version>3.3.0</maven-surefire-plugin.version>
     <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
     <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
-    <maven-failsafe-plugin.version>3.2.5</maven-failsafe-plugin.version>
-    <maven-javadoc-plugin.version>3.6.3</maven-javadoc-plugin.version>
+    <maven-failsafe-plugin.version>3.3.0</maven-failsafe-plugin.version>
+    <maven-javadoc-plugin.version>3.7.0</maven-javadoc-plugin.version>
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
-    <maven-enforcer-plugin.version>3.4.1</maven-enforcer-plugin.version>
+    <maven-enforcer-plugin.version>3.5.0</maven-enforcer-plugin.version>
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>2.5.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.16.2</versions-maven-plugin.version>
-    <dependency-check-maven.version>9.1.0</dependency-check-maven.version>
+    <dependency-check-maven.version>9.2.0</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.8.5.0</spotbugs-maven-plugin.version>
     <spotless.version>2.43.0</spotless.version>
     <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.2.0</jrebel-x-maven-plugin.version>
     <dhis-antlr-expression-parser.version>1.0.33</dhis-antlr-expression-parser.version>
     <jai-imageio.version>1.1.1</jai-imageio.version>
-    <gson.version>2.10.1</gson.version>
+    <gson.version>2.11.0</gson.version>
     <semver4j.version>3.1.0</semver4j.version>
   </properties>
 
@@ -1168,6 +1169,11 @@
       </dependency>
       <dependency>
         <groupId>org.jfree</groupId>
+        <artifactId>jcommon</artifactId>
+        <version>${jfreechart-common.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jfree</groupId>
         <artifactId>jfreechart</artifactId>
         <version>${jfreechart.version}</version>
         <exclusions>
@@ -1825,7 +1831,7 @@
         <plugin>
           <groupId>org.sonarsource.scanner.maven</groupId>
           <artifactId>sonar-maven-plugin</artifactId>
-          <version>3.11.0.3922</version>
+          <version>4.0.0.4121</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>

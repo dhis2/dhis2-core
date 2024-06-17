@@ -122,33 +122,59 @@ public class DefaultEventPersistenceService implements EventPersistenceService {
   @Transactional
   public void updateEventDataValues(EventDataValue de, Event event, WorkContext workContext)
       throws JsonProcessingException {
+    String query;
+    String deUid = de.getDataElement();
 
-    String uid = de.getDataElement();
-    de.setDataElement(null); // de uid is used as a key in the json, so we don't need it here
+    if (de.getValue() == null) {
+      // delete
+      query =
+          String.format(
+              " UPDATE programstageinstance SET eventdatavalues = eventdatavalues\\:\\:jsonb - '%1$s'"
+                  + ", lastupdated = current_timestamp"
+                  + ", lastupdatedbyuserinfo = CAST(:lastupdatedbyuserinfo as jsonb) "
+                  + " WHERE  uid = :event",
+              deUid);
 
-    String query =
-        String.format(
-            " UPDATE programstageinstance SET"
-                + " eventdatavalues= (CASE"
-                + " WHEN eventdatavalues->:de IS NOT NULL"
-                + " THEN jsonb_set(eventdatavalues, '{%1$s}', (eventdatavalues->:de) || '%2$s')"
-                + " WHEN eventdatavalues->:de IS NULL"
-                + " THEN jsonb_insert(eventdatavalues, '{%1$s}', '%2$s')"
-                + " END) ,"
-                + " lastupdated = current_timestamp"
-                + " ,lastupdatedbyuserinfo = CAST(:lastupdatedbyuserinfo as jsonb)"
-                + " WHERE  uid = :event",
-            uid, mapper.writeValueAsString(de));
+      entityManager
+          .createNativeQuery(query)
+          .setParameter("event", event.getEvent())
+          .setParameter(
+              "lastupdatedbyuserinfo",
+              mapper.writeValueAsString(
+                  UserInfoSnapshot.from(workContext.getImportOptions().getUser())))
+          .executeUpdate();
+    } else {
+      // merge
+      de.setDataElement(null); // de uid is used as a key in the json, so we don't need it here
+      de.setValue(
+          de.getValue()
+              .replace(
+                  "'", "''")); // escape single quote used also as a json delimiter in the query
 
-    entityManager
-        .createNativeQuery(query)
-        .setParameter("event", event.getEvent())
-        .setParameter("de", uid)
-        .setParameter(
-            "lastupdatedbyuserinfo",
-            mapper.writeValueAsString(
-                UserInfoSnapshot.from(workContext.getImportOptions().getUser())))
-        .executeUpdate();
+      query =
+          String.format(
+              " UPDATE programstageinstance SET"
+                  + " eventdatavalues= (CASE"
+                  + " WHEN eventdatavalues->:de IS NOT NULL"
+                  + " THEN jsonb_set(eventdatavalues, '{%1$s}', (eventdatavalues->:de) || '%2$s')"
+                  + " WHEN eventdatavalues->:de IS NULL"
+                  + " THEN jsonb_insert(eventdatavalues, '{%1$s}', '%2$s')"
+                  + " END) ,"
+                  + " lastupdated = current_timestamp"
+                  + " ,lastupdatedbyuserinfo = CAST(:lastupdatedbyuserinfo as jsonb)"
+                  + " WHERE  uid = :event",
+              deUid, mapper.writeValueAsString(de));
+
+      entityManager
+          .createNativeQuery(query)
+          .setParameter("event", event.getEvent())
+          .setParameter("de", deUid)
+          .setParameter(
+              "lastupdatedbyuserinfo",
+              mapper.writeValueAsString(
+                  UserInfoSnapshot.from(workContext.getImportOptions().getUser())))
+          .executeUpdate();
+    }
   }
 
   @Override

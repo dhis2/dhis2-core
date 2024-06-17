@@ -46,8 +46,8 @@ import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.POTEN
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.PROGRAM_INSTANCE_ALIAS;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_INSTANCE_ID;
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
+import static org.hisp.dhis.util.DateUtils.toLongDateWithMillis;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
@@ -647,14 +647,14 @@ public class HibernateTrackedEntityInstanceStore
         trackedEntity
             .append(whereAnd.whereAnd())
             .append(" TEI.lastupdated >= '")
-            .append(getLongDateString(params.getLastUpdatedStartDate()))
+            .append(toLongDateWithMillis(params.getLastUpdatedStartDate()))
             .append(SINGLE_QUOTE);
       }
       if (params.hasLastUpdatedEndDate()) {
         trackedEntity
             .append(whereAnd.whereAnd())
             .append(" TEI.lastupdated <= '")
-            .append(getLongDateString(params.getLastUpdatedEndDate()))
+            .append(toLongDateWithMillis(params.getLastUpdatedEndDate()))
             .append(SINGLE_QUOTE);
       }
     }
@@ -663,7 +663,7 @@ public class HibernateTrackedEntityInstanceStore
       if (params.getSkipChangedBefore() != null) {
         trackedEntity
             .append(" AND TEI.lastupdated >= '")
-            .append(getLongDateString(params.getSkipChangedBefore()))
+            .append(toLongDateWithMillis(params.getSkipChangedBefore()))
             .append(SINGLE_QUOTE);
       }
     }
@@ -917,7 +917,8 @@ public class HibernateTrackedEntityInstanceStore
 
   /**
    * Generates an INNER JOIN for program instances. If the param we need to order by is enrolledAt,
-   * we need to join the program instance table to be able to select and order by this value
+   * we need to join the program instance table to be able to select and order by this value. We
+   * restrict the join condition to a specific program if specified in the request.
    *
    * @param params
    * @return a SQL INNER JOIN for program instances
@@ -925,12 +926,16 @@ public class HibernateTrackedEntityInstanceStore
   private String getFromSubQueryJoinProgramInstanceConditions(
       TrackedEntityInstanceQueryParams params) {
     if (params.getOrders().stream().anyMatch(p -> ENROLLED_AT.isPropertyEqualTo(p.getField()))) {
-      return new StringBuilder(" INNER JOIN programinstance ")
-          .append(PROGRAM_INSTANCE_ALIAS)
-          .append(" ON ")
-          .append(PROGRAM_INSTANCE_ALIAS + "." + "trackedentityinstanceid")
-          .append("= TEI.trackedentityinstanceid ")
-          .toString();
+
+      String join =
+          "INNER JOIN programinstance %1$s ON %1$s.trackedentityinstanceid = TEI.trackedentityinstanceid";
+
+      return !params.hasProgram()
+          ? String.format(join, PROGRAM_INSTANCE_ALIAS)
+          : String.format(
+              join + " AND %1$s.programid = %2$s",
+              PROGRAM_INSTANCE_ALIAS,
+              params.getProgram().getId());
     }
 
     return "";
@@ -980,28 +985,28 @@ public class HibernateTrackedEntityInstanceStore
     if (params.hasProgramEnrollmentStartDate()) {
       program
           .append("AND PI.enrollmentdate >= '")
-          .append(getLongDateString(params.getProgramEnrollmentStartDate()))
+          .append(toLongDateWithMillis(params.getProgramEnrollmentStartDate()))
           .append("' ");
     }
 
     if (params.hasProgramEnrollmentEndDate()) {
       program
           .append("AND PI.enrollmentdate <= '")
-          .append(getLongDateString(params.getProgramEnrollmentEndDate()))
+          .append(toLongDateWithMillis(params.getProgramEnrollmentEndDate()))
           .append("' ");
     }
 
     if (params.hasProgramIncidentStartDate()) {
       program
           .append("AND PI.incidentdate >= '")
-          .append(getLongDateString(params.getProgramIncidentStartDate()))
+          .append(toLongDateWithMillis(params.getProgramIncidentStartDate()))
           .append("' ");
     }
 
     if (params.hasProgramIncidentEndDate()) {
       program
           .append("AND PI.incidentdate <= '")
-          .append(getLongDateString(params.getProgramIncidentEndDate()))
+          .append(toLongDateWithMillis(params.getProgramIncidentEndDate()))
           .append("' ");
     }
 
@@ -1042,8 +1047,8 @@ public class HibernateTrackedEntityInstanceStore
     }
 
     if (params.hasEventStatus()) {
-      String start = getLongDateString(params.getEventStartDate());
-      String end = getLongDateString(params.getEventEndDate());
+      String start = toLongDateWithMillis(params.getEventStartDate());
+      String end = toLongDateWithMillis(params.getEventEndDate());
 
       if (params.isEventStatus(EventStatus.COMPLETED)) {
         events

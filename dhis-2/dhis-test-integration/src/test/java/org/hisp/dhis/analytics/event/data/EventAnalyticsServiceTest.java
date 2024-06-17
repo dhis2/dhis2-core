@@ -648,6 +648,20 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
             "Current user is constrained by a dimension but has access to no dimension items"));
   }
 
+  @Test
+  void testEnrollmentWithCategoryDimensionRestriction() {
+    injectSecurityContext(userA);
+    EventQueryParams params = getEnrollmentQueryBuilderA().build();
+    Grid grid = enrollmentTarget.getEnrollments(params);
+
+    assertGridContains(
+        // Headers
+        List.of("enrollmentdate", "ou", "tei", "teaAttribuU"),
+        // Grid
+        List.of(List.of("2017-01-01 00:00:00.0", "ouabcdefghE", "trackEntInA", "ouabcdefghF")),
+        grid);
+  }
+
   // -------------------------------------------------------------------------
   // Test getAggregatedEventData with OrgUnitFields
   // -------------------------------------------------------------------------
