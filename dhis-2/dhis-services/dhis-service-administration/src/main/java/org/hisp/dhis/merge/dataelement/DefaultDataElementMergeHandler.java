@@ -47,6 +47,8 @@ import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorStore;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramIndicatorStore;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramStageSection;
@@ -79,6 +81,7 @@ public class DefaultDataElementMergeHandler {
   private final ProgramNotificationTemplateService programNotificationTemplateService;
   private final ProgramRuleVariableService programRuleVariableService;
   private final ProgramRuleActionService programRuleActionService;
+  private final ProgramIndicatorStore programIndicatorStore;
   private final DataElementOperandStore dataElementOperandStore;
   private final DataSetStore dataSetStore;
   private final SectionStore sectionStore;
@@ -189,6 +192,44 @@ public class DefaultDataElementMergeHandler {
             sampleSkipTest.setExpression(
                 sampleSkipTest.getExpression().replace(source.getUid(), target.getUid()));
           });
+    }
+  }
+
+  /**
+   * Method retrieving {@link ProgramIndicator}s which have a source {@link DataElement} reference
+   * in its expression. All retrieved {@link ProgramIndicator}s will have their expression {@link
+   * DataElement} {@link UID} replaced with the target {@link DataElement} {@link UID}
+   *
+   * @param sources source {@link DataElement}s used to retrieve {@link ProgramIndicator}s
+   * @param target {@link DataElement} which will replace the {@link DataElement} {@link UID} in a
+   *     {@link ProgramIndicator} expression
+   */
+  public void handleProgramIndicatorExpression(List<DataElement> sources, DataElement target) {
+    List<ProgramIndicator> programIndicators =
+        programIndicatorStore.getAllWithExpressionContainingStrings(
+            IdentifiableObjectUtils.getUidsNonNull(sources));
+    for (DataElement source : sources) {
+      programIndicators.forEach(
+          pi -> pi.setExpression(pi.getExpression().replace(source.getUid(), target.getUid())));
+    }
+  }
+
+  /**
+   * Method retrieving {@link ProgramIndicator}s which have a source {@link DataElement} reference
+   * in its filter. All retrieved {@link ProgramIndicator}s will have their filter {@link
+   * DataElement} {@link UID} replaced with the target {@link DataElement} {@link UID}
+   *
+   * @param sources source {@link DataElement}s used to retrieve {@link ProgramIndicator}s
+   * @param target {@link DataElement} which will replace the {@link DataElement} {@link UID} in a
+   *     {@link ProgramIndicator} filter
+   */
+  public void handleProgramIndicatorFilter(List<DataElement> sources, DataElement target) {
+    List<ProgramIndicator> programIndicators =
+        programIndicatorStore.getAllWithFilterContainingStrings(
+            IdentifiableObjectUtils.getUidsNonNull(sources));
+    for (DataElement source : sources) {
+      programIndicators.forEach(
+          pi -> pi.setFilter(pi.getFilter().replace(source.getUid(), target.getUid())));
     }
   }
 

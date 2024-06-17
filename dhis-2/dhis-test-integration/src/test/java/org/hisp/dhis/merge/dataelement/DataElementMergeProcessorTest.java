@@ -75,6 +75,8 @@ import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorStore;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramIndicatorStore;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
@@ -127,6 +129,7 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
   @Autowired private DataElementGroupService dataElementGroupService;
   @Autowired private IndicatorStore indicatorStore;
   @Autowired private DataEntryFormStore dataEntryFormStore;
+  @Autowired private ProgramIndicatorStore programIndicatorStore;
 
   private DataElement deSource1;
   private DataElement deSource2;
@@ -137,6 +140,7 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
   private OrganisationUnit ou3;
   private OrganisationUnitLevel oul;
   private CategoryOptionCombo coc1;
+  private Program program;
 
   @BeforeEach
   public void setUp() {
@@ -164,6 +168,9 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     // cat option combo
     coc1 = categoryService.getDefaultCategoryOptionCombo();
     categoryService.addCategoryOptionCombo(coc1);
+
+    program = createProgram('q');
+    identifiableObjectManager.save(program);
   }
 
   @Test
@@ -1010,6 +1017,146 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesDeleted(report, prvSources, prvTarget, allDataElements);
+  }
+
+  // ---------------------------------
+  // -- ProgramIndicator expression --
+  // ---------------------------------
+  @Test
+  @DisplayName(
+      "ProgramIndicator expression references with DataElement have the DataElement ref replaced as expected, source DataElements are not deleted")
+  void programIndicatorExpressionMergeTest() throws ConflictException {
+    // given
+    ProgramIndicator pi1 =
+        createProgramIndicator('a', program, "#{12345.%s}".formatted(deSource1.getUid()), "");
+    ProgramIndicator pi2 =
+        createProgramIndicator('b', program, "#{12345.%s}".formatted(deSource2.getUid()), "");
+    ProgramIndicator pi3 =
+        createProgramIndicator('c', program, "#{12345.%s}".formatted(deTarget.getUid()), "");
+
+    identifiableObjectManager.save(pi1);
+    identifiableObjectManager.save(pi2);
+    identifiableObjectManager.save(pi3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<ProgramIndicator> piSources =
+        programIndicatorStore.getAllWithExpressionContainingStrings(
+            List.of(deSource1.getUid(), deSource2.getUid()));
+    List<ProgramIndicator> piTarget =
+        programIndicatorStore.getAllWithExpressionContainingStrings(List.of(deTarget.getUid()));
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertMergeSuccessfulSourcesNotDeleted(report, piSources, piTarget, allDataElements);
+  }
+
+  @Test
+  @DisplayName(
+      "ProgramIndicator expression references with DataElement have the DataElement ref replaced as expected, source DataElements are deleted")
+  void programIndicatorExpressionMergeSourcesDeletedTest() throws ConflictException {
+    // given
+    ProgramIndicator pi1 =
+        createProgramIndicator('a', program, "#{12345.%s}".formatted(deSource1.getUid()), "");
+    ProgramIndicator pi2 =
+        createProgramIndicator('b', program, "#{12345.%s}".formatted(deSource2.getUid()), "");
+    ProgramIndicator pi3 =
+        createProgramIndicator('c', program, "#{12345.%s}".formatted(deTarget.getUid()), "");
+
+    identifiableObjectManager.save(pi1);
+    identifiableObjectManager.save(pi2);
+    identifiableObjectManager.save(pi3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDeleteSources(true);
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<ProgramIndicator> piSources =
+        programIndicatorStore.getAllWithExpressionContainingStrings(
+            List.of(deSource1.getUid(), deSource2.getUid()));
+    List<ProgramIndicator> piTarget =
+        programIndicatorStore.getAllWithExpressionContainingStrings(List.of(deTarget.getUid()));
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertMergeSuccessfulSourcesDeleted(report, piSources, piTarget, allDataElements);
+  }
+
+  // -----------------------------
+  // -- ProgramIndicator filter --
+  // -----------------------------
+  @Test
+  @DisplayName(
+      "ProgramIndicator filter references with DataElement have the DataElement ref replaced as expected, source DataElements are not deleted")
+  void programIndicatorFilterMergeTest() throws ConflictException {
+    // given
+    ProgramIndicator pi1 =
+        createProgramIndicator('a', program, "", "#{12345.%s}".formatted(deSource1.getUid()));
+    ProgramIndicator pi2 =
+        createProgramIndicator('b', program, "", "#{12345.%s}".formatted(deSource2.getUid()));
+    ProgramIndicator pi3 =
+        createProgramIndicator('c', program, "", "#{12345.%s}".formatted(deTarget.getUid()));
+
+    identifiableObjectManager.save(pi1);
+    identifiableObjectManager.save(pi2);
+    identifiableObjectManager.save(pi3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<ProgramIndicator> piSources =
+        programIndicatorStore.getAllWithFilterContainingStrings(
+            List.of(deSource1.getUid(), deSource2.getUid()));
+    List<ProgramIndicator> piTarget =
+        programIndicatorStore.getAllWithFilterContainingStrings(List.of(deTarget.getUid()));
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertMergeSuccessfulSourcesNotDeleted(report, piSources, piTarget, allDataElements);
+  }
+
+  @Test
+  @DisplayName(
+      "ProgramIndicator filter references with DataElement have the DataElement ref replaced as expected, source DataElements are deleted")
+  void programIndicatorFilterMergeSourcesDeletedTest() throws ConflictException {
+    // given
+    ProgramIndicator pi1 =
+        createProgramIndicator('a', program, "", "#{12345.%s}".formatted(deSource1.getUid()));
+    ProgramIndicator pi2 =
+        createProgramIndicator('b', program, "", "#{12345.%s}".formatted(deSource2.getUid()));
+    ProgramIndicator pi3 =
+        createProgramIndicator('c', program, "", "#{12345.%s}".formatted(deTarget.getUid()));
+
+    identifiableObjectManager.save(pi1);
+    identifiableObjectManager.save(pi2);
+    identifiableObjectManager.save(pi3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDeleteSources(true);
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<ProgramIndicator> piSources =
+        programIndicatorStore.getAllWithFilterContainingStrings(
+            List.of(deSource1.getUid(), deSource2.getUid()));
+    List<ProgramIndicator> piTarget =
+        programIndicatorStore.getAllWithFilterContainingStrings(List.of(deTarget.getUid()));
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertMergeSuccessfulSourcesDeleted(report, piSources, piTarget, allDataElements);
   }
 
   // -------------------------------

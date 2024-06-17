@@ -141,6 +141,8 @@ public class DataElementMergeService implements MergeService {
             .add(dataElementMergeHandler::handleProgramNotificationTemplate)
             .add(dataElementMergeHandler::handleProgramRuleVariable)
             .add(dataElementMergeHandler::handleProgramRuleAction)
+            .add(dataElementMergeHandler::handleProgramIndicatorExpression)
+            .add(dataElementMergeHandler::handleProgramIndicatorFilter)
             .add(dataElementMergeHandler::handleEventVisualization)
             .add(dataElementMergeHandler::handleMinMaxDataElement)
             .add(dataElementMergeHandler::handleDataElementOperand)
