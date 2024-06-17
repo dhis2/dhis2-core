@@ -627,8 +627,6 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
       "ProgramStageDataElement references for DataElement are replaced as expected, source DataElements are not deleted")
   void programStageDEMergeTest() throws ConflictException {
     // given
-    Program program = createProgram('P');
-    identifiableObjectManager.save(program);
     ProgramStage stage1 = createProgramStage('S', program);
     ProgramStage stage2 = createProgramStage('T', program);
     ProgramStage stage3 = createProgramStage('U', program);
@@ -665,8 +663,6 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
       "ProgramStageDataElement references for DataElement are replaced as expected, source DataElements are deleted")
   void programStageDEMergeDeleteSourcesTest() throws ConflictException {
     // given
-    Program program = createProgram('P');
-    identifiableObjectManager.save(program);
     ProgramStage stage1 = createProgramStage('S', program);
     ProgramStage stage2 = createProgramStage('T', program);
     ProgramStage stage3 = createProgramStage('U', program);
@@ -704,8 +700,6 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
   void programStageDEMergeDbConstraint() {
     // given unique key DB constraint exists (programstageid, dataelementid)
     // create program stage data elements, all of which have the same stage
-    Program program = createProgram('P');
-    identifiableObjectManager.save(program);
     ProgramStage stage1 = createProgramStage('S', program);
     ProgramStage stage2 = createProgramStage('T', program);
     ProgramStage stage3 = createProgramStage('U', program);
@@ -887,8 +881,6 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
       "ProgramRuleVariable references for DataElement are replaced as expected, source DataElements are not deleted")
   void programRuleVariableMergeTest() throws ConflictException {
     // given
-    Program program = createProgram('p');
-    identifiableObjectManager.save(program);
     ProgramRuleVariable prv1 = createProgramRuleVariable('a', program);
     prv1.setDataElement(deSource1);
     ProgramRuleVariable prv2 = createProgramRuleVariable('b', program);
@@ -921,8 +913,6 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
       "ProgramRuleVariable references for DataElement are replaced as expected, source DataElements are deleted")
   void programRuleVariableSourcesDeletedMergeTest() throws ConflictException {
     // given
-    Program program = createProgram('p');
-    identifiableObjectManager.save(program);
     ProgramRuleVariable prv1 = createProgramRuleVariable('a', program);
     prv1.setDataElement(deSource1);
     ProgramRuleVariable prv2 = createProgramRuleVariable('b', program);
