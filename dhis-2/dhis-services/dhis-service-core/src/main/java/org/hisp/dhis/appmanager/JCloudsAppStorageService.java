@@ -38,9 +38,11 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
@@ -48,6 +50,7 @@ import java.util.zip.ZipFile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.datastore.DatastoreNamespace;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
 import org.hisp.dhis.jclouds.JCloudsStore;
@@ -129,44 +132,65 @@ public class JCloudsAppStorageService implements AppStorageService {
   }
 
   private boolean validateApp(App app, Cache<App> appCache) {
-    // -----------------------------------------------------------------
-    // Check if app with same key is currently being deleted
-    // (deletion_in_progress)
-    // -----------------------------------------------------------------
+    validateAppDeletionNotInProgress(app, appCache);
+    validateAppNamespaceNotAlreadyInUse(app, appCache);
+    validateAppAdditionalNamespacesAreWellDefined(app);
+    return app.getAppState().ok();
+  }
+
+  private void validateAppDeletionNotInProgress(App app, Cache<App> appCache) {
+    if (!app.getAppState().ok()) return;
     Optional<App> existingApp = appCache.getIfPresent(app.getKey());
     if (existingApp.isPresent()
         && existingApp.get().getAppState() == AppStatus.DELETION_IN_PROGRESS) {
       log.error("Failed to install app: App with same name is currently being deleted");
 
       app.setAppState(AppStatus.DELETION_IN_PROGRESS);
-      return false;
     }
+  }
 
-    // -----------------------------------------------------------------
-    // Check for namespace and if it's already taken by another app
-    // Allow install if namespace was taken by another version of this app
-    // -----------------------------------------------------------------
+  private void validateAppNamespaceNotAlreadyInUse(App app, Cache<App> appCache) {
+    if (!app.getAppState().ok()) return;
+    AppDhis dhis = app.getActivities().getDhis();
+    String namespace = dhis.getNamespace();
+    Set<String> namespaces = new HashSet<>();
+    if (namespace != null && !namespace.isEmpty()) namespaces.add(namespace);
+    List<DatastoreNamespace> additionalNamespaces = dhis.getAdditionalNamespaces();
+    if (additionalNamespaces != null)
+      additionalNamespaces.forEach(ns -> namespaces.add(ns.getNamespace()));
 
-    String namespace = app.getActivities().getDhis().getNamespace();
-
-    if (namespace != null && !namespace.isEmpty()) {
+    if (namespaces.isEmpty()) return;
+    for (String ns : namespaces) {
       Optional<App> other =
-          appCache
-              .getAll()
-              .filter(a -> namespace.equals(a.getActivities().getDhis().getNamespace()))
-              .findFirst();
+          appCache.getAll().filter(a -> a.getNamespaces().contains(ns)).findFirst();
       if (other.isPresent() && !other.get().getKey().equals(app.getKey())) {
         log.error(
-            String.format(
-                "Failed to install app '%s': Namespace '%s' already taken.",
-                app.getName(), namespace));
-
+            "Failed to install app '{}': Namespace '{}' already taken.", app.getName(), namespace);
         app.setAppState(AppStatus.NAMESPACE_TAKEN);
-        return false;
+        return;
       }
     }
+  }
 
-    return true;
+  private void validateAppAdditionalNamespacesAreWellDefined(App app) {
+    if (!app.getAppState().ok()) return;
+    List<DatastoreNamespace> additionalNamespaces =
+        app.getActivities().getDhis().getAdditionalNamespaces();
+    if (additionalNamespaces != null) {
+      for (DatastoreNamespace ns : additionalNamespaces) {
+        if (ns.getNamespace() == null
+            || ns.getNamespace().isEmpty()
+            || ns.getAllAuthorities().isEmpty()) {
+          log.error(
+              "Failed to install app '{}': Required property is undefined, namespace '{}', authorities '{}'.",
+              app.getName(),
+              ns.getNamespace(),
+              ns.getAllAuthorities());
+          app.setAppState(AppStatus.NAMESPACE_INVALID);
+          return;
+        }
+      }
+    }
   }
 
   @Override

@@ -32,7 +32,6 @@ import java.util.Set;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 

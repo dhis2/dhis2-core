@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
-import static org.hisp.dhis.commons.collection.CollectionUtils.addAllUnique;
+import static org.hisp.dhis.common.collection.CollectionUtils.addAllUnique;
 
 import com.google.common.collect.Lists;
 import java.io.OutputStream;

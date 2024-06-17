@@ -65,11 +65,13 @@ public interface ValidationExecutor<T> extends RuleActionExecutor<T> {
       validationMessage.append(" (").append(field).append(")");
     }
 
-      return switch (getIssueType()) {
-          case WARNING -> Optional.of(
-                  warning(ruleAction.ruleId(), ValidationCode.E1300, validationMessage.toString()));
-          case ERROR -> Optional.of(
-                  error(ruleAction.ruleId(), ValidationCode.E1300, validationMessage.toString()));
-      };
+    return switch (getIssueType()) {
+      case WARNING ->
+          Optional.of(
+              warning(ruleAction.ruleId(), ValidationCode.E1300, validationMessage.toString()));
+      case ERROR ->
+          Optional.of(
+              error(ruleAction.ruleId(), ValidationCode.E1300, validationMessage.toString()));
+    };
   }
 }

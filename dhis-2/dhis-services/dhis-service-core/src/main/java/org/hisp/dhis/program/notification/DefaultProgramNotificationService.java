@@ -282,40 +282,18 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
 
   @Override
   @Transactional
-  public void sendProgramRuleTriggeredNotifications(long pnt, long enrollment) {
+  public void sendProgramRuleTriggeredNotifications(
+      ProgramNotificationTemplate template, Enrollment enrollment) {
     MessageBatch messageBatch =
-        createEnrollmentMessageBatch(
-            notificationTemplateService.get(pnt),
-            Collections.singletonList(enrollmentStore.get(enrollment)));
+        createEnrollmentMessageBatch(template, Collections.singletonList(enrollment));
     sendAll(messageBatch);
   }
 
   @Override
   @Transactional
-  public void sendProgramRuleTriggeredNotifications(long pnt, Enrollment enrollment) {
-    MessageBatch messageBatch =
-        createEnrollmentMessageBatch(
-            notificationTemplateService.get(pnt), Collections.singletonList(enrollment));
-    sendAll(messageBatch);
-  }
-
-  @Override
-  @Transactional
-  public void sendProgramRuleTriggeredEventNotifications(long pnt, long eventId) {
-    MessageBatch messageBatch =
-        createEventMessageBatch(
-            notificationTemplateService.get(pnt),
-            Collections.singletonList(eventStore.get(eventId)));
-    sendAll(messageBatch);
-  }
-
-  @Override
-  @Transactional
-  public void sendProgramRuleTriggeredEventNotifications(long pnt, Event event) {
-    MessageBatch messageBatch =
-        createEventMessageBatch(
-            notificationTemplateService.get(pnt),
-            Collections.singletonList(eventStore.getByUid(event.getUid())));
+  public void sendProgramRuleTriggeredEventNotifications(
+      ProgramNotificationTemplate template, Event event) {
+    MessageBatch messageBatch = createEventMessageBatch(template, Collections.singletonList(event));
     sendAll(messageBatch);
   }
 

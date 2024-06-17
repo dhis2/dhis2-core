@@ -124,8 +124,8 @@ public class EventPersister
 
     return TrackerSideEffectDataBundle.builder()
         .klass(Event.class)
-        .enrollmentRuleEffects(new HashMap<>())
-        .eventRuleEffects(bundle.getEventRuleEffects())
+        .enrollmentNotificationEffects(new HashMap<>())
+        .eventNotificationEffects(bundle.getEventRuleEffects())
         .object(event.getUid())
         .importStrategy(bundle.getImportStrategy())
         .accessedBy(bundle.getUsername())

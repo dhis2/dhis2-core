@@ -27,12 +27,18 @@
  */
 package org.hisp.dhis.tracker.imports.programrule;
 
+import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.needsToValidateDataValues;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.programrule.engine.ValidationEffect;
 import org.hisp.dhis.programrule.engine.RuleEngineEffects;
+import org.hisp.dhis.programrule.engine.ValidationEffect;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
@@ -47,51 +53,49 @@ import org.hisp.dhis.tracker.imports.programrule.executor.event.ShowWarningExecu
 import org.hisp.dhis.tracker.imports.programrule.executor.event.ShowWarningOnCompleteExecutor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.needsToValidateDataValues;
-
 @Service("org.hisp.dhis.tracker.imports.programrule.RuleActionEventMapper")
 @RequiredArgsConstructor
 class RuleActionEventMapper {
   private final SystemSettingManager systemSettingManager;
 
   public Map<Event, List<RuleActionExecutor<Event>>> mapRuleEffects(
-          RuleEngineEffects ruleEffects, TrackerBundle bundle) {
-    return ruleEffects.eventValidationEffects()
-            .keySet()
-            .stream()
-            .filter(e -> bundle.findEventByUid(e).isPresent())
-            .collect(
-                    Collectors.toMap(
-                            e -> bundle.findEventByUid(e).get(),
-                            e ->
-                                    mapRuleEffects(
-                                            bundle.findEventByUid(e).get(), ruleEffects.eventValidationEffects().get(e), bundle)));
+      RuleEngineEffects ruleEffects, TrackerBundle bundle) {
+    return ruleEffects.eventValidationEffects().keySet().stream()
+        .filter(e -> bundle.findEventByUid(e).isPresent())
+        .collect(
+            Collectors.toMap(
+                e -> bundle.findEventByUid(e).get(),
+                e ->
+                    mapRuleEffects(
+                        bundle.findEventByUid(e).get(),
+                        ruleEffects.eventValidationEffects().get(e),
+                        bundle)));
   }
 
   private List<RuleActionExecutor<Event>> mapRuleEffects(
-          Event event, List<ValidationEffect> ruleValidationEffects, TrackerBundle bundle) {
+      Event event, List<ValidationEffect> ruleValidationEffects, TrackerBundle bundle) {
     ProgramStage programStage = bundle.getPreheat().getProgramStage(event.getProgramStage());
 
     return ruleValidationEffects.stream()
-            .filter(executor -> needsToValidateDataValues(event, programStage))
-            .map(
-              effect ->
-                buildEventRuleActionExecutor(effect, event.getDataValues()))
-            .filter(
-                  executor -> isDataElementPartOfProgramStage(executor.getDataElementUid(), programStage))
-            .toList();
+        .filter(executor -> needsToValidateDataValues(event, programStage))
+        .map(effect -> buildEventRuleActionExecutor(effect, event.getDataValues()))
+        .filter(
+            executor -> isDataElementPartOfProgramStage(executor.getDataElementUid(), programStage))
+        .toList();
   }
 
   private RuleActionExecutor<Event> buildEventRuleActionExecutor(
-          ValidationEffect validationEffect, Set<DataValue> dataValues) {
+      ValidationEffect validationEffect, Set<DataValue> dataValues) {
     return switch (validationEffect.type()) {
-      case ASSIGN -> new AssignDataValueExecutor(systemSettingManager, validationEffect.ruleId(), validationEffect.data(), validationEffect.field(), dataValues);
-      case SETMANDATORYFIELD -> new SetMandatoryFieldExecutor(validationEffect.ruleId(), validationEffect.field());
+      case ASSIGN ->
+          new AssignDataValueExecutor(
+              systemSettingManager,
+              validationEffect.ruleId(),
+              validationEffect.data(),
+              validationEffect.field(),
+              dataValues);
+      case SETMANDATORYFIELD ->
+          new SetMandatoryFieldExecutor(validationEffect.ruleId(), validationEffect.field());
       case SHOWERROR -> new ShowErrorExecutor(validationEffect);
       case SHOWWARNING -> new ShowWarningExecutor(validationEffect);
       case ERRORONCOMPLETE -> new ShowErrorOnCompleteExecutor(validationEffect);

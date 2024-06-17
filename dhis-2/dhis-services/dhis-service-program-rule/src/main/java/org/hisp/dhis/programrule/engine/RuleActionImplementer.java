@@ -29,7 +29,6 @@ package org.hisp.dhis.programrule.engine;
 
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.rules.models.RuleEffect;
 
 /**
  * Service is responsible for implementing actions which are generated as a result of Rule-Engine

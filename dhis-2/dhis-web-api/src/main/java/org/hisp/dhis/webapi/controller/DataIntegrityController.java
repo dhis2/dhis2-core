@@ -28,7 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.stream.Collectors.toList;
-import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
+import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
 

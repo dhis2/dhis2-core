@@ -33,7 +33,6 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.programrule.engine.NotificationEffect;
 import org.hisp.dhis.programrule.engine.RuleActionImplementer;
-import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.security.SecurityContextRunnable;
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -75,8 +74,9 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable {
     }
 
     Map<String, List<NotificationEffect>> enrollmentRuleEffects =
-        sideEffectDataBundle.getEnrollmentRuleEffects();
-    Map<String, List<NotificationEffect>> eventRuleEffects = sideEffectDataBundle.getEventRuleEffects();
+        sideEffectDataBundle.getEnrollmentNotificationEffects();
+    Map<String, List<NotificationEffect>> eventRuleEffects =
+        sideEffectDataBundle.getEventNotificationEffects();
 
     for (RuleActionImplementer ruleActionImplementer : ruleActionImplementers) {
       for (Map.Entry<String, List<NotificationEffect>> entry : enrollmentRuleEffects.entrySet()) {

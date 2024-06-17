@@ -36,13 +36,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.collections4.ListUtils;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.engine.ProgramRuleEngine;
 import org.hisp.dhis.programrule.engine.RuleEngineEffects;
-import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -90,7 +88,10 @@ class DefaultProgramRuleService implements ProgramRuleService {
   @Transactional(readOnly = true)
   public void calculateRuleEffects(TrackerBundle bundle, TrackerPreheat preheat) {
     RuleEngineEffects ruleEffects =
-            RuleEngineEffects.merge(RuleEngineEffects.merge(calculateEnrollmentRuleEffects(bundle, preheat), calculateProgramEventRuleEffects(bundle, preheat)),
+        RuleEngineEffects.merge(
+            RuleEngineEffects.merge(
+                calculateEnrollmentRuleEffects(bundle, preheat),
+                calculateProgramEventRuleEffects(bundle, preheat)),
             calculateTrackerEventRuleEffects(bundle, preheat));
 
     // This is needed for bundle side effects process
@@ -110,13 +111,13 @@ class DefaultProgramRuleService implements ProgramRuleService {
               Enrollment enrollment =
                   enrollmentTrackerConverterService.fromForRuleEngine(preheat, e);
 
-              return programRuleEngine
-                  .evaluateEnrollmentAndEvents(
-                      enrollment,
-                      getEventsFromEnrollment(enrollment.getUid(), bundle, preheat),
-                      getAttributes(e.getEnrollment(), e.getTrackedEntity(), bundle, preheat));
+              return programRuleEngine.evaluateEnrollmentAndEvents(
+                  enrollment,
+                  getEventsFromEnrollment(enrollment.getUid(), bundle, preheat),
+                  getAttributes(e.getEnrollment(), e.getTrackedEntity(), bundle, preheat));
             })
-            .reduce(RuleEngineEffects::merge).orElse(null);
+        .reduce(RuleEngineEffects::merge)
+        .orElse(null);
   }
 
   private RuleEngineEffects calculateTrackerEventRuleEffects(
@@ -131,16 +132,16 @@ class DefaultProgramRuleService implements ProgramRuleService {
     return enrollments.stream()
         .map(
             enrollment ->
-                programRuleEngine
-                    .evaluateEnrollmentAndEvents(
-                        enrollment,
-                        getEventsFromEnrollment(enrollment.getUid(), bundle, preheat),
-                        getAttributes(
-                            enrollment.getUid(),
-                            enrollment.getTrackedEntity().getUid(),
-                            bundle,
-                            preheat)))
-        .reduce(RuleEngineEffects::merge).orElse(null);
+                programRuleEngine.evaluateEnrollmentAndEvents(
+                    enrollment,
+                    getEventsFromEnrollment(enrollment.getUid(), bundle, preheat),
+                    getAttributes(
+                        enrollment.getUid(),
+                        enrollment.getTrackedEntity().getUid(),
+                        bundle,
+                        preheat)))
+        .reduce(RuleEngineEffects::merge)
+        .orElse(null);
   }
 
   private RuleEngineEffects calculateProgramEventRuleEffects(
@@ -156,10 +157,10 @@ class DefaultProgramRuleService implements ProgramRuleService {
               List<Event> events =
                   eventTrackerConverterService.fromForRuleEngine(preheat, entry.getValue());
 
-              return programRuleEngine
-                  .evaluateProgramEvents(new HashSet<>(events), entry.getKey());
+              return programRuleEngine.evaluateProgramEvents(new HashSet<>(events), entry.getKey());
             })
-        .reduce(RuleEngineEffects::merge).orElse(null);
+        .reduce(RuleEngineEffects::merge)
+        .orElse(null);
   }
 
   // Get all the attributes linked to enrollment from the payload and the DB,

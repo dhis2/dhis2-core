@@ -29,7 +29,7 @@ package org.hisp.dhis.dxf2.adx;
 
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
-import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
+import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
 

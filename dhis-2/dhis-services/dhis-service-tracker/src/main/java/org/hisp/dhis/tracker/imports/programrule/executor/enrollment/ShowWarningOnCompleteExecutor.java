@@ -43,7 +43,7 @@ import org.hisp.dhis.tracker.imports.programrule.executor.ValidationExecutor;
  * This executor shows warnings on a completed enrollment calculated by Rule Engine. @Author Enrico
  * Colasante
  */
- @RequiredArgsConstructor
+@RequiredArgsConstructor
 public class ShowWarningOnCompleteExecutor implements ValidationExecutor<Enrollment> {
   private final ValidationEffect ruleAction;
 

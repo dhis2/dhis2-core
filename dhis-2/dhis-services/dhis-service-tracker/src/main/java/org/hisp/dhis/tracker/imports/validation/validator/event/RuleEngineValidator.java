@@ -31,7 +31,6 @@ import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;

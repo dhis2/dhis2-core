@@ -38,7 +38,7 @@ import org.hisp.dhis.artemis.MessageType;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.programrule.engine.NotificationEffect;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.junit.jupiter.api.Test;
 
@@ -52,12 +52,12 @@ class TrackerSideValidationEffectDataBundleTest {
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
         new org.hisp.dhis.tracker.imports.domain.Enrollment();
     enrollment.setEnrollment("test-enrollment");
-    Map<String, List<RuleEffect>> enrollmentRuleEffects = new HashMap<>();
+    Map<String, List<NotificationEffect>> enrollmentRuleEffects = new HashMap<>();
     enrollmentRuleEffects.put(enrollment.getEnrollment(), Lists.newArrayList());
     String enrollmentUid = CodeGenerator.generateUid();
     TrackerSideEffectDataBundle bundle =
         TrackerSideEffectDataBundle.builder()
-            .enrollmentRuleEffects(enrollmentRuleEffects)
+            .enrollmentNotificationEffects(enrollmentRuleEffects)
             .accessedBy("testUser")
             .importStrategy(TrackerImportStrategy.CREATE)
             .object(enrollmentUid)
@@ -65,8 +65,8 @@ class TrackerSideValidationEffectDataBundleTest {
             .build();
     assertEquals(enrollmentUid, bundle.getObject());
     assertEquals(Enrollment.class, bundle.getKlass());
-    assertTrue(bundle.getEnrollmentRuleEffects().containsKey("test-enrollment"));
-    assertTrue(bundle.getEventRuleEffects().isEmpty());
+    assertTrue(bundle.getEnrollmentNotificationEffects().containsKey("test-enrollment"));
+    assertTrue(bundle.getEventNotificationEffects().isEmpty());
     assertEquals(TrackerImportStrategy.CREATE, bundle.getImportStrategy());
     assertEquals(MessageType.TRACKER_SIDE_EFFECT, bundle.getMessageType());
   }
@@ -76,19 +76,19 @@ class TrackerSideValidationEffectDataBundleTest {
     org.hisp.dhis.tracker.imports.domain.Event event =
         new org.hisp.dhis.tracker.imports.domain.Event();
     event.setEvent("test-event");
-    Map<String, List<RuleEffect>> eventRuleEffects = new HashMap<>();
+    Map<String, List<NotificationEffect>> eventRuleEffects = new HashMap<>();
     eventRuleEffects.put(event.getEvent(), Lists.newArrayList());
     Event expected = new Event();
     expected.setAutoFields();
     TrackerSideEffectDataBundle bundle =
         TrackerSideEffectDataBundle.builder()
-            .eventRuleEffects(eventRuleEffects)
+            .eventNotificationEffects(eventRuleEffects)
             .object(expected.getUid())
             .klass(Event.class)
             .build();
     assertEquals(expected.getUid(), bundle.getObject());
     assertEquals(Event.class, bundle.getKlass());
-    assertTrue(bundle.getEventRuleEffects().containsKey("test-event"));
-    assertTrue(bundle.getEnrollmentRuleEffects().isEmpty());
+    assertTrue(bundle.getEventNotificationEffects().containsKey("test-event"));
+    assertTrue(bundle.getEnrollmentNotificationEffects().isEmpty());
   }
 }

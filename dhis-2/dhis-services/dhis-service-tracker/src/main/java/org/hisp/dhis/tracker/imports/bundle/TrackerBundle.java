@@ -38,12 +38,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import org.hisp.dhis.program.UserInfoSnapshot;
-import org.hisp.dhis.programrule.engine.ValidationEffect;
+import org.hisp.dhis.programrule.engine.NotificationEffect;
 import org.hisp.dhis.programrule.engine.RuleEngineEffects;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.TrackerType;
@@ -172,12 +171,12 @@ public class TrackerBundle {
     return entities.stream().filter(e -> Objects.equals(e.getUid(), uid)).findFirst();
   }
 
-  public Map<String, List<ValidationEffect>> getEnrollmentRuleEffects() {
-    return ruleEffects.enrollmentEffects();
+  public Map<String, List<NotificationEffect>> getEnrollmentRuleEffects() {
+    return ruleEffects.enrollmentNotificationEffects();
   }
 
-  public Map<String, List<ValidationEffect>> getEventRuleEffects() {
-    return ruleEffects.eventEffects();
+  public Map<String, List<NotificationEffect>> getEventRuleEffects() {
+    return ruleEffects.eventNotificationEffects();
   }
 
   public TrackerImportStrategy setStrategy(TrackerDto dto, TrackerImportStrategy strategy) {
