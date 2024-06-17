@@ -29,6 +29,7 @@ package org.hisp.dhis.datastore;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static java.util.Comparator.comparing;
 
 import java.util.Date;
 import java.util.List;
@@ -67,6 +68,19 @@ public class DefaultDatastoreService implements DatastoreService {
   private final DatastoreStore store;
 
   private final AclService aclService;
+
+  @Override
+  public DatastoreNamespaceProtection getProtection(@Nonnull String namespace) {
+    return protectionByNamespace.get(namespace);
+  }
+
+  @Nonnull
+  @Override
+  public List<DatastoreNamespaceProtection> getProtections() {
+    return protectionByNamespace.values().stream()
+        .sorted(comparing(DatastoreNamespaceProtection::getNamespace))
+        .toList();
+  }
 
   @Override
   public void addProtection(DatastoreNamespaceProtection protection) {
