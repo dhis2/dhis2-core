@@ -507,11 +507,10 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
 
     // then
     List<Predictor> predictorSources =
-        predictorStore.getAllWithGeneratorExpressionContainingDataElement(
+        predictorStore.getAllWithGeneratorContainingDataElement(
             getUidsNonNull(List.of(deSource1, deSource2)));
     List<Predictor> predictorTarget =
-        predictorStore.getAllWithGeneratorExpressionContainingDataElement(
-            getUidsNonNull(List.of(deTarget)));
+        predictorStore.getAllWithGeneratorContainingDataElement(getUidsNonNull(List.of(deTarget)));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesNotDeleted(
@@ -540,10 +539,73 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
 
     // then
     List<Predictor> predictorSources =
-        predictorStore.getAllWithGeneratorExpressionContainingDataElement(
+        predictorStore.getAllWithGeneratorContainingDataElement(
             getUidsNonNull(List.of(deSource1, deSource2)));
     List<Predictor> predictorTarget =
-        predictorStore.getAllWithGeneratorExpressionContainingDataElement(
+        predictorStore.getAllWithGeneratorContainingDataElement(getUidsNonNull(List.of(deTarget)));
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertMergeSuccessfulSourcesDeleted(report, predictorSources, predictorTarget, allDataElements);
+  }
+
+  @Test
+  @DisplayName(
+      "Predictor sample skip test expression references with DataElement are replaced as expected, source DataElements are not deleted")
+  void predictorSampleSkipTestMergeTest() throws ConflictException {
+    // given
+    Predictor predictor1 = createPredictorWithSkipTest('1', deRandom, deSource1);
+    Predictor predictor2 = createPredictorWithSkipTest('2', deRandom, deSource2);
+    Predictor predictor3 = createPredictorWithSkipTest('3', deRandom, deTarget);
+
+    identifiableObjectManager.save(predictor1);
+    identifiableObjectManager.save(predictor2);
+    identifiableObjectManager.save(predictor3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<Predictor> predictorSources =
+        predictorStore.getAllWithSampleSkipTestContainingDataElement(
+            getUidsNonNull(List.of(deSource1, deSource2)));
+    List<Predictor> predictorTarget =
+        predictorStore.getAllWithSampleSkipTestContainingDataElement(
+            getUidsNonNull(List.of(deTarget)));
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertMergeSuccessfulSourcesNotDeleted(
+        report, predictorSources, predictorTarget, allDataElements);
+  }
+
+  @Test
+  @DisplayName(
+      "Predictor sample skip test expression references with DataElement are replaced as expected, source DataElements are deleted")
+  void predictorSampleSkipTestMergeSourcesDeletedTest() throws ConflictException {
+    // given
+    Predictor predictor1 = createPredictorWithSkipTest('1', deRandom, deSource1);
+    Predictor predictor2 = createPredictorWithSkipTest('2', deRandom, deSource2);
+    Predictor predictor3 = createPredictorWithSkipTest('3', deRandom, deTarget);
+
+    identifiableObjectManager.save(predictor1);
+    identifiableObjectManager.save(predictor2);
+    identifiableObjectManager.save(predictor3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDeleteSources(true);
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<Predictor> predictorSources =
+        predictorStore.getAllWithSampleSkipTestContainingDataElement(
+            getUidsNonNull(List.of(deSource1, deSource2)));
+    List<Predictor> predictorTarget =
+        predictorStore.getAllWithSampleSkipTestContainingDataElement(
             getUidsNonNull(List.of(deTarget)));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 

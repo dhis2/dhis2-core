@@ -422,4 +422,106 @@ class PredictorStoreTest extends TransactionalIntegrationTest {
     assertEquals(2, predictors.size());
     assertTrue(predictors.containsAll(List.of(predictor1, predictor2)));
   }
+
+  @Test
+  @DisplayName(
+      "Retrieving Predictors whose generator contains DataElements returns expected results")
+  void generatorWithDataElementTest() {
+    // given
+    DataElement de1 = createDataElement('1');
+    DataElement de2 = createDataElement('2');
+    dataElementService.addDataElement(de1);
+    dataElementService.addDataElement(de2);
+
+    Predictor p1 =
+        createPredictor(
+            dataElementX,
+            defaultCombo,
+            "2",
+            createExpression2('a', "#{test123.%s}".formatted(de1.getUid())),
+            expressionC,
+            periodType,
+            orgUnitLevel1,
+            1,
+            1,
+            1);
+
+    Predictor p2 =
+        createPredictor(
+            dataElementX,
+            defaultCombo,
+            "3",
+            createExpression2('a', "#{test123.%s}".formatted(de2.getUid())),
+            expressionD,
+            periodType,
+            orgUnitLevel1,
+            1,
+            1,
+            1);
+
+    predictorStore.save(p1);
+    predictorStore.save(p2);
+
+    // when
+    List<Predictor> allWithGeneratorDEs =
+        predictorStore.getAllWithGeneratorContainingDataElement(
+            List.of(de1.getUid(), de2.getUid()));
+
+    // then
+    assertEquals(2, allWithGeneratorDEs.size());
+    assertTrue(
+        allWithGeneratorDEs.containsAll(List.of(p1, p2)),
+        "Retrieved result set should contain both Predictors");
+  }
+
+  @Test
+  @DisplayName(
+      "Retrieving Predictors whose sample skit test contains DataElements returns expected results")
+  void sampleSkipTestWithDataElementTest() {
+    // given
+    DataElement de1 = createDataElement('1');
+    DataElement de2 = createDataElement('2');
+    dataElementService.addDataElement(de1);
+    dataElementService.addDataElement(de2);
+
+    Predictor p1 =
+        createPredictor(
+            dataElementX,
+            defaultCombo,
+            "2",
+            expressionC,
+            createExpression2('a', "#{test123.%s}".formatted(de1.getUid())),
+            periodType,
+            orgUnitLevel1,
+            1,
+            1,
+            1);
+
+    Predictor p2 =
+        createPredictor(
+            dataElementX,
+            defaultCombo,
+            "3",
+            expressionD,
+            createExpression2('a', "#{test123.%s}".formatted(de2.getUid())),
+            periodType,
+            orgUnitLevel1,
+            1,
+            1,
+            1);
+
+    predictorStore.save(p1);
+    predictorStore.save(p2);
+
+    // when
+    List<Predictor> allWithSampleSkipTestDEs =
+        predictorStore.getAllWithSampleSkipTestContainingDataElement(
+            List.of(de1.getUid(), de2.getUid()));
+
+    // then
+    assertEquals(2, allWithSampleSkipTestDEs.size());
+    assertTrue(
+        allWithSampleSkipTestDEs.containsAll(List.of(p1, p2)),
+        "Retrieved result set should contain both Predictors");
+  }
 }

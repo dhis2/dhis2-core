@@ -135,6 +135,7 @@ public class DataElementMergeService implements MergeService {
             // metadata
             .add(dataElementMergeHandler::handlePredictor)
             .add(dataElementMergeHandler::handlePredictorGeneratorExpression)
+            .add(dataElementMergeHandler::handlePredictorSampleSkipTestExpression)
             .add(dataElementMergeHandler::handleProgramStageDataElement)
             .add(dataElementMergeHandler::handleProgramStageSection)
             .add(dataElementMergeHandler::handleProgramNotificationTemplate)

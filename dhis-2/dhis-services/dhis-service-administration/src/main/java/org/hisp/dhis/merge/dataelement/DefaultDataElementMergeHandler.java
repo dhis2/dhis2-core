@@ -155,7 +155,7 @@ public class DefaultDataElementMergeHandler {
    */
   public void handlePredictorGeneratorExpression(List<DataElement> sources, DataElement target) {
     List<Predictor> predictors =
-        predictorStore.getAllWithGeneratorExpressionContainingDataElement(
+        predictorStore.getAllWithGeneratorContainingDataElement(
             IdentifiableObjectUtils.getUidsNonNull(sources));
     for (DataElement source : sources) {
       predictors.forEach(
@@ -163,6 +163,31 @@ public class DefaultDataElementMergeHandler {
             Expression generator = p.getGenerator();
             generator.setExpression(
                 generator.getExpression().replace(source.getUid(), target.getUid()));
+          });
+    }
+  }
+
+  /**
+   * Method retrieving {@link Predictor}s which have a source {@link DataElement} reference in its
+   * sampleSkipTest {@link Expression}. All retrieved {@link Predictor}s will have their
+   * sampleSkipTest {@link Expression} {@link DataElement} {@link UID} replaced with the target
+   * {@link DataElement} {@link UID}
+   *
+   * @param sources source {@link DataElement}s used to retrieve {@link Predictor}s
+   * @param target {@link DataElement} which will replace the {@link DataElement} {@link UID} in a
+   *     {@link Predictor} {@link Expression}
+   */
+  public void handlePredictorSampleSkipTestExpression(
+      List<DataElement> sources, DataElement target) {
+    List<Predictor> predictors =
+        predictorStore.getAllWithSampleSkipTestContainingDataElement(
+            IdentifiableObjectUtils.getUidsNonNull(sources));
+    for (DataElement source : sources) {
+      predictors.forEach(
+          p -> {
+            Expression sampleSkipTest = p.getSampleSkipTest();
+            sampleSkipTest.setExpression(
+                sampleSkipTest.getExpression().replace(source.getUid(), target.getUid()));
           });
     }
   }

@@ -35,7 +35,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nonnull;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.collection.CollectionUtils;
 
 /**
  * Utilities for SQL operations, compatible with PostgreSQL and H2 database platforms.
@@ -149,21 +151,18 @@ public class SqlUtils {
     return "lower(" + value + ")";
   }
 
-  public static String whereMultiLike(@Nonnull String column, @Nonnull List<String> likeTargets) {
-    if (likeTargets.isEmpty())
-      throw new IllegalArgumentException("SQL multi like must have at least one target");
-    StringBuilder multiLike =
-        new StringBuilder(" WHERE " + column + " like " + "'%" + likeTargets.get(0) + "%'");
+  public static String multiLike(String column, List<String> likeTargets) {
+    if (StringUtils.isBlank(column) || CollectionUtils.isEmpty(likeTargets))
+      throw new IllegalArgumentException("SQL multi like must have at least one target and column");
 
-    for (int i = 1; i < likeTargets.size(); ++i) {
-      multiLike
-          .append(" OR ")
-          .append(column)
-          .append(" like ")
-          .append("'%")
-          .append(likeTargets.get(i))
-          .append("%'");
-    }
-    return multiLike.toString();
+    return likeTargets.stream()
+        .reduce(
+            "",
+            (multiLike, target) ->
+                multiLike.concat(or(multiLike) + column + " like '%" + target + "%'"));
+  }
+
+  private static String or(@Nonnull String multiLike) {
+    return multiLike.contains("like") ? " or " : "";
   }
 }

@@ -97,19 +97,36 @@ public class HibernatePredictorStore extends HibernateIdentifiableObjectStore<Pr
   }
 
   @Override
-  public List<Predictor> getAllWithGeneratorExpressionContainingDataElement(
+  public List<Predictor> getAllWithGeneratorContainingDataElement(
       @Nonnull List<String> dataElementUids) {
-    String whereMultiLike = SqlUtils.whereMultiLike("e.expression", dataElementUids);
+    String multiLike = SqlUtils.multiLike("e.expression", dataElementUids);
 
     return getQuery(
             """
             select p from Predictor p
             join p.generator,
             Expression as e
-            %s
+            where %s
             group by p
             """
-                .formatted(whereMultiLike))
+                .formatted(multiLike))
+        .getResultList();
+  }
+
+  @Override
+  public List<Predictor> getAllWithSampleSkipTestContainingDataElement(
+      @Nonnull List<String> dataElementUids) {
+    String multiLike = SqlUtils.multiLike("e.expression", dataElementUids);
+
+    return getQuery(
+            """
+        select p from Predictor p
+        join p.sampleSkipTest,
+        Expression as e
+        where %s
+        group by p
+        """
+                .formatted(multiLike))
         .getResultList();
   }
 }

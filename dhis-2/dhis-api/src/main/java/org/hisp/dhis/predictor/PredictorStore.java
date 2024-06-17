@@ -41,6 +41,8 @@ public interface PredictorStore extends IdentifiableObjectStore<Predictor> {
 
   List<Predictor> getAllByDataElement(Collection<DataElement> dataElements);
 
-  List<Predictor> getAllWithGeneratorExpressionContainingDataElement(
-      @Nonnull List<String> dataElements);
+  List<Predictor> getAllWithGeneratorContainingDataElement(@Nonnull List<String> dataElementUids);
+
+  List<Predictor> getAllWithSampleSkipTestContainingDataElement(
+      @Nonnull List<String> dataElementUids);
 }
