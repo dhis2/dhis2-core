@@ -84,6 +84,12 @@ public enum ConfigurationKey {
   /** Analytics database platform. */
   ANALYTICS_DATABASE("analytics.database", "POSTGRESQL", false),
 
+  /** Analytics database JDBC catalog name. */
+  ANALYTICS_DATABASE_CATALOG("analytics.database.catalog", "pg_dhis", false),
+
+  /** Analytics database JDBC driver filename. */
+  ANALYTICS_DATABASE_DRIVER_FILENAME("analytics.database.driver_filename", "postgresql.jar", false),
+
   /** JDBC driver class. */
   CONNECTION_DRIVER_CLASS("connection.driver_class", "org.postgresql.Driver", false),
 
@@ -386,9 +392,16 @@ public enum ConfigurationKey {
   ANALYTICS_TABLE_UNLOGGED("analytics.table.unlogged", Constants.ON),
 
   /**
-   * Skip building indexes on analytics tables for the comma-separated list of UIDs. Experimental.
+   * Skip building indexes for dimensional columns on analytics tables for the comma-separated list
+   * of dimension identifiers. Experimental.
    */
   ANALYTICS_TABLE_SKIP_INDEX("analytics.table.skip_index", "", false),
+
+  /**
+   * Skip creating columns for analytics tables for the comma-separated list of dimensional
+   * identifiers. Experimental.
+   */
+  ANALYTICS_TABLE_SKIP_COLUMN("analytics.table.skip_column", "", false),
 
   /**
    * Artemis support mode, 2 modes supported: EMBEDDED (starts up an embedded Artemis which lives in
