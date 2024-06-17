@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import org.hisp.dhis.appmanager.AppManager;
@@ -91,17 +92,20 @@ class DatastoreControllerAppAdditionalNamespacesTest extends DhisControllerConve
   @Test
   void testWriteAccess_Super() {
     assertStatus(HttpStatus.CREATED, POST("/dataStore/test-app-extra-ns/hello", "true"));
+    assertTrue(GET("/dataStore/test-app-extra-ns/hello").content().booleanValue());
   }
 
   @Test
   void testWriteAccess_WriteOnly() {
     switchToNewUser("tester4", "test-app-write");
     assertStatus(HttpStatus.CREATED, POST("/dataStore/test-app-extra-ns/hello", "true"));
+    assertStatus(HttpStatus.FORBIDDEN, GET("/dataStore/test-app-extra-ns/hello"));
   }
 
   @Test
   void testWriteAccess_Common() {
     switchToNewUser("tester5", "test-app-common");
     assertStatus(HttpStatus.CREATED, POST("/dataStore/test-app-extra-ns/hello", "true"));
+    assertTrue(GET("/dataStore/test-app-extra-ns/hello").content().booleanValue());
   }
 }
