@@ -139,12 +139,11 @@ class ProgramRuleActionValidatorTest extends DhisConvenienceTest {
     ProgramRule programRule = new ProgramRule();
     programRule.setProgram(program);
     programRule.setName("Test Program Rule");
-
     programRule.getProgramRuleActions().add(programRuleAction);
 
     validationContext.setProgramRule(programRule);
-
     validationContext.setNotificationTemplate(pnt);
+
     NotificationProgramRuleActionValidator notificationValidator =
         new NotificationProgramRuleActionValidator();
     ProgramRuleActionValidationResult result =
