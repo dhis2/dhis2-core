@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.commons.collection.CollectionUtils.emptyIfNull;
+import static org.hisp.dhis.common.collection.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
@@ -43,6 +43,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.audit.Audit;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -107,10 +108,10 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags("data")
+@OpenApi.Document(domain = Audit.class)
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/audits")
+@RequestMapping("/api/audits")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class ChangeLogController {
   private final IdentifiableObjectManager manager;

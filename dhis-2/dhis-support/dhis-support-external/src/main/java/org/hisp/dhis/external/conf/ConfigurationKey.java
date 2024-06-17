@@ -84,6 +84,12 @@ public enum ConfigurationKey {
   /** Analytics database platform. */
   ANALYTICS_DATABASE("analytics.database", "POSTGRESQL", false),
 
+  /** Analytics database JDBC catalog name. */
+  ANALYTICS_DATABASE_CATALOG("analytics.database.catalog", "pg_dhis", false),
+
+  /** Analytics database JDBC driver filename. */
+  ANALYTICS_DATABASE_DRIVER_FILENAME("analytics.database.driver_filename", "postgresql.jar", false),
+
   /** JDBC driver class. */
   CONNECTION_DRIVER_CLASS("connection.driver_class", "org.postgresql.Driver", false),
 
@@ -323,6 +329,8 @@ public enum ConfigurationKey {
   /** Datacenter location (not required). */
   FILESTORE_LOCATION("filestore.location", "", false),
 
+  FILESTORE_ENDPOINT("filestore.endpoint", "", false),
+
   /** Public identity / username. */
   FILESTORE_IDENTITY("filestore.identity", "", false),
 
@@ -349,6 +357,9 @@ public enum ConfigurationKey {
   /** EHCache replication remote object port. */
   CLUSTER_CACHE_REMOTE_OBJECT_PORT("cluster.cache.remote.object.port", "0", false),
 
+  /** Enable redis cache. (default: false) */
+  REDIS_ENABLED("redis.enabled", Constants.OFF, false),
+
   /** Redis host to use for cache. (default: localhost) */
   REDIS_HOST("redis.host", "localhost", false),
 
@@ -360,9 +371,6 @@ public enum ConfigurationKey {
 
   /** Use SSL for connecting to redis. (default: false) */
   REDIS_USE_SSL("redis.use.ssl", Constants.OFF, false),
-
-  /** Enable redis cache. (default: false) */
-  REDIS_ENABLED("redis.enabled", Constants.OFF, false),
 
   /**
    * Allows Flyway migrations to be run "out of order".
@@ -383,8 +391,17 @@ public enum ConfigurationKey {
   /** Use unlogged tables during analytics export. (default: ON) */
   ANALYTICS_TABLE_UNLOGGED("analytics.table.unlogged", Constants.ON),
 
-  /** Order analytics tables data on insert. */
-  ANALYTICS_TABLE_ORDERING("analytics.table.ordering", Constants.OFF),
+  /**
+   * Skip building indexes for dimensional columns on analytics tables for the comma-separated list
+   * of dimension identifiers. Experimental.
+   */
+  ANALYTICS_TABLE_SKIP_INDEX("analytics.table.skip_index", "", false),
+
+  /**
+   * Skip creating columns for analytics tables for the comma-separated list of dimensional
+   * identifiers. Experimental.
+   */
+  ANALYTICS_TABLE_SKIP_COLUMN("analytics.table.skip_column", "", false),
 
   /**
    * Artemis support mode, 2 modes supported: EMBEDDED (starts up an embedded Artemis which lives in

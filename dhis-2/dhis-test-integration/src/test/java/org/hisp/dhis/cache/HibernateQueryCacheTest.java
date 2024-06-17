@@ -28,6 +28,7 @@
 package org.hisp.dhis.cache;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -37,6 +38,8 @@ import org.hibernate.SessionFactory;
 import org.hibernate.jpa.QueryHints;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.scheduling.HousekeepingJob;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.AfterEach;
@@ -51,6 +54,7 @@ class HibernateQueryCacheTest extends HibernateCacheBaseTest {
 
   private @Autowired EntityManagerFactory entityManagerFactory;
   private @Autowired UserService _userService;
+  private @Autowired HousekeepingJob housekeepingJob;
 
   private SessionFactory sessionFactory;
 
@@ -67,8 +71,8 @@ class HibernateQueryCacheTest extends HibernateCacheBaseTest {
     User adminUser = preCreateInjectAdminUser();
     injectSecurityContextUser(adminUser);
     integrationTestBeforeEach();
-
-    this.sessionFactory.getStatistics().setStatisticsEnabled(true);
+    sessionFactory.getStatistics().setStatisticsEnabled(true);
+    sessionFactory.getStatistics().clear();
   }
 
   @AfterEach
@@ -79,15 +83,7 @@ class HibernateQueryCacheTest extends HibernateCacheBaseTest {
   @Test
   @DisplayName("Hibernate Query cache should be used")
   void testQueryCache() {
-    OptionSet optionSet = new OptionSet();
-    optionSet.setAutoFields();
-    optionSet.setName("OptionSetA");
-    optionSet.setCode("OptionSetCodeA");
-    optionSet.setValueType(ValueType.TEXT);
-
-    entityManager.getTransaction().begin();
-    entityManager.persist(optionSet);
-    entityManager.getTransaction().commit();
+    setUpData();
 
     for (int i = 0; i < 10; i++) {
       entityManager.getTransaction().begin();
@@ -98,7 +94,44 @@ class HibernateQueryCacheTest extends HibernateCacheBaseTest {
 
     assertEquals(1, sessionFactory.getStatistics().getQueryCacheMissCount());
     assertEquals(9, sessionFactory.getStatistics().getQueryCacheHitCount());
-    entityManager.close();
+  }
+
+  @Test
+  @DisplayName("Housekeeping job must not clear Hibernate caches")
+  void testHouseKeepingJobWithCache() {
+    setUpData();
+    createSelectQuery(10);
+    assertEquals(9, sessionFactory.getStatistics().getQueryCacheHitCount());
+    housekeepingJob.execute(null, JobProgress.noop());
+    createSelectQuery(1);
+    assertEquals(
+        10,
+        sessionFactory
+            .getStatistics()
+            .getCacheRegionStatistics(OptionSet.class.getName())
+            .getHitCount());
+    assertTrue(sessionFactory.getStatistics().getQueryCacheHitCount() > 10);
+  }
+
+  private void setUpData() {
+    OptionSet optionSet = new OptionSet();
+    optionSet.setAutoFields();
+    optionSet.setName("OptionSetA");
+    optionSet.setCode("OptionSetCodeA");
+    optionSet.setValueType(ValueType.TEXT);
+
+    entityManager.getTransaction().begin();
+    entityManager.persist(optionSet);
+    entityManager.getTransaction().commit();
+  }
+
+  private void createSelectQuery(int numberOfQueries) {
+    for (int i = 0; i < numberOfQueries; i++) {
+      entityManager.getTransaction().begin();
+      TypedQuery<OptionSet> query = createQuery(entityManager);
+      assertEquals(1, query.getResultList().size());
+      entityManager.getTransaction().commit();
+    }
   }
 
   private TypedQuery<OptionSet> createQuery(EntityManager entityManager) {

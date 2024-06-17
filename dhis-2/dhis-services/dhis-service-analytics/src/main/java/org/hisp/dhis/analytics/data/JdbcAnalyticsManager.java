@@ -45,7 +45,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.commons.collection.CollectionUtils.concat;
+import static org.hisp.dhis.common.collection.CollectionUtils.concat;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_SILENT_FALLBACK;
 import static org.hisp.dhis.util.SqlExceptionUtils.relationDoesNotExist;
@@ -323,7 +323,10 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
 
     builder.append(getGroupByClause(params));
 
-    if (params.hasMeasureCriteria() && params.isDataType(DataType.NUMERIC)) {
+    if (params.hasMeasureCriteria()
+        && params.isDataType(DataType.NUMERIC)
+        && !params.hasReportingRates()) {
+      /* Reporting rates applies the measure criteria after the rates calculation phase. It cannot be done at this stage. */
       builder.append(getMeasureCriteriaSql(params));
     }
 
@@ -606,7 +609,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     }
 
     if (params.isTimely()) {
-      sql.append(sqlHelper.whereAnd() + " " + quoteAlias("timely") + " is true ");
+      sql.append(sqlHelper.whereAnd() + " " + quoteAlias("timely") + " = true ");
     }
 
     // ---------------------------------------------------------------------

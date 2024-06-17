@@ -67,22 +67,18 @@ public class HibernateSectionStore extends HibernateIdentifiableObjectStore<Sect
 
   @Override
   public List<Section> getSectionsByDataElement(String dataElementUid) {
-    String hql =
+    String sql =
         "select * from section s"
             + " left join sectiondataelements sde on s.sectionid = sde.sectionid"
             + " left join sectiongreyedfields sgf on s.sectionid = sgf.sectionid"
             + " left join dataelementoperand deo on sgf.dataelementoperandid = deo.dataelementoperandid"
             + ", dataelement de"
             + " where de.uid = :dataElementId and (sde.dataelementid = de.dataelementid or deo.dataelementid = de.dataelementid);";
-    return getSession()
-        .createNativeQuery(hql, Section.class)
-        .setParameter("dataElementId", dataElementUid)
-        .list();
+    return nativeSynchronizedTypedQuery(sql).setParameter("dataElementId", dataElementUid).list();
   }
 
   @Override
   public List<Section> getSectionsByIndicators(List<Indicator> indicators) {
-    // language=sql
     String sql =
         """
             select s.* from section s
@@ -90,9 +86,6 @@ public class HibernateSectionStore extends HibernateIdentifiableObjectStore<Sect
             where si.indicatorid in :indicators
             group by s.sectionid
           """;
-    return getSession()
-        .createNativeQuery(sql, Section.class)
-        .setParameter("indicators", indicators)
-        .list();
+    return nativeSynchronizedTypedQuery(sql).setParameter("indicators", indicators).list();
   }
 }

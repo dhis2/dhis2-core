@@ -45,13 +45,12 @@ import java.util.List;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AclService;
 import org.junit.jupiter.api.BeforeEach;
@@ -112,7 +111,7 @@ class ProgramObjectBundleHookTest {
     assertThat(argument.getValue().getEnrollmentDate(), is(notNullValue()));
     assertThat(argument.getValue().getOccurredDate(), is(notNullValue()));
     assertThat(argument.getValue().getProgram(), is(programA));
-    assertThat(argument.getValue().getStatus(), is(ProgramStatus.ACTIVE));
+    assertThat(argument.getValue().getStatus(), is(EnrollmentStatus.ACTIVE));
     assertThat(argument.getValue().getStoredBy(), is("system-process"));
   }
 
@@ -133,11 +132,7 @@ class ProgramObjectBundleHookTest {
 
   @Test
   void verifyProgramFailsValidation() {
-    EnrollmentQueryParams enrollmentQueryParams = new EnrollmentQueryParams();
-    enrollmentQueryParams.setProgram(programA);
-    enrollmentQueryParams.setProgramStatus(ProgramStatus.ACTIVE);
-
-    when(enrollmentService.getEnrollments(programA, ProgramStatus.ACTIVE))
+    when(enrollmentService.getEnrollments(programA, EnrollmentStatus.ACTIVE))
         .thenReturn(Lists.newArrayList(new Enrollment(), new Enrollment()));
 
     List<ErrorReport> errors = subject.validate(programA, null);

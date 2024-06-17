@@ -84,7 +84,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Autowired protected UserService _userService;
 
-  @Autowired private EnrollmentService programInstanceService;
+  @Autowired private EnrollmentService apiEnrollmentService;
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -179,7 +179,13 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     programA.setProgramType(ProgramType.WITH_REGISTRATION);
     programA.setTrackedEntityType(trackedEntityTypeA);
     programA.getSharing().setOwner(admin);
-    programA.getSharing().setPublicAccess(AccessStringHelper.DATA_READ);
+    programA
+        .getSharing()
+        .setPublicAccess(
+            AccessStringHelper.newInstance()
+                .enable(AccessStringHelper.Permission.READ)
+                .enable(AccessStringHelper.Permission.DATA_READ)
+                .build());
     manager.save(programA, false);
 
     Program programB = createProgram('B', new HashSet<>(), orgUnitB);
@@ -243,7 +249,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     manager.save(relationshipA, false);
 
     enrollmentA =
-        programInstanceService.enrollTrackedEntity(
+        apiEnrollmentService.enrollTrackedEntity(
             trackedEntityA, programA, new Date(), new Date(), orgUnitA);
     eventA = new Event();
     eventA.setEnrollment(enrollmentA);
@@ -255,15 +261,15 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     manager.save(enrollmentA, false);
 
     enrollmentB =
-        programInstanceService.enrollTrackedEntity(
+        apiEnrollmentService.enrollTrackedEntity(
             trackedEntityB, programB, new Date(), new Date(), orgUnitB);
 
     enrollmentChildA =
-        programInstanceService.enrollTrackedEntity(
+        apiEnrollmentService.enrollTrackedEntity(
             trackedEntityChildA, programA, new Date(), new Date(), orgUnitChildA);
 
     enrollmentGrandchildA =
-        programInstanceService.enrollTrackedEntity(
+        apiEnrollmentService.enrollTrackedEntity(
             trackedEntityGrandchildA, programA, new Date(), new Date(), orgUnitGrandchildA);
 
     injectSecurityContextUser(user);

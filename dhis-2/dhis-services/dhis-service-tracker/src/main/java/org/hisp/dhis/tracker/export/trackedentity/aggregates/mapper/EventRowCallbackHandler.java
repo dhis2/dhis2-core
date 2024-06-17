@@ -38,10 +38,10 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.EventQuery;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.EventQuery.COLUMNS;
@@ -98,7 +98,8 @@ public class EventRowCallbackHandler extends AbstractMapper<Event> {
     final boolean followUp = rs.getBoolean(EventQuery.getColumnName(COLUMNS.ENROLLMENT_FOLLOWUP));
     enrollment.setFollowup(rs.wasNull() ? null : followUp);
     enrollment.setStatus(
-        ProgramStatus.valueOf(rs.getString(EventQuery.getColumnName(COLUMNS.ENROLLMENT_STATUS))));
+        EnrollmentStatus.valueOf(
+            rs.getString(EventQuery.getColumnName(COLUMNS.ENROLLMENT_STATUS))));
     TrackedEntity trackedEntity = new TrackedEntity();
     trackedEntity.setUid(rs.getString(EventQuery.getColumnName(COLUMNS.TE_UID)));
     enrollment.setTrackedEntity(trackedEntity);

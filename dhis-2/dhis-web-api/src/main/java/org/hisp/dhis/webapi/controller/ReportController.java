@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 
 import java.util.Date;
@@ -38,7 +39,6 @@ import javax.servlet.http.HttpServletResponse;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.j2ee.servlets.BaseHttpServlet;
 import net.sf.jasperreports.j2ee.servlets.ImageServlet;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -49,13 +49,12 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.report.ReportService;
 import org.hisp.dhis.report.ReportType;
-import org.hisp.dhis.schema.descriptors.ReportSchemaDescriptor;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -69,9 +68,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("metadata")
 @Controller
-@RequestMapping(value = ReportSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/reports")
 public class ReportController extends AbstractCrudController<Report> {
   @Autowired public ReportService reportService;
 
@@ -84,7 +82,7 @@ public class ReportController extends AbstractCrudController<Report> {
   // -------------------------------------------------------------------------
 
   @PutMapping("/{uid}/design")
-  @PreAuthorize("hasRole('ALL')")
+  @RequiresAuthority(anyOf = ALL)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void updateReportDesign(
       @PathVariable("uid") String uid,

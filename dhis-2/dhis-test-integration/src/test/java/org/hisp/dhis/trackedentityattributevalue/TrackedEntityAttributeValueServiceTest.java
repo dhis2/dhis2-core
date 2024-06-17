@@ -53,7 +53,7 @@ class TrackedEntityAttributeValueServiceTest extends TransactionalIntegrationTes
 
   @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
-  @Autowired private TrackedEntityService entityInstanceService;
+  @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -67,13 +67,13 @@ class TrackedEntityAttributeValueServiceTest extends TransactionalIntegrationTes
 
   private TrackedEntityAttribute attributeC;
 
-  private TrackedEntity entityInstanceA;
+  private TrackedEntity trackedEntityA;
 
-  private TrackedEntity entityInstanceB;
+  private TrackedEntity trackedEntityB;
 
-  private TrackedEntity entityInstanceC;
+  private TrackedEntity trackedEntityC;
 
-  private TrackedEntity entityInstanceD;
+  private TrackedEntity trackedEntityD;
 
   private TrackedEntityAttributeValue attributeValueA;
 
@@ -85,46 +85,43 @@ class TrackedEntityAttributeValueServiceTest extends TransactionalIntegrationTes
   public void setUpTest() {
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnit);
-    entityInstanceA = createTrackedEntity(organisationUnit);
-    entityInstanceB = createTrackedEntity(organisationUnit);
-    entityInstanceC = createTrackedEntity(organisationUnit);
-    entityInstanceD = createTrackedEntity(organisationUnit);
-    entityInstanceService.addTrackedEntity(entityInstanceA);
-    entityInstanceService.addTrackedEntity(entityInstanceB);
-    entityInstanceService.addTrackedEntity(entityInstanceC);
-    entityInstanceService.addTrackedEntity(entityInstanceD);
+    trackedEntityA = createTrackedEntity(organisationUnit);
+    trackedEntityB = createTrackedEntity(organisationUnit);
+    trackedEntityC = createTrackedEntity(organisationUnit);
+    trackedEntityD = createTrackedEntity(organisationUnit);
+    trackedEntityService.addTrackedEntity(trackedEntityA);
+    trackedEntityService.addTrackedEntity(trackedEntityB);
+    trackedEntityService.addTrackedEntity(trackedEntityC);
+    trackedEntityService.addTrackedEntity(trackedEntityD);
     attributeA = createTrackedEntityAttribute('A');
     attributeB = createTrackedEntityAttribute('B');
     attributeC = createTrackedEntityAttribute('C');
     attributeService.addTrackedEntityAttribute(attributeA);
     attributeService.addTrackedEntityAttribute(attributeB);
     attributeService.addTrackedEntityAttribute(attributeC);
-    attributeValueA = new TrackedEntityAttributeValue(attributeA, entityInstanceA, "A");
-    attributeValueB = new TrackedEntityAttributeValue(attributeB, entityInstanceA, "B");
-    attributeValueC = new TrackedEntityAttributeValue(attributeA, entityInstanceB, "C");
+    attributeValueA = new TrackedEntityAttributeValue(attributeA, trackedEntityA, "A");
+    attributeValueB = new TrackedEntityAttributeValue(attributeB, trackedEntityA, "B");
+    attributeValueC = new TrackedEntityAttributeValue(attributeA, trackedEntityB, "C");
   }
 
   @Test
   void testSaveTrackedEntityAttributeValue() {
     attributeValueService.addTrackedEntityAttributeValue(attributeValueA);
     attributeValueService.addTrackedEntityAttributeValue(attributeValueB);
-    assertNotNull(
-        attributeValueService.getTrackedEntityAttributeValue(entityInstanceA, attributeA));
-    assertNotNull(
-        attributeValueService.getTrackedEntityAttributeValue(entityInstanceA, attributeA));
+    assertNotNull(attributeValueService.getTrackedEntityAttributeValue(trackedEntityA, attributeA));
+    assertNotNull(attributeValueService.getTrackedEntityAttributeValue(trackedEntityA, attributeA));
   }
 
   @Test
   void testUpdateTrackedEntityAttributeValue() {
     attributeValueService.addTrackedEntityAttributeValue(attributeValueA);
-    assertNotNull(
-        attributeValueService.getTrackedEntityAttributeValue(entityInstanceA, attributeA));
+    assertNotNull(attributeValueService.getTrackedEntityAttributeValue(trackedEntityA, attributeA));
     attributeValueA.setValue("B");
     attributeValueService.updateTrackedEntityAttributeValue(attributeValueA);
     assertEquals(
         "B",
         attributeValueService
-            .getTrackedEntityAttributeValue(entityInstanceA, attributeA)
+            .getTrackedEntityAttributeValue(trackedEntityA, attributeA)
             .getValue());
   }
 
@@ -132,17 +129,14 @@ class TrackedEntityAttributeValueServiceTest extends TransactionalIntegrationTes
   void testDeleteTrackedEntityAttributeValue() {
     attributeValueService.addTrackedEntityAttributeValue(attributeValueA);
     attributeValueService.addTrackedEntityAttributeValue(attributeValueB);
-    assertNotNull(
-        attributeValueService.getTrackedEntityAttributeValue(entityInstanceA, attributeA));
-    assertNotNull(
-        attributeValueService.getTrackedEntityAttributeValue(entityInstanceA, attributeB));
+    assertNotNull(attributeValueService.getTrackedEntityAttributeValue(trackedEntityA, attributeA));
+    assertNotNull(attributeValueService.getTrackedEntityAttributeValue(trackedEntityA, attributeB));
     attributeValueService.deleteTrackedEntityAttributeValue(attributeValueA);
-    assertNull(attributeValueService.getTrackedEntityAttributeValue(entityInstanceA, attributeA));
-    assertNotNull(
-        attributeValueService.getTrackedEntityAttributeValue(entityInstanceA, attributeB));
+    assertNull(attributeValueService.getTrackedEntityAttributeValue(trackedEntityA, attributeA));
+    assertNotNull(attributeValueService.getTrackedEntityAttributeValue(trackedEntityA, attributeB));
     attributeValueService.deleteTrackedEntityAttributeValue(attributeValueB);
-    assertNull(attributeValueService.getTrackedEntityAttributeValue(entityInstanceA, attributeA));
-    assertNull(attributeValueService.getTrackedEntityAttributeValue(entityInstanceA, attributeB));
+    assertNull(attributeValueService.getTrackedEntityAttributeValue(trackedEntityA, attributeA));
+    assertNull(attributeValueService.getTrackedEntityAttributeValue(trackedEntityA, attributeB));
   }
 
   @Test
@@ -151,10 +145,10 @@ class TrackedEntityAttributeValueServiceTest extends TransactionalIntegrationTes
     attributeValueService.addTrackedEntityAttributeValue(attributeValueC);
     assertEquals(
         attributeValueA,
-        attributeValueService.getTrackedEntityAttributeValue(entityInstanceA, attributeA));
+        attributeValueService.getTrackedEntityAttributeValue(trackedEntityA, attributeA));
     assertEquals(
         attributeValueC,
-        attributeValueService.getTrackedEntityAttributeValue(entityInstanceB, attributeA));
+        attributeValueService.getTrackedEntityAttributeValue(trackedEntityB, attributeA));
   }
 
   @Test
@@ -163,10 +157,10 @@ class TrackedEntityAttributeValueServiceTest extends TransactionalIntegrationTes
     attributeValueService.addTrackedEntityAttributeValue(attributeValueB);
     attributeValueService.addTrackedEntityAttributeValue(attributeValueC);
     List<TrackedEntityAttributeValue> attributeValues =
-        attributeValueService.getTrackedEntityAttributeValues(entityInstanceA);
+        attributeValueService.getTrackedEntityAttributeValues(trackedEntityA);
     assertEquals(2, attributeValues.size());
     assertTrue(equals(attributeValues, attributeValueA, attributeValueB));
-    attributeValues = attributeValueService.getTrackedEntityAttributeValues(entityInstanceB);
+    attributeValues = attributeValueService.getTrackedEntityAttributeValues(trackedEntityB);
     assertEquals(1, attributeValues.size());
     assertTrue(equals(attributeValues, attributeValueC));
   }
@@ -202,8 +196,8 @@ class TrackedEntityAttributeValueServiceTest extends TransactionalIntegrationTes
     content = "filecontentB".getBytes();
     fileResourceB = createFileResource('B', content);
     fileResourceService.asyncSaveFileResource(fileResourceB, content);
-    attributeValueA = createTrackedEntityAttributeValue('A', entityInstanceA, attributeA);
-    attributeValueB = createTrackedEntityAttributeValue('B', entityInstanceB, attributeB);
+    attributeValueA = createTrackedEntityAttributeValue('A', trackedEntityA, attributeA);
+    attributeValueB = createTrackedEntityAttributeValue('B', trackedEntityB, attributeB);
     attributeValueA.setValue(fileResourceA.getUid());
     attributeValueB.setValue(fileResourceB.getUid());
     attributeValueService.addTrackedEntityAttributeValue(attributeValueA);
@@ -219,16 +213,16 @@ class TrackedEntityAttributeValueServiceTest extends TransactionalIntegrationTes
   @Test
   void testAttributeValueWithNullValue() {
     attributeService.updateTrackedEntityAttribute(attributeA);
-    attributeValueA = createTrackedEntityAttributeValue('A', entityInstanceA, attributeA);
+    attributeValueA = createTrackedEntityAttributeValue('A', trackedEntityA, attributeA);
     attributeValueA.setValue("any value");
     attributeValueService.addTrackedEntityAttributeValue(attributeValueA);
     TrackedEntityAttributeValue retrievedValue =
-        attributeValueService.getTrackedEntityAttributeValue(entityInstanceA, attributeA);
+        attributeValueService.getTrackedEntityAttributeValue(trackedEntityA, attributeA);
     assertEquals("any value", retrievedValue.getValue());
     attributeValueA.setValue(null);
     attributeValueService.updateTrackedEntityAttributeValue(attributeValueA);
     retrievedValue =
-        attributeValueService.getTrackedEntityAttributeValue(entityInstanceA, attributeA);
+        attributeValueService.getTrackedEntityAttributeValue(trackedEntityA, attributeA);
     assertNull(retrievedValue);
   }
 }

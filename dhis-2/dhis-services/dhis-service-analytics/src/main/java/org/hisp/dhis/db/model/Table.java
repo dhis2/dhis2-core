@@ -174,6 +174,15 @@ public class Table {
   }
 
   /**
+   * Returns the first column, or null if none exist.
+   *
+   * @return the first column, or null if none exist.
+   */
+  public Column getFirstColumn() {
+    return hasColumns() ? columns.get(0) : null;
+  }
+
+  /**
    * Indicates whether the table has a primary key.
    *
    * @return true if the table has a primary key.
@@ -225,6 +234,16 @@ public class Table {
    */
   public boolean hasPartitions() {
     return isNotEmpty(partitions);
+  }
+
+  public Table swapFromStaging() {
+    return new Table(
+        fromStaging(this.getName()),
+        this.getColumns(),
+        this.getPrimaryKey(),
+        this.getChecks(),
+        this.getLogged(),
+        this.getParent());
   }
 
   /**

@@ -27,15 +27,17 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParentheses;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
+import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.model.AnalyticsColumnType;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.model.Skip;
@@ -137,11 +139,6 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     return tableIsNotEmpty("event");
   }
 
-  @Override
-  protected boolean hasUpdatedLatestData(Date startDate, Date endDate) {
-    throw new IllegalStateException("This method should never be invoked");
-  }
-
   /**
    * Populates the given analytics table partition using the given columns and join statement.
    *
@@ -169,7 +166,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
 
     sql += fromClause;
 
-    invokeTimeAndLog(sql, String.format("Populate %s", tableName));
+    invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }
 
   protected List<AnalyticsTableColumn> getTrackedEntityAttributeColumns(Program program) {
@@ -185,19 +182,31 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
       Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
       String sql =
-          "(select "
-              + select
-              + " "
-              + "from trackedentityattributevalue where trackedentityid=pi.trackedentityid "
-              + "and trackedentityattributeid="
-              + attribute.getId()
-              + dataClause
-              + ")"
-              + getClosingParentheses(select)
-              + " as "
-              + quote(attribute.getUid());
-
-      columns.add(new AnalyticsTableColumn(attribute.getUid(), dataType, sql, skipIndex));
+          replace(
+              """
+              (select ${select} from trackedentityattributevalue \
+              where trackedentityid=pi.trackedentityid \
+              and trackedentityattributeid=${attributeId}\
+              ${dataClause})${closingParentheses} as ${attributeUid}""",
+              Map.of(
+                  "select",
+                  select,
+                  "attributeId",
+                  String.valueOf(attribute.getId()),
+                  "dataClause",
+                  dataClause,
+                  "closingParentheses",
+                  getClosingParentheses(select),
+                  "attributeUid",
+                  quote(attribute.getUid())));
+      columns.add(
+          AnalyticsTableColumn.builder()
+              .name(attribute.getUid())
+              .columnType(AnalyticsColumnType.DYNAMIC)
+              .dataType(dataType)
+              .selectExpression(sql)
+              .skipIndex(skipIndex)
+              .build());
     }
 
     return columns;

@@ -31,10 +31,10 @@ import static java.util.Calendar.FEBRUARY;
 import static java.util.Calendar.JANUARY;
 import static java.util.Calendar.MARCH;
 import static java.util.Collections.emptyList;
-import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.ENDDATE;
-import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.OU;
-import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.STARTDATE;
-import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.TEIUID;
+import static org.hisp.dhis.analytics.table.writer.JdbcOwnershipWriter.ENDDATE;
+import static org.hisp.dhis.analytics.table.writer.JdbcOwnershipWriter.OU;
+import static org.hisp.dhis.analytics.table.writer.JdbcOwnershipWriter.STARTDATE;
+import static org.hisp.dhis.analytics.table.writer.JdbcOwnershipWriter.TEIUID;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
@@ -67,6 +67,7 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
+import org.hisp.dhis.analytics.table.writer.JdbcOwnershipWriter;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
@@ -284,23 +285,24 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
             "lastupdated <= '\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}'",
             "lastupdated <= 'yyyy-mm-ddThh:mm:ss'");
     assertEquals(
-        "select tei.uid,a.startdate,a.enddate,ou.uid from ("
-            + "select h.trackedentityid, '1001-01-01' as startdate, h.enddate as enddate, h.organisationunitid "
-            + "from programownershiphistory h "
-            + "where h.programid=0 and h.organisationunitid is not null "
-            + "union "
-            + "select o.trackedentityid, '2002-02-02' as startdate, null as enddate, o.organisationunitid "
-            + "from trackedentityprogramowner o "
-            + "where o.programid=0 "
-            + "and exists (select 1 from programownershiphistory p "
-            + "where o.trackedentityid = p.trackedentityid "
-            + "and p.programid=0 and p.organisationunitid is not null)"
-            + ") a "
-            + "inner join trackedentity tei on a.trackedentityid = tei.trackedentityid "
-            + "inner join organisationunit ou on a.organisationunitid = ou.organisationunitid "
-            + "left join analytics_rs_orgunitstructure ous on a.organisationunitid = ous.organisationunitid "
-            + "left join analytics_rs_organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid "
-            + "order by tei.uid, a.startdate, a.enddate",
+        """
+        select tei.uid,a.startdate,a.enddate,ou.uid from (\
+        select h.trackedentityid, '1001-01-01' as startdate, h.enddate as enddate, h.organisationunitid \
+        from programownershiphistory h \
+        where h.programid=0 and h.organisationunitid is not null \
+        union \
+        select o.trackedentityid, '2002-02-02' as startdate, null as enddate, o.organisationunitid \
+        from trackedentityprogramowner o \
+        where o.programid=0 \
+        and exists (select 1 from programownershiphistory p \
+        where o.trackedentityid = p.trackedentityid \
+        and p.programid=0 and p.organisationunitid is not null)\
+        ) a \
+        inner join trackedentity tei on a.trackedentityid = tei.trackedentityid \
+        inner join organisationunit ou on a.organisationunitid = ou.organisationunitid \
+        left join analytics_rs_orgunitstructure ous on a.organisationunitid = ous.organisationunitid \
+        left join analytics_rs_organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid \
+        order by tei.uid, a.startdate, a.enddate""",
         sqlMasked);
 
     List<Invocation> writerInvocations = getInvocations(writer);
@@ -323,10 +325,27 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
   void testGetFixedColumns() {
     List<AnalyticsTableColumn> expected =
         List.of(
-            new AnalyticsTableColumn("teiuid", CHARACTER_11, "tei.uid"),
-            new AnalyticsTableColumn("startdate", DATE, "a.startdate"),
-            new AnalyticsTableColumn("enddate", DATE, "a.enddate"),
-            new AnalyticsTableColumn("ou", CHARACTER_11, NOT_NULL, "ou.uid"));
+            AnalyticsTableColumn.builder()
+                .name("teiuid")
+                .dataType(CHARACTER_11)
+                .selectExpression("tei.uid")
+                .build(),
+            AnalyticsTableColumn.builder()
+                .name("startdate")
+                .dataType(DATE)
+                .selectExpression("a.startdate")
+                .build(),
+            AnalyticsTableColumn.builder()
+                .name("enddate")
+                .dataType(DATE)
+                .selectExpression("a.enddate")
+                .build(),
+            AnalyticsTableColumn.builder()
+                .name("ou")
+                .dataType(CHARACTER_11)
+                .nullable(NOT_NULL)
+                .selectExpression("ou.uid")
+                .build());
 
     assertEquals(expected, JdbcOwnershipAnalyticsTableManager.FIXED_COLS);
   }

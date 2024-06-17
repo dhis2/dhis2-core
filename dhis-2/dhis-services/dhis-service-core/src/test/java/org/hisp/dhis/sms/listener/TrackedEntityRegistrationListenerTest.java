@@ -78,11 +78,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest {
-  private static final String TEI_REGISTRATION_COMMAND = "tei";
+  private static final String TE_REGISTRATION_COMMAND = "te";
 
   private static final String ATTRIBUTE_VALUE = "TEST";
 
-  private static final String SMS_TEXT = TEI_REGISTRATION_COMMAND + " " + "attr=sample";
+  private static final String SMS_TEXT = TE_REGISTRATION_COMMAND + " " + "attr=sample";
 
   private static final String ORIGINATOR = "47400000";
 
@@ -126,7 +126,7 @@ class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest {
 
   private User user;
 
-  private SMSCommand teiRegistrationCommand;
+  private SMSCommand teRegistrationCommand;
 
   private SMSCode smsCode;
 
@@ -156,7 +156,7 @@ class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest {
     setUpInstances();
 
     // Mock for smsCommandService
-    when(smsCommandService.getSMSCommand(anyString(), any())).thenReturn(teiRegistrationCommand);
+    when(smsCommandService.getSMSCommand(anyString(), any())).thenReturn(teRegistrationCommand);
 
     // Mock for userService
     when(userService.getUser(anyString())).thenReturn(user);
@@ -175,7 +175,7 @@ class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest {
   }
 
   @Test
-  void testTeiRegistration() {
+  void testTrackedEntityRegistration() {
     // Mock for trackedEntityService
     when(trackedEntityService.createTrackedEntity(any(), any())).thenReturn(1L);
     when(trackedEntityService.getTrackedEntity(anyLong())).thenReturn(trackedEntity);
@@ -203,7 +203,7 @@ class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest {
   void testIfProgramHasNoOu() {
     Program programA = createProgram('P');
 
-    teiRegistrationCommand.setProgram(programA);
+    teRegistrationCommand.setProgram(programA);
 
     assertThrows(SMSParserException.class, () -> subject.receive(incomingSms));
 
@@ -238,11 +238,11 @@ class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest {
     smsCode.setCode("attr");
     smsCode.setTrackedEntityAttribute(trackedEntityAttribute);
 
-    teiRegistrationCommand = new SMSCommand();
-    teiRegistrationCommand.setName(TEI_REGISTRATION_COMMAND);
-    teiRegistrationCommand.setParserType(ParserType.TRACKED_ENTITY_REGISTRATION_PARSER);
-    teiRegistrationCommand.setProgram(program);
-    teiRegistrationCommand.setCodes(Sets.newHashSet(smsCode));
+    teRegistrationCommand = new SMSCommand();
+    teRegistrationCommand.setName(TE_REGISTRATION_COMMAND);
+    teRegistrationCommand.setParserType(ParserType.TRACKED_ENTITY_REGISTRATION_PARSER);
+    teRegistrationCommand.setProgram(program);
+    teRegistrationCommand.setCodes(Sets.newHashSet(smsCode));
 
     incomingSms = new IncomingSms();
     incomingSms.setText(SMS_TEXT);

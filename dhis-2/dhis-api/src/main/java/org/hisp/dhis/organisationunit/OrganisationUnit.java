@@ -93,6 +93,10 @@ public class OrganisationUnit extends BaseDimensionalItemObject
 
   public static final String KEY_ORGUNIT_GROUP = "OU_GROUP-";
 
+  public static final String KEY_DATASET = "DS-";
+
+  public static final String KEY_PROGRAM = "PR-";
+
   private static final String NAME_SEPARATOR = " / ";
 
   private OrganisationUnit parent;

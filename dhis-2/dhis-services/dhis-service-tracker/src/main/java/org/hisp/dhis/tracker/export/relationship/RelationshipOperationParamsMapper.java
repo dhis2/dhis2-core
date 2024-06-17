@@ -40,8 +40,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,20 +53,15 @@ import org.springframework.transaction.annotation.Transactional;
 class RelationshipOperationParamsMapper {
 
   private final TrackedEntityService trackedEntityService;
-
   private final EnrollmentService enrollmentService;
-
   private final EventService eventService;
-
   private final TrackerAccessManager accessManager;
-
-  private final UserService userService;
 
   @Transactional(readOnly = true)
   public RelationshipQueryParams map(RelationshipOperationParams params)
       throws NotFoundException, ForbiddenException {
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
     IdentifiableObject entity =
         switch (params.getType()) {
@@ -84,7 +78,7 @@ class RelationshipOperationParamsMapper {
         .build();
   }
 
-  private TrackedEntity validateTrackedEntity(User user, String uid)
+  private TrackedEntity validateTrackedEntity(UserDetails user, String uid)
       throws NotFoundException, ForbiddenException {
     TrackedEntity trackedEntity = trackedEntityService.getTrackedEntity(uid);
     if (trackedEntity == null) {
@@ -99,7 +93,7 @@ class RelationshipOperationParamsMapper {
     return trackedEntity;
   }
 
-  private Enrollment validateEnrollment(User user, String uid)
+  private Enrollment validateEnrollment(UserDetails user, String uid)
       throws NotFoundException, ForbiddenException {
     Enrollment enrollment = enrollmentService.getEnrollment(uid);
     if (enrollment == null) {
@@ -114,7 +108,8 @@ class RelationshipOperationParamsMapper {
     return enrollment;
   }
 
-  private Event validateEvent(User user, String uid) throws NotFoundException, ForbiddenException {
+  private Event validateEvent(UserDetails user, String uid)
+      throws NotFoundException, ForbiddenException {
     Event event = eventService.getEvent(uid);
     if (event == null) {
       throw new NotFoundException(Event.class, uid);

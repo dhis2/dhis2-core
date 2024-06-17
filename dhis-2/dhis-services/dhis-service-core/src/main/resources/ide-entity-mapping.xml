@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-configuration PUBLIC
+  "-//Hibernate/Hibernate Configuration DTD//EN"
+  "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+
+<!--
+  This file exists purely to provide a link from the hibernate .hbm Entity mappings to
+  the IDE, which enables the following IDE perks in HQL queries:
+    - automatic property detection for Entity types
+    - warning for incorrect Entity type or Entity property
+
+  The mapping type used is jar, so the 'dhis-service-core' module requires building in order
+  for the jar to be available for mapping.
+-->
+<hibernate-configuration>
+  <session-factory>
+    <mapping jar="../../dhis-service-core-2.42-SNAPSHOT.jar"/>
+  </session-factory>
+</hibernate-configuration>

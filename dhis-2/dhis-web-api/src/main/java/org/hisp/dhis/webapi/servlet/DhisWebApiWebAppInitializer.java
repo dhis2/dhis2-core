@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.servlet;
 
 import java.util.EnumSet;
+import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletRegistration;
@@ -91,13 +92,16 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
 
   public static void setupServlets(
       ServletContext context, AnnotationConfigWebApplicationContext webApplicationContext) {
-    DispatcherServlet servlet = new DispatcherServlet(webApplicationContext);
 
+    DispatcherServlet servlet = new DispatcherServlet(webApplicationContext);
     ServletRegistration.Dynamic dispatcher = context.addServlet("dispatcher", servlet);
     dispatcher.setAsyncSupported(true);
     dispatcher.setLoadOnStartup(1);
-    dispatcher.addMapping("/api/*");
-    dispatcher.addMapping("/uaa/*");
+    dispatcher.addMapping("/*");
+
+    context
+        .addServlet("TempGetAppMenuServlet", TempGetAppMenuServlet.class)
+        .addMapping("/dhis-web-commons/menu/getModules.action");
 
     context
         .addFilter("webMetricsFilter", new DelegatingFilterProxy("webMetricsFilter"))
@@ -118,6 +122,11 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
     characterEncodingFilter.addMappingForServletNames(null, false, "dispatcher");
 
     context
+        .addFilter(
+            "springSecurityFilterChain", new DelegatingFilterProxy("springSecurityFilterChain"))
+        .addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
+
+    context
         .addFilter("RequestIdentifierFilter", new DelegatingFilterProxy("requestIdentifierFilter"))
         .addMappingForUrlPatterns(null, true, "/*");
 
@@ -126,8 +135,7 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
         .addMappingForUrlPatterns(null, true, "/*");
 
     context
-        .addFilter(
-            "SwitchUserProcessingFilter", new DelegatingFilterProxy("switchUserProcessingFilter"))
+        .addFilter("GlobalShellFilter", new DelegatingFilterProxy("globalShellFilter"))
         .addMappingForUrlPatterns(null, true, "/*");
   }
 }

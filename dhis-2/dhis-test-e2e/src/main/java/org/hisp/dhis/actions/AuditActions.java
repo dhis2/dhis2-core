@@ -37,7 +37,7 @@ public class AuditActions extends RestApiActions {
     super("/audits");
   }
 
-  public ApiResponse getTrackedEntityAttributeValueAudits(String tei) {
-    return this.get("/trackedEntityAttributeValue?tei=" + tei);
+  public ApiResponse getTrackedEntityAttributeValueAudits(String trackedEntity) {
+    return this.get("/trackedEntityAttributeValue?tei=" + trackedEntity);
   }
 }

@@ -40,6 +40,7 @@ import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.datastore.DatastoreEntry;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
 import org.hisp.dhis.datastore.DatastoreService;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.web.HttpStatus;
@@ -89,7 +90,7 @@ class DatastoreControllerIntegrationTest extends DhisControllerIntegrationTest {
         AppStatus.OK,
         appManager.installApp(new ClassPathResource("app/test-app.zip").getFile(), "test-app.zip"));
     // by default we are an app manager
-    switchToNewUser("app-admin", AppManager.WEB_MAINTENANCE_APPMANAGER_AUTHORITY);
+    switchToNewUser("app-admin", Authorities.M_DHIS_WEB_APP_MANAGEMENT.toString());
 
     assertStatus(HttpStatus.CREATED, POST("/dataStore/test-app-ns/key1", "[]"));
     assertStatus(HttpStatus.OK, PUT("/dataStore/test-app-ns/key1", "{}"));

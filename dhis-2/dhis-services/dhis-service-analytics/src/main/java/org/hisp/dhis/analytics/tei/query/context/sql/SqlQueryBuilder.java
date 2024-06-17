@@ -27,11 +27,16 @@
  */
 package org.hisp.dhis.analytics.tei.query.context.sql;
 
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
+
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
+import lombok.Getter;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
@@ -101,4 +106,50 @@ public interface SqlQueryBuilder {
             sortingParams.stream().map(AnalyticsSortingParams::getOrderBy))
         .flatMap(Function.identity());
   }
+
+  /**
+   * Gets a grouped representation of the dimension identifiers, grouping them by key (the alias)
+   *
+   * @return the grouped dimensions
+   */
+  default GroupedDimensions getGroupedDimensions(
+      List<DimensionIdentifier<DimensionParam>> headers,
+      List<DimensionIdentifier<DimensionParam>> dimensions,
+      List<AnalyticsSortingParams> sortingParams) {
+    return GroupedDimensions.of(streamDimensions(headers, dimensions, sortingParams));
+  }
+
+  @Getter
+  class GroupedDimensions {
+
+    private final List<DimensionGroup> groupsByKey;
+
+    private GroupedDimensions(Stream<DimensionIdentifier<DimensionParam>> dimensions) {
+      groupsByKey =
+          dimensions
+              .collect(
+                  groupingBy(
+                      DimensionIdentifier::getKey,
+                      // LinkedHashMap to keep the order
+                      LinkedHashMap::new,
+                      toList()))
+              .entrySet()
+              .stream()
+              .map(entry -> new DimensionGroup(entry.getKey(), entry.getValue()))
+              .toList();
+    }
+
+    public static GroupedDimensions of(
+        Stream<DimensionIdentifier<DimensionParam>> dimensionIdentifierStream) {
+      return new GroupedDimensions(dimensionIdentifierStream);
+    }
+
+    public Stream<DimensionIdentifier<DimensionParam>> streamOfFirstDimensionInEachGroup() {
+      return groupsByKey.stream()
+          .map(DimensionGroup::dimensions)
+          .map(dimensions -> dimensions.get(0));
+    }
+  }
+
+  record DimensionGroup(String key, List<DimensionIdentifier<DimensionParam>> dimensions) {}
 }

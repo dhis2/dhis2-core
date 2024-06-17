@@ -92,7 +92,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     assignProgramRule();
     trackerImportService.importTracker(
         new TrackerImportParams(),
-        fromJson("tracker/programrule/tei_enrollment_completed_event.json"));
+        fromJson("tracker/programrule/te_enrollment_completed_event.json"));
   }
 
   @Test

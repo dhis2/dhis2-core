@@ -89,13 +89,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags("metadata")
+@OpenApi.Document(domain = Sharing.class)
 @Controller
-@RequestMapping(value = SharingController.RESOURCE_PATH)
+@RequestMapping("/api/sharing")
 @Slf4j
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class SharingController {
-  public static final String RESOURCE_PATH = "/sharing";
 
   @Autowired private IdentifiableObjectManager manager;
 

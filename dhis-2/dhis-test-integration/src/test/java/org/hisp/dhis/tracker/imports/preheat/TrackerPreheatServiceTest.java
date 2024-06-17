@@ -112,7 +112,7 @@ class TrackerPreheatServiceTest extends TrackerTest {
             .trackedEntities(
                 Lists.newArrayList(
                     TrackedEntity.builder()
-                        .trackedEntity("TEI12345678")
+                        .trackedEntity("TE012345678")
                         .orgUnit(MetadataIdentifier.ofCode("OU123456789"))
                         .build()))
             .build();
@@ -126,7 +126,7 @@ class TrackerPreheatServiceTest extends TrackerTest {
     Set<String> organisationUnits = collectedMap.get(OrganisationUnit.class);
     assertTrue(organisationUnits.contains("OU123456789"));
     assertEquals(1, organisationUnits.size());
-    assertTrue(trackedEntities.contains("TEI12345678"));
+    assertTrue(trackedEntities.contains("TE012345678"));
     assertEquals(1, trackedEntities.size());
   }
 

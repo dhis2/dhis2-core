@@ -50,13 +50,13 @@ class DeduplicationServiceIntegrationTest extends IntegrationTestBase {
 
   @Autowired private UserService userService;
 
-  private static final String teiA = "trackedentA";
+  private static final String trackedEntityA = "trackedentA";
 
-  private static final String teiB = "trackedentB";
+  private static final String trackedEntityB = "trackedentB";
 
-  private static final String teiC = "trackedentC";
+  private static final String trackedEntityC = "trackedentC";
 
-  private static final String teiD = "trackedentD";
+  private static final String trackedEntityD = "trackedentD";
 
   @Override
   public void setUpTest() {
@@ -67,12 +67,12 @@ class DeduplicationServiceIntegrationTest extends IntegrationTestBase {
 
   @Test
   void testGetAllPotentialDuplicateByDifferentStatus() throws PotentialDuplicateConflictException {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(teiA, teiB);
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(trackedEntityA, trackedEntityB);
     deduplicationService.addPotentialDuplicate(potentialDuplicate);
-    PotentialDuplicate potentialDuplicate1 = new PotentialDuplicate(teiC, teiD);
+    PotentialDuplicate potentialDuplicate1 = new PotentialDuplicate(trackedEntityC, trackedEntityD);
     deduplicationService.addPotentialDuplicate(potentialDuplicate1);
 
-    List<String> potentialDuplicates = List.of(teiA, teiC);
+    List<String> potentialDuplicates = List.of(trackedEntityA, trackedEntityC);
 
     PotentialDuplicateCriteria criteria = new PotentialDuplicateCriteria();
 
@@ -101,7 +101,7 @@ class DeduplicationServiceIntegrationTest extends IntegrationTestBase {
 
   @Test
   void testAddPotentialDuplicate() throws PotentialDuplicateConflictException {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(teiA, teiB);
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(trackedEntityA, trackedEntityB);
     deduplicationService.addPotentialDuplicate(potentialDuplicate);
     assertNotEquals(0, potentialDuplicate.getId());
     assertEquals(
@@ -111,7 +111,7 @@ class DeduplicationServiceIntegrationTest extends IntegrationTestBase {
 
   @Test
   void testGetPotentialDuplicateByUid() throws PotentialDuplicateConflictException {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(teiA, teiB);
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(trackedEntityA, trackedEntityB);
     deduplicationService.addPotentialDuplicate(potentialDuplicate);
     assertNotEquals(0, potentialDuplicate.getId());
     assertEquals(
@@ -121,9 +121,9 @@ class DeduplicationServiceIntegrationTest extends IntegrationTestBase {
 
   @Test
   void testGetPotentialDuplicateDifferentStatus() throws PotentialDuplicateConflictException {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(teiA, teiB);
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(trackedEntityA, trackedEntityB);
     deduplicationService.addPotentialDuplicate(potentialDuplicate);
-    PotentialDuplicate potentialDuplicate1 = new PotentialDuplicate(teiC, teiB);
+    PotentialDuplicate potentialDuplicate1 = new PotentialDuplicate(trackedEntityC, trackedEntityB);
     deduplicationService.addPotentialDuplicate(potentialDuplicate1);
 
     potentialDuplicate.setStatus(DeduplicationStatus.INVALID);
@@ -133,7 +133,7 @@ class DeduplicationServiceIntegrationTest extends IntegrationTestBase {
     deduplicationService.updatePotentialDuplicate(potentialDuplicate1);
 
     PotentialDuplicateCriteria criteria = new PotentialDuplicateCriteria();
-    criteria.setTrackedEntities(Collections.singletonList(teiB));
+    criteria.setTrackedEntities(Collections.singletonList(trackedEntityB));
     criteria.setStatus(DeduplicationStatus.INVALID);
     assertEquals(
         Collections.singletonList(potentialDuplicate),
@@ -142,7 +142,7 @@ class DeduplicationServiceIntegrationTest extends IntegrationTestBase {
 
   @Test
   void testCreatePotentialDuplicateNotCreationStatus() {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(teiA, teiB);
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(trackedEntityA, trackedEntityB);
     potentialDuplicate.setStatus(DeduplicationStatus.ALL);
 
     assertThrows(
@@ -152,47 +152,50 @@ class DeduplicationServiceIntegrationTest extends IntegrationTestBase {
 
   @Test
   void testExistsDuplicate() throws PotentialDuplicateConflictException {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(teiA, teiB);
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(trackedEntityA, trackedEntityB);
     deduplicationService.addPotentialDuplicate(potentialDuplicate);
     assertTrue(deduplicationService.exists(potentialDuplicate));
   }
 
   @Test
-  void testShouldThrowWhenMissingTeiBProperty() throws PotentialDuplicateConflictException {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(teiA, teiB);
+  void testShouldThrowWhenMissingTrackedEntityBProperty()
+      throws PotentialDuplicateConflictException {
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(trackedEntityA, trackedEntityB);
     deduplicationService.addPotentialDuplicate(potentialDuplicate);
     assertThrows(
         PotentialDuplicateConflictException.class,
-        () -> deduplicationService.exists(new PotentialDuplicate(teiA, null)));
+        () -> deduplicationService.exists(new PotentialDuplicate(trackedEntityA, null)));
   }
 
   @Test
-  void testShouldThrowWhenMissingTeiAProperty() throws PotentialDuplicateConflictException {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(teiA, teiB);
+  void testShouldThrowWhenMissingTrackedEntityAProperty()
+      throws PotentialDuplicateConflictException {
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(trackedEntityA, trackedEntityB);
     deduplicationService.addPotentialDuplicate(potentialDuplicate);
     assertThrows(
         PotentialDuplicateConflictException.class,
-        () -> deduplicationService.exists(new PotentialDuplicate(null, teiB)));
+        () -> deduplicationService.exists(new PotentialDuplicate(null, trackedEntityB)));
   }
 
   @Test
-  void testExistsTwoTeisReverse() throws PotentialDuplicateConflictException {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(teiA, teiB);
-    PotentialDuplicate potentialDuplicateReverse = new PotentialDuplicate(teiB, teiA);
+  void testExistsTwoTrackedEntitiesReverse() throws PotentialDuplicateConflictException {
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(trackedEntityA, trackedEntityB);
+    PotentialDuplicate potentialDuplicateReverse =
+        new PotentialDuplicate(trackedEntityB, trackedEntityA);
     deduplicationService.addPotentialDuplicate(potentialDuplicate);
     assertTrue(deduplicationService.exists(potentialDuplicateReverse));
   }
 
   @Test
   void testGetAllPotentialDuplicatedByQuery() throws PotentialDuplicateConflictException {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(teiA, teiB);
-    PotentialDuplicate potentialDuplicate1 = new PotentialDuplicate(teiC, teiD);
-    PotentialDuplicate potentialDuplicate2 = new PotentialDuplicate(teiA, teiD);
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(trackedEntityA, trackedEntityB);
+    PotentialDuplicate potentialDuplicate1 = new PotentialDuplicate(trackedEntityC, trackedEntityD);
+    PotentialDuplicate potentialDuplicate2 = new PotentialDuplicate(trackedEntityA, trackedEntityD);
     PotentialDuplicateCriteria criteria = new PotentialDuplicateCriteria();
     deduplicationService.addPotentialDuplicate(potentialDuplicate);
     deduplicationService.addPotentialDuplicate(potentialDuplicate1);
     deduplicationService.addPotentialDuplicate(potentialDuplicate2);
-    criteria.setTrackedEntities(Collections.singletonList(teiA));
+    criteria.setTrackedEntities(Collections.singletonList(trackedEntityA));
     List<PotentialDuplicate> list = deduplicationService.getPotentialDuplicates(criteria);
     assertEquals(2, list.size());
     assertTrue(list.contains(potentialDuplicate));
@@ -201,17 +204,17 @@ class DeduplicationServiceIntegrationTest extends IntegrationTestBase {
 
   @Test
   void testCountPotentialDuplicates() throws PotentialDuplicateConflictException {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(teiA, teiB);
-    PotentialDuplicate potentialDuplicate1 = new PotentialDuplicate(teiC, teiD);
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(trackedEntityA, trackedEntityB);
+    PotentialDuplicate potentialDuplicate1 = new PotentialDuplicate(trackedEntityC, trackedEntityD);
     PotentialDuplicateCriteria criteria = new PotentialDuplicateCriteria();
     deduplicationService.addPotentialDuplicate(potentialDuplicate);
     deduplicationService.addPotentialDuplicate(potentialDuplicate1);
     criteria.setStatus(DeduplicationStatus.ALL);
     assertEquals(2, deduplicationService.countPotentialDuplicates(criteria));
     criteria.setStatus(DeduplicationStatus.OPEN);
-    criteria.setTrackedEntities(Arrays.asList(teiA, teiC));
+    criteria.setTrackedEntities(Arrays.asList(trackedEntityA, trackedEntityC));
     assertEquals(2, deduplicationService.countPotentialDuplicates(criteria));
-    criteria.setTrackedEntities(Collections.singletonList(teiC));
+    criteria.setTrackedEntities(Collections.singletonList(trackedEntityC));
     assertEquals(1, deduplicationService.countPotentialDuplicates(criteria));
     criteria.setStatus(DeduplicationStatus.INVALID);
     assertEquals(0, deduplicationService.countPotentialDuplicates(criteria));
@@ -219,7 +222,7 @@ class DeduplicationServiceIntegrationTest extends IntegrationTestBase {
 
   @Test
   void testUpdatePotentialDuplicate() throws PotentialDuplicateConflictException {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(teiA, teiB);
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(trackedEntityA, trackedEntityB);
     deduplicationService.addPotentialDuplicate(potentialDuplicate);
     assertEquals(
         DeduplicationStatus.OPEN,
@@ -233,7 +236,7 @@ class DeduplicationServiceIntegrationTest extends IntegrationTestBase {
 
   @Test
   void shouldThrowWhenOrderFieldNotExists() throws PotentialDuplicateConflictException {
-    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(teiA, teiB);
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(trackedEntityA, trackedEntityB);
     deduplicationService.addPotentialDuplicate(potentialDuplicate);
 
     PotentialDuplicateCriteria criteria = new PotentialDuplicateCriteria();

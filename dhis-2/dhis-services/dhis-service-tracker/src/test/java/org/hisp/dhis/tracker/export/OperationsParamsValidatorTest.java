@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.export;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
+import static org.hisp.dhis.program.ProgramType.WITHOUT_REGISTRATION;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
@@ -144,7 +145,7 @@ class OperationsParamsValidatorTest {
     Exception exception =
         Assertions.assertThrows(
             BadRequestException.class,
-            () -> paramsValidator.validateProgram(PROGRAM_UID, new User()));
+            () -> paramsValidator.validateTrackerProgram(PROGRAM_UID, new User()));
 
     assertEquals(
         String.format("Program is specified but does not exist: %s", PROGRAM_UID),
@@ -158,7 +159,7 @@ class OperationsParamsValidatorTest {
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
     when(aclService.canDataRead(user, program)).thenReturn(true);
 
-    assertEquals(program, paramsValidator.validateProgram(PROGRAM_UID, user));
+    assertEquals(program, paramsValidator.validateTrackerProgram(PROGRAM_UID, user));
   }
 
   @Test
@@ -169,7 +170,8 @@ class OperationsParamsValidatorTest {
 
     Exception exception =
         Assertions.assertThrows(
-            ForbiddenException.class, () -> paramsValidator.validateProgram(PROGRAM_UID, user));
+            ForbiddenException.class,
+            () -> paramsValidator.validateTrackerProgram(PROGRAM_UID, user));
 
     assertEquals(
         String.format("User has no access to program: %s", program.getUid()),
@@ -186,7 +188,7 @@ class OperationsParamsValidatorTest {
     when(aclService.canDataRead(user, program)).thenReturn(true);
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
 
-    assertEquals(program, paramsValidator.validateProgram(PROGRAM_UID, user));
+    assertEquals(program, paramsValidator.validateTrackerProgram(PROGRAM_UID, user));
   }
 
   @Test
@@ -200,12 +202,30 @@ class OperationsParamsValidatorTest {
 
     Exception exception =
         Assertions.assertThrows(
-            ForbiddenException.class, () -> paramsValidator.validateProgram(PROGRAM_UID, user));
+            ForbiddenException.class,
+            () -> paramsValidator.validateTrackerProgram(PROGRAM_UID, user));
 
     assertEquals(
         String.format(
             "Current user is not authorized to read data from selected program's tracked entity type: %s",
             trackedEntityType.getUid()),
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldThrowBadRequestExceptionWhenRequestingTrackedEntitiesAndProgramIsNotATrackerProgram() {
+    User user = new User();
+    program.setProgramType(WITHOUT_REGISTRATION);
+    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+
+    Exception exception =
+        Assertions.assertThrows(
+            BadRequestException.class,
+            () -> paramsValidator.validateTrackerProgram(PROGRAM_UID, user));
+
+    assertEquals(
+        String.format("Program specified is not a tracker program: %s", PROGRAM_UID),
         exception.getMessage());
   }
 

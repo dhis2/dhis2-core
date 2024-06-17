@@ -47,9 +47,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags("ui")
+@OpenApi.Document(domain = I18n.class)
 @Controller
-@RequestMapping(value = "/i18n")
+@RequestMapping("/api/i18n")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class I18nController {
   private final I18nManager i18nManager;

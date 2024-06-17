@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.Category;
@@ -202,7 +203,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
   /** Organisation units for data output and data analysis operations. */
   private Set<OrganisationUnit> dataViewOrganisationUnits = new HashSet<>();
 
-  /** Organisation units for tracked entity instance search operations. */
+  /** Organisation units for tracked entity search operations. */
   private Set<OrganisationUnit> teiSearchOrganisationUnits = new HashSet<>();
 
   /** Max organisation unit level for data output and data analysis operations, may be null. */
@@ -273,6 +274,16 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
   }
 
   /**
+   * Tests whether this user has any of the {@link Authorities} in the given set.
+   *
+   * @param auths the {@link Authorities} to compare with.
+   * @return true or false.
+   */
+  public boolean hasAnyAuth(@Nonnull Collection<Authorities> auths) {
+    return hasAnyAuthority(auths.stream().map(Authorities::toString).toList());
+  }
+
+  /**
    * "Return true if any of the restrictions in the collection are in the list of all restrictions."
    *
    * @param restrictions A collection of strings that represent the restrictions that are being
@@ -294,7 +305,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
 
     final Set<String> auths = getAllAuthorities();
 
-    return auths.contains(UserRole.AUTHORITY_ALL) || auths.contains(auth);
+    return auths.contains(Authorities.ALL.toString()) || auths.contains(auth);
   }
 
   /**
@@ -322,7 +333,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
 
     final Set<String> authorities = getAllAuthorities();
 
-    if (authorities.contains(UserRole.AUTHORITY_ALL)) {
+    if (authorities.contains(Authorities.ALL.toString())) {
       return true;
     }
 
@@ -363,7 +374,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
 
     final Set<String> authorities = getAllAuthorities();
 
-    if (authorities.contains(UserRole.AUTHORITY_ALL)) {
+    if (authorities.contains(Authorities.ALL.toString())) {
       return true;
     }
 
@@ -812,8 +823,8 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
    *
    * @param auth the {@link Authorities}.
    */
-  public boolean isAuthorized(Authorities auth) {
-    return isAuthorized(auth.name());
+  public boolean isAuthorized(@Nonnull Authorities auth) {
+    return isAuthorized(auth.toString());
   }
 
   public Set<UserGroup> getManagedGroups() {
@@ -1190,7 +1201,15 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
     return username(user, "system-process");
   }
 
+  public static String username(UserDetails user) {
+    return username(user, "system-process");
+  }
+
   public static String username(User user, String defaultValue) {
+    return user != null ? user.getUsername() : defaultValue;
+  }
+
+  public static String username(UserDetails user, String defaultValue) {
     return user != null ? user.getUsername() : defaultValue;
   }
 

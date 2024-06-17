@@ -49,7 +49,7 @@ public class EventUpdateTests extends TrackerApiTest {
   @BeforeAll
   public void beforeAll() throws Exception {
     loginActions.loginAsSuperUser();
-    eventId = importTeisWithEnrollmentAndEvent().extractImportedEvents().get(0);
+    eventId = importTrackedEntitiesWithEnrollmentAndEvent().extractImportedEvents().get(0);
   }
 
   @Test

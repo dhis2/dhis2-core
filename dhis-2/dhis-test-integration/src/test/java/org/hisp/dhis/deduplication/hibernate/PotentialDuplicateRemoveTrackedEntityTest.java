@@ -74,17 +74,17 @@ class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegration
   void shouldDeleteTrackedEntity() {
     TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute('A');
     trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttribute);
-    TrackedEntity trackedEntity = createTei(trackedEntityAttribute);
+    TrackedEntity trackedEntity = createTrackedEntity(trackedEntityAttribute);
     assertNotNull(trackedEntityService.getTrackedEntity(trackedEntity.getUid()));
     removeTrackedEntity(trackedEntity);
     assertNull(trackedEntityService.getTrackedEntity(trackedEntity.getUid()));
   }
 
   @Test
-  void shouldDeleteTeiAndAttributeValues() {
+  void shouldDeleteTeAndAttributeValues() {
     TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute('A');
     trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttribute);
-    TrackedEntity trackedEntity = createTei(trackedEntityAttribute);
+    TrackedEntity trackedEntity = createTrackedEntity(trackedEntityAttribute);
     trackedEntity
         .getTrackedEntityAttributeValues()
         .forEach(trackedEntityAttributeValueService::addTrackedEntityAttributeValue);
@@ -175,7 +175,7 @@ class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegration
     assertNull(trackedEntityService.getTrackedEntity(duplicate.getUid()));
   }
 
-  private TrackedEntity createTei(TrackedEntityAttribute trackedEntityAttribute) {
+  private TrackedEntity createTrackedEntity(TrackedEntityAttribute trackedEntityAttribute) {
     OrganisationUnit ou = createOrganisationUnit("OU_A");
     organisationUnitService.addOrganisationUnit(ou);
     TrackedEntity trackedEntity = createTrackedEntity('T', ou, trackedEntityAttribute);

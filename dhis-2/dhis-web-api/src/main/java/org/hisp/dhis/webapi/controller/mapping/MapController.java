@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.mapping;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.awt.image.BufferedImage;
@@ -45,7 +46,6 @@ import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MergeMode;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -64,7 +64,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.schema.MetadataMergeParams;
-import org.hisp.dhis.schema.descriptors.MapSchemaDescriptor;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -89,9 +88,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("metadata")
 @Controller
-@RequestMapping(value = MapSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/maps")
 public class MapController extends AbstractCrudController<Map> {
   private static final int MAP_MIN_WIDTH = 140;
 
@@ -148,7 +146,8 @@ public class MapController extends AbstractCrudController<Map> {
             .setSkipSharing(params.isSkipSharing())
             .setSkipTranslation(params.isSkipTranslation()));
     mappingService.updateMap(map);
-    return null;
+
+    return ok();
   }
 
   @Override

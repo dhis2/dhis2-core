@@ -48,11 +48,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
  * <p>Created by zubair@dhis2.org on 19.10.17.
  */
 public interface ProgramRuleEntityMapperService {
-  /***
-   * @return A list of mapped Rules for all programs
-   */
-  List<Rule> toMappedProgramRules();
-
   /**
    * @param programRules The list of program rules to be mapped
    * @return A list of mapped Rules for list of programs.
@@ -72,10 +67,9 @@ public interface ProgramRuleEntityMapperService {
 
   /**
    * @param events list of events
-   * @param eventToEvaluate event to filter out from the resulting list.
    * @return A list of mapped events for the list of DHIS events.
    */
-  List<RuleEvent> toMappedRuleEvents(Set<Event> events, Event eventToEvaluate);
+  List<RuleEvent> toMappedRuleEvents(Set<Event> events);
 
   /**
    * @param eventToEvaluate event to converted.

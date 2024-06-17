@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
 import static org.hisp.dhis.common.OpenApi.Response.Status;
-import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
 import static org.hisp.dhis.webapi.controller.tracker.export.relationship.RelationshipRequestParams.DEFAULT_FIELDS_PARAM;
@@ -51,6 +50,7 @@ import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -58,12 +58,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@OpenApi.EntityType(Relationship.class)
-@OpenApi.Tags("tracker")
+@OpenApi.EntityType(org.hisp.dhis.relationship.Relationship.class)
+@OpenApi.Document(domain = org.hisp.dhis.relationship.Relationship.class)
 @RestController
-@RequestMapping(
-    produces = APPLICATION_JSON_VALUE,
-    value = RESOURCE_PATH + "/" + RelationshipsExportController.RELATIONSHIPS)
+@RequestMapping(produces = APPLICATION_JSON_VALUE, value = "/api/tracker/relationships")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 class RelationshipsExportController {
 
@@ -93,8 +91,13 @@ class RelationshipsExportController {
   }
 
   @OpenApi.Response(status = Status.OK, value = Page.class)
-  @GetMapping
-  Page<ObjectNode> getRelationships(RelationshipRequestParams requestParams)
+  @GetMapping(
+      produces = APPLICATION_JSON_VALUE,
+      headers = "Accept=text/html"
+      // use the text/html Accept header to default to a Json response when a generic request comes
+      // from a browser
+      )
+  ResponseEntity<Page<ObjectNode>> getRelationships(RelationshipRequestParams requestParams)
       throws NotFoundException, BadRequestException, ForbiddenException {
     validatePaginationParameters(requestParams);
     RelationshipOperationParams operationParams = mapper.map(requestParams);
@@ -111,7 +114,9 @@ class RelationshipsExportController {
               RELATIONSHIP_MAPPER.fromCollection(relationshipsPage.getItems()),
               requestParams.getFields());
 
-      return Page.withPager(RELATIONSHIPS, relationshipsPage.withItems(objectNodes));
+      return ResponseEntity.ok()
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(Page.withPager(RELATIONSHIPS, relationshipsPage.withItems(objectNodes)));
     }
 
     List<org.hisp.dhis.relationship.Relationship> relationships =
@@ -120,12 +125,16 @@ class RelationshipsExportController {
         fieldFilterService.toObjectNodes(
             RELATIONSHIP_MAPPER.fromCollection(relationships), requestParams.getFields());
 
-    return Page.withoutPager(RELATIONSHIPS, objectNodes);
+    return ResponseEntity.ok()
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(Page.withoutPager(RELATIONSHIPS, objectNodes));
   }
 
   @GetMapping("/{uid}")
+  @OpenApi.Response(Relationship.class)
   ResponseEntity<ObjectNode> getRelationshipByUid(
-      @OpenApi.Param({UID.class, Relationship.class}) @PathVariable UID uid,
+      @OpenApi.Param({UID.class, org.hisp.dhis.relationship.Relationship.class}) @PathVariable
+          UID uid,
       @OpenApi.Param(value = String[].class) @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM)
           List<FieldPath> fields)
       throws NotFoundException, ForbiddenException {

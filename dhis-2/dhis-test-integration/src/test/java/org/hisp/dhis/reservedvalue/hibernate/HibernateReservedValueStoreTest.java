@@ -160,8 +160,8 @@ class HibernateReservedValueStoreTest extends SingleSetupIntegrationTestBase {
       throws TextPatternParser.TextPatternParsingException, IllegalAccessException {
     OrganisationUnit ou = createOrganisationUnit("OU");
     organisationUnitStore.save(ou);
-    TrackedEntity tei = createTrackedEntity(ou);
-    trackedEntityStore.save(tei);
+    TrackedEntity trackedEntity = createTrackedEntity(ou);
+    trackedEntityStore.save(trackedEntity);
     TrackedEntityAttribute tea = createTrackedEntityAttribute('Y');
     TextPattern textPattern = TextPatternParser.parse(key);
     textPattern.setOwnerObject(Objects.fromClass(tea.getClass()));
@@ -169,7 +169,7 @@ class HibernateReservedValueStoreTest extends SingleSetupIntegrationTestBase {
     tea.setTextPattern(textPattern);
     tea.setUid(teaUid);
     trackedEntityAttributeStore.save(tea);
-    TrackedEntityAttributeValue teav = createTrackedEntityAttributeValue('Z', tei, tea);
+    TrackedEntityAttributeValue teav = createTrackedEntityAttributeValue('Z', trackedEntity, tea);
     teav.setValue(prog001);
     trackedEntityAttributeValueStore.save(teav);
     ReservedValue rv = reservedValue.value(prog001).build();
@@ -210,12 +210,12 @@ class HibernateReservedValueStoreTest extends SingleSetupIntegrationTestBase {
     saveReservedValue(reservedValue.value(prog001).build());
     OrganisationUnit ou = createOrganisationUnit("OU");
     organisationUnitStore.save(ou);
-    TrackedEntity tei = createTrackedEntity(ou);
-    trackedEntityStore.save(tei);
+    TrackedEntity trackedEntity = createTrackedEntity(ou);
+    trackedEntityStore.save(trackedEntity);
     TrackedEntityAttribute tea = createTrackedEntityAttribute('Y');
     tea.setUid(teaUid);
     trackedEntityAttributeStore.save(tea);
-    TrackedEntityAttributeValue teav = createTrackedEntityAttributeValue('Z', tei, tea);
+    TrackedEntityAttributeValue teav = createTrackedEntityAttributeValue('Z', trackedEntity, tea);
     teav.setValue(prog001);
     trackedEntityAttributeValueStore.save(teav);
     assertEquals(1, reservedValueStore.getCount());
@@ -226,12 +226,12 @@ class HibernateReservedValueStoreTest extends SingleSetupIntegrationTestBase {
     saveReservedValue(reservedValue.value(prog001).build());
     OrganisationUnit ou = createOrganisationUnit("OU");
     organisationUnitStore.save(ou);
-    TrackedEntity tei = createTrackedEntity(ou);
-    trackedEntityStore.save(tei);
+    TrackedEntity trackedEntity = createTrackedEntity(ou);
+    trackedEntityStore.save(trackedEntity);
     TrackedEntityAttribute tea = createTrackedEntityAttribute('Y');
     tea.setUid(teaUid);
     trackedEntityAttributeStore.save(tea);
-    TrackedEntityAttributeValue teav = createTrackedEntityAttributeValue('Z', tei, tea);
+    TrackedEntityAttributeValue teav = createTrackedEntityAttributeValue('Z', trackedEntity, tea);
     teav.setValue(prog001);
     trackedEntityAttributeValueStore.save(teav);
     reservedValueStore.removeUsedOrExpiredReservations();
@@ -250,12 +250,12 @@ class HibernateReservedValueStoreTest extends SingleSetupIntegrationTestBase {
     // used value
     OrganisationUnit ou = createOrganisationUnit("OU");
     organisationUnitStore.save(ou);
-    TrackedEntity tei = createTrackedEntity(ou);
-    trackedEntityStore.save(tei);
+    TrackedEntity trackedEntity = createTrackedEntity(ou);
+    trackedEntityStore.save(trackedEntity);
     TrackedEntityAttribute tea = createTrackedEntityAttribute('Y');
     tea.setUid(teaUid);
     trackedEntityAttributeStore.save(tea);
-    TrackedEntityAttributeValue teav = createTrackedEntityAttributeValue('Z', tei, tea);
+    TrackedEntityAttributeValue teav = createTrackedEntityAttributeValue('Z', trackedEntity, tea);
     teav.setValue(prog001);
     trackedEntityAttributeValueStore.save(teav);
     ReservedValue rv = reservedValue.value(prog001).build();

@@ -44,6 +44,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.Document.Group;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -71,9 +72,9 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags({"user", "management"})
+@OpenApi.Document(domain = User.class, group = Group.CONFIG)
 @RestController
-@RequestMapping("/userSettings")
+@RequestMapping("/api/userSettings")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class UserSettingController {
   @Autowired private UserSettingService userSettingService;

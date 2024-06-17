@@ -45,6 +45,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -164,14 +165,14 @@ public class DefaultTrackedEntityAttributeValueService
   @Override
   @Transactional
   public void updateTrackedEntityAttributeValue(TrackedEntityAttributeValue attributeValue) {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     updateTrackedEntityAttributeValue(attributeValue, currentUser);
   }
 
   @Override
   @Transactional
   public void updateTrackedEntityAttributeValue(
-      TrackedEntityAttributeValue attributeValue, User user) {
+      TrackedEntityAttributeValue attributeValue, UserDetails user) {
     if (attributeValue != null && StringUtils.isEmpty(attributeValue.getValue())) {
       deleteFileValue(attributeValue);
       attributeValueStore.delete(attributeValue);

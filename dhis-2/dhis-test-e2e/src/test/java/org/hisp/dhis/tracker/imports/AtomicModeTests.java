@@ -85,7 +85,8 @@ public class AtomicModeTests extends TrackerApiTest {
   private JsonObject createWrongPayload() throws Exception {
     JsonObject object =
         new JsonFileReader(
-                new File("src/test/resources/tracker/importer/teis/teisAndRelationship.json"))
+                new File(
+                    "src/test/resources/tracker/importer/trackedEntities/trackedEntitiesAndRelationship.json"))
             .replaceStringsWithIds("JjZ2Nwds92v", "JjZ2Nwds93v")
             .get(JsonObject.class);
 

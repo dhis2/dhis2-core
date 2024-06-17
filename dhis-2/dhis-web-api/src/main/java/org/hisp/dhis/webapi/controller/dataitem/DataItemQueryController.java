@@ -73,13 +73,13 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author maikel arabori
  */
-@OpenApi.Tags("metadata")
+@OpenApi.Document(domain = DataItem.class)
 @Slf4j
 @ApiVersion({DEFAULT, ALL})
 @RequiredArgsConstructor
 @RestController
 public class DataItemQueryController {
-  static final String API_RESOURCE_PATH = "/dataItems";
+  static final String API_RESOURCE_PATH = "/api/dataItems";
 
   private static final String FIELDS = "fields";
 

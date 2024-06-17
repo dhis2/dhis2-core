@@ -97,8 +97,6 @@ public interface CacheProvider {
 
   <V> Cache<V> createProgramHasRulesCache();
 
-  <V> Cache<V> createProgramRuleVariablesCache();
-
   <V> Cache<V> createUserGroupNameCache();
 
   <V> Cache<V> createUserDisplayNameCache();
@@ -119,18 +117,17 @@ public interface CacheProvider {
 
   <V> Cache<V> createProgramCache();
 
-  <V> Cache<V> createTeiAttributesCache();
+  <V> Cache<V> createTeAttributesCache();
 
-  <V> Cache<V> createProgramTeiAttributesCache();
+  <V> Cache<V> createProgramTeAttributesCache();
 
   <V> Cache<V> createUserGroupUIDCache();
-
-  // TODO(tracker): remove with old tracker
-  <V> Cache<V> createOldTrackerSecurityCache();
 
   <V> Cache<V> createSecurityCache();
 
   <V> Cache<V> createDataIntegritySummaryCache();
 
   <V> Cache<V> createDataIntegrityDetailsCache();
+
+  <V> Cache<V> createQueryAliasCache();
 }

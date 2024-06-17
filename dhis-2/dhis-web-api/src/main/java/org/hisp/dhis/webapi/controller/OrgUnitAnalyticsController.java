@@ -36,6 +36,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
+import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserSettingKey;
@@ -50,11 +51,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("analytics")
+@OpenApi.Document(domain = DataValue.class)
 @Controller
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class OrgUnitAnalyticsController {
-  private static final String RESOURCE_PATH = "/orgUnitAnalytics";
+  private static final String RESOURCE_PATH = "/api/orgUnitAnalytics";
 
   @Autowired private OrgUnitAnalyticsService analyticsService;
 

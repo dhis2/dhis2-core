@@ -56,8 +56,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
@@ -72,9 +71,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpStatusCodeException;
 
-@OpenApi.Tags("tracker")
+@OpenApi.Document(domain = PotentialDuplicate.class)
 @RestController
-@RequestMapping(value = "/potentialDuplicates")
+@RequestMapping("/api/potentialDuplicates")
 @ApiVersion(include = {DhisApiVersion.ALL, DhisApiVersion.DEFAULT})
 @RequiredArgsConstructor
 public class DeduplicationController {
@@ -83,8 +82,6 @@ public class DeduplicationController {
   private final TrackedEntityService trackedEntityService;
 
   private final TrackerAccessManager trackerAccessManager;
-
-  private final UserService userService;
 
   private final FieldFilterService fieldFilterService;
 
@@ -268,7 +265,7 @@ public class DeduplicationController {
   }
 
   private void canReadTrackedEntity(TrackedEntity trackedEntity) throws ForbiddenException {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     if (!trackerAccessManager.canRead(currentUser, trackedEntity).isEmpty()) {
       throw new ForbiddenException(
           "You don't have read access to '" + trackedEntity.getUid() + "'.");

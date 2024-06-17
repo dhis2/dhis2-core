@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.security.Authorities.F_SYSTEM_SETTING;
 import static org.springframework.http.CacheControl.noCache;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -50,7 +51,9 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSetting;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
@@ -62,7 +65,6 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -78,9 +80,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Lars Helge Overland
  * @author David Katuscak <katuscak.d@gmail.com>
  */
-@OpenApi.Tags("system")
+@OpenApi.Document(domain = SystemSetting.class)
 @Controller
-@RequestMapping("/systemSettings")
+@RequestMapping("/api/systemSettings")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
 public class SystemSettingController {
@@ -102,7 +104,7 @@ public class SystemSettingController {
         ContextUtils.CONTENT_TYPE_TEXT,
         ContextUtils.CONTENT_TYPE_HTML
       })
-  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseBody
   public WebMessage setSystemSettingOrTranslation(
       @PathVariable(value = "key") String key,
@@ -165,7 +167,7 @@ public class SystemSettingController {
   }
 
   @PostMapping(consumes = ContextUtils.CONTENT_TYPE_JSON)
-  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseBody
   public WebMessage setSystemSettingV29(@RequestBody Map<String, Object> settings) {
     List<String> invalidKeys =
@@ -318,7 +320,7 @@ public class SystemSettingController {
   // -------------------------------------------------------------------------
 
   @DeleteMapping("/{key}")
-  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseStatus(value = HttpStatus.NO_CONTENT)
   public void removeSystemSetting(
       @PathVariable("key") String key,

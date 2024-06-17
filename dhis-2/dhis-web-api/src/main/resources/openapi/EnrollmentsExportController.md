@@ -26,11 +26,13 @@ for how to use it.
 
 ### `*.parameter.EnrollmentRequestParams.enrolledAfter`
 
-Get enrollments with an enrollment date after the given date.
+Get enrollments enrolled after the given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.EnrollmentRequestParams.enrolledBefore`
 
-Get enrollments with an enrollment date before the given date.
+Get enrollments enrolled before the given date and time. 
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.EnrollmentRequestParams.enrollments`
 
@@ -103,9 +105,17 @@ See `orgUnitMode` for details.
 
 Get enrollments enrolled in the given program.
 
+### `*.parameter.EnrollmentRequestParams.status`
+
+Get enrollments in the given status.
+
 ### `*.parameter.EnrollmentRequestParams.programStatus`
 
-Get enrollments enrolled in a program with the given status.
+Get enrollments in the given status.
+
+**DEPRECATED as of 2.42:** Use parameter `status` instead.
+
+See `status` for details.
 
 ### `*.parameter.EnrollmentRequestParams.trackedEntityType`
 
@@ -117,7 +127,8 @@ Get enrollments of tracked entity with the given UID.
 
 ### `*.parameter.EnrollmentRequestParams.updatedAfter`
 
-Get enrollments updated after the given date.
+Get enrollments updated after the given date and time.
+This parameter is inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.EnrollmentRequestParams.updatedWithin`
 

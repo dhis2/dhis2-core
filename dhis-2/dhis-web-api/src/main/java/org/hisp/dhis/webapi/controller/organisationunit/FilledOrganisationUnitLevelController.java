@@ -59,10 +59,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("metadata")
+@OpenApi.Document(domain = OrganisationUnitLevel.class)
 @Controller
 @RequiredArgsConstructor
-@RequestMapping(value = "/filledOrganisationUnitLevels")
+@RequestMapping("/api/filledOrganisationUnitLevels")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class FilledOrganisationUnitLevelController {
   private final ObjectMapper jsonMapper;

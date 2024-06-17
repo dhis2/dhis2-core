@@ -32,7 +32,6 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -99,19 +98,6 @@ public class DefaultEventService implements EventService {
   }
 
   @Override
-  @Transactional
-  public void updateEvent(Event event) {
-    event.setAutoFields();
-    eventStore.update(event);
-  }
-
-  @Override
-  @Transactional
-  public void updateEventsSyncTimestamp(List<String> eventUids, Date lastSynchronized) {
-    eventStore.updateEventsSyncTimestamp(eventUids, lastSynchronized);
-  }
-
-  @Override
   @Transactional(readOnly = true)
   public boolean eventExists(String uid) {
     return eventStore.exists(uid);
@@ -121,12 +107,6 @@ public class DefaultEventService implements EventService {
   @Transactional(readOnly = true)
   public boolean eventExistsIncludingDeleted(String uid) {
     return eventStore.existsIncludingDeleted(uid);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<String> getEventUidsIncludingDeleted(List<String> uids) {
-    return eventStore.getUidsIncludingDeleted(uids);
   }
 
   @Override

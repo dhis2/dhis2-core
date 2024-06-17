@@ -101,6 +101,7 @@ import org.hisp.dhis.schema.descriptors.ExpressionSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ExternalFileResourceSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ExternalMapLayerSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.FileResourceSchemaDescriptor;
+import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.IndicatorGroupSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.IndicatorGroupSetSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.IndicatorSchemaDescriptor;
@@ -119,7 +120,6 @@ import org.hisp.dhis.schema.descriptors.MapViewSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.MessageConversationSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.MetadataVersionSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.MinMaxDataElementSchemaDescriptor;
-import org.hisp.dhis.schema.descriptors.OAuth2ClientSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ObjectStyleSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.OptionGroupSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.OptionGroupSetSchemaDescriptor;
@@ -151,7 +151,6 @@ import org.hisp.dhis.schema.descriptors.ProgramTrackedEntityAttributeSchemaDescr
 import org.hisp.dhis.schema.descriptors.PushAnalysisSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.RelationshipConstraintSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.RelationshipItemSchemaDescriptor;
-import org.hisp.dhis.schema.descriptors.RelationshipSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.RelationshipTypeSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ReportSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ReportingRateSchemaDescriptor;
@@ -236,6 +235,7 @@ public class DefaultSchemaService implements SchemaService {
     register(new ExpressionSchemaDescriptor());
     register(new ExpressionDimensionItemSchemaDescriptor());
     register(new FileResourceSchemaDescriptor());
+    register(new IconSchemaDescriptor());
     register(new IndicatorGroupSchemaDescriptor());
     register(new IndicatorGroupSetSchemaDescriptor());
     register(new IndicatorSchemaDescriptor());
@@ -249,7 +249,6 @@ public class DefaultSchemaService implements SchemaService {
     register(new MapViewSchemaDescriptor());
     register(new MessageConversationSchemaDescriptor());
     register(new MetadataVersionSchemaDescriptor());
-    register(new OAuth2ClientSchemaDescriptor());
     register(new OptionSchemaDescriptor());
     register(new OptionSetSchemaDescriptor());
     register(new OrganisationUnitGroupSchemaDescriptor());
@@ -308,7 +307,6 @@ public class DefaultSchemaService implements SchemaService {
     register(new CategoryOptionGroupSetDimensionSchemaDescriptor());
     register(new DataElementGroupSetDimensionSchemaDescriptor());
     register(new OrganisationUnitGroupSetDimensionSchemaDescriptor());
-    register(new RelationshipSchemaDescriptor());
     register(new KeyJsonValueSchemaDescriptor());
     register(new EventFilterSchemaDescriptor());
     register(new VisualizationSchemaDescriptor());

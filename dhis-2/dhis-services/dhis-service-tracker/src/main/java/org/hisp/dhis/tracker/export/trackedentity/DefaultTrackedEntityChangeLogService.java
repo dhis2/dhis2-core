@@ -39,14 +39,12 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,13 +57,9 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
 
   private final ProgramService programService;
 
-  private final TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
-
   private final TrackedEntityAttributeService trackedEntityAttributeService;
 
   private final TrackerAccessManager trackerAccessManager;
-
-  private final UserService userService;
 
   private final JdbcTrackedEntityChangeLogStore jdbcTrackedEntityChangeLogStore;
 
@@ -82,7 +76,7 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
       throw new NotFoundException(TrackedEntity.class, trackedEntityUid.getValue());
     }
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     Set<String> trackedEntityAttributes = Collections.emptySet();
     if (programUid != null) {
       Program program = validateProgram(programUid.getValue());
@@ -114,7 +108,8 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
     return program;
   }
 
-  private void validateOwnership(User currentUser, TrackedEntity trackedEntity, Program program)
+  private void validateOwnership(
+      UserDetails currentUser, TrackedEntity trackedEntity, Program program)
       throws NotFoundException {
     if (!trackerAccessManager
         .canRead(currentUser, trackedEntity, program, currentUser.isSuper())
@@ -123,7 +118,7 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
     }
   }
 
-  private void validateTrackedEntity(User currentUser, TrackedEntity trackedEntity)
+  private void validateTrackedEntity(UserDetails currentUser, TrackedEntity trackedEntity)
       throws NotFoundException {
     if (!trackerAccessManager.canRead(currentUser, trackedEntity).isEmpty()) {
       throw new NotFoundException(TrackedEntity.class, trackedEntity.getUid());

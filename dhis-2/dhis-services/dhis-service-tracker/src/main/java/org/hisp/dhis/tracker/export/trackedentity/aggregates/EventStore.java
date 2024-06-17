@@ -59,8 +59,8 @@ public interface EventStore {
   Map<String, List<EventDataValue>> getDataValues(List<Long> eventIds);
 
   /**
-   * Fetches all the relationships having the Program Stage Instance id specified in the arg as
-   * "left" or "right" relationship
+   * Fetches all the relationships having the event id specified in the arg as "left" or "right"
+   * relationship
    *
    * @param ids a list of {@see Enrollment} Primary Keys
    * @return a MultiMap where key is a {@see Enrollment} uid and the value a List of {@see

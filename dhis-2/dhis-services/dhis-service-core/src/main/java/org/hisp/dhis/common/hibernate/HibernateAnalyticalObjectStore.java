@@ -188,7 +188,6 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
 
   @Override
   public List<T> getVisualizationsBySortingIndicator(List<String> indicators) {
-    // language=sql
     String sql =
         """
     select v.* from visualization v, jsonb_array_elements(sorting) as sort
@@ -196,7 +195,7 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     group by v.visualizationid
     """;
 
-    return getSession().createNativeQuery(sql, clazz).setParameter("indicators", indicators).list();
+    return nativeSynchronizedTypedQuery(sql).setParameter("indicators", indicators).list();
   }
 
   @Override

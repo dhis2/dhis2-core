@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.db.model;
 
+import java.util.EnumSet;
+
 /**
  * Enumeration of database data types.
  *
@@ -51,4 +53,37 @@ public enum DataType {
   GEOMETRY,
   GEOMETRY_POINT,
   JSONB;
+
+  private static final EnumSet<DataType> TYPES_NUMERIC =
+      EnumSet.of(SMALLINT, BIGINT, INTEGER, DECIMAL, FLOAT, DOUBLE);
+
+  private static final EnumSet<DataType> TYPES_CHARACTER =
+      EnumSet.of(CHARACTER_11, CHARACTER_32, VARCHAR_50, VARCHAR_255, TEXT);
+
+  /**
+   * Indicates if the data type is numeric.
+   *
+   * @return true if numeric.
+   */
+  public boolean isNumeric() {
+    return TYPES_NUMERIC.contains(this);
+  }
+
+  /**
+   * Indicates if the data type is boolean.
+   *
+   * @return true if boolean.
+   */
+  public boolean isBoolean() {
+    return BOOLEAN == this;
+  }
+
+  /**
+   * Indicates if the data type is character based.
+   *
+   * @return true if character based.
+   */
+  public boolean isCharacter() {
+    return TYPES_CHARACTER.contains(this);
+  }
 }

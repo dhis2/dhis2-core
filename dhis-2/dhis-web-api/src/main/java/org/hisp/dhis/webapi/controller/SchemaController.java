@@ -64,9 +64,9 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags("system")
+@OpenApi.Document(domain = Server.class)
 @RestController
-@RequestMapping("/schemas")
+@RequestMapping("/api/schemas")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
 public class SchemaController {

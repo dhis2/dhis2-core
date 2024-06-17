@@ -216,8 +216,8 @@ public class OutliersDetection5AutoTest extends AnalyticsApiTest {
             .add("maxResults=5")
             .add("ou=USER_ORGUNIT")
             .add("sortOrder=desc")
-            .add("orderBy=value")
-            .add("threshold=3")
+            .add("orderBy=upperbound")
+            .add("threshold=4")
             .add("algorithm=Z_SCORE");
 
     // When
@@ -235,7 +235,7 @@ public class OutliersDetection5AutoTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"count\":5,\"orderBy\":\"VALUE\",\"threshold\":\"3.0\",\"maxResults\":5,\"algorithm\":\"Z_SCORE\"}";
+        "{\"count\":5,\"orderBy\":\"UPPER_BOUND\",\"threshold\":\"4.0\",\"maxResults\":5,\"algorithm\":\"Z_SCORE\"}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -268,34 +268,6 @@ public class OutliersDetection5AutoTest extends AnalyticsApiTest {
         response,
         0,
         List.of(
-            "ANC 3rd visit",
-            "Outreach",
-            "202210",
-            "Kasse MCHP",
-            "1926.0",
-            "174.33",
-            "3.32",
-            "528.19",
-            "-1410.23",
-            "1758.89"));
-    validateRow(
-        response,
-        1,
-        List.of(
-            "ANC 3rd visit",
-            "Outreach",
-            "202111",
-            "Kasse MCHP",
-            "1926.0",
-            "174.33",
-            "3.32",
-            "528.19",
-            "-1410.23",
-            "1758.89"));
-    validateRow(
-        response,
-        2,
-        List.of(
             "ANC 1st visit",
             "Outreach",
             "202111",
@@ -304,36 +276,64 @@ public class OutliersDetection5AutoTest extends AnalyticsApiTest {
             "40.37",
             "4.24",
             "155.5",
-            "-426.12",
-            "506.85"));
+            "-581.61",
+            "662.35"));
+    validateRow(
+        response,
+        1,
+        List.of(
+            "ANC 1st visit",
+            "Fixed",
+            "202202",
+            "Bumban MCHP",
+            "34.0",
+            "4.1",
+            "4.24",
+            "7.05",
+            "-24.1",
+            "32.3"));
+    validateRow(
+        response,
+        2,
+        List.of(
+            "ANC 3rd visit",
+            "Outreach",
+            "202202",
+            "Bumban MCHP",
+            "23.0",
+            "2.9",
+            "4.25",
+            "4.73",
+            "-16.03",
+            "21.83"));
     validateRow(
         response,
         3,
         List.of(
-            "ANC 3rd visit",
-            "Outreach",
+            "ANC 1st visit",
+            "Fixed",
             "202111",
-            "Ngelehun CHC",
-            "234.0",
-            "24.25",
-            "3.78",
-            "55.51",
-            "-142.29",
-            "190.79"));
+            "Njandama MCHP",
+            "23.0",
+            "5.88",
+            "4.59",
+            "3.73",
+            "-9.06",
+            "20.81"));
     validateRow(
         response,
         4,
         List.of(
-            "ANC 1st visit",
+            "ANC 3rd visit",
             "Fixed",
-            "202205",
-            "Ross Road Health Centre",
-            "188.0",
-            "72.67",
-            "3.1",
-            "37.26",
-            "-39.1",
-            "184.44"));
+            "202201",
+            "Bumban MCHP",
+            "20.0",
+            "3.55",
+            "4.03",
+            "4.08",
+            "-12.77",
+            "19.87"));
   }
 
   @Test

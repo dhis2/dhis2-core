@@ -48,7 +48,7 @@ import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
  *
  * TrackerBundleParams
  *   |
- *   __TEI
+ *   __TE
  *      |_ENROLLMENT 1
  *      |      |
  *      |      |_ EVENT 1
@@ -67,7 +67,7 @@ import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
  *
  * TrackerBundleParams
  *  |
- *  |___TEI
+ *  |___TE
  *  |___ENROLLMENT 1, ENROLLMENT 2
  *  |
  *  |___EVENT 1, EVENT 2, EVENT 3, EVENT 4
@@ -268,7 +268,6 @@ class BodyConverter extends StdConverter<Body, Body> {
    */
   private Event updateEventReferences(Event event, String enrollment) {
     event.setEvent(updateReference(event.getEvent()));
-    event.setEnrollment(StringUtils.isEmpty(enrollment) ? null : enrollment);
     event.setEnrollment(StringUtils.isEmpty(enrollment) ? null : enrollment);
     return event;
   }
