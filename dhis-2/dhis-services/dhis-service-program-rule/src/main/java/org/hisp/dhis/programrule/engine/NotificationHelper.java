@@ -73,7 +73,7 @@ class NotificationHelper {
     }
 
     if (enrollment == null || enrollment.getProgram().isWithoutRegistration()) {
-      return NotificationValidationResult.validWithoutLogEntries();
+      return NotificationValidationResult.validAndNoNeedForLogEntries();
     }
 
     ExternalNotificationLogEntry logEntry =
@@ -85,8 +85,8 @@ class NotificationHelper {
     }
 
     return logEntry == null
-        ? NotificationValidationResult.validWithoutLogEntries()
-        : NotificationValidationResult.validWithLogEntries();
+        ? NotificationValidationResult.validAndNeedsLogEntries()
+        : NotificationValidationResult.validAndNoNeedForLogEntries();
   }
 
   private String generateKey(ProgramNotificationTemplate template, Enrollment enrollment) {
