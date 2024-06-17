@@ -146,7 +146,7 @@ pipeline {
                         imageTag = "$imageTag.0"
                     }
 
-                    def newImageTagFormat = imageTag.replaceFirst(/^2\./, "")
+                    newImageTagFormat = imageTag.replaceFirst(/^2\./, "")
 
                     withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
                         withMaven(options: [artifactsPublisher(disabled: true)]) {
@@ -170,6 +170,49 @@ pipeline {
                 sh 'curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/copy-war-s3.sh" -O'
                 sh 'chmod +x copy-war-s3.sh'
                 sh './copy-war-s3.sh stable ${GIT_BRANCH}'
+            }
+        }
+
+        stage('Update stable.json') {
+            when {
+                buildingTag()
+            }
+
+            environment {
+                DHIS2_RELEASES_REPO = "dhis2/dhis2-releases"
+                GITHUB_EMAIL = 'apps@dhis2.org'
+                GITHUB_USER = 'dhis2-bot'
+            }
+
+            steps {
+                script {
+                    dir('dhis2-releases') {
+                        git url: "https://github.com/$DHIS2_RELEASES_REPO"
+
+                        majorVersion = newImageTagFormat.split("\\.")[0]
+
+                        sh """
+                            ./tools/update-stable-json/update_stable_json.py \
+                            --version $newImageTagFormat \
+                            --war-path ${WORKSPACE}/dhis-2/dhis-web-server/target/dhis.war \
+                            --war-url https://releases.dhis2.org/${majorVersion}/dhis2-stable-${newImageTagFormat}.war \
+                            --release-date \$(date +%F) \
+                            --json-file ./downloads/v1/versions/stable.json
+                        """
+
+                        sh 'git config  user.email "$GITHUB_EMAIL"'
+                        sh 'git config  user.name "$GITHUB_USER"'
+
+                        releasesBranch = "add-release-${newImageTagFormat}"
+
+                        sh "git checkout -b $releasesBranch"
+                        sh 'git add .'
+                        sh "git diff-index --quiet HEAD || git commit -m \"chore: add version $newImageTagFormat to stable.json\""
+                        sh "git push https://${GITHUB_TOKEN}@github.com/$DHIS2_RELEASES_REPO"
+
+                        sh "gh pr create --head $releasesBranch --fill-first --reviewer Philip-Larsen-Donnelly"
+                    }
+                }
             }
         }
 
