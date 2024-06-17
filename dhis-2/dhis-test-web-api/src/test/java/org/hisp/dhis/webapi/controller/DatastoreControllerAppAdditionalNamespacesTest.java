@@ -78,7 +78,7 @@ class DatastoreControllerAppAdditionalNamespacesTest extends DhisControllerConve
   }
 
   @Test
-  void testReadAccess_Common() {
+  void testReadAccess_ReadWrite() {
     switchToNewUser("tester6", "test-app-common");
     assertStatus(HttpStatus.NOT_FOUND, GET("/dataStore/test-app-extra-ns/hello"));
   }
@@ -90,20 +90,19 @@ class DatastoreControllerAppAdditionalNamespacesTest extends DhisControllerConve
   }
 
   @Test
+  void testWriteAccess_ReadOnly() {
+    switchToNewUser("tester7", "test-app-read");
+    assertStatus(HttpStatus.FORBIDDEN, POST("/dataStore/test-app-extra-ns/hello", "true"));
+  }
+
+  @Test
   void testWriteAccess_Super() {
     assertStatus(HttpStatus.CREATED, POST("/dataStore/test-app-extra-ns/hello", "true"));
     assertTrue(GET("/dataStore/test-app-extra-ns/hello").content().booleanValue());
   }
 
   @Test
-  void testWriteAccess_WriteOnly() {
-    switchToNewUser("tester4", "test-app-write");
-    assertStatus(HttpStatus.CREATED, POST("/dataStore/test-app-extra-ns/hello", "true"));
-    assertStatus(HttpStatus.FORBIDDEN, GET("/dataStore/test-app-extra-ns/hello"));
-  }
-
-  @Test
-  void testWriteAccess_Common() {
+  void testWriteAccess_ReadWrite() {
     switchToNewUser("tester5", "test-app-common");
     assertStatus(HttpStatus.CREATED, POST("/dataStore/test-app-extra-ns/hello", "true"));
     assertTrue(GET("/dataStore/test-app-extra-ns/hello").content().booleanValue());

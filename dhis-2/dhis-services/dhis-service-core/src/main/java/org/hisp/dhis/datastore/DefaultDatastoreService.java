@@ -42,6 +42,7 @@ import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
@@ -70,12 +71,14 @@ public class DefaultDatastoreService implements DatastoreService {
   private final AclService aclService;
 
   @Override
+  @NonTransactional
   public DatastoreNamespaceProtection getProtection(@Nonnull String namespace) {
     return protectionByNamespace.get(namespace);
   }
 
   @Nonnull
   @Override
+  @NonTransactional
   public List<DatastoreNamespaceProtection> getProtections() {
     return protectionByNamespace.values().stream()
         .sorted(comparing(DatastoreNamespaceProtection::getNamespace))
@@ -83,11 +86,13 @@ public class DefaultDatastoreService implements DatastoreService {
   }
 
   @Override
+  @NonTransactional
   public void addProtection(DatastoreNamespaceProtection protection) {
     protectionByNamespace.put(protection.getNamespace(), protection);
   }
 
   @Override
+  @NonTransactional
   public void removeProtection(String namespace) {
     protectionByNamespace.remove(namespace);
   }
@@ -134,15 +139,13 @@ public class DefaultDatastoreService implements DatastoreService {
   @Override
   @Transactional
   public void addEntry(DatastoreEntry entry) throws ConflictException, BadRequestException {
-    String namespace = entry.getNamespace();
-    DatastoreNamespaceProtection protection = protectionByNamespace.get(namespace);
-    if (!userHasNamespaceWriteAccess(protection)) throw accessDeniedTo(namespace);
-    if (store.getEntry(namespace, entry.getKey()) != null) {
+    if (getEntry(entry.getNamespace(), entry.getKey()) != null) {
       throw new ConflictException(
-          String.format("Key '%s' already exists in namespace '%s'", entry.getKey(), namespace));
+          String.format(
+              "Key '%s' already exists in namespace '%s'", entry.getKey(), entry.getNamespace()));
     }
     validateEntry(entry);
-    writeProtectedIn(namespace, () -> singletonList(entry), () -> store.save(entry));
+    writeProtectedIn(entry.getNamespace(), () -> singletonList(entry), () -> store.save(entry));
   }
 
   @Override
