@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static java.util.function.Predicate.not;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
@@ -46,7 +47,6 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsIndex;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
@@ -55,6 +55,7 @@ import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
+import org.hisp.dhis.analytics.AnalyticsTableSettings;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
@@ -134,7 +135,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   protected final JdbcTemplate jdbcTemplate;
 
-  protected final AnalyticsExportSettings analyticsExportSettings;
+  protected final AnalyticsTableSettings analyticsTableSettings;
 
   protected final PeriodDataProvider periodDataProvider;
 
@@ -332,7 +333,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
     sqlCreate
         .append("create ")
-        .append(analyticsExportSettings.getTableType())
+        .append(analyticsTableSettings.getTableType())
         .append(" table ")
         .append(tableName)
         .append(" (");
@@ -373,7 +374,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
       sqlCreate
           .append("create ")
-          .append(analyticsExportSettings.getTableType())
+          .append(analyticsTableSettings.getTableType())
           .append(" table ")
           .append(tableName)
           .append("(");
@@ -554,6 +555,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
               return new AnalyticsTableColumn(column, TEXT, prefix + "." + column)
                   .withSkipIndex(skipIndex);
             })
+        .filter(not(this::skipColumn))
         .collect(Collectors.toList());
   }
 
@@ -625,8 +627,20 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @return true if index should be skipped, false otherwise.
    */
   protected boolean skipIndex(String dimension) {
-    Set<String> dimensions = analyticsExportSettings.getSkipIndexDimensions();
+    Set<String> dimensions = analyticsTableSettings.getSkipIndexDimensions();
     return dimensions.contains(dimension);
+  }
+
+  /**
+   * Indicates whether the column should be skipped for the given {@link AnalyticsTableColumn} based
+   * on the system configuration. The matching is performed using the {@code name} property of the
+   * given column.
+   *
+   * @param column the {@link AnalyticsTableColumn}.
+   * @return true if the column should be skipped, false otherwise.
+   */
+  protected boolean skipColumn(AnalyticsTableColumn column) {
+    return analyticsTableSettings.getSkipColumnDimensions().contains(column.getName());
   }
 
   // -------------------------------------------------------------------------

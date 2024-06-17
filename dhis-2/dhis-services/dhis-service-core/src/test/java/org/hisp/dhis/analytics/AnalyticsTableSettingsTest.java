@@ -41,17 +41,17 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class AnalyticsExportSettingsTest {
+class AnalyticsTableSettingsTest {
 
   @Mock private DhisConfigurationProvider config;
 
   @Mock private SystemSettingManager systemSettings;
 
-  private AnalyticsExportSettings settings;
+  private AnalyticsTableSettings settings;
 
   @BeforeEach
   public void before() {
-    settings = new AnalyticsExportSettings(config, systemSettings);
+    settings = new AnalyticsTableSettings(config, systemSettings);
   }
 
   @Test
@@ -70,6 +70,16 @@ class AnalyticsExportSettingsTest {
     assertEquals(
         Set.of("kJ7yGrfR413", "Hg5tGfr2fas", "Ju71jG19Kaq", "b5TgfRL9pUq"),
         settings.getSkipIndexDimensions());
+  }
+
+  @Test
+  void testGetSkipColumnDimensions() {
+    when(config.getProperty(ConfigurationKey.ANALYTICS_TABLE_SKIP_COLUMN))
+        .thenReturn("sixmonthlyapril, financialapril  , financialjuly,financialnov");
+
+    assertEquals(
+        Set.of("sixmonthlyapril", "financialapril", "financialjuly", "financialnov"),
+        settings.getSkipColumnDimensions());
   }
 
   @Test

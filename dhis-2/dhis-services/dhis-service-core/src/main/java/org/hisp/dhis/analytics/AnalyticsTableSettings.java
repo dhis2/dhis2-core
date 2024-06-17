@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_ORDERING;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_SKIP_COLUMN;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_SKIP_INDEX;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_UNLOGGED;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_PERIOD_YEARS_OFFSET;
@@ -51,7 +52,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class AnalyticsExportSettings {
+public class AnalyticsTableSettings {
   private final DhisConfigurationProvider config;
 
   private final SystemSettingManager systemSettingManager;
@@ -95,6 +96,15 @@ public class AnalyticsExportSettings {
    */
   public Set<String> getSkipIndexDimensions() {
     return toSet(config.getProperty(ANALYTICS_TABLE_SKIP_INDEX));
+  }
+
+  /**
+   * Returns a set of dimension identifiers for which to skip creating columns for analytics tables.
+   *
+   * @return a set of dimension identifiers.
+   */
+  public Set<String> getSkipColumnDimensions() {
+    return toSet(config.getProperty(ANALYTICS_TABLE_SKIP_COLUMN));
   }
 
   /**
