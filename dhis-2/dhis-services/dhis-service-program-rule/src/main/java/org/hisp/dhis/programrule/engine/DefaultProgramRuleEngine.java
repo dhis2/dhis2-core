@@ -114,7 +114,7 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
                 Collectors.toMap(
                     RuleEffects::getTrackerObjectUid,
                     e -> mapValidationEffect(e.getRuleEffects())));
-    Map<String, List<ValidationEffect>> eventValidaitonEffects =
+    Map<String, List<ValidationEffect>> eventValidationEffects =
         ruleEffects.stream()
             .filter(RuleEffects::isEvent)
             .collect(
@@ -137,7 +137,7 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
                     e -> mapNotificationEffect(e.getRuleEffects())));
     return new RuleEngineEffects(
         enrollmentValidationEffects,
-        eventValidaitonEffects,
+        eventValidationEffects,
         enrollmentNotificationEffects,
         eventNotificationEffects);
   }

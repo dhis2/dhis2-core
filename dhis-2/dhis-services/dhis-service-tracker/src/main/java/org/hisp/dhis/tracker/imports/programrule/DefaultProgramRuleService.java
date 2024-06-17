@@ -117,7 +117,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
                   getAttributes(e.getEnrollment(), e.getTrackedEntity(), bundle, preheat));
             })
         .reduce(RuleEngineEffects::merge)
-        .orElse(null);
+        .orElse(RuleEngineEffects.empty());
   }
 
   private RuleEngineEffects calculateTrackerEventRuleEffects(
@@ -141,7 +141,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
                         bundle,
                         preheat)))
         .reduce(RuleEngineEffects::merge)
-        .orElse(null);
+        .orElse(RuleEngineEffects.empty());
   }
 
   private RuleEngineEffects calculateProgramEventRuleEffects(
@@ -160,7 +160,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
               return programRuleEngine.evaluateProgramEvents(new HashSet<>(events), entry.getKey());
             })
         .reduce(RuleEngineEffects::merge)
-        .orElse(null);
+        .orElse(RuleEngineEffects.empty());
   }
 
   // Get all the attributes linked to enrollment from the payload and the DB,

@@ -46,13 +46,14 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ValidationStrategy;
+import org.hisp.dhis.programrule.engine.ValidationActionType;
+import org.hisp.dhis.programrule.engine.ValidationEffect;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.programrule.IssueType;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
-import org.hisp.dhis.tracker.imports.programrule.executor.ValidationRuleAction;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -81,16 +82,18 @@ class ValidationExecutorTest extends DhisConvenienceTest {
   private static final String ANOTHER_DATA_ELEMENT_ID = "AnotherDataElementId";
 
   private final ShowWarningOnCompleteExecutor warningOnCompleteExecutor =
-      new ShowWarningOnCompleteExecutor(getValidationRuleAction(WARNING));
+      new ShowWarningOnCompleteExecutor(
+          getValidationRuleAction(WARNING, ValidationActionType.WARNINGONCOMPLETE));
 
   private final ShowErrorOnCompleteExecutor errorOnCompleteExecutor =
-      new ShowErrorOnCompleteExecutor(getValidationRuleAction(ERROR));
+      new ShowErrorOnCompleteExecutor(
+          getValidationRuleAction(ERROR, ValidationActionType.ERRORONCOMPLETE));
 
   private final ShowErrorExecutor showErrorExecutor =
-      new ShowErrorExecutor(getValidationRuleAction(ERROR));
+      new ShowErrorExecutor(getValidationRuleAction(ERROR, ValidationActionType.SHOWERROR));
 
   private final ShowWarningExecutor showWarningExecutor =
-      new ShowWarningExecutor(getValidationRuleAction(WARNING));
+      new ShowWarningExecutor(getValidationRuleAction(WARNING, ValidationActionType.SHOWWARNING));
 
   private TrackerBundle bundle;
 
@@ -193,8 +196,10 @@ class ValidationExecutorTest extends DhisConvenienceTest {
     assertEquals(warning(RULE_UID, E1300, validationMessage(WARNING)), warning.get());
   }
 
-  private ValidationRuleAction getValidationRuleAction(IssueType issueType) {
-    return new ValidationRuleAction(RULE_UID, EVALUATED_DATA, null, issueType.name() + CONTENT);
+  private ValidationEffect getValidationRuleAction(
+      IssueType issueType, ValidationActionType actionType) {
+    return new ValidationEffect(
+        RULE_UID, EVALUATED_DATA, null, issueType.name() + CONTENT, actionType);
   }
 
   private List<Event> getEvents() {

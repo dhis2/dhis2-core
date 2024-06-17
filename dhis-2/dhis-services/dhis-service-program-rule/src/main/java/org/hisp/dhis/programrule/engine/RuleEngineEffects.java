@@ -30,6 +30,7 @@ package org.hisp.dhis.programrule.engine;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public record RuleEngineEffects(
@@ -38,12 +39,31 @@ public record RuleEngineEffects(
     Map<String, List<NotificationEffect>> enrollmentNotificationEffects,
     Map<String, List<NotificationEffect>> eventNotificationEffects) {
 
-  public static RuleEngineEffects merge(RuleEngineEffects effects, RuleEngineEffects effects2) {
-    return new RuleEngineEffects(null, null, null, null);
+  public static RuleEngineEffects empty() {
+    return new RuleEngineEffects(Map.of(), Map.of(), Map.of(), Map.of());
   }
 
-  private static List<ValidationEffect> union(
-      List<ValidationEffect> validationEffects, List<ValidationEffect> effects2) {
-    return Stream.of(validationEffects, effects2).flatMap(Collection::stream).toList();
+  public static RuleEngineEffects merge(RuleEngineEffects effects, RuleEngineEffects effects2) {
+    Map<String, List<ValidationEffect>> enrollmentValidationEffects =
+        merge(effects.enrollmentValidationEffects, effects2.enrollmentValidationEffects);
+    Map<String, List<ValidationEffect>> eventValidationEffects =
+        merge(effects.eventValidationEffects, effects2.eventValidationEffects);
+    Map<String, List<NotificationEffect>> enrollmentNotificationEffects =
+        merge(effects.enrollmentNotificationEffects, effects2.enrollmentNotificationEffects);
+    Map<String, List<NotificationEffect>> eventNotificationEffects =
+        merge(effects.eventNotificationEffects, effects2.eventNotificationEffects);
+
+    return new RuleEngineEffects(
+        enrollmentValidationEffects,
+        eventValidationEffects,
+        enrollmentNotificationEffects,
+        eventNotificationEffects);
+  }
+
+  private static <T> Map<String, List<T>> merge(
+      Map<String, List<T>> effects, Map<String, List<T>> effects2) {
+    return Stream.of(effects.entrySet(), effects2.entrySet())
+        .flatMap(Collection::stream)
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 }
