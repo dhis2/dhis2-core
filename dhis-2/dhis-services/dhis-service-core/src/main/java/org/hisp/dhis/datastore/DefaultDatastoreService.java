@@ -134,13 +134,15 @@ public class DefaultDatastoreService implements DatastoreService {
   @Override
   @Transactional
   public void addEntry(DatastoreEntry entry) throws ConflictException, BadRequestException {
-    if (getEntry(entry.getNamespace(), entry.getKey()) != null) {
+    String namespace = entry.getNamespace();
+    DatastoreNamespaceProtection protection = protectionByNamespace.get(namespace);
+    if (!userHasNamespaceWriteAccess(protection)) throw accessDeniedTo(namespace);
+    if (store.getEntry(namespace, entry.getKey()) != null) {
       throw new ConflictException(
-          String.format(
-              "Key '%s' already exists in namespace '%s'", entry.getKey(), entry.getNamespace()));
+          String.format("Key '%s' already exists in namespace '%s'", entry.getKey(), namespace));
     }
     validateEntry(entry);
-    writeProtectedIn(entry.getNamespace(), () -> singletonList(entry), () -> store.save(entry));
+    writeProtectedIn(namespace, () -> singletonList(entry), () -> store.save(entry));
   }
 
   @Override
