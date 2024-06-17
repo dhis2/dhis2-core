@@ -27,11 +27,13 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static java.lang.String.format;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramTrackedEntityAttribute;
 import static org.hisp.dhis.DhisConvenienceTest.createTrackedEntityAttribute;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -138,12 +140,13 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
     verify(jdbcTemplate).execute(sql.capture());
 
     String ouQuery =
-        "(select ou.%s from organisationunit ou where ou.uid = "
-            + "(select value from trackedentityattributevalue where trackedentityid=pi.trackedentityid and "
-            + "trackedentityattributeid=9999)) as \""
-            + tea.getUid()
-            + "\"";
+        format(
+            """
+        (select ou.%s from organisationunit ou where ou.uid = \
+        (select value from trackedentityattributevalue where trackedentityid=pi.trackedentityid and \
+        trackedentityattributeid=9999)) as %s""",
+            "uid", quote(tea.getUid()));
 
-    assertThat(sql.getValue(), containsString(String.format(ouQuery, "uid")));
+    assertThat(sql.getValue(), containsString(ouQuery));
   }
 }

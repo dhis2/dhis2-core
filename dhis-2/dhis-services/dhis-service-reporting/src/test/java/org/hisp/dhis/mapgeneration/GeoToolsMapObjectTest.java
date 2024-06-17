@@ -27,11 +27,16 @@
  */
 package org.hisp.dhis.mapgeneration;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.awt.Color;
+import java.io.IOException;
+import org.geotools.geojson.geom.GeometryJSON;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.locationtech.jts.geom.Geometry;
 
 /**
  * @author Kenneth Solbø Andersen <kennetsa@ifi.uio.no>
@@ -39,6 +44,11 @@ import org.junit.jupiter.api.Test;
 class GeoToolsMapObjectTest {
 
   private InternalMapObject geoToolsMapObject;
+  private GeometryJSON geometryJSON = new GeometryJSON();
+  private String multiPolygonCoordinates =
+      "[[[[11.11,22.22],[33.33,44.44],[55.55,66.66],[11.11,22.22]]],"
+          + "[[[77.77,88.88],[99.99,11.11],[22.22,33.33],[77.77,88.88]]],"
+          + "[[[44.44,55.55],[66.66,77.77],[88.88,99.99],[44.44,55.55]]]]";
 
   @BeforeEach
   void before() {
@@ -91,5 +101,17 @@ class GeoToolsMapObjectTest {
     assertEquals(Color.GREEN, geoToolsMapObject.getStrokeColor());
     geoToolsMapObject.setStrokeColor(Color.WHITE);
     assertEquals(Color.WHITE, geoToolsMapObject.getStrokeColor());
+  }
+
+  @Test
+  void testCreateFeatureType() throws IOException {
+    Geometry geometry =
+        geometryJSON.read(
+            "{\"type\":\"MultiPolygon\", \"coordinates\":" + multiPolygonCoordinates + "}");
+    geoToolsMapObject.setGeometry(geometry);
+    assertDoesNotThrow(
+        () -> {
+          assertNotNull(MapUtils.createFeatureLayerFromMapObject(geoToolsMapObject));
+        });
   }
 }
