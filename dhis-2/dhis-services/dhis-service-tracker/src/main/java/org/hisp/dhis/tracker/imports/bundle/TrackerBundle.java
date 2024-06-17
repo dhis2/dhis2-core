@@ -111,7 +111,7 @@ public class TrackerBundle {
   @Builder.Default private List<Relationship> relationships = new ArrayList<>();
 
   /** Rule effects for Enrollments. */
-  @Builder.Default private RuleEngineEffects ruleEffects;
+  @Builder.Default private RuleEngineEffects ruleEffects = RuleEngineEffects.empty();
 
   /** Rule action executors for Enrollments. */
   @Builder.Default
