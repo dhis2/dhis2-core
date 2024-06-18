@@ -305,7 +305,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     Set<TrackedEntityAttribute> readableAttributes =
         new HashSet<>(daoTrackedEntityInstance.getTrackedEntityType().getTrackedEntityAttributes());
 
-    return getTei(daoTrackedEntityInstance, readableAttributes, params, user);
+    return getTei(daoTrackedEntityInstance, readableAttributes, params, user, null);
   }
 
   @Override
@@ -325,7 +325,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         new HashSet<>(daoTrackedEntityInstance.getTrackedEntityType().getTrackedEntityAttributes());
     readableAttributes.addAll(program.getTrackedEntityAttributes());
 
-    return getTei(daoTrackedEntityInstance, readableAttributes, params, user);
+    return getTei(daoTrackedEntityInstance, readableAttributes, params, user, program);
   }
 
   private org.hisp.dhis.trackedentity.TrackedEntityInstance createDAOTrackedEntityInstance(
@@ -1587,7 +1587,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
       org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance,
       Set<TrackedEntityAttribute> readableAttributes,
       TrackedEntityInstanceParams params,
-      User user) {
+      User user,
+      Program program) {
     if (daoTrackedEntityInstance == null) {
       return null;
     }
@@ -1639,6 +1640,10 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
     if (params.isIncludeEnrollments()) {
       for (ProgramInstance programInstance : daoTrackedEntityInstance.getProgramInstances()) {
+        if (program != null && !programInstance.getProgram().getUid().equals(program.getUid())) {
+          continue;
+        }
+
         if (trackerAccessManager.canRead(user, programInstance, false).isEmpty()
             && (params.isIncludeDeleted() || !programInstance.isDeleted())) {
           trackedEntityInstance

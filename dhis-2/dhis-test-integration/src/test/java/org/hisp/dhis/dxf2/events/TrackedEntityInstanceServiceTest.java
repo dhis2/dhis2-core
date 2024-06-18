@@ -71,6 +71,7 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -138,6 +139,8 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
   private ProgramStage programStageA1;
 
   private ProgramStage programStageA2;
+
+  private ProgramInstance programInstance;
 
   private TrackedEntityInstance teiMaleA;
 
@@ -247,8 +250,9 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
     trackedEntityAttributeValueService.addTrackedEntityAttributeValue(uniqueId);
     trackedEntityAttributeValueService.addTrackedEntityAttributeValue(
         imageTrackedEntityAttributeValue);
-    programInstanceService.enrollTrackedEntityInstance(
-        maleA, programA, null, null, organisationUnitA);
+    programInstance =
+        programInstanceService.enrollTrackedEntityInstance(
+            maleA, programA, null, null, organisationUnitA);
     programInstanceService.enrollTrackedEntityInstance(
         femaleA, programA, DateTime.now().plusMonths(1).toDate(), null, organisationUnitA);
     programInstanceService.enrollTrackedEntityInstance(
@@ -856,6 +860,18 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
         List.of(uniqueIdAttribute.getUid()),
         trackedEntityInstance.getAttributes().stream()
             .map(Attribute::getAttribute)
+            .collect(Collectors.toList()));
+  }
+
+  @Test
+  void shouldReturnEnrollmentsFromSpecifiedProgramWhenRequestingSingleTrackedEntity() {
+    TrackedEntityInstance trackedEntityInstance =
+        trackedEntityInstanceService.getTrackedEntityInstance(maleA);
+
+    assertContainsOnly(
+        Set.of(programInstance.getUid()),
+        trackedEntityInstance.getEnrollments().stream()
+            .map(Enrollment::getEnrollment)
             .collect(Collectors.toList()));
   }
 
