@@ -93,6 +93,7 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nFormat;
@@ -258,7 +259,9 @@ public class DimensionalObjectProducer {
       dimensionalKeywords.addKeyword(
           isoPeriodHolder.getIsoPeriod(), join(" - ", startDate, endDate));
       periods.add(periodToAdd);
+      return;
     }
+    throw new IllegalQueryException("Invalid period: " + isoPeriodHolder.getIsoPeriod());
   }
 
   /**

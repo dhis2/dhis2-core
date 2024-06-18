@@ -3258,6 +3258,25 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .body("message", equalTo("Specified program HpHINAT79UW does not exist"));
   }
 
+  @Test
+  public void testInvalidPeriod() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder().add("headers=created").add("created=INVALID_PERIOD");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(409)
+        .body("status", equalTo("ERROR"))
+        .body("httpStatusCode", equalTo(409))
+        .body("httpStatus", equalTo("Conflict"))
+        .body("message", equalTo("Invalid period: INVALID_PERIOD"));
+  }
+
   private void testMetaCustomLabel(String header, String expected) {
     // Given
     QueryParamsBuilder params = new QueryParamsBuilder().add("headers=" + header).add("pageSize=0");
