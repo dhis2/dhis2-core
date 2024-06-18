@@ -286,7 +286,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     }
 
     Set<TrackedEntityAttribute> readableAttributes =
-        trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes(user);
+        new HashSet<>(daoTrackedEntityInstance.getTrackedEntityType().getTrackedEntityAttributes());
 
     return getTei(daoTrackedEntityInstance, readableAttributes, params, user);
   }
@@ -294,7 +294,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
   @Override
   @Transactional(readOnly = true)
   public TrackedEntityInstance getTrackedEntityInstanceExcludingACL(
-      String uid, TrackedEntityInstanceParams params) {
+      String uid, Program program, TrackedEntityInstanceParams params) {
 
     org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance =
         teiService.getTrackedEntityInstance(uid);
@@ -305,7 +305,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     User user = currentUserService.getCurrentUser();
 
     Set<TrackedEntityAttribute> readableAttributes =
-        trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes(user);
+        new HashSet<>(daoTrackedEntityInstance.getTrackedEntityType().getTrackedEntityAttributes());
+    readableAttributes.addAll(program.getTrackedEntityAttributes());
 
     return getTei(daoTrackedEntityInstance, readableAttributes, params, user);
   }
