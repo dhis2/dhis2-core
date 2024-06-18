@@ -31,6 +31,7 @@ import static java.util.Objects.nonNull;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
@@ -57,7 +58,7 @@ public class EventProgramPreProcessor implements BundlePreProcessor {
                         || e.getProgram().isBlank()
                         || e.getProgramStage() == null
                         || e.getProgramStage().isBlank())
-            .toList();
+            .collect(Collectors.toList());
 
     for (Event event : eventsToPreprocess) {
       // Extract program from program stage
@@ -114,7 +115,7 @@ public class EventProgramPreProcessor implements BundlePreProcessor {
                     e.getAttributeOptionCombo().isBlank()
                         && !e.getAttributeCategoryOptions().isEmpty())
             .filter(e -> preheat.getProgram(e.getProgram()) != null)
-            .toList();
+            .collect(Collectors.toList());
 
     for (Event e : events) {
       Program program = preheat.getProgram(e.getProgram());

@@ -28,7 +28,11 @@
 package org.hisp.dhis.tracker.bundle;
 
 import static org.hisp.dhis.tracker.Assertions.assertHasError;
+import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
+import static org.hisp.dhis.tracker.validation.Users.USER_10;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4016;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4020;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -36,6 +40,7 @@ import java.io.IOException;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
@@ -69,10 +74,50 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest {
     assertImportedObjects(13, persistenceReport, TrackerType.TRACKED_ENTITY);
     assertImportedObjects(2, persistenceReport, TrackerType.ENROLLMENT);
     assertImportedObjects(2, persistenceReport, TrackerType.EVENT);
+    assertImportedObjects(2, persistenceReport, TrackerType.RELATIONSHIP);
     assertEquals(6, manager.getAll(ProgramInstance.class).size());
     assertEquals(
         persistenceReport.getTypeReportMap().get(TrackerType.EVENT).getStats().getCreated(),
         manager.getAll(ProgramStageInstance.class).size());
+  }
+
+  @Test
+  void shouldFailToDeleteNotExistentRelationship() throws IOException {
+    TrackerImportParams params =
+        fromJson("tracker/relationships_existent_and_not_existent_for_deletion.json");
+    params.setImportStrategy(TrackerImportStrategy.DELETE);
+    params.setAtomicMode(AtomicMode.OBJECT);
+    assertEquals(2, params.getRelationships().size());
+
+    ImportReport importReport = trackerImportService.importTracker(params);
+    assertDeletedObjects(1, importReport.getPersistenceReport(), TrackerType.RELATIONSHIP);
+    assertHasOnlyErrors(importReport, E4016);
+  }
+
+  @Test
+  void shouldSuccessfullyDeleteRelationships() throws IOException {
+    TrackerImportParams params = fromJson("tracker/relationships_basic_data_for_deletion.json");
+    params.setImportStrategy(TrackerImportStrategy.DELETE);
+    assertEquals(2, params.getRelationships().size());
+
+    ImportReport importReport = trackerImportService.importTracker(params);
+    assertNoErrors(importReport);
+    assertDeletedObjects(2, importReport.getPersistenceReport(), TrackerType.RELATIONSHIP);
+  }
+
+  @Test
+  void shouldSuccessfullyDeleteTrackedEntityAndNotAccessibleRelationshipLinkedToIt()
+      throws IOException {
+    TrackerImportParams params =
+        fromJson("tracker/te_with_inaccessible_relationship_for_deletion.json");
+    params.setImportStrategy(TrackerImportStrategy.DELETE);
+    params.setAtomicMode(AtomicMode.OBJECT);
+    params.setUserId(USER_10);
+    assertEquals(1, params.getTrackedEntities().size());
+
+    ImportReport importReport = trackerImportService.importTracker(params);
+    assertDeletedObjects(1, importReport.getPersistenceReport(), TrackerType.TRACKED_ENTITY);
+    assertHasOnlyErrors(importReport, E4020);
   }
 
   @Test
