@@ -136,7 +136,7 @@
                 <foreign-key/>
                 <cascade>
                     <cascade-all/>
-                    <cascade-delete/>
+                    
                 </cascade>
             </one-to-many>
             <one-to-many name="programIndicators" target-entity="org.hisp.dhis.program.ProgramIndicator" orphan-removal="false">
@@ -154,7 +154,7 @@
                 <foreign-key/>
                 <cascade>
                     <cascade-all/>
-                    <cascade-delete/>
+                    
                 </cascade>
             </one-to-many>
             <many-to-many name="organisationUnits" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit">

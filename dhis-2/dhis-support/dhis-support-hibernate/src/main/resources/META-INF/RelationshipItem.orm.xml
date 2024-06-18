@@ -11,7 +11,7 @@
                 <join-column name="relationshipid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_relationshipitem_relationshipid"/>
                 <cascade>
-                    <cascade-delete/>
+                    
                 </cascade>
             </many-to-one>
             <many-to-one name="trackedEntity" target-entity="org.hisp.dhis.trackedentity.TrackedEntity" fetch="LAZY" optional="true">

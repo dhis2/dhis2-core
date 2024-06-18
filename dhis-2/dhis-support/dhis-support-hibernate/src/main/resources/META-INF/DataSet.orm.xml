@@ -88,7 +88,7 @@
                 <foreign-key name="fk_datasetdatainputperiods_datasetid"/>
                 <cascade>
                     <cascade-all/>
-                    <cascade-delete/>
+                    
                 </cascade>
             </one-to-many>
             <one-to-many name="dataSetElements" target-entity="org.hisp.dhis.dataset.DataSetElement" orphan-removal="true">
@@ -96,7 +96,7 @@
                 <foreign-key name="fk_datasetmembers_datasetid"/>
                 <cascade>
                     <cascade-all/>
-                    <cascade-delete/>
+                    
                 </cascade>
             </one-to-many>
             <one-to-many name="sections" target-entity="org.hisp.dhis.dataset.Section" orphan-removal="false">

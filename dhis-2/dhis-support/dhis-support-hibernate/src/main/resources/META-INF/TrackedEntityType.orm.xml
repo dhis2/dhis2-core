@@ -47,7 +47,7 @@
                 <foreign-key/>
                 <cascade>
                     <cascade-all/>
-                    <cascade-delete/>
+                    
                 </cascade>
             </one-to-many>
         </attributes>

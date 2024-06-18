@@ -81,7 +81,7 @@
                 <foreign-key name="fk_evisualization_relativeperiodsid"/>
                 <cascade>
                     <cascade-all/>
-                    <cascade-delete/>
+                    
                 </cascade>
             </many-to-one>
             <many-to-one name="program" target-entity="org.hisp.dhis.program.Program" fetch="LAZY" optional="false">

@@ -45,7 +45,7 @@
                 <foreign-key name="fk_predictor_generatorexpressionid"/>
                 <cascade>
                     <cascade-all/>
-                    <cascade-delete/>
+                    
                 </cascade>
             </many-to-one>
             <many-to-one name="output" target-entity="org.hisp.dhis.dataelement.DataElement" fetch="LAZY" optional="false">
@@ -63,7 +63,7 @@
                 <foreign-key name="fk_validationrule_skiptestexpressionid"/>
                 <cascade>
                     <cascade-all/>
-                    <cascade-delete/>
+                    
                 </cascade>
             </many-to-one>
             <many-to-one name="periodType" target-entity="org.hisp.dhis.period.PeriodType" fetch="LAZY" optional="false">

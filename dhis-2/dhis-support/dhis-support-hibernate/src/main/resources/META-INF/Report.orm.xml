@@ -38,7 +38,7 @@
                 <foreign-key name="fk_report_relativeperiodsid"/>
                 <cascade>
                     <cascade-all/>
-                    <cascade-delete/>
+                    
                 </cascade>
             </many-to-one>
             <many-to-one name="createdBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">

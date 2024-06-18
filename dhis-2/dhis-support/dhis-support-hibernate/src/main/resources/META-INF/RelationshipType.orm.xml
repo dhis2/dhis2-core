@@ -46,7 +46,7 @@
                 <foreign-key name="fk_relationshiptype_from_relationshipconstraintid"/>
                 <cascade>
                     <cascade-all/>
-                    <cascade-delete/>
+                    
                 </cascade>
             </many-to-one>
             <many-to-one name="toConstraint" target-entity="org.hisp.dhis.relationship.RelationshipConstraint" fetch="LAZY" optional="true">
@@ -54,7 +54,7 @@
                 <foreign-key name="fk_relationshiptype_to_relationshipconstraintid"/>
                 <cascade>
                     <cascade-all/>
-                    <cascade-delete/>
+                    
                 </cascade>
             </many-to-one>
             <many-to-one name="createdBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">

@@ -106,7 +106,7 @@
                 <foreign-key/>
                 <cascade>
                     <cascade-all/>
-                    <cascade-delete/>
+                    
                 </cascade>
             </one-to-many>
             <one-to-many name="programStageSections" target-entity="org.hisp.dhis.program.ProgramStageSection" orphan-removal="true">
@@ -115,7 +115,7 @@
                 <foreign-key/>
                 <cascade>
                     <cascade-all/>
-                    <cascade-delete/>
+                    
                 </cascade>
             </one-to-many>
             <one-to-many name="notificationTemplates" target-entity="org.hisp.dhis.program.notification.ProgramNotificationTemplate" orphan-removal="true">
@@ -123,7 +123,7 @@
                 <foreign-key/>
                 <cascade>
                     <cascade-all/>
-                    <cascade-delete/>
+                    
                 </cascade>
             </one-to-many>
         </attributes>

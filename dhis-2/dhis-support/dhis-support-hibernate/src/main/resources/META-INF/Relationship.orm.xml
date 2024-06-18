@@ -43,7 +43,7 @@
                 <foreign-key name="fk_relationship_from_relationshipitemid"/>
                 <cascade>
                     <cascade-all/>
-                    <cascade-delete/>
+                    
                 </cascade>
             </many-to-one>
             <many-to-one name="to" target-entity="org.hisp.dhis.relationship.RelationshipItem" fetch="LAZY" optional="true">
@@ -51,7 +51,7 @@
                 <foreign-key name="fk_relationship_to_relationshipitemid"/>
                 <cascade>
                     <cascade-all/>
-                    <cascade-delete/>
+                    
                 </cascade>
             </many-to-one>
         </attributes>

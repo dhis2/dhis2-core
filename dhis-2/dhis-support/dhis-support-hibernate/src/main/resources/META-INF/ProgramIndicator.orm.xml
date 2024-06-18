@@ -64,7 +64,7 @@
                 <foreign-key/>
                 <cascade>
                     <cascade-all/>
-                    <cascade-delete/>
+                    
                 </cascade>
             </one-to-many>
             <many-to-many name="groups" target-entity="org.hisp.dhis.program.ProgramIndicatorGroup">
