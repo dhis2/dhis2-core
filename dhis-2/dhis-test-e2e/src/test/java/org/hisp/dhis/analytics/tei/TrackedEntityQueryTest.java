@@ -3274,8 +3274,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .body("status", equalTo("ERROR"))
         .body("httpStatusCode", equalTo(409))
         .body("httpStatus", equalTo("Conflict"))
-        .body("errorCode", equalTo("E7147"))
-        .body("message", equalTo("Invalid period: INVALID_PERIOD"));
+        .body("errorCode", equalTo("E7611"))
+        .body("message", equalTo("Period not valid: `INVALID_PERIOD`"));
   }
 
   private void testMetaCustomLabel(String header, String expected) {
