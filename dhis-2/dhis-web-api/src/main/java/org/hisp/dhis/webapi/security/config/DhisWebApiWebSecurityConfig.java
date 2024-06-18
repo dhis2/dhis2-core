@@ -356,6 +356,7 @@ public class DhisWebApiWebSecurityConfig {
                   return filter;
                 }
               });
+
       // Special handling if we are running in embedded Jetty mode
       if (Arrays.asList(activeProfiles).contains("embeddedJetty")) {
         http.formLogin()
