@@ -32,15 +32,15 @@
                 <cascade/>
             </many-to-one>
             <many-to-many name="members" target-entity="org.hisp.dhis.user.User">
-                <sort>unsorted</sort>
+              
             </many-to-many>
             <element-collection name="authorities">
-                <sort>unsorted</sort>
+              
                 <column name="authority" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <collection-table name="userroleauthorities"/>
             </element-collection>
             <element-collection name="restrictions">
-                <sort>unsorted</sort>
+              
                 <column name="restriction" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <collection-table name="userrolerestrictions"/>
             </element-collection>

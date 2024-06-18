@@ -35,13 +35,13 @@
                 <cascade/>
             </many-to-one>
             <many-to-many name="members" target-entity="org.hisp.dhis.user.User">
-                <sort>unsorted</sort>
+              
             </many-to-many>
             <many-to-many name="managedGroups" target-entity="org.hisp.dhis.user.UserGroup">
-                <sort>unsorted</sort>
+              
             </many-to-many>
             <many-to-many name="managedByGroups" target-entity="org.hisp.dhis.user.UserGroup">
-                <sort>unsorted</sort>
+              
             </many-to-many>
         </attributes>
     </entity>

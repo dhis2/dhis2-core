@@ -49,7 +49,7 @@
                 <order-column name="sort_order"/>
             </many-to-many>
             <many-to-many name="greyedFields" target-entity="org.hisp.dhis.dataelement.DataElementOperand">
-                <sort>unsorted</sort>
+              
             </many-to-many>
         </attributes>
     </entity>

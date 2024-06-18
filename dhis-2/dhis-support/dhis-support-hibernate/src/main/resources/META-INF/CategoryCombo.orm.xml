@@ -40,7 +40,7 @@
                 <order-column name="sort_order"/>
             </many-to-many>
             <many-to-many name="optionCombos" target-entity="org.hisp.dhis.category.CategoryOptionCombo">
-                <sort>unsorted</sort>
+              
             </many-to-many>
         </attributes>
     </entity>

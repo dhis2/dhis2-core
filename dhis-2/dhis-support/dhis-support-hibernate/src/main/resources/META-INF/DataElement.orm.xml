@@ -69,12 +69,12 @@
                 <cascade/>
             </many-to-one>
             <one-to-many name="dataSetElements" target-entity="org.hisp.dhis.dataset.DataSetElement" orphan-removal="false">
-                <sort>unsorted</sort>
+              
                 <foreign-key name="fk_datasetmembers_dataelementid"/>
                 <cascade/>
             </one-to-many>
             <many-to-many name="groups" target-entity="org.hisp.dhis.dataelement.DataElementGroup">
-                <sort>unsorted</sort>
+              
             </many-to-many>
             <many-to-many name="legendSets" target-entity="org.hisp.dhis.legend.LegendSet">
                 <order-column name="sort_order"/>

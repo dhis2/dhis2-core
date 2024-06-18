@@ -33,10 +33,10 @@
                 <cascade/>
             </many-to-one>
             <many-to-many name="members" target-entity="org.hisp.dhis.indicator.Indicator">
-                <sort>unsorted</sort>
+              
             </many-to-many>
             <many-to-many name="groupSets" target-entity="org.hisp.dhis.indicator.IndicatorGroupSet">
-                <sort>unsorted</sort>
+              
             </many-to-many>
         </attributes>
     </entity>

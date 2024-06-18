@@ -102,7 +102,7 @@
             </many-to-one>
             <one-to-many name="programStageDataElements" target-entity="org.hisp.dhis.program.ProgramStageDataElement" orphan-removal="true">
                 <order-by>sort_order</order-by>
-                <sort>unsorted</sort>
+              
                 <foreign-key/>
                 <cascade>
                     <cascade-all/>
@@ -111,7 +111,7 @@
             </one-to-many>
             <one-to-many name="programStageSections" target-entity="org.hisp.dhis.program.ProgramStageSection" orphan-removal="true">
                 <order-by>sortOrder</order-by>
-                <sort>unsorted</sort>
+              
                 <foreign-key/>
                 <cascade>
                     <cascade-all/>
@@ -119,7 +119,7 @@
                 </cascade>
             </one-to-many>
             <one-to-many name="notificationTemplates" target-entity="org.hisp.dhis.program.notification.ProgramNotificationTemplate" orphan-removal="true">
-                <sort>unsorted</sort>
+              
                 <foreign-key/>
                 <cascade>
                     <cascade-all/>

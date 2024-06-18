@@ -110,7 +110,7 @@
                 <cascade/>
             </many-to-one>
             <one-to-many name="interpretations" target-entity="org.hisp.dhis.interpretation.Interpretation" orphan-removal="false">
-                <sort>unsorted</sort>
+              
                 <foreign-key/>
                 <cascade/>
             </one-to-many>

@@ -35,7 +35,7 @@
                 <cascade/>
             </many-to-one>
             <one-to-many name="legends" target-entity="org.hisp.dhis.legend.Legend" orphan-removal="true">
-                <sort>unsorted</sort>
+              
                 <foreign-key/>
                 <cascade>
                     <cascade-all/>

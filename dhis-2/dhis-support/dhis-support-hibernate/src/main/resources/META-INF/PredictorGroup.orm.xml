@@ -32,7 +32,7 @@
                 <cascade/>
             </many-to-one>
             <many-to-many name="members" target-entity="org.hisp.dhis.predictor.Predictor">
-                <sort>unsorted</sort>
+              
             </many-to-many>
         </attributes>
     </entity>

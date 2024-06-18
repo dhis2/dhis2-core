@@ -60,7 +60,7 @@
                 <cascade/>
             </many-to-one>
             <one-to-many name="analyticsPeriodBoundaries" target-entity="org.hisp.dhis.program.AnalyticsPeriodBoundary" orphan-removal="true">
-                <sort>unsorted</sort>
+              
                 <foreign-key/>
                 <cascade>
                     <cascade-all/>
@@ -68,7 +68,7 @@
                 </cascade>
             </one-to-many>
             <many-to-many name="groups" target-entity="org.hisp.dhis.program.ProgramIndicatorGroup">
-                <sort>unsorted</sort>
+              
             </many-to-many>
             <many-to-many name="legendSets" target-entity="org.hisp.dhis.legend.LegendSet">
                 <order-column name="sort_order"/>

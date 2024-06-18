@@ -41,12 +41,12 @@
                 <cascade/>
             </many-to-one>
             <one-to-many name="dataSets" target-entity="org.hisp.dhis.dataset.DataSet" orphan-removal="false">
-                <sort>unsorted</sort>
+              
                 <foreign-key/>
                 <cascade/>
             </one-to-many>
             <many-to-many name="levels" target-entity="org.hisp.dhis.dataapproval.DataApprovalLevel">
-                <sort>unsorted</sort>
+              
             </many-to-many>
         </attributes>
     </entity>

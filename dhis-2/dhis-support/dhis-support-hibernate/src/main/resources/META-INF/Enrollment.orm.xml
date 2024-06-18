@@ -58,12 +58,12 @@
             </many-to-one>
             <one-to-many name="events" target-entity="org.hisp.dhis.program.Event" orphan-removal="false">
                 <order-by>occurreddate,scheduleddate</order-by>
-                <sort>unsorted</sort>
+              
                 <foreign-key/>
                 <cascade/>
             </one-to-many>
             <one-to-many name="relationshipItems" target-entity="org.hisp.dhis.relationship.RelationshipItem" orphan-removal="false">
-                <sort>unsorted</sort>
+              
                 <foreign-key/>
                 <cascade/>
             </one-to-many>

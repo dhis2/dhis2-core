@@ -27,7 +27,7 @@
                 <cascade/>
             </many-to-one>
             <many-to-many name="attachments" target-entity="org.hisp.dhis.fileresource.FileResource">
-                <sort>unsorted</sort>
+              
             </many-to-many>
         </attributes>
     </entity>

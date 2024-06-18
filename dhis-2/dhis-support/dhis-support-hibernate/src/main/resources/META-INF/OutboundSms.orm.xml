@@ -20,7 +20,7 @@
             <basic name="status" fetch="EAGER" optional="false"/>
             <basic name="sender" fetch="EAGER" optional="true"/>
             <element-collection name="recipients" fetch-mode="SELECT">
-                <sort>unsorted</sort>
+              
                 <collection-table name="outbound_sms_recipients"/>
             </element-collection>
         </attributes>

@@ -54,10 +54,10 @@
                 <cascade/>
             </many-to-one>
             <many-to-many name="dataSets" target-entity="org.hisp.dhis.dataset.DataSet">
-                <sort>unsorted</sort>
+              
             </many-to-many>
             <element-collection name="deliveryChannels" fetch-mode="SELECT">
-                <sort>unsorted</sort>
+              
                 <column name="deliverychannel" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <collection-table name="datasetnotificationtemplate_deliverychannel"/>
             </element-collection>

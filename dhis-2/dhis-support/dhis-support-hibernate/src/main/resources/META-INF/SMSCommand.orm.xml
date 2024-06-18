@@ -55,10 +55,10 @@
                 <cascade/>
             </many-to-one>
             <many-to-many name="codes" target-entity="org.hisp.dhis.sms.command.code.SMSCode">
-                <sort>unsorted</sort>
+              
             </many-to-many>
             <many-to-many name="specialCharacters" target-entity="org.hisp.dhis.sms.command.SMSSpecialCharacter">
-                <sort>unsorted</sort>
+              
             </many-to-many>
         </attributes>
     </entity>

@@ -69,7 +69,7 @@
                 <cascade/>
             </many-to-one>
             <one-to-many name="relationshipItems" target-entity="org.hisp.dhis.relationship.RelationshipItem" orphan-removal="false">
-                <sort>unsorted</sort>
+              
                 <foreign-key/>
                 <cascade/>
             </one-to-many>

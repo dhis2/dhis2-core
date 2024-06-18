@@ -34,7 +34,7 @@
                 <cascade/>
             </many-to-one>
             <many-to-many name="members" target-entity="org.hisp.dhis.program.ProgramIndicator">
-                <sort>unsorted</sort>
+              
             </many-to-many>
         </attributes>
     </entity>

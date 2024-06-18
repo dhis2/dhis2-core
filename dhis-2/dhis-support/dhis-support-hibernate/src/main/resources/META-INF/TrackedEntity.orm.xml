@@ -63,22 +63,22 @@
                 <cascade/>
             </many-to-one>
             <one-to-many name="trackedEntityAttributeValues" target-entity="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue" orphan-removal="false">
-                <sort>unsorted</sort>
+              
                 <foreign-key/>
                 <cascade/>
             </one-to-many>
             <one-to-many name="enrollments" target-entity="org.hisp.dhis.program.Enrollment" orphan-removal="false">
-                <sort>unsorted</sort>
+              
                 <foreign-key/>
                 <cascade/>
             </one-to-many>
             <one-to-many name="programOwners" target-entity="org.hisp.dhis.trackedentity.TrackedEntityProgramOwner" orphan-removal="false">
-                <sort>unsorted</sort>
+              
                 <foreign-key/>
                 <cascade/>
             </one-to-many>
             <one-to-many name="relationshipItems" target-entity="org.hisp.dhis.relationship.RelationshipItem" orphan-removal="false">
-                <sort>unsorted</sort>
+              
                 <foreign-key/>
                 <cascade/>
             </one-to-many>

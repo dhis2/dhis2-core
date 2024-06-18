@@ -121,13 +121,13 @@
             </many-to-one>
             <one-to-many name="programStages" target-entity="org.hisp.dhis.program.ProgramStage" orphan-removal="false">
                 <order-by>sortOrder</order-by>
-                <sort>unsorted</sort>
+              
                 <foreign-key/>
                 <cascade/>
             </one-to-many>
             <one-to-many name="programSections" target-entity="org.hisp.dhis.program.ProgramSection" orphan-removal="false">
                 <order-by>sortOrder</order-by>
-                <sort>unsorted</sort>
+              
                 <foreign-key/>
                 <cascade/>
             </one-to-many>
@@ -140,17 +140,17 @@
                 </cascade>
             </one-to-many>
             <one-to-many name="programIndicators" target-entity="org.hisp.dhis.program.ProgramIndicator" orphan-removal="false">
-                <sort>unsorted</sort>
+              
                 <foreign-key/>
                 <cascade/>
             </one-to-many>
             <one-to-many name="programRuleVariables" target-entity="org.hisp.dhis.programrule.ProgramRuleVariable" orphan-removal="false">
-                <sort>unsorted</sort>
+              
                 <foreign-key/>
                 <cascade/>
             </one-to-many>
             <one-to-many name="notificationTemplates" target-entity="org.hisp.dhis.program.notification.ProgramNotificationTemplate" orphan-removal="true">
-                <sort>unsorted</sort>
+              
                 <foreign-key/>
                 <cascade>
                     <cascade-all/>
@@ -158,10 +158,10 @@
                 </cascade>
             </one-to-many>
             <many-to-many name="organisationUnits" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit">
-                <sort>unsorted</sort>
+              
             </many-to-many>
             <many-to-many name="userRoles" target-entity="org.hisp.dhis.user.UserRole">
-                <sort>unsorted</sort>
+              
             </many-to-many>
         </attributes>
     </entity>

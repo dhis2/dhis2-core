@@ -95,7 +95,6 @@
                 <foreign-key name="fk_evisualization_relativeperiodsid"/>
                 <cascade>
                     <cascade-all/>
-                    <cascade-delete/>
                 </cascade>
             </many-to-one>
             <many-to-one name="program" target-entity="org.hisp.dhis.program.Program" fetch="LAZY" optional="true">
@@ -129,7 +128,7 @@
                 <cascade/>
             </many-to-one>
             <one-to-many name="interpretations" target-entity="org.hisp.dhis.interpretation.Interpretation" orphan-removal="false">
-                <sort>unsorted</sort>
+              
                 <foreign-key/>
                 <cascade/>
             </one-to-many>
@@ -188,9 +187,7 @@
             <basic name="legendDisplayStyle" fetch="EAGER" optional="true"/>
             <basic name="legendDisplayStrategy" fetch="EAGER" optional="true"/>
             <basic name="showKey" fetch="EAGER" optional="true">
-                <column name="legendshowkey" unique="false">
-                    <default>false</default>
-                </column>
+                <column name="legendshowkey" unique="false"/>
             </basic>
             <many-to-one name="legendSet" target-entity="org.hisp.dhis.legend.LegendSet" fetch="LAZY" optional="true">
                 <join-column name="legendsetid" unique="false" nullable="true" insertable="true" updatable="true"/>

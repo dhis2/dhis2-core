@@ -67,24 +67,24 @@
                 <cascade/>
             </many-to-one>
             <one-to-many name="children" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit" orphan-removal="false">
-                <sort>unsorted</sort>
+              
                 <foreign-key/>
                 <cascade/>
             </one-to-many>
             <many-to-many name="dataSets" target-entity="org.hisp.dhis.dataset.DataSet">
-                <sort>unsorted</sort>
+              
             </many-to-many>
             <many-to-many name="programs" target-entity="org.hisp.dhis.program.Program">
-                <sort>unsorted</sort>
+              
             </many-to-many>
             <many-to-many name="groups" target-entity="org.hisp.dhis.organisationunit.OrganisationUnitGroup">
-                <sort>unsorted</sort>
+              
             </many-to-many>
             <many-to-many name="users" target-entity="org.hisp.dhis.user.User">
-                <sort>unsorted</sort>
+              
             </many-to-many>
             <many-to-many name="categoryOptions" target-entity="org.hisp.dhis.category.CategoryOption">
-                <sort>unsorted</sort>
+              
             </many-to-many>
         </attributes>
     </entity>

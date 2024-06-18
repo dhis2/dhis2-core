@@ -94,7 +94,7 @@
                 <cascade/>
             </many-to-one>
             <one-to-many name="interpretations" target-entity="org.hisp.dhis.interpretation.Interpretation" orphan-removal="false">
-                <sort>unsorted</sort>
+              
                 <foreign-key/>
                 <cascade/>
             </one-to-many>
@@ -176,7 +176,7 @@
             <basic name="legendDisplayStrategy" fetch="EAGER" optional="true"/>
             <basic name="showKey" fetch="EAGER" optional="true">
                 <column name="legendshowkey" unique="false">
-                    <default>false</default>
+                    
                 </column>
             </basic>
             <many-to-one name="legendSet" target-entity="org.hisp.dhis.legend.LegendSet" fetch="LAZY" optional="true">

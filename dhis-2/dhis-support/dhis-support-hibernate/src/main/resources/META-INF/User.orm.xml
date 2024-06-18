@@ -91,25 +91,25 @@
                 <cascade/>
             </many-to-one>
             <many-to-many name="groups" target-entity="org.hisp.dhis.user.UserGroup">
-                <sort>unsorted</sort>
+              
             </many-to-many>
             <many-to-many name="organisationUnits" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit">
-                <sort>unsorted</sort>
+              
             </many-to-many>
             <many-to-many name="dataViewOrganisationUnits" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit">
-                <sort>unsorted</sort>
+              
             </many-to-many>
             <many-to-many name="teiSearchOrganisationUnits" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit">
-                <sort>unsorted</sort>
+              
             </many-to-many>
             <many-to-many name="userRoles" target-entity="org.hisp.dhis.user.UserRole">
-                <sort>unsorted</sort>
+              
             </many-to-many>
             <many-to-many name="cogsDimensionConstraints" target-entity="org.hisp.dhis.category.CategoryOptionGroupSet">
-                <sort>unsorted</sort>
+              
             </many-to-many>
             <many-to-many name="catDimensionConstraints" target-entity="org.hisp.dhis.category.Category">
-                <sort>unsorted</sort>
+              
             </many-to-many>
             <element-collection name="apps">
                 <order-column name="sort_order"/>

@@ -42,16 +42,16 @@
                 <cascade/>
             </many-to-one>
             <many-to-many name="organisationUnits" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit">
-                <sort>unsorted</sort>
+              
             </many-to-many>
             <many-to-many name="categoryOptionCombos" target-entity="org.hisp.dhis.category.CategoryOptionCombo">
-                <sort>unsorted</sort>
+              
             </many-to-many>
             <many-to-many name="categories" target-entity="org.hisp.dhis.category.Category">
-                <sort>unsorted</sort>
+              
             </many-to-many>
             <many-to-many name="groups" target-entity="org.hisp.dhis.category.CategoryOptionGroup">
-                <sort>unsorted</sort>
+              
             </many-to-many>
         </attributes>
     </entity>

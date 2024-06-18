@@ -68,10 +68,10 @@
                 <cascade/>
             </many-to-one>
             <many-to-many name="groups" target-entity="org.hisp.dhis.indicator.IndicatorGroup">
-                <sort>unsorted</sort>
+              
             </many-to-many>
             <many-to-many name="dataSets" target-entity="org.hisp.dhis.dataset.DataSet">
-                <sort>unsorted</sort>
+              
             </many-to-many>
             <many-to-many name="legendSets" target-entity="org.hisp.dhis.legend.LegendSet">
                 <order-column name="sort_order"/>

@@ -39,10 +39,10 @@
                 <cascade/>
             </many-to-one>
             <many-to-many name="members" target-entity="org.hisp.dhis.category.CategoryOption">
-                <sort>unsorted</sort>
+              
             </many-to-many>
             <many-to-many name="groupSets" target-entity="org.hisp.dhis.category.CategoryOptionGroupSet">
-                <sort>unsorted</sort>
+              
             </many-to-many>
         </attributes>
     </entity>

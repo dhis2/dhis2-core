@@ -43,7 +43,7 @@
                 <cascade/>
             </many-to-one>
             <element-collection name="deliveryChannels" fetch-mode="SELECT">
-                <sort>unsorted</sort>
+              
                 <column name="deliverychannel" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <collection-table name="programmessage_deliverychannels"/>
             </element-collection>
@@ -63,12 +63,12 @@
                 <cascade/>
             </many-to-one>
             <element-collection name="phoneNumbers" fetch-mode="JOIN">
-                <sort>unsorted</sort>
+              
                 <column name="phoneNumber" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <collection-table name="programmessage_phonenumbers"/>
             </element-collection>
             <element-collection name="emailAddresses" fetch-mode="JOIN">
-                <sort>unsorted</sort>
+              
                 <column name="email" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <collection-table name="programmessage_emailAddresses"/>
             </element-collection>

@@ -84,7 +84,7 @@
                 <cascade/>
             </many-to-one>
             <one-to-many name="dataInputPeriods" target-entity="org.hisp.dhis.dataset.DataInputPeriod" orphan-removal="true">
-                <sort>unsorted</sort>
+              
                 <foreign-key name="fk_datasetdatainputperiods_datasetid"/>
                 <cascade>
                     <cascade-all/>
@@ -92,7 +92,7 @@
                 </cascade>
             </one-to-many>
             <one-to-many name="dataSetElements" target-entity="org.hisp.dhis.dataset.DataSetElement" orphan-removal="true">
-                <sort>unsorted</sort>
+              
                 <foreign-key name="fk_datasetmembers_datasetid"/>
                 <cascade>
                     <cascade-all/>
@@ -101,23 +101,23 @@
             </one-to-many>
             <one-to-many name="sections" target-entity="org.hisp.dhis.dataset.Section" orphan-removal="false">
                 <order-by>sortorder</order-by>
-                <sort>unsorted</sort>
+              
                 <foreign-key/>
                 <cascade/>
             </one-to-many>
             <one-to-many name="interpretations" target-entity="org.hisp.dhis.interpretation.Interpretation" orphan-removal="false">
-                <sort>unsorted</sort>
+              
                 <foreign-key/>
                 <cascade/>
             </one-to-many>
             <many-to-many name="indicators" target-entity="org.hisp.dhis.indicator.Indicator">
-                <sort>unsorted</sort>
+              
             </many-to-many>
             <many-to-many name="compulsoryDataElementOperands" target-entity="org.hisp.dhis.dataelement.DataElementOperand">
-                <sort>unsorted</sort>
+              
             </many-to-many>
             <many-to-many name="sources" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit">
-                <sort>unsorted</sort>
+              
             </many-to-many>
             <many-to-many name="legendSets" target-entity="org.hisp.dhis.legend.LegendSet">
                 <order-column name="sort_order"/>

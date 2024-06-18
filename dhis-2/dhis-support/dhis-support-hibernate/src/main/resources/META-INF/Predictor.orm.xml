@@ -72,10 +72,10 @@
                 <cascade/>
             </many-to-one>
             <many-to-many name="organisationUnitLevels" target-entity="org.hisp.dhis.organisationunit.OrganisationUnitLevel">
-                <sort>unsorted</sort>
+              
             </many-to-many>
             <many-to-many name="groups" target-entity="org.hisp.dhis.predictor.PredictorGroup">
-                <sort>unsorted</sort>
+              
             </many-to-many>
         </attributes>
     </entity>

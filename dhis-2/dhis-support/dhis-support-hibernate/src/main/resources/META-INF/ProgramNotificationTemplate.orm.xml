@@ -64,7 +64,7 @@
                 <cascade/>
             </many-to-one>
             <element-collection name="deliveryChannels" fetch-mode="SELECT">
-                <sort>unsorted</sort>
+              
                 <column name="deliverychannel" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <collection-table name="programnotificationtemplate_deliverychannel"/>
             </element-collection>
