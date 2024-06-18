@@ -168,5 +168,6 @@ class ProgramRuleActionValidatorTest extends DhisConvenienceTest {
     ProgramRuleActionValidationResult result =
         notificationValidator.validate(programRuleAction, validationContext);
     assertFalse(result.isValid());
+    assertEquals(ErrorCode.E4035, result.getErrorReport().getErrorCode());
   }
 }
