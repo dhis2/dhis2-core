@@ -59,6 +59,7 @@ import static org.hisp.dhis.common.IdentifiableProperty.UID;
 import static org.hisp.dhis.commons.collection.ListUtils.sort;
 import static org.hisp.dhis.feedback.ErrorCode.E7124;
 import static org.hisp.dhis.feedback.ErrorCode.E7143;
+import static org.hisp.dhis.feedback.ErrorCode.E7147;
 import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_DATASET;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_LEVEL;
@@ -261,7 +262,7 @@ public class DimensionalObjectProducer {
       periods.add(periodToAdd);
       return;
     }
-    throw new IllegalQueryException("Invalid period: " + isoPeriodHolder.getIsoPeriod());
+    throw new IllegalQueryException(E7147, isoPeriodHolder.getIsoPeriod());
   }
 
   /**
