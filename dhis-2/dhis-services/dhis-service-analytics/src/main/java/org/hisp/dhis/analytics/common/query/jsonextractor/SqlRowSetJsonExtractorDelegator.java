@@ -301,6 +301,7 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
     boolean isStageDefined = event != null;
     boolean isSet =
         event != null
+            && Objects.nonNull(event.getEventDataValues())
             && event.getEventDataValues().containsKey(dimensionIdentifier.getDimension().getUid());
     boolean isScheduled =
         event != null
