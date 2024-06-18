@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.datastore.DatastoreQuery.parseFields;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.security.Authorities.M_DHIS_WEB_APP_MANAGEMENT;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -44,6 +45,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Response.Status;
 import org.hisp.dhis.datastore.DatastoreEntry;
+import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
 import org.hisp.dhis.datastore.DatastoreParams;
 import org.hisp.dhis.datastore.DatastoreQuery;
 import org.hisp.dhis.datastore.DatastoreService;
@@ -51,6 +53,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
@@ -125,6 +128,19 @@ public class DatastoreController extends AbstractDatastoreController {
     }
 
     return keys;
+  }
+
+  @RequiresAuthority(anyOf = M_DHIS_WEB_APP_MANAGEMENT)
+  @GetMapping(value = "/protections", params = "namespace", produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody DatastoreNamespaceProtection getNamespaceProtection(
+      @RequestParam String namespace) {
+    return service.getProtection(namespace);
+  }
+
+  @RequiresAuthority(anyOf = M_DHIS_WEB_APP_MANAGEMENT)
+  @GetMapping(value = "/protections", produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody List<DatastoreNamespaceProtection> getNamespaceProtections() {
+    return service.getProtections();
   }
 
   @OpenApi.Response(status = Status.OK, value = EntriesResponse.class)
