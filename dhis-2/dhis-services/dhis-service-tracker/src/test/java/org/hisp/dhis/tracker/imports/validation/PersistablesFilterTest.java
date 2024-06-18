@@ -361,6 +361,33 @@ class PersistablesFilterTest {
         () -> assertIsEmpty(persistable.getErrors()));
   }
 
+  @Test
+  void testDeleteValidEntitiesCanBeDeleted() {
+    Setup setup =
+        new Setup.Builder()
+            .trackedEntity("xK7H53f4Hc2")
+            .enrollment("t1zaUjKgT3p")
+            .event("Qck4PQ7TMun")
+            .trackedEntity("QxGbKYwChDM")
+            .enrollment("Ok4Fe5moc3N")
+            .event("Ox1qBWsnVwE")
+            .event("jNyGqnwryNi")
+            .relationship("Te3IC6TpnBB", null, null)
+            .build();
+
+    PersistablesFilter.Result persistable =
+        filter(setup.bundle, setup.invalidEntities, TrackerImportStrategy.DELETE);
+
+    assertAll(
+        () -> assertContainsOnly(persistable, TrackedEntity.class, "xK7H53f4Hc2", "QxGbKYwChDM"),
+        () -> assertContainsOnly(persistable, Enrollment.class, "t1zaUjKgT3p", "Ok4Fe5moc3N"),
+        () ->
+            assertContainsOnly(
+                persistable, Event.class, "Qck4PQ7TMun", "Ox1qBWsnVwE", "jNyGqnwryNi"),
+        () -> assertContainsOnly(persistable, Relationship.class, "Te3IC6TpnBB"),
+        () -> assertIsEmpty(persistable.getErrors()));
+  }
+
   @RequiredArgsConstructor
   private static class Entity<T extends TrackerDto> {
     private boolean valid = true;

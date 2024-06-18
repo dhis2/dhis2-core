@@ -173,7 +173,9 @@ class PersistablesFilter {
 
   private <T extends TrackerDto> void collectDeletables(Class<T> type, List<T> entities) {
     for (T entity : entities) {
-      collectPersistable(type, entity);
+      if (isValid(entity)) {
+        collectPersistable(type, entity);
+      }
     }
   }
 
