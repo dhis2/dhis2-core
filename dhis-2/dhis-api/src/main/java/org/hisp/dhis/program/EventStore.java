@@ -79,4 +79,6 @@ public interface EventStore extends IdentifiableObjectStore<Event> {
    */
   List<Event> getWithScheduledNotifications(
       ProgramNotificationTemplate template, Date notificationDate);
+
+  List<Event> getAllWithEventDataValuesRootKeysContainingAnyOf(List<String> searchStrings);
 }

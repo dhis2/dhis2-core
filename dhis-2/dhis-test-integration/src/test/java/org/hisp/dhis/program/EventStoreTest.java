@@ -43,6 +43,7 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
@@ -51,6 +52,7 @@ import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.joda.time.DateTime;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -338,5 +340,50 @@ class EventStoreTest extends TransactionalIntegrationTest {
     results = eventStore.getWithScheduledNotifications(c3, today);
     assertEquals(1, results.size());
     assertEquals(eventC, results.get(0));
+  }
+
+  @Test
+  @DisplayName(
+      "Retrieving Events whose eventdatavalues contain search strings has expected results")
+  void eventDataValuesSearchStringTest() {
+    // given
+    Event e1 = createEvent(stageA, enrollmentA, organisationUnitA);
+    Event e2 = createEvent(stageB, enrollmentB, organisationUnitB);
+    Event e3 = createEvent(stageC, enrollmentB, organisationUnitB);
+    EventDataValue edv1 = new EventDataValue("dataEl1", "value1");
+    EventDataValue edv11 = new EventDataValue("dataEl1", "value11");
+    EventDataValue edv2 = new EventDataValue("dataEl2", "value2");
+    EventDataValue edv3 = new EventDataValue("dataEl3", "value3");
+    Set<EventDataValue> edvs1 = new HashSet<>();
+    edvs1.add(edv1);
+    edvs1.add(edv11);
+    edvs1.add(edv2);
+    Set<EventDataValue> edvs2 = new HashSet<>();
+    Set<EventDataValue> edvs3 = new HashSet<>();
+    edvs2.add(edv1);
+    edvs3.add(edv3);
+
+    e1.setEventDataValues(edvs1);
+    e2.setEventDataValues(edvs2);
+    e3.setEventDataValues(edvs3);
+    eventStore.save(e1);
+    eventStore.save(e2);
+    eventStore.save(e3);
+
+    // when
+    List<Event> events =
+        eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(List.of("dataEl1", "dataEl2"));
+
+    // then
+    assertEquals(2, events.size(), "2 events should be found");
+    assertTrue(
+        events.stream()
+            .flatMap(e -> e.getEventDataValues().stream())
+            .toList()
+            .containsAll(List.of(edv1, edv11, edv2)),
+        "should contain these event data values");
+    assertFalse(
+        events.stream().flatMap(e -> e.getEventDataValues().stream()).toList().contains(edv3),
+        "should not contain this event data value");
   }
 }

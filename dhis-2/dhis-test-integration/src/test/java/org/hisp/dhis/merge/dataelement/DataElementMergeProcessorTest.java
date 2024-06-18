@@ -56,6 +56,7 @@ import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.DataSetStore;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.SectionService;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationService;
 import org.hisp.dhis.expression.Expression;
@@ -74,6 +75,9 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorStore;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorStore;
@@ -92,6 +96,7 @@ import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -130,6 +135,7 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
   @Autowired private IndicatorStore indicatorStore;
   @Autowired private DataEntryFormStore dataEntryFormStore;
   @Autowired private ProgramIndicatorStore programIndicatorStore;
+  @Autowired private EventStore eventStore;
 
   private DataElement deSource1;
   private DataElement deSource2;
@@ -1147,6 +1153,116 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesDeleted(report, piSources, piTarget, allDataElements);
+  }
+
+  // -----------------------------
+  // -- Event eventDataValues --
+  // -----------------------------
+  @Test
+  @DisplayName(
+      "Event eventDataValues references with DataElement have the DataElement ref replaced as expected, source DataElements are not deleted")
+  void eventMergeTest() throws ConflictException {
+    // given
+    TrackedEntity trackedEntity = createTrackedEntity(ou1);
+    identifiableObjectManager.save(trackedEntity);
+    Enrollment enrollment = createEnrollment(program, trackedEntity, ou1);
+    identifiableObjectManager.save(enrollment);
+    ProgramStage stage = createProgramStage('s', 2);
+    identifiableObjectManager.save(stage);
+
+    Event e1 = createEvent(stage, enrollment, ou1);
+    Event e2 = createEvent(stage, enrollment, ou1);
+    Event e3 = createEvent(stage, enrollment, ou1);
+
+    EventDataValue edv1 = new EventDataValue(deSource1.getUid(), "value1");
+    EventDataValue edv11 = new EventDataValue(deSource1.getUid(), "value11");
+    EventDataValue edv2 = new EventDataValue(deSource2.getUid(), "value2");
+    EventDataValue edv3 = new EventDataValue(deTarget.getUid(), "value3");
+    Set<EventDataValue> edvs1 = new HashSet<>();
+    edvs1.add(edv1);
+    edvs1.add(edv11);
+    edvs1.add(edv2);
+    Set<EventDataValue> edvs2 = new HashSet<>();
+    Set<EventDataValue> edvs3 = new HashSet<>();
+    edvs2.add(edv2);
+    edvs3.add(edv3);
+
+    e1.setEventDataValues(edvs1);
+    e2.setEventDataValues(edvs2);
+    e3.setEventDataValues(edvs3);
+    eventStore.save(e1);
+    eventStore.save(e2);
+    eventStore.save(e3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<Event> eventSources =
+        eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(
+            List.of(deSource1.getUid(), deSource2.getUid()));
+    List<Event> eventTarget =
+        eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(List.of(deTarget.getUid()));
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertMergeSuccessfulSourcesNotDeleted(report, eventSources, eventTarget, allDataElements);
+  }
+
+  @Test
+  @DisplayName(
+      "Event eventDataValues references with DataElement have the DataElement ref replaced as expected, source DataElements are deleted")
+  void eventMergeSourcesDeletedTest() throws ConflictException {
+    // given
+    TrackedEntity trackedEntity = createTrackedEntity(ou1);
+    identifiableObjectManager.save(trackedEntity);
+    Enrollment enrollment = createEnrollment(program, trackedEntity, ou1);
+    identifiableObjectManager.save(enrollment);
+    ProgramStage stage = createProgramStage('s', 2);
+    identifiableObjectManager.save(stage);
+
+    Event e1 = createEvent(stage, enrollment, ou1);
+    Event e2 = createEvent(stage, enrollment, ou1);
+    Event e3 = createEvent(stage, enrollment, ou1);
+
+    EventDataValue edv1 = new EventDataValue(deSource1.getUid(), "value1");
+    EventDataValue edv11 = new EventDataValue(deSource1.getUid(), "value11");
+    EventDataValue edv2 = new EventDataValue(deSource2.getUid(), "value2");
+    EventDataValue edv3 = new EventDataValue(deTarget.getUid(), "value3");
+    Set<EventDataValue> edvs1 = new HashSet<>();
+    edvs1.add(edv1);
+    edvs1.add(edv11);
+    edvs1.add(edv2);
+    Set<EventDataValue> edvs2 = new HashSet<>();
+    Set<EventDataValue> edvs3 = new HashSet<>();
+    edvs2.add(edv2);
+    edvs3.add(edv3);
+
+    e1.setEventDataValues(edvs1);
+    e2.setEventDataValues(edvs2);
+    e3.setEventDataValues(edvs3);
+    eventStore.save(e1);
+    eventStore.save(e2);
+    eventStore.save(e3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDeleteSources(true);
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<Event> eventSources =
+        eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(
+            List.of(deSource1.getUid(), deSource2.getUid()));
+    List<Event> eventTarget =
+        eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(List.of(deTarget.getUid()));
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertMergeSuccessfulSourcesDeleted(report, eventSources, eventTarget, allDataElements);
   }
 
   // -------------------------------
