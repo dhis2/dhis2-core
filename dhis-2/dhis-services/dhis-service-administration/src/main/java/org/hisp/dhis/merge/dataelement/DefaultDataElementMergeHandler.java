@@ -29,8 +29,10 @@ package org.hisp.dhis.merge.dataelement;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.datadimensionitem.DataDimensionItemStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupStore;
@@ -89,6 +91,7 @@ public class DefaultDataElementMergeHandler {
   private final SectionStore sectionStore;
   private final DataElementGroupStore dataElementGroupStore;
   private final EventStore eventStore;
+  private final DataDimensionItemStore dataDimensionItemStore;
 
   /**
    * Method retrieving {@link MinMaxDataElement}s by source {@link DataElement} references. All
@@ -339,6 +342,21 @@ public class DefaultDataElementMergeHandler {
         .flatMap(e -> e.getEventDataValues().stream())
         .filter(edv -> deUids.contains(edv.getDataElement()))
         .forEach(edv -> edv.setDataElement(target.getUid()));
+  }
+
+  /**
+   * Method retrieving {@link DataDimensionItem}s by source {@link DataElement} references. All
+   * retrieved {@link DataDimensionItem}s will have their {@link DataElement} ref replaced with the
+   * target {@link DataElement}.
+   *
+   * @param sources source {@link DataElement}s used to retrieve {@link DataDimensionItem}s
+   * @param target {@link DataElement} which will be set as the {@link DataElement} in each {@link
+   *     DataDimensionItem}
+   */
+  public void handleDataDimensionItems(List<DataElement> sources, DataElement target) {
+    List<DataDimensionItem> dataDimensionItems =
+        dataDimensionItemStore.getDataElementDataDimensionItems(sources);
+    dataDimensionItems.forEach(ddi -> ddi.setDataElement(target));
   }
 
   /**

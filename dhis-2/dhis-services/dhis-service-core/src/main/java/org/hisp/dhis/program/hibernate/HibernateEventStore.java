@@ -173,8 +173,8 @@ public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
   }
 
   /**
-   * Store method which searches the `eventdatavalues` jsonb column. It checks if any of the root
-   * keys (which are {@link DataElement}) {@link UID}s, match any of the search strings passed in.
+   * Method which searches the `eventdatavalues` jsonb column. It checks if any of the root keys
+   * (which are {@link DataElement}) {@link UID}s, match any of the search strings passed in.
    *
    * @param searchStrings strings to search for, at the root key level
    * @return all Events whose eventdatavalues contain any of the search strings passed in

@@ -41,8 +41,10 @@ import java.util.Set;
 import javax.persistence.PersistenceException;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.datadimensionitem.DataDimensionItemStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupService;
@@ -136,6 +138,7 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
   @Autowired private DataEntryFormStore dataEntryFormStore;
   @Autowired private ProgramIndicatorStore programIndicatorStore;
   @Autowired private EventStore eventStore;
+  @Autowired private DataDimensionItemStore dataDimensionItemStore;
 
   private DataElement deSource1;
   private DataElement deSource2;
@@ -1974,6 +1977,74 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesDeleted(report, sourceForms, targetForms, allDataElements);
+  }
+
+  // ------------------------
+  // -- DataDimensionItem --
+  // ------------------------
+  @Test
+  @DisplayName(
+      "DataDimensionItems with references for DataElement are replaced as expected, source DataElements are not deleted")
+  void dataDimItemMergeTest() throws ConflictException {
+    // given
+    DataDimensionItem item1 = DataDimensionItem.create(deSource1);
+    DataDimensionItem item2 = DataDimensionItem.create(deSource2);
+    DataDimensionItem item3 = DataDimensionItem.create(deTarget);
+    DataDimensionItem item4 = DataDimensionItem.create(deRandom);
+
+    dataDimensionItemStore.save(item1);
+    dataDimensionItemStore.save(item2);
+    dataDimensionItemStore.save(item3);
+    dataDimensionItemStore.save(item4);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<DataDimensionItem> sourceItems =
+        dataDimensionItemStore.getDataElementDataDimensionItems(List.of(deSource1, deSource2));
+    List<DataDimensionItem> targetItems =
+        dataDimensionItemStore.getDataElementDataDimensionItems(List.of(deTarget));
+
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertMergeSuccessfulSourcesNotDeleted(report, sourceItems, targetItems, allDataElements);
+  }
+
+  @Test
+  @DisplayName(
+      "DataDimensionItems with references for DataElement are replaced as expected, source DataElements are deleted")
+  void dataDimItemMergeSourcesDeletedTest() throws ConflictException {
+    // given
+    DataDimensionItem item1 = DataDimensionItem.create(deSource1);
+    DataDimensionItem item2 = DataDimensionItem.create(deSource2);
+    DataDimensionItem item3 = DataDimensionItem.create(deTarget);
+    DataDimensionItem item4 = DataDimensionItem.create(deRandom);
+
+    dataDimensionItemStore.save(item1);
+    dataDimensionItemStore.save(item2);
+    dataDimensionItemStore.save(item3);
+    dataDimensionItemStore.save(item4);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDeleteSources(true);
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<DataDimensionItem> sourceItems =
+        dataDimensionItemStore.getDataElementDataDimensionItems(List.of(deSource1, deSource2));
+    List<DataDimensionItem> targetItems =
+        dataDimensionItemStore.getDataElementDataDimensionItems(List.of(deTarget));
+
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertMergeSuccessfulSourcesDeleted(report, sourceItems, targetItems, allDataElements);
   }
 
   private void assertMergeSuccessfulSourcesNotDeleted(
