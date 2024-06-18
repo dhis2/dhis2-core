@@ -2,69 +2,63 @@
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
  <entity class="org.hisp.dhis.program.notification.ProgramNotificationTemplate" metadata-complete="true">
         <table name="programnotificationtemplate"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <polymorphism>implicit</polymorphism>
+        
         <attributes>
             <id name="id">
                 <column name="programnotificationtemplateid"/>
             </id>
-            <basic name="uid" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="uid" fetch="EAGER" optional="false">
                 <column name="uid" unique="true" nullable="false" length="11"/>
             </basic>
-            <basic name="code" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="code" fetch="EAGER" optional="true">
                 <column name="code" unique="true" nullable="true" length="50"/>
             </basic>
-            <basic name="created" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="lastUpdated" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="name" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="created" fetch="EAGER" optional="false"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="false"/>
+            <basic name="name" fetch="EAGER" optional="false">
                 <column name="name" unique="false" nullable="false" length="230"/>
             </basic>
-            <basic name="relativeScheduledDays" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="relativeScheduledDays" fetch="EAGER" optional="true">
                 <column name="relativeScheduledDays" unique="false" nullable="true"/>
             </basic>
-            <basic name="subjectTemplate" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="subjectTemplate" fetch="EAGER" optional="true">
                 <column name="subjecttemplate" unique="false" nullable="true" length="100"/>
             </basic>
-            <basic name="messageTemplate" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="messageTemplate" fetch="EAGER" optional="false">
                 <column name="messagetemplate" unique="false" nullable="false"/>
             </basic>
-            <basic name="notifyParentOrganisationUnitOnly" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="notifyParentOrganisationUnitOnly" fetch="EAGER" optional="true">
                 <column name="notifyparentorganisationunitonly" unique="false"/>
             </basic>
-            <basic name="notifyUsersInHierarchyOnly" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="notifyUsersInHierarchyOnly" fetch="EAGER" optional="true">
                 <column name="notifyusersinhierarchyonly" unique="false"/>
             </basic>
-            <basic name="sendRepeatable" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="sendRepeatable" fetch="EAGER" optional="false">
                 <column name="sendrepeatable" unique="false" nullable="false"/>
             </basic>
-            <basic name="notificationTrigger" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="notificationTrigger" fetch="EAGER" optional="true">
                 <column name="notificationtrigger" unique="false"/>
             </basic>
-            <basic name="notificationRecipient" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="notificationRecipient" fetch="EAGER" optional="true">
                 <column name="notificationrecipienttype" unique="false"/>
             </basic>
-            <basic name="translations" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <basic name="translations" fetch="EAGER" optional="true"/>
+            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
                 <join-column name="lastupdatedby" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_lastupdateby_userid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="recipientUserGroup" target-entity="org.hisp.dhis.user.UserGroup" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="recipientUserGroup" target-entity="org.hisp.dhis.user.UserGroup" fetch="LAZY" optional="true">
                 <join-column name="usergroupid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_programstagenotification_usergroup"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="recipientProgramAttribute" target-entity="org.hisp.dhis.trackedentity.TrackedEntityAttribute" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="recipientProgramAttribute" target-entity="org.hisp.dhis.trackedentity.TrackedEntityAttribute" fetch="LAZY" optional="true">
                 <join-column name="trackedentityattributeid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_programstagenotification_trackedentityattributeid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="recipientDataElement" target-entity="org.hisp.dhis.dataelement.DataElement" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="recipientDataElement" target-entity="org.hisp.dhis.dataelement.DataElement" fetch="LAZY" optional="true">
                 <join-column name="dataelementid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_programstagenotification_dataelementid"/>
                 <cascade/>

@@ -1,26 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
+<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm" cacheable="true">
  <entity class="org.hisp.dhis.period.Period" metadata-complete="true">
         <table name="period"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <caching include="all" access="READ_WRITE"/>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <polymorphism>implicit</polymorphism>
+        
         <attributes>
             <id name="id">
                 <column name="periodid"/>
             </id>
-            <basic name="startDate" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="startDate" fetch="EAGER" optional="false">
                 <column name="startdate" unique="false" nullable="false"/>
             </basic>
-            <basic name="endDate" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="endDate" fetch="EAGER" optional="false">
                 <column name="enddate" unique="false" nullable="false"/>
             </basic>
-            <many-to-one name="periodType" target-entity="org.hisp.dhis.period.PeriodType" fetch="EAGER" fetch-mode="SELECT" optional="true">
+            <many-to-one name="periodType" target-entity="org.hisp.dhis.period.PeriodType" fetch="EAGER" optional="true">
                 <join-column name="periodtypeid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_period_periodtypeid"/>
                 <cascade/>

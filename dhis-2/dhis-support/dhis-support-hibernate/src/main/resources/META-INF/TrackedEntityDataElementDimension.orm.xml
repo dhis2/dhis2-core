@@ -2,29 +2,23 @@
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
  <entity class="org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension" metadata-complete="true">
         <table name="trackedentitydataelementdimension"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <polymorphism>implicit</polymorphism>
+        
         <attributes>
             <id name="id">
                 <column name="trackedentitydataelementdimensionid"/>
             </id>
-            <basic name="filter" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <many-to-one name="dataElement" target-entity="org.hisp.dhis.dataelement.DataElement" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <basic name="filter" fetch="EAGER" optional="true"/>
+            <many-to-one name="dataElement" target-entity="org.hisp.dhis.dataelement.DataElement" fetch="LAZY" optional="true">
                 <join-column name="dataelementid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_tedataelementdimension_dataelementid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="legendSet" target-entity="org.hisp.dhis.legend.LegendSet" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="legendSet" target-entity="org.hisp.dhis.legend.LegendSet" fetch="LAZY" optional="true">
                 <join-column name="legendsetid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_tedataelementdimension_legendsetid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="programStage" target-entity="org.hisp.dhis.program.ProgramStage" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="programStage" target-entity="org.hisp.dhis.program.ProgramStage" fetch="LAZY" optional="true">
                 <join-column name="programstageid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_tedataelementdimension_programstageid"/>
                 <cascade/>

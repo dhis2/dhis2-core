@@ -2,38 +2,32 @@
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
  <entity class="org.hisp.dhis.notification.logging.ExternalNotificationLogEntry" metadata-complete="true">
         <table name="externalnotificationlogentry"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <polymorphism>implicit</polymorphism>
+        
         <attributes>
             <id name="id">
                 <column name="externalnotificationlogentryid"/>
             </id>
-            <basic name="uid" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="uid" fetch="EAGER" optional="true">
                 <column name="uid" unique="true" length="11"/>
             </basic>
-            <basic name="created" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="lastUpdated" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="lastSentAt" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="created" fetch="EAGER" optional="false"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="false"/>
+            <basic name="lastSentAt" fetch="EAGER" optional="true">
                 <column name="lastsentat" unique="false" nullable="true"/>
             </basic>
-            <basic name="retries" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="retries" fetch="EAGER" optional="true">
                 <column name="retries" unique="false" nullable="true"/>
             </basic>
-            <basic name="key" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="key" fetch="EAGER" optional="false">
                 <column name="key" unique="true" nullable="false"/>
             </basic>
-            <basic name="notificationTemplateUid" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="notificationTemplateUid" fetch="EAGER" optional="false">
                 <column name="templateuid" unique="false" nullable="false"/>
             </basic>
-            <basic name="allowMultiple" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="allowMultiple" fetch="EAGER" optional="true">
                 <column name="allowmultiple" unique="false"/>
             </basic>
-            <basic name="notificationTriggeredBy" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="notificationTriggeredBy" fetch="EAGER" optional="true">
                 <column name="triggerby" unique="false"/>
             </basic>
         </attributes>

@@ -11,19 +11,19 @@
         <id-class/>
         <polymorphism>implicit</polymorphism>
         <attributes>
-            <basic name="date" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="date" fetch="EAGER" optional="true">
                 <column name="date" unique="false"/>
             </basic>
-            <basic name="storedBy" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="storedBy" fetch="EAGER" optional="true">
                 <column name="storedby" unique="false"/>
             </basic>
-            <basic name="lastUpdated" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="lastUpdated" fetch="EAGER" optional="true">
                 <column name="lastupdated" unique="false"/>
             </basic>
-            <basic name="lastUpdatedBy" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="lastUpdatedBy" fetch="EAGER" optional="true">
                 <column name="lastupdatedby" unique="false"/>
             </basic>
-            <basic name="completed" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="completed" fetch="EAGER" optional="false">
                 <column name="completed" unique="false" nullable="false"/>
             </basic>
             <many-to-one name="dataSet" target-entity="org.hisp.dhis.dataset.DataSet" fetch="LAZY" id="true">

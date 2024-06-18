@@ -2,34 +2,28 @@
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
  <entity class="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLog" metadata-complete="true">
         <table name="trackedentityattributevalueaudit"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <polymorphism>implicit</polymorphism>
+        
         <attributes>
             <id name="id">
                 <column name="trackedentityattributevalueauditid"/>
             </id>
-            <basic name="plainValue" fetch="EAGER" optional="true" attribute-accessor="property" optimistic-lock="true">
+            <basic name="plainValue" fetch="EAGER" optional="true" attribute-accessor="property">
                 <column name="value" unique="false" length="50000"/>
             </basic>
-            <basic name="encryptedValue" fetch="EAGER" optional="true" attribute-accessor="property" optimistic-lock="true">
+            <basic name="encryptedValue" fetch="EAGER" optional="true" attribute-accessor="property">
                 <column name="encryptedvalue" unique="false" length="50000"/>
             </basic>
-            <basic name="created" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="modifiedBy" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="auditType" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="created" fetch="EAGER" optional="true"/>
+            <basic name="modifiedBy" fetch="EAGER" optional="true"/>
+            <basic name="auditType" fetch="EAGER" optional="false">
                 <column name="audittype" unique="false" nullable="false" length="100"/>
             </basic>
-            <many-to-one name="trackedEntity" target-entity="org.hisp.dhis.trackedentity.TrackedEntity" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="trackedEntity" target-entity="org.hisp.dhis.trackedentity.TrackedEntity" fetch="LAZY" optional="true">
                 <join-column name="trackedentityid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_attributevalueaudit_trackedentityinstanceid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="attribute" target-entity="org.hisp.dhis.trackedentity.TrackedEntityAttribute" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="attribute" target-entity="org.hisp.dhis.trackedentity.TrackedEntityAttribute" fetch="LAZY" optional="true">
                 <join-column name="trackedentityattributeid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_attributevalueaudit_trackedentityattributeid"/>
                 <cascade/>

@@ -2,55 +2,49 @@
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
  <entity class="org.hisp.dhis.dataapproval.DataApproval" metadata-complete="true">
         <table name="dataapproval"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <polymorphism>implicit</polymorphism>
+        
         <attributes>
             <id name="id">
                 <column name="dataapprovalid"/>
             </id>
-            <basic name="accepted" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="created" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="accepted" fetch="EAGER" optional="true"/>
+            <basic name="created" fetch="EAGER" optional="false">
                 <column name="created" unique="false" nullable="false"/>
             </basic>
-            <basic name="lastUpdated" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="lastUpdated" fetch="EAGER" optional="true">
                 <column name="lastupdated" unique="false"/>
             </basic>
-            <many-to-one name="dataApprovalLevel" target-entity="org.hisp.dhis.dataapproval.DataApprovalLevel" fetch="LAZY" fetch-mode="SELECT" optional="false">
+            <many-to-one name="dataApprovalLevel" target-entity="org.hisp.dhis.dataapproval.DataApprovalLevel" fetch="LAZY" optional="false">
                 <join-column name="dataapprovallevelid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_dataapproval_dataapprovallevel"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="workflow" target-entity="org.hisp.dhis.dataapproval.DataApprovalWorkflow" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="workflow" target-entity="org.hisp.dhis.dataapproval.DataApprovalWorkflow" fetch="LAZY" optional="true">
                 <join-column name="workflowid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_dataapproval_workflowid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="period" target-entity="org.hisp.dhis.period.Period" fetch="LAZY" fetch-mode="SELECT" optional="false">
+            <many-to-one name="period" target-entity="org.hisp.dhis.period.Period" fetch="LAZY" optional="false">
                 <join-column name="periodid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_dataapproval_periodid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="organisationUnit" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit" fetch="LAZY" fetch-mode="SELECT" optional="false">
+            <many-to-one name="organisationUnit" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit" fetch="LAZY" optional="false">
                 <join-column name="organisationunitid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_dataapproval_organisationunitid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="attributeOptionCombo" target-entity="org.hisp.dhis.category.CategoryOptionCombo" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="attributeOptionCombo" target-entity="org.hisp.dhis.category.CategoryOptionCombo" fetch="LAZY" optional="true">
                 <join-column name="attributeoptioncomboid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_dataapproval_attributeoptioncomboid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="lastUpdatedBy" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="lastUpdatedBy" fetch="LAZY" optional="true">
                 <join-column name="lastupdatedby" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_dataapproval_lastupdateby"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="creator" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="false">
+            <many-to-one name="creator" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="false">
                 <join-column name="creator" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_dataapproval_creator"/>
                 <cascade/>

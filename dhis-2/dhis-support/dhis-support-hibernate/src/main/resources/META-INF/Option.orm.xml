@@ -1,41 +1,34 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
- <entity class="org.hisp.dhis.option.Option" metadata-complete="true">
+ <entity class="org.hisp.dhis.option.Option" metadata-complete="true" cacheable="true">
         <table name="optionvalue"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <caching include="all" access="READ_WRITE"/>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <polymorphism>implicit</polymorphism>
+        
         <attributes>
             <id name="id">
                 <column name="optionvalueid"/>
             </id>
-            <basic name="uid" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="uid" fetch="EAGER" optional="false">
                 <column name="uid" unique="true" nullable="false" length="11"/>
             </basic>
-            <basic name="code" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="code" fetch="EAGER" optional="false">
                 <column name="code" unique="false" nullable="false" length="230"/>
             </basic>
-            <basic name="name" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="name" fetch="EAGER" optional="false">
                 <column name="name" unique="false" nullable="false" length="230"/>
             </basic>
-            <basic name="created" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="lastUpdated" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="sortOrder" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="created" fetch="EAGER" optional="false"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="false"/>
+            <basic name="sortOrder" fetch="EAGER" optional="true">
                 <column name="sort_order" unique="false"/>
             </basic>
-            <basic name="description" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="formName" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="style" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="description" fetch="EAGER" optional="true"/>
+            <basic name="formName" fetch="EAGER" optional="true"/>
+            <basic name="style" fetch="EAGER" optional="true">
                 <column name="style" unique="false"/>
             </basic>
-            <basic name="translations" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="attributeValues" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <many-to-one name="optionSet" target-entity="org.hisp.dhis.option.OptionSet" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <basic name="translations" fetch="EAGER" optional="true"/>
+            <basic name="attributeValues" fetch="EAGER" optional="true"/>
+            <many-to-one name="optionSet" target-entity="org.hisp.dhis.option.OptionSet" fetch="LAZY" optional="true">
                 <join-column name="optionsetid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key/>
                 <cascade/>

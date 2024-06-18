@@ -2,48 +2,42 @@
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
  <entity class="org.hisp.dhis.datavalue.DataValueAudit" metadata-complete="true">
         <table name="datavalueaudit"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <polymorphism>implicit</polymorphism>
+        
         <attributes>
             <id name="id">
                 <column name="datavalueauditid"/>
             </id>
-            <basic name="value" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="created" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="value" fetch="EAGER" optional="true"/>
+            <basic name="created" fetch="EAGER" optional="true">
                 <column name="created" unique="false" nullable="true"/>
             </basic>
-            <basic name="modifiedBy" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="modifiedBy" fetch="EAGER" optional="true">
                 <column name="modifiedby" unique="false" length="100"/>
             </basic>
-            <basic name="auditType" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="auditType" fetch="EAGER" optional="false">
                 <column name="audittype" unique="false" nullable="false" length="100"/>
             </basic>
-            <many-to-one name="dataElement" target-entity="org.hisp.dhis.dataelement.DataElement" fetch="LAZY" fetch-mode="SELECT" optional="false">
+            <many-to-one name="dataElement" target-entity="org.hisp.dhis.dataelement.DataElement" fetch="LAZY" optional="false">
                 <join-column name="dataelementid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_datavalueaudit_dataelementid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="period" target-entity="org.hisp.dhis.period.Period" fetch="LAZY" fetch-mode="SELECT" optional="false">
+            <many-to-one name="period" target-entity="org.hisp.dhis.period.Period" fetch="LAZY" optional="false">
                 <join-column name="periodid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_datavalueaudit_periodid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="organisationUnit" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit" fetch="LAZY" fetch-mode="SELECT" optional="false">
+            <many-to-one name="organisationUnit" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit" fetch="LAZY" optional="false">
                 <join-column name="organisationunitid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_datavalueaudit_organisationunitid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="categoryOptionCombo" target-entity="org.hisp.dhis.category.CategoryOptionCombo" fetch="LAZY" fetch-mode="SELECT" optional="false">
+            <many-to-one name="categoryOptionCombo" target-entity="org.hisp.dhis.category.CategoryOptionCombo" fetch="LAZY" optional="false">
                 <join-column name="categoryoptioncomboid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_datavalueaudit_categoryoptioncomboid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="attributeOptionCombo" target-entity="org.hisp.dhis.category.CategoryOptionCombo" fetch="LAZY" fetch-mode="SELECT" optional="false">
+            <many-to-one name="attributeOptionCombo" target-entity="org.hisp.dhis.category.CategoryOptionCombo" fetch="LAZY" optional="false">
                 <join-column name="attributeoptioncomboid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_datavalueaudit_attributeoptioncomboid"/>
                 <cascade/>

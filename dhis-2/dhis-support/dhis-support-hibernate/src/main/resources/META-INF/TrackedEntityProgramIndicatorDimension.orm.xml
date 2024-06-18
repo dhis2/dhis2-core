@@ -2,24 +2,18 @@
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
  <entity class="org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension" metadata-complete="true">
         <table name="trackedentityprogramindicatordimension"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <polymorphism>implicit</polymorphism>
+        
         <attributes>
             <id name="id">
                 <column name="trackedentityprogramindicatordimensionid"/>
             </id>
-            <basic name="filter" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <many-to-one name="programIndicator" target-entity="org.hisp.dhis.program.ProgramIndicator" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <basic name="filter" fetch="EAGER" optional="true"/>
+            <many-to-one name="programIndicator" target-entity="org.hisp.dhis.program.ProgramIndicator" fetch="LAZY" optional="true">
                 <join-column name="programindicatorid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_teprogramindicatordimension_programindicatorid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="legendSet" target-entity="org.hisp.dhis.legend.LegendSet" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="legendSet" target-entity="org.hisp.dhis.legend.LegendSet" fetch="LAZY" optional="true">
                 <join-column name="legendsetid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_teprogramindicatordimension_legendsetid"/>
                 <cascade/>

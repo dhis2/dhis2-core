@@ -2,83 +2,77 @@
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
  <entity class="org.hisp.dhis.datastatistics.DataStatistics" metadata-complete="true">
         <table name="datastatistics"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <polymorphism>implicit</polymorphism>
+        
         <attributes>
             <id name="id">
                 <column name="statisticsid"/>
             </id>
-            <basic name="uid" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="uid" fetch="EAGER" optional="false">
                 <column name="uid" unique="true" nullable="false" length="11"/>
             </basic>
-            <basic name="code" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="code" fetch="EAGER" optional="true">
                 <column name="code" unique="true" nullable="true" length="50"/>
             </basic>
-            <basic name="created" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="lastUpdated" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="mapViews" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="created" fetch="EAGER" optional="false"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="false"/>
+            <basic name="mapViews" fetch="EAGER" optional="true">
                 <column name="mapviews" unique="false"/>
             </basic>
-            <basic name="visualizationViews" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="visualizationViews" fetch="EAGER" optional="true">
                 <column name="visualizationviews" unique="false"/>
             </basic>
-            <basic name="eventReportViews" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="eventReportViews" fetch="EAGER" optional="true">
                 <column name="eventreportviews" unique="false"/>
             </basic>
-            <basic name="eventChartViews" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="eventChartViews" fetch="EAGER" optional="true">
                 <column name="eventchartviews" unique="false"/>
             </basic>
-            <basic name="eventVisualizationViews" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="eventVisualizationViews" fetch="EAGER" optional="true">
                 <column name="eventvisualizationviews" unique="false"/>
             </basic>
-            <basic name="dashboardViews" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="dashboardViews" fetch="EAGER" optional="true">
                 <column name="dashboardviews" unique="false"/>
             </basic>
-            <basic name="passiveDashboardViews" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="passiveDashboardViews" fetch="EAGER" optional="true">
                 <column name="passivedashboardviews" unique="false"/>
             </basic>
-            <basic name="dataSetReportViews" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="dataSetReportViews" fetch="EAGER" optional="true">
                 <column name="datasetreportviews" unique="false"/>
             </basic>
-            <basic name="activeUsers" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="activeUsers" fetch="EAGER" optional="true">
                 <column name="active_users" unique="false"/>
             </basic>
-            <basic name="totalViews" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="totalViews" fetch="EAGER" optional="true">
                 <column name="totalviews" unique="false"/>
             </basic>
-            <basic name="savedMaps" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="savedMaps" fetch="EAGER" optional="true">
                 <column name="maps" unique="false"/>
             </basic>
-            <basic name="savedVisualizations" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="savedVisualizations" fetch="EAGER" optional="true">
                 <column name="visualizations" unique="false"/>
             </basic>
-            <basic name="savedEventReports" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="savedEventReports" fetch="EAGER" optional="true">
                 <column name="eventreports" unique="false"/>
             </basic>
-            <basic name="savedEventCharts" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="savedEventCharts" fetch="EAGER" optional="true">
                 <column name="eventcharts" unique="false"/>
             </basic>
-            <basic name="savedEventVisualizations" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="savedEventVisualizations" fetch="EAGER" optional="true">
                 <column name="eventvisualizations" unique="false"/>
             </basic>
-            <basic name="savedDashboards" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="savedDashboards" fetch="EAGER" optional="true">
                 <column name="dashboards" unique="false"/>
             </basic>
-            <basic name="savedIndicators" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="savedIndicators" fetch="EAGER" optional="true">
                 <column name="indicators" unique="false"/>
             </basic>
-            <basic name="savedDataValues" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="savedDataValues" fetch="EAGER" optional="true">
                 <column name="datavalues" unique="false"/>
             </basic>
-            <basic name="users" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="users" fetch="EAGER" optional="true">
                 <column name="users" unique="false"/>
             </basic>
-            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
                 <join-column name="lastupdatedby" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_lastupdateby_userid"/>
                 <cascade/>

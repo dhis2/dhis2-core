@@ -6,19 +6,13 @@
     
     <entity class="SMSSpecialCharacter" metadata-complete="true">
         <table name="smsspecialcharacter"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <polymorphism>implicit</polymorphism>
+        
         <attributes>
             <id name="id">
                 <column name="specialcharacterid"/>
             </id>
-            <basic name="name" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="value" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="name" fetch="EAGER" optional="true"/>
+            <basic name="value" fetch="EAGER" optional="true"/>
         </attributes>
     </entity>
 </entity-mappings>

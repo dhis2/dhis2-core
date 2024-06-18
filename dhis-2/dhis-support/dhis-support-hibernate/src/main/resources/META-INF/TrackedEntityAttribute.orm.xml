@@ -1,80 +1,73 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
- <entity class="org.hisp.dhis.trackedentity.TrackedEntityAttribute" metadata-complete="true">
+ <entity class="org.hisp.dhis.trackedentity.TrackedEntityAttribute" metadata-complete="true" cacheable="true">
         <table name="trackedentityattribute"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <caching include="all" access="READ_WRITE"/>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <polymorphism>implicit</polymorphism>
+        
         <attributes>
             <id name="id">
                 <column name="trackedentityattributeid"/>
             </id>
-            <basic name="uid" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="uid" fetch="EAGER" optional="false">
                 <column name="uid" unique="true" nullable="false" length="11"/>
             </basic>
-            <basic name="code" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="code" fetch="EAGER" optional="true">
                 <column name="code" unique="true" nullable="true" length="50"/>
             </basic>
-            <basic name="created" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="lastUpdated" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="name" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="created" fetch="EAGER" optional="false"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="false"/>
+            <basic name="name" fetch="EAGER" optional="false">
                 <column name="name" unique="true" nullable="false" length="230"/>
             </basic>
-            <basic name="shortName" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="shortName" fetch="EAGER" optional="false">
                 <column name="shortname" unique="true" nullable="false" length="50"/>
             </basic>
-            <basic name="description" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="formName" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="valueType" fetch="EAGER" optional="false" attribute-accessor="property" optimistic-lock="true">
+            <basic name="description" fetch="EAGER" optional="true"/>
+            <basic name="formName" fetch="EAGER" optional="true"/>
+            <basic name="valueType" fetch="EAGER" optional="false" attribute-accessor="property">
                 <column name="valuetype" unique="false" nullable="false" length="36"/>
             </basic>
-            <basic name="aggregationType" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="inherit" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="aggregationType" fetch="EAGER" optional="false"/>
+            <basic name="inherit" fetch="EAGER" optional="true">
                 <column name="inherit" unique="false"/>
             </basic>
-            <basic name="expression" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="expression" fetch="EAGER" optional="true">
                 <column name="expression" unique="false"/>
             </basic>
-            <basic name="displayOnVisitSchedule" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="sortOrderInVisitSchedule" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="displayInListNoProgram" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="sortOrderInListNoProgram" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="confidential" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="unique" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="displayOnVisitSchedule" fetch="EAGER" optional="true"/>
+            <basic name="sortOrderInVisitSchedule" fetch="EAGER" optional="true"/>
+            <basic name="displayInListNoProgram" fetch="EAGER" optional="true"/>
+            <basic name="sortOrderInListNoProgram" fetch="EAGER" optional="true"/>
+            <basic name="confidential" fetch="EAGER" optional="true"/>
+            <basic name="unique" fetch="EAGER" optional="true">
                 <column name="uniquefield" unique="false"/>
             </basic>
-            <basic name="generated" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="pattern" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="textPattern" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="generated" fetch="EAGER" optional="true"/>
+            <basic name="pattern" fetch="EAGER" optional="true"/>
+            <basic name="textPattern" fetch="EAGER" optional="true">
                 <column name="textpattern" unique="false" nullable="true"/>
             </basic>
-            <basic name="fieldMask" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="style" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="fieldMask" fetch="EAGER" optional="true"/>
+            <basic name="style" fetch="EAGER" optional="true">
                 <column name="style" unique="false"/>
             </basic>
-            <basic name="orgunitScope" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="skipSynchronization" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="orgunitScope" fetch="EAGER" optional="true"/>
+            <basic name="skipSynchronization" fetch="EAGER" optional="true">
                 <column name="skipsynchronization" unique="false" nullable="true"/>
             </basic>
-            <basic name="translations" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="sharing" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="attributeValues" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <basic name="translations" fetch="EAGER" optional="true"/>
+            <basic name="sharing" fetch="EAGER" optional="true"/>
+            <basic name="attributeValues" fetch="EAGER" optional="true"/>
+            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
                 <join-column name="lastupdatedby" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_lastupdateby_userid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="optionSet" target-entity="org.hisp.dhis.option.OptionSet" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="optionSet" target-entity="org.hisp.dhis.option.OptionSet" fetch="LAZY" optional="true">
                 <join-column name="optionsetid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_trackedentityattribute_optionsetid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="createdBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="createdBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
                 <join-column name="userid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_trackedentityattribute_userid"/>
                 <cascade/>

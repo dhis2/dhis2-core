@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
+<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm" cacheable="true">
  <entity class="org.hisp.dhis.user.User" metadata-complete="true">
         <table name="userinfo"/>
         <dynamic-insert>false</dynamic-insert>
@@ -15,77 +15,77 @@
             <id name="id">
                 <column name="userinfoid"/>
             </id>
-            <basic name="uid" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="uid" fetch="EAGER" optional="true">
                 <column name="uid" unique="false" length="11"/>
             </basic>
-            <basic name="code" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="code" fetch="EAGER" optional="true">
                 <column name="code" unique="true" nullable="true" length="50"/>
             </basic>
-            <basic name="lastUpdated" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="created" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="surname" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="firstName" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="email" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="phoneNumber" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="jobTitle" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="introduction" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="gender" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="birthday" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="nationality" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="employer" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="education" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="interests" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="languages" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="welcomeMessage" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="lastCheckedInterpretations" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="whatsApp" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="skype" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="facebookMessenger" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="telegram" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="twitter" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="dataViewMaxOrganisationUnitLevel" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="lastUpdated" fetch="EAGER" optional="false"/>
+            <basic name="created" fetch="EAGER" optional="false"/>
+            <basic name="surname" fetch="EAGER" optional="true"/>
+            <basic name="firstName" fetch="EAGER" optional="true"/>
+            <basic name="email" fetch="EAGER" optional="true"/>
+            <basic name="phoneNumber" fetch="EAGER" optional="true"/>
+            <basic name="jobTitle" fetch="EAGER" optional="true"/>
+            <basic name="introduction" fetch="EAGER" optional="true"/>
+            <basic name="gender" fetch="EAGER" optional="true"/>
+            <basic name="birthday" fetch="EAGER" optional="true"/>
+            <basic name="nationality" fetch="EAGER" optional="true"/>
+            <basic name="employer" fetch="EAGER" optional="true"/>
+            <basic name="education" fetch="EAGER" optional="true"/>
+            <basic name="interests" fetch="EAGER" optional="true"/>
+            <basic name="languages" fetch="EAGER" optional="true"/>
+            <basic name="welcomeMessage" fetch="EAGER" optional="true"/>
+            <basic name="lastCheckedInterpretations" fetch="EAGER" optional="true"/>
+            <basic name="whatsApp" fetch="EAGER" optional="true"/>
+            <basic name="skype" fetch="EAGER" optional="true"/>
+            <basic name="facebookMessenger" fetch="EAGER" optional="true"/>
+            <basic name="telegram" fetch="EAGER" optional="true"/>
+            <basic name="twitter" fetch="EAGER" optional="true"/>
+            <basic name="dataViewMaxOrganisationUnitLevel" fetch="EAGER" optional="true">
                 <column name="dataviewmaxorgunitlevel" unique="false"/>
             </basic>
-            <basic name="attributeValues" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="uuid" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="attributeValues" fetch="EAGER" optional="true"/>
+            <basic name="uuid" fetch="EAGER" optional="true">
                 <column name="uuid" unique="true" nullable="true"/>
             </basic>
-            <basic name="username" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="username" fetch="EAGER" optional="false">
                 <column name="username" unique="true" nullable="false"/>
             </basic>
-            <basic name="password" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="password" fetch="EAGER" optional="true">
                 <column name="password" unique="false" nullable="true" length="60"/>
             </basic>
-            <basic name="secret" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="externalAuth" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="secret" fetch="EAGER" optional="true"/>
+            <basic name="externalAuth" fetch="EAGER" optional="true">
                 <column name="externalauth" unique="false"/>
             </basic>
-            <basic name="openId" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="openId" fetch="EAGER" optional="true">
                 <column name="openid" unique="true"/>
             </basic>
-            <basic name="ldapId" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="ldapId" fetch="EAGER" optional="true">
                 <column name="ldapid" unique="true"/>
             </basic>
-            <basic name="passwordLastUpdated" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="lastLogin" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="idToken" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="restoreToken" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="restoreExpiry" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="selfRegistered" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="invitation" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="disabled" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="accountExpiry" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <basic name="passwordLastUpdated" fetch="EAGER" optional="true"/>
+            <basic name="lastLogin" fetch="EAGER" optional="true"/>
+            <basic name="idToken" fetch="EAGER" optional="true"/>
+            <basic name="restoreToken" fetch="EAGER" optional="true"/>
+            <basic name="restoreExpiry" fetch="EAGER" optional="true"/>
+            <basic name="selfRegistered" fetch="EAGER" optional="true"/>
+            <basic name="invitation" fetch="EAGER" optional="true"/>
+            <basic name="disabled" fetch="EAGER" optional="true"/>
+            <basic name="accountExpiry" fetch="EAGER" optional="true"/>
+            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
                 <join-column name="lastupdatedby" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_lastupdateby_userid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="avatar" target-entity="org.hisp.dhis.fileresource.FileResource" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="avatar" target-entity="org.hisp.dhis.fileresource.FileResource" fetch="LAZY" optional="true">
                 <join-column name="avatar" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_user_fileresourceid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="createdBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="createdBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
                 <join-column name="creatoruserid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_user_userid"/>
                 <cascade/>

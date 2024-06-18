@@ -1,20 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
- <entity class="org.hisp.dhis.category.CategoryDimension" metadata-complete="true">
+ <entity class="org.hisp.dhis.category.CategoryDimension" metadata-complete="true" cacheable="true">
         <table name="categorydimension"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <caching include="all" access="READ_WRITE"/>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <polymorphism>implicit</polymorphism>
+        
         <attributes>
             <id name="id">
                 <column name="categorydimensionid"/>
             </id>
-            <many-to-one name="dimension" target-entity="org.hisp.dhis.category.Category" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="dimension" target-entity="org.hisp.dhis.category.Category" fetch="LAZY" optional="true">
                 <join-column name="categoryid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_categorydimension_category"/>
                 <cascade/>

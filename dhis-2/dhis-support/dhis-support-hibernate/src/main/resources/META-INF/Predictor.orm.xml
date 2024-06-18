@@ -2,51 +2,45 @@
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
  <entity class="org.hisp.dhis.predictor.Predictor" metadata-complete="true">
         <table name="predictor"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <polymorphism>implicit</polymorphism>
+        
         <attributes>
             <id name="id">
                 <column name="predictorid"/>
             </id>
-            <basic name="uid" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="uid" fetch="EAGER" optional="false">
                 <column name="uid" unique="true" nullable="false" length="11"/>
             </basic>
-            <basic name="code" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="code" fetch="EAGER" optional="true">
                 <column name="code" unique="true" nullable="true" length="50"/>
             </basic>
-            <basic name="created" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="lastUpdated" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="name" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="created" fetch="EAGER" optional="false"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="false"/>
+            <basic name="name" fetch="EAGER" optional="false">
                 <column name="name" unique="true" nullable="false" length="230"/>
             </basic>
-            <basic name="shortName" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="shortName" fetch="EAGER" optional="false">
                 <column name="shortname" unique="true" nullable="false" length="50"/>
             </basic>
-            <basic name="description" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="organisationUnitDescendants" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="description" fetch="EAGER" optional="true"/>
+            <basic name="organisationUnitDescendants" fetch="EAGER" optional="false">
                 <column name="organisationunitdescendants" unique="false" nullable="false" length="100"/>
             </basic>
-            <basic name="sequentialSampleCount" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="sequentialSampleCount" fetch="EAGER" optional="false">
                 <column name="sequentialsamplecount" unique="false" nullable="false"/>
             </basic>
-            <basic name="annualSampleCount" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="annualSampleCount" fetch="EAGER" optional="false">
                 <column name="annualsamplecount" unique="false" nullable="false"/>
             </basic>
-            <basic name="sequentialSkipCount" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="sequentialSkipCount" fetch="EAGER" optional="true">
                 <column name="sequentialskipcount" unique="false"/>
             </basic>
-            <basic name="translations" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <basic name="translations" fetch="EAGER" optional="true"/>
+            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
                 <join-column name="lastupdatedby" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_lastupdateby_userid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="generator" target-entity="org.hisp.dhis.expression.Expression" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="generator" target-entity="org.hisp.dhis.expression.Expression" fetch="LAZY" optional="true">
                 <join-column name="generatorexpressionid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_predictor_generatorexpressionid"/>
                 <cascade>
@@ -54,17 +48,17 @@
                     <cascade-delete/>
                 </cascade>
             </many-to-one>
-            <many-to-one name="output" target-entity="org.hisp.dhis.dataelement.DataElement" fetch="LAZY" fetch-mode="SELECT" optional="false">
+            <many-to-one name="output" target-entity="org.hisp.dhis.dataelement.DataElement" fetch="LAZY" optional="false">
                 <join-column name="generatoroutput" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_predictor_outputdataelementid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="outputCombo" target-entity="org.hisp.dhis.category.CategoryOptionCombo" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="outputCombo" target-entity="org.hisp.dhis.category.CategoryOptionCombo" fetch="LAZY" optional="true">
                 <join-column name="generatoroutputcombo" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_predictor_outputcomboid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="sampleSkipTest" target-entity="org.hisp.dhis.expression.Expression" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="sampleSkipTest" target-entity="org.hisp.dhis.expression.Expression" fetch="LAZY" optional="true">
                 <join-column name="skiptestexpressionid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_validationrule_skiptestexpressionid"/>
                 <cascade>
@@ -72,7 +66,7 @@
                     <cascade-delete/>
                 </cascade>
             </many-to-one>
-            <many-to-one name="periodType" target-entity="org.hisp.dhis.period.PeriodType" fetch="LAZY" fetch-mode="SELECT" optional="false">
+            <many-to-one name="periodType" target-entity="org.hisp.dhis.period.PeriodType" fetch="LAZY" optional="false">
                 <join-column name="periodtypeid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_validationrule_periodtypeid"/>
                 <cascade/>

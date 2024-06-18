@@ -6,31 +6,25 @@
     
     <entity class="SMSCode" metadata-complete="true">
         <table name="smscodes"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <polymorphism>implicit</polymorphism>
+        
         <attributes>
             <id name="id">
                 <column name="smscodeid"/>
             </id>
-            <basic name="code" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="formula" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="compulsory" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <many-to-one name="dataElement" target-entity="org.hisp.dhis.dataelement.DataElement" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <basic name="code" fetch="EAGER" optional="true"/>
+            <basic name="formula" fetch="EAGER" optional="true"/>
+            <basic name="compulsory" fetch="EAGER" optional="true"/>
+            <many-to-one name="dataElement" target-entity="org.hisp.dhis.dataelement.DataElement" fetch="LAZY" optional="true">
                 <join-column name="dataelementid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_dataelement_dataelementid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="trackedEntityAttribute" target-entity="org.hisp.dhis.trackedentity.TrackedEntityAttribute" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="trackedEntityAttribute" target-entity="org.hisp.dhis.trackedentity.TrackedEntityAttribute" fetch="LAZY" optional="true">
                 <join-column name="trackedentityattributeid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_trackedentityattribute_trackedentityattributeid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="optionId" target-entity="org.hisp.dhis.category.CategoryOptionCombo" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="optionId" target-entity="org.hisp.dhis.category.CategoryOptionCombo" fetch="LAZY" optional="true">
                 <join-column name="optionid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_categoryoptioncombo_categoryoptioncomboid"/>
                 <cascade/>

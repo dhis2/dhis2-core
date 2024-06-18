@@ -1,21 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
- <entity class="org.hisp.dhis.visualization.Axis" metadata-complete="true">
+ <entity class="org.hisp.dhis.visualization.Axis" metadata-complete="true" cacheable="true">
         <table name="axis"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <caching include="all" access="READ_WRITE"/>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <polymorphism>implicit</polymorphism>
+        
         <attributes>
             <id name="id">
                 <column name="axisid"/>
             </id>
-            <basic name="dimensionalItem" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="axis" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="dimensionalItem" fetch="EAGER" optional="false"/>
+            <basic name="axis" fetch="EAGER" optional="false">
                 <column name="axis" unique="false" nullable="false"/>
             </basic>
         </attributes>

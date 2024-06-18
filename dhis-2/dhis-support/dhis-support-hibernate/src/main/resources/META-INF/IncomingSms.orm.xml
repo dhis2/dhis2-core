@@ -2,28 +2,22 @@
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
  <entity class="org.hisp.dhis.sms.incoming.IncomingSms" metadata-complete="true">
         <table name="incomingsms"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <polymorphism>implicit</polymorphism>
+        
         <attributes>
             <id name="id"/>
-            <basic name="uid" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="uid" fetch="EAGER" optional="false">
                 <column name="uid" unique="true" nullable="false" length="11"/>
             </basic>
-            <basic name="originator" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="encoding" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="sentDate" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="receivedDate" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="text" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="gatewayId" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="status" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="parsed" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="statusMessage" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <many-to-one name="createdBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <basic name="originator" fetch="EAGER" optional="false"/>
+            <basic name="encoding" fetch="EAGER" optional="false"/>
+            <basic name="sentDate" fetch="EAGER" optional="false"/>
+            <basic name="receivedDate" fetch="EAGER" optional="false"/>
+            <basic name="text" fetch="EAGER" optional="true"/>
+            <basic name="gatewayId" fetch="EAGER" optional="false"/>
+            <basic name="status" fetch="EAGER" optional="false"/>
+            <basic name="parsed" fetch="EAGER" optional="true"/>
+            <basic name="statusMessage" fetch="EAGER" optional="true"/>
+            <many-to-one name="createdBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
                 <join-column name="userid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_incomingsms_userid"/>
                 <cascade/>

@@ -1,91 +1,84 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
- <entity class="org.hisp.dhis.dataset.DataSet" metadata-complete="true">
+ <entity class="org.hisp.dhis.dataset.DataSet" metadata-complete="true" cacheable="true">
         <table name="dataset"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <caching include="all" access="READ_WRITE"/>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <polymorphism>implicit</polymorphism>
+        
         <attributes>
             <id name="id">
                 <column name="datasetid"/>
             </id>
-            <basic name="uid" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="uid" fetch="EAGER" optional="false">
                 <column name="uid" unique="true" nullable="false" length="11"/>
             </basic>
-            <basic name="code" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="code" fetch="EAGER" optional="true">
                 <column name="code" unique="true" nullable="true" length="50"/>
             </basic>
-            <basic name="created" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="lastUpdated" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="name" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="created" fetch="EAGER" optional="false"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="false"/>
+            <basic name="name" fetch="EAGER" optional="false">
                 <column name="name" unique="false" nullable="false" length="230"/>
             </basic>
-            <basic name="shortName" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="shortName" fetch="EAGER" optional="false">
                 <column name="shortname" unique="true" nullable="false" length="50"/>
             </basic>
-            <basic name="description" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="formName" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="style" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="description" fetch="EAGER" optional="true"/>
+            <basic name="formName" fetch="EAGER" optional="true"/>
+            <basic name="style" fetch="EAGER" optional="true">
                 <column name="style" unique="false"/>
             </basic>
-            <basic name="mobile" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="version" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="expiryDays" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="timelyDays" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="notifyCompletingUser" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="openFuturePeriods" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="mobile" fetch="EAGER" optional="false"/>
+            <basic name="version" fetch="EAGER" optional="true"/>
+            <basic name="expiryDays" fetch="EAGER" optional="true"/>
+            <basic name="timelyDays" fetch="EAGER" optional="true"/>
+            <basic name="notifyCompletingUser" fetch="EAGER" optional="true"/>
+            <basic name="openFuturePeriods" fetch="EAGER" optional="true">
                 <column name="openfutureperiods" unique="false"/>
             </basic>
-            <basic name="openPeriodsAfterCoEndDate" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="openPeriodsAfterCoEndDate" fetch="EAGER" optional="true">
                 <column name="openperiodsaftercoenddate" unique="false"/>
             </basic>
-            <basic name="fieldCombinationRequired" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="validCompleteOnly" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="noValueRequiresComment" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="skipOffline" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="dataElementDecoration" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="renderAsTabs" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="renderHorizontally" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="compulsoryFieldsCompleteOnly" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="translations" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="attributeValues" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="sharing" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <basic name="fieldCombinationRequired" fetch="EAGER" optional="true"/>
+            <basic name="validCompleteOnly" fetch="EAGER" optional="true"/>
+            <basic name="noValueRequiresComment" fetch="EAGER" optional="true"/>
+            <basic name="skipOffline" fetch="EAGER" optional="true"/>
+            <basic name="dataElementDecoration" fetch="EAGER" optional="true"/>
+            <basic name="renderAsTabs" fetch="EAGER" optional="true"/>
+            <basic name="renderHorizontally" fetch="EAGER" optional="true"/>
+            <basic name="compulsoryFieldsCompleteOnly" fetch="EAGER" optional="true"/>
+            <basic name="translations" fetch="EAGER" optional="true"/>
+            <basic name="attributeValues" fetch="EAGER" optional="true"/>
+            <basic name="sharing" fetch="EAGER" optional="true"/>
+            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
                 <join-column name="lastupdatedby" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_lastupdateby_userid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="periodType" target-entity="org.hisp.dhis.period.PeriodType" fetch="EAGER" fetch-mode="SELECT" optional="false">
+            <many-to-one name="periodType" target-entity="org.hisp.dhis.period.PeriodType" fetch="EAGER" optional="false">
                 <join-column name="periodtypeid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_dataset_periodtypeid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="categoryCombo" target-entity="org.hisp.dhis.category.CategoryCombo" fetch="LAZY" fetch-mode="SELECT" optional="false">
+            <many-to-one name="categoryCombo" target-entity="org.hisp.dhis.category.CategoryCombo" fetch="LAZY" optional="false">
                 <join-column name="categorycomboid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_dataset_categorycomboid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="dataEntryForm" target-entity="org.hisp.dhis.dataentryform.DataEntryForm" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="dataEntryForm" target-entity="org.hisp.dhis.dataentryform.DataEntryForm" fetch="LAZY" optional="true">
                 <foreign-key name="fk_dataset_dataentryform"/>
                 <cascade>
                     <cascade-all/>
                 </cascade>
             </many-to-one>
-            <many-to-one name="notificationRecipients" target-entity="org.hisp.dhis.user.UserGroup" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="notificationRecipients" target-entity="org.hisp.dhis.user.UserGroup" fetch="LAZY" optional="true">
                 <foreign-key name="fk_dataset_notificationrecipients"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="workflow" target-entity="org.hisp.dhis.dataapproval.DataApprovalWorkflow" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="workflow" target-entity="org.hisp.dhis.dataapproval.DataApprovalWorkflow" fetch="LAZY" optional="true">
                 <join-column name="workflowid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_dataset_workflowid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="createdBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="createdBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
                 <join-column name="userid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_dataset_userid"/>
                 <cascade/>

@@ -5,72 +5,65 @@
     
     <entity class="org.hisp.dhis.dataelement.DataElement" metadata-complete="true">
         <table name="dataelement"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <caching include="all" access="READ_WRITE"/>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <polymorphism>implicit</polymorphism>
+        
         <attributes>
             <id name="id">
                 <column name="dataelementid"/>
             </id>
-            <basic name="uid" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="uid" fetch="EAGER" optional="false">
                 <column name="uid" unique="true" nullable="false" length="11"/>
             </basic>
-            <basic name="code" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="code" fetch="EAGER" optional="true">
                 <column name="code" unique="true" nullable="true" length="50"/>
             </basic>
-            <basic name="created" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="lastUpdated" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="name" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="created" fetch="EAGER" optional="false"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="false"/>
+            <basic name="name" fetch="EAGER" optional="false">
                 <column name="name" unique="true" nullable="false" length="230"/>
             </basic>
-            <basic name="shortName" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="shortName" fetch="EAGER" optional="false">
                 <column name="shortname" unique="true" nullable="false" length="50"/>
             </basic>
-            <basic name="description" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="formName" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="style" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="description" fetch="EAGER" optional="true"/>
+            <basic name="formName" fetch="EAGER" optional="true"/>
+            <basic name="style" fetch="EAGER" optional="true">
                 <column name="style" unique="false"/>
             </basic>
-            <basic name="fieldMask" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="translations" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="valueType" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="valueTypeOptions" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="domainType" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="fieldMask" fetch="EAGER" optional="true"/>
+            <basic name="translations" fetch="EAGER" optional="true"/>
+            <basic name="valueType" fetch="EAGER" optional="false"/>
+            <basic name="valueTypeOptions" fetch="EAGER" optional="true"/>
+            <basic name="domainType" fetch="EAGER" optional="false">
                 <column name="domainType" unique="false" nullable="false"/>
             </basic>
-            <basic name="aggregationType" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="aggregationType" fetch="EAGER" optional="false">
                 <column name="aggregationtype" unique="false" nullable="false" length="50"/>
             </basic>
-            <basic name="url" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="zeroIsSignificant" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="attributeValues" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="sharing" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <basic name="url" fetch="EAGER" optional="true"/>
+            <basic name="zeroIsSignificant" fetch="EAGER" optional="false"/>
+            <basic name="attributeValues" fetch="EAGER" optional="true"/>
+            <basic name="sharing" fetch="EAGER" optional="true"/>
+            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
                 <join-column name="lastupdatedby" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_lastupdateby_userid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="categoryCombo" target-entity="org.hisp.dhis.category.CategoryCombo" fetch="LAZY" fetch-mode="SELECT" optional="false">
+            <many-to-one name="categoryCombo" target-entity="org.hisp.dhis.category.CategoryCombo" fetch="LAZY" optional="false">
                 <join-column name="categorycomboid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_dataelement_categorycomboid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="optionSet" target-entity="org.hisp.dhis.option.OptionSet" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="optionSet" target-entity="org.hisp.dhis.option.OptionSet" fetch="LAZY" optional="true">
                 <join-column name="optionsetid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_dataelement_optionsetid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="commentOptionSet" target-entity="org.hisp.dhis.option.OptionSet" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="commentOptionSet" target-entity="org.hisp.dhis.option.OptionSet" fetch="LAZY" optional="true">
                 <join-column name="commentoptionsetid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_dataelement_commentoptionsetid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="createdBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="createdBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
                 <join-column name="userid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_dataelement_userid"/>
                 <cascade/>

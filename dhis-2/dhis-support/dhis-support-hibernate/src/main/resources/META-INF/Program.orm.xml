@@ -1,127 +1,120 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
- <entity class="org.hisp.dhis.program.Program" metadata-complete="true">
+ <entity class="org.hisp.dhis.program.Program" metadata-complete="true" cacheable="true">
         <table name="program"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <caching include="all" access="READ_WRITE"/>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <polymorphism>implicit</polymorphism>
+        
         <attributes>
             <id name="id">
                 <column name="programid"/>
             </id>
-            <basic name="uid" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="uid" fetch="EAGER" optional="false">
                 <column name="uid" unique="true" nullable="false" length="11"/>
             </basic>
-            <basic name="code" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="code" fetch="EAGER" optional="true">
                 <column name="code" unique="true" nullable="true" length="50"/>
             </basic>
-            <basic name="created" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="lastUpdated" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="name" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="created" fetch="EAGER" optional="false"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="false"/>
+            <basic name="name" fetch="EAGER" optional="false">
                 <column name="name" unique="false" nullable="false" length="230"/>
             </basic>
-            <basic name="shortName" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="shortName" fetch="EAGER" optional="false">
                 <column name="shortname" unique="false" nullable="false" length="50"/>
             </basic>
-            <basic name="description" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="formName" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="version" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="enrollmentDateLabel" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="description" fetch="EAGER" optional="true"/>
+            <basic name="formName" fetch="EAGER" optional="true"/>
+            <basic name="version" fetch="EAGER" optional="true"/>
+            <basic name="enrollmentDateLabel" fetch="EAGER" optional="true">
                 <column name="enrollmentdatelabel" unique="false"/>
             </basic>
-            <basic name="incidentDateLabel" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="incidentDateLabel" fetch="EAGER" optional="true">
                 <column name="incidentdatelabel" unique="false"/>
             </basic>
-            <basic name="enrollmentLabel" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="enrollmentLabel" fetch="EAGER" optional="true">
                 <column name="enrollmentlabel" unique="false"/>
             </basic>
-            <basic name="followUpLabel" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="followUpLabel" fetch="EAGER" optional="true">
                 <column name="followuplabel" unique="false"/>
             </basic>
-            <basic name="orgUnitLabel" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="orgUnitLabel" fetch="EAGER" optional="true">
                 <column name="orgunitlabel" unique="false"/>
             </basic>
-            <basic name="relationshipLabel" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="relationshipLabel" fetch="EAGER" optional="true">
                 <column name="relationshiplabel" unique="false"/>
             </basic>
-            <basic name="noteLabel" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="noteLabel" fetch="EAGER" optional="true">
                 <column name="notelabel" unique="false"/>
             </basic>
-            <basic name="trackedEntityAttributeLabel" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="trackedEntityAttributeLabel" fetch="EAGER" optional="true">
                 <column name="trackedentityattributelabel" unique="false"/>
             </basic>
-            <basic name="programStageLabel" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="programStageLabel" fetch="EAGER" optional="true">
                 <column name="programstagelabel" unique="false"/>
             </basic>
-            <basic name="eventLabel" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="eventLabel" fetch="EAGER" optional="true">
                 <column name="eventlabel" unique="false"/>
             </basic>
-            <basic name="programType" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="programType" fetch="EAGER" optional="false">
                 <column name="type" unique="false" nullable="false"/>
             </basic>
-            <basic name="displayIncidentDate" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="onlyEnrollOnce" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="skipOffline" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="displayFrontPageList" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="displayIncidentDate" fetch="EAGER" optional="true"/>
+            <basic name="onlyEnrollOnce" fetch="EAGER" optional="true"/>
+            <basic name="skipOffline" fetch="EAGER" optional="false"/>
+            <basic name="displayFrontPageList" fetch="EAGER" optional="true">
                 <column name="displayfrontpagelist" unique="false"/>
             </basic>
-            <basic name="useFirstStageDuringRegistration" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="expiryDays" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="completeEventsExpiryDays" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="openDaysAfterCoEndDate" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="minAttributesRequiredToSearch" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="maxTeiCountToReturn" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="style" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="useFirstStageDuringRegistration" fetch="EAGER" optional="true"/>
+            <basic name="expiryDays" fetch="EAGER" optional="true"/>
+            <basic name="completeEventsExpiryDays" fetch="EAGER" optional="true"/>
+            <basic name="openDaysAfterCoEndDate" fetch="EAGER" optional="true"/>
+            <basic name="minAttributesRequiredToSearch" fetch="EAGER" optional="true"/>
+            <basic name="maxTeiCountToReturn" fetch="EAGER" optional="true"/>
+            <basic name="style" fetch="EAGER" optional="true">
                 <column name="style" unique="false"/>
             </basic>
-            <basic name="translations" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="featureType" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="translations" fetch="EAGER" optional="true"/>
+            <basic name="featureType" fetch="EAGER" optional="true">
                 <column name="featuretype" unique="false"/>
             </basic>
-            <basic name="accessLevel" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="ignoreOverdueEvents" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="selectEnrollmentDatesInFuture" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="selectIncidentDatesInFuture" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="attributeValues" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="sharing" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <basic name="accessLevel" fetch="EAGER" optional="true"/>
+            <basic name="ignoreOverdueEvents" fetch="EAGER" optional="true"/>
+            <basic name="selectEnrollmentDatesInFuture" fetch="EAGER" optional="true"/>
+            <basic name="selectIncidentDatesInFuture" fetch="EAGER" optional="true"/>
+            <basic name="attributeValues" fetch="EAGER" optional="true"/>
+            <basic name="sharing" fetch="EAGER" optional="true"/>
+            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
                 <join-column name="lastupdatedby" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_lastupdateby_userid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="expiryPeriodType" target-entity="org.hisp.dhis.period.PeriodType" fetch="EAGER" fetch-mode="SELECT" optional="true">
+            <many-to-one name="expiryPeriodType" target-entity="org.hisp.dhis.period.PeriodType" fetch="EAGER" optional="true">
                 <join-column name="expiryperiodtypeid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_program_expiryperiodtypeid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="relatedProgram" target-entity="org.hisp.dhis.program.Program" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="relatedProgram" target-entity="org.hisp.dhis.program.Program" fetch="LAZY" optional="true">
                 <join-column name="relatedprogramid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_program_relatedprogram"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="categoryCombo" target-entity="org.hisp.dhis.category.CategoryCombo" fetch="LAZY" fetch-mode="SELECT" optional="false">
+            <many-to-one name="categoryCombo" target-entity="org.hisp.dhis.category.CategoryCombo" fetch="LAZY" optional="false">
                 <join-column name="categorycomboid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_program_categorycomboid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="trackedEntityType" target-entity="org.hisp.dhis.trackedentity.TrackedEntityType" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="trackedEntityType" target-entity="org.hisp.dhis.trackedentity.TrackedEntityType" fetch="LAZY" optional="true">
                 <join-column name="trackedentitytypeid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_program_trackedentitytypeid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="dataEntryForm" target-entity="org.hisp.dhis.dataentryform.DataEntryForm" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="dataEntryForm" target-entity="org.hisp.dhis.dataentryform.DataEntryForm" fetch="LAZY" optional="true">
                 <join-column name="dataentryformid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_program_dataentryformid"/>
                 <cascade>
                     <cascade-all/>
                 </cascade>
             </many-to-one>
-            <many-to-one name="createdBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="createdBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
                 <join-column name="userid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_program_userid"/>
                 <cascade/>

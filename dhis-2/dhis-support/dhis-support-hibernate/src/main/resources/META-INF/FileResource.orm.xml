@@ -1,60 +1,53 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
- <entity class="org.hisp.dhis.fileresource.FileResource" metadata-complete="true">
+ <entity class="org.hisp.dhis.fileresource.FileResource" metadata-complete="true" cacheable="true">
         <table name="fileresource"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <caching include="all" access="READ_WRITE"/>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <polymorphism>implicit</polymorphism>
+        
         <attributes>
             <id name="id">
                 <column name="fileresourceid"/>
             </id>
-            <basic name="uid" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="uid" fetch="EAGER" optional="false">
                 <column name="uid" unique="true" nullable="false" length="11"/>
             </basic>
-            <basic name="code" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="code" fetch="EAGER" optional="true">
                 <column name="code" unique="true" nullable="true" length="50"/>
             </basic>
-            <basic name="created" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="lastUpdated" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="name" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="created" fetch="EAGER" optional="false"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="false"/>
+            <basic name="name" fetch="EAGER" optional="false">
                 <column name="name" unique="false" nullable="false" length="230"/>
             </basic>
-            <basic name="contentType" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="contentType" fetch="EAGER" optional="false">
                 <column name="contenttype" unique="false" nullable="false" length="255"/>
             </basic>
-            <basic name="contentLength" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="contentLength" fetch="EAGER" optional="false">
                 <column name="contentlength" unique="false" nullable="false"/>
             </basic>
-            <basic name="contentMd5" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="contentMd5" fetch="EAGER" optional="false">
                 <column name="contentmd5" unique="false" nullable="false" length="32"/>
             </basic>
-            <basic name="storageKey" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="storageKey" fetch="EAGER" optional="false">
                 <column name="storagekey" unique="true" nullable="false" length="1024"/>
             </basic>
-            <basic name="assigned" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="assigned" fetch="EAGER" optional="false">
                 <column name="isassigned" unique="false" nullable="false"/>
             </basic>
-            <basic name="hasMultipleStorageFiles" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="hasMultipleStorageFiles" fetch="EAGER" optional="true">
                 <column name="hasmultiplestoragefiles" unique="false"/>
             </basic>
-            <basic name="fileResourceOwner" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="fileResourceOwner" fetch="EAGER" optional="true">
                 <column name="fileresourceowner" unique="false" length="255"/>
             </basic>
-            <basic name="domain" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="domain" fetch="EAGER" optional="true">
                 <column name="domain" unique="false" length="40"/>
             </basic>
-            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
                 <join-column name="lastupdatedby" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_lastupdateby_userid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="createdBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="createdBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
                 <join-column name="userid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_fileresource_userid"/>
                 <cascade/>

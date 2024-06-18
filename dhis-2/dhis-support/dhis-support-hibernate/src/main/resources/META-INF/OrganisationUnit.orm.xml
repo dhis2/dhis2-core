@@ -1,74 +1,67 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
- <entity class="org.hisp.dhis.organisationunit.OrganisationUnit" metadata-complete="true">
+ <entity class="org.hisp.dhis.organisationunit.OrganisationUnit" metadata-complete="true" cacheable="true">
         <table name="organisationunit"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <caching include="all" access="READ_WRITE"/>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <polymorphism>implicit</polymorphism>
+        
         <attributes>
             <id name="id">
                 <column name="organisationunitid"/>
             </id>
-            <basic name="uid" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="uid" fetch="EAGER" optional="false">
                 <column name="uid" unique="true" nullable="false" length="11"/>
             </basic>
-            <basic name="code" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="code" fetch="EAGER" optional="true">
                 <column name="code" unique="true" nullable="true" length="50"/>
             </basic>
-            <basic name="created" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="lastUpdated" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="name" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="created" fetch="EAGER" optional="false"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="false"/>
+            <basic name="name" fetch="EAGER" optional="false">
                 <column name="name" unique="false" nullable="false" length="230"/>
             </basic>
-            <basic name="shortName" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="shortName" fetch="EAGER" optional="false">
                 <column name="shortname" unique="false" nullable="false" length="50"/>
             </basic>
-            <basic name="path" fetch="EAGER" optional="true" attribute-accessor="property" optimistic-lock="true">
+            <basic name="path" fetch="EAGER" optional="true" attribute-accessor="property">
                 <column name="path" unique="true"/>
             </basic>
-            <basic name="hierarchyLevel" fetch="EAGER" optional="true" attribute-accessor="property" optimistic-lock="true">
+            <basic name="hierarchyLevel" fetch="EAGER" optional="true" attribute-accessor="property">
                 <column name="hierarchylevel" unique="false"/>
             </basic>
-            <basic name="level" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="level" fetch="EAGER" optional="true">
                 <column name="hierarchylevel" unique="false" insertable="false" updatable="false"/>
             </basic>
-            <basic name="description" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="openingDate" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="description" fetch="EAGER" optional="true"/>
+            <basic name="openingDate" fetch="EAGER" optional="false">
                 <column name="openingdate" unique="false" nullable="false"/>
             </basic>
-            <basic name="closedDate" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="closedDate" fetch="EAGER" optional="true">
                 <column name="closeddate" unique="false"/>
             </basic>
-            <basic name="comment" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="geometry" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="url" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="contactPerson" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="address" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="email" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="phoneNumber" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="translations" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="attributeValues" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <basic name="comment" fetch="EAGER" optional="true"/>
+            <basic name="geometry" fetch="EAGER" optional="true"/>
+            <basic name="url" fetch="EAGER" optional="true"/>
+            <basic name="contactPerson" fetch="EAGER" optional="true"/>
+            <basic name="address" fetch="EAGER" optional="true"/>
+            <basic name="email" fetch="EAGER" optional="true"/>
+            <basic name="phoneNumber" fetch="EAGER" optional="true"/>
+            <basic name="translations" fetch="EAGER" optional="true"/>
+            <basic name="attributeValues" fetch="EAGER" optional="true"/>
+            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
                 <join-column name="lastupdatedby" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_lastupdateby_userid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="parent" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="parent" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit" fetch="LAZY" optional="true">
                 <join-column name="parentid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_parentid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="image" target-entity="org.hisp.dhis.fileresource.FileResource" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="image" target-entity="org.hisp.dhis.fileresource.FileResource" fetch="LAZY" optional="true">
                 <join-column name="image" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_organisationUnit_fileresourceid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="createdBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="createdBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
                 <join-column name="userid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_organisationunit_userid"/>
                 <cascade/>

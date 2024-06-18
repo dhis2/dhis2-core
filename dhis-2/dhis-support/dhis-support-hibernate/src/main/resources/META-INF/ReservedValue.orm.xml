@@ -22,23 +22,17 @@
     </named-native-query>
     <entity class="org.hisp.dhis.reservedvalue.ReservedValue" metadata-complete="true">
         <table name="reservedvalue"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <polymorphism>implicit</polymorphism>
+        
         <attributes>
             <id name="id">
                 <column name="reservedvalueid"/>
             </id>
-            <basic name="expiryDate" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="created" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="ownerObject" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="ownerUid" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="key" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="value" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="expiryDate" fetch="EAGER" optional="false"/>
+            <basic name="created" fetch="EAGER" optional="false"/>
+            <basic name="ownerObject" fetch="EAGER" optional="true"/>
+            <basic name="ownerUid" fetch="EAGER" optional="true"/>
+            <basic name="key" fetch="EAGER" optional="true"/>
+            <basic name="value" fetch="EAGER" optional="true"/>
         </attributes>
     </entity>
 </entity-mappings>

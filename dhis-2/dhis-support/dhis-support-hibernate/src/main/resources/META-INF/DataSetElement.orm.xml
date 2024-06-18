@@ -1,30 +1,23 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
- <entity class="org.hisp.dhis.dataset.DataSetElement" metadata-complete="true">
+ <entity class="org.hisp.dhis.dataset.DataSetElement" metadata-complete="true" cacheable="true">
         <table name="datasetelement"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <caching include="all" access="READ_WRITE"/>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <polymorphism>implicit</polymorphism>
+        
         <attributes>
             <id name="id">
                 <column name="datasetelementid"/>
             </id>
-            <many-to-one name="dataSet" target-entity="org.hisp.dhis.dataset.DataSet" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="dataSet" target-entity="org.hisp.dhis.dataset.DataSet" fetch="LAZY" optional="true">
                 <join-column name="datasetid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_datasetelement_datasetid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="dataElement" target-entity="org.hisp.dhis.dataelement.DataElement" fetch="LAZY" fetch-mode="SELECT" optional="false">
+            <many-to-one name="dataElement" target-entity="org.hisp.dhis.dataelement.DataElement" fetch="LAZY" optional="false">
                 <join-column name="dataelementid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_datasetelement_dataelementid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="categoryCombo" target-entity="org.hisp.dhis.category.CategoryCombo" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="categoryCombo" target-entity="org.hisp.dhis.category.CategoryCombo" fetch="LAZY" optional="true">
                 <join-column name="categorycomboid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_datasetelement_categorycomboid"/>
                 <cascade/>

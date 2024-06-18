@@ -2,27 +2,21 @@
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
  <entity class="org.hisp.dhis.datastatistics.DataStatisticsEvent" metadata-complete="true">
         <table name="datastatisticsevent"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <polymorphism>implicit</polymorphism>
+        
         <attributes>
             <id name="id">
                 <column name="eventid"/>
             </id>
-            <basic name="eventType" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="eventType" fetch="EAGER" optional="true">
                 <column name="eventtype" unique="false"/>
             </basic>
-            <basic name="timestamp" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="timestamp" fetch="EAGER" optional="true">
                 <column name="timestamp" unique="false"/>
             </basic>
-            <basic name="username" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="username" fetch="EAGER" optional="true">
                 <column name="username" unique="false"/>
             </basic>
-            <basic name="favoriteUid" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="favoriteUid" fetch="EAGER" optional="true">
                 <column name="favoriteuid" unique="false"/>
             </basic>
         </attributes>

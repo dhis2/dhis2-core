@@ -11,19 +11,19 @@
         <id-class/>
         <polymorphism>implicit</polymorphism>
         <attributes>
-            <basic name="value" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="storedBy" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="value" fetch="EAGER" optional="true"/>
+            <basic name="storedBy" fetch="EAGER" optional="true">
                 <column name="storedby" unique="false"/>
             </basic>
-            <basic name="created" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="created" fetch="EAGER" optional="false">
                 <column name="created" unique="false" nullable="false"/>
             </basic>
-            <basic name="lastUpdated" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="lastUpdated" fetch="EAGER" optional="false">
                 <column name="lastupdated" unique="false" nullable="false"/>
             </basic>
-            <basic name="comment" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="followup" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="deleted" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="comment" fetch="EAGER" optional="true"/>
+            <basic name="followup" fetch="EAGER" optional="true"/>
+            <basic name="deleted" fetch="EAGER" optional="true">
                 <column name="deleted" unique="false"/>
             </basic>
             <many-to-one name="dataElement" target-entity="org.hisp.dhis.dataelement.DataElement" fetch="LAZY" id="true">

@@ -2,32 +2,26 @@
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
  <entity class="org.hisp.dhis.message.Message" metadata-complete="true">
         <table name="message"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <polymorphism>implicit</polymorphism>
+        
         <attributes>
             <id name="id">
                 <column name="messageid"/>
             </id>
-            <basic name="uid" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="uid" fetch="EAGER" optional="true">
                 <column name="uid" unique="false" length="11"/>
             </basic>
-            <basic name="created" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="lastUpdated" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="text" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="created" fetch="EAGER" optional="false"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="false"/>
+            <basic name="text" fetch="EAGER" optional="true">
                 <column name="messagetext" unique="false"/>
             </basic>
-            <basic name="internal" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="internal" fetch="EAGER" optional="true">
                 <column name="internal" unique="false"/>
             </basic>
-            <basic name="metaData" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="metaData" fetch="EAGER" optional="true">
                 <column name="metadata" unique="false"/>
             </basic>
-            <many-to-one name="sender" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="sender" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
                 <join-column name="userid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_message_userid"/>
                 <cascade/>

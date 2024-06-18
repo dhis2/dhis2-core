@@ -8,54 +8,48 @@
     </filter-def>
     <entity class="org.hisp.dhis.message.MessageConversation" metadata-complete="true">
         <table name="messageconversation"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <polymorphism>implicit</polymorphism>
+        
         <attributes>
             <id name="id">
                 <column name="messageconversationid"/>
             </id>
-            <basic name="uid" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="uid" fetch="EAGER" optional="true">
                 <column name="uid" unique="false" length="11"/>
             </basic>
-            <basic name="messageCount" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="messageCount" fetch="EAGER" optional="true">
                 <column name="messagecount" unique="false"/>
             </basic>
-            <basic name="created" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="lastUpdated" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="subject" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="created" fetch="EAGER" optional="false"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="false"/>
+            <basic name="subject" fetch="EAGER" optional="false">
                 <column name="subject" unique="false" nullable="false"/>
             </basic>
-            <basic name="extMessageId" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="extMessageId" fetch="EAGER" optional="true">
                 <column name="extmessageid" unique="false" nullable="true"/>
             </basic>
-            <basic name="messageType" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="messageType" fetch="EAGER" optional="true">
                 <column name="messageType" unique="false"/>
             </basic>
-            <basic name="priority" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="priority" fetch="EAGER" optional="true">
                 <column name="priority" unique="false"/>
             </basic>
-            <basic name="status" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="status" fetch="EAGER" optional="true">
                 <column name="status" unique="false"/>
             </basic>
-            <basic name="lastMessage" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="lastMessage" fetch="EAGER" optional="true">
                 <column name="lastmessage" unique="false"/>
             </basic>
-            <many-to-one name="assignee" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="assignee" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
                 <join-column name="user_assigned" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_messageconversation_user_user_assigned"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="lastSender" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="lastSender" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
                 <join-column name="lastsenderid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_messageconversation_lastsender_userid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="createdBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="createdBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
                 <join-column name="userid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_messageconversation_user_userid"/>
                 <cascade/>

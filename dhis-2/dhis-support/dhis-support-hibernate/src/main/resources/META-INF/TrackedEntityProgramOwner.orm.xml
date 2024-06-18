@@ -2,33 +2,27 @@
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
  <entity class="org.hisp.dhis.trackedentity.TrackedEntityProgramOwner" metadata-complete="true">
         <table name="trackedentityprogramowner"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <polymorphism>implicit</polymorphism>
+        
         <attributes>
             <id name="id">
                 <column name="trackedentityprogramownerid"/>
             </id>
-            <basic name="created" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="lastUpdated" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="createdBy" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="created" fetch="EAGER" optional="false"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="false"/>
+            <basic name="createdBy" fetch="EAGER" optional="false">
                 <column name="createdBy" unique="false" nullable="false"/>
             </basic>
-            <many-to-one name="trackedEntity" target-entity="org.hisp.dhis.trackedentity.TrackedEntity" fetch="EAGER" fetch-mode="SELECT" optional="true">
+            <many-to-one name="trackedEntity" target-entity="org.hisp.dhis.trackedentity.TrackedEntity" fetch="EAGER" optional="true">
                 <join-column name="trackedentityid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_trackedentityprogramowner_trackedentityinstanceid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="program" target-entity="org.hisp.dhis.program.Program" fetch="EAGER" fetch-mode="SELECT" optional="false">
+            <many-to-one name="program" target-entity="org.hisp.dhis.program.Program" fetch="EAGER" optional="false">
                 <join-column name="programid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_trackedentityprogramowner_programid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="organisationUnit" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="organisationUnit" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit" fetch="LAZY" optional="true">
                 <join-column name="organisationunitid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_trackedentityprogramowner_organisationunitid"/>
                 <cascade/>

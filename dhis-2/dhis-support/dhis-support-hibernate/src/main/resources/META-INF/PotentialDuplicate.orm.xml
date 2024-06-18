@@ -1,37 +1,30 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
- <entity class="org.hisp.dhis.deduplication.PotentialDuplicate" metadata-complete="true">
+ <entity class="org.hisp.dhis.deduplication.PotentialDuplicate" metadata-complete="true" cacheable="true">
         <table name="potentialduplicate"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <caching include="all" access="READ_WRITE"/>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <polymorphism>implicit</polymorphism>
+        
         <attributes>
             <id name="id">
                 <column name="potentialduplicateid"/>
             </id>
-            <basic name="uid" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="uid" fetch="EAGER" optional="false">
                 <column name="uid" unique="true" nullable="false" length="11"/>
             </basic>
-            <basic name="created" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="lastUpdated" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="lastUpdatedByUserName" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="created" fetch="EAGER" optional="false"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="false"/>
+            <basic name="lastUpdatedByUserName" fetch="EAGER" optional="false">
                 <column name="lastupdatebyusername" unique="false" nullable="false"/>
             </basic>
-            <basic name="createdByUserName" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="createdByUserName" fetch="EAGER" optional="false">
                 <column name="createdbyusername" unique="false" nullable="false"/>
             </basic>
-            <basic name="original" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="original" fetch="EAGER" optional="false">
                 <column name="original" unique="false" nullable="false" length="11"/>
             </basic>
-            <basic name="duplicate" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="duplicate" fetch="EAGER" optional="false">
                 <column name="duplicate" unique="false" nullable="false" length="11"/>
             </basic>
-            <basic name="status" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="status" fetch="EAGER" optional="true">
                 <column name="status" unique="false"/>
             </basic>
         </attributes>

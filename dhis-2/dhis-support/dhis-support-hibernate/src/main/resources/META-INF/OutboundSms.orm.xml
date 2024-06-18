@@ -12,13 +12,13 @@
         <polymorphism>implicit</polymorphism>
         <attributes>
             <id name="id"/>
-            <basic name="uid" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="uid" fetch="EAGER" optional="false">
                 <column name="uid" unique="true" nullable="false" length="11"/>
             </basic>
-            <basic name="date" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="message" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="status" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="sender" fetch="EAGER" optional="true" optimistic-lock="true"/>
+            <basic name="date" fetch="EAGER" optional="false"/>
+            <basic name="message" fetch="EAGER" optional="true"/>
+            <basic name="status" fetch="EAGER" optional="false"/>
+            <basic name="sender" fetch="EAGER" optional="true"/>
             <element-collection name="recipients" fetch-mode="SELECT">
                 <sort>unsorted</sort>
                 <collection-table name="outbound_sms_recipients"/>

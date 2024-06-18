@@ -1,25 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
- <entity class="org.hisp.dhis.dataelement.DataElementOperand" metadata-complete="true">
+ <entity class="org.hisp.dhis.dataelement.DataElementOperand" metadata-complete="true" cacheable="true">
         <table name="dataelementoperand"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <caching include="all" access="READ_WRITE"/>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <polymorphism>implicit</polymorphism>
+        
         <attributes>
             <id name="id">
                 <column name="dataelementoperandid"/>
             </id>
-            <many-to-one name="dataElement" target-entity="org.hisp.dhis.dataelement.DataElement" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="dataElement" target-entity="org.hisp.dhis.dataelement.DataElement" fetch="LAZY" optional="true">
                 <join-column name="dataelementid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_dataelementoperand_dataelement"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="categoryOptionCombo" target-entity="org.hisp.dhis.category.CategoryOptionCombo" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="categoryOptionCombo" target-entity="org.hisp.dhis.category.CategoryOptionCombo" fetch="LAZY" optional="true">
                 <join-column name="categoryoptioncomboid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_dataelementoperand_dataelementcategoryoptioncombo"/>
                 <cascade/>

@@ -1,71 +1,64 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
- <entity class="org.hisp.dhis.interpretation.Interpretation" metadata-complete="true">
+ <entity class="org.hisp.dhis.interpretation.Interpretation" metadata-complete="true" cacheable="true">
         <table name="interpretation"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <caching include="all" access="READ_WRITE"/>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <polymorphism>implicit</polymorphism>
+        
         <attributes>
             <id name="id">
                 <column name="interpretationid"/>
             </id>
-            <basic name="uid" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="uid" fetch="EAGER" optional="false">
                 <column name="uid" unique="false" nullable="false" length="11"/>
             </basic>
-            <basic name="lastUpdated" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="text" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="lastUpdated" fetch="EAGER" optional="false"/>
+            <basic name="text" fetch="EAGER" optional="true">
                 <column name="interpretationtext" unique="false"/>
             </basic>
-            <basic name="created" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="likes" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="sharing" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="mentions" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <many-to-one name="visualization" target-entity="org.hisp.dhis.visualization.Visualization" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <basic name="created" fetch="EAGER" optional="false"/>
+            <basic name="likes" fetch="EAGER" optional="true"/>
+            <basic name="sharing" fetch="EAGER" optional="true"/>
+            <basic name="mentions" fetch="EAGER" optional="true"/>
+            <many-to-one name="visualization" target-entity="org.hisp.dhis.visualization.Visualization" fetch="LAZY" optional="true">
                 <join-column name="visualizationid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_interpretation_visualizationid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="eventVisualization" target-entity="org.hisp.dhis.eventvisualization.EventVisualization" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="eventVisualization" target-entity="org.hisp.dhis.eventvisualization.EventVisualization" fetch="LAZY" optional="true">
                 <join-column name="eventvisualizationid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_interpretation_evisualizationid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="map" target-entity="org.hisp.dhis.mapping.Map" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="map" target-entity="org.hisp.dhis.mapping.Map" fetch="LAZY" optional="true">
                 <join-column name="mapid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_interpretation_mapid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="eventReport" target-entity="org.hisp.dhis.eventreport.EventReport" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="eventReport" target-entity="org.hisp.dhis.eventreport.EventReport" fetch="LAZY" optional="true">
                 <join-column name="eventreportid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_interpretation_eventreportid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="eventChart" target-entity="org.hisp.dhis.eventchart.EventChart" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="eventChart" target-entity="org.hisp.dhis.eventchart.EventChart" fetch="LAZY" optional="true">
                 <join-column name="eventchartid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_interpretation_eventchartid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="dataSet" target-entity="org.hisp.dhis.dataset.DataSet" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="dataSet" target-entity="org.hisp.dhis.dataset.DataSet" fetch="LAZY" optional="true">
                 <join-column name="datasetid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_interpretation_datasetid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="period" target-entity="org.hisp.dhis.period.Period" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="period" target-entity="org.hisp.dhis.period.Period" fetch="LAZY" optional="true">
                 <join-column name="periodid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_interpretation_periodid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="organisationUnit" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="organisationUnit" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit" fetch="LAZY" optional="true">
                 <join-column name="organisationunitid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_interpretation_organisationunitid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="createdBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="createdBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
                 <join-column name="userid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_interpretation_userid"/>
                 <cascade/>

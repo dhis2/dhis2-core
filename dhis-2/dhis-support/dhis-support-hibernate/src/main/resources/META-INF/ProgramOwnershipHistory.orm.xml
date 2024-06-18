@@ -2,31 +2,25 @@
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
  <entity class="org.hisp.dhis.program.ProgramOwnershipHistory" metadata-complete="true">
         <table name="programownershiphistory"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <polymorphism>implicit</polymorphism>
+        
         <attributes>
             <id name="id">
                 <column name="programownershiphistoryid"/>
             </id>
-            <basic name="startDate" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="endDate" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="createdBy" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <many-to-one name="program" target-entity="org.hisp.dhis.program.Program" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <basic name="startDate" fetch="EAGER" optional="true"/>
+            <basic name="endDate" fetch="EAGER" optional="true"/>
+            <basic name="createdBy" fetch="EAGER" optional="true"/>
+            <many-to-one name="program" target-entity="org.hisp.dhis.program.Program" fetch="LAZY" optional="true">
                 <join-column name="programid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_programownershiphistory_programid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="trackedEntity" target-entity="org.hisp.dhis.trackedentity.TrackedEntity" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="trackedEntity" target-entity="org.hisp.dhis.trackedentity.TrackedEntity" fetch="LAZY" optional="true">
                 <join-column name="trackedentityid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_programownershiphistory_trackedentityinstanceid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="organisationUnit" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="organisationUnit" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit" fetch="LAZY" optional="true">
                 <join-column name="organisationunitid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_programownershiphistory_organisationunitid"/>
                 <cascade/>

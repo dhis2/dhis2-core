@@ -10,60 +10,54 @@
     </named-native-query>
     <entity class="org.hisp.dhis.trackedentity.TrackedEntity" metadata-complete="true">
         <table name="trackedentity"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <polymorphism>implicit</polymorphism>
+        
         <attributes>
             <id name="id">
                 <column name="trackedentityid"/>
             </id>
-            <basic name="uid" fetch="EAGER" optional="false" optimistic-lock="true">
+            <basic name="uid" fetch="EAGER" optional="false">
                 <column name="uid" unique="true" nullable="false" length="11"/>
             </basic>
-            <basic name="code" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="code" fetch="EAGER" optional="true">
                 <column name="code" unique="true" nullable="true" length="50"/>
             </basic>
-            <basic name="created" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="lastUpdated" fetch="EAGER" optional="false" optimistic-lock="true"/>
-            <basic name="createdAtClient" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="lastUpdatedAtClient" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="storedBy" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="created" fetch="EAGER" optional="false"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="false"/>
+            <basic name="createdAtClient" fetch="EAGER" optional="true"/>
+            <basic name="lastUpdatedAtClient" fetch="EAGER" optional="true"/>
+            <basic name="storedBy" fetch="EAGER" optional="true">
                 <column name="storedby" unique="false" length="255"/>
             </basic>
-            <basic name="inactive" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="inactive" fetch="EAGER" optional="true">
                 <column name="inactive" unique="false"/>
             </basic>
-            <basic name="potentialDuplicate" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="potentialDuplicate" fetch="EAGER" optional="true">
                 <column name="potentialDuplicate" unique="false"/>
             </basic>
-            <basic name="deleted" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="deleted" fetch="EAGER" optional="true">
                 <column name="deleted" unique="false"/>
             </basic>
-            <basic name="lastSynchronized" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="lastSynchronized" fetch="EAGER" optional="true">
                 <column name="lastsynchronized" unique="false" nullable="true"/>
             </basic>
-            <basic name="geometry" fetch="EAGER" optional="true" optimistic-lock="true"/>
-            <basic name="createdByUserInfo" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="geometry" fetch="EAGER" optional="true"/>
+            <basic name="createdByUserInfo" fetch="EAGER" optional="true">
                 <column name="createdbyuserinfo" unique="false"/>
             </basic>
-            <basic name="lastUpdatedByUserInfo" fetch="EAGER" optional="true" optimistic-lock="true">
+            <basic name="lastUpdatedByUserInfo" fetch="EAGER" optional="true">
                 <column name="lastupdatedbyuserinfo" unique="false"/>
             </basic>
-            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" fetch-mode="SELECT" optional="true">
+            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
                 <join-column name="lastupdatedby" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_lastupdateby_userid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="organisationUnit" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit" fetch="EAGER" fetch-mode="SELECT" optional="false">
+            <many-to-one name="organisationUnit" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit" fetch="EAGER" optional="false">
                 <join-column name="organisationunitid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_trackedentityinstance_organisationunitid"/>
                 <cascade/>
             </many-to-one>
-            <many-to-one name="trackedEntityType" target-entity="org.hisp.dhis.trackedentity.TrackedEntityType" fetch="EAGER" fetch-mode="SELECT" optional="true">
+            <many-to-one name="trackedEntityType" target-entity="org.hisp.dhis.trackedentity.TrackedEntityType" fetch="EAGER" optional="true">
                 <join-column name="trackedentitytypeid" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <foreign-key name="fk_trackedentityinstance_trackedentitytypeid"/>
                 <cascade/>
