@@ -98,6 +98,7 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest {
     assertEquals(2, trackerObjects.getRelationships().size());
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+    assertDeletedObjects(1, importReport.getPersistenceReport(), TrackerType.RELATIONSHIP);
     assertHasOnlyErrors(importReport, E4016);
   }
 
