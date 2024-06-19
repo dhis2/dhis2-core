@@ -110,6 +110,7 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(dataValue()))
             .build();
 
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertIsEmpty(reporter.getErrors());
@@ -133,6 +134,7 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(validDataValue))
             .build();
 
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertIsEmpty(reporter.getErrors());
@@ -156,6 +158,7 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(validDataValue))
             .build();
 
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertIsEmpty(reporter.getErrors());
@@ -178,6 +181,7 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(dataValue()))
             .build();
 
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, ValidationCode.E1304);
@@ -212,6 +216,7 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(dataValue()))
             .build();
 
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, ValidationCode.E1303);
@@ -245,6 +250,7 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(dataValue()))
             .build();
 
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertIsEmpty(reporter.getErrors());
@@ -279,6 +285,7 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(dataValue))
             .build();
 
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertIsEmpty(reporter.getErrors());
@@ -314,6 +321,7 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(dataValue(), notPresentDataValue))
             .build();
 
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, ValidationCode.E1305);
@@ -348,6 +356,7 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(dataValue))
             .build();
 
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertIsEmpty(reporter.getErrors());
@@ -372,6 +381,7 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(dataValue()))
             .build();
 
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, ValidationCode.E1302);
@@ -400,6 +410,7 @@ class DataValuesValidatorTest {
 
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
 
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, ValidationCode.E1084);
@@ -424,6 +435,7 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(validDataValue))
             .build();
 
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertIsEmpty(reporter.getErrors());
@@ -449,6 +461,7 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(validDataValue))
             .build();
 
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, ValidationCode.E1076);
@@ -475,6 +488,7 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(validDataValue))
             .build();
 
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, ValidationCode.E1076);
@@ -501,6 +515,7 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(validDataValue))
             .build();
 
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, ValidationCode.E1076);
@@ -526,6 +541,7 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(validDataValue))
             .build();
 
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertIsEmpty(reporter.getErrors());
@@ -552,6 +568,7 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(validDataValue))
             .build();
 
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, ValidationCode.E1076);
@@ -576,6 +593,7 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(validDataValue))
             .build();
 
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertIsEmpty(reporter.getErrors());
@@ -600,6 +618,7 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(validDataValue))
             .build();
 
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertIsEmpty(reporter.getErrors());
@@ -624,6 +643,7 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(validDataValue))
             .build();
 
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertIsEmpty(reporter.getErrors());
@@ -653,6 +673,7 @@ class DataValuesValidatorTest {
 
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
 
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, ValidationCode.E1009);
@@ -661,6 +682,7 @@ class DataValuesValidatorTest {
 
     reporter = new Reporter(idSchemes);
 
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertIsEmpty(reporter.getErrors());
@@ -690,6 +712,7 @@ class DataValuesValidatorTest {
 
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
 
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, ValidationCode.E1009);
@@ -701,6 +724,7 @@ class DataValuesValidatorTest {
 
     reporter = new Reporter(idSchemes);
 
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, ValidationCode.E1009);
@@ -712,6 +736,7 @@ class DataValuesValidatorTest {
 
     reporter = new Reporter(idSchemes);
 
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertIsEmpty(reporter.getErrors());
@@ -761,6 +786,7 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(validDataValue, nullDataValue))
             .build();
 
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertIsEmpty(reporter.getErrors());
@@ -794,6 +820,7 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(validDataValue))
             .build();
 
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, ValidationCode.E1125);
@@ -826,6 +853,7 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(validDataValue, nullDataValue))
             .build();
 
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertIsEmpty(reporter.getErrors());
@@ -859,6 +887,7 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(validDataValue))
             .build();
 
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, ValidationCode.E1125);
@@ -885,6 +914,7 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(invalidDataValue))
             .build();
 
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, ValidationCode.E1007);
@@ -912,6 +942,7 @@ class DataValuesValidatorTest {
             .dataValues(Set.of(validDataValue))
             .build();
 
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertIsEmpty(reporter.getErrors());
@@ -938,6 +969,7 @@ class DataValuesValidatorTest {
             .build();
 
     reporter = new Reporter(idSchemes);
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, ValidationCode.E1302);

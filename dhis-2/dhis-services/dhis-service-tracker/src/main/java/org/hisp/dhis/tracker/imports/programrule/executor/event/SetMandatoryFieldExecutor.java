@@ -63,12 +63,22 @@ public class SetMandatoryFieldExecutor implements RuleActionExecutor<Event> {
     ProgramStage programStage = preheat.getProgramStage(event.getProgramStage());
     TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
 
-    return ValidationUtils.validateMandatoryDataValue(
-            programStage,
-            event,
-            List.of(idSchemes.toMetadataIdentifier(preheat.getDataElement(fieldUid))))
-        .stream()
-        .map(e -> error(ruleUid, ValidationCode.E1301, e.getIdentifierOrAttributeValue()))
-        .findAny();
+    if (bundle.getStrategy(event).isUpdate()) {
+      return ValidationUtils.validateMandatoryDataValueOnUpdate(
+              programStage,
+              event,
+              List.of(idSchemes.toMetadataIdentifier(preheat.getDataElement(fieldUid))))
+          .stream()
+          .map(e -> error(ruleUid, ValidationCode.E1314, e.getIdentifierOrAttributeValue()))
+          .findAny();
+    } else {
+      return ValidationUtils.validateMandatoryDataValue(
+              programStage,
+              event,
+              List.of(idSchemes.toMetadataIdentifier(preheat.getDataElement(fieldUid))))
+          .stream()
+          .map(e -> error(ruleUid, ValidationCode.E1301, e.getIdentifierOrAttributeValue()))
+          .findAny();
+    }
   }
 }

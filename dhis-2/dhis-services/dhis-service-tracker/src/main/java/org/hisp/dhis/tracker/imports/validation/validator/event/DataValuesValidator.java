@@ -27,18 +27,19 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.event;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1007;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1009;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1076;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1084;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1302;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1303;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1304;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1305;
 import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.needsToValidateDataValues;
 import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateMandatoryDataValue;
 import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateOptionSet;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.dataelement.DataElement;
@@ -52,9 +53,7 @@ import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
-import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.Validator;
-import org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors;
 
 /**
  * @author Enrico Colasante
@@ -64,38 +63,32 @@ class DataValuesValidator implements Validator<Event> {
   public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
     ProgramStage programStage = bundle.getPreheat().getProgramStage(event.getProgramStage());
 
-    checkNotNull(programStage, TrackerImporterAssertErrors.PROGRAM_STAGE_CANT_BE_NULL);
-
     for (DataValue dataValue : event.getDataValues()) {
-      // event dates (createdAt, updatedAt) are ignored and set by the
-      // system
       TrackerPreheat preheat = bundle.getPreheat();
       DataElement dataElement = preheat.getDataElement(dataValue.getDataElement());
 
       if (dataElement == null) {
-        reporter.addError(event, ValidationCode.E1304, dataValue.getDataElement());
+        reporter.addError(event, E1304, dataValue.getDataElement());
         continue;
       }
 
       validateDataValue(reporter, bundle, dataElement, dataValue, programStage, event);
     }
 
-    validateMandatoryDataValues(reporter, bundle, event);
+    if (bundle.getStrategy(event).isCreate()) {
+      validateMandatoryDataValues(reporter, bundle, event);
+    }
     validateDataValueDataElementIsConnectedToProgramStage(reporter, bundle, event, programStage);
   }
 
   private void validateMandatoryDataValues(Reporter reporter, TrackerBundle bundle, Event event) {
-    if (event.getProgramStage().isBlank()) {
-      return;
-    }
-
     TrackerPreheat preheat = bundle.getPreheat();
     ProgramStage programStage = bundle.getPreheat().getProgramStage(event.getProgramStage());
     final List<MetadataIdentifier> mandatoryDataElements =
         programStage.getProgramStageDataElements().stream()
             .filter(ProgramStageDataElement::isCompulsory)
             .map(de -> preheat.getIdSchemes().toMetadataIdentifier(de.getDataElement()))
-            .collect(Collectors.toList());
+            .toList();
     List<MetadataIdentifier> missingDataValue =
         validateMandatoryDataValue(programStage, event, mandatoryDataElements);
     missingDataValue.forEach(de -> reporter.addError(event, E1303, de));
@@ -108,26 +101,19 @@ class DataValuesValidator implements Validator<Event> {
       DataValue dataValue,
       ProgramStage programStage,
       Event event) {
-    String status = null;
+    String status = ValidationUtils.valueIsValid(dataValue.getValue(), dataElement);
 
-    if (dataElement.getValueType() == null) {
-      reporter.addError(
-          event, ValidationCode.E1302, dataElement.getUid(), "data_element_or_type_null_or_empty");
+    if (status != null) {
+      reporter.addError(event, E1302, dataElement.getUid(), status);
     } else if (dataElement.hasOptionSet()) {
       validateOptionSet(reporter, event, dataElement, dataValue.getValue());
     } else if (dataElement.getValueType().isFile()) {
-      validateFileNotAlreadyAssigned(reporter, bundle, event, dataValue, dataElement);
+      validateFileNotAlreadyAssigned(reporter, bundle, event, dataValue.getValue());
     } else if (dataElement.getValueType().isOrganisationUnit()) {
-      validateOrgUnitValueType(reporter, bundle, event, dataValue, dataElement);
-    } else {
-      status = ValidationUtils.valueIsValid(dataValue.getValue(), dataElement);
+      validateOrgUnitValueType(reporter, bundle, event, dataValue.getValue());
     }
 
-    if (status != null) {
-      reporter.addError(event, ValidationCode.E1302, dataElement.getUid(), status);
-    } else {
-      validateNullDataValues(reporter, dataElement, programStage, dataValue, event);
-    }
+    validateNullDataValues(reporter, dataElement, programStage, dataValue, event);
   }
 
   private void validateNullDataValues(
@@ -140,21 +126,14 @@ class DataValuesValidator implements Validator<Event> {
       return;
     }
 
-    Optional<ProgramStageDataElement> optionalPsde =
-        Optional.of(programStage)
-            .map(ps -> ps.getProgramStageDataElements().stream())
-            .flatMap(
-                psdes ->
-                    psdes
-                        .filter(
-                            psde ->
-                                psde.getDataElement().getUid().equals(dataElement.getUid())
-                                    && psde.isCompulsory())
-                        .findFirst());
-
-    if (optionalPsde.isPresent()) {
-      reporter.addError(event, E1076, DataElement.class.getSimpleName(), dataElement.getUid());
-    }
+    programStage.getProgramStageDataElements().stream()
+        .filter(
+            psde ->
+                psde.getDataElement().getUid().equals(dataElement.getUid()) && psde.isCompulsory())
+        .forEach(
+            psde ->
+                reporter.addError(
+                    event, E1076, DataElement.class.getSimpleName(), dataElement.getUid()));
   }
 
   private void validateDataValueDataElementIsConnectedToProgramStage(
@@ -170,34 +149,25 @@ class DataValuesValidator implements Validator<Event> {
 
     for (MetadataIdentifier payloadDataElement : payloadDataElements) {
       if (!dataElements.contains(payloadDataElement)) {
-        reporter.addError(event, ValidationCode.E1305, payloadDataElement, programStage.getUid());
+        reporter.addError(event, E1305, payloadDataElement, programStage.getUid());
       }
     }
   }
 
   private void validateFileNotAlreadyAssigned(
-      Reporter reporter,
-      TrackerBundle bundle,
-      Event event,
-      DataValue dataValue,
-      DataElement dataElement) {
-    boolean isFile = dataElement.getValueType() != null && dataElement.getValueType().isFile();
-
-    if (dataValue == null || dataValue.getValue() == null || !isFile) {
+      Reporter reporter, TrackerBundle bundle, Event event, String value) {
+    if (value == null) {
       return;
     }
 
     TrackerPreheat preheat = bundle.getPreheat();
-    FileResource fileResource = preheat.get(FileResource.class, dataValue.getValue());
+    FileResource fileResource = preheat.get(FileResource.class, value);
 
-    reporter.addErrorIfNull(fileResource, event, E1084, dataValue.getValue());
+    reporter.addErrorIfNull(fileResource, event, E1084, value);
 
     if (bundle.getStrategy(event).isCreate()) {
       reporter.addErrorIf(
-          () -> fileResource != null && fileResource.isAssigned(),
-          event,
-          E1009,
-          dataValue.getValue());
+          () -> fileResource != null && fileResource.isAssigned(), event, E1009, value);
     }
 
     if (bundle.getStrategy(event).isUpdate()) {
@@ -208,27 +178,16 @@ class DataValuesValidator implements Validator<Event> {
                   && !fileResource.getFileResourceOwner().equals(event.getEvent()),
           event,
           E1009,
-          dataValue.getValue());
+          value);
     }
   }
 
   private void validateOrgUnitValueType(
-      Reporter reporter,
-      TrackerBundle bundle,
-      Event event,
-      DataValue dataValue,
-      DataElement dataElement) {
-    boolean isOrgUnit =
-        dataElement.getValueType() != null && dataElement.getValueType().isOrganisationUnit();
-
-    if (dataValue == null || dataValue.getValue() == null || !isOrgUnit) {
+      Reporter reporter, TrackerBundle bundle, Event event, String value) {
+    if (value == null) {
       return;
     }
 
-    reporter.addErrorIfNull(
-        bundle.getPreheat().getOrganisationUnit(dataValue.getValue()),
-        event,
-        E1007,
-        dataValue.getValue());
+    reporter.addErrorIfNull(bundle.getPreheat().getOrganisationUnit(value), event, E1007, value);
   }
 }

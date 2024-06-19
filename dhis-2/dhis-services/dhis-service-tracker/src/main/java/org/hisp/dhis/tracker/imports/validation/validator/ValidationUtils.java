@@ -99,6 +99,29 @@ public class ValidationUtils {
     return notes;
   }
 
+  public static List<MetadataIdentifier> validateMandatoryDataValueOnUpdate(
+      ProgramStage programStage, Event event, List<MetadataIdentifier> mandatoryDataElements) {
+    List<MetadataIdentifier> deletedMandatoryDataElements = Lists.newArrayList();
+
+    if (!needsToValidateDataValues(event, programStage)) {
+      return deletedMandatoryDataElements;
+    }
+
+    Set<MetadataIdentifier> deletedDataElements =
+        event.getDataValues().stream()
+            .filter(dataValue -> dataValue.getValue() == null)
+            .map(DataValue::getDataElement)
+            .collect(Collectors.toSet());
+
+    for (MetadataIdentifier mandatoryDataElement : mandatoryDataElements) {
+      if (deletedDataElements.contains(mandatoryDataElement)) {
+        deletedMandatoryDataElements.add(mandatoryDataElement);
+      }
+    }
+
+    return deletedMandatoryDataElements;
+  }
+
   public static List<MetadataIdentifier> validateMandatoryDataValue(
       ProgramStage programStage, Event event, List<MetadataIdentifier> mandatoryDataElements) {
     List<MetadataIdentifier> notPresentMandatoryDataElements = Lists.newArrayList();

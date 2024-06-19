@@ -45,6 +45,7 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.Event;
@@ -99,10 +100,10 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
     when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
     when(preheat.getDataElement(DATA_ELEMENT_ID)).thenReturn(dataElement);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
-    bundle.setEvents(List.of(getEventWithMandatoryValueSet()));
-
-    Optional<ProgramRuleIssue> error =
-        executor.executeRuleAction(bundle, getEventWithMandatoryValueSet());
+    Event event = getEventWithMandatoryValueSet();
+    bundle.setEvents(List.of(event));
+    bundle.setStrategy(event, TrackerImportStrategy.CREATE);
+    Optional<ProgramRuleIssue> error = executor.executeRuleAction(bundle, event);
 
     assertTrue(error.isEmpty());
   }
@@ -114,10 +115,10 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
     when(preheat.getIdSchemes()).thenReturn(idSchemes);
     when(preheat.getDataElement(DATA_ELEMENT_ID)).thenReturn(dataElement);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
-    bundle.setEvents(List.of(getEventWithMandatoryValueSet(idSchemes)));
-
-    Optional<ProgramRuleIssue> error =
-        executor.executeRuleAction(bundle, getEventWithMandatoryValueSet(idSchemes));
+    Event event = getEventWithMandatoryValueSet(idSchemes);
+    bundle.setEvents(List.of(event));
+    bundle.setStrategy(event, TrackerImportStrategy.CREATE);
+    Optional<ProgramRuleIssue> error = executor.executeRuleAction(bundle, event);
 
     assertTrue(error.isEmpty());
   }
@@ -128,7 +129,8 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
     when(preheat.getDataElement(DATA_ELEMENT_ID)).thenReturn(dataElement);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
     bundle.setEvents(List.of(getEventWithMandatoryValueSet(), getEventWithMandatoryValueNOTSet()));
-
+    bundle.setStrategy(getEventWithMandatoryValueNOTSet(), TrackerImportStrategy.CREATE);
+    bundle.setStrategy(getEventWithMandatoryValueSet(), TrackerImportStrategy.CREATE);
     Optional<ProgramRuleIssue> error =
         executor.executeRuleAction(bundle, getEventWithMandatoryValueSet());
     assertTrue(error.isEmpty());
