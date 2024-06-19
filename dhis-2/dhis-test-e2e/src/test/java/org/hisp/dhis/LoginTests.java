@@ -78,7 +78,6 @@ public class LoginTests extends ApiTest {
   }
 
   @Test
-  @Disabled
   public void shouldBeAbleToLoginWithOAuth2() {
 
     loginActions.addAuthenticationHeader(oauthClientId, secret);
@@ -109,7 +108,6 @@ public class LoginTests extends ApiTest {
   }
 
   @Test
-  @Disabled
   public void shouldBeAbleToGetRefreshToken() {
     loginActions.addAuthenticationHeader(oauthClientId, secret);
 
