@@ -64,7 +64,7 @@ public class SetMandatoryFieldExecutor implements RuleActionExecutor<Event> {
     TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
 
     if (bundle.getStrategy(event).isUpdate()) {
-      return ValidationUtils.validateMandatoryDataValueOnUpdate(
+      return ValidationUtils.validateDeletionMandatoryDataValue(
               programStage,
               event,
               List.of(idSchemes.toMetadataIdentifier(preheat.getDataElement(fieldUid))))

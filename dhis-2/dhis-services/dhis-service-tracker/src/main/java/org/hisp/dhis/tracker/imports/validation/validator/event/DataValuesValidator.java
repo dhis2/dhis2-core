@@ -35,13 +35,14 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1302;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1303;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1304;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1305;
-import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.needsToValidateDataValues;
+import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateDeletionMandatoryDataValue;
 import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateMandatoryDataValue;
 import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateOptionSet;
 
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.program.ProgramStage;
@@ -64,43 +65,42 @@ class DataValuesValidator implements Validator<Event> {
     ProgramStage programStage = bundle.getPreheat().getProgramStage(event.getProgramStage());
 
     for (DataValue dataValue : event.getDataValues()) {
-      TrackerPreheat preheat = bundle.getPreheat();
-      DataElement dataElement = preheat.getDataElement(dataValue.getDataElement());
-
-      if (dataElement == null) {
-        reporter.addError(event, E1304, dataValue.getDataElement());
-        continue;
-      }
-
-      validateDataValue(reporter, bundle, dataElement, dataValue, programStage, event);
+      validateDataValue(reporter, bundle, dataValue, event);
     }
 
-    if (bundle.getStrategy(event).isCreate()) {
-      validateMandatoryDataValues(reporter, bundle, event);
-    }
+    validateMandatoryDataValues(reporter, bundle, event, programStage);
     validateDataValueDataElementIsConnectedToProgramStage(reporter, bundle, event, programStage);
   }
 
-  private void validateMandatoryDataValues(Reporter reporter, TrackerBundle bundle, Event event) {
-    TrackerPreheat preheat = bundle.getPreheat();
-    ProgramStage programStage = bundle.getPreheat().getProgramStage(event.getProgramStage());
+  private void validateMandatoryDataValues(
+      Reporter reporter, TrackerBundle bundle, Event event, ProgramStage programStage) {
     final List<MetadataIdentifier> mandatoryDataElements =
         programStage.getProgramStageDataElements().stream()
             .filter(ProgramStageDataElement::isCompulsory)
-            .map(de -> preheat.getIdSchemes().toMetadataIdentifier(de.getDataElement()))
+            .map(de -> bundle.getPreheat().getIdSchemes().toMetadataIdentifier(de.getDataElement()))
             .toList();
-    List<MetadataIdentifier> missingDataValue =
-        validateMandatoryDataValue(programStage, event, mandatoryDataElements);
-    missingDataValue.forEach(de -> reporter.addError(event, E1303, de));
+
+    if (bundle.getStrategy(event).isCreate()) {
+      validateMandatoryDataValue(programStage, event, mandatoryDataElements)
+          .forEach(de -> reporter.addError(event, E1303, de));
+    }
+    validateDeletionMandatoryDataValue(programStage, event, mandatoryDataElements)
+        .forEach(de -> reporter.addError(event, E1076, DataElement.class.getSimpleName(), de));
   }
 
   private void validateDataValue(
-      Reporter reporter,
-      TrackerBundle bundle,
-      DataElement dataElement,
-      DataValue dataValue,
-      ProgramStage programStage,
-      Event event) {
+      Reporter reporter, TrackerBundle bundle, DataValue dataValue, Event event) {
+    DataElement dataElement = bundle.getPreheat().getDataElement(dataValue.getDataElement());
+
+    if (dataElement == null) {
+      reporter.addError(event, E1304, dataValue.getDataElement());
+      return;
+    }
+
+    if (dataValue.getValue() == null) {
+      return;
+    }
+
     String status = ValidationUtils.valueIsValid(dataValue.getValue(), dataElement);
 
     if (status != null) {
@@ -112,28 +112,6 @@ class DataValuesValidator implements Validator<Event> {
     } else if (dataElement.getValueType().isOrganisationUnit()) {
       validateOrgUnitValueType(reporter, bundle, event, dataValue.getValue());
     }
-
-    validateNullDataValues(reporter, dataElement, programStage, dataValue, event);
-  }
-
-  private void validateNullDataValues(
-      Reporter reporter,
-      DataElement dataElement,
-      ProgramStage programStage,
-      DataValue dataValue,
-      Event event) {
-    if (dataValue.getValue() != null || !needsToValidateDataValues(event, programStage)) {
-      return;
-    }
-
-    programStage.getProgramStageDataElements().stream()
-        .filter(
-            psde ->
-                psde.getDataElement().getUid().equals(dataElement.getUid()) && psde.isCompulsory())
-        .forEach(
-            psde ->
-                reporter.addError(
-                    event, E1076, DataElement.class.getSimpleName(), dataElement.getUid()));
   }
 
   private void validateDataValueDataElementIsConnectedToProgramStage(
@@ -155,13 +133,8 @@ class DataValuesValidator implements Validator<Event> {
   }
 
   private void validateFileNotAlreadyAssigned(
-      Reporter reporter, TrackerBundle bundle, Event event, String value) {
-    if (value == null) {
-      return;
-    }
-
-    TrackerPreheat preheat = bundle.getPreheat();
-    FileResource fileResource = preheat.get(FileResource.class, value);
+      Reporter reporter, TrackerBundle bundle, Event event, @Nonnull String value) {
+    FileResource fileResource = bundle.getPreheat().get(FileResource.class, value);
 
     reporter.addErrorIfNull(fileResource, event, E1084, value);
 
@@ -183,11 +156,7 @@ class DataValuesValidator implements Validator<Event> {
   }
 
   private void validateOrgUnitValueType(
-      Reporter reporter, TrackerBundle bundle, Event event, String value) {
-    if (value == null) {
-      return;
-    }
-
+      Reporter reporter, TrackerBundle bundle, Event event, @Nonnull String value) {
     reporter.addErrorIfNull(bundle.getPreheat().getOrganisationUnit(value), event, E1007, value);
   }
 }

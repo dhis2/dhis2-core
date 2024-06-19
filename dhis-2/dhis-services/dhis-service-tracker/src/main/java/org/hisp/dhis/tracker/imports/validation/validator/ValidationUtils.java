@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
@@ -99,47 +100,31 @@ public class ValidationUtils {
     return notes;
   }
 
-  public static List<MetadataIdentifier> validateMandatoryDataValueOnUpdate(
+  public static List<MetadataIdentifier> validateDeletionMandatoryDataValue(
       ProgramStage programStage, Event event, List<MetadataIdentifier> mandatoryDataElements) {
-    List<MetadataIdentifier> deletedMandatoryDataElements = Lists.newArrayList();
-
     if (!needsToValidateDataValues(event, programStage)) {
-      return deletedMandatoryDataElements;
+      return List.of();
     }
 
-    Set<MetadataIdentifier> deletedDataElements =
+    Set<MetadataIdentifier> eventDataElements =
         event.getDataValues().stream()
-            .filter(dataValue -> dataValue.getValue() == null)
+            .filter(dv -> dv.getValue() == null)
             .map(DataValue::getDataElement)
             .collect(Collectors.toSet());
 
-    for (MetadataIdentifier mandatoryDataElement : mandatoryDataElements) {
-      if (deletedDataElements.contains(mandatoryDataElement)) {
-        deletedMandatoryDataElements.add(mandatoryDataElement);
-      }
-    }
-
-    return deletedMandatoryDataElements;
+    return mandatoryDataElements.stream().filter(de -> !eventDataElements.contains(de)).toList();
   }
 
   public static List<MetadataIdentifier> validateMandatoryDataValue(
       ProgramStage programStage, Event event, List<MetadataIdentifier> mandatoryDataElements) {
-    List<MetadataIdentifier> notPresentMandatoryDataElements = Lists.newArrayList();
-
     if (!needsToValidateDataValues(event, programStage)) {
-      return notPresentMandatoryDataElements;
+      return List.of();
     }
 
     Set<MetadataIdentifier> eventDataElements =
         event.getDataValues().stream().map(DataValue::getDataElement).collect(Collectors.toSet());
 
-    for (MetadataIdentifier mandatoryDataElement : mandatoryDataElements) {
-      if (!eventDataElements.contains(mandatoryDataElement)) {
-        notPresentMandatoryDataElements.add(mandatoryDataElement);
-      }
-    }
-
-    return notPresentMandatoryDataElements;
+    return mandatoryDataElements.stream().filter(de -> !eventDataElements.contains(de)).toList();
   }
 
   public static boolean needsToValidateDataValues(Event event, ProgramStage programStage) {
@@ -191,8 +176,8 @@ public class ValidationUtils {
   }
 
   public static <T extends ValueTypedDimensionalItemObject> void validateOptionSet(
-      Reporter reporter, TrackerDto dto, T optionalObject, String value) {
-    if (value == null || !optionalObject.hasOptionSet()) {
+      Reporter reporter, TrackerDto dto, T optionalObject, @Nonnull String value) {
+    if (!optionalObject.hasOptionSet()) {
       return;
     }
 
