@@ -41,6 +41,7 @@ import java.util.Set;
 import javax.persistence.PersistenceException;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
@@ -60,13 +61,14 @@ import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.SectionService;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.eventvisualization.EventVisualization;
-import org.hisp.dhis.eventvisualization.EventVisualizationService;
+import org.hisp.dhis.eventvisualization.EventVisualizationStore;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorStore;
 import org.hisp.dhis.indicator.IndicatorType;
+import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
@@ -99,6 +101,7 @@ import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -119,7 +122,9 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
   @Autowired private DataElementService dataElementService;
   @Autowired private DataElementMergeProcessor mergeProcessor;
   @Autowired private MinMaxDataElementService minMaxDataElementService;
-  @Autowired private EventVisualizationService eventVisualizationService;
+  @Autowired private EventVisualizationStore eventVisualizationStore;
+  @Autowired private AnalyticalObjectStore<EventVisualization> analyticalEventVizStore;
+  @Autowired private AnalyticalObjectStore<MapView> mapViewStore;
   @Autowired private OrganisationUnitService orgUnitService;
   @Autowired private SMSCommandService smsCommandService;
   @Autowired private PredictorStore predictorStore;
@@ -314,9 +319,9 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     EventVisualization eventVis3 = createEventVisualization('3', null);
     eventVis3.setDataElementValueDimension(deSource2);
 
-    eventVisualizationService.save(eventVis1);
-    eventVisualizationService.save(eventVis2);
-    eventVisualizationService.save(eventVis3);
+    eventVisualizationStore.save(eventVis1);
+    eventVisualizationStore.save(eventVis2);
+    eventVisualizationStore.save(eventVis3);
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -326,9 +331,9 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
 
     // then
     List<EventVisualization> eventVizSources =
-        eventVisualizationService.getAllByDataElement(List.of(deSource1, deSource2));
+        eventVisualizationStore.getByDataElement(List.of(deSource1, deSource2));
     List<EventVisualization> eventVizTarget =
-        eventVisualizationService.getAllByDataElement(List.of(deTarget));
+        eventVisualizationStore.getByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesNotDeleted(
@@ -348,9 +353,9 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     EventVisualization eventVis6 = createEventVisualization('6', null);
     eventVis6.setDataElementValueDimension(deSource2);
 
-    eventVisualizationService.save(eventVis4);
-    eventVisualizationService.save(eventVis5);
-    eventVisualizationService.save(eventVis6);
+    eventVisualizationStore.save(eventVis4);
+    eventVisualizationStore.save(eventVis5);
+    eventVisualizationStore.save(eventVis6);
 
     // params
     MergeParams mergeParams = new MergeParams();
@@ -363,12 +368,181 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
 
     // then
     List<EventVisualization> eventVizSources =
-        eventVisualizationService.getAllByDataElement(List.of(deSource1, deSource2));
+        eventVisualizationStore.getByDataElement(List.of(deSource1, deSource2));
     List<EventVisualization> eventVizTarget =
-        eventVisualizationService.getAllByDataElement(List.of(deTarget));
+        eventVisualizationStore.getByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesDeleted(report, eventVizSources, eventVizTarget, allDataElements);
+  }
+
+  // -------------------------------------------
+  // ---- TrackedEntityDataElementDimension ----
+  // -------------------------------------------
+  @Test
+  @DisplayName(
+      "TrackedEntityDataElementDimension references to source DataElements are replaced as expected, source DataElements are not deleted")
+  void trackedEntityDataElDimMergeTest() throws ConflictException {
+    // given
+    // event visualizations
+    TrackedEntityDataElementDimension teded1 = new TrackedEntityDataElementDimension();
+    teded1.setDataElement(deSource1);
+    TrackedEntityDataElementDimension teded2 = new TrackedEntityDataElementDimension();
+    teded2.setDataElement(deSource2);
+    TrackedEntityDataElementDimension teded3 = new TrackedEntityDataElementDimension();
+    teded3.setDataElement(deTarget);
+    TrackedEntityDataElementDimension teded4 = new TrackedEntityDataElementDimension();
+    teded4.setDataElement(deRandom);
+
+    TrackedEntityDataElementDimension teded5 = new TrackedEntityDataElementDimension();
+    teded5.setDataElement(deSource1);
+    TrackedEntityDataElementDimension teded6 = new TrackedEntityDataElementDimension();
+    teded6.setDataElement(deSource2);
+    TrackedEntityDataElementDimension teded7 = new TrackedEntityDataElementDimension();
+    teded7.setDataElement(deTarget);
+    TrackedEntityDataElementDimension teded8 = new TrackedEntityDataElementDimension();
+    teded8.setDataElement(deRandom);
+
+    // Mapview
+    MapView m1 = createMapView("e");
+    m1.addTrackedEntityDataElementDimension(teded1);
+    MapView m2 = createMapView("f");
+    m2.addTrackedEntityDataElementDimension(teded2);
+    MapView m3 = createMapView("g");
+    m3.addTrackedEntityDataElementDimension(teded3);
+    MapView m4 = createMapView("h");
+    m4.addTrackedEntityDataElementDimension(teded4);
+    MapView m5 = createMapView("i");
+
+    identifiableObjectManager.save(m1);
+    identifiableObjectManager.save(m2);
+    identifiableObjectManager.save(m3);
+    identifiableObjectManager.save(m4);
+    identifiableObjectManager.save(m5);
+
+    // event viz
+    EventVisualization ev1 = createEventVisualization('e', program);
+    ev1.addTrackedEntityDataElementDimension(teded5);
+    EventVisualization ev2 = createEventVisualization('f', program);
+    ev2.addTrackedEntityDataElementDimension(teded6);
+    EventVisualization ev3 = createEventVisualization('g', program);
+    ev3.addTrackedEntityDataElementDimension(teded7);
+    EventVisualization ev4 = createEventVisualization('h', program);
+    ev4.addTrackedEntityDataElementDimension(teded8);
+    EventVisualization ev5 = createEventVisualization('h', program);
+
+    eventVisualizationStore.save(ev1);
+    eventVisualizationStore.save(ev2);
+    eventVisualizationStore.save(ev3);
+    eventVisualizationStore.save(ev4);
+    eventVisualizationStore.save(ev5);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    // event viz
+    List<EventVisualization> sourcesEventViz =
+        analyticalEventVizStore.getByDataElementDimensionsWithAnyOf(List.of(deSource1, deSource2));
+    List<EventVisualization> targetEventViz =
+        analyticalEventVizStore.getByDataElementDimensionsWithAnyOf(List.of(deTarget));
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    // map view
+    List<MapView> sourceMapViews =
+        mapViewStore.getByDataElementDimensionsWithAnyOf(List.of(deSource1, deSource2));
+    List<MapView> targetMapView =
+        mapViewStore.getByDataElementDimensionsWithAnyOf(List.of(deTarget));
+
+    assertMergeSuccessfulSourcesNotDeleted(
+        report, sourcesEventViz, targetEventViz, allDataElements);
+    assertMergeSuccessfulSourcesNotDeleted(report, sourceMapViews, targetMapView, allDataElements);
+  }
+
+  @Test
+  @DisplayName(
+      "TrackedEntityDataElementDimension references to source DataElements are replaced as expected, source DataElements are deleted")
+  void trackedEntityDataElDimMergeSourcesDeletedTest() throws ConflictException {
+    // given
+    // event visualizations
+    TrackedEntityDataElementDimension teded1 = new TrackedEntityDataElementDimension();
+    teded1.setDataElement(deSource1);
+    TrackedEntityDataElementDimension teded2 = new TrackedEntityDataElementDimension();
+    teded2.setDataElement(deSource2);
+    TrackedEntityDataElementDimension teded3 = new TrackedEntityDataElementDimension();
+    teded3.setDataElement(deTarget);
+    TrackedEntityDataElementDimension teded4 = new TrackedEntityDataElementDimension();
+    teded4.setDataElement(deRandom);
+
+    TrackedEntityDataElementDimension teded5 = new TrackedEntityDataElementDimension();
+    teded5.setDataElement(deSource1);
+    TrackedEntityDataElementDimension teded6 = new TrackedEntityDataElementDimension();
+    teded6.setDataElement(deSource2);
+    TrackedEntityDataElementDimension teded7 = new TrackedEntityDataElementDimension();
+    teded7.setDataElement(deTarget);
+    TrackedEntityDataElementDimension teded8 = new TrackedEntityDataElementDimension();
+    teded8.setDataElement(deRandom);
+
+    // Mapview
+    MapView m1 = createMapView("e");
+    m1.addTrackedEntityDataElementDimension(teded1);
+    MapView m2 = createMapView("f");
+    m2.addTrackedEntityDataElementDimension(teded2);
+    MapView m3 = createMapView("g");
+    m3.addTrackedEntityDataElementDimension(teded3);
+    MapView m4 = createMapView("h");
+    m4.addTrackedEntityDataElementDimension(teded4);
+    MapView m5 = createMapView("i");
+
+    identifiableObjectManager.save(m1);
+    identifiableObjectManager.save(m2);
+    identifiableObjectManager.save(m3);
+    identifiableObjectManager.save(m4);
+    identifiableObjectManager.save(m5);
+
+    // event viz
+    EventVisualization ev1 = createEventVisualization('e', program);
+    ev1.addTrackedEntityDataElementDimension(teded5);
+    EventVisualization ev2 = createEventVisualization('f', program);
+    ev2.addTrackedEntityDataElementDimension(teded6);
+    EventVisualization ev3 = createEventVisualization('g', program);
+    ev3.addTrackedEntityDataElementDimension(teded7);
+    EventVisualization ev4 = createEventVisualization('h', program);
+    ev4.addTrackedEntityDataElementDimension(teded8);
+    EventVisualization ev5 = createEventVisualization('h', program);
+
+    eventVisualizationStore.save(ev1);
+    eventVisualizationStore.save(ev2);
+    eventVisualizationStore.save(ev3);
+    eventVisualizationStore.save(ev4);
+    eventVisualizationStore.save(ev5);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDeleteSources(true);
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    // event viz
+    List<EventVisualization> sourcesEventViz =
+        analyticalEventVizStore.getByDataElementDimensionsWithAnyOf(List.of(deSource1, deSource2));
+    List<EventVisualization> targetEventViz =
+        analyticalEventVizStore.getByDataElementDimensionsWithAnyOf(List.of(deTarget));
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    // map view
+    List<MapView> sourceMapViews =
+        mapViewStore.getByDataElementDimensionsWithAnyOf(List.of(deSource1, deSource2));
+    List<MapView> targetMapView =
+        mapViewStore.getByDataElementDimensionsWithAnyOf(List.of(deTarget));
+
+    assertMergeSuccessfulSourcesDeleted(report, sourcesEventViz, targetEventViz, allDataElements);
+    assertMergeSuccessfulSourcesDeleted(report, sourceMapViews, targetMapView, allDataElements);
   }
 
   // -------------------------------

@@ -35,8 +35,6 @@ import java.util.List;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.Sorting;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementStore;
-import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
@@ -46,7 +44,9 @@ import org.hisp.dhis.mapping.MapViewStore;
 import org.hisp.dhis.mapping.ThematicMapType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.visualization.Visualization;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -75,7 +75,6 @@ class AnalyticalObjectStoreTest extends TransactionalIntegrationTest {
   private MapView mvC;
 
   @Autowired private IdentifiableObjectManager idObjectManager;
-  @Autowired private DataElementStore dataElementStore;
 
   @Autowired
   @Qualifier("org.hisp.dhis.mapping.MapViewStore")
@@ -83,7 +82,7 @@ class AnalyticalObjectStoreTest extends TransactionalIntegrationTest {
 
   @Autowired private AnalyticalObjectStore<Visualization> visualizationStore;
   @Autowired private AnalyticalObjectStore<EventVisualization> eventVisualizationStore;
-  @Autowired private AnalyticalObjectStore<EventChart> eventChartStore;
+  @Autowired private AnalyticalObjectStore<MapView> analyticalMapViewStore;
 
   @Override
   public void setUpTest() {
@@ -189,37 +188,74 @@ class AnalyticalObjectStoreTest extends TransactionalIntegrationTest {
   }
 
   @Test
-  @DisplayName("retrieving Event Visualizations by DataElement should return the correct results")
-  void retrievingEventVisualizationsByDataElementShouldReturnTheCorrectResults() {
-    // given EventVisualizations with DataElement references
+  @DisplayName(
+      "retrieving TrackedEntityDataElementDimensions by DataElement should return the correct results")
+  void trackedEntityDataElementDimensionsTest() {
+    // given EventVisualizations with TrackedEntityDataElementDimensions references
     DataElement de1 = createDataElementAndSave('1');
     DataElement de2 = createDataElementAndSave('2');
     DataElement de3 = createDataElementAndSave('3');
 
-    EventVisualization eventVis1 = createEventVisualization('1', null);
-    eventVis1.setDataElementValueDimension(de1);
-    EventVisualization eventVis2 = createEventVisualization('2', null);
-    eventVis2.setDataElementValueDimension(de2);
-    EventVisualization eventVis3 = createEventVisualization('3', null);
-    eventVis3.setDataElementValueDimension(de3);
+    TrackedEntityDataElementDimension teded1 = new TrackedEntityDataElementDimension();
+    teded1.setDataElement(de1);
+    TrackedEntityDataElementDimension teded2 = new TrackedEntityDataElementDimension();
+    teded2.setDataElement(de2);
+    TrackedEntityDataElementDimension teded3 = new TrackedEntityDataElementDimension();
+    teded3.setDataElement(de3);
+    TrackedEntityDataElementDimension teded4 = new TrackedEntityDataElementDimension();
+    teded4.setDataElement(de1);
+    TrackedEntityDataElementDimension teded5 = new TrackedEntityDataElementDimension();
+    teded5.setDataElement(de2);
+    TrackedEntityDataElementDimension teded6 = new TrackedEntityDataElementDimension();
+    teded6.setDataElement(de3);
 
-    idObjectManager.save(eventVis1);
-    idObjectManager.save(eventVis2);
-    idObjectManager.save(eventVis3);
+    Program program = createProgram('p');
+    idObjectManager.save(program);
+    EventVisualization ev1 = createEventVisualization('e', program);
+    ev1.addTrackedEntityDataElementDimension(teded1);
+    EventVisualization ev2 = createEventVisualization('f', program);
+    ev2.addTrackedEntityDataElementDimension(teded2);
+    EventVisualization ev3 = createEventVisualization('g', program);
+    ev3.addTrackedEntityDataElementDimension(teded3);
+    EventVisualization ev4 = createEventVisualization('h', program);
+
+    MapView m1 = createMapView("1");
+    m1.addTrackedEntityDataElementDimension(teded4);
+    MapView m2 = createMapView("2");
+    m2.addTrackedEntityDataElementDimension(teded5);
+    MapView m3 = createMapView("3");
+    m3.addTrackedEntityDataElementDimension(teded6);
+    MapView m4 = createMapView("4");
+
+    idObjectManager.save(ev1);
+    idObjectManager.save(ev2);
+    idObjectManager.save(ev3);
+    idObjectManager.save(ev4);
+    idObjectManager.save(m1);
+    idObjectManager.save(m2);
+    idObjectManager.save(m3);
+    idObjectManager.save(m4);
 
     // when
-    List<EventVisualization> allByDataElement =
-        eventVisualizationStore.getEventVisualizationsByDataElement(List.of(de1, de2));
-    List<DataElement> allDataElements = dataElementStore.getAll();
+    List<EventVisualization> eventVisualizations =
+        eventVisualizationStore.getByDataElementDimensionsWithAnyOf(List.of(de1, de2));
+    List<MapView> mapViews = mapViewStore.getByDataElementDimensionsWithAnyOf(List.of(de1, de2));
 
     // then
-    assertEquals(2, allByDataElement.size());
-    assertEquals(3, allDataElements.size());
+    assertEquals(2, eventVisualizations.size());
+    assertEquals(2, mapViews.size());
     assertTrue(
-        allByDataElement.stream()
-            .map(ev -> ev.getDataElementValueDimension().getUid())
+        eventVisualizations.stream()
+            .flatMap(ev -> ev.getDataElementDimensions().stream())
+            .map(TrackedEntityDataElementDimension::getDataElement)
             .toList()
-            .containsAll(List.of(de1.getUid(), de2.getUid())));
+            .containsAll(List.of(de1, de2)));
+    assertTrue(
+        mapViews.stream()
+            .flatMap(ev -> ev.getDataElementDimensions().stream())
+            .map(TrackedEntityDataElementDimension::getDataElement)
+            .toList()
+            .containsAll(List.of(de1, de2)));
   }
 
   private DataElement createDataElementAndSave(char c) {

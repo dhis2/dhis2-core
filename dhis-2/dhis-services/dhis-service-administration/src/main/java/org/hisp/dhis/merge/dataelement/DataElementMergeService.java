@@ -146,6 +146,7 @@ public class DataElementMergeService implements MergeService {
             .add(dataElementMergeHandler::handleEventEventDataValues)
             .add(dataElementMergeHandler::handleDataDimensionItems)
             .add(dataElementMergeHandler::handleEventVisualization)
+            .add(dataElementMergeHandler::handleTrackedEntityDataElementDimension)
             .add(dataElementMergeHandler::handleMinMaxDataElement)
             .add(dataElementMergeHandler::handleDataElementOperand)
             .add(dataElementMergeHandler::handleDataSetElement)

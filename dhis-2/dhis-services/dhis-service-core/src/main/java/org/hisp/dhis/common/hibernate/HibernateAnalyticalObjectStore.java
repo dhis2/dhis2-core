@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.common.hibernate;
 
-import java.util.Collection;
 import java.util.List;
 import javax.persistence.EntityManager;
 import org.hibernate.query.Query;
@@ -135,6 +134,16 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
   }
 
   @Override
+  public List<T> getByDataElementDimensionsWithAnyOf(List<DataElement> dataElements) {
+    return getQuery(
+            "select distinct c from "
+                + clazz.getName()
+                + " c join c.dataElementDimensions d where d.dataElement in :dataElements")
+        .setParameter("dataElements", dataElements)
+        .getResultList();
+  }
+
+  @Override
   public List<T> getAnalyticalObjects(Period period) {
     String hql = "from " + clazz.getName() + " c where :period in elements(c.periods)";
     return getQuery(hql).setParameter("period", period).list();
@@ -208,14 +217,6 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
         """;
 
     return getSession().createNativeQuery(sql, clazz).setParameter("indicators", indicators).list();
-  }
-
-  @Override
-  public List<T> getEventVisualizationsByDataElement(Collection<DataElement> dataElements) {
-    // language=hql
-    String hql = "from EventVisualization ev where ev.dataElementValueDimension in :dataElements";
-
-    return getQuery(hql, clazz).setParameter("dataElements", dataElements).list();
   }
 
   @Override

@@ -29,6 +29,8 @@ package org.hisp.dhis.merge.dataelement;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.AnalyticalObjectStore;
+import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.UID;
@@ -43,8 +45,9 @@ import org.hisp.dhis.dataset.DataSetStore;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.SectionStore;
 import org.hisp.dhis.eventvisualization.EventVisualization;
-import org.hisp.dhis.eventvisualization.EventVisualizationService;
+import org.hisp.dhis.eventvisualization.EventVisualizationStore;
 import org.hisp.dhis.expression.Expression;
+import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.hisp.dhis.predictor.Predictor;
@@ -65,6 +68,7 @@ import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.code.SMSCode;
+import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.springframework.stereotype.Service;
 
 /**
@@ -77,7 +81,9 @@ import org.springframework.stereotype.Service;
 public class DefaultDataElementMergeHandler {
 
   private final MinMaxDataElementService minMaxDataElementService;
-  private final EventVisualizationService eventVisualizationService;
+  private final EventVisualizationStore eventVisualizationStore;
+  private final AnalyticalObjectStore<EventVisualization> analyticalEventVisStore;
+  private final AnalyticalObjectStore<MapView> mapViewStore;
   private final SMSCommandService smsCommandService;
   private final PredictorStore predictorStore;
   private final ProgramStageDataElementService programStageDataElementService;
@@ -119,8 +125,33 @@ public class DefaultDataElementMergeHandler {
    */
   public void handleEventVisualization(List<DataElement> sources, DataElement target) {
     List<EventVisualization> eventVisualizations =
-        eventVisualizationService.getAllByDataElement(sources);
+        eventVisualizationStore.getByDataElement(sources);
     eventVisualizations.forEach(ev -> ev.setDataElementValueDimension(target));
+  }
+
+  /**
+   * Method retrieving {@link BaseAnalyticalObject}s ({@link EventVisualization} & {@link MapView}
+   * only) by source {@link DataElement} references in property dataElementDimensions. All retrieved
+   * {@link BaseAnalyticalObject}s will have their {@link TrackedEntityDataElementDimension} {@link
+   * DataElement} replaced with the target {@link DataElement}.
+   *
+   * @param sources source {@link DataElement}s used to retrieve {@link BaseAnalyticalObject}s
+   * @param target {@link DataElement} which will be set as the {@link DataElement} for an {@link
+   *     TrackedEntityDataElementDimension}
+   */
+  public void handleTrackedEntityDataElementDimension(
+      List<DataElement> sources, DataElement target) {
+    List<EventVisualization> eventVisualizations =
+        analyticalEventVisStore.getByDataElementDimensionsWithAnyOf(sources);
+    List<MapView> mapViews = mapViewStore.getByDataElementDimensionsWithAnyOf(sources);
+
+    eventVisualizations.stream()
+        .flatMap(ev -> ev.getDataElementDimensions().stream())
+        .forEach(teded -> teded.setDataElement(target));
+
+    mapViews.stream()
+        .flatMap(mv -> mv.getDataElementDimensions().stream())
+        .forEach(teded -> teded.setDataElement(target));
   }
 
   /**

@@ -27,12 +27,10 @@
  */
 package org.hisp.dhis.eventvisualization;
 
-import java.util.Collection;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.common.GenericAnalyticalObjectService;
-import org.hisp.dhis.dataelement.DataElement;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -99,11 +97,5 @@ public class DefaultEventVisualizationService
   @Transactional(readOnly = true)
   public List<EventVisualization> getAllEventVisualizations() {
     return eventVisualizationStore.getAll();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<EventVisualization> getAllByDataElement(Collection<DataElement> dataElements) {
-    return eventVisualizationStore.getEventVisualizationsByDataElement(dataElements);
   }
 }
