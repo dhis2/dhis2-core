@@ -41,6 +41,7 @@ import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
+import org.hisp.dhis.analytics.common.EnrollmentAnalyticsRequestContext;
 import org.hisp.dhis.analytics.dimensions.AnalyticsDimensionsPagingWrapper;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsService;
@@ -106,6 +107,8 @@ public class EnrollmentAnalyticsController {
 
   @Nonnull private final AnalyticsTableSettings analyticsTableSettings;
 
+  @Nonnull private final EnrollmentAnalyticsRequestContext enrollmentAnalyticsRequestContext;
+
   @RequiresAuthority(anyOf = F_PERFORM_ANALYTICS_EXPLAIN)
   @GetMapping(
       value = "/aggregate/{program}/explain",
@@ -115,6 +118,7 @@ public class EnrollmentAnalyticsController {
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
+    initRequestContext(criteria);
     EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, true, AGGREGATE);
 
     Grid grid = analyticsService.getEnrollments(params);
@@ -137,6 +141,7 @@ public class EnrollmentAnalyticsController {
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
+    initRequestContext(criteria);
     EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
 
     contextUtils.configureResponse(
@@ -152,6 +157,7 @@ public class EnrollmentAnalyticsController {
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
+    initRequestContext(criteria);
     EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
 
     contextUtils.configureResponse(
@@ -171,6 +177,7 @@ public class EnrollmentAnalyticsController {
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
+    initRequestContext(criteria);
     EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
 
     contextUtils.configureResponse(
@@ -190,6 +197,7 @@ public class EnrollmentAnalyticsController {
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
+    initRequestContext(criteria);
     EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
 
     contextUtils.configureResponse(
@@ -209,6 +217,7 @@ public class EnrollmentAnalyticsController {
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
+    initRequestContext(criteria);
     EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
 
     contextUtils.configureResponse(
@@ -228,6 +237,7 @@ public class EnrollmentAnalyticsController {
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
+    initRequestContext(criteria);
     EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
 
     contextUtils.configureResponse(
@@ -249,6 +259,7 @@ public class EnrollmentAnalyticsController {
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
+    initRequestContext(criteria);
     EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, true, QUERY);
 
     Grid grid = analyticsService.getEnrollments(params);
@@ -271,6 +282,7 @@ public class EnrollmentAnalyticsController {
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
+    initRequestContext(criteria);
     EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, QUERY);
 
     contextUtils.configureResponse(
@@ -286,6 +298,7 @@ public class EnrollmentAnalyticsController {
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
+    initRequestContext(criteria);
     EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, QUERY);
 
     contextUtils.configureResponse(
@@ -305,6 +318,7 @@ public class EnrollmentAnalyticsController {
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
+    initRequestContext(criteria);
     EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, QUERY);
 
     contextUtils.configureResponse(
@@ -324,6 +338,7 @@ public class EnrollmentAnalyticsController {
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
+    initRequestContext(criteria);
     EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, QUERY);
 
     contextUtils.configureResponse(
@@ -343,6 +358,7 @@ public class EnrollmentAnalyticsController {
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
+    initRequestContext(criteria);
     EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, QUERY);
 
     contextUtils.configureResponse(
@@ -362,6 +378,7 @@ public class EnrollmentAnalyticsController {
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
+    initRequestContext(criteria);
     EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, QUERY);
 
     contextUtils.configureResponse(
@@ -440,5 +457,9 @@ public class EnrollmentAnalyticsController {
             .build();
 
     return eventDataQueryService.getFromRequest(request, analyzeOnly);
+  }
+
+  private void initRequestContext(EnrollmentAnalyticsQueryCriteria criteria) {
+    enrollmentAnalyticsRequestContext.setEnrollmentAnalyticsQueryCriteria(criteria);
   }
 }

@@ -267,4 +267,7 @@ class DummyAnalyticsService extends AbstractAnalyticsService {
   protected long addData(Grid grid, EventQueryParams params) {
     return 0;
   }
+
+  @Override
+  protected void validateGrid(Grid grid) {}
 }

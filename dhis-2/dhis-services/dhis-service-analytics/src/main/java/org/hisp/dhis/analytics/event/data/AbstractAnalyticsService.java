@@ -229,6 +229,8 @@ public abstract class AbstractAnalyticsService {
       }
     }
 
+    validateGrid(grid);
+
     // ---------------------------------------------------------------------
     // Data
     // ---------------------------------------------------------------------
@@ -350,6 +352,8 @@ public abstract class AbstractAnalyticsService {
   protected abstract Grid createGridWithHeaders(EventQueryParams params);
 
   protected abstract long addData(Grid grid, EventQueryParams params);
+
+  protected abstract void validateGrid(Grid grid);
 
   /**
    * Applies headers to the given if the given query specifies headers.

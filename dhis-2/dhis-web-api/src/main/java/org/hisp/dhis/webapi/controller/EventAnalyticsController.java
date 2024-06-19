@@ -42,6 +42,7 @@ import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
+import org.hisp.dhis.analytics.common.EventAnalyticsRequestContext;
 import org.hisp.dhis.analytics.dimensions.AnalyticsDimensionsPagingWrapper;
 import org.hisp.dhis.analytics.event.EventAnalyticsDimensionsService;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
@@ -108,6 +109,8 @@ public class EventAnalyticsController {
 
   @Nonnull private final SystemSettingManager systemSettingManager;
 
+  @Nonnull private final EventAnalyticsRequestContext eventAnalyticsRequestContext;
+
   // -------------------------------------------------------------------------
   // Aggregate
   // -------------------------------------------------------------------------
@@ -122,6 +125,7 @@ public class EventAnalyticsController {
       DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
+    initRequestContext(criteria);
     EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, true, AGGREGATE);
 
     configResponseForJson(response);
@@ -148,6 +152,7 @@ public class EventAnalyticsController {
       DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
+    initRequestContext(criteria);
     EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
 
     configResponseForJson(response);
@@ -163,6 +168,7 @@ public class EventAnalyticsController {
       DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
+    initRequestContext(criteria);
     GridUtils.toXml(
         getAggregatedGridWithAttachment(
             criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_XML, "events.xml", response),
@@ -176,6 +182,7 @@ public class EventAnalyticsController {
       DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
+    initRequestContext(criteria);
     GridUtils.toXls(
         getAggregatedGridWithAttachment(
             criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_EXCEL, "events.xls", response),
@@ -189,6 +196,7 @@ public class EventAnalyticsController {
       DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
+    initRequestContext(criteria);
     GridUtils.toCsv(
         getAggregatedGridWithAttachment(
             criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_CSV, "events.csv", response),
@@ -202,6 +210,7 @@ public class EventAnalyticsController {
       DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
+    initRequestContext(criteria);
     GridUtils.toHtml(
         getAggregatedGridWithAttachment(
             criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_HTML, "events.html", response),
@@ -215,6 +224,7 @@ public class EventAnalyticsController {
       DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
+    initRequestContext(criteria);
     GridUtils.toHtmlCss(
         getAggregatedGridWithAttachment(
             criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_HTML, "events.html", response),
@@ -255,6 +265,7 @@ public class EventAnalyticsController {
       EventsAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
+    initRequestContext(criteria);
     EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, OTHER);
 
     configResponseForJson(response);
@@ -277,6 +288,7 @@ public class EventAnalyticsController {
       @RequestParam(required = false) boolean includeClusterPoints,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
+    initRequestContext(criteria);
     EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, OTHER);
 
     params =
@@ -304,6 +316,7 @@ public class EventAnalyticsController {
       EventsAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
+    initRequestContext(criteria);
     EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, true, QUERY);
 
     configResponseForJson(response);
@@ -325,6 +338,7 @@ public class EventAnalyticsController {
       EventsAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
+    initRequestContext(criteria);
     EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, QUERY);
 
     configResponseForJson(response);
@@ -339,6 +353,7 @@ public class EventAnalyticsController {
       DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
+    initRequestContext(criteria);
     GridUtils.toXml(
         getListGridWithAttachment(
             criteria,
@@ -358,6 +373,7 @@ public class EventAnalyticsController {
       DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
+    initRequestContext(criteria);
     GridUtils.toXls(
         getListGridWithAttachment(
             criteria,
@@ -377,6 +393,7 @@ public class EventAnalyticsController {
       DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
+    initRequestContext(criteria);
     GridUtils.toCsv(
         getListGridWithAttachment(
             criteria,
@@ -396,6 +413,7 @@ public class EventAnalyticsController {
       DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
+    initRequestContext(criteria);
     GridUtils.toHtml(
         getListGridWithAttachment(
             criteria,
@@ -415,6 +433,7 @@ public class EventAnalyticsController {
       DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
+    initRequestContext(criteria);
     GridUtils.toHtmlCss(
         getListGridWithAttachment(
             criteria,
@@ -522,5 +541,9 @@ public class EventAnalyticsController {
   private void configResponseForJson(HttpServletResponse response) {
     contextUtils.configureResponse(
         response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING);
+  }
+
+  private void initRequestContext(EventsAnalyticsQueryCriteria criteria) {
+    eventAnalyticsRequestContext.setEventsAnalyticsQueryCriteria(criteria);
   }
 }

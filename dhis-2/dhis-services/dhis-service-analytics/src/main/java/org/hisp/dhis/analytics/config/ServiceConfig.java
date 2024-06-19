@@ -29,6 +29,8 @@ package org.hisp.dhis.analytics.config;
 
 import org.hisp.dhis.analytics.AnalyticsTableManager;
 import org.hisp.dhis.analytics.AnalyticsTableService;
+import org.hisp.dhis.analytics.common.EnrollmentAnalyticsRequestContext;
+import org.hisp.dhis.analytics.common.EventAnalyticsRequestContext;
 import org.hisp.dhis.analytics.table.DefaultAnalyticsTableService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.db.sql.SqlBuilder;
@@ -39,6 +41,8 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
 
 /**
  * @author Luciano Fiandesio
@@ -246,5 +250,17 @@ public class ServiceConfig {
         resourceTableService,
         systemSettingManager,
         sqlBuilder);
+  }
+
+  @Bean
+  @Scope(value = "request", proxyMode = ScopedProxyMode.TARGET_CLASS)
+  public EnrollmentAnalyticsRequestContext enrollmentAnalyticsRequestContext() {
+    return new EnrollmentAnalyticsRequestContext();
+  }
+
+  @Bean
+  @Scope(value = "request", proxyMode = ScopedProxyMode.TARGET_CLASS)
+  public EventAnalyticsRequestContext eventAnalyticsRequestContext() {
+    return new EventAnalyticsRequestContext();
   }
 }

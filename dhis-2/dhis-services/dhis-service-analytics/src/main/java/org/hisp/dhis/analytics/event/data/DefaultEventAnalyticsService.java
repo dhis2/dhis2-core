@@ -84,6 +84,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -91,6 +93,7 @@ import org.hisp.dhis.analytics.EventAnalyticsDimensionalItem;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
 import org.hisp.dhis.analytics.common.ColumnHeader;
+import org.hisp.dhis.analytics.common.EventAnalyticsRequestContext;
 import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
@@ -107,6 +110,7 @@ import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
@@ -162,6 +166,8 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
 
   private final AnalyticsCache analyticsCache;
 
+  private final EventAnalyticsRequestContext eventAnalyticsRequestContext;
+
   public DefaultEventAnalyticsService(
       DataElementService dataElementService,
       TrackedEntityAttributeService trackedEntityAttributeService,
@@ -174,8 +180,10 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
       AnalyticsCache analyticsCache,
       EnrollmentAnalyticsManager enrollmentAnalyticsManager,
       SchemeIdResponseMapper schemeIdResponseMapper,
-      UserService userService) {
+      UserService userService,
+      EventAnalyticsRequestContext eventAnalyticsRequestContext) {
     super(securityManager, queryValidator, schemeIdResponseMapper, userService);
+    this.eventAnalyticsRequestContext = eventAnalyticsRequestContext;
 
     checkNotNull(dataElementService);
     checkNotNull(trackedEntityAttributeService);
@@ -328,7 +336,7 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
               });
 
           String display =
-              builder.length() > 0
+              !builder.isEmpty()
                   ? builder.substring(0, builder.lastIndexOf(DASH_PRETTY_SEPARATOR))
                   : TOTAL_COLUMN_PRETTY_NAME;
 
@@ -816,5 +824,19 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
     }
 
     return count;
+  }
+
+  @Override
+  protected void validateGrid(Grid grid) {
+    Set<String> descCriteria =
+        eventAnalyticsRequestContext.getEventsAnalyticsQueryCriteria().getDesc();
+    Set<String> ascCriteria =
+        eventAnalyticsRequestContext.getEventsAnalyticsQueryCriteria().getAsc();
+    Set<String> headers =
+        grid.getHeaders().stream().map(GridHeader::getName).collect(Collectors.toSet());
+
+    if (!headers.containsAll(descCriteria) || !headers.containsAll(ascCriteria)) {
+      throw new IllegalQueryException(ErrorCode.E7237);
+    }
   }
 }

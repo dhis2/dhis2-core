@@ -54,7 +54,10 @@ import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
+import org.hisp.dhis.analytics.common.EnrollmentAnalyticsRequestContext;
 import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsService;
@@ -65,7 +68,9 @@ import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.RequestTypeAware;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.Timer;
@@ -82,14 +87,18 @@ public class DefaultEnrollmentAnalyticsService extends AbstractAnalyticsService
 
   private final EventQueryPlanner queryPlanner;
 
+  private final EnrollmentAnalyticsRequestContext enrollmentAnalyticsRequestContext;
+
   public DefaultEnrollmentAnalyticsService(
       EnrollmentAnalyticsManager enrollmentAnalyticsManager,
       AnalyticsSecurityManager securityManager,
       EventQueryPlanner queryPlanner,
       EventQueryValidator queryValidator,
       SchemeIdResponseMapper schemeIdResponseMapper,
-      UserService userService) {
+      UserService userService,
+      EnrollmentAnalyticsRequestContext enrollmentAnalyticsRequestContext) {
     super(securityManager, queryValidator, schemeIdResponseMapper, userService);
+    this.enrollmentAnalyticsRequestContext = enrollmentAnalyticsRequestContext;
 
     checkNotNull(enrollmentAnalyticsManager);
     checkNotNull(queryPlanner);
@@ -206,6 +215,20 @@ public class DefaultEnrollmentAnalyticsService extends AbstractAnalyticsService
     }
 
     return count;
+  }
+
+  @Override
+  protected void validateGrid(Grid grid) {
+    Set<String> descCriteria =
+        enrollmentAnalyticsRequestContext.getEnrollmentAnalyticsQueryCriteria().getDesc();
+    Set<String> ascCriteria =
+        enrollmentAnalyticsRequestContext.getEnrollmentAnalyticsQueryCriteria().getAsc();
+    Set<String> headers =
+        grid.getHeaders().stream().map(GridHeader::getName).collect(Collectors.toSet());
+
+    if (!headers.containsAll(descCriteria) || !headers.containsAll(ascCriteria)) {
+      throw new IllegalQueryException(ErrorCode.E7237);
+    }
   }
 
   @Override
