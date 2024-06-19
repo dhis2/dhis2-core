@@ -76,6 +76,8 @@ import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.OrgUnitField;
+import org.hisp.dhis.analytics.common.EnrollmentAnalyticsRequestContext;
+import org.hisp.dhis.analytics.common.EventAnalyticsRequestContext;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsService;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -87,6 +89,8 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.EnrollmentAnalyticsQueryCriteria;
+import org.hisp.dhis.common.EventsAnalyticsQueryCriteria;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -130,6 +134,7 @@ import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig;
 
 /**
  * Tests event and enrollment analytics services.
@@ -137,6 +142,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Henning Haakonsen
  * @author Jim Grace (nearly complete rewrite)
  */
+@SpringJUnitWebConfig
 class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
   @Autowired private EventAnalyticsService eventTarget;
 
@@ -165,6 +171,9 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   @Autowired private UserService _userService;
+
+  @Autowired private EnrollmentAnalyticsRequestContext enrollmentAnalyticsRequestContext;
+  @Autowired private EventAnalyticsRequestContext eventAnalyticsRequestContext;
 
   private OrganisationUnit ouA;
 
@@ -253,6 +262,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     clearSecurityContext();
 
     reLoginAdminUser();
+    initAnalyticsRequestContext();
   }
 
   @Override
@@ -1535,5 +1545,12 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         .boxed()
         .map(i -> headers.get(i) + ":" + values.get(headerMap.get(headers.get(i))))
         .collect(joining("/"));
+  }
+
+  private void initAnalyticsRequestContext() {
+    enrollmentAnalyticsRequestContext.setEnrollmentAnalyticsQueryCriteria(
+        new EnrollmentAnalyticsQueryCriteria());
+    eventAnalyticsRequestContext.setEventsAnalyticsQueryCriteria(
+        new EventsAnalyticsQueryCriteria());
   }
 }
