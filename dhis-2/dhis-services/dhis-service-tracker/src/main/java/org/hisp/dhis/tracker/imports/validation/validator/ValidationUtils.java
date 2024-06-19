@@ -112,7 +112,7 @@ public class ValidationUtils {
             .map(DataValue::getDataElement)
             .collect(Collectors.toSet());
 
-    return mandatoryDataElements.stream().filter(de -> !eventDataElements.contains(de)).toList();
+    return mandatoryDataElements.stream().filter(eventDataElements::contains).toList();
   }
 
   public static List<MetadataIdentifier> validateMandatoryDataValue(

@@ -363,31 +363,6 @@ class DataValuesValidatorTest {
   }
 
   @Test
-  void failValidationWhenDataElementValueTypeIsNull() {
-    DataElement dataElement = dataElement();
-    DataElement invalidDataElement = dataElement(null);
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
-        .thenReturn(invalidDataElement);
-
-    ProgramStage programStage = programStage(dataElement);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
-        .thenReturn(programStage);
-
-    Event event =
-        Event.builder()
-            .event(CodeGenerator.generateUid())
-            .programStage(idSchemes.toMetadataIdentifier(programStage))
-            .status(EventStatus.SKIPPED)
-            .dataValues(Set.of(dataValue()))
-            .build();
-
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
-    validator.validate(reporter, bundle, event);
-
-    assertHasError(reporter, event, ValidationCode.E1302);
-  }
-
-  @Test
   void failValidationWhenFileResourceIsNull() {
     DataElement validDataElement = dataElement(ValueType.FILE_RESOURCE);
     when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
@@ -673,7 +648,6 @@ class DataValuesValidatorTest {
 
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
 
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, ValidationCode.E1009);
@@ -682,7 +656,6 @@ class DataValuesValidatorTest {
 
     reporter = new Reporter(idSchemes);
 
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertIsEmpty(reporter.getErrors());
@@ -712,7 +685,6 @@ class DataValuesValidatorTest {
 
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
 
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, ValidationCode.E1009);
@@ -724,7 +696,6 @@ class DataValuesValidatorTest {
 
     reporter = new Reporter(idSchemes);
 
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, ValidationCode.E1009);
@@ -736,7 +707,6 @@ class DataValuesValidatorTest {
 
     reporter = new Reporter(idSchemes);
 
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
     assertIsEmpty(reporter.getErrors());

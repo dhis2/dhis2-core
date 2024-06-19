@@ -103,14 +103,14 @@ class DataValuesValidator implements Validator<Event> {
 
     String status = ValidationUtils.valueIsValid(dataValue.getValue(), dataElement);
 
-    if (status != null) {
-      reporter.addError(event, E1302, dataElement.getUid(), status);
-    } else if (dataElement.hasOptionSet()) {
+    if (dataElement.hasOptionSet()) {
       validateOptionSet(reporter, event, dataElement, dataValue.getValue());
     } else if (dataElement.getValueType().isFile()) {
       validateFileNotAlreadyAssigned(reporter, bundle, event, dataValue.getValue());
     } else if (dataElement.getValueType().isOrganisationUnit()) {
       validateOrgUnitValueType(reporter, bundle, event, dataValue.getValue());
+    } else if (status != null) {
+      reporter.addError(event, E1302, dataElement.getUid(), status);
     }
   }
 
