@@ -31,13 +31,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.webapi.openapi.OpenApiObject.OperationObject;
 import org.hisp.dhis.webapi.openapi.OpenApiObject.ParameterObject;
-import org.hisp.dhis.webapi.openapi.OpenApiObject.PathItemObject;
 import org.intellij.lang.annotations.Language;
 
 /**
@@ -52,252 +51,269 @@ public class OpenApiRenderer {
   @Language("css")
   private static final String CSS =
       """
-                @import url('https://fonts.cdnfonts.com/css/futura-std-4');
-                :root {
-                     --bg-page: #f1f1f9;
-                     --bg-open: white;
-                     --bg-menu: #2A5298;
-                     --color-delete: #c62828;
-                     --color-patch: #c9a21a;
-                     --color-post: #2A5298;
-                     --color-put: #469421;
-                     --color-options: #B5179E;
-                     --color-get: #147cd7;
-                     --color-trace: #4CC9F0;
-                     --color-head: #3A0CA3;
-                     --color-dep: #ddd;
-                 }
-                html {
-                  background-color: var(--bg-open);
-                  height: 100%;
-                }
-                body {
-                  background-color: var(--bg-page);
-                  margin: 0;
-                  padding-right: 40px;
-                  min-height: 100%;
-                  font-family: 'Futura Std', Inter, sans-serif;
-                  font-size: 16px;
-                  text-rendering: optimizespeed;
-                }
-                body[desc-] p {
-                  display: none;
-                }
-                h1 {
-                     margin: 0;
-                     color: rgb(33, 41, 52);
-                     font-family: monospace;
-                     font-size: 110%;
-                     font-weight: normal;
-                     text-align: left;
-                 }
-                h2 {
-                    display: inline;
-                    font-size: 100%;
-                    font-weight: normal;
-                }
-                h3 {
-                    font-size: 105%;
-                    display: inline;
-                    text-transform: capitalize;
-                }
-                h5 {
-                    margin: 1em 0 0.5em 0;
-                }
-                code {
-                  font-family: "Liberation Mono", monospace;
-                }
-                summary {
-                    padding: 2px;
-                    margin-top: 0.5em;
-                }
-                .nav {
-                    position: fixed;
-                    background-color: #c5e3fc;
-                    width: 100%;
-                    height: 60px;
-                    box-sizing: border-box;
-                    padding: 10px;
-                    text-align: center;
-                    border-bottom: 5px solid #147cd7;
-                    background-image: url('/../favicon.ico');
-                    background-repeat: no-repeat;
-                    padding-left: 100px;
-                    background-position: 5px 5px;
-                }
-                .filters {
-                      position: fixed;
-                      top: 60px;
-                      right: 0;
-                      width: 100px;
-                      text-align: left;
-                      display: inline-block;
-                      background-color: var(--bg-page);
-                      padding: 0.5rem;
-                }
-                .domains {
-                  padding-top: 65px;
-                  max-width: 100rem;
-                }
-                .domains > details {
-                  margin-top: 10px;
-                }
-                .domains > details > summary {
-                     padding: 0.5em 1em;
-                     background-color: var(--bg-open);
-                }
-                .domains > details > summary:before {
-                    content: '📦';
-                    margin-right: 0.5rem;
-                }
-                details > summary:after {
-                    content: '+';
-                    float: right;
-                    font-weight: bold;
-                    font-family: monospace;
-                    margin-right: 1rem;
-                }
-                details[open] > summary:after {
-                  content: '-';
-                }
-                .domains > details[open] {
-                    border-bottom: 5px solid #147cd7;
-                    padding-right: 2px;
-                    border-right: 5px solid #147cd7;
-                }
-                .domains > details[open] > summary {
-                     background-color: #c5e3fc;
-                     margin-top: 0;
-                }
-                .domains > details[open] > summary h2 {
-                      font-weight: bold;
-                }
-                details.op {
-                    padding: 5px 0;
-                    margin: 2px 0;
-                }
-                details.op, .domains > details {
-                  background-color: var(--bg-page);
-                }
-                details.op[open], .domains > details[open] {
-                  background-color: var(--bg-open);
-                }
-                details > summary {
-                    list-style-type: none;
-                    cursor: pointer;
-                }
-                .paths {
-                  margin-left: 45px;
-                }
-                details.op > summary > code:first-child {
-                  width: 4rem;
-                  display: inline-block;
-                  padding: 0 0.5em;
-                  border-width: 0 0 0 4px;
-                  border-style: solid;
-                  font-weight: bold;
-                }
-                .GET > summary > code:first-child, button.GET { border-color: var(--color-get); color: var(--color-get); }
-                .POST > summary > code:first-child, button.POST { border-color: var(--color-post); color: var(--color-post); }
-                .PUT > summary > code:first-child, button.PUT { border-color: var(--color-put); color: var(--color-put); }
-                .PATCH > summary > code:first-child, button.PATCH { border-color: var(--color-patch); color: var(--color-patch); }
-                .DELETE > summary > code:first-child, button.DELETE { border-color: var(--color-delete); color: var(--color-delete); }
-                .OPTIONS > summary > code:first-child { border-color: var(--color-options); color: var(--color-options); }
-                .HEAD > summary > code:first-child { border-color: var(--color-head); color: var(--color-head); }
-                .TRACE > summary > code:first-child { border-color: var(--color-trace); color: var(--color-trace); }
-                .dep { border-color: var(--color-dep); }
-                #body[get-] details.GET,
-                #body[post-] details.POST,
-                #body[put-] details.PUT,
-                #body[patch-] details.PATCH,
-                #body[delete-] details.DELETE,
-                #body[dep-] details.dep,
-                #body[dep-] dt.dep, #body[dep-] dt.dep + dd { display: none; }
+                      @import url('https://fonts.cdnfonts.com/css/futura-std-4');
+                      :root {
+                           --bg-page: #f1f1f9;
+                           --bg-open: white;
+                           --bg-menu: #2A5298;
+                           --color-delete: #c62828;
+                           --color-patch: #c9a21a;
+                           --color-post: #2A5298;
+                           --color-put: #469421;
+                           --color-options: #B5179E;
+                           --color-get: #147cd7;
+                           --color-trace: #4CC9F0;
+                           --color-head: #3A0CA3;
+                           --color-dep: #ddd;
+                       }
+                      html {
+                        background-color: var(--bg-open);
+                        height: 100%;
+                      }
+                      body {
+                        background-color: var(--bg-page);
+                        margin: 0;
+                        padding-right: 40px;
+                        min-height: 100%;
+                        font-family: 'Futura Std', Inter, sans-serif;
+                        font-size: 16px;
+                        text-rendering: optimizespeed;
+                      }
+                      body[desc-] dd.desc {
+                        white-space: nowrap;
+                      }
+                      h1 {
+                           margin: 0;
+                           color: rgb(33, 41, 52);
+                           font-family: monospace;
+                           font-size: 110%;
+                           font-weight: normal;
+                           text-align: left;
+                       }
+                      h2 {
+                          display: inline;
+                          font-size: 100%;
+                          font-weight: normal;
+                      }
+                      h3 {
+                          font-size: 105%;
+                          display: inline;
+                          text-transform: capitalize;
+                      }
+                      h5 {
+                          margin: 1em 0 0.5em 0;
+                      }
+                      code {
+                        font-family: "Liberation Mono", monospace;
+                      }
+                      summary {
+                          padding: 2px;
+                          margin-top: 0.5em;
+                      }
+                      .nav {
+                          position: fixed;
+                          background-color: #c5e3fc;
+                          width: 100%;
+                          height: 60px;
+                          box-sizing: border-box;
+                          padding: 10px;
+                          text-align: center;
+                          border-bottom: 5px solid #147cd7;
+                          background-image: url('/../favicon.ico');
+                          background-repeat: no-repeat;
+                          padding-left: 100px;
+                          background-position: 5px 5px;
+                      }
+                      .filters {
+                            position: fixed;
+                            top: 60px;
+                            right: 0;
+                            width: 100px;
+                            text-align: left;
+                            display: inline-block;
+                            background-color: var(--bg-page);
+                            padding: 0.5rem;
+                      }
+                      .domains {
+                        padding-top: 65px;
+                        max-width: 100rem;
+                      }
+                      .domains > details {
+                        margin-top: 10px;
+                      }
+                      .domains > details > summary {
+                           padding: 0.5em 1em;
+                           background-color: var(--bg-open);
+                      }
+                      .domains > details > summary:before {
+                          content: '📦';
+                          margin-right: 0.5rem;
+                      }
+                      details > summary:after {
+                          content: '+';
+                          float: right;
+                          font-weight: bold;
+                          font-family: monospace;
+                          margin-right: 1rem;
+                      }
+                      details[open] > summary:after {
+                        content: '-';
+                      }
+                      .domains > details[open] {
+                          border-bottom: 5px solid #147cd7;
+                          padding-right: 2px;
+                          border-right: 5px solid #147cd7;
+                      }
+                      .domains > details[open] > summary {
+                           background-color: #c5e3fc;
+                           margin-top: 0;
+                      }
+                      .domains > details[open] > summary h2 {
+                            font-weight: bold;
+                      }
+                      details.op {
+                          padding: 5px 0;
+                          margin: 2px 0;
+                      }
+                      details.op, .domains > details {
+                        background-color: var(--bg-page);
+                      }
+                      details.op[open], .domains > details[open] {
+                        background-color: var(--bg-open);
+                      }
+                      details.op > details > dl {
+                        padding-right: 40px;
+                      }
+                      details > summary {
+                          list-style-type: none;
+                          cursor: pointer;
+                      }
+                      .paths {
+                        margin-left: 45px;
+                      }
+                      details.op > summary > code:first-child {
+                        width: 4rem;
+                        display: inline-block;
+                        padding: 0 0.5em;
+                        border-width: 0 0 0 4px;
+                        border-style: solid;
+                        font-weight: bold;
+                      }
+                      .GET > summary > code:first-child, button.GET { border-color: var(--color-get); color: var(--color-get); }
+                      .POST > summary > code:first-child, button.POST { border-color: var(--color-post); color: var(--color-post); }
+                      .PUT > summary > code:first-child, button.PUT { border-color: var(--color-put); color: var(--color-put); }
+                      .PATCH > summary > code:first-child, button.PATCH { border-color: var(--color-patch); color: var(--color-patch); }
+                      .DELETE > summary > code:first-child, button.DELETE { border-color: var(--color-delete); color: var(--color-delete); }
+                      .OPTIONS > summary > code:first-child { border-color: var(--color-options); color: var(--color-options); }
+                      .HEAD > summary > code:first-child { border-color: var(--color-head); color: var(--color-head); }
+                      .TRACE > summary > code:first-child { border-color: var(--color-trace); color: var(--color-trace); }
+                      .dep { border-color: var(--color-dep); }
+                      #body[get-] details.GET,
+                      #body[post-] details.POST,
+                      #body[put-] details.PUT,
+                      #body[patch-] details.PATCH,
+                      #body[delete-] details.DELETE,
+                      #body[dep-] details.dep,
+                      #body[dep-] dt.dep, #body[dep-] dt.dep + dd { display: none; }
 
-                button {
-                    border: none;
-                    background-color: transparent;
-                    font-weight: bold;
-                    border-left: 4px solid transparent;
-                    cursor: pointer;
-                    display: block;
-                }
-                #body[get-] button.GET,
-                #body[post-] button.POST,
-                #body[put-] button.PUT,
-                #body[patch-] button.PATCH,
-                #body[delete-] button.DELETE,
-                #body[dep-] button.dep,
-                #body[desc-] button.desc { text-decoration: line-through; color: #777777 }
+                      button {
+                          border: none;
+                          background-color: transparent;
+                          font-weight: bold;
+                          border-left: 4px solid transparent;
+                          cursor: pointer;
+                          display: block;
+                      }
+                      #body[get-] button.GET,
+                      #body[post-] button.POST,
+                      #body[put-] button.PUT,
+                      #body[patch-] button.PATCH,
+                      #body[delete-] button.DELETE,
+                      #body[dep-] button.dep,
+                      #body[desc-] button.desc { text-decoration: line-through; color: #777777 }
 
-                details[open] > summary {
+                      details[open] > summary {
 
-                }
-                .dep { text-decoration: line-through; }
-                dl {
-                  margin: 0.5em 0;
-                }
-                dt {
-                    margin: 0.5em 0;
-                }
-                dd {
-                  margin-right: 40px;
-                }
-                header, p {
-                  line-height: 1.5em;
-                  color: #333;
-                  font-size: 95%;
-                }
-                dt code {
-                  padding: 0.25em 0.5em;
-                  background-color: #f9f0e3;
-                }
-                dt.dep code {
-                  background-color: var(--color-dep);
-                  color: #777;
-                }
-                """;
+                      }
+                      .dep { text-decoration: line-through; }
+                      dl {
+                        margin: 0.5em 0;
+                        display: grid;
+                        grid-template-columns: 1fr 1fr 1fr 3fr;
+                      }
+                      dt, dd {
+                          margin: 0.5rem 0;
+                      }
+                      dd {
+                        margin-left: 1rem;
+                      }
+                      dd.desc {
+                        text-overflow: ellipsis;
+                        overflow: hidden;
+                      }
+                      dd p {
+                        margin: 0;
+                      }
+                      header, p {
+                        line-height: 1.5em;
+                        color: #333;
+                        font-size: 95%;
+                      }
+                      dt code {
+                        padding: 0.25em 0.5em;
+                        background-color: #f9f0e3;
+                      }
+                      dt.dep code {
+                        background-color: var(--color-dep);
+                        color: #777;
+                      }
+                      """;
 
   /*
   Reorganizing...
    */
-  record DomainItem(String domain, Map<String, GroupItem> groups) {}
+  record PackageItem(String domain, Map<String, GroupItem> groups) {}
 
-  record GroupItem(String group, List<OperationItem> operations) {}
+  record GroupItem(String group, List<OperationObject> operations) {}
 
-  record OperationItem(String path, String method, OperationObject operation) {}
-
-  private List<DomainItem> getDomainSections() {
+  private List<PackageItem> getPackages() {
     // TODO find the path(s) that each package has
     // 1. find what path start all paths have in common
     // 2. use the next path segment find which are unique to the package and which are not
-    Map<String, DomainItem> domains = new TreeMap<>();
-    BiConsumer<String, OperationObject> add =
-        (path, op) -> {
-          if (!op.exists()) return;
-          String domain = op.x_domain();
+    Map<String, PackageItem> domains = new TreeMap<>();
+    Consumer<OperationObject> add =
+        op -> {
+          String domain = op.x_package();
           String group = op.x_group();
-          String method = op.path().substring(op.path().lastIndexOf('.') + 1).toUpperCase();
           domains
-              .computeIfAbsent(domain, d -> new DomainItem(d, new TreeMap<>()))
+              .computeIfAbsent(domain, d -> new PackageItem(d, new TreeMap<>()))
               .groups()
               .computeIfAbsent(group, g -> new GroupItem(g, new ArrayList<>()))
               .operations()
-              .add(new OperationItem(path, method, op));
+              .add(op);
         };
-    api.paths()
-        .forEach(
-            (path, item) -> {
-              add.accept(path, item.get());
-              add.accept(path, item.post());
-              add.accept(path, item.put());
-              add.accept(path, item.patch());
-              add.accept(path, item.delete());
-              add.accept(path, item.head());
-              add.accept(path, item.trace());
-              add.accept(path, item.options());
-            });
+    api.operations().forEach(add);
     return List.copyOf(domains.values());
+  }
+
+  /**
+   * @return the leftmost part of the path that is shared by all operations
+   */
+  private String findPathPrefix() {
+    if (api.paths().isEmpty()) return "";
+    List<List<String>> operationsPathSegments = new ArrayList<>();
+    api.operations().forEach(op -> operationsPathSegments.add(List.of(op.path().split("\\."))));
+    int index = 0;
+    String prefix = "";
+    while (true) {
+      String segment = operationsPathSegments.get(0).get(index);
+      for (List<String> segments : operationsPathSegments) {
+        if (segments.size() >= index) return prefix;
+        if (!segment.equals(segments.get(index))) return prefix;
+      }
+      prefix += "/" + segment;
+      index++;
+    }
   }
 
   /*
@@ -371,54 +387,39 @@ public class OpenApiRenderer {
   }
 
   private void renderPaths() {
-    List<DomainItem> domains = getDomainSections();
-    if (true) {
-      appendTag(
-          "section",
-          Map.of("class", "domains"),
-          () -> {
-            for (DomainItem domain : domains) {
-              appendTag(
-                  "details",
-                  () -> {
-                    appendTag("summary", () -> appendTag("h2", domain.domain()));
-                    for (GroupItem group : domain.groups().values()) {
-                      appendTag(
-                          "section",
-                          Map.of("class", "paths"),
-                          () -> {
-                            appendTag(
-                                "details",
-                                Map.of("open", ""),
-                                () -> {
-                                  appendTag("summary", () -> appendTag("h3", group.group()));
-                                  for (OperationItem op : group.operations()) {
-                                    renderOperation(op.path(), op.method(), op.operation());
-                                  }
-                                });
-                          });
-                    }
-                  });
-            }
-          });
-    } else {
-      appendTag(
-          "section", Map.of("class", "paths"), () -> api.paths().forEach(this::renderPathItem));
-    }
+    List<PackageItem> domains = getPackages();
+    appendTag(
+        "section",
+        Map.of("class", "domains"),
+        () -> {
+          for (PackageItem domain : domains) {
+            appendTag(
+                "details",
+                () -> {
+                  appendTag("summary", () -> appendTag("h2", domain.domain()));
+                  for (GroupItem group : domain.groups().values()) {
+                    appendTag(
+                        "section",
+                        Map.of("class", "paths"),
+                        () -> {
+                          appendTag(
+                              "details",
+                              Map.of("open", ""),
+                              () -> {
+                                appendTag("summary", () -> appendTag("h3", group.group()));
+                                group.operations().forEach(this::renderOperation);
+                              });
+                        });
+                  }
+                });
+          }
+        });
   }
 
-  private void renderPathItem(String path, PathItemObject item) {
-    renderOperation(path, "GET", item.get());
-    renderOperation(path, "POST", item.post());
-    renderOperation(path, "DELETE", item.delete());
-    renderOperation(path, "PATCH", item.patch());
-    renderOperation(path, "HEAD", item.head());
-    renderOperation(path, "TRACE", item.trace());
-    renderOperation(path, "OPTIONS", item.options());
-  }
-
-  private void renderOperation(String path, String method, OperationObject op) {
+  private void renderOperation(OperationObject op) {
     if (!op.exists()) return;
+    String method = op.operationMethod().toUpperCase();
+    String path = op.operationPath();
     appendTag(
         "details",
         Map.of("class", method + " op " + (op.deprecated() ? "dep" : "")),
@@ -442,20 +443,28 @@ public class OpenApiRenderer {
         Map.of("open", ""),
         () -> {
           appendTag("summary", Map.of("title", "Parameters"), () -> appendTag("code", "?…"));
-          appendTag(
-              "dl",
-              () ->
-                  params.stream()
-                      .map(ParameterObject::resolve)
-                      .forEach(
-                          p -> {
-                            appendTag(
-                                "dt",
-                                Map.of("class", p.deprecated() ? "dep" : ""),
-                                () -> appendTag("code", p.name()));
-                            appendTag("dd", () -> appendTag("p", p.description()));
-                          }));
+          renderParameters(op, Api.Parameter.In.PATH);
+          renderParameters(op, Api.Parameter.In.QUERY);
+          renderParameters(op, Api.Parameter.In.BODY);
         });
+  }
+
+  private void renderParameters(OperationObject op, Api.Parameter.In in) {
+    List<ParameterObject> params = op.parameters().stream().filter(p -> p.in() == in).toList();
+    if (params.isEmpty()) return;
+    appendTag("h4", in.name());
+    appendTag(
+        "dl", () -> params.stream().map(ParameterObject::resolve).forEach(this::renderParameter));
+  }
+
+  private void renderParameter(ParameterObject p) {
+    String css = "";
+    if (p.deprecated()) css += "dep";
+    if (p.required()) css += "required";
+    appendTag("dt", Map.of("class", css), () -> appendTag("code", p.name()));
+    appendTag("dd", () -> appendTag("code", p.schema().$type()));
+    appendTag("dd", () -> appendTag("em", p.in().name().toLowerCase()));
+    appendTag("dd", Map.of("class", "desc"), () -> appendTag("p", p.description()));
   }
 
   private void appendTag(String name, String text) {
@@ -480,6 +489,13 @@ public class OpenApiRenderer {
     out.append('>');
     body.run();
     out.append("</").append(name).append('>');
+  }
+
+  private void appendNonemptyTag(String name, Runnable body) {
+    // TODO write the tag
+    // render body
+    // check if that appended anything, if so complete, otherwise undo the opening tag and
+    // attributes
   }
 
   private void appendAttr(String name, String value) {

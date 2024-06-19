@@ -28,10 +28,12 @@
 package org.hisp.dhis.webapi.openapi;
 
 import java.util.List;
+import java.util.stream.Stream;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.jsontree.Required;
 import org.hisp.dhis.jsontree.Validation;
 import org.intellij.lang.annotations.Language;
@@ -73,6 +75,23 @@ public interface OpenApiObject extends JsonObject {
 
   default JsonList<TagObject> tags() {
     return getList("tags", TagObject.class);
+  }
+
+  default Stream<OperationObject> operations() {
+    return paths()
+        .values()
+        .flatMap(
+            item ->
+                Stream.of(
+                        item.get(),
+                        item.post(),
+                        item.put(),
+                        item.patch(),
+                        item.delete(),
+                        item.head(),
+                        item.trace(),
+                        item.options())
+                    .filter(JsonValue::exists));
   }
 
   interface InfoObject extends JsonObject {
@@ -189,8 +208,20 @@ public interface OpenApiObject extends JsonObject {
       return getString("").string();
     }
 
-    default String x_domain() {
-      return getString("x-domain").string();
+    default String operationMethod() {
+      String path = path();
+      return path.substring(path.lastIndexOf('.') + 1);
+    }
+
+    default String operationPath() {
+      String path = path();
+      int from = path.indexOf(".paths.");
+      int to = path.lastIndexOf('.');
+      return path.substring(from + 7, to);
+    }
+
+    default String x_package() {
+      return getString("x-package").string();
     }
 
     default String x_group() {
@@ -225,6 +256,10 @@ public interface OpenApiObject extends JsonObject {
     default boolean deprecated() {
       return getBoolean("deprecated").booleanValue(false);
     }
+
+    default List<ParameterObject> parameters(Api.Parameter.In in) {
+      return parameters().stream().filter(p -> p.in() == in).toList();
+    }
   }
 
   interface ParameterObject extends JsonObject {
@@ -253,6 +288,10 @@ public interface OpenApiObject extends JsonObject {
 
     default boolean allowEmptyValue() {
       return getBoolean("allowEmptyValue").booleanValue(false);
+    }
+
+    default SchemaObject schema() {
+      return get("schema", SchemaObject.class);
     }
 
     default ParameterObject resolve() {

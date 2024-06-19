@@ -232,7 +232,7 @@ public class OpenApiGenerator extends JsonGenerator {
           addStringMember("x-maturity", getMaturityTag(endpoint.getMaturity()));
           addStringMultilineMember("description", endpoint.getDescription().orElse(NO_DESCRIPTION));
           addStringMember("operationId", getUniqueOperationId(endpoint));
-          addStringMember("x-domain", endpoint.getIn().getDomain().getSimpleName());
+          addStringMember("x-package", endpoint.getIn().getDomain().getSimpleName());
           addStringMember("x-group", endpoint.getGroup().tag());
           addInlineArrayMember("tags", List.copyOf(tags));
           addArrayMember(
