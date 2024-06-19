@@ -71,8 +71,10 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
@@ -138,6 +140,8 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
 
   private ProgramStage programStageA2;
 
+  private ProgramInstance programInstance;
+
   private TrackedEntityInstance teiMaleA;
 
   private TrackedEntityInstance teiMaleB;
@@ -149,6 +153,8 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
   private TrackedEntityAttribute uniqueIdAttribute;
 
   private TrackedEntityAttribute trackedEntityAttributeB;
+
+  private TrackedEntityAttribute programAttribute;
 
   private TrackedEntityType trackedEntityType;
 
@@ -244,8 +250,9 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
     trackedEntityAttributeValueService.addTrackedEntityAttributeValue(uniqueId);
     trackedEntityAttributeValueService.addTrackedEntityAttributeValue(
         imageTrackedEntityAttributeValue);
-    programInstanceService.enrollTrackedEntityInstance(
-        maleA, programA, null, null, organisationUnitA);
+    programInstance =
+        programInstanceService.enrollTrackedEntityInstance(
+            maleA, programA, null, null, organisationUnitA);
     programInstanceService.enrollTrackedEntityInstance(
         femaleA, programA, DateTime.now().plusMonths(1).toDate(), null, organisationUnitA);
     programInstanceService.enrollTrackedEntityInstance(
@@ -254,6 +261,22 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
         DateTime.now().plusMonths(1).toDate(),
         DateTime.now().plusMonths(2).toDate(),
         organisationUnitA);
+
+    programAttribute = createTrackedEntityAttribute('P');
+    manager.save(programAttribute);
+    TrackedEntityAttributeValue programAttributeValue =
+        createTrackedEntityAttributeValue('P', maleA, programAttribute);
+    programAttributeValue.setValue("attribute value");
+    trackedEntityAttributeValueService.addTrackedEntityAttributeValue(programAttributeValue);
+
+    maleA.setTrackedEntityAttributeValues(Set.of(uniqueId, programAttributeValue));
+    manager.save(maleA);
+
+    ProgramTrackedEntityAttribute programTrackedEntityAttribute =
+        new ProgramTrackedEntityAttribute(programA, programAttribute);
+    programTrackedEntityAttribute.setSearchable(true);
+    programA.getProgramAttributes().add(programTrackedEntityAttribute);
+    manager.save(programA);
   }
 
   @Test
@@ -796,9 +819,60 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
 
     TrackedEntityInstance trackedEntityInstance =
         trackedEntityInstanceService.getTrackedEntityInstanceExcludingACL(
-            maleA.getUid(), TrackedEntityInstanceParams.TRUE);
+            maleA.getUid(), programA, TrackedEntityInstanceParams.TRUE);
 
     assertEquals(maleA.getUid(), trackedEntityInstance.getTrackedEntityInstance());
+  }
+
+  @Test
+  void shouldReturnTrackedEntityTypeAndProgramAttributesWhenSingleTERequestedAndProgramSpecified() {
+    TrackedEntityInstance trackedEntityInstance =
+        trackedEntityInstanceService.getTrackedEntityInstanceExcludingACL(
+            maleA.getUid(), programA, TrackedEntityInstanceParams.TRUE);
+
+    assertContainsOnly(
+        List.of(programAttribute.getUid(), uniqueIdAttribute.getUid()),
+        trackedEntityInstance.getAttributes().stream()
+            .map(Attribute::getAttribute)
+            .collect(Collectors.toList()));
+  }
+
+  @Test
+  void
+      shouldReturnTrackedEntityTypeAttributesWhenSingleTERequestedAndProgramSpecifiedButItHasNoProgramAttributes() {
+    TrackedEntityInstance trackedEntityInstance =
+        trackedEntityInstanceService.getTrackedEntityInstanceExcludingACL(
+            maleA.getUid(), new Program(), TrackedEntityInstanceParams.TRUE);
+
+    assertContainsOnly(
+        List.of(uniqueIdAttribute.getUid()),
+        trackedEntityInstance.getAttributes().stream()
+            .map(Attribute::getAttribute)
+            .collect(Collectors.toList()));
+  }
+
+  @Test
+  void shouldReturnTrackedEntityTypeAttributesWhenSingleTERequestedAndNoProgramSpecified() {
+    TrackedEntityInstance trackedEntityInstance =
+        trackedEntityInstanceService.getTrackedEntityInstance(maleA);
+
+    assertContainsOnly(
+        List.of(uniqueIdAttribute.getUid()),
+        trackedEntityInstance.getAttributes().stream()
+            .map(Attribute::getAttribute)
+            .collect(Collectors.toList()));
+  }
+
+  @Test
+  void shouldReturnEnrollmentsFromSpecifiedProgramWhenRequestingSingleTrackedEntity() {
+    TrackedEntityInstance trackedEntityInstance =
+        trackedEntityInstanceService.getTrackedEntityInstance(maleA);
+
+    assertContainsOnly(
+        Set.of(programInstance.getUid()),
+        trackedEntityInstance.getEnrollments().stream()
+            .map(Enrollment::getEnrollment)
+            .collect(Collectors.toList()));
   }
 
   /** Get with the current session because some Store exclude deleted */

@@ -70,15 +70,15 @@ class TrackedEntitiesSupportService {
     TrackedEntityInstance trackedEntityInstance = null;
 
     if (pr != null) {
-      trackedEntityInstance =
-          trackedEntityInstanceService.getTrackedEntityInstanceExcludingACL(
-              id, trackedEntityInstanceParams);
-
       Program program = programService.getProgram(pr);
 
       if (program == null) {
         throw new NotFoundException(Program.class, pr);
       }
+
+      trackedEntityInstance =
+          trackedEntityInstanceService.getTrackedEntityInstanceExcludingACL(
+              id, program, trackedEntityInstanceParams);
 
       List<String> errors =
           trackerAccessManager.canRead(
