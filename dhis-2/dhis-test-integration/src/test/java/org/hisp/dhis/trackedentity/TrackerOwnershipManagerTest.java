@@ -225,6 +225,22 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   }
 
   @Test
+  void shouldHaveAccessToEnrollmentWithSuperUserWhenTransferredToOwnOrgUnit()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    trackerOwnershipAccessManager.assignOwnership(
+        trackedEntityA1, programA, organisationUnitA, false, true);
+    trackerOwnershipAccessManager.transferOwnership(
+        trackedEntityA1, programA, organisationUnitB, false, true);
+    superUser.setOrganisationUnits(Set.of(organisationUnitB));
+
+    injectSecurityContextUser(superUser);
+    assertEquals(
+        trackedEntityA1,
+        trackedEntityService.getTrackedEntity(
+            trackedEntityA1.getUid(), programA.getUid(), defaultParams, false));
+  }
+
+  @Test
   void shouldHaveAccessToTEWhenProgramNotProvidedButUserHasAccessToAtLeastOneProgram()
       throws ForbiddenException, NotFoundException, BadRequestException {
     injectSecurityContextUser(userA);
@@ -418,6 +434,21 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
       throws ForbiddenException, BadRequestException, NotFoundException {
     transferOwnership(trackedEntityA1, programA, organisationUnitB);
     TrackedEntityOperationParams operationParams = createOperationParams(userB, null);
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertContainsOnly(
+        List.of(trackedEntityA1.getUid(), trackedEntityB1.getUid()),
+        trackedEntities.stream().map(BaseIdentifiableObject::getUid).toList());
+  }
+
+  @Test
+  void shouldFindTrackedEntityWhenTransferredToAccessibleOrgUnitAndSuperUser()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    transferOwnership(trackedEntityA1, programA, organisationUnitB);
+    superUser.setOrganisationUnits(Set.of(organisationUnitB));
+    userService.updateUser(superUser);
+    TrackedEntityOperationParams operationParams = createOperationParams(superUser, null);
 
     List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
