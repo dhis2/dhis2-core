@@ -272,10 +272,6 @@ public class DhisWebApiWebSecurityConfig {
 
           // Temporary solution for Struts less login page, will be removed when apps are fully
           // migrated
-          .antMatchers("/*/service-worker.js.map")
-          .permitAll()
-          .antMatchers("/*/service-worker.js")
-          .permitAll()
           .antMatchers("/index.html")
           .permitAll()
           .antMatchers("/external-static/**")
@@ -360,6 +356,7 @@ public class DhisWebApiWebSecurityConfig {
                   return filter;
                 }
               });
+
       // Special handling if we are running in embedded Jetty mode
       if (Arrays.asList(activeProfiles).contains("embeddedJetty")) {
         http.formLogin()
