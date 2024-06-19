@@ -51,14 +51,12 @@ import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.common.EventsAnalyticsQueryCriteria;
-import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
-import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -119,7 +117,7 @@ class DefaultEventAnalyticsServiceTest {
             enrollmentAnalyticsManager,
             schemeIdResponseMapper,
             userService,
-                eventAnalyticsRequestContext);
+            eventAnalyticsRequestContext);
   }
 
   @Test
@@ -133,7 +131,8 @@ class DefaultEventAnalyticsServiceTest {
     when(securityManager.withUserConstraints(mockParams)).thenReturn(mockParams);
     doNothing().when(eventQueryValidator).validate(mockParams);
     when(queryPlanner.planEventQuery(any(EventQueryParams.class))).thenReturn(mockParams);
-    when(eventAnalyticsRequestContext.getEventsAnalyticsQueryCriteria()).thenReturn(new EventsAnalyticsQueryCriteria());
+    when(eventAnalyticsRequestContext.getEventsAnalyticsQueryCriteria())
+        .thenReturn(new EventsAnalyticsQueryCriteria());
 
     defaultEventAnalyticsService.getEvents(mockParams);
 
@@ -151,7 +150,8 @@ class DefaultEventAnalyticsServiceTest {
     when(securityManager.withUserConstraints(mockParams)).thenReturn(mockParams);
     doNothing().when(eventQueryValidator).validate(mockParams);
     when(queryPlanner.planEventQuery(any(EventQueryParams.class))).thenReturn(mockParams);
-    when(eventAnalyticsRequestContext.getEventsAnalyticsQueryCriteria()).thenReturn(new EventsAnalyticsQueryCriteria());
+    when(eventAnalyticsRequestContext.getEventsAnalyticsQueryCriteria())
+        .thenReturn(new EventsAnalyticsQueryCriteria());
 
     defaultEventAnalyticsService.getEvents(mockParams);
 
