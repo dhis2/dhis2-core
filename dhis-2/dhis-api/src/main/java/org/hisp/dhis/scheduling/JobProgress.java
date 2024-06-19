@@ -235,7 +235,7 @@ public interface JobProgress {
    * @throws CancellationException in case cancellation has been requested before this stage had
    *     started
    */
-  void startingStage(String description, int workItems, @Nonnull FailurePolicy onFailure)
+  void startingStage(@Nonnull String description, int workItems, @Nonnull FailurePolicy onFailure)
       throws CancellationException;
 
   default void startingStage(@Nonnull String description, int workItems) {
