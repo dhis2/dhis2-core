@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.imports.validation.validator.event;
 
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
+import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertNoErrors;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
@@ -117,54 +118,6 @@ class DataValuesValidatorTest {
   }
 
   @Test
-  void successValidationWhenCreatedAtIsNull() {
-    DataElement dataElement = dataElement();
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid))).thenReturn(dataElement);
-
-    ProgramStage programStage = programStage(dataElement);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
-        .thenReturn(programStage);
-
-    DataValue validDataValue = dataValue();
-    validDataValue.setCreatedAt(null);
-    Event event =
-        Event.builder()
-            .programStage(idSchemes.toMetadataIdentifier(programStage))
-            .status(EventStatus.SKIPPED)
-            .dataValues(Set.of(validDataValue))
-            .build();
-
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
-    validator.validate(reporter, bundle, event);
-
-    assertIsEmpty(reporter.getErrors());
-  }
-
-  @Test
-  void failValidationWhenUpdatedAtIsNull() {
-    DataElement dataElement = dataElement();
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid))).thenReturn(dataElement);
-
-    ProgramStage programStage = programStage(dataElement);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
-        .thenReturn(programStage);
-
-    DataValue validDataValue = dataValue();
-    validDataValue.setUpdatedAt(null);
-    Event event =
-        Event.builder()
-            .programStage(idSchemes.toMetadataIdentifier(programStage))
-            .status(EventStatus.SKIPPED)
-            .dataValues(Set.of(validDataValue))
-            .build();
-
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
-    validator.validate(reporter, bundle, event);
-
-    assertIsEmpty(reporter.getErrors());
-  }
-
-  @Test
   void failValidationWhenDataElementIsInvalid() {
     DataElement dataElement = dataElement();
     when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid))).thenReturn(null);
@@ -188,7 +141,7 @@ class DataValuesValidatorTest {
   }
 
   @Test
-  void failValidationWhenAMandatoryDataElementIsMissing() {
+  void shouldFailValidationWhenAMandatoryDataElementIsMissingAndStrategyIsCreate() {
     DataElement dataElement = dataElement();
     when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid))).thenReturn(dataElement);
 
@@ -254,6 +207,41 @@ class DataValuesValidatorTest {
     validator.validate(reporter, bundle, event);
 
     assertIsEmpty(reporter.getErrors());
+  }
+
+  @Test
+  void shouldPassValidationWhenAMandatoryDataElementIsMissingAndStrategyIsUpdate() {
+    DataElement dataElement = dataElement();
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid))).thenReturn(dataElement);
+
+    ProgramStage programStage = new ProgramStage();
+    programStage.setAutoFields();
+    ProgramStageDataElement mandatoryStageElement1 = new ProgramStageDataElement();
+    DataElement mandatoryElement1 = new DataElement();
+    mandatoryElement1.setUid("MANDATORY_DE");
+    mandatoryStageElement1.setDataElement(mandatoryElement1);
+    mandatoryStageElement1.setCompulsory(true);
+    ProgramStageDataElement mandatoryStageElement2 = new ProgramStageDataElement();
+    DataElement mandatoryElement2 = new DataElement();
+    mandatoryElement2.setUid(dataElementUid);
+    mandatoryStageElement2.setDataElement(mandatoryElement2);
+    mandatoryStageElement2.setCompulsory(true);
+    programStage.setProgramStageDataElements(
+        Set.of(mandatoryStageElement1, mandatoryStageElement2));
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
+
+    Event event =
+        Event.builder()
+            .event(CodeGenerator.generateUid())
+            .programStage(idSchemes.toMetadataIdentifier(programStage))
+            .status(EventStatus.COMPLETED)
+            .dataValues(Set.of(dataValue()))
+            .build();
+
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
+    validator.validate(reporter, bundle, event);
+
+    assertNoErrors(reporter);
   }
 
   @Test
@@ -443,7 +431,7 @@ class DataValuesValidatorTest {
   }
 
   @Test
-  void failsOnActiveEventWithDataElementValueNullAndValidationStrategyOnUpdate() {
+  void shouldFailValidationWhenDataElementValueNullAndStrategyCreate() {
     DataElement validDataElement = dataElement();
     when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
         .thenReturn(validDataElement);
@@ -464,6 +452,33 @@ class DataValuesValidatorTest {
             .build();
 
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
+    validator.validate(reporter, bundle, event);
+
+    assertHasError(reporter, event, ValidationCode.E1076);
+  }
+
+  @Test
+  void shouldFailValidationWhenDataElementValueNullAndStrategyUpdate() {
+    DataElement validDataElement = dataElement();
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+        .thenReturn(validDataElement);
+
+    ProgramStage programStage = programStage(validDataElement, true);
+    programStage.setValidationStrategy(ValidationStrategy.ON_UPDATE_AND_INSERT);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+        .thenReturn(programStage);
+
+    DataValue validDataValue = dataValue();
+    validDataValue.setValue(null);
+    Event event =
+        Event.builder()
+            .event(CodeGenerator.generateUid())
+            .programStage(idSchemes.toMetadataIdentifier(programStage))
+            .status(EventStatus.ACTIVE)
+            .dataValues(Set.of(validDataValue))
+            .build();
+
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, ValidationCode.E1076);

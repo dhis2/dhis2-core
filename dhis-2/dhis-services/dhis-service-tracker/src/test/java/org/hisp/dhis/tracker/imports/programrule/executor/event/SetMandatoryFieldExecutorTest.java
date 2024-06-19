@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.imports.programrule.executor.event;
 
 import static org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue.error;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1301;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1314;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -96,7 +97,7 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldReturnNoErrorWhenMandatoryFieldIsPresentForEnrollment() {
+  void shouldPassValidationWhenMandatoryFieldIsPresentAndStrategyIsCreate() {
     when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
     when(preheat.getDataElement(DATA_ELEMENT_ID)).thenReturn(dataElement);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
@@ -109,7 +110,61 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldReturnNoErrorWhenMandatoryFieldIsPresentForEnrollmentsUsingIdSchemeCode() {
+  void shouldPassValidationWhenMandatoryFieldIsPresentAndStrategyIsUpdate() {
+    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
+    when(preheat.getDataElement(DATA_ELEMENT_ID)).thenReturn(dataElement);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
+    Event event = getEventWithMandatoryValueSet();
+    bundle.setEvents(List.of(event));
+    bundle.setStrategy(event, TrackerImportStrategy.UPDATE);
+    Optional<ProgramRuleIssue> error = executor.executeRuleAction(bundle, event);
+
+    assertTrue(error.isEmpty());
+  }
+
+  @Test
+  void shouldFailValidationWhenMandatoryFieldIsDeletedAndStrategyIsCreate() {
+    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
+    when(preheat.getDataElement(DATA_ELEMENT_ID)).thenReturn(dataElement);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
+    Event event = getEventWithDeleteMandatoryValue();
+    bundle.setEvents(List.of(event));
+    bundle.setStrategy(event, TrackerImportStrategy.CREATE);
+    Optional<ProgramRuleIssue> error = executor.executeRuleAction(bundle, event);
+
+    assertFalse(error.isEmpty());
+    assertEquals(error(RULE_UID, E1314, dataElement.getUid()), error.get());
+  }
+
+  @Test
+  void shouldFailValidationWhenMandatoryFieldIsDeletedAndStrategyIsUpdate() {
+    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
+    when(preheat.getDataElement(DATA_ELEMENT_ID)).thenReturn(dataElement);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
+    Event event = getEventWithDeleteMandatoryValue();
+    bundle.setEvents(List.of(event));
+    bundle.setStrategy(event, TrackerImportStrategy.UPDATE);
+    Optional<ProgramRuleIssue> error = executor.executeRuleAction(bundle, event);
+
+    assertFalse(error.isEmpty());
+    assertEquals(error(RULE_UID, E1314, dataElement.getUid()), error.get());
+  }
+
+  @Test
+  void shouldPassValidationWhenMandatoryFieldIsNotPresentAndStrategyIsUpdate() {
+    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
+    when(preheat.getDataElement(DATA_ELEMENT_ID)).thenReturn(dataElement);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
+    Event event = getEventWithMandatoryValueNOTSet();
+    bundle.setEvents(List.of(event));
+    bundle.setStrategy(event, TrackerImportStrategy.UPDATE);
+    Optional<ProgramRuleIssue> error = executor.executeRuleAction(bundle, event);
+
+    assertTrue(error.isEmpty());
+  }
+
+  @Test
+  void shouldPassValidationWhenMandatoryFieldIsPresentUsingIdSchemeCode() {
     TrackerIdSchemeParams idSchemes =
         TrackerIdSchemeParams.builder().dataElementIdScheme(TrackerIdSchemeParam.CODE).build();
     when(preheat.getIdSchemes()).thenReturn(idSchemes);
@@ -124,7 +179,7 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
   }
 
   @Test
-  void testValidateWithErrorMandatoryFieldsForEvents() {
+  void shouldFailValidationWhenOneMandatoryFieldIsNotPresentAndStrategyIsCreate() {
     when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
     when(preheat.getDataElement(DATA_ELEMENT_ID)).thenReturn(dataElement);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
@@ -139,6 +194,15 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
 
     assertFalse(error.isEmpty());
     assertEquals(error(RULE_UID, E1301, dataElement.getUid()), error.get());
+  }
+
+  private Event getEventWithDeleteMandatoryValue() {
+    return Event.builder()
+        .event(ACTIVE_EVENT_ID)
+        .status(EventStatus.ACTIVE)
+        .programStage(MetadataIdentifier.ofUid(programStage))
+        .dataValues(getNullEventDataValues())
+        .build();
   }
 
   private Event getEventWithMandatoryValueSet(TrackerIdSchemeParams idSchemes) {
@@ -180,6 +244,15 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
     DataValue dataValue =
         DataValue.builder()
             .value(DATA_ELEMENT_VALUE)
+            .dataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_ID))
+            .build();
+    return Set.of(dataValue);
+  }
+
+  private Set<DataValue> getNullEventDataValues() {
+    DataValue dataValue =
+        DataValue.builder()
+            .value(null)
             .dataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_ID))
             .build();
     return Set.of(dataValue);
