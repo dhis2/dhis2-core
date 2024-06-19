@@ -57,13 +57,10 @@ public class DatastoreNamespace implements Serializable {
   @JsonProperty @CheckForNull private Set<String> authorities;
 
   /** A user must have one of these authorities to be able to read the namespace */
-  @JsonProperty @CheckForNull private Set<String> readAuthorities;
-
-  /** A user must have one of these authorities to be able to write the namespace */
-  @JsonProperty @CheckForNull private Set<String> writeAuthorities;
+  @JsonProperty @CheckForNull private Set<String> readOnlyAuthorities;
 
   @Nonnull
   public Set<String> getAllAuthorities() {
-    return union(authorities, readAuthorities, writeAuthorities);
+    return union(authorities, readOnlyAuthorities);
   }
 }

@@ -450,6 +450,41 @@
     {
       "created": "2019-04-23T09:20:41.834",
       "lastUpdated": "2019-04-23T09:21:18.063",
+      "name": "Parent",
+      "code": "PARENT",
+      "id": "xLmPUYJX9I7",
+      "bidirectional": false,
+      "toFromName": "Sibling of",
+      "fromToName": "Sibling of",
+      "fromConstraint": {
+        "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
+        "trackedEntityType": {
+          "id": "bPJ0FMtcnEh",
+          "code": "TA_PERSON_TET"
+        }
+      },
+      "toConstraint": {
+        "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
+        "trackedEntityType": {
+          "id": "bPJ0FMtcnEh",
+          "code": "TA_PERSON_TET"
+        }
+      },
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "users": {
+          "xkMgMi7Ci2D": {
+            "id": "xkMgMi7Ci2D",
+            "access": "rwrw----"
+          }
+        }
+      },
+      "translations": []
+    },
+    {
+      "created": "2019-04-23T09:20:41.834",
+      "lastUpdated": "2019-04-23T09:21:18.063",
       "name": "TA Sibling",
       "code": "TA_SIBLING",
       "id": "xLmPUYJX8Ks",
