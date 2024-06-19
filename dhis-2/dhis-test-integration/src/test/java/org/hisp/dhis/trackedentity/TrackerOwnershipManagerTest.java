@@ -232,6 +232,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     trackerOwnershipAccessManager.transferOwnership(
         trackedEntityA1, programA, organisationUnitB, false, true);
     superUser.setOrganisationUnits(Set.of(organisationUnitB));
+    userService.updateUser(superUser);
 
     injectSecurityContextUser(superUser);
     assertEquals(
