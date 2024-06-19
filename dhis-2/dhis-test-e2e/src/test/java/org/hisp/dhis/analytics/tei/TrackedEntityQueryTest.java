@@ -3238,6 +3238,48 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
     metaCustomLabels.forEach(this::testMetaCustomLabel);
   }
 
+  @Test
+  public void testInvalidProgram() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=HpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6:IN:2;5")
+            .add("headers=HpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6")
+            .add("pageSize=1");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(400)
+        .body("status", equalTo("ERROR"))
+        .body("httpStatusCode", equalTo(400))
+        .body("httpStatus", equalTo("Bad Request"))
+        .body("message", equalTo("Specified program HpHINAT79UW does not exist"));
+  }
+
+  @Test
+  public void testInvalidPeriod() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder().add("headers=created").add("created=INVALID_PERIOD");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(409)
+        .body("status", equalTo("ERROR"))
+        .body("httpStatusCode", equalTo(409))
+        .body("httpStatus", equalTo("Conflict"))
+        .body("errorCode", equalTo("E7611"))
+        .body("message", equalTo("Period not valid: `INVALID_PERIOD`"));
+  }
+
   private void testMetaCustomLabel(String header, String expected) {
     // Given
     QueryParamsBuilder params = new QueryParamsBuilder().add("headers=" + header).add("pageSize=0");
