@@ -40,7 +40,6 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.ResponseValidationHelper;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -78,7 +77,6 @@ public class LoginTests extends ApiTest {
   }
 
   @Test
-  @Disabled
   public void shouldBeAbleToLoginWithOAuth2() {
 
     loginActions.addAuthenticationHeader(oauthClientId, secret);
@@ -109,7 +107,6 @@ public class LoginTests extends ApiTest {
   }
 
   @Test
-  @Disabled
   public void shouldBeAbleToGetRefreshToken() {
     loginActions.addAuthenticationHeader(oauthClientId, secret);
 
