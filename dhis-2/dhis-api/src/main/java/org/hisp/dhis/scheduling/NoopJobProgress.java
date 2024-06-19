@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.scheduling;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 /**
@@ -54,7 +55,7 @@ class NoopJobProgress implements JobProgress {
   }
 
   @Override
-  public void failedProcess(@Nonnull String error, Object... args) {
+  public void failedProcess(@CheckForNull String error, Object... args) {
     // as the name said we do nothing
   }
 

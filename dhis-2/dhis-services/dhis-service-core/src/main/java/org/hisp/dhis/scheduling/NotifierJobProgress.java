@@ -32,6 +32,7 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.concurrent.atomic.AtomicBoolean;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.system.notification.NotificationDataType;
@@ -80,7 +81,7 @@ public class NotifierJobProgress implements JobProgress {
   }
 
   @Override
-  public void failedProcess(@Nonnull String error, Object... args) {
+  public void failedProcess(@CheckForNull String error, Object... args) {
     notifier.notify(jobId, NotificationLevel.ERROR, format(error, args), true);
   }
 
