@@ -30,8 +30,6 @@ package org.hisp.dhis.program.notification;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentCompletionNotificationEvent;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
-import org.hisp.dhis.program.notification.event.ProgramRuleEnrollmentEvent;
-import org.hisp.dhis.program.notification.event.ProgramRuleStageEvent;
 import org.hisp.dhis.program.notification.event.ProgramStageCompletionNotificationEvent;
 import org.hisp.dhis.programrule.engine.TrackerEnrollmentWebHookEvent;
 import org.hisp.dhis.programrule.engine.TrackerEventWebHookEvent;
@@ -61,19 +59,6 @@ public class ProgramNotificationListener {
   @TransactionalEventListener(fallbackExecution = true)
   public void onEvent(ProgramStageCompletionNotificationEvent event) {
     programNotificationService.sendEventCompletionNotifications(event.getEvent());
-  }
-
-  // Published by rule engine
-  @TransactionalEventListener(fallbackExecution = true)
-  public void onProgramRuleEnrollment(ProgramRuleEnrollmentEvent event) {
-    programNotificationService.sendProgramRuleTriggeredNotifications(
-        event.getTemplate(), event.getEnrollment());
-  }
-
-  @TransactionalEventListener(fallbackExecution = true)
-  public void onProgramRuleEvent(ProgramRuleStageEvent event) {
-    programNotificationService.sendProgramRuleTriggeredEventNotifications(
-        event.getTemplate(), event.getEvent());
   }
 
   @TransactionalEventListener(fallbackExecution = true)

@@ -171,7 +171,7 @@
     <batik-transcoder.version>1.17</batik-transcoder.version>
     <fop.version>2.9</fop.version>
     <mapstruct.version>1.5.5.Final</mapstruct.version>
-    <geotools.version>29.5</geotools.version>
+    <geotools.version>29.6</geotools.version>
     <jts.version>1.19.0</jts.version>
 
     <!-- Apache Artemis -->
@@ -1949,7 +1949,7 @@
             <dependency>
               <groupId>com.github.spotbugs</groupId>
               <artifactId>spotbugs</artifactId>
-              <version>4.8.5</version>
+              <version>4.8.6</version>
             </dependency>
           </dependencies>
         </plugin>
