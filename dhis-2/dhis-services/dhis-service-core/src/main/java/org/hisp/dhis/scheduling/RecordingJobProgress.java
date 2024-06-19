@@ -231,7 +231,7 @@ public class RecordingJobProgress implements JobProgress {
   }
 
   @Override
-  public void failedProcess(String error, Object... args) {
+  public void failedProcess(@CheckForNull String error, Object... args) {
     observer.run();
 
     String message = format(error, args);
@@ -250,7 +250,7 @@ public class RecordingJobProgress implements JobProgress {
   }
 
   @Override
-  public void failedProcess(Exception cause) {
+  public void failedProcess(@Nonnull Exception cause) {
     observer.run();
 
     tracker.failedProcess(cause);
@@ -271,7 +271,7 @@ public class RecordingJobProgress implements JobProgress {
   }
 
   @Override
-  public void startingStage(String description, int workItems, FailurePolicy onFailure) {
+  public void startingStage(String description, int workItems, @Nonnull FailurePolicy onFailure) {
     observer.run();
 
     if (isCancelled()) {
@@ -296,7 +296,7 @@ public class RecordingJobProgress implements JobProgress {
   }
 
   @Override
-  public void failedStage(String error, Object... args) {
+  public void failedStage(@Nonnull String error, Object... args) {
     observer.run();
 
     String message = format(error, args);
@@ -310,7 +310,7 @@ public class RecordingJobProgress implements JobProgress {
   }
 
   @Override
-  public void failedStage(Exception cause) {
+  public void failedStage(@Nonnull Exception cause) {
     observer.run();
 
     cause = cancellationAsAbort(cause);
@@ -326,7 +326,7 @@ public class RecordingJobProgress implements JobProgress {
   }
 
   @Override
-  public void startingWorkItem(String description, FailurePolicy onFailure) {
+  public void startingWorkItem(@Nonnull String description, @Nonnull FailurePolicy onFailure) {
     observer.run();
 
     tracker.startingWorkItem(description, onFailure);
@@ -346,7 +346,7 @@ public class RecordingJobProgress implements JobProgress {
   }
 
   @Override
-  public void failedWorkItem(String error, Object... args) {
+  public void failedWorkItem(@Nonnull String error, Object... args) {
     observer.run();
 
     String message = format(error, args);
@@ -360,7 +360,7 @@ public class RecordingJobProgress implements JobProgress {
   }
 
   @Override
-  public void failedWorkItem(Exception cause) {
+  public void failedWorkItem(@Nonnull Exception cause) {
     observer.run();
 
     tracker.failedWorkItem(cause);
