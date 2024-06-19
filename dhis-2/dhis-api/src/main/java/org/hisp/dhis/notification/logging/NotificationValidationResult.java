@@ -42,8 +42,12 @@ public class NotificationValidationResult {
     return new NotificationValidationResult(false, false);
   }
 
-  public static NotificationValidationResult valid(boolean needsToCreateLogEntry) {
-    return new NotificationValidationResult(needsToCreateLogEntry, true);
+  public static NotificationValidationResult validAndNoNeedForLogEntries() {
+    return new NotificationValidationResult(false, true);
+  }
+
+  public static NotificationValidationResult validAndNeedsLogEntries() {
+    return new NotificationValidationResult(true, true);
   }
 
   public boolean needsToCreateLogEntry() {

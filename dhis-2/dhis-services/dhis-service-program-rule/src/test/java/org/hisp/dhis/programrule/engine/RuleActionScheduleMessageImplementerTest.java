@@ -38,6 +38,8 @@ import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
@@ -248,12 +250,24 @@ class RuleActionScheduleMessageImplementerTest {
   }
 
   private Enrollment enrollment() {
+    Program program = new Program();
+    program.setProgramType(ProgramType.WITH_REGISTRATION);
     Enrollment enrollment = new Enrollment();
     enrollment.setUid(ENROLLMENT_UID);
+    enrollment.setProgram(program);
+    return enrollment;
+  }
+
+  private Enrollment enrollment(Program program) {
+    Enrollment enrollment = new Enrollment();
+    enrollment.setUid(ENROLLMENT_UID);
+    enrollment.setProgram(program);
     return enrollment;
   }
 
   private Event event() {
+    Program program = new Program();
+    program.setProgramType(ProgramType.WITH_REGISTRATION);
     Event event = new Event();
     event.setUid(EVENT_UID);
     event.setEnrollment(enrollment());
@@ -261,8 +275,11 @@ class RuleActionScheduleMessageImplementerTest {
   }
 
   private Event programEvent() {
+    Program program = new Program();
+    program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
     Event event = new Event();
     event.setUid(EVENT_UID);
+    event.setEnrollment(enrollment(program));
     return event;
   }
 

@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.datastore;
 
+import static com.fasterxml.jackson.annotation.JsonProperty.Access.READ_ONLY;
 import static org.hisp.dhis.common.collection.CollectionUtils.union;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.Value;
@@ -66,11 +68,25 @@ public class DatastoreNamespaceProtection {
     RESTRICTED
   }
 
-  @Nonnull String namespace;
-  @Nonnull ProtectionType reads;
-  @Nonnull ProtectionType writes;
-  @Nonnull Set<String> readAuthorities;
-  @Nonnull Set<String> writeAuthorities;
+  @JsonProperty(access = READ_ONLY)
+  @Nonnull
+  String namespace;
+
+  @JsonProperty(access = READ_ONLY)
+  @Nonnull
+  ProtectionType reads;
+
+  @JsonProperty(access = READ_ONLY)
+  @Nonnull
+  ProtectionType writes;
+
+  @JsonProperty(access = READ_ONLY)
+  @Nonnull
+  Set<String> readAuthorities;
+
+  @JsonProperty(access = READ_ONLY)
+  @Nonnull
+  Set<String> writeAuthorities;
 
   public DatastoreNamespaceProtection(
       @Nonnull String namespace,
