@@ -36,6 +36,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -56,6 +58,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
 class ProgramMessageStoreTest extends TransactionalIntegrationTest {
+
+  private CategoryOptionCombo coA;
 
   private OrganisationUnit ouA;
 
@@ -108,6 +112,9 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest {
   // -------------------------------------------------------------------------
   // Dependencies
   // -------------------------------------------------------------------------
+
+  @Autowired private CategoryService categoryService;
+
   @Autowired private ProgramMessageStore programMessageStore;
 
   @Autowired private EnrollmentStore enrollmentStore;
@@ -127,6 +134,7 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest {
   // -------------------------------------------------------------------------
   @Override
   public void setUpTest() {
+    coA = categoryService.getDefaultCategoryOptionCombo();
     ouA = createOrganisationUnit('A');
     ouB = createOrganisationUnit('B');
     orgUnitService.addOrganisationUnit(ouA);

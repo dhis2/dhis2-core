@@ -203,6 +203,7 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     eventWithTeAssociation.setOrganisationUnit(organisationUnit);
     eventWithTeAssociation.setEnrollment(enrollmentWithTeAssociation);
     eventWithTeAssociation.setOccurredDate(new Date());
+    eventWithTeAssociation.setAttributeOptionCombo(coA);
     eventService.addEvent(eventWithTeAssociation);
     relationshipType = createPersonToPersonRelationshipType('A', program, trackedEntityType, false);
     relationshipTypeService.addRelationshipType(relationshipType);
