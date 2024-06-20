@@ -294,8 +294,8 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest {
   }
 
   private Event event() {
-    Event event = new Event(enrollment, programStage, enrollment.getOrganisationUnit(), coc);
-    event.setAutoFields();
+    Event eventA = new Event(enrollment, programStage, enrollment.getOrganisationUnit(), coc);
+    eventA.setAutoFields();
 
     eventDataValue = new EventDataValue();
     eventDataValue.setValue("value");
@@ -304,9 +304,9 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest {
     manager.save(dataElement);
     eventDataValue.setDataElement(dataElement.getUid());
     Set<EventDataValue> eventDataValues = Set.of(eventDataValue);
-    event.setEventDataValues(eventDataValues);
-    manager.save(event);
-    return event;
+    eventA.setEventDataValues(eventDataValues);
+    manager.save(eventA);
+    return eventA;
   }
 
   private Relationship relationship(Enrollment from, TrackedEntity to) {

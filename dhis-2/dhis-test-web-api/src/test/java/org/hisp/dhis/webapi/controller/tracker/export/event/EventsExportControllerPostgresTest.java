@@ -336,10 +336,10 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
   }
 
   private Event event(Enrollment enrollment) {
-    Event event = new Event(enrollment, programStage, enrollment.getOrganisationUnit(), coc);
-    event.setAutoFields();
-    manager.save(event);
-    return event;
+    Event eventA = new Event(enrollment, programStage, enrollment.getOrganisationUnit(), coc);
+    eventA.setAutoFields();
+    manager.save(eventA);
+    return eventA;
   }
 
   private String createJson(Event event, String value) {

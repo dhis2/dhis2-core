@@ -35,6 +35,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.audit.UserInfoTestHelper;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.dataelement.DataElement;
@@ -81,6 +83,10 @@ class TrackedEntityDataValueChangeLogStoreTest extends SingleSetupIntegrationTes
 
   @Autowired private EventService eventService;
 
+  @Autowired private CategoryService categoryService;
+
+  private CategoryOptionCombo coc;
+
   private OrganisationUnit ouA;
 
   private OrganisationUnit ouB;
@@ -123,6 +129,7 @@ class TrackedEntityDataValueChangeLogStoreTest extends SingleSetupIntegrationTes
 
   @Override
   public void setUpTest() {
+    coc = categoryService.getDefaultCategoryOptionCombo();
     ouA = createOrganisationUnit('A');
     ouB = createOrganisationUnit('B', ouA);
     ouC = createOrganisationUnit('C', ouA);
@@ -163,11 +170,11 @@ class TrackedEntityDataValueChangeLogStoreTest extends SingleSetupIntegrationTes
     dvD = new EventDataValue(deB.getUid(), "D", USER_SNAP_A);
     dvE = new EventDataValue(deB.getUid(), "E", USER_SNAP_A);
 
-    eventA = createEvent(enrollmentA, psA, ouA, Set.of(dvA, dvB));
-    eventB = createEvent(enrollmentA, psB, ouB, Set.of(dvC, dvD));
-    eventC = createEvent(enrollmentA, psA, ouC, Set.of(dvA, dvB));
-    eventD = createEvent(enrollmentA, psB, ouD, Set.of(dvC, dvD));
-    eventE = createEvent(enrollmentA, psA, ouE, Set.of(dvA, dvE));
+    eventA = createEvent(enrollmentA, psA, ouA, coc, Set.of(dvA, dvB));
+    eventB = createEvent(enrollmentA, psB, ouB, coc, Set.of(dvC, dvD));
+    eventC = createEvent(enrollmentA, psA, ouC, coc, Set.of(dvA, dvB));
+    eventD = createEvent(enrollmentA, psB, ouD, coc, Set.of(dvC, dvD));
+    eventE = createEvent(enrollmentA, psA, ouE, coc, Set.of(dvA, dvE));
     eventService.addEvent(eventA);
     eventService.addEvent(eventB);
     eventService.addEvent(eventC);

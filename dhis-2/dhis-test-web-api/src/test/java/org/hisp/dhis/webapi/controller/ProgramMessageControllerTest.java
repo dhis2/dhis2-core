@@ -31,6 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -65,12 +67,17 @@ class ProgramMessageControllerTest extends DhisControllerConvenienceTest {
 
   @Autowired private IdentifiableObjectManager idObjectManager;
 
+  @Autowired private CategoryService categoryService;
+
+  private CategoryOptionCombo coc;
+
   private Enrollment enrollmentA;
 
   private Event eventA;
 
   @BeforeEach
   void setUp() {
+    coc = categoryService.getDefaultCategoryOptionCombo();
     OrganisationUnit ouA = createOrganisationUnit('A');
     idObjectManager.save(ouA);
     Program prA = createProgram('A', Sets.newHashSet(), ouA);
@@ -81,7 +88,7 @@ class ProgramMessageControllerTest extends DhisControllerConvenienceTest {
     trackedEntityService.addTrackedEntity(trackedEntityA);
     enrollmentA = createEnrollment(prA, trackedEntityA, ouA);
     enrollmentService.addEnrollment(enrollmentA);
-    eventA = createEvent(psA, enrollmentA, ouA);
+    eventA = createEvent(psA, enrollmentA, ouA, coc);
     eventService.addEvent(eventA);
   }
 

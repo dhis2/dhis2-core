@@ -34,6 +34,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
@@ -72,6 +73,8 @@ class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest {
 
   private static final String RELATIONSHIP_B = "RELATIONSHIP_B_UID";
 
+  private CategoryOptionCombo coc;
+
   private RelationshipType teToEnrollment;
 
   private RelationshipType teToEvent;
@@ -89,6 +92,8 @@ class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest {
 
   @BeforeEach
   protected void setupTest() {
+    coc = new CategoryOptionCombo();
+    coc.setAutoFields();
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
     Program program = createProgram('A');
     TrackedEntityType teType = createTrackedEntityType('A');
@@ -104,7 +109,7 @@ class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest {
     trackedEntity.setUid(TE);
     enrollment = createEnrollment(program, trackedEntity, organisationUnit);
     enrollment.setUid(ENROLLMENT);
-    event = createEvent(createProgramStage('A', program), enrollment, organisationUnit);
+    event = createEvent(createProgramStage('A', program), enrollment, organisationUnit, coc);
     event.setUid(EVENT);
 
     relationshipConverterService = new RelationshipTrackerConverterService();

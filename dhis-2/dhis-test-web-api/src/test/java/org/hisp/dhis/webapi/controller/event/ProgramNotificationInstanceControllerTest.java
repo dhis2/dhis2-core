@@ -34,6 +34,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Sets;
 import java.util.List;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -66,14 +68,25 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
   @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private IdentifiableObjectManager idObjectManager;
+
+  @Autowired private CategoryService categoryService;
+
+  private CategoryOptionCombo coc;
+
   private Enrollment enrollment;
+
   private Event event;
+
   private ProgramNotificationInstance enrollmentNotification1;
+
   private ProgramNotificationInstance enrollmentNotification2;
+
   private ProgramNotificationInstance eventNotification;
 
   @BeforeEach
   void setUp() {
+    coc = categoryService.getDefaultCategoryOptionCombo();
+
     OrganisationUnit ouA = createOrganisationUnit('A');
     idObjectManager.save(ouA);
 
@@ -96,7 +109,7 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
     enrollmentNotification2.setEnrollment(enrollment);
     programNotificationInstanceService.save(enrollmentNotification2);
 
-    event = createEvent(psA, enrollment, ouA);
+    event = createEvent(psA, enrollment, ouA, coc);
     eventService.addEvent(event);
     eventNotification = new ProgramNotificationInstance();
     eventNotification.setName("event A notification");
