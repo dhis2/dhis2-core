@@ -214,9 +214,12 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
         new MinMaxDataElement(deSource2, ou2, coc1, 0, 100, false);
     MinMaxDataElement minMaxDataElement3 =
         new MinMaxDataElement(deTarget, ou3, coc1, 0, 100, false);
+    MinMaxDataElement minMaxDataElement4 =
+        new MinMaxDataElement(deRandom, ou3, coc1, 0, 100, false);
     minMaxDataElementService.addMinMaxDataElement(minMaxDataElement1);
     minMaxDataElementService.addMinMaxDataElement(minMaxDataElement2);
     minMaxDataElementService.addMinMaxDataElement(minMaxDataElement3);
+    minMaxDataElementService.addMinMaxDataElement(minMaxDataElement4);
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -245,9 +248,12 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
         new MinMaxDataElement(deSource2, ou2, coc1, 0, 100, false);
     MinMaxDataElement minMaxDataElement3 =
         new MinMaxDataElement(deTarget, ou3, coc1, 0, 100, false);
+    MinMaxDataElement minMaxDataElement4 =
+        new MinMaxDataElement(deRandom, ou3, coc1, 0, 100, false);
     minMaxDataElementService.addMinMaxDataElement(minMaxDataElement1);
     minMaxDataElementService.addMinMaxDataElement(minMaxDataElement2);
     minMaxDataElementService.addMinMaxDataElement(minMaxDataElement3);
+    minMaxDataElementService.addMinMaxDataElement(minMaxDataElement4);
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -277,9 +283,12 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
         new MinMaxDataElement(deSource2, ou1, coc1, 0, 100, false);
     MinMaxDataElement minMaxDataElement3 =
         new MinMaxDataElement(deTarget, ou1, coc1, 0, 100, false);
+    MinMaxDataElement minMaxDataElement4 =
+        new MinMaxDataElement(deRandom, ou3, coc1, 0, 100, false);
     minMaxDataElementService.addMinMaxDataElement(minMaxDataElement1);
     minMaxDataElementService.addMinMaxDataElement(minMaxDataElement2);
     minMaxDataElementService.addMinMaxDataElement(minMaxDataElement3);
+    minMaxDataElementService.addMinMaxDataElement(minMaxDataElement4);
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -312,16 +321,16 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
   void eventVisualizationMergeTest() throws ConflictException {
     // given
     // event visualizations
-    EventVisualization eventVis1 = createEventVisualization('1', null);
-    eventVis1.setDataElementValueDimension(deTarget);
-    EventVisualization eventVis2 = createEventVisualization('2', null);
-    eventVis2.setDataElementValueDimension(deSource1);
-    EventVisualization eventVis3 = createEventVisualization('3', null);
-    eventVis3.setDataElementValueDimension(deSource2);
+    EventVisualization ev1 = createEventVisualization('1', null);
+    ev1.setDataElementValueDimension(deTarget);
+    EventVisualization ev2 = createEventVisualization('2', null);
+    ev2.setDataElementValueDimension(deSource1);
+    EventVisualization ev3 = createEventVisualization('3', null);
+    ev3.setDataElementValueDimension(deSource2);
+    EventVisualization ev4 = createEventVisualization('4', null);
+    ev4.setDataElementValueDimension(deRandom);
 
-    eventVisualizationStore.save(eventVis1);
-    eventVisualizationStore.save(eventVis2);
-    eventVisualizationStore.save(eventVis3);
+    identifiableObjectManager.save(List.of(ev1, ev2, ev3, ev4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -346,16 +355,16 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
   void eventVisualizationMergeDeleteSourcesTest() throws ConflictException {
     // given
     // min max data elements
-    EventVisualization eventVis4 = createEventVisualization('4', null);
-    eventVis4.setDataElementValueDimension(deTarget);
-    EventVisualization eventVis5 = createEventVisualization('5', null);
-    eventVis5.setDataElementValueDimension(deSource1);
-    EventVisualization eventVis6 = createEventVisualization('6', null);
-    eventVis6.setDataElementValueDimension(deSource2);
+    EventVisualization ev5 = createEventVisualization('5', null);
+    ev5.setDataElementValueDimension(deTarget);
+    EventVisualization ev6 = createEventVisualization('6', null);
+    ev6.setDataElementValueDimension(deSource1);
+    EventVisualization ev7 = createEventVisualization('7', null);
+    ev7.setDataElementValueDimension(deSource2);
+    EventVisualization ev8 = createEventVisualization('8', null);
+    ev8.setDataElementValueDimension(deRandom);
 
-    eventVisualizationStore.save(eventVis4);
-    eventVisualizationStore.save(eventVis5);
-    eventVisualizationStore.save(eventVis6);
+    identifiableObjectManager.save(List.of(ev5, ev6, ev7, ev8));
 
     // params
     MergeParams mergeParams = new MergeParams();
@@ -414,11 +423,7 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     m4.addTrackedEntityDataElementDimension(teded4);
     MapView m5 = createMapView("i");
 
-    identifiableObjectManager.save(m1);
-    identifiableObjectManager.save(m2);
-    identifiableObjectManager.save(m3);
-    identifiableObjectManager.save(m4);
-    identifiableObjectManager.save(m5);
+    identifiableObjectManager.save(List.of(m1, m2, m3, m4, m5));
 
     // event viz
     EventVisualization ev1 = createEventVisualization('e', program);
@@ -431,11 +436,7 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     ev4.addTrackedEntityDataElementDimension(teded8);
     EventVisualization ev5 = createEventVisualization('h', program);
 
-    eventVisualizationStore.save(ev1);
-    eventVisualizationStore.save(ev2);
-    eventVisualizationStore.save(ev3);
-    eventVisualizationStore.save(ev4);
-    eventVisualizationStore.save(ev5);
+    identifiableObjectManager.save(List.of(ev1, ev2, ev3, ev4, ev5));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -497,11 +498,7 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     m4.addTrackedEntityDataElementDimension(teded4);
     MapView m5 = createMapView("i");
 
-    identifiableObjectManager.save(m1);
-    identifiableObjectManager.save(m2);
-    identifiableObjectManager.save(m3);
-    identifiableObjectManager.save(m4);
-    identifiableObjectManager.save(m5);
+    identifiableObjectManager.save(List.of(m1, m2, m3, m4, m5));
 
     // event viz
     EventVisualization ev1 = createEventVisualization('e', program);
@@ -514,11 +511,7 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     ev4.addTrackedEntityDataElementDimension(teded8);
     EventVisualization ev5 = createEventVisualization('h', program);
 
-    eventVisualizationStore.save(ev1);
-    eventVisualizationStore.save(ev2);
-    eventVisualizationStore.save(ev3);
-    eventVisualizationStore.save(ev4);
-    eventVisualizationStore.save(ev5);
+    identifiableObjectManager.save(List.of(ev1, ev2, ev3, ev4, ev5));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -557,10 +550,11 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     SMSCode smsCode1 = createSmsCode("code source 1", deSource1);
     SMSCode smsCode2 = createSmsCode("code source 2", deSource2);
     SMSCode smsCode3 = createSmsCode("code target 3", deTarget);
+    SMSCode smsCode4 = createSmsCode("code target 4", deRandom);
 
     SMSCommand smsCommand = new SMSCommand();
     smsCommand.setName("CMD 1");
-    smsCommand.setCodes(Set.of(smsCode1, smsCode2, smsCode3));
+    smsCommand.setCodes(Set.of(smsCode1, smsCode2, smsCode3, smsCode4));
 
     smsCommandService.save(smsCommand);
 
@@ -587,10 +581,11 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     SMSCode smsCode1 = createSmsCode("code source 1", deSource1);
     SMSCode smsCode2 = createSmsCode("code source 2", deSource2);
     SMSCode smsCode3 = createSmsCode("code target 3", deTarget);
+    SMSCode smsCode4 = createSmsCode("code target 4", deRandom);
 
     SMSCommand smsCommand = new SMSCommand();
     smsCommand.setName("CMD 1");
-    smsCommand.setCodes(Set.of(smsCode1, smsCode2, smsCode3));
+    smsCommand.setCodes(Set.of(smsCode1, smsCode2, smsCode3, smsCode4));
 
     smsCommandService.save(smsCommand);
 
@@ -622,10 +617,9 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     Predictor predictor1 = createPredictor('1', deSource1);
     Predictor predictor2 = createPredictor('2', deSource2);
     Predictor predictor3 = createPredictor('3', deTarget);
+    Predictor predictor4 = createPredictor('4', deRandom);
 
-    identifiableObjectManager.save(predictor1);
-    identifiableObjectManager.save(predictor2);
-    identifiableObjectManager.save(predictor3);
+    identifiableObjectManager.save(List.of(predictor1, predictor2, predictor3, predictor4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -648,13 +642,12 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
       "Predictor references for DataElement are replaced as expected, source DataElements are deleted")
   void predictorMergeDeleteSourcesTest() throws ConflictException {
     // given
-    Predictor predictor1 = createPredictor('1', deSource1);
-    Predictor predictor2 = createPredictor('2', deSource2);
-    Predictor predictor3 = createPredictor('3', deTarget);
+    Predictor p1 = createPredictor('1', deSource1);
+    Predictor p2 = createPredictor('2', deSource2);
+    Predictor p3 = createPredictor('3', deTarget);
+    Predictor p4 = createPredictor('4', deRandom);
 
-    identifiableObjectManager.save(predictor1);
-    identifiableObjectManager.save(predictor2);
-    identifiableObjectManager.save(predictor3);
+    identifiableObjectManager.save(List.of(p1, p2, p3, p4));
 
     List<Predictor> predictorsSetup =
         predictorStore.getAllByDataElement(List.of(deSource1, deSource2, deTarget));
@@ -681,13 +674,12 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
       "Predictor generator expression references with DataElement are replaced as expected, source DataElements are not deleted")
   void predictorGeneratorMergeTest() throws ConflictException {
     // given
-    Predictor predictor1 = createPredictorWithGenerator('1', deRandom, deSource1);
-    Predictor predictor2 = createPredictorWithGenerator('2', deRandom, deSource2);
-    Predictor predictor3 = createPredictorWithGenerator('3', deRandom, deTarget);
+    Predictor p1 = createPredictorWithGenerator('1', deRandom, deSource1);
+    Predictor p2 = createPredictorWithGenerator('2', deRandom, deSource2);
+    Predictor p3 = createPredictorWithGenerator('3', deRandom, deTarget);
+    Predictor p4 = createPredictorWithGenerator('4', deRandom, deRandom);
 
-    identifiableObjectManager.save(predictor1);
-    identifiableObjectManager.save(predictor2);
-    identifiableObjectManager.save(predictor3);
+    identifiableObjectManager.save(List.of(p1, p2, p3, p4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -712,13 +704,12 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
       "Predictor generator expression references with DataElement are replaced as expected, source DataElements are deleted")
   void predictorGeneratorMergeSourcesDeletedTest() throws ConflictException {
     // given
-    Predictor predictor1 = createPredictorWithGenerator('1', deRandom, deSource1);
-    Predictor predictor2 = createPredictorWithGenerator('2', deRandom, deSource2);
-    Predictor predictor3 = createPredictorWithGenerator('3', deRandom, deTarget);
+    Predictor p1 = createPredictorWithGenerator('1', deRandom, deSource1);
+    Predictor p2 = createPredictorWithGenerator('2', deRandom, deSource2);
+    Predictor p3 = createPredictorWithGenerator('3', deRandom, deTarget);
+    Predictor p4 = createPredictorWithGenerator('4', deRandom, deRandom);
 
-    identifiableObjectManager.save(predictor1);
-    identifiableObjectManager.save(predictor2);
-    identifiableObjectManager.save(predictor3);
+    identifiableObjectManager.save(List.of(p1, p2, p3, p4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -743,13 +734,12 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
       "Predictor sample skip test expression references with DataElement are replaced as expected, source DataElements are not deleted")
   void predictorSampleSkipTestMergeTest() throws ConflictException {
     // given
-    Predictor predictor1 = createPredictorWithSkipTest('1', deRandom, deSource1);
-    Predictor predictor2 = createPredictorWithSkipTest('2', deRandom, deSource2);
-    Predictor predictor3 = createPredictorWithSkipTest('3', deRandom, deTarget);
+    Predictor p1 = createPredictorWithSkipTest('1', deRandom, deSource1);
+    Predictor p2 = createPredictorWithSkipTest('2', deRandom, deSource2);
+    Predictor p3 = createPredictorWithSkipTest('3', deRandom, deTarget);
+    Predictor p4 = createPredictorWithSkipTest('4', deRandom, deRandom);
 
-    identifiableObjectManager.save(predictor1);
-    identifiableObjectManager.save(predictor2);
-    identifiableObjectManager.save(predictor3);
+    identifiableObjectManager.save(List.of(p1, p2, p3, p4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -775,13 +765,12 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
       "Predictor sample skip test expression references with DataElement are replaced as expected, source DataElements are deleted")
   void predictorSampleSkipTestMergeSourcesDeletedTest() throws ConflictException {
     // given
-    Predictor predictor1 = createPredictorWithSkipTest('1', deRandom, deSource1);
-    Predictor predictor2 = createPredictorWithSkipTest('2', deRandom, deSource2);
-    Predictor predictor3 = createPredictorWithSkipTest('3', deRandom, deTarget);
+    Predictor p1 = createPredictorWithSkipTest('1', deRandom, deSource1);
+    Predictor p2 = createPredictorWithSkipTest('2', deRandom, deSource2);
+    Predictor p3 = createPredictorWithSkipTest('3', deRandom, deTarget);
+    Predictor p4 = createPredictorWithSkipTest('4', deRandom, deRandom);
 
-    identifiableObjectManager.save(predictor1);
-    identifiableObjectManager.save(predictor2);
-    identifiableObjectManager.save(predictor3);
+    identifiableObjectManager.save(List.of(p1, p2, p3, p4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -813,17 +802,14 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     ProgramStage stage1 = createProgramStage('S', program);
     ProgramStage stage2 = createProgramStage('T', program);
     ProgramStage stage3 = createProgramStage('U', program);
-    identifiableObjectManager.save(stage1);
-    identifiableObjectManager.save(stage2);
-    identifiableObjectManager.save(stage3);
+    ProgramStage stage4 = createProgramStage('V', program);
+    identifiableObjectManager.save(List.of(stage1, stage2, stage3, stage4));
 
     ProgramStageDataElement psde1 = createProgramStageDataElement(stage1, deSource1, 2);
     ProgramStageDataElement psde2 = createProgramStageDataElement(stage2, deSource2, 3);
     ProgramStageDataElement psde3 = createProgramStageDataElement(stage3, deTarget, 4);
-
-    programStageDataElementService.addProgramStageDataElement(psde1);
-    programStageDataElementService.addProgramStageDataElement(psde2);
-    programStageDataElementService.addProgramStageDataElement(psde3);
+    ProgramStageDataElement psde4 = createProgramStageDataElement(stage4, deRandom, 5);
+    identifiableObjectManager.save(List.of(psde1, psde2, psde3, psde4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -849,17 +835,14 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     ProgramStage stage1 = createProgramStage('S', program);
     ProgramStage stage2 = createProgramStage('T', program);
     ProgramStage stage3 = createProgramStage('U', program);
-    identifiableObjectManager.save(stage1);
-    identifiableObjectManager.save(stage2);
-    identifiableObjectManager.save(stage3);
+    ProgramStage stage4 = createProgramStage('V', program);
+    identifiableObjectManager.save(List.of(stage1, stage2, stage3, stage4));
 
     ProgramStageDataElement psde1 = createProgramStageDataElement(stage1, deSource1, 2);
     ProgramStageDataElement psde2 = createProgramStageDataElement(stage2, deSource2, 3);
     ProgramStageDataElement psde3 = createProgramStageDataElement(stage3, deTarget, 4);
-
-    programStageDataElementService.addProgramStageDataElement(psde1);
-    programStageDataElementService.addProgramStageDataElement(psde2);
-    programStageDataElementService.addProgramStageDataElement(psde3);
+    ProgramStageDataElement psde4 = createProgramStageDataElement(stage4, deRandom, 5);
+    identifiableObjectManager.save(List.of(psde1, psde2, psde3, psde4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -886,17 +869,14 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     ProgramStage stage1 = createProgramStage('S', program);
     ProgramStage stage2 = createProgramStage('T', program);
     ProgramStage stage3 = createProgramStage('U', program);
-    identifiableObjectManager.save(stage1);
-    identifiableObjectManager.save(stage2);
-    identifiableObjectManager.save(stage3);
+    ProgramStage stage4 = createProgramStage('V', program);
+    identifiableObjectManager.save(List.of(stage1, stage2, stage3, stage4));
 
     ProgramStageDataElement psde1 = createProgramStageDataElement(stage1, deSource1, 2);
     ProgramStageDataElement psde2 = createProgramStageDataElement(stage1, deSource2, 3);
     ProgramStageDataElement psde3 = createProgramStageDataElement(stage1, deTarget, 4);
-
-    programStageDataElementService.addProgramStageDataElement(psde1);
-    programStageDataElementService.addProgramStageDataElement(psde2);
-    programStageDataElementService.addProgramStageDataElement(psde3);
+    ProgramStageDataElement psde4 = createProgramStageDataElement(stage4, deRandom, 5);
+    identifiableObjectManager.save(List.of(psde1, psde2, psde3, psde4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -934,10 +914,10 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     pss2.getDataElements().add(deSource2);
     ProgramStageSection pss3 = createProgramStageSection('c', 3);
     pss3.getDataElements().add(deTarget);
+    ProgramStageSection pss4 = createProgramStageSection('d', 4);
+    pss4.getDataElements().add(deRandom);
 
-    programStageSectionService.saveProgramStageSection(pss1);
-    programStageSectionService.saveProgramStageSection(pss2);
-    programStageSectionService.saveProgramStageSection(pss3);
+    identifiableObjectManager.save(List.of(pss1, pss2, pss3, pss4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -960,16 +940,16 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
       "ProgramStageSection references for DataElement are replaced as expected, source DataElements are deleted")
   void programStageSectionMergeDeleteSourcesTest() throws ConflictException {
     // given
-    ProgramStageSection pss1 = createProgramStageSection('d', 1);
+    ProgramStageSection pss1 = createProgramStageSection('e', 1);
     pss1.getDataElements().add(deSource1);
-    ProgramStageSection pss2 = createProgramStageSection('e', 2);
+    ProgramStageSection pss2 = createProgramStageSection('f', 2);
     pss2.getDataElements().add(deSource2);
-    ProgramStageSection pss3 = createProgramStageSection('F', 3);
+    ProgramStageSection pss3 = createProgramStageSection('g', 3);
     pss3.getDataElements().add(deTarget);
+    ProgramStageSection pss4 = createProgramStageSection('h', 4);
+    pss4.getDataElements().add(deRandom);
 
-    programStageSectionService.saveProgramStageSection(pss1);
-    programStageSectionService.saveProgramStageSection(pss2);
-    programStageSectionService.saveProgramStageSection(pss3);
+    identifiableObjectManager.save(List.of(pss1, pss2, pss3, pss4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -1002,10 +982,10 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     pnt2.setRecipientDataElement(deSource2);
     ProgramNotificationTemplate pnt3 = createProgramNotificationTemplate("pnt3", 1, null, null);
     pnt3.setRecipientDataElement(deTarget);
+    ProgramNotificationTemplate pnt4 = createProgramNotificationTemplate("pnt4", 1, null, null);
+    pnt4.setRecipientDataElement(deRandom);
 
-    programNotificationTemplateService.save(pnt1);
-    programNotificationTemplateService.save(pnt2);
-    programNotificationTemplateService.save(pnt3);
+    identifiableObjectManager.save(List.of(pnt1, pnt2, pnt3, pnt4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -1034,10 +1014,10 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     pnt2.setRecipientDataElement(deSource2);
     ProgramNotificationTemplate pnt3 = createProgramNotificationTemplate("pnt3", 1, null, null);
     pnt3.setRecipientDataElement(deTarget);
+    ProgramNotificationTemplate pnt4 = createProgramNotificationTemplate("pnt4", 1, null, null);
+    pnt4.setRecipientDataElement(deRandom);
 
-    programNotificationTemplateService.save(pnt1);
-    programNotificationTemplateService.save(pnt2);
-    programNotificationTemplateService.save(pnt3);
+    identifiableObjectManager.save(List.of(pnt1, pnt2, pnt3, pnt4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -1070,10 +1050,10 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     prv2.setDataElement(deSource2);
     ProgramRuleVariable prv3 = createProgramRuleVariable('c', program);
     prv3.setDataElement(deTarget);
+    ProgramRuleVariable prv4 = createProgramRuleVariable('d', program);
+    prv4.setDataElement(deRandom);
 
-    programRuleVariableService.addProgramRuleVariable(prv1);
-    programRuleVariableService.addProgramRuleVariable(prv2);
-    programRuleVariableService.addProgramRuleVariable(prv3);
+    identifiableObjectManager.save(List.of(prv1, prv2, prv3, prv4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -1102,10 +1082,10 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     prv2.setDataElement(deSource2);
     ProgramRuleVariable prv3 = createProgramRuleVariable('c', program);
     prv3.setDataElement(deTarget);
+    ProgramRuleVariable prv4 = createProgramRuleVariable('d', program);
+    prv4.setDataElement(deRandom);
 
-    programRuleVariableService.addProgramRuleVariable(prv1);
-    programRuleVariableService.addProgramRuleVariable(prv2);
-    programRuleVariableService.addProgramRuleVariable(prv3);
+    identifiableObjectManager.save(List.of(prv1, prv2, prv3, prv4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -1138,10 +1118,10 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     pra2.setDataElement(deSource2);
     ProgramRuleAction pra3 = createProgramRuleAction('c');
     pra3.setDataElement(deTarget);
+    ProgramRuleAction pra4 = createProgramRuleAction('d');
+    pra4.setDataElement(deRandom);
 
-    programRuleActionService.addProgramRuleAction(pra1);
-    programRuleActionService.addProgramRuleAction(pra2);
-    programRuleActionService.addProgramRuleAction(pra3);
+    identifiableObjectManager.save(List.of(pra1, pra2, pra3, pra4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -1170,10 +1150,10 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     pra2.setDataElement(deSource2);
     ProgramRuleAction pra3 = createProgramRuleAction('c');
     pra3.setDataElement(deTarget);
+    ProgramRuleAction pra4 = createProgramRuleAction('d');
+    pra4.setDataElement(deRandom);
 
-    programRuleActionService.addProgramRuleAction(pra1);
-    programRuleActionService.addProgramRuleAction(pra2);
-    programRuleActionService.addProgramRuleAction(pra3);
+    identifiableObjectManager.save(List.of(pra1, pra2, pra3, pra4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -1206,10 +1186,10 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
         createProgramIndicator('b', program, "#{12345.%s}".formatted(deSource2.getUid()), "");
     ProgramIndicator pi3 =
         createProgramIndicator('c', program, "#{12345.%s}".formatted(deTarget.getUid()), "");
+    ProgramIndicator pi4 =
+        createProgramIndicator('d', program, "#{12345.%s}".formatted(deRandom.getUid()), "");
 
-    identifiableObjectManager.save(pi1);
-    identifiableObjectManager.save(pi2);
-    identifiableObjectManager.save(pi3);
+    identifiableObjectManager.save(List.of(pi1, pi2, pi3, pi4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -1239,10 +1219,10 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
         createProgramIndicator('b', program, "#{12345.%s}".formatted(deSource2.getUid()), "");
     ProgramIndicator pi3 =
         createProgramIndicator('c', program, "#{12345.%s}".formatted(deTarget.getUid()), "");
+    ProgramIndicator pi4 =
+        createProgramIndicator('d', program, "#{12345.%s}".formatted(deRandom.getUid()), "");
 
-    identifiableObjectManager.save(pi1);
-    identifiableObjectManager.save(pi2);
-    identifiableObjectManager.save(pi3);
+    identifiableObjectManager.save(List.of(pi1, pi2, pi3, pi4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -1276,10 +1256,10 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
         createProgramIndicator('b', program, "", "#{12345.%s}".formatted(deSource2.getUid()));
     ProgramIndicator pi3 =
         createProgramIndicator('c', program, "", "#{12345.%s}".formatted(deTarget.getUid()));
+    ProgramIndicator pi4 =
+        createProgramIndicator('d', program, "", "#{12345.%s}".formatted(deRandom.getUid()));
 
-    identifiableObjectManager.save(pi1);
-    identifiableObjectManager.save(pi2);
-    identifiableObjectManager.save(pi3);
+    identifiableObjectManager.save(List.of(pi1, pi2, pi3, pi4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -1309,10 +1289,10 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
         createProgramIndicator('b', program, "", "#{12345.%s}".formatted(deSource2.getUid()));
     ProgramIndicator pi3 =
         createProgramIndicator('c', program, "", "#{12345.%s}".formatted(deTarget.getUid()));
+    ProgramIndicator pi4 =
+        createProgramIndicator('d', program, "", "#{12345.%s}".formatted(deRandom.getUid()));
 
-    identifiableObjectManager.save(pi1);
-    identifiableObjectManager.save(pi2);
-    identifiableObjectManager.save(pi3);
+    identifiableObjectManager.save(List.of(pi1, pi2, pi3, pi4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -1350,26 +1330,29 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     Event e1 = createEvent(stage, enrollment, ou1);
     Event e2 = createEvent(stage, enrollment, ou1);
     Event e3 = createEvent(stage, enrollment, ou1);
+    Event e4 = createEvent(stage, enrollment, ou1);
 
     EventDataValue edv1 = new EventDataValue(deSource1.getUid(), "value1");
     EventDataValue edv11 = new EventDataValue(deSource1.getUid(), "value11");
     EventDataValue edv2 = new EventDataValue(deSource2.getUid(), "value2");
     EventDataValue edv3 = new EventDataValue(deTarget.getUid(), "value3");
+    EventDataValue edv4 = new EventDataValue(deRandom.getUid(), "value4");
     Set<EventDataValue> edvs1 = new HashSet<>();
     edvs1.add(edv1);
     edvs1.add(edv11);
     edvs1.add(edv2);
     Set<EventDataValue> edvs2 = new HashSet<>();
     Set<EventDataValue> edvs3 = new HashSet<>();
+    Set<EventDataValue> edvs4 = new HashSet<>();
     edvs2.add(edv2);
     edvs3.add(edv3);
+    edvs4.add(edv4);
 
     e1.setEventDataValues(edvs1);
     e2.setEventDataValues(edvs2);
     e3.setEventDataValues(edvs3);
-    eventStore.save(e1);
-    eventStore.save(e2);
-    eventStore.save(e3);
+    e4.setEventDataValues(edvs4);
+    identifiableObjectManager.save(List.of(e1, e2, e3, e4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -1403,26 +1386,29 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     Event e1 = createEvent(stage, enrollment, ou1);
     Event e2 = createEvent(stage, enrollment, ou1);
     Event e3 = createEvent(stage, enrollment, ou1);
+    Event e4 = createEvent(stage, enrollment, ou1);
 
     EventDataValue edv1 = new EventDataValue(deSource1.getUid(), "value1");
     EventDataValue edv11 = new EventDataValue(deSource1.getUid(), "value11");
     EventDataValue edv2 = new EventDataValue(deSource2.getUid(), "value2");
     EventDataValue edv3 = new EventDataValue(deTarget.getUid(), "value3");
+    EventDataValue edv4 = new EventDataValue(deRandom.getUid(), "value4");
     Set<EventDataValue> edvs1 = new HashSet<>();
     edvs1.add(edv1);
     edvs1.add(edv11);
     edvs1.add(edv2);
     Set<EventDataValue> edvs2 = new HashSet<>();
     Set<EventDataValue> edvs3 = new HashSet<>();
+    Set<EventDataValue> edvs4 = new HashSet<>();
     edvs2.add(edv2);
     edvs3.add(edv3);
+    edvs4.add(edv4);
 
     e1.setEventDataValues(edvs1);
     e2.setEventDataValues(edvs2);
     e3.setEventDataValues(edvs3);
-    eventStore.save(e1);
-    eventStore.save(e2);
-    eventStore.save(e3);
+    e4.setEventDataValues(edvs4);
+    identifiableObjectManager.save(List.of(e1, e2, e3, e4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -1456,10 +1442,10 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     deo2.setDataElement(deSource2);
     DataElementOperand deo3 = new DataElementOperand();
     deo3.setDataElement(deTarget);
+    DataElementOperand deo4 = new DataElementOperand();
+    deo4.setDataElement(deRandom);
 
-    identifiableObjectManager.save(deo1);
-    identifiableObjectManager.save(deo2);
-    identifiableObjectManager.save(deo3);
+    identifiableObjectManager.save(List.of(deo1, deo2, deo3, deo4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -1488,10 +1474,10 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     deo2.setDataElement(deSource2);
     DataElementOperand deo3 = new DataElementOperand();
     deo3.setDataElement(deTarget);
+    DataElementOperand deo4 = new DataElementOperand();
+    deo4.setDataElement(deRandom);
 
-    identifiableObjectManager.save(deo1);
-    identifiableObjectManager.save(deo2);
-    identifiableObjectManager.save(deo3);
+    identifiableObjectManager.save(List.of(deo1, deo2, deo3, deo4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -1521,31 +1507,28 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     DataSet ds1 = createDataSet('1', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
     DataSet ds2 = createDataSet('2', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
     DataSet ds3 = createDataSet('3', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
+    DataSet ds4 = createDataSet('4', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
 
     DataSetElement dse1 = new DataSetElement(ds1, deSource1);
     DataSetElement dse2 = new DataSetElement(ds2, deSource2);
     DataSetElement dse3 = new DataSetElement(ds3, deTarget);
+    DataSetElement dse4 = new DataSetElement(ds4, deRandom);
 
     DataElement de1 = createDataElement('g');
     de1.getDataSetElements().add(dse1);
-
     DataElement de2 = createDataElement('h');
     de2.getDataSetElements().add(dse2);
-
     DataElement de3 = createDataElement('i');
     de3.getDataSetElements().add(dse3);
+    DataElement de4 = createDataElement('j');
+    de4.getDataSetElements().add(dse4);
 
     ds1.setDataSetElements(Set.of(dse1));
     ds2.setDataSetElements(Set.of(dse2));
     ds3.setDataSetElements(Set.of(dse3));
+    ds4.setDataSetElements(Set.of(dse4));
 
-    identifiableObjectManager.save(ds1);
-    identifiableObjectManager.save(ds2);
-    identifiableObjectManager.save(ds3);
-
-    identifiableObjectManager.save(de1);
-    identifiableObjectManager.save(de2);
-    identifiableObjectManager.save(de3);
+    identifiableObjectManager.save(List.of(ds1, ds2, ds3, ds4, de1, de2, de3, de4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -1569,10 +1552,10 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
             .toList();
 
     assertFalse(report.hasErrorMessages());
-    assertEquals(1, allDataSetElsDataElement.size(), "there should be only 1 data element present");
+    assertEquals(2, allDataSetElsDataElement.size(), "there should be only 2 data element present");
     assertTrue(
-        allDataSetElsDataElement.contains(deTarget),
-        "only the target data element should be present in data set elements");
+        allDataSetElsDataElement.containsAll(List.of(deTarget, deRandom)),
+        "only the target & random data element should be present in data set elements, no sources");
     assertEquals(0, dseSources.size());
     assertEquals(3, dseTarget.size());
   }
@@ -1585,31 +1568,28 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     DataSet ds1 = createDataSet('1', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
     DataSet ds2 = createDataSet('2', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
     DataSet ds3 = createDataSet('3', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
+    DataSet ds4 = createDataSet('4', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
 
     DataSetElement dse1 = new DataSetElement(ds1, deSource1);
     DataSetElement dse2 = new DataSetElement(ds2, deSource2);
     DataSetElement dse3 = new DataSetElement(ds3, deTarget);
+    DataSetElement dse4 = new DataSetElement(ds4, deRandom);
 
     DataElement de1 = createDataElement('g');
     de1.getDataSetElements().add(dse1);
-
     DataElement de2 = createDataElement('h');
     de2.getDataSetElements().add(dse2);
-
     DataElement de3 = createDataElement('i');
     de3.getDataSetElements().add(dse3);
+    DataElement de4 = createDataElement('j');
+    de4.getDataSetElements().add(dse4);
 
     ds1.setDataSetElements(Set.of(dse1));
     ds2.setDataSetElements(Set.of(dse2));
     ds3.setDataSetElements(Set.of(dse3));
+    ds4.setDataSetElements(Set.of(dse4));
 
-    identifiableObjectManager.save(ds1);
-    identifiableObjectManager.save(ds2);
-    identifiableObjectManager.save(ds3);
-
-    identifiableObjectManager.save(de1);
-    identifiableObjectManager.save(de2);
-    identifiableObjectManager.save(de3);
+    identifiableObjectManager.save(List.of(ds1, ds2, ds3, ds4, de1, de2, de3, de4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -1634,12 +1614,11 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
             .toList();
 
     assertFalse(report.hasErrorMessages());
-    assertEquals(1, allDataSetElsDataElement.size(), "there should be only 1 data element present");
+    assertEquals(2, allDataSetElsDataElement.size(), "there should be only 2 data element present");
     assertTrue(
         allDataSetElsDataElement.contains(deTarget),
-        "only the target data element should be present in data set elements");
+        "only the target & random data element should be present in data set elements, no sources");
     assertEquals(0, dseSources.size());
-    assertEquals(5, allDataElements.size());
     assertFalse(allDataElements.contains(deSource1));
     assertFalse(allDataElements.contains(deSource2));
     assertEquals(3, dseTarget.size());
@@ -1694,12 +1673,12 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     // given
     DataSet ds1 = createDataSet('1', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
     DataSet ds2 = createDataSet('2', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
-    identifiableObjectManager.save(ds1);
-    identifiableObjectManager.save(ds2);
+    identifiableObjectManager.save(List.of(ds1, ds2));
 
     createSectionAndSave('a', ds1, deSource1);
     createSectionAndSave('b', ds2, deSource2);
     createSectionAndSave('c', ds2, deTarget);
+    createSectionAndSave('d', ds2, deRandom);
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -1722,12 +1701,12 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     // given
     DataSet ds1 = createDataSet('1', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
     DataSet ds2 = createDataSet('2', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
-    identifiableObjectManager.save(ds1);
-    identifiableObjectManager.save(ds2);
+    identifiableObjectManager.save(List.of(ds1, ds2));
 
     createSectionAndSave('a', ds1, deSource1);
     createSectionAndSave('b', ds2, deSource2);
     createSectionAndSave('c', ds2, deTarget);
+    createSectionAndSave('d', ds2, deRandom);
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -1758,9 +1737,9 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     deg2.addDataElement(deSource2);
     DataElementGroup deg3 = createDataElementGroup('3');
     deg3.addDataElement(deTarget);
-    identifiableObjectManager.save(deg1);
-    identifiableObjectManager.save(deg2);
-    identifiableObjectManager.save(deg3);
+    DataElementGroup deg4 = createDataElementGroup('4');
+    deg4.addDataElement(deRandom);
+    identifiableObjectManager.save(List.of(deg1, deg2, deg3, deg4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -1788,9 +1767,9 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     deg2.addDataElement(deSource2);
     DataElementGroup deg3 = createDataElementGroup('3');
     deg3.addDataElement(deTarget);
-    identifiableObjectManager.save(deg1);
-    identifiableObjectManager.save(deg2);
-    identifiableObjectManager.save(deg3);
+    DataElementGroup deg4 = createDataElementGroup('4');
+    deg4.addDataElement(deRandom);
+    identifiableObjectManager.save(List.of(deg1, deg2, deg3, deg4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -1824,10 +1803,10 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     i2.setNumerator(String.format("#{expression.with.de.uid.%s}", deSource2.getUid()));
     Indicator i3 = createIndicator('3', it);
     i3.setNumerator(String.format("#{expression.with.de.uid.%s}", deTarget.getUid()));
+    Indicator i4 = createIndicator('4', it);
+    i4.setNumerator(String.format("#{expression.with.de.uid.%s}", deRandom.getUid()));
 
-    identifiableObjectManager.save(i1);
-    identifiableObjectManager.save(i2);
-    identifiableObjectManager.save(i3);
+    identifiableObjectManager.save(List.of(i1, i2, i3, i4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -1869,10 +1848,10 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     i2.setNumerator(String.format("#{expression.with.de.uid.%s}", deSource2.getUid()));
     Indicator i3 = createIndicator('3', it);
     i3.setNumerator(String.format("#{expression.with.de.uid.%s}", deTarget.getUid()));
+    Indicator i4 = createIndicator('4', it);
+    i4.setNumerator(String.format("#{expression.with.de.uid.%s}", deRandom.getUid()));
 
-    identifiableObjectManager.save(i1);
-    identifiableObjectManager.save(i2);
-    identifiableObjectManager.save(i3);
+    identifiableObjectManager.save(List.of(i1, i2, i3, i4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -1911,10 +1890,10 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     i2.setDenominator(String.format("#{expression.with.de.uid.%s}", deSource2.getUid()));
     Indicator i3 = createIndicator('3', it);
     i3.setDenominator(String.format("#{expression.with.de.uid.%s}", deTarget.getUid()));
+    Indicator i4 = createIndicator('4', it);
+    i4.setDenominator(String.format("#{expression.with.de.uid.%s}", deRandom.getUid()));
 
-    identifiableObjectManager.save(i1);
-    identifiableObjectManager.save(i2);
-    identifiableObjectManager.save(i3);
+    identifiableObjectManager.save(List.of(i1, i2, i3, i4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -1949,10 +1928,10 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     i2.setDenominator(String.format("#{expression.with.de.uid.%s}", deSource2.getUid()));
     Indicator i3 = createIndicator('3', it);
     i3.setDenominator(String.format("#{expression.with.de.uid.%s}", deTarget.getUid()));
+    Indicator i4 = createIndicator('4', it);
+    i4.setDenominator(String.format("#{expression.with.de.uid.%s}", deRandom.getUid()));
 
-    identifiableObjectManager.save(i1);
-    identifiableObjectManager.save(i2);
-    identifiableObjectManager.save(i3);
+    identifiableObjectManager.save(List.of(i1, i2, i3, i4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -1994,10 +1973,11 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     Indicator i3 = createIndicator('3', it);
     i3.setNumerator(String.format("#{expression.with.de.uid.%s}", deTarget.getUid()));
     i3.setDenominator(String.format("#{expression.with.de.uid.%s}", deTarget.getUid()));
+    Indicator i4 = createIndicator('4', it);
+    i4.setNumerator(String.format("#{expression.with.de.uid.%s}", deRandom.getUid()));
+    i4.setDenominator(String.format("#{expression.with.de.uid.%s}", deRandom.getUid()));
 
-    identifiableObjectManager.save(i1);
-    identifiableObjectManager.save(i2);
-    identifiableObjectManager.save(i3);
+    identifiableObjectManager.save(List.of(i1, i2, i3, i4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -2043,10 +2023,11 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     i2.setDenominator(String.format("#{expression.with.de.uid.%s}", deSource2.getUid()));
     Indicator i3 = createIndicator('3', it);
     i3.setDenominator(String.format("#{expression.with.de.uid.%s}", deTarget.getUid()));
+    Indicator i4 = createIndicator('4', it);
+    i4.setNumerator(String.format("#{expression.with.de.uid.%s}", deRandom.getUid()));
+    i4.setDenominator(String.format("#{expression.with.de.uid.%s}", deRandom.getUid()));
 
-    identifiableObjectManager.save(i1);
-    identifiableObjectManager.save(i2);
-    identifiableObjectManager.save(i3);
+    identifiableObjectManager.save(List.of(i1, i2, i3, i4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -2086,9 +2067,10 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     DataEntryForm form3 =
         createDataEntryForm(
             'c', String.format("<body>form-with.#{%s}.uid11</body>", deTarget.getUid()));
-    identifiableObjectManager.save(form1);
-    identifiableObjectManager.save(form2);
-    identifiableObjectManager.save(form3);
+    DataEntryForm form4 =
+        createDataEntryForm(
+            'd', String.format("<body>form-with.#{%s}.uid11</body>", deRandom.getUid()));
+    identifiableObjectManager.save(List.of(form1, form2, form3, form4));
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -2126,9 +2108,10 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     DataEntryForm form3 =
         createDataEntryForm(
             'c', String.format("<body>form-with.#{%s}.uid11</body>", deTarget.getUid()));
-    identifiableObjectManager.save(form1);
-    identifiableObjectManager.save(form2);
-    identifiableObjectManager.save(form3);
+    DataEntryForm form4 =
+        createDataEntryForm(
+            'd', String.format("<body>form-with.#{%s}.uid11</body>", deRandom.getUid()));
+    identifiableObjectManager.save(List.of(form1, form2, form3, form4));
 
     // params
     MergeParams mergeParams = getMergeParams();

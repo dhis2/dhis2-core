@@ -104,8 +104,7 @@ public class HibernatePredictorStore extends HibernateIdentifiableObjectStore<Pr
     return getQuery(
             """
             select p from Predictor p
-            join p.generator,
-            Expression as e
+            join p.generator as e
             where %s
             group by p
             """
@@ -121,8 +120,7 @@ public class HibernatePredictorStore extends HibernateIdentifiableObjectStore<Pr
     return getQuery(
             """
         select p from Predictor p
-        join p.sampleSkipTest,
-        Expression as e
+        join p.sampleSkipTest as e
         where %s
         group by p
         """
