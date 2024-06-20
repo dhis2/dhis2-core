@@ -69,7 +69,7 @@
       "attributeValues": [],
       "userRoles": [
         {
-          "id": "yrB6vc5Ip3r"
+          "id": "yrB6vc5Ip33"
         }
       ],
       "userAccesses": [],
@@ -91,6 +91,7 @@
       "created": "2019-01-28T11:04:13.489",
       "lastUpdated": "2019-01-28T11:04:13.592",
       "name": "Country",
+      "code": "country_code",
       "id": "PlKwabX2xRW",
       "shortName": "Country",
       "path": "/PlKwabX2xRW",
@@ -108,9 +109,7 @@
   ],
   "programs": [
     {
-      "lastUpdated": "2019-01-28T11:23:20.906",
       "id": "BFcipDERJne",
-      "created": "2019-01-28T11:23:20.906",
       "name": "ProgramA",
       "shortName": "ProgramA",
       "completeEventsExpiryDays": 0,
@@ -130,9 +129,6 @@
       "useFirstStageDuringRegistration": false,
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
-      },
-      "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
       },
       "user": {
         "id": "M5zQapPyTZI"
@@ -201,7 +197,7 @@
       "created": "2019-01-28T11:03:39.381",
       "lastUpdated": "2019-01-28T11:03:39.381",
       "name": "Superuser",
-      "id": "yrB6vc5Ip3r",
+      "id": "yrB6vc5Ip33",
       "description": "Superuser",
       "authorities": [
         "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
@@ -328,37 +324,6 @@
       "created": "2020-05-31T11:35:18.355",
       "name": "test-program-notification",
       "displayName": "test-program-notification",
-      "externalAccess": false,
-      "notificationTrigger": "PROGRAM_RULE",
-      "subjectTemplate": "test subject",
-      "notificationRecipient": "USER_GROUP",
-      "favorite": false,
-      "messageTemplate": "test message ",
-      "access": {
-        "read": true,
-        "update": true,
-        "externalize": true,
-        "delete": true,
-        "write": true,
-        "manage": true
-      },
-      "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
-      },
-      "favorites": [],
-      "translations": [],
-      "userGroupAccesses": [],
-      "deliveryChannels": [],
-      "attributeValues": [],
-      "userAccesses": []
-    },
-    {
-      "lastUpdated": "2020-05-31T11:35:18.355",
-      "id": "FdIeUL4gyoC",
-      "href": "http://localhost:8081/api/programNotificationTemplates/FdIeUL4gyoC",
-      "created": "2020-05-31T11:35:18.355",
-      "name": "test-program-notification2",
-      "displayName": "test-program-notification2",
       "externalAccess": false,
       "notificationTrigger": "PROGRAM_RULE",
       "subjectTemplate": "test subject",
