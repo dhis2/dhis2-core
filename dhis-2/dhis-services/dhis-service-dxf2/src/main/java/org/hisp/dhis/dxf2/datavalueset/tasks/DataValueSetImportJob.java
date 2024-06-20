@@ -66,7 +66,8 @@ public class DataValueSetImportJob implements Job {
     ImportOptions options = (ImportOptions) jobId.getJobParameters();
     progress.startingStage("Loading file resource");
     FileResource data =
-        progress.runStage(() -> fileResourceService.getFileResource(jobId.getUid()));
+        progress.nonNullStagePostCondition(
+            progress.runStage(() -> fileResourceService.getFileResource(jobId.getUid())));
     progress.startingStage("Loading file content");
     try (InputStream input =
         progress.runStage(() -> fileResourceService.getFileResourceContent(data))) {
