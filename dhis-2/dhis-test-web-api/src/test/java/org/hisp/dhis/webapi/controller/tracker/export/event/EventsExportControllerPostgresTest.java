@@ -38,6 +38,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.google.common.collect.Sets;
 import java.util.Date;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -72,18 +74,33 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
   private static final String DATA_ELEMENT_VALUE = "value 1";
 
   @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private CategoryService categoryService;
+
+  private CategoryOptionCombo coc;
+
   private User user;
+
   private Program program;
+
   private ProgramStage programStage;
+
   private OrganisationUnit orgUnit;
+
   private User owner;
+
   private TrackedEntityType trackedEntityType;
+
   private Event event;
+
   private DataElement dataElement;
 
   @BeforeEach
   void setUp() {
     owner = makeUser("owner");
+
+    coc = categoryService.getDefaultCategoryOptionCombo();
+
     orgUnit = createOrganisationUnit("a");
     orgUnit.setUid("ZiMBqH865GV");
     manager.save(orgUnit);
@@ -319,7 +336,7 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
   }
 
   private Event event(Enrollment enrollment) {
-    Event event = new Event(enrollment, programStage, enrollment.getOrganisationUnit());
+    Event event = new Event(enrollment, programStage, enrollment.getOrganisationUnit(), coc);
     event.setAutoFields();
     manager.save(event);
     return event;
@@ -384,14 +401,6 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
         () -> assertEquals(currentUser.getUsername(), createdBy.getUsername()),
         () -> assertEquals(currentUser.getFirstName(), createdBy.getFirstName()),
         () -> assertEquals(currentUser.getSurname(), createdBy.getSurname()));
-  }
-
-  private static void assertCreate(
-      DataElement dataElement, String currentValue, JsonEventChangeLog actual) {
-    assertAll(
-        () -> assertUser(actual),
-        () -> assertEquals("CREATE", actual.getType()),
-        () -> assertChange(dataElement, null, currentValue, actual));
   }
 
   private static void assertUpdate(

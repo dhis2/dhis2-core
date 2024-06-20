@@ -46,6 +46,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -98,6 +100,10 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
 
   @Autowired private FileResourceContentStore fileResourceContentStore;
 
+  @Autowired private CategoryService categoryService;
+
+  private CategoryOptionCombo coc;
+
   private OrganisationUnit orgUnit;
 
   private OrganisationUnit anotherOrgUnit;
@@ -119,6 +125,8 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
   @BeforeEach
   void setUp() {
     owner = makeUser("owner");
+
+    coc = categoryService.getDefaultCategoryOptionCombo();
 
     orgUnit = createOrganisationUnit('A');
     orgUnit.getSharing().setOwner(owner);
@@ -767,7 +775,7 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
   }
 
   private Event event(Enrollment enrollment) {
-    Event event = new Event(enrollment, programStage, enrollment.getOrganisationUnit());
+    Event event = new Event(enrollment, programStage, enrollment.getOrganisationUnit(), coc);
     event.setAutoFields();
     manager.save(event);
     return event;

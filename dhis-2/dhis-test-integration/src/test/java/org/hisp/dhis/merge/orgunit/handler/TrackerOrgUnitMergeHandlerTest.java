@@ -32,6 +32,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.google.common.collect.Sets;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -52,6 +54,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase {
 
+  @Autowired private CategoryService categoryService;
+
   @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private EnrollmentService piService;
@@ -63,6 +67,8 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase {
   @Autowired private TrackerOrgUnitMergeHandler mergeHandler;
 
   @PersistenceContext private EntityManager entityManager;
+
+  private CategoryOptionCombo coA;
 
   private ProgramStage psA;
 
@@ -94,6 +100,7 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase {
 
   @Override
   public void setUpTest() {
+    coA = categoryService.getDefaultCategoryOptionCombo();
     prA = createProgram('A', Sets.newHashSet(), ouA);
     idObjectManager.save(prA);
     psA = createProgramStage('A', prA);
@@ -116,9 +123,9 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase {
     piService.addEnrollment(enrollmentA);
     piService.addEnrollment(enrollmentB);
     piService.addEnrollment(enrollmentC);
-    eventA = new Event(enrollmentA, psA, ouA);
-    eventB = new Event(enrollmentB, psA, ouB);
-    eventC = new Event(enrollmentC, psA, ouA);
+    eventA = new Event(enrollmentA, psA, ouA, coA);
+    eventB = new Event(enrollmentB, psA, ouB, coA);
+    eventC = new Event(enrollmentC, psA, ouA, coA);
     eventService.addEvent(eventA);
     eventService.addEvent(eventB);
     eventService.addEvent(eventC);
