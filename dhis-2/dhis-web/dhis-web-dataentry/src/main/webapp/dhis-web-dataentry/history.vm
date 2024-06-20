@@ -128,7 +128,7 @@ $( document ).ready( function() {
                                         #end
                                     </td>
                                     <td>
-                                        $i18n.getString( $dataValueAudit.auditType.getValue() )
+                                        $i18n.getString( $dataValueAudit.auditType.name().toLowerCase() )
                                     </td>
                                 </tr>
                             #end
