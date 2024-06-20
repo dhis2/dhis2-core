@@ -34,7 +34,7 @@ import org.hisp.dhis.schema.SchemaDescriptor;
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
-public class KeyJsonValueSchemaDescriptor implements SchemaDescriptor {
+public class DatastoreEntrySchemaDescriptor implements SchemaDescriptor {
   public static final String SINGULAR = "dataStore";
 
   public static final String PLURAL = "dataStores";
