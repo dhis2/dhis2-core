@@ -228,6 +228,23 @@ public interface JobProgress {
   void startingStage(String description, int workItems, FailurePolicy onFailure)
       throws CancellationException;
 
+  /**
+   * Should be called after a {@link #runStage(Callable)} or {@link #runStage(Object, Callable)} or
+   * on of the other variants in case the returned value may be null but never should be null in
+   * order to be able to continue the process.
+   *
+   * @param value a value returned by a {@code runStage} method that might be null
+   * @return the same value but only if it is non-null
+   * @param <T> type of the checked value
+   * @throws CancellationException in case the value is null, this is similar to starting the
+   *     cancellation based exception that would occur by starting the next stage except that it
+   *     also has a message indicating that a failed post condition was the cause
+   */
+  default <T> T nonNullStagePostCondition(T value) throws CancellationException {
+    if (value == null) throw new CancellationException("Post-condition was null");
+    return value;
+  }
+
   default void startingStage(String description, int workItems) {
     startingStage(description, workItems, FailurePolicy.PARENT);
   }

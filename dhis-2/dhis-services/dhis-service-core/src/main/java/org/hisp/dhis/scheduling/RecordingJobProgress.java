@@ -177,17 +177,27 @@ public class RecordingJobProgress implements JobProgress {
 
   @Override
   public void startingProcess(String description, Object... args) {
-    if (isCancelled()) {
-      throw new CancellationException();
-    }
-    String message = format(description, args);
     observer.run();
+
+    if (isCancelled()) throw cancellationException(false);
+    String message = format(description, args);
     tracker.startingProcess(format(message, args));
     incompleteProcess.set(null);
     incompleteStage.set(null);
     incompleteItem.remove();
     Process process = addProcessRecord(message);
     logInfo(process, "started", message);
+  }
+
+  private RuntimeException cancellationException(boolean failedPostCondition) {
+    Exception cause = getCause();
+    if (skipRecording && cause instanceof RuntimeException rex) throw rex;
+    CancellationException ex =
+        failedPostCondition
+            ? new CancellationException("Non-null post-condition failed")
+            : new CancellationException();
+    ex.initCause(cause);
+    return ex;
   }
 
   @Override
@@ -241,14 +251,19 @@ public class RecordingJobProgress implements JobProgress {
   @Override
   public void startingStage(String description, int workItems, FailurePolicy onFailure) {
     observer.run();
-    if (isCancelled()) {
-      throw new CancellationException();
-    }
+    if (isCancelled()) throw cancellationException(false);
     skipCurrentStage.set(false);
     tracker.startingStage(description, workItems);
     Stage stage =
         addStageRecord(getOrAddLastIncompleteProcess(), description, workItems, onFailure);
     logInfo(stage, "", description);
+  }
+
+  @Override
+  public <T> T nonNullStagePostCondition(@CheckForNull T value) throws CancellationException {
+    observer.run();
+    if (value == null) throw cancellationException(true);
+    return value;
   }
 
   @Override

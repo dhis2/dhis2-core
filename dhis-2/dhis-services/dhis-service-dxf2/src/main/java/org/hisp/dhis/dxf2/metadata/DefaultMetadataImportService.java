@@ -32,6 +32,7 @@ import static org.hisp.dhis.dxf2.metadata.objectbundle.EventReportCompatibilityG
 import com.google.common.base.Enums;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -100,14 +101,17 @@ public class DefaultMetadataImportService implements MetadataImportService {
     handleDeprecationIfEventReport(bundleParams);
 
     progress.startingStage("Creating bundle");
-    ObjectBundle bundle = progress.runStage(() -> objectBundleService.create(bundleParams));
+    ObjectBundle bundle =
+        progress.nonNullStagePostCondition(
+            progress.runStage(() -> objectBundleService.create(bundleParams)));
 
     progress.startingStage("Running postCreateBundle");
     progress.runStage(() -> postCreateBundle(bundle, bundleParams));
 
     progress.startingStage("Validating bundle");
     ObjectBundleValidationReport validationReport =
-        progress.runStage(() -> objectBundleValidationService.validate(bundle));
+        progress.nonNullStagePostCondition(
+            progress.runStage(() -> objectBundleValidationService.validate(bundle)));
     ImportReport report = new ImportReport();
     report.setImportParams(params);
     report.setStatus(Status.OK);
@@ -242,7 +246,7 @@ public class DefaultMetadataImportService implements MetadataImportService {
 
     String value = String.valueOf(parameters.get(key).get(0));
 
-    return "true".equals(value.toLowerCase());
+    return "true".equalsIgnoreCase(value);
   }
 
   private <T extends Enum<T>> T getEnumWithDefault(
@@ -277,8 +281,8 @@ public class DefaultMetadataImportService implements MetadataImportService {
     object.setLastUpdatedBy(params.getUser());
   }
 
-  private void postCreateBundle(ObjectBundle bundle, ObjectBundleParams params) {
-    if (bundle.getUser() == null) {
+  private void postCreateBundle(@CheckForNull ObjectBundle bundle, ObjectBundleParams params) {
+    if (bundle == null || bundle.getUser() == null) {
       return;
     }
 
