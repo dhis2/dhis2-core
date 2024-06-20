@@ -280,7 +280,7 @@ public class OpenApiGenerator extends JsonGenerator {
         });
   }
 
-  private static String getMaturityTag(Maturity.Degree maturity) {
+  private static String getMaturityTag(Maturity.Classification maturity) {
     return maturity == null ? null : maturity.name().toLowerCase();
   }
 

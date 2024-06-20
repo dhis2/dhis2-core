@@ -217,7 +217,7 @@ public class Api {
     OpenApi.Document.Group group;
     Maybe<String> description = new Maybe<>();
     Boolean deprecated;
-    @CheckForNull Maturity.Degree maturity;
+    @CheckForNull Maturity.Classification maturity;
 
     @EqualsAndHashCode.Include Set<RequestMethod> methods = EnumSet.noneOf(RequestMethod.class);
 
@@ -276,7 +276,7 @@ public class Api {
     Schema type;
 
     @CheckForNull Boolean deprecated;
-    @CheckForNull Maturity.Degree maturity;
+    @CheckForNull Maturity.Classification maturity;
 
     /**
      * The default value in its string form.

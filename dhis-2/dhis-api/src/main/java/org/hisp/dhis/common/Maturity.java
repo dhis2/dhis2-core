@@ -41,28 +41,68 @@ import java.lang.annotation.Target;
  *
  * @author Jan Bernitt
  */
-@Target({ElementType.METHOD, ElementType.TYPE, ElementType.PARAMETER, ElementType.FIELD})
+@Target({
+  ElementType.METHOD,
+  ElementType.TYPE,
+  ElementType.PARAMETER,
+  ElementType.FIELD,
+  ElementType.ANNOTATION_TYPE
+})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Maturity {
 
-  enum Degree {
+  enum Classification {
     /**
-     * The API is mature, 3rd parties can depend on it and expect that breaking changes will occur
-     * rarely and only after a deprecation period.
+     * The API is stable and rarely subject to change. Change management occurs. Once an API is
+     * declared stable it does not change to another classification.
      */
     STABLE,
     /**
-     * The API has not matured yet. It might be changed or removed later on. 3rd parties should not
-     * rely on it and use this at their own risk.
+     * The API is not stable yet and often subject to change. No change management occurs. Usually
+     * it takes APIs 1-2 releases before they transition to stable.
      */
-    EXPERIMENTAL,
+    BETA,
     /**
-     * 3rd parties should never depend on this, it is for internal use only. This means apps
-     * supported by the DHIS project use this, but it is subject to change whenever and however the
-     * app see fit.
+     * The API is an experiment or subject to change due to factors outside the API implementation
+     * itself. It is subject to change or removal without any change management. An alpha API might
+     * transition to beta and stable at some point but might also never be suited to do so.
      */
-    INTERNAL
+    ALPHA
   }
 
-  Degree value();
+  Classification value();
+
+  /**
+   * The API is an experiment or subject to change due to factors outside the API implementation
+   * itself. It is subject to change or removal without any change management. An alpha API might
+   * transition to beta and stable at some point but might also never be suited to do so.
+   */
+  @Target({ElementType.METHOD, ElementType.TYPE, ElementType.PARAMETER, ElementType.FIELD})
+  @Retention(RetentionPolicy.RUNTIME)
+  @Maturity(Classification.ALPHA)
+  @interface Alpha {
+
+    /**
+     * @return An explanation as to why the annotated element was classified as alpha
+     */
+    String reason() default "";
+  }
+
+  /**
+   * The API is not stable yet and often subject to change. No change management occurs. Usually it
+   * takes APIs 1-2 releases before they transition to stable.
+   */
+  @Target({ElementType.METHOD, ElementType.TYPE, ElementType.PARAMETER, ElementType.FIELD})
+  @Retention(RetentionPolicy.RUNTIME)
+  @Maturity(Classification.BETA)
+  @interface Beta {}
+
+  /**
+   * The API is stable and rarely subject to change. Change management occurs. Once an API is
+   * declared stable it does not change to another classification.
+   */
+  @Target({ElementType.METHOD, ElementType.TYPE, ElementType.PARAMETER, ElementType.FIELD})
+  @Retention(RetentionPolicy.RUNTIME)
+  @Maturity(Classification.STABLE)
+  @interface Stable {}
 }

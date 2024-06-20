@@ -43,6 +43,7 @@ import static org.hisp.dhis.webapi.openapi.Property.getProperties;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Array;
@@ -59,6 +60,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -248,7 +250,7 @@ final class ApiExtractor {
 
     Group group = getEndpointGroup(source);
 
-    Maturity.Degree maturity = getMaturity(source);
+    Maturity.Classification maturity = getMaturity(source);
 
     Api.Endpoint endpoint =
         new Api.Endpoint(controller, source, entityType, name, group, deprecated, maturity);
@@ -270,11 +272,15 @@ final class ApiExtractor {
   }
 
   @CheckForNull
-  private static Maturity.Degree getMaturity(AnnotatedElement source) {
+  private static Maturity.Classification getMaturity(AnnotatedElement source) {
     if (source.isAnnotationPresent(Maturity.class))
       return source.getAnnotation(Maturity.class).value();
-    if (source instanceof Member m && m.getDeclaringClass().isAnnotationPresent(Maturity.class))
-      return m.getDeclaringClass().getAnnotation(Maturity.class).value();
+    Optional<Annotation> meta =
+        Stream.of(source.getAnnotations())
+            .filter(a -> a.annotationType().isAnnotationPresent(Maturity.class))
+            .findFirst();
+    if (meta.isPresent()) return meta.get().annotationType().getAnnotation(Maturity.class).value();
+    if (source instanceof Member m) return getMaturity(m.getDeclaringClass());
     return null;
   }
 
@@ -483,7 +489,7 @@ final class ApiExtractor {
   private static Api.Parameter newGenericParameter(
       Parameter source, String key, ParameterDetails details, Api.Schema type) {
     boolean deprecated = source.isAnnotationPresent(Deprecated.class);
-    Maturity.Degree maturity = getMaturity(source);
+    Maturity.Classification maturity = getMaturity(source);
     Api.Parameter parameter =
         new Api.Parameter(
             source, key, details.in(), details.required(), type, deprecated, maturity);
@@ -497,7 +503,7 @@ final class ApiExtractor {
       Api.Endpoint endpoint, Parameter source, String name, ParameterDetails details) {
     Api.Schema type = extractInputSchema(endpoint, source.getParameterizedType());
     boolean deprecated = source.isAnnotationPresent(Deprecated.class);
-    Maturity.Degree maturity = getMaturity(source);
+    Maturity.Classification maturity = getMaturity(source);
     Api.Parameter res =
         new Api.Parameter(source, name, In.PATH, details.required(), type, deprecated, maturity);
     res.getDescription().setIfAbsent(extractDescription(source, source.getType()));
@@ -509,7 +515,7 @@ final class ApiExtractor {
       Api.Endpoint endpoint, Parameter source, String name, ParameterDetails details) {
     Api.Schema type = extractInputSchema(endpoint, source.getParameterizedType());
     boolean deprecated = source.isAnnotationPresent(Deprecated.class);
-    Maturity.Degree maturity = getMaturity(source);
+    Maturity.Classification maturity = getMaturity(source);
     Api.Parameter res =
         new Api.Parameter(source, name, In.QUERY, details.required(), type, deprecated, maturity);
     res.getDefaultValue().setValue(details.defaultValue());
@@ -589,7 +595,7 @@ final class ApiExtractor {
             ? extractGeneratorSchema(endpoint, type, annotated.value())
             : extractInputSchema(endpoint, getSubstitutedType(endpoint, property, source));
     boolean deprecated = source.isAnnotationPresent(Deprecated.class);
-    Maturity.Degree maturity = getMaturity(source);
+    Maturity.Classification maturity = getMaturity(source);
     Api.Parameter param =
         new Api.Parameter(
             source, property.getName(), In.QUERY, false, schema, deprecated, maturity);
