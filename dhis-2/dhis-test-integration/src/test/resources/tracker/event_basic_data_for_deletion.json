@@ -34,51 +34,7 @@
   "enrollments": [],
   "events": [
     {
-      "event": "D9PbzJY8bJ1",
-      "status": "COMPLETED",
-      "program": {
-        "idScheme": "UID",
-        "identifier": "E8o1E9tAppy"
-      },
-      "programStage": {
-        "idScheme": "UID",
-        "identifier": "Qmqxq907VNz"
-      },
-      "enrollment": "TvctPPhpD8v",
-      "orgUnit": {
-        "idScheme": "UID",
-        "identifier": "QfUVllTs6cZ"
-      },
-      "relationships": [],
-      "occurredAt": "2019-01-28T00:00:00.000",
-      "scheduledAt": "2019-01-28T12:10:38.100",
-      "storedBy": "admin",
-      "deleted": false,
-      "attributeOptionCombo": {
-        "idScheme": "UID",
-        "identifier": "KKKKX50cXC0"
-      },
-      "attributeCategoryOptions": [
-        {
-          "idScheme": "UID",
-          "identifier": "xYerKDKCefk"
-        }
-      ],
-
-      "completedAt": "2019-01-28T00:00:00.000",
-      "dataValues": [
-        {
-          "createdAt": "2019-01-28T12:10:38.113",
-          "storedBy": "admin",
-          "providedElsewhere": false,
-          "dataElement": {
-            "idScheme": "UID",
-            "identifier": "DSKTW8qFP0z"
-          },
-          "value": "2017-01-27T17:00:00.000Z"
-        }
-      ],
-      "notes": []
+      "event": "D9PbzJY8bJ1"
     }
   ],
   "relationships": [],

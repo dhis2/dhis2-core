@@ -32,7 +32,7 @@ import static java.util.stream.Collectors.joining;
 import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 import static org.hisp.dhis.category.CategoryOption.DEFAULT_NAME;
 import static org.hisp.dhis.common.DataDimensionType.DISAGGREGATION;
-import static org.hisp.dhis.commons.collection.CollectionUtils.mapOf;
+import static org.hisp.dhis.common.collection.CollectionUtils.mapOf;
 import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;

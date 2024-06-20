@@ -73,8 +73,14 @@ public class DefaultProgramRuleService implements ProgramRuleService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<ProgramRule> getProgramRulesLinkedToTeaOrDe() {
-    return programRuleStore.getProgramRulesLinkedToTeaOrDe();
+  public List<String> getDataElementsPresentInProgramRules() {
+    return programRuleStore.getDataElementsPresentInProgramRules();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<String> getTrackedEntityAttributesPresentInProgramRules() {
+    return programRuleStore.getTrackedEntityAttributesPresentInProgramRules();
   }
 
   @Override

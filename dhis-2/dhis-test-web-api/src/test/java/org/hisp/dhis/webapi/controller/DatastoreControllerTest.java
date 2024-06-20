@@ -35,6 +35,7 @@ import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.web.WebClientUtils.assertSeries;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -45,6 +46,7 @@ import org.hisp.dhis.datastore.DatastoreEntry;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
 import org.hisp.dhis.datastore.DatastoreService;
+import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.web.HttpStatus.Series;
@@ -90,6 +92,39 @@ class DatastoreControllerTest extends DhisControllerConvenienceTest {
     // does not have special authorities
     switchToNewUser("anonymous");
     assertEquals(singletonList("fruits"), GET("/dataStore").content().stringValues());
+  }
+
+  @Test
+  void testGetNamespaces_GetNamespaceProtections() {
+    setUpNamespaceProtection("animals", ProtectionType.RESTRICTED, "animals_ns_authority");
+    JsonList<JsonObject> protections =
+        GET("/dataStore/protections").content().asList(JsonObject.class);
+    assertFalse(protections.isEmpty());
+    JsonObject animalsProtection =
+        protections.stream()
+            .filter(obj -> "animals".equals(obj.getString("namespace").string()))
+            .findFirst()
+            .orElseThrow();
+    assertEquals(
+        List.of("animals_ns_authority"),
+        animalsProtection.getArray("readAuthorities").stringValues());
+    assertEquals(
+        List.of("animals_ns_authority"),
+        animalsProtection.getArray("writeAuthorities").stringValues());
+  }
+
+  @Test
+  void testGetNamespaces_GetNamespaceProtection() {
+    setUpNamespaceProtection("beers", ProtectionType.RESTRICTED, "beers_ns_authority");
+
+    JsonObject animalsProtection =
+        GET("/dataStore/protections?namespace=beers").content().asObject();
+    assertEquals(
+        List.of("beers_ns_authority"),
+        animalsProtection.getArray("readAuthorities").stringValues());
+    assertEquals(
+        List.of("beers_ns_authority"),
+        animalsProtection.getArray("writeAuthorities").stringValues());
   }
 
   @Test

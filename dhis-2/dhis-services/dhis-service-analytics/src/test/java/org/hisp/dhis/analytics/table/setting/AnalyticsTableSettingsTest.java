@@ -93,6 +93,16 @@ class AnalyticsTableSettingsTest {
   }
 
   @Test
+  void testGetSkipColumnDimensions() {
+    when(config.getProperty(ConfigurationKey.ANALYTICS_TABLE_SKIP_COLUMN))
+        .thenReturn("sixmonthlyapril, financialapril  , financialjuly,financialnov");
+
+    assertEquals(
+        Set.of("sixmonthlyapril", "financialapril", "financialjuly", "financialnov"),
+        settings.getSkipColumnDimensions());
+  }
+
+  @Test
   void testToSet() {
     Set<String> expected = Set.of("kJ7yGrfR413", "Hg5tGfr2fas", "Ju71jG19Kaq", "b5TgfRL9pUq");
     assertEquals(expected, settings.toSet("kJ7yGrfR413, Hg5tGfr2fas  , Ju71jG19Kaq,b5TgfRL9pUq"));
