@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import org.hisp.dhis.common.ErrorCodeException;
-import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.junit.jupiter.api.function.Executable;

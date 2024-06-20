@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,38 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.web.jetty;
+package org.hisp.dhis.datastore;
 
-import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.security.SystemAuthoritiesProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Profile;
-import org.springframework.core.annotation.Order;
+import static org.hisp.dhis.common.collection.CollectionUtils.union;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.io.Serializable;
+import java.util.Set;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import lombok.Data;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * A {@link DatastoreNamespace} is the input declaration for a {@link DatastoreNamespaceProtection}
+ * object.
+ *
+ * <p>Note that this type needs to be {@link Serializable} as it is put in a cache as part of the
+ * {@link org.hisp.dhis.appmanager.App}.
+ *
+ * @author Jan Bernitt
  */
-@Configuration
-@Order(100)
-@ComponentScan(basePackages = {"org.hisp.dhis"})
-@Profile("embeddedJetty")
-public class SpringConfiguration {
+@Data
+public class DatastoreNamespace implements Serializable {
 
-  @Primary
-  @Bean("org.hisp.dhis.security.SystemAuthoritiesProvider")
-  public SystemAuthoritiesProvider systemAuthoritiesProvider() {
-    return Authorities::getAllAuthorities;
-  }
+  private static final long serialVersionUID = -1653792127753819375L;
 
-  @Bean("org.hisp.dhis.web.embeddedjetty.StartupFinishedRoutine")
-  public StartupFinishedRoutine startupFinishedRoutine() {
-    StartupFinishedRoutine startupRoutine = new StartupFinishedRoutine();
-    startupRoutine.setName("StartupFinishedRoutine");
-    startupRoutine.setRunlevel(42);
-    startupRoutine.setSkipInTests(true);
-    return startupRoutine;
+  /** The namespace name an app wants to use in a protected manner */
+  @JsonProperty @CheckForNull private String namespace;
+
+  /** A user must have one of these authorities to be able to read/write the namespace */
+  @JsonProperty @CheckForNull private Set<String> authorities;
+
+  /** A user must have one of these authorities to be able to read the namespace */
+  @JsonProperty @CheckForNull private Set<String> readOnlyAuthorities;
+
+  @Nonnull
+  public Set<String> getAllAuthorities() {
+    return union(authorities, readOnlyAuthorities);
   }
 }

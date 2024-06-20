@@ -28,17 +28,12 @@
 package org.hisp.dhis.programrule.hibernate;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
-import org.hibernate.Session;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleStore;
 import org.hisp.dhis.security.acl.AclService;
@@ -71,22 +66,32 @@ public class HibernateProgramRuleStore extends HibernateIdentifiableObjectStore<
   }
 
   @Override
-  public List<ProgramRule> getProgramRulesLinkedToTeaOrDe() {
+  public List<String> getDataElementsPresentInProgramRules() {
 
-    String jql =
-        "SELECT distinct pr FROM ProgramRule pr, Program p "
-            + "JOIN FETCH pr.programRuleActions pra "
-            + "WHERE p.uid = pr.program.uid AND "
-            + "(pra.dataElement IS NOT NULL OR pra.attribute IS NOT NULL)";
-    Session session = getSession();
-    return session.createQuery(jql, ProgramRule.class).getResultList();
+    String sql =
+        """
+            SELECT distinct de.uid
+            FROM ProgramRuleAction pra join dataelement de ON pra.dataelementid = de.dataelementid
+        """;
+    return jdbcTemplate.queryForList(sql, String.class);
+  }
+
+  @Override
+  public List<String> getTrackedEntityAttributesPresentInProgramRules() {
+
+    String sql =
+        """
+            SELECT distinct tea.uid
+            FROM ProgramRuleAction pra JOIN trackedentityattribute tea ON pra.trackedentityattributeid = tea.trackedentityattributeid
+        """;
+    return jdbcTemplate.queryForList(sql, String.class);
   }
 
   @Override
   public List<ProgramRule> getProgramRulesByActionTypes(
       Program program, Set<ProgramRuleActionType> actionTypes) {
     final String hql =
-        "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra "
+        "SELECT distinct pr FROM ProgramRule pr JOIN pr.programRuleActions pra "
             + "WHERE pr.program = :program AND pra.programRuleActionType IN ( :actionTypes ) ";
 
     return getQuery(hql)
@@ -98,56 +103,16 @@ public class HibernateProgramRuleStore extends HibernateIdentifiableObjectStore<
   @Override
   public List<ProgramRule> getProgramRulesByActionTypes(
       Program program, Set<ProgramRuleActionType> types, String programStageUid) {
-    List<String> actionTypeNames = types.stream().map(Enum::name).toList();
-    String sql =
-        """
+    final String hql =
+        "SELECT distinct pr FROM ProgramRule pr JOIN pr.programRuleActions pra "
+            + "LEFT JOIN pr.programStage ps "
+            + "WHERE pr.program = :programId AND pra.programRuleActionType IN ( :implementableTypes ) "
+            + "AND (pr.programStage IS NULL OR ps.uid = :programStageUid )";
 
-                SELECT distinct pr.* FROM programrule pr
-                LEFT JOIN programruleaction pra on pra.programruleid=pr.programruleid
-                LEFT JOIN programstage prs on prs.programstageid=pr.programstageid
-                WHERE pr.programid =:programId  AND pra.actiontype IN ( :implementableTypes )
-                AND (pr.programstageid IS NULL OR prs.uid = cast(:programStageUid as text))
-                """;
-
-    List<ProgramRule> programRules =
-        nativeSynchronizedTypedQuery(sql)
-            .setParameter("programId", program.getId())
-            .setParameter("implementableTypes", actionTypeNames)
-            .setParameter("programStageUid", programStageUid)
-            .getResultList();
-
-    if (programRules.isEmpty()) {
-      return programRules;
-    }
-
-    sql =
-        """
-                SELECT distinct pra.* FROM programruleaction pra
-                WHERE pra.programruleid in ( :programRuleIds ) AND pra.actiontype IN ( :implementableTypes )
-                """;
-
-    Map<ProgramRule, Set<ProgramRuleAction>> ruleActions =
-        getSession()
-            .createNativeQuery(sql, ProgramRuleAction.class)
-            .addSynchronizedEntityClass(ProgramRuleAction.class)
-            .setParameter(
-                "programRuleIds", programRules.stream().map(BaseIdentifiableObject::getId).toList())
-            .setParameter("implementableTypes", actionTypeNames)
-            .getResultList()
-            .stream()
-            .collect(Collectors.groupingBy(ProgramRuleAction::getProgramRule, Collectors.toSet()));
-
-    if (ruleActions.isEmpty()) {
-      return programRules;
-    }
-
-    for (ProgramRule programRule : programRules) {
-      if (ruleActions.containsKey(programRule)) {
-        programRule.getProgramRuleActions().clear();
-        programRule.getProgramRuleActions().addAll(ruleActions.get(programRule));
-      }
-    }
-
-    return List.copyOf(programRules);
+    return getQuery(hql)
+        .setParameter("programId", program)
+        .setParameter("implementableTypes", types)
+        .setParameter("programStageUid", programStageUid)
+        .getResultList();
   }
 }
