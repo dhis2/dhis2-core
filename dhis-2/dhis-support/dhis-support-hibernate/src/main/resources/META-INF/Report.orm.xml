@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm" cacheable="true">
- <entity class="org.hisp.dhis.report.Report" metadata-complete="true">
+<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
+ <entity class="org.hisp.dhis.report.Report" metadata-complete="true" cacheable="true">
         <table name="report"/>
         
         <attributes>

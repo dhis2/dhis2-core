@@ -2,21 +2,14 @@
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
  <entity class="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue" metadata-complete="true">
         <table name="trackedentityattributevalue"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <id-class/>
-        <polymorphism>implicit</polymorphism>
+
         <attributes>
             <basic name="created" fetch="EAGER" optional="false"/>
             <basic name="lastUpdated" fetch="EAGER" optional="false"/>
-            <basic name="plainValue" fetch="EAGER" optional="true" attribute-accessor="property">
+            <basic name="plainValue" fetch="EAGER" optional="true" access="PROPERTY">
                 <column name="value" unique="false" length="1200"/>
             </basic>
-            <basic name="encryptedValue" fetch="EAGER" optional="true" attribute-accessor="property">
+            <basic name="encryptedValue" fetch="EAGER" optional="true" access="PROPERTY">
                 <column name="encryptedvalue" unique="false" length="50000"/>
             </basic>
             <basic name="storedBy" fetch="EAGER" optional="true">

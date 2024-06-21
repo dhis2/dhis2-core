@@ -7,6 +7,7 @@
         <attributes>
             <id name="id">
                 <column name="configurationid"/>
+                <generated-value strategy="AUTO"/>
             </id>
             <basic name="systemId" fetch="EAGER" optional="true">
                 <column name="systemid" unique="false"/>
@@ -61,10 +62,11 @@
                 <foreign-key name="fk_configuration_facilityorgunitlevel"/>
                 <cascade/>
             </many-to-one>
-            <element-collection name="corsWhitelist">
-              
+            <element-collection name="corsWhitelist" fetch="EAGER">
                 <column name="corswhitelist" unique="false" nullable="true" insertable="true" updatable="true"/>
-                <collection-table name="configuration_corswhitelist"/>
+                <collection-table name="configuration_corswhitelist">
+                    <join-column name="fk_configuration_corswhitelist"/>
+                </collection-table>
             </element-collection>
         </attributes>
     </entity>

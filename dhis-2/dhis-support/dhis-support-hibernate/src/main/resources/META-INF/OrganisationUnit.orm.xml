@@ -21,10 +21,10 @@
             <basic name="shortName" fetch="EAGER" optional="false">
                 <column name="shortname" unique="false" nullable="false" length="50"/>
             </basic>
-            <basic name="path" fetch="EAGER" optional="true" attribute-accessor="property">
+            <basic name="path" fetch="EAGER" optional="true" access="PROPERTY">
                 <column name="path" unique="true"/>
             </basic>
-            <basic name="hierarchyLevel" fetch="EAGER" optional="true" attribute-accessor="property">
+            <basic name="hierarchyLevel" fetch="EAGER" optional="true" access="PROPERTY">
                 <column name="hierarchylevel" unique="false"/>
             </basic>
             <basic name="level" fetch="EAGER" optional="true">

@@ -23,7 +23,7 @@
             </basic>
             <basic name="description" fetch="EAGER" optional="true"/>
             <basic name="formName" fetch="EAGER" optional="true"/>
-            <basic name="valueType" fetch="EAGER" optional="false" attribute-accessor="property">
+            <basic name="valueType" fetch="EAGER" optional="false" access="PROPERTY">
                 <column name="valuetype" unique="false" nullable="false" length="36"/>
             </basic>
             <basic name="aggregationType" fetch="EAGER" optional="false"/>

@@ -1,16 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm" cacheable="true">
- <entity class="org.hisp.dhis.user.User" metadata-complete="true">
+<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
+ <entity class="org.hisp.dhis.user.User" metadata-complete="true" cacheable="true">
         <table name="userinfo"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <caching include="all" access="READ_WRITE"/>
-        <batch-size>-1</batch-size>
-        <lazy>false</lazy>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <polymorphism>implicit</polymorphism>
         <attributes>
             <id name="id">
                 <column name="userinfoid"/>

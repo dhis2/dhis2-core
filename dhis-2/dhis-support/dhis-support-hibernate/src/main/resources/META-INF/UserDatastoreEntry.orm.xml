@@ -21,10 +21,10 @@
             <basic name="key" fetch="EAGER" optional="false">
                 <column name="userkey" unique="false" nullable="false" length="255"/>
             </basic>
-            <basic name="jbPlainValue" fetch="EAGER" optional="true" attribute-accessor="property">
+            <basic name="jbPlainValue" fetch="EAGER" optional="true" access="PROPERTY">
                 <column name="jbvalue" unique="false"/>
             </basic>
-            <basic name="encryptedValue" fetch="EAGER" optional="true" attribute-accessor="property">
+            <basic name="encryptedValue" fetch="EAGER" optional="true" access="PROPERTY">
                 <column name="encrypted_value" unique="false"/>
             </basic>
             <basic name="encrypted" fetch="EAGER" optional="true">

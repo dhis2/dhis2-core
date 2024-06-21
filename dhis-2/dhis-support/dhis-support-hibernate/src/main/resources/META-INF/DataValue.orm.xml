@@ -2,14 +2,7 @@
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
  <entity class="org.hisp.dhis.datavalue.DataValue" metadata-complete="true">
         <table name="datavalue"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <id-class/>
-        <polymorphism>implicit</polymorphism>
+
         <attributes>
             <basic name="value" fetch="EAGER" optional="true"/>
             <basic name="storedBy" fetch="EAGER" optional="true">

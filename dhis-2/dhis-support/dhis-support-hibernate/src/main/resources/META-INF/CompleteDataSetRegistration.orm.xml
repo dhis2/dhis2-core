@@ -2,14 +2,7 @@
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
  <entity class="org.hisp.dhis.dataset.CompleteDataSetRegistration" metadata-complete="true">
         <table name="completedatasetregistration"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <id-class/>
-        <polymorphism>implicit</polymorphism>
+
         <attributes>
             <basic name="date" fetch="EAGER" optional="true">
                 <column name="date" unique="false"/>

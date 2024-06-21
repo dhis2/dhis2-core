@@ -7,10 +7,10 @@
             <id name="id">
                 <column name="trackedentityattributevalueauditid"/>
             </id>
-            <basic name="plainValue" fetch="EAGER" optional="true" attribute-accessor="property">
+            <basic name="plainValue" fetch="EAGER" optional="true" access="PROPERTY">
                 <column name="value" unique="false" length="50000"/>
             </basic>
-            <basic name="encryptedValue" fetch="EAGER" optional="true" attribute-accessor="property">
+            <basic name="encryptedValue" fetch="EAGER" optional="true" access="PROPERTY">
                 <column name="encryptedvalue" unique="false" length="50000"/>
             </basic>
             <basic name="created" fetch="EAGER" optional="true"/>

@@ -2,15 +2,6 @@
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
  <entity class="org.hisp.dhis.user.UserSetting" metadata-complete="true" cacheable="true">
         <table name="usersetting"/>
-        <dynamic-insert>false</dynamic-insert>
-        <dynamic-update>false</dynamic-update>
-        <select-before-update>false</select-before-update>
-        <caching include="all" access="READ_WRITE"/>
-        <batch-size>-1</batch-size>
-        <mutable>true</mutable>
-        <optimistic-lock>version</optimistic-lock>
-        <id-class/>
-        <polymorphism>implicit</polymorphism>
         <attributes>
             <id name="name">
                 <column name="name"/>
@@ -19,7 +10,6 @@
             <many-to-one name="user" target-entity="org.hisp.dhis.user.User" fetch="LAZY" id="true">
                 <join-column name="userinfoid"/>
                 <foreign-key name="fk_usersetting_userinfoid"/>
-                <on-delete>no-action</on-delete>
             </many-to-one>
         </attributes>
     </entity>
