@@ -116,9 +116,17 @@ public class Event extends SoftDeletableObject {
   public Event(
       Enrollment enrollment,
       ProgramStage programStage,
+      OrganisationUnit organisationUnit) {
+    this(enrollment, programStage);
+    this.organisationUnit = organisationUnit;
+  }
+
+  public Event(
+      Enrollment enrollment,
+      ProgramStage programStage,
       OrganisationUnit organisationUnit,
       CategoryOptionCombo attributeOptionCombo) {
-    this.organisationUnit = organisationUnit;
+    this(enrollment, programStage, organisationUnit);
     this.attributeOptionCombo = attributeOptionCombo;
   }
 
