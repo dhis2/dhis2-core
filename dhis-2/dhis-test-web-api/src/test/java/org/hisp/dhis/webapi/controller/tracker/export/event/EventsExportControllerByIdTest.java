@@ -898,7 +898,7 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
     assertHasMember(json, "updatedAtClient");
     assertHasMember(json, "dataValues");
     assertHasMember(json, "notes");
-    assertHasNoMember(json, "attributeOptionCombo");
+    assertHasMember(json, "attributeOptionCombo");
     assertHasNoMember(json, "attributeCategoryOptions");
     assertHasNoMember(json, "relationships");
   }
