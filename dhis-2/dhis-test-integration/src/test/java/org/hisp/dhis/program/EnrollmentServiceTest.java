@@ -31,6 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.google.common.collect.Sets;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -48,7 +50,6 @@ import org.hisp.dhis.user.UserService;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import com.google.common.collect.Sets;
 
 /**
  * @author Chau Thu Tran

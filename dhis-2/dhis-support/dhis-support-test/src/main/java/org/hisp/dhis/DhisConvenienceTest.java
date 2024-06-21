@@ -34,6 +34,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.common.DataDimensionType.DISAGGREGATION;
 import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
+
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -61,6 +67,7 @@ import javax.persistence.EntityManager;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -213,12 +220,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeTypeUtils;
 import org.xml.sax.InputSource;
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.google.common.hash.HashCode;
-import com.google.common.hash.Hashing;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -581,7 +582,7 @@ public abstract class DhisConvenienceTest {
     categoryCombo.setUid(uid);
     return categoryCombo;
   }
-  
+
   public static CategoryOptionCombo createCategoryOptionCombo() {
     CategoryOptionCombo coc = new CategoryOptionCombo();
     coc.setAutoFields();
@@ -1649,9 +1650,7 @@ public abstract class DhisConvenienceTest {
   }
 
   public static Event createEvent(
-      ProgramStage programStage,
-      Enrollment enrollment,
-      OrganisationUnit organisationUnit) {
+      ProgramStage programStage, Enrollment enrollment, OrganisationUnit organisationUnit) {
     Event event = new Event();
     event.setAutoFields();
 

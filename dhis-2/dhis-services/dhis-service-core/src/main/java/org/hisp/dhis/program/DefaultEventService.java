@@ -28,11 +28,13 @@
 package org.hisp.dhis.program;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
+
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -52,7 +54,6 @@ import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogServi
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import lombok.RequiredArgsConstructor;
 
 /**
  * @author Abyot Asalefew
@@ -78,12 +79,12 @@ public class DefaultEventService implements EventService {
   @Transactional
   public long addEvent(Event event) {
     event.setAutoFields();
-    
+
     if (!event.hasAttributeOptionCombo()) {
       CategoryOptionCombo aoc = categoryService.getDefaultCategoryOptionCombo();
       event.setAttributeOptionCombo(aoc);
     }
-    
+
     eventStore.save(event);
     return event.getId();
   }

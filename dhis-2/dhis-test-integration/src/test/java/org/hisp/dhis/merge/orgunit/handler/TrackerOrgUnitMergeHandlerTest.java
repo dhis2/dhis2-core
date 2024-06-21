@@ -28,6 +28,8 @@
 package org.hisp.dhis.merge.orgunit.handler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import com.google.common.collect.Sets;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -44,7 +46,6 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland

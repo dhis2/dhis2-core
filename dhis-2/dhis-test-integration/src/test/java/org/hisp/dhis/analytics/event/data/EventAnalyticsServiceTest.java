@@ -58,6 +58,9 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -128,8 +131,6 @@ import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 /**
  * Tests event and enrollment analytics services.
@@ -163,7 +164,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
   @Autowired private ProgramOwnershipHistoryService programOwnershipHistoryService;
 
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
-  
+
   @Autowired private UserService _userService;
 
   @Autowired private CategoryService categoryService;
