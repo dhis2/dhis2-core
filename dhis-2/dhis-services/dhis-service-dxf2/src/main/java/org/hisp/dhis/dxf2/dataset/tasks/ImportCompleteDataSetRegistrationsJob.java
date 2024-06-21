@@ -66,7 +66,8 @@ public class ImportCompleteDataSetRegistrationsJob implements Job {
 
     progress.startingStage("Loading file resource");
     FileResource data =
-        progress.runStage(() -> fileResourceService.getFileResource(jobConfig.getUid()));
+        progress.nonNullStagePostCondition(
+            progress.runStage(() -> fileResourceService.getFileResource(jobConfig.getUid())));
 
     progress.startingStage("Loading file content");
     try (InputStream input =

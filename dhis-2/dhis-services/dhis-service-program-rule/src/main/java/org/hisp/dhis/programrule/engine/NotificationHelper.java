@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.programrule.engine;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.programrule.engine.RuleActionKey.NOTIFICATION;
 
 import java.util.Date;
@@ -35,38 +34,31 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
+import org.hisp.dhis.notification.logging.NotificationTriggerEvent;
 import org.hisp.dhis.notification.logging.NotificationValidationResult;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.stereotype.Component;
 
-/**
- * @author Zubair Asghar
- */
 @Slf4j
 @RequiredArgsConstructor
-@Component("org.hisp.dhis.programrule.engine.NotificationRuleActionImplementer")
-abstract class NotificationRuleActionImplementer implements RuleActionImplementer {
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
+@Component
+class NotificationHelper {
+  private final ProgramNotificationTemplateService programNotificationTemplateService;
+  private final NotificationLoggingService notificationLoggingService;
 
-  protected final ProgramNotificationTemplateService programNotificationTemplateService;
-
-  protected final NotificationLoggingService notificationLoggingService;
-
-  protected ExternalNotificationLogEntry createLogEntry(String key, String templateUid) {
+  public void createLogEntry(ProgramNotificationTemplate template, Enrollment enrollment) {
+    String key = generateKey(template, enrollment);
     ExternalNotificationLogEntry entry = new ExternalNotificationLogEntry();
     entry.setLastSentAt(new Date());
     entry.setKey(key);
-    entry.setNotificationTemplateUid(templateUid);
-    entry.setAllowMultiple(false);
+    entry.setNotificationTemplateUid(template.getUid());
+    entry.setNotificationTriggeredBy(NotificationTriggerEvent.PROGRAM);
+    entry.setAllowMultiple(template.isSendRepeatable());
 
-    return entry;
+    notificationLoggingService.save(entry);
   }
 
   public ProgramNotificationTemplate getNotificationTemplate(RuleAction action) {
@@ -74,21 +66,14 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
     return programNotificationTemplateService.getByUid(uid);
   }
 
-  protected String generateKey(ProgramNotificationTemplate template, Enrollment enrollment) {
-    return template.getUid() + enrollment.getUid();
-  }
-
-  public NotificationValidationResult validate(RuleEffect ruleEffect, Enrollment enrollment) {
-    checkNotNull(ruleEffect, "Rule Effect cannot be null");
-    checkNotNull(enrollment, "Enrollment cannot be null");
-
-    ProgramNotificationTemplate template = getNotificationTemplate(ruleEffect.getRuleAction());
-
+  public NotificationValidationResult validate(
+      ProgramNotificationTemplate template, Enrollment enrollment) {
     if (template == null) {
-      log.warn(
-          String.format("No template found for Program: %s", enrollment.getProgram().getName()));
+      return NotificationValidationResult.invalid();
+    }
 
-      return NotificationValidationResult.builder().valid(false).build();
+    if (enrollment == null || enrollment.getProgram().isWithoutRegistration()) {
+      return NotificationValidationResult.validAndNoNeedForLogEntries();
     }
 
     ExternalNotificationLogEntry logEntry =
@@ -96,22 +81,15 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
 
     // template has already been delivered and repeated delivery not allowed
     if (logEntry != null && !logEntry.isAllowMultiple()) {
-      return NotificationValidationResult.builder()
-          .valid(false)
-          .template(template)
-          .logEntry(logEntry)
-          .build();
+      return NotificationValidationResult.invalid();
     }
 
-    return NotificationValidationResult.builder()
-        .valid(true)
-        .template(template)
-        .logEntry(logEntry)
-        .build();
+    return logEntry == null
+        ? NotificationValidationResult.validAndNeedsLogEntries()
+        : NotificationValidationResult.validAndNoNeedForLogEntries();
   }
 
-  protected void checkNulls(RuleEffect ruleEffect, Event event) {
-    checkNotNull(ruleEffect, "Rule Effect cannot be null");
-    checkNotNull(event, "Event cannot be null");
+  private String generateKey(ProgramNotificationTemplate template, Enrollment enrollment) {
+    return template.getUid() + enrollment.getUid();
   }
 }
