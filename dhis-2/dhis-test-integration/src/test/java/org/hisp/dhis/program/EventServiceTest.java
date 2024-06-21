@@ -31,15 +31,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.TestCache;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -85,8 +82,6 @@ class EventServiceTest extends TransactionalIntegrationTest {
   @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
   @Autowired private NoteService noteService;
-
-  @Autowired private CategoryService categoryService;
 
   private OrganisationUnit organisationUnitA;
 
@@ -144,7 +139,6 @@ class EventServiceTest extends TransactionalIntegrationTest {
 
   @Override
   public void setUpTest() {
-    CategoryOptionCombo coA = categoryService.getDefaultCategoryOptionCombo();
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnitA);
     organisationUnitB = createOrganisationUnit('B');
@@ -226,23 +220,18 @@ class EventServiceTest extends TransactionalIntegrationTest {
     eventA = new Event(enrollmentA, stageA);
     eventA.setScheduledDate(enrollmentDate);
     eventA.setUid("UID-A");
-    eventA.setAttributeOptionCombo(coA);
     eventB = new Event(enrollmentA, stageB);
     eventB.setScheduledDate(enrollmentDate);
     eventB.setUid("UID-B");
-    eventB.setAttributeOptionCombo(coA);
     eventC = new Event(enrollmentB, stageC);
     eventC.setScheduledDate(enrollmentDate);
     eventC.setUid("UID-C");
-    eventC.setAttributeOptionCombo(coA);
     eventD1 = new Event(enrollmentB, stageD);
     eventD1.setScheduledDate(enrollmentDate);
     eventD1.setUid("UID-D1");
-    eventD1.setAttributeOptionCombo(coA);
     eventD2 = new Event(enrollmentB, stageD);
     eventD2.setScheduledDate(enrollmentDate);
     eventD2.setUid("UID-D2");
-    eventD2.setAttributeOptionCombo(coA);
     /*
      * Prepare data for EventDataValues manipulation tests
      */
