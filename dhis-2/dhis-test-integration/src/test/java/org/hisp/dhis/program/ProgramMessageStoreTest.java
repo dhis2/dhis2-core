@@ -36,7 +36,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -58,19 +57,19 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class ProgramMessageStoreTest extends TransactionalIntegrationTest {
 
-    @Autowired private ProgramMessageStore programMessageStore;
+  @Autowired private ProgramMessageStore programMessageStore;
 
-    @Autowired private EnrollmentStore enrollmentStore;
+  @Autowired private EnrollmentStore enrollmentStore;
 
-    @Autowired private OrganisationUnitService orgUnitService;
+  @Autowired private OrganisationUnitService orgUnitService;
 
-    @Autowired private TrackedEntityService trackedEntityService;
+  @Autowired private TrackedEntityService trackedEntityService;
 
-    @Autowired private ProgramService programService;
+  @Autowired private ProgramService programService;
 
-    @Autowired private ProgramStageService programStageService;
+  @Autowired private ProgramStageService programStageService;
 
-    @Autowired private EventService eventService;
+  @Autowired private EventService eventService;
 
   private OrganisationUnit ouA;
 
