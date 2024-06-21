@@ -31,14 +31,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import com.google.common.collect.Sets;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.note.NoteService;
@@ -52,6 +48,7 @@ import org.hisp.dhis.user.UserService;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.google.common.collect.Sets;
 
 /**
  * @author Chau Thu Tran
@@ -74,13 +71,9 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private NoteService noteService;
 
-  @Autowired private CategoryService categoryService;
-
   private Date incidentDate;
 
   private Date enrollmentDate;
-
-  private CategoryOptionCombo coA;
 
   private Program programA;
 
@@ -109,8 +102,6 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   @Override
   public void setUpTest() {
     userService = _userService;
-
-    coA = categoryService.getDefaultCategoryOptionCombo();
 
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnitA);
@@ -157,7 +148,6 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     eventA = new Event(enrollmentA, stageA);
     eventA.setUid("UID-PSI-A");
     eventA.setOrganisationUnit(organisationUnitA);
-    eventA.setAttributeOptionCombo(coA);
     enrollmentB = new Enrollment(enrollmentDate, incidentDate, trackedEntityA, programB);
     enrollmentB.setUid("UID-B");
     enrollmentB.setStatus(EnrollmentStatus.CANCELLED);
