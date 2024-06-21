@@ -35,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
-
 import java.util.List;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -84,8 +83,6 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
 
   @InjectMocks private RelationshipOperationParamsMapper mapper;
 
-  private CategoryOptionCombo coc;
-
   private TrackedEntity trackedEntity;
 
   private Enrollment enrollment;
@@ -96,8 +93,7 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
 
   @BeforeEach
   public void setUp() {
-    coc = new CategoryOptionCombo();
-    coc.setAutoFields();
+    CategoryOptionCombo coc = createCategoryOptionCombo();
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
     Program program = createProgram('A');
     ProgramStage programStage = createProgramStage('A', program);
