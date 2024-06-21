@@ -31,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.when;
-
 import java.util.List;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -73,8 +72,6 @@ class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest {
 
   private static final String RELATIONSHIP_B = "RELATIONSHIP_B_UID";
 
-  private CategoryOptionCombo coc;
-
   private RelationshipType teToEnrollment;
 
   private RelationshipType teToEvent;
@@ -92,8 +89,7 @@ class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest {
 
   @BeforeEach
   protected void setupTest() {
-    coc = new CategoryOptionCombo();
-    coc.setAutoFields();
+    CategoryOptionCombo coc = createCategoryOptionCombo();
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
     Program program = createProgram('A');
     TrackedEntityType teType = createTrackedEntityType('A');
