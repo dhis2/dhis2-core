@@ -25,13 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.merge.dataelement;
+package org.hisp.dhis.merge.dataelement.handler;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.AnalyticalObjectStore;
-import org.hisp.dhis.common.BaseAnalyticalObject;
-import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.datadimensionitem.DataDimensionItemStore;
@@ -68,7 +66,6 @@ import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.code.SMSCode;
-import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.springframework.stereotype.Service;
 
 /**
@@ -78,7 +75,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @RequiredArgsConstructor
-public class DefaultDataElementMergeHandler {
+public class MetadataDataElementMergeHandler {
 
   private final MinMaxDataElementService minMaxDataElementService;
   private final EventVisualizationStore eventVisualizationStore;
@@ -112,46 +109,6 @@ public class DefaultDataElementMergeHandler {
     List<MinMaxDataElement> minMaxDataElements =
         minMaxDataElementService.getAllByDataElement(sources);
     minMaxDataElements.forEach(mmde -> mmde.setDataElement(target));
-  }
-
-  /**
-   * Method retrieving {@link EventVisualization}s by source {@link DataElement} references. All
-   * retrieved {@link EventVisualization}s will have their {@link DataElement} replaced with the
-   * target {@link DataElement}.
-   *
-   * @param sources source {@link DataElement}s used to retrieve {@link EventVisualization}s
-   * @param target {@link DataElement} which will be set as the {@link DataElement} for an {@link
-   *     EventVisualization}
-   */
-  public void handleEventVisualization(List<DataElement> sources, DataElement target) {
-    List<EventVisualization> eventVisualizations =
-        eventVisualizationStore.getByDataElement(sources);
-    eventVisualizations.forEach(ev -> ev.setDataElementValueDimension(target));
-  }
-
-  /**
-   * Method retrieving {@link BaseAnalyticalObject}s ({@link EventVisualization} & {@link MapView}
-   * only) by source {@link DataElement} references in property dataElementDimensions. All retrieved
-   * {@link BaseAnalyticalObject}s will have their {@link TrackedEntityDataElementDimension} {@link
-   * DataElement} replaced with the target {@link DataElement}.
-   *
-   * @param sources source {@link DataElement}s used to retrieve {@link BaseAnalyticalObject}s
-   * @param target {@link DataElement} which will be set as the {@link DataElement} for an {@link
-   *     TrackedEntityDataElementDimension}
-   */
-  public void handleTrackedEntityDataElementDimension(
-      List<DataElement> sources, DataElement target) {
-    List<EventVisualization> eventVisualizations =
-        analyticalEventVisStore.getByDataElementDimensionsWithAnyOf(sources);
-    List<MapView> mapViews = mapViewStore.getByDataElementDimensionsWithAnyOf(sources);
-
-    eventVisualizations.stream()
-        .flatMap(ev -> ev.getDataElementDimensions().stream())
-        .forEach(teded -> teded.setDataElement(target));
-
-    mapViews.stream()
-        .flatMap(mv -> mv.getDataElementDimensions().stream())
-        .forEach(teded -> teded.setDataElement(target));
   }
 
   /**
@@ -373,21 +330,6 @@ public class DefaultDataElementMergeHandler {
         .flatMap(e -> e.getEventDataValues().stream())
         .filter(edv -> deUids.contains(edv.getDataElement()))
         .forEach(edv -> edv.setDataElement(target.getUid()));
-  }
-
-  /**
-   * Method retrieving {@link DataDimensionItem}s by source {@link DataElement} references. All
-   * retrieved {@link DataDimensionItem}s will have their {@link DataElement} ref replaced with the
-   * target {@link DataElement}.
-   *
-   * @param sources source {@link DataElement}s used to retrieve {@link DataDimensionItem}s
-   * @param target {@link DataElement} which will be set as the {@link DataElement} in each {@link
-   *     DataDimensionItem}
-   */
-  public void handleDataDimensionItems(List<DataElement> sources, DataElement target) {
-    List<DataDimensionItem> dataDimensionItems =
-        dataDimensionItemStore.getDataElementDataDimensionItems(sources);
-    dataDimensionItems.forEach(ddi -> ddi.setDataElement(target));
   }
 
   /**

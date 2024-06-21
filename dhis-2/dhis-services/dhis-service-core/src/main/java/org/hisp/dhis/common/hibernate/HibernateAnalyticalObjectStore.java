@@ -208,17 +208,6 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     return nativeSynchronizedTypedQuery(sql).setParameter("indicators", indicators).list();
   }
 
-  public List<T> getDeleteObject(List<String> indicators) {
-    // language=hql
-    String sql =
-        """
-          from DeletedObject do
-          where do.deletedAt in :indicators
-        """;
-
-    return getSession().createNativeQuery(sql, clazz).setParameter("indicators", indicators).list();
-  }
-
   @Override
   public long countAnalyticalObjects(Indicator indicator) {
     Query<Long> query =

@@ -48,6 +48,9 @@ import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeRequest;
 import org.hisp.dhis.merge.MergeService;
 import org.hisp.dhis.merge.MergeValidator;
+import org.hisp.dhis.merge.dataelement.handler.AnalyticalDataElementMergeHandler;
+import org.hisp.dhis.merge.dataelement.handler.MetadataDataElementMergeHandler;
+import org.hisp.dhis.merge.dataelement.handler.TrackerDataElementMergeHandler;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,7 +65,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class DataElementMergeService implements MergeService {
 
   private final DataElementService dataElementService;
-  private final DefaultDataElementMergeHandler dataElementMergeHandler;
+  private final MetadataDataElementMergeHandler metadataMergeHandler;
+  private final AnalyticalDataElementMergeHandler analyticalMergeHandler;
+  private final TrackerDataElementMergeHandler trackerMergeHandler;
   private final CommonMergeHandler commonMergeHandler;
   private final MergeValidator validator;
   private final DataElementMergeValidator dataElementMergeValidator;
@@ -133,26 +138,26 @@ public class DataElementMergeService implements MergeService {
     mergeHandlers =
         ImmutableList.<org.hisp.dhis.merge.dataelement.DataElementMergeHandler>builder()
             // metadata
-            .add(dataElementMergeHandler::handlePredictor)
-            .add(dataElementMergeHandler::handlePredictorGeneratorExpression)
-            .add(dataElementMergeHandler::handlePredictorSampleSkipTestExpression)
-            .add(dataElementMergeHandler::handleProgramStageDataElement)
-            .add(dataElementMergeHandler::handleProgramStageSection)
-            .add(dataElementMergeHandler::handleProgramNotificationTemplate)
-            .add(dataElementMergeHandler::handleProgramRuleVariable)
-            .add(dataElementMergeHandler::handleProgramRuleAction)
-            .add(dataElementMergeHandler::handleProgramIndicatorExpression)
-            .add(dataElementMergeHandler::handleProgramIndicatorFilter)
-            .add(dataElementMergeHandler::handleEventEventDataValues)
-            .add(dataElementMergeHandler::handleDataDimensionItems)
-            .add(dataElementMergeHandler::handleEventVisualization)
-            .add(dataElementMergeHandler::handleTrackedEntityDataElementDimension)
-            .add(dataElementMergeHandler::handleMinMaxDataElement)
-            .add(dataElementMergeHandler::handleDataElementOperand)
-            .add(dataElementMergeHandler::handleDataSetElement)
-            .add(dataElementMergeHandler::handleSection)
-            .add(dataElementMergeHandler::handleDataElementGroup)
-            .add(dataElementMergeHandler::handleSmsCode)
+            .add(analyticalMergeHandler::handleDataDimensionItems)
+            .add(analyticalMergeHandler::handleEventVisualization)
+            .add(analyticalMergeHandler::handleTrackedEntityDataElementDimension)
+            .add(trackerMergeHandler::handleProgramStageDataElement)
+            .add(trackerMergeHandler::handleProgramStageSection)
+            .add(trackerMergeHandler::handleProgramNotificationTemplate)
+            .add(trackerMergeHandler::handleProgramRuleVariable)
+            .add(trackerMergeHandler::handleProgramRuleAction)
+            .add(trackerMergeHandler::handleProgramIndicatorExpression)
+            .add(trackerMergeHandler::handleProgramIndicatorFilter)
+            .add(trackerMergeHandler::handleEventEventDataValues)
+            .add(metadataMergeHandler::handlePredictor)
+            .add(metadataMergeHandler::handlePredictorGeneratorExpression)
+            .add(metadataMergeHandler::handlePredictorSampleSkipTestExpression)
+            .add(metadataMergeHandler::handleMinMaxDataElement)
+            .add(metadataMergeHandler::handleDataElementOperand)
+            .add(metadataMergeHandler::handleDataSetElement)
+            .add(metadataMergeHandler::handleSection)
+            .add(metadataMergeHandler::handleDataElementGroup)
+            .add(metadataMergeHandler::handleSmsCode)
             // data
             .build();
 
