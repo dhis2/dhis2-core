@@ -31,11 +31,7 @@ import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import com.google.common.collect.Sets;
 import java.util.List;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -56,6 +52,7 @@ import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.google.common.collect.Sets;
 
 class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienceTest {
 
@@ -69,10 +66,6 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
 
   @Autowired private IdentifiableObjectManager idObjectManager;
 
-  @Autowired private CategoryService categoryService;
-
-  private CategoryOptionCombo coc;
-
   private Enrollment enrollment;
 
   private Event event;
@@ -85,8 +78,6 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
 
   @BeforeEach
   void setUp() {
-    coc = categoryService.getDefaultCategoryOptionCombo();
-
     OrganisationUnit ouA = createOrganisationUnit('A');
     idObjectManager.save(ouA);
 
@@ -109,7 +100,7 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
     enrollmentNotification2.setEnrollment(enrollment);
     programNotificationInstanceService.save(enrollmentNotification2);
 
-    event = createEvent(psA, enrollment, ouA, coc);
+    event = createEvent(psA, enrollment, ouA);
     eventService.addEvent(event);
     eventNotification = new ProgramNotificationInstance();
     eventNotification.setName("event A notification");
