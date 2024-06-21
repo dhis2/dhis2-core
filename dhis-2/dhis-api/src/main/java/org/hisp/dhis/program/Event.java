@@ -27,11 +27,6 @@
  */
 package org.hisp.dhis.program;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -52,6 +47,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.user.User;
 import org.locationtech.jts.geom.Geometry;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
  * @author Abyot Asalefew
@@ -106,7 +106,9 @@ public class Event extends SoftDeletableObject {
 
   public Event() {}
 
-  public Event(Enrollment enrollment, ProgramStage programStage) {
+  public Event(
+      Enrollment enrollment, 
+      ProgramStage programStage) {
     this.enrollment = enrollment;
     this.programStage = programStage;
   }
@@ -116,7 +118,6 @@ public class Event extends SoftDeletableObject {
       ProgramStage programStage,
       OrganisationUnit organisationUnit,
       CategoryOptionCombo attributeOptionCombo) {
-    this(enrollment, programStage);
     this.organisationUnit = organisationUnit;
     this.attributeOptionCombo = attributeOptionCombo;
   }
@@ -130,6 +131,11 @@ public class Event extends SoftDeletableObject {
     }
 
     lastUpdatedAtClient = lastUpdated;
+  }
+  
+  @JsonIgnore
+  public boolean hasAttributeOptionCombo() {
+    return attributeOptionCombo != null;
   }
 
   // -------------------------------------------------------------------------
