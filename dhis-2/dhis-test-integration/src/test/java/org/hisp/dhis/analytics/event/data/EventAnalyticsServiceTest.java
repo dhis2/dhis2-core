@@ -58,9 +58,6 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -131,6 +128,8 @@ import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * Tests event and enrollment analytics services.
@@ -164,12 +163,10 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
   @Autowired private ProgramOwnershipHistoryService programOwnershipHistoryService;
 
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
-
+  
   @Autowired private UserService _userService;
 
   @Autowired private CategoryService categoryService;
-
-  private CategoryOptionCombo coc;
 
   private OrganisationUnit ouA;
 
@@ -263,8 +260,6 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
   @Override
   public void setUpTest() throws IOException, InterruptedException, ConflictException {
     userService = _userService;
-
-    coc = categoryService.getDefaultCategoryOptionCombo();
 
     // Organisation Units
     //
@@ -467,7 +462,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     addProgramOwnershipHistory(programA, teiA, ouG, feb15Noon, mar15);
     trackedEntityProgramOwnerService.createOrUpdateTrackedEntityProgramOwner(teiA, programA, ouH);
 
-    Event eventA1 = createEvent(psA, piA, ouI, coc);
+    Event eventA1 = createEvent(psA, piA, ouI);
     eventA1.setScheduledDate(jan15);
     eventA1.setOccurredDate(jan15);
     eventA1.setUid("event0000A1");
@@ -476,7 +471,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
             new EventDataValue(deA.getUid(), "1"), new EventDataValue(deU.getUid(), ouL.getUid())));
     eventA1.setAttributeOptionCombo(cocDefault);
 
-    Event eventA2 = createEvent(psA, piA, ouJ, coc);
+    Event eventA2 = createEvent(psA, piA, ouJ);
     eventA2.setScheduledDate(feb15);
     eventA2.setOccurredDate(feb15);
     eventA2.setUid("event0000A2");
@@ -485,7 +480,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
             new EventDataValue(deA.getUid(), "2"), new EventDataValue(deU.getUid(), ouM.getUid())));
     eventA2.setAttributeOptionCombo(cocDefault);
 
-    Event eventA3 = createEvent(psA, piA, ouK, coc);
+    Event eventA3 = createEvent(psA, piA, ouK);
     eventA3.setScheduledDate(mar15);
     eventA3.setOccurredDate(mar15);
     eventA3.setUid("event0000A3");
@@ -494,7 +489,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
             new EventDataValue(deA.getUid(), "4"), new EventDataValue(deU.getUid(), ouN.getUid())));
     eventA3.setAttributeOptionCombo(cocDefault);
 
-    Event eventB1 = createEvent(psB, piB, ouI, coc);
+    Event eventB1 = createEvent(psB, piB, ouI);
     eventB1.setScheduledDate(jan1);
     eventB1.setOccurredDate(jan1);
     eventB1.setUid("event0000B1");
@@ -502,7 +497,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         Set.of(new EventDataValue(deA.getUid(), "10"), new EventDataValue(deB.getUid(), "A")));
     eventB1.setAttributeOptionCombo(cocDefault);
 
-    Event eventB2 = createEvent(psB, piB, ouI, coc);
+    Event eventB2 = createEvent(psB, piB, ouI);
     eventB2.setScheduledDate(jan20);
     eventB2.setOccurredDate(jan20);
     eventB2.setUid("event0000B2");
@@ -510,7 +505,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         Set.of(new EventDataValue(deA.getUid(), "20"), new EventDataValue(deB.getUid(), "B")));
     eventB2.setAttributeOptionCombo(cocDefault);
 
-    Event eventB3 = createEvent(psB, piB, ouJ, coc);
+    Event eventB3 = createEvent(psB, piB, ouJ);
     eventB3.setScheduledDate(jan1);
     eventB3.setOccurredDate(jan1);
     eventB3.setUid("event0000B3");
@@ -518,7 +513,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         Set.of(new EventDataValue(deA.getUid(), "30"), new EventDataValue(deB.getUid(), "C")));
     eventB3.setAttributeOptionCombo(cocDefault);
 
-    Event eventB4 = createEvent(psB, piB, ouJ, coc);
+    Event eventB4 = createEvent(psB, piB, ouJ);
     eventB4.setScheduledDate(jan20);
     eventB4.setOccurredDate(jan20);
     eventB4.setUid("event0000B4");
@@ -526,7 +521,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         Set.of(new EventDataValue(deA.getUid(), "40"), new EventDataValue(deB.getUid(), "D")));
     eventB4.setAttributeOptionCombo(cocDefault);
 
-    Event eventB5 = createEvent(psB, piB, ouI, coc);
+    Event eventB5 = createEvent(psB, piB, ouI);
     eventB5.setScheduledDate(feb15);
     eventB5.setOccurredDate(feb15);
     eventB5.setUid("event0000B5");
@@ -534,7 +529,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         Set.of(new EventDataValue(deA.getUid(), "50"), new EventDataValue(deB.getUid(), "E")));
     eventB5.setAttributeOptionCombo(cocDefault);
 
-    Event eventB6 = createEvent(psB, piB, ouI, coc);
+    Event eventB6 = createEvent(psB, piB, ouI);
     eventB6.setScheduledDate(feb15Noon);
     eventB6.setOccurredDate(feb15Noon);
     eventB6.setUid("event0000B6");
@@ -542,7 +537,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         Set.of(new EventDataValue(deA.getUid(), "60"), new EventDataValue(deB.getUid(), "F")));
     eventB6.setAttributeOptionCombo(cocDefault);
 
-    Event eventB7 = createEvent(psB, piB, ouJ, coc);
+    Event eventB7 = createEvent(psB, piB, ouJ);
     eventB7.setScheduledDate(feb15);
     eventB7.setOccurredDate(feb15);
     eventB7.setUid("event0000B7");
@@ -550,7 +545,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         Set.of(new EventDataValue(deA.getUid(), "70"), new EventDataValue(deB.getUid(), "G")));
     eventB7.setAttributeOptionCombo(cocDefault);
 
-    Event eventB8 = createEvent(psB, piB, ouJ, coc);
+    Event eventB8 = createEvent(psB, piB, ouJ);
     eventB8.setScheduledDate(feb15Noon);
     eventB8.setOccurredDate(feb15Noon);
     eventB8.setUid("event0000B8");
@@ -558,7 +553,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         Set.of(new EventDataValue(deA.getUid(), "80"), new EventDataValue(deB.getUid(), "H")));
     eventB8.setAttributeOptionCombo(cocDefault);
 
-    Event eventM1 = createEvent(psB, piB, ouI, coc);
+    Event eventM1 = createEvent(psB, piB, ouI);
     eventM1.setScheduledDate(jan15);
     eventM1.setOccurredDate(jan15);
     eventM1.setUid("event0000M1");
