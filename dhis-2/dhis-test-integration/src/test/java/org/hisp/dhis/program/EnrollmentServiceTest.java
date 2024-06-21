@@ -146,8 +146,9 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     enrollmentA = new Enrollment(enrollmentDate, incidentDate, trackedEntityA, programA);
     enrollmentA.setUid("UID-A");
     enrollmentA.setOrganisationUnit(organisationUnitA);
-    eventService.createEvent(enrollmentA, stageA, null, null, organisationUnitA);
-    eventA.setUid("UID-PSI-A");
+    eventA =
+        eventService.createEvent(
+            enrollmentA, stageA, enrollmentDate, incidentDate, organisationUnitA);
     enrollmentB = new Enrollment(enrollmentDate, incidentDate, trackedEntityA, programB);
     enrollmentB.setUid("UID-B");
     enrollmentB.setStatus(EnrollmentStatus.CANCELLED);
