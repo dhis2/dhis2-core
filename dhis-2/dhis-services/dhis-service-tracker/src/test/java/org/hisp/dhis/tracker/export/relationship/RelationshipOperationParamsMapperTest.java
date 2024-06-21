@@ -37,7 +37,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 import java.util.List;
 import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -93,7 +92,6 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
 
   @BeforeEach
   public void setUp() {
-    CategoryOptionCombo coc = createCategoryOptionCombo();
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
     Program program = createProgram('A');
     ProgramStage programStage = createProgramStage('A', program);
@@ -102,7 +100,7 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
     trackedEntity.setUid(TE_UID);
     enrollment = createEnrollment(program, trackedEntity, organisationUnit);
     enrollment.setUid(EN_UID);
-    event = createEvent(programStage, enrollment, organisationUnit, coc);
+    event = createEvent(programStage, enrollment, organisationUnit);
     event.setUid(EV_UID);
 
     User u = new User();

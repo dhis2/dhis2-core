@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.when;
 import java.util.List;
 import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
@@ -89,7 +88,6 @@ class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest {
 
   @BeforeEach
   protected void setupTest() {
-    CategoryOptionCombo coc = createCategoryOptionCombo();
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
     Program program = createProgram('A');
     TrackedEntityType teType = createTrackedEntityType('A');
@@ -105,7 +103,7 @@ class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest {
     trackedEntity.setUid(TE);
     enrollment = createEnrollment(program, trackedEntity, organisationUnit);
     enrollment.setUid(ENROLLMENT);
-    event = createEvent(createProgramStage('A', program), enrollment, organisationUnit, coc);
+    event = createEvent(createProgramStage('A', program), enrollment, organisationUnit);
     event.setUid(EVENT);
 
     relationshipConverterService = new RelationshipTrackerConverterService();

@@ -1651,15 +1651,13 @@ public abstract class DhisConvenienceTest {
   public static Event createEvent(
       ProgramStage programStage,
       Enrollment enrollment,
-      OrganisationUnit organisationUnit,
-      CategoryOptionCombo attributeOptionCombo) {
+      OrganisationUnit organisationUnit) {
     Event event = new Event();
     event.setAutoFields();
 
     event.setProgramStage(programStage);
     event.setEnrollment(enrollment);
     event.setOrganisationUnit(organisationUnit);
-    event.setAttributeOptionCombo(attributeOptionCombo);
     return event;
   }
 
@@ -1667,9 +1665,8 @@ public abstract class DhisConvenienceTest {
       Enrollment enrollment,
       ProgramStage programStage,
       OrganisationUnit organisationUnit,
-      CategoryOptionCombo attributeOptionCombo,
       Set<EventDataValue> dataValues) {
-    Event event = createEvent(programStage, enrollment, organisationUnit, attributeOptionCombo);
+    Event event = createEvent(programStage, enrollment, organisationUnit);
     event.setOccurredDate(new Date());
     event.setStatus(EventStatus.ACTIVE);
     event.setEventDataValues(dataValues);

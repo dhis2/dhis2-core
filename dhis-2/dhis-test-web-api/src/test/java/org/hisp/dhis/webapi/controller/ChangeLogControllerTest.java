@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import java.util.Set;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -130,10 +129,12 @@ class ChangeLogControllerTest extends DhisControllerConvenienceTest {
     enrollment = createEnrollment(program, te1, te1.getOrganisationUnit());
     manager.save(enrollment);
 
-    event1 = createEvent(programStage, enrollment, enrollment.getOrganisationUnit(), coc);
+    event1 = createEvent(programStage, enrollment, enrollment.getOrganisationUnit());
+    event1.setAttributeOptionCombo(coc);
     manager.save(event1);
 
-    event2 = createEvent(programStage, enrollment, enrollment.getOrganisationUnit(), coc);
+    event2 = createEvent(programStage, enrollment, enrollment.getOrganisationUnit());
+    event2.setAttributeOptionCombo(coc);
     manager.save(event2);
   }
 
