@@ -25,54 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.job;
+package org.hisp.dhis.schema.descriptors;
 
-import java.io.IOException;
-import javax.jms.JMSException;
-import javax.jms.TextMessage;
-import org.hisp.dhis.artemis.MessageManager;
-import org.hisp.dhis.common.AsyncTaskExecutor;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.render.RenderService;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.datastore.DatastoreEntry;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
 
 /**
- * @author Zubair Asghar
+ * @author Ameen Mohamed <ameen@dhis2.org>
  */
-@Component
-public abstract class BaseMessageManager {
-  private final MessageManager messageManager;
+public class DatastoreEntrySchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "dataStore";
 
-  private final AsyncTaskExecutor taskExecutor;
+  public static final String PLURAL = "dataStores";
 
-  private final RenderService renderService;
+  public static final String API_ENDPOINT = "/" + SINGULAR;
 
-  public BaseMessageManager(
-      MessageManager messageManager, AsyncTaskExecutor taskExecutor, RenderService renderService) {
-    this.messageManager = messageManager;
-    this.taskExecutor = taskExecutor;
-    this.renderService = renderService;
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(DatastoreEntry.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
+    schema.setOrder(9060);
+    schema.setShareable(true);
+
+    return schema;
   }
-
-  public String addJob(TrackerSideEffectDataBundle sideEffectDataBundle) {
-    String jobId = CodeGenerator.generateUid();
-    sideEffectDataBundle.setJobId(jobId);
-
-    messageManager.sendQueue(getTopic(), sideEffectDataBundle);
-
-    return jobId;
-  }
-
-  public void executeJob(Runnable runnable) {
-    taskExecutor.executeTask(runnable);
-  }
-
-  public TrackerSideEffectDataBundle toBundle(TextMessage message)
-      throws JMSException, IOException {
-    String payload = message.getText();
-
-    return renderService.fromJson(payload, TrackerSideEffectDataBundle.class);
-  }
-
-  public abstract String getTopic();
 }

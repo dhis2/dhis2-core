@@ -66,7 +66,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Zubair Asghar
  */
-class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
+class TrackerNotificationHandlerServiceTest extends IntegrationTestBase {
 
   @Autowired private TrackerImportService trackerImportService;
 
