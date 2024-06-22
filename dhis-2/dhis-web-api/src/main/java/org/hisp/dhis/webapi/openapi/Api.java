@@ -57,6 +57,7 @@ import lombok.ToString;
 import lombok.Value;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.period.Period;
 import org.springframework.http.HttpStatus;
@@ -216,6 +217,7 @@ public class Api {
     OpenApi.Document.Group group;
     Maybe<String> description = new Maybe<>();
     Boolean deprecated;
+    @CheckForNull Maturity.Classification maturity;
 
     @EqualsAndHashCode.Include Set<RequestMethod> methods = EnumSet.noneOf(RequestMethod.class);
 
@@ -273,7 +275,8 @@ public class Api {
     boolean required;
     Schema type;
 
-    Boolean deprecated;
+    @CheckForNull Boolean deprecated;
+    @CheckForNull Maturity.Classification maturity;
 
     /**
      * The default value in its string form.
