@@ -48,6 +48,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
@@ -70,6 +71,8 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
   @Autowired protected UserService _userService;
 
   @Autowired private EnrollmentService enrollmentService;
+
+  @Autowired private EventService eventService;
 
   @Autowired private RelationshipService relationshipService;
 
@@ -158,11 +161,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
 
     enrollmentA =
         enrollmentService.enrollTrackedEntity(teA, program, new Date(), new Date(), orgUnitA);
-    eventA = new Event();
-    eventA.setEnrollment(enrollmentA);
-    eventA.setProgramStage(programStage);
-    eventA.setOrganisationUnit(orgUnitA);
-    manager.save(eventA, false);
+    eventA = eventService.createEvent(enrollmentA, programStage, new Date(), new Date(), orgUnitA);
 
     Enrollment enrollmentB =
         enrollmentService.enrollTrackedEntity(teB, program, new Date(), new Date(), orgUnitA);
