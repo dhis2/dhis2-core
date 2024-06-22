@@ -37,6 +37,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.note.NoteService;
@@ -72,9 +74,13 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private NoteService noteService;
 
+  @Autowired private CategoryService categoryService;
+
   private Date incidentDate;
 
   private Date enrollmentDate;
+
+  private CategoryOptionCombo coA;
 
   private Program programA;
 
@@ -103,6 +109,8 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   @Override
   public void setUpTest() {
     userService = _userService;
+
+    coA = categoryService.getDefaultCategoryOptionCombo();
 
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnitA);
@@ -146,9 +154,6 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     enrollmentA = new Enrollment(enrollmentDate, incidentDate, trackedEntityA, programA);
     enrollmentA.setUid("UID-A");
     enrollmentA.setOrganisationUnit(organisationUnitA);
-    eventA =
-        eventService.createEvent(
-            enrollmentA, stageA, enrollmentDate, incidentDate, organisationUnitA);
     enrollmentB = new Enrollment(enrollmentDate, incidentDate, trackedEntityA, programB);
     enrollmentB.setUid("UID-B");
     enrollmentB.setStatus(EnrollmentStatus.CANCELLED);
@@ -160,6 +165,10 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     enrollmentD = new Enrollment(enrollmentDate, incidentDate, trackedEntityB, programA);
     enrollmentD.setUid("UID-D");
     enrollmentD.setOrganisationUnit(organisationUnitB);
+    eventA = new Event(enrollmentA, stageA);
+    eventA.setUid("UID-PSI-A");
+    eventA.setOrganisationUnit(organisationUnitA);
+    eventA.setAttributeOptionCombo(coA);
 
     injectSecurityContextUser(user);
   }
