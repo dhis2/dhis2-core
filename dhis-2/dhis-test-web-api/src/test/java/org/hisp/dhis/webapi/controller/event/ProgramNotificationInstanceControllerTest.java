@@ -66,10 +66,15 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
   @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private IdentifiableObjectManager idObjectManager;
+
   private Enrollment enrollment;
+
   private Event event;
+
   private ProgramNotificationInstance enrollmentNotification1;
+
   private ProgramNotificationInstance enrollmentNotification2;
+
   private ProgramNotificationInstance eventNotification;
 
   @BeforeEach
