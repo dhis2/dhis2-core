@@ -39,11 +39,11 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Service
 public class RuleEngineSideEffectHandlerService implements SideEffectHandlerService {
-  private final TrackerRuleEngineMessageManager ruleEngineMessageManager;
+  private final TrackerRuleEngineMessageManager trackerRuleEngineMessageManager;
 
   @Override
   public void handleSideEffect(TrackerSideEffectDataBundle sideEffectDataBundle) {
-    ruleEngineMessageManager.addJob(sideEffectDataBundle);
+    trackerRuleEngineMessageManager.sendRuleEngineNotifications(sideEffectDataBundle);
   }
 
   @Override

@@ -644,7 +644,8 @@ public class ApiIntegrator {
             primary.getEntityType(),
             primary.getName() + "+" + secondary.getName(),
             primary.getGroup(),
-            primary.getDeprecated());
+            primary.getDeprecated(),
+            primary.getMaturity());
     merged
         .getDescription()
         .setValue(primary.getDescription().orElse(secondary.getDescription().getValue()));

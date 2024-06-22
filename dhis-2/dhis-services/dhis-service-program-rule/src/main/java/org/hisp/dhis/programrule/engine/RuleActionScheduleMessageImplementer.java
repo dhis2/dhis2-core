@@ -42,6 +42,7 @@ import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Zubair Asghar
@@ -62,6 +63,7 @@ public class RuleActionScheduleMessageImplementer implements RuleActionImplement
   }
 
   @Override
+  @Transactional
   public void implement(RuleEffect ruleEffect, Enrollment enrollment) {
     ProgramNotificationTemplate template =
         notificationHelper.getNotificationTemplate(ruleEffect.getRuleAction());
@@ -91,6 +93,7 @@ public class RuleActionScheduleMessageImplementer implements RuleActionImplement
   }
 
   @Override
+  @Transactional
   public void implement(RuleEffect ruleEffect, Event event) {
     ProgramNotificationTemplate template =
         notificationHelper.getNotificationTemplate(ruleEffect.getRuleAction());
