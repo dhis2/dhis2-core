@@ -204,7 +204,7 @@ pipeline {
                         releasesBranch = "add-release-${imageTag}"
 
                         sh "git checkout -b $releasesBranch"
-                        sh 'git add .'
+                        sh 'git add ./downloads/v1/versions/stable.json'
                         sh "git diff-index --quiet HEAD || git commit -m \"chore: add version $imageTag to stable.json\""
                         sh "git push https://${GITHUB_TOKEN}@github.com/$DHIS2_RELEASES_REPO"
 
