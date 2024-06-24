@@ -185,7 +185,7 @@ class ProgramRuleActionStoreTest extends SingleSetupIntegrationTestBase {
 
     programNotificationTemplateService.save(pnt);
 
-    actionA.setNotificationTemplate(pnt);
+    actionA.setTemplateUid(pnt.getUid());
     actionStore.save(actionA);
     actionStore.save(actionB);
     actionStore.save(actionC);
