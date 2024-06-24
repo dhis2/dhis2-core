@@ -253,6 +253,10 @@ public class ChangeLogController {
     return rootNode;
   }
 
+  /**
+   * @deprecated use EventsExportController#getEventChangeLogsByUid instead
+   */
+  @Deprecated(forRemoval = true, since = "2.42")
   @GetMapping("trackedEntityDataValue")
   public RootNode getTrackedEntityDataValueChangeLog(
       @OpenApi.Param({UID[].class, DataElement.class}) @RequestParam(required = false)
@@ -335,6 +339,10 @@ public class ChangeLogController {
     return rootNode;
   }
 
+  /**
+   * @deprecated use TrackedEntitiesExportController#getTrackedEntityAttributeChangeLog instead
+   */
+  @Deprecated(forRemoval = true, since = "2.42")
   @GetMapping("trackedEntityAttributeValue")
   public RootNode getTrackedEntityAttributeValueChangeLog(
       @OpenApi.Param({UID[].class, TrackedEntityAttribute.class}) @RequestParam(required = false)
