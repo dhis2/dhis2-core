@@ -720,9 +720,7 @@
       "lastUpdated": "2020-12-17T12:52:51.570",
       "id": "fCvheO89KCl",
       "programRuleActionType": "SENDMESSAGE",
-      "notificationTemplate": {
-        "id": "IIyHlMh9ORz"
-      },
+      "templateUid": "IIyHlMh9ORz",
       "evaluationTime": "ALWAYS",
       "lastUpdatedBy": {
         "code": "admin",

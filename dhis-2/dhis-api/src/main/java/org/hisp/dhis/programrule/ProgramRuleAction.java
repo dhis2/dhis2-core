@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.programrule;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
@@ -320,14 +321,22 @@ public class ProgramRuleAction extends BaseIdentifiableObject implements Metadat
     this.dataElement = dataElement;
   }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JsonIgnore
   public ProgramNotificationTemplate getNotificationTemplate() {
     return notificationTemplate;
   }
 
-  public void setNotificationTemplate(ProgramNotificationTemplate notificationTemplate) {
-    this.notificationTemplate = notificationTemplate;
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getTemplateUid() {
+    return notificationTemplate.getUid();
+  }
+
+  public void setTemplateUid(String uid) {
+    ProgramNotificationTemplate template = new ProgramNotificationTemplate();
+    template.setUid(uid);
+
+    this.notificationTemplate = template;
   }
 
   @JsonProperty("trackedEntityAttribute")

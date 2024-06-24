@@ -44,6 +44,7 @@ import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
 import org.hisp.dhis.programrule.action.validation.HideOptionProgramRuleActionValidator;
 import org.hisp.dhis.programrule.action.validation.NotificationProgramRuleActionValidator;
@@ -134,7 +135,8 @@ class ProgramRuleActionValidatorTest extends DhisConvenienceTest {
             "test", 1, NotificationTrigger.PROGRAM_RULE, ProgramNotificationRecipient.USER_GROUP);
 
     ProgramRuleAction programRuleAction = new ProgramRuleAction();
-    programRuleAction.setNotificationTemplate(pnt);
+    programRuleAction.setTemplateUid(pnt.getUid());
+    programRuleAction.setProgramRuleActionType(ProgramRuleActionType.SENDMESSAGE);
 
     ProgramRule programRule = new ProgramRule();
     programRule.setProgram(program);
@@ -154,6 +156,7 @@ class ProgramRuleActionValidatorTest extends DhisConvenienceTest {
   @Test
   void testInValidRuleActionSendMessage() {
     ProgramRuleAction programRuleAction = new ProgramRuleAction();
+    programRuleAction.setProgramRuleActionType(ProgramRuleActionType.SENDMESSAGE);
 
     ProgramRule programRule = new ProgramRule();
     programRule.setProgram(program);

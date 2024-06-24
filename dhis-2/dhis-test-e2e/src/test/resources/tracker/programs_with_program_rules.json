@@ -1322,9 +1322,7 @@
       "attributeValues": []
     },
     {
-      "notificationTemplate": {
-        "id": "IIyHlMh9ORz"
-      },
+      "templateUid": "IIyHlMh9ORz",
       "id": "fCvheO89KCl",
       "programRuleActionType": "SENDMESSAGE",
       "programRule": {

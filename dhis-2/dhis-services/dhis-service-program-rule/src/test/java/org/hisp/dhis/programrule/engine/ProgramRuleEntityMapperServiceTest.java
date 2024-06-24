@@ -472,7 +472,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
     if (type == ProgramRuleActionType.SENDMESSAGE) {
       ProgramNotificationTemplate notificationTemplate = new ProgramNotificationTemplate();
       notificationTemplate.setUid("uid0");
-      programRuleActionA.setNotificationTemplate(notificationTemplate);
+      programRuleActionA.setTemplateUid(notificationTemplate.getUid());
       programRuleActionA.setData(data);
     }
 

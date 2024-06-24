@@ -302,9 +302,7 @@
       "id": "VzMCAo8HrpO",
       "programRuleActionType": "SCHEDULEMESSAGE",
       "data": "'2020-06-20'",
-      "notificationTemplate": {
-        "id": "FdIeUL4gyoB"
-      },
+      "templateUid": "FdIeUL4gyoB",
       "evaluationTime": "ALWAYS",
       "lastUpdatedBy": {
         "id": "M5zQapPyTZI"
