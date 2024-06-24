@@ -27,7 +27,7 @@
     <commons-collections4.version>4.4</commons-collections4.version>
     <commons-lang3.version>3.14.0</commons-lang3.version>
     <json-path.version>2.9.0</json-path.version>
-    <jsonassert.version>1.5.1</jsonassert.version>
+    <jsonassert.version>1.5.2</jsonassert.version>
     <awaitility.version>4.2.1</awaitility.version>
     <lombok.version>1.18.32</lombok.version>
     <allure.version>2.27.0</allure.version>
