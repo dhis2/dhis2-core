@@ -65,7 +65,8 @@ import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * This code is a modified version of the original code from Spring Boot project.
+ * This code is a modified version of the original code from Spring Boot project. It serves as the
+ * main entry point for the embedded server. It starts an embedded Tomcat server
  *
  * @author Phillip Webb
  * @author Andy Wilkinson
