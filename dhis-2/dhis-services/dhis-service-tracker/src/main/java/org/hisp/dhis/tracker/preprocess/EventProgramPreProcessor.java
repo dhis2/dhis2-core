@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.tracker.preprocess;
 
+import static java.util.Objects.nonNull;
+
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.hisp.dhis.program.Program;
@@ -51,14 +52,19 @@ public class EventProgramPreProcessor implements BundlePreProcessor {
   public void process(TrackerBundle bundle) {
     List<Event> eventsToPreprocess =
         bundle.getEvents().stream()
-            .filter(e -> e.getProgram().isBlank() || e.getProgramStage().isBlank())
+            .filter(
+                e ->
+                    e.getProgram() == null
+                        || e.getProgram().isBlank()
+                        || e.getProgramStage() == null
+                        || e.getProgramStage().isBlank())
             .collect(Collectors.toList());
 
     for (Event event : eventsToPreprocess) {
       // Extract program from program stage
-      if (event.getProgramStage().isNotBlank()) {
+      if (nonNull(event.getProgramStage()) && event.getProgramStage().isNotBlank()) {
         ProgramStage programStage = bundle.getPreheat().getProgramStage(event.getProgramStage());
-        if (Objects.nonNull(programStage)) {
+        if (nonNull(programStage)) {
           // TODO remove if once metadata import is fixed
           if (programStage.getProgram() == null) {
             // Program stages should always have a program! Due to
@@ -84,9 +90,9 @@ public class EventProgramPreProcessor implements BundlePreProcessor {
         }
       }
       // If it is a program event, extract program stage from program
-      else if (event.getProgram().isNotBlank()) {
+      else if (nonNull(event.getProgram()) && event.getProgram().isNotBlank()) {
         Program program = bundle.getPreheat().getProgram(event.getProgram());
-        if (Objects.nonNull(program) && program.isWithoutRegistration()) {
+        if (nonNull(program) && program.isWithoutRegistration()) {
           Optional<ProgramStage> programStage = program.getProgramStages().stream().findFirst();
           if (programStage.isPresent()) {
             TrackerIdSchemeParams idSchemes = bundle.getPreheat().getIdSchemes();
