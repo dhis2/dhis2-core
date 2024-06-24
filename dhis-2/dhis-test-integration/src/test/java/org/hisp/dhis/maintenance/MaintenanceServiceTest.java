@@ -44,6 +44,8 @@ import org.hisp.dhis.audit.AuditQuery;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditService;
 import org.hisp.dhis.audit.AuditType;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.commons.util.RelationshipUtils;
@@ -112,9 +114,13 @@ class MaintenanceServiceTest extends IntegrationTestBase {
 
   @Autowired private AuditService auditService;
 
+  @Autowired private CategoryService categoryService;
+
   private Date incidenDate;
 
   private Date enrollmentDate;
+
+  private CategoryOptionCombo coA;
 
   private Program program;
 
@@ -144,6 +150,7 @@ class MaintenanceServiceTest extends IntegrationTestBase {
 
   @Override
   public void setUpTest() {
+    coA = categoryService.getDefaultCategoryOptionCombo();
     organisationUnit = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnit);
     program = createProgram('A', new HashSet<>(), organisationUnit);
@@ -190,11 +197,13 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     event.setOrganisationUnit(organisationUnit);
     event.setEnrollment(enrollment);
     event.setOccurredDate(new Date());
+    event.setAttributeOptionCombo(coA);
     eventWithTeAssociation = new Event(enrollmentWithTeAssociation, stageA);
     eventWithTeAssociation.setUid("PSUID-C");
     eventWithTeAssociation.setOrganisationUnit(organisationUnit);
     eventWithTeAssociation.setEnrollment(enrollmentWithTeAssociation);
     eventWithTeAssociation.setOccurredDate(new Date());
+    eventWithTeAssociation.setAttributeOptionCombo(coA);
     eventService.addEvent(eventWithTeAssociation);
     relationshipType = createPersonToPersonRelationshipType('A', program, trackedEntityType, false);
     relationshipTypeService.addRelationshipType(relationshipType);
@@ -311,6 +320,7 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     Event eventA = new Event(enrollment, program.getProgramStageByStage(1));
     eventA.setScheduledDate(enrollmentDate);
     eventA.setUid("UID-A");
+    eventA.setAttributeOptionCombo(coA);
     eventService.addEvent(eventA);
     TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog =
         new TrackedEntityDataValueChangeLog(
@@ -338,6 +348,7 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     Event eventA = new Event(enrollment, program.getProgramStageByStage(1));
     eventA.setScheduledDate(enrollmentDate);
     eventA.setUid("UID-A");
+    eventA.setAttributeOptionCombo(coA);
     long idA = eventService.addEvent(eventA);
     Relationship r = new Relationship();
     RelationshipItem rItem1 = new RelationshipItem();

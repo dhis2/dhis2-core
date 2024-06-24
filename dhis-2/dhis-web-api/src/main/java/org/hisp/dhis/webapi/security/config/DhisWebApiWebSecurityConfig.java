@@ -48,7 +48,6 @@ import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.hisp.dhis.webapi.filter.CorsFilter;
 import org.hisp.dhis.webapi.filter.CspFilter;
-import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
 import org.hisp.dhis.webapi.security.Http401LoginUrlAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthManager;
 import org.hisp.dhis.webapi.security.apikey.Dhis2ApiTokenFilter;
@@ -70,7 +69,6 @@ import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.header.HeaderWriterFilter;
@@ -166,7 +164,6 @@ public class DhisWebApiWebSecurityConfig {
     configureFormLogin(http);
     configureCspFilter(http, dhisConfig, configurationService);
     configureCorsFilter(http);
-    configureMobileAuthFilter(http);
     configureApiTokenAuthorizationFilter(http);
     configureOAuthTokenFilters(http);
 
@@ -441,11 +438,6 @@ public class DhisWebApiWebSecurityConfig {
 
   private void configureCorsFilter(HttpSecurity http) {
     http.addFilterBefore(CorsFilter.get(), BasicAuthenticationFilter.class);
-  }
-
-  private void configureMobileAuthFilter(HttpSecurity http) {
-    http.addFilterBefore(
-        CustomAuthenticationFilter.get(), UsernamePasswordAuthenticationFilter.class);
   }
 
   private void configureApiTokenAuthorizationFilter(HttpSecurity http) {

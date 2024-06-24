@@ -49,14 +49,13 @@ import org.springframework.web.filter.DelegatingFilterProxy;
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase {
+public class Main extends EmbeddedJettyBase {
+
   private static final int DEFAULT_HTTP_PORT = 9090;
-
   private static final String SERVER_HOSTNAME_OR_IP = "localhost";
-
   private static final Long ELAPSED_SINCE_START = System.currentTimeMillis();
 
-  public JettyEmbeddedCoreWeb() {
+  public Main() {
     super();
   }
 
@@ -68,15 +67,7 @@ public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase {
     setDefaultPropertyValue("jetty.host", SERVER_HOSTNAME_OR_IP);
     setDefaultPropertyValue("jetty.http.port", String.valueOf(DEFAULT_HTTP_PORT));
 
-    /*
-     * This property is very import, this will instruct Spring to use
-     * special Spring config classes adapted to running in embedded Jetty.
-     *
-     * @see org.hisp.dhis.web.embeddedjetty.SpringConfiguration
-     */
-    setDefaultPropertyValue("spring.profiles.active", "embeddedJetty");
-
-    JettyEmbeddedCoreWeb jettyEmbeddedCoreWeb = new JettyEmbeddedCoreWeb();
+    Main jettyEmbeddedCoreWeb = new Main();
     jettyEmbeddedCoreWeb.printBanner("DHIS2 API Server");
     jettyEmbeddedCoreWeb.startJetty();
   }
@@ -111,7 +102,7 @@ public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase {
 
   private static AnnotationConfigWebApplicationContext getWebApplicationContext() {
     AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
-    context.register(SpringConfiguration.class);
+    context.register(JettyStartupTimerSpringConfiguration.class);
     return context;
   }
 

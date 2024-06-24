@@ -198,9 +198,7 @@ public class RecordingJobProgress implements JobProgress {
   public void startingProcess(String description, Object... args) {
     observer.run();
 
-    if (isCancelled()) {
-      throw cancellationException();
-    }
+    if (isCancelled()) throw cancellationException(false);
     String message = format(description, args);
     tracker.startingProcess(format(message, args));
     incompleteProcess.set(null);
@@ -211,10 +209,13 @@ public class RecordingJobProgress implements JobProgress {
   }
 
   @Nonnull
-  private RuntimeException cancellationException() {
+  private RuntimeException cancellationException(boolean failedPostCondition) {
     Exception cause = getCause();
     if (skipRecording && cause instanceof RuntimeException rex) throw rex;
-    CancellationException ex = new CancellationException();
+    CancellationException ex =
+        failedPostCondition
+            ? new CancellationException("Non-null post-condition failed")
+            : new CancellationException();
     ex.initCause(cause);
     return ex;
   }
@@ -231,7 +232,7 @@ public class RecordingJobProgress implements JobProgress {
   }
 
   @Override
-  public void failedProcess(String error, Object... args) {
+  public void failedProcess(@CheckForNull String error, Object... args) {
     observer.run();
 
     String message = format(error, args);
@@ -250,7 +251,7 @@ public class RecordingJobProgress implements JobProgress {
   }
 
   @Override
-  public void failedProcess(Exception cause) {
+  public void failedProcess(@Nonnull Exception cause) {
     observer.run();
 
     tracker.failedProcess(cause);
@@ -271,17 +272,24 @@ public class RecordingJobProgress implements JobProgress {
   }
 
   @Override
-  public void startingStage(String description, int workItems, FailurePolicy onFailure) {
+  public void startingStage(
+      @Nonnull String description, int workItems, @Nonnull FailurePolicy onFailure) {
     observer.run();
 
-    if (isCancelled()) {
-      throw cancellationException();
-    }
+    if (isCancelled()) throw cancellationException(false);
     skipCurrentStage.set(false);
     tracker.startingStage(description, workItems);
     Stage stage =
         addStageRecord(getOrAddLastIncompleteProcess(), description, workItems, onFailure);
     logInfo(stage, "", description);
+  }
+
+  @Nonnull
+  @Override
+  public <T> T nonNullStagePostCondition(@CheckForNull T value) throws CancellationException {
+    observer.run();
+    if (value == null) throw cancellationException(true);
+    return value;
   }
 
   @Override
@@ -296,7 +304,7 @@ public class RecordingJobProgress implements JobProgress {
   }
 
   @Override
-  public void failedStage(String error, Object... args) {
+  public void failedStage(@Nonnull String error, Object... args) {
     observer.run();
 
     String message = format(error, args);
@@ -310,7 +318,7 @@ public class RecordingJobProgress implements JobProgress {
   }
 
   @Override
-  public void failedStage(Exception cause) {
+  public void failedStage(@Nonnull Exception cause) {
     observer.run();
 
     cause = cancellationAsAbort(cause);
@@ -326,7 +334,7 @@ public class RecordingJobProgress implements JobProgress {
   }
 
   @Override
-  public void startingWorkItem(String description, FailurePolicy onFailure) {
+  public void startingWorkItem(@Nonnull String description, @Nonnull FailurePolicy onFailure) {
     observer.run();
 
     tracker.startingWorkItem(description, onFailure);
@@ -346,7 +354,7 @@ public class RecordingJobProgress implements JobProgress {
   }
 
   @Override
-  public void failedWorkItem(String error, Object... args) {
+  public void failedWorkItem(@Nonnull String error, Object... args) {
     observer.run();
 
     String message = format(error, args);
@@ -360,7 +368,7 @@ public class RecordingJobProgress implements JobProgress {
   }
 
   @Override
-  public void failedWorkItem(Exception cause) {
+  public void failedWorkItem(@Nonnull Exception cause) {
     observer.run();
 
     tracker.failedWorkItem(cause);
