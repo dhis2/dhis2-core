@@ -27,19 +27,30 @@
  */
 package org.hisp.dhis.notification.logging;
 
-import lombok.Builder;
-import lombok.Data;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import lombok.Getter;
 
-/**
- * @author Zubair Asghar
- */
-@Data
-@Builder
 public class NotificationValidationResult {
-  ProgramNotificationTemplate template;
+  private final boolean needsToCreateLogEntry;
+  @Getter private final boolean valid;
 
-  ExternalNotificationLogEntry logEntry;
+  private NotificationValidationResult(boolean needsToCreatelogEntry, boolean valid) {
+    this.needsToCreateLogEntry = needsToCreatelogEntry;
+    this.valid = valid;
+  }
 
-  boolean valid;
+  public static NotificationValidationResult invalid() {
+    return new NotificationValidationResult(false, false);
+  }
+
+  public static NotificationValidationResult validAndNoNeedForLogEntries() {
+    return new NotificationValidationResult(false, true);
+  }
+
+  public static NotificationValidationResult validAndNeedsLogEntries() {
+    return new NotificationValidationResult(true, true);
+  }
+
+  public boolean needsToCreateLogEntry() {
+    return needsToCreateLogEntry;
+  }
 }
