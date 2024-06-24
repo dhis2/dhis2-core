@@ -76,7 +76,10 @@ public class HibernateProgramRuleStore extends HibernateIdentifiableObjectStore<
             FROM programruleaction pra join dataelement de ON pra.dataelementid = de.dataelementid
             WHERE pra.actiontype in (:types)
         """;
-    return nativeSynchronizedQuery(sql).setParameter("types", serverSupportedTypes).getResultList();
+    return getSession()
+        .createNativeQuery(sql)
+        .setParameter("types", serverSupportedTypes)
+        .getResultList();
   }
 
   @Override
@@ -90,7 +93,10 @@ public class HibernateProgramRuleStore extends HibernateIdentifiableObjectStore<
             FROM ProgramRuleAction pra JOIN trackedentityattribute tea ON pra.trackedentityattributeid = tea.trackedentityattributeid
             WHERE pra.actiontype in (:types)
         """;
-    return nativeSynchronizedQuery(sql).setParameter("types", serverSupportedTypes).getResultList();
+    return getSession()
+        .createNativeQuery(sql)
+        .setParameter("types", serverSupportedTypes)
+        .getResultList();
   }
 
   @Override
