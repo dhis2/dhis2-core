@@ -348,7 +348,7 @@ class ProgramRuleActionServiceTest extends TransactionalIntegrationTest {
 
     programNotificationTemplateService.save(pnt);
 
-    actionI.setNotificationTemplate(pnt);
+    actionI.setTemplateUid(pnt.getUid());
     actionService.addProgramRuleAction(actionI);
     actionService.addProgramRuleAction(actionJ);
     programRuleA.setProgramRuleActions(Sets.newHashSet(actionI, actionJ));
