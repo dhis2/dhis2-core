@@ -91,7 +91,7 @@ public interface EventService {
   long getEventCount(int days);
 
   /**
-   * Creates an event.
+   * Creates and saves an event.
    *
    * @param enrollment the Enrollment.
    * @param programStage the ProgramStage.

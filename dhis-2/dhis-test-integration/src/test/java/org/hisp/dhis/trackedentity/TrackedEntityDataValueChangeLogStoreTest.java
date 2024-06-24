@@ -35,6 +35,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.audit.UserInfoTestHelper;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.dataelement.DataElement;
@@ -81,6 +83,10 @@ class TrackedEntityDataValueChangeLogStoreTest extends SingleSetupIntegrationTes
 
   @Autowired private EventService eventService;
 
+  @Autowired private CategoryService categoryService;
+
+  private CategoryOptionCombo coc;
+
   private OrganisationUnit ouA;
 
   private OrganisationUnit ouB;
@@ -123,6 +129,7 @@ class TrackedEntityDataValueChangeLogStoreTest extends SingleSetupIntegrationTes
 
   @Override
   public void setUpTest() {
+    coc = categoryService.getDefaultCategoryOptionCombo();
     ouA = createOrganisationUnit('A');
     ouB = createOrganisationUnit('B', ouA);
     ouC = createOrganisationUnit('C', ouA);

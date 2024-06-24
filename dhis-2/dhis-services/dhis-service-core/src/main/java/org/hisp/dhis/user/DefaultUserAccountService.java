@@ -136,11 +136,9 @@ public class DefaultUserAccountService implements UserAccountService {
     if (user == null) {
       throw new BadRequestException("Invitation link not valid");
     }
-
     if (!userService.canRestore(user, restoreToken, RestoreType.INVITE)) {
       throw new BadRequestException("Invitation code not valid");
     }
-
     if (!userService.restore(user, restoreToken, params.getPassword(), RestoreType.INVITE)) {
       log.warn("Invite restore failed");
       throw new BadRequestException("Unable to update invited user account");

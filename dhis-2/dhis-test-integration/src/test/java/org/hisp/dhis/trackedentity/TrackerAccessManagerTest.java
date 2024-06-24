@@ -40,6 +40,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.time.DateUtils;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -83,6 +85,10 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest {
 
   @Autowired private UserService _userService;
 
+  @Autowired private CategoryService categoryService;
+
+  private CategoryOptionCombo coA;
+
   private TrackedEntity trackedEntityA;
 
   private OrganisationUnit orgUnitA;
@@ -103,6 +109,7 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest {
 
   @Override
   protected void setUpTest() {
+    coA = categoryService.getDefaultCategoryOptionCombo();
     userService = _userService;
     orgUnitA = createOrganisationUnit('A');
     orgUnitB = createOrganisationUnit('B');
@@ -168,6 +175,7 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest {
     eventA.setOrganisationUnit(orgUnitA);
     eventA.setStatus(EventStatus.COMPLETED);
     eventA.setOccurredDate(new Date());
+    eventA.setAttributeOptionCombo(coA);
     manager.save(eventA, false);
 
     eventB = new Event();
@@ -176,6 +184,7 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest {
     eventB.setOrganisationUnit(orgUnitB);
     eventB.setStatus(EventStatus.SCHEDULE);
     eventB.setScheduledDate(DateUtils.addDays(new Date(), 10));
+    eventB.setAttributeOptionCombo(coA);
     manager.save(eventB, false);
   }
 

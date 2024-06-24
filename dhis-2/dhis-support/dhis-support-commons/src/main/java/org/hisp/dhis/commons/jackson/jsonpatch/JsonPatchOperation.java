@@ -73,9 +73,4 @@ public abstract class JsonPatchOperation implements Patch {
     this.op = op;
     this.path = path;
   }
-
-  // TODO: To remove when we remove old UserCredentials compatibility layer
-  public void setPath(JsonPointer path) {
-    this.path = path;
-  }
 }

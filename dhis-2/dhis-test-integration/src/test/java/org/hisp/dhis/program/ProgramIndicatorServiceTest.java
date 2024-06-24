@@ -265,13 +265,13 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest {
     // ---------------------------------------------------------------------
     // TrackedEntityDataValue
     // ---------------------------------------------------------------------
-    Event stageInstanceA =
+    Event eventA =
         eventService.createEvent(enrollment, psA, enrollmentDate, incidentDate, organisationUnit);
-    Event stageInstanceB =
+    Event eventB =
         eventService.createEvent(enrollment, psB, enrollmentDate, incidentDate, organisationUnit);
     Set<Event> events = new HashSet<>();
-    events.add(stageInstanceA);
-    events.add(stageInstanceB);
+    events.add(eventA);
+    events.add(eventB);
     enrollment.setEvents(events);
     enrollment.setProgram(programA);
     // ---------------------------------------------------------------------
