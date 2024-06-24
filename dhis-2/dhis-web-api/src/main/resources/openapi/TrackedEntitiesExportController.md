@@ -23,7 +23,7 @@ unnecessary fields from the response and in some cases decrease the response tim
 https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata.html#webapi_metadata_field_filter
 for how to use it.
 
-NOTE: this query parameter has no validationEffect on a response in CSV!
+NOTE: this query parameter has no effect on a response in CSV!
 
 ### `getAttributeValueFile`
 
@@ -225,7 +225,7 @@ unnecessary fields from the JSON response and in some cases decrease the respons
 https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata.html#webapi_metadata_field_filter
 for how to use it.
 
-NOTE: this query parameter has no validationEffect on a CSV response!
+NOTE: this query parameter has no effect on a CSV response!
 
 ### `*.parameter.TrackedEntityRequestParams.query`
 
