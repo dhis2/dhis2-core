@@ -117,29 +117,27 @@ pipeline {
 
             steps {
                 script {
-                    def imageTag = env.DOCKER_IMAGE_TAG
-
                     // Remove -rc suffix in case it's there, will be added later if needed.
-                    imageTag = imageTag.replace("-rc", "")
+                    oldImageTag = env.DOCKER_IMAGE_TAG.replace("-rc", "")
 
                     // If version contains more than 2 dots... It's a hotfix.
-                    boolean isHotfix = imageTag.length() - imageTag.replace(".", "").length() > 2
+                    boolean isHotfix = oldImageTag.length() - oldImageTag.replace(".", "").length() > 2
 
                     if (!isHotfix) {
-                        imageTag = "$imageTag.0"
+                        oldImageTag = "$oldImageTag.0"
                     }
 
-                    newImageTagFormat = imageTag.replaceFirst(/^2\./, "")
+                    imageTag = oldImageTag.replaceFirst(/^2\./, "")
 
                     withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
                         withMaven(options: [artifactsPublisher(disabled: true)]) {
                             if (env.DOCKER_IMAGE_TAG.endsWith("-rc")) {
-                                newImageTagFormat = "$newImageTagFormat-rc"
+                                imageTag = "$imageTag-rc"
 
                                 // Release candidates don't need immutable and rolling tags.
-                                sh "./dhis-2/build-docker-image.sh -t $newImageTagFormat -d"
+                                sh "./dhis-2/build-docker-image.sh -t $imageTag -d"
                             } else {
-                                sh "./dhis-2/build-docker-image.sh -t $newImageTagFormat"
+                                sh "./dhis-2/build-docker-image.sh -t $imageTag"
                             }
                         }
                     }
@@ -172,13 +170,13 @@ pipeline {
                     dir('dhis2-releases') {
                         git url: "https://github.com/$DHIS2_RELEASES_REPO"
 
-                        majorVersion = newImageTagFormat.split("\\.")[0]
+                        majorVersion = imageTag.split("\\.")[0]
 
                         sh """
                             ./tools/update-stable-json/update_stable_json.py \
-                            --version $newImageTagFormat \
+                            --version $imageTag \
                             --war-path ${WORKSPACE}/dhis-2/dhis-web-server/target/dhis.war \
-                            --war-url https://releases.dhis2.org/${majorVersion}/dhis2-stable-${newImageTagFormat}.war \
+                            --war-url https://releases.dhis2.org/${majorVersion}/dhis2-stable-${imageTag}.war \
                             --release-date \$(date +%F) \
                             --json-file ./downloads/v1/versions/stable.json
                         """
@@ -186,11 +184,11 @@ pipeline {
                         sh 'git config  user.email "$GITHUB_EMAIL"'
                         sh 'git config  user.name "$GITHUB_USER"'
 
-                        releasesBranch = "add-release-${newImageTagFormat}"
+                        releasesBranch = "add-release-${imageTag}"
 
                         sh "git checkout -b $releasesBranch"
                         sh 'git add .'
-                        sh "git diff-index --quiet HEAD || git commit -m \"chore: add version $newImageTagFormat to stable.json\""
+                        sh "git diff-index --quiet HEAD || git commit -m \"chore: add version $imageTag to stable.json\""
                         sh "git push https://${GITHUB_TOKEN}@github.com/$DHIS2_RELEASES_REPO"
 
                         sh "gh pr create --head $releasesBranch --fill-first --reviewer Philip-Larsen-Donnelly"
