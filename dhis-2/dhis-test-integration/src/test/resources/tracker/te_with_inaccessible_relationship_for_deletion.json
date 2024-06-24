@@ -35,12 +35,12 @@
       "trackedEntity": "PB9VMezGkwA"
     }
   ],
-  "enrollments": [
+  "enrollments": [],
+  "events": [],
+  "relationships": [
     {
-      "enrollment": "TvctPPhpD8u"
+      "relationship": "Nva3Xj2j75W"
     }
   ],
-  "events": [],
-  "relationships": [],
   "username": "system-process"
 }
