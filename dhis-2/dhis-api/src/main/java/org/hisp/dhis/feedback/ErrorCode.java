@@ -103,7 +103,7 @@ public enum ErrorCode {
   /* DataElement merge */
   E1550("At least one source data element must be specified"),
   E1551("Target data element must be specified"),
-  E1552("Target data element cannot be a source indicator"),
+  E1552("Target data element cannot be a source data element"),
   E1553("{0} data element does not exist: `{1}`"),
   E1554("All source ValueTypes must match target ValueType: `{0}`. Other ValueTypes found: `{1}`"),
   E1555(
