@@ -68,29 +68,25 @@ public class HibernateProgramRuleStore extends HibernateIdentifiableObjectStore<
 
   @Override
   public List<String> getDataElementsPresentInProgramRules(Set<ProgramRuleActionType> actionTypes) {
-    List<String> serverSupportedTypes = actionTypes.stream().map(Enum::name).toList();
-
     String sql =
         """
             SELECT distinct de.uid
-            FROM programruleaction pra join dataelement de ON pra.dataelementid = de.dataelementid
-            WHERE pra.actiontype in (:types)
+            FROM ProgramRuleAction pra JOIN pra.dataElement de
+            WHERE pra.programRuleActionType in (:types)
         """;
-    return nativeSynchronizedQuery(sql).setParameter("types", serverSupportedTypes).getResultList();
+    return getQuery(sql, String.class).setParameter("types", actionTypes).getResultList();
   }
 
   @Override
   public List<String> getTrackedEntityAttributesPresentInProgramRules(
       Set<ProgramRuleActionType> actionTypes) {
-    List<String> serverSupportedTypes = actionTypes.stream().map(Enum::name).toList();
-
     String sql =
         """
-            SELECT distinct tea.uid
-            FROM ProgramRuleAction pra JOIN trackedentityattribute tea ON pra.trackedentityattributeid = tea.trackedentityattributeid
-            WHERE pra.actiontype in (:types)
-        """;
-    return nativeSynchronizedQuery(sql).setParameter("types", serverSupportedTypes).getResultList();
+                SELECT distinct att.uid
+                FROM ProgramRuleAction pra JOIN pra.attribute att
+                WHERE pra.programRuleActionType in (:types)
+            """;
+    return getQuery(sql, String.class).setParameter("types", actionTypes).getResultList();
   }
 
   @Override

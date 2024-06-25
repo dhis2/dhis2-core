@@ -60,6 +60,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
@@ -80,13 +81,20 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class EnrollmentServiceTest extends TransactionalIntegrationTest {
+
   @Autowired private org.hisp.dhis.tracker.export.enrollment.EnrollmentService enrollmentService;
 
   @Autowired protected UserService _userService;
 
   @Autowired private EnrollmentService apiEnrollmentService;
 
+  @Autowired private EventService eventService;
+
   @Autowired private IdentifiableObjectManager manager;
+
+  private Date incidentDate = new Date();
+
+  private Date enrollmentDate = new Date();
 
   private User admin;
 
@@ -251,11 +259,9 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     enrollmentA =
         apiEnrollmentService.enrollTrackedEntity(
             trackedEntityA, programA, new Date(), new Date(), orgUnitA);
-    eventA = new Event();
-    eventA.setEnrollment(enrollmentA);
-    eventA.setProgramStage(programStageA);
-    eventA.setOrganisationUnit(orgUnitA);
-    manager.save(eventA, false);
+    eventA =
+        eventService.createEvent(
+            enrollmentA, programStageA, enrollmentDate, incidentDate, orgUnitA);
     enrollmentA.setEvents(Set.of(eventA));
     enrollmentA.setRelationshipItems(Set.of(from, to));
     manager.save(enrollmentA, false);

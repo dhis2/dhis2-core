@@ -486,8 +486,6 @@ public class DefaultPreheatService implements PreheatService {
               .collect(toList());
 
       for (Object object : targets.get(klass)) {
-        handleLegacyUserCredentials(klass, object);
-
         if (schema.isIdentifiableObject()) {
           IdentifiableObject identifiableObject = (IdentifiableObject) object;
           identifiableObject
@@ -977,17 +975,5 @@ public class DefaultPreheatService implements PreheatService {
 
   private boolean isOnlyUID(Class<?> klass) {
     return UserGroup.class.isAssignableFrom(klass) || User.class.isAssignableFrom(klass);
-  }
-
-  // TODO: To remove when we remove old UserCredentials compatibility layer
-  /**
-   * This is a temporary fix to maintain backwards compatibility with the old UserCredentials class
-   */
-  private void handleLegacyUserCredentials(Class<?> klass, Object object) {
-    if (!User.class.isAssignableFrom(klass) || object == null) {
-      return;
-    }
-
-    User.populateUserCredentialsDtoFields((User) object);
   }
 }
