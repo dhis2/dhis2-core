@@ -1328,9 +1328,13 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     identifiableObjectManager.save(stage);
 
     Event e1 = createEvent(stage, enrollment, ou1);
+    e1.setAttributeOptionCombo(coc1);
     Event e2 = createEvent(stage, enrollment, ou1);
+    e2.setAttributeOptionCombo(coc1);
     Event e3 = createEvent(stage, enrollment, ou1);
+    e3.setAttributeOptionCombo(coc1);
     Event e4 = createEvent(stage, enrollment, ou1);
+    e4.setAttributeOptionCombo(coc1);
 
     EventDataValue edv1 = new EventDataValue(deSource1.getUid(), "value1");
     EventDataValue edv11 = new EventDataValue(deSource1.getUid(), "value11");
@@ -1384,9 +1388,13 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     identifiableObjectManager.save(stage);
 
     Event e1 = createEvent(stage, enrollment, ou1);
+    e1.setAttributeOptionCombo(coc1);
     Event e2 = createEvent(stage, enrollment, ou1);
+    e2.setAttributeOptionCombo(coc1);
     Event e3 = createEvent(stage, enrollment, ou1);
+    e3.setAttributeOptionCombo(coc1);
     Event e4 = createEvent(stage, enrollment, ou1);
+    e4.setAttributeOptionCombo(coc1);
 
     EventDataValue edv1 = new EventDataValue(deSource1.getUid(), "value1");
     EventDataValue edv11 = new EventDataValue(deSource1.getUid(), "value11");
