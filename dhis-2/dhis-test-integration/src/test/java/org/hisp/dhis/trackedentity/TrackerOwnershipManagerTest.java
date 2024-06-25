@@ -33,6 +33,7 @@ import static org.hisp.dhis.security.acl.AccessStringHelper.FULL;
 import static org.hisp.dhis.user.UserRole.AUTHORITY_ALL;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -322,6 +323,51 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     assertIsEmpty(
         trackedEntityInstanceService.getTrackedEntityInstances(
             params, createInstanceParams(), false, false));
+  }
+
+  @Test
+  void shouldHaveAccessToEnrollmentWithSuperUserWhenTransferredToOwnOrgUnit() {
+    TrackedEntityInstanceQueryParams params = createOperationParams(superUser, programA, null);
+    trackerOwnershipAccessManager.assignOwnership(
+        entityInstanceA1, programA, organisationUnitA, false, true);
+    trackerOwnershipAccessManager.transferOwnership(
+        entityInstanceA1, programA, organisationUnitB, false, true);
+    superUser.setOrganisationUnits(Set.of(organisationUnitB));
+    userService.updateUser(superUser);
+    injectSecurityContext(superUser);
+
+    assertEquals(
+        List.of(entityInstanceA1.getUid()),
+        trackedEntityInstanceService
+            .getTrackedEntityInstances(params, createInstanceParams(), false, false)
+            .stream()
+            .map(
+                org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance
+                    ::getTrackedEntityInstance)
+            .collect(Collectors.toList()));
+  }
+
+  @Test
+  void shouldFindTrackedEntityWhenTransferredToAccessibleOrgUnitAndSuperUser() {
+    TrackedEntityInstanceQueryParams params =
+        createOperationParams(superUser, null, entityInstanceA1.getTrackedEntityType());
+    trackerOwnershipAccessManager.assignOwnership(
+        entityInstanceA1, programA, organisationUnitA, false, true);
+    trackerOwnershipAccessManager.transferOwnership(
+        entityInstanceA1, programA, organisationUnitB, false, true);
+    superUser.setOrganisationUnits(Set.of(organisationUnitB));
+    userService.updateUser(superUser);
+    injectSecurityContext(superUser);
+
+    assertContainsOnly(
+        List.of(entityInstanceA1.getUid(), entityInstanceB1.getUid()),
+        trackedEntityInstanceService
+            .getTrackedEntityInstances(params, createInstanceParams(), false, false)
+            .stream()
+            .map(
+                org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance
+                    ::getTrackedEntityInstance)
+            .collect(Collectors.toList()));
   }
 
   private void transferOwnership(
