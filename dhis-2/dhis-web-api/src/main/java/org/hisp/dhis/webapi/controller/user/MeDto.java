@@ -44,7 +44,6 @@ import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentialsDto;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -94,7 +93,6 @@ public class MeDto {
     this.telegram = user.getTelegram();
     this.twitter = user.getTwitter();
     this.userRoles = user.getUserRoles();
-    this.userCredentials = null;
 
     this.authorities = new ArrayList<>(user.getAllAuthorities());
 
@@ -198,11 +196,5 @@ public class MeDto {
 
   @JsonProperty() private String impersonation;
 
-  @JsonProperty() private UserCredentialsDto userCredentials;
-
   @JsonProperty() private List<ApiToken> patTokens;
-
-  protected void setUserCredentials(UserCredentialsDto userCredentialsDto) {
-    this.userCredentials = userCredentialsDto;
-  }
 }

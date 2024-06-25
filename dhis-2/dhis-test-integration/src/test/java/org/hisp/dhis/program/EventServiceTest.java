@@ -82,7 +82,7 @@ class EventServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
-  @Autowired NoteService noteService;
+  @Autowired private NoteService noteService;
 
   private OrganisationUnit organisationUnitA;
 

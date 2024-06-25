@@ -38,6 +38,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -75,7 +77,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest {
 
+  private static final String ATTRIBUTE_VALUE = "value";
+
   @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private CategoryService categoryService;
+
+  private CategoryOptionCombo coc;
 
   private OrganisationUnit orgUnit;
 
@@ -97,8 +105,6 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest {
 
   private DataElement dataElement;
 
-  private static final String ATTRIBUTE_VALUE = "value";
-
   private TrackedEntityAttributeValue trackedEntityAttributeValue;
 
   private EventDataValue eventDataValue;
@@ -107,6 +113,8 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest {
   void setUp() {
     owner = makeUser("o");
     manager.save(owner, false);
+
+    coc = categoryService.getDefaultCategoryOptionCombo();
 
     orgUnit = createOrganisationUnit('A');
     manager.save(orgUnit);
@@ -286,8 +294,8 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest {
   }
 
   private Event event() {
-    Event event = new Event(enrollment, programStage, enrollment.getOrganisationUnit());
-    event.setAutoFields();
+    Event eventA = new Event(enrollment, programStage, enrollment.getOrganisationUnit(), coc);
+    eventA.setAutoFields();
 
     eventDataValue = new EventDataValue();
     eventDataValue.setValue("value");
@@ -296,9 +304,9 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest {
     manager.save(dataElement);
     eventDataValue.setDataElement(dataElement.getUid());
     Set<EventDataValue> eventDataValues = Set.of(eventDataValue);
-    event.setEventDataValues(eventDataValues);
-    manager.save(event);
-    return event;
+    eventA.setEventDataValues(eventDataValues);
+    manager.save(eventA);
+    return eventA;
   }
 
   private Relationship relationship(Enrollment from, TrackedEntity to) {

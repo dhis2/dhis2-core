@@ -83,6 +83,7 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DimensionType;
@@ -165,6 +166,8 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   @Autowired private UserService _userService;
+
+  @Autowired private CategoryService categoryService;
 
   private OrganisationUnit ouA;
 
