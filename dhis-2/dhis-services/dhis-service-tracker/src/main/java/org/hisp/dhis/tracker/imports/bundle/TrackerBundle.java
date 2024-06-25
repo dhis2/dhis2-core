@@ -44,7 +44,6 @@ import lombok.Data;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.programrule.engine.NotificationEffect;
 import org.hisp.dhis.programrule.engine.RuleEngineEffects;
-import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.FlushMode;
@@ -121,12 +120,6 @@ public class TrackerBundle {
   /** Rule action executors for Events. */
   @Builder.Default
   private Map<Event, List<RuleActionExecutor<Event>>> eventRuleActionExecutors = new HashMap<>();
-
-  /** Rule effects for Enrollments. */
-  @Builder.Default private Map<String, List<RuleEffect>> enrollmentRuleEffects = new HashMap<>();
-
-  /** Rule effects for Events. */
-  @Builder.Default private Map<String, List<RuleEffect>> eventRuleEffects = new HashMap<>();
 
   @Builder.Default
   private Map<TrackerType, Map<String, TrackerImportStrategy>> resolvedStrategyMap =
