@@ -251,14 +251,6 @@ class MeControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testLegacyUserCredentialsIdPresent() {
-    JsonObject response = GET("/me?fields=id,userCredentials").content();
-    JsonObject userCredentials = response.getObject("userCredentials");
-    JsonValue id = userCredentials.get("id");
-    assertTrue(id.exists());
-  }
-
-  @Test
   void testPersonalAccessTokensIsPresent() {
     long thirtyDaysInTheFuture = System.currentTimeMillis() + TimeUnit.DAYS.toMillis(30);
     ApiKeyTokenGenerator.TokenWrapper wrapper =

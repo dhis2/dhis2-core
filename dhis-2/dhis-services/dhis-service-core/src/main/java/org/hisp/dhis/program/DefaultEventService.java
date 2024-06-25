@@ -36,6 +36,8 @@ import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
@@ -61,6 +63,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultEventService implements EventService {
   private final EventStore eventStore;
 
+  private final CategoryService categoryService;
+
   private final TrackedEntityDataValueChangeLogService dataValueAuditService;
 
   private final FileResourceService fileResourceService;
@@ -75,6 +79,12 @@ public class DefaultEventService implements EventService {
   @Transactional
   public long addEvent(Event event) {
     event.setAutoFields();
+
+    if (!event.hasAttributeOptionCombo()) {
+      CategoryOptionCombo aoc = categoryService.getDefaultCategoryOptionCombo();
+      event.setAttributeOptionCombo(aoc);
+    }
+
     eventStore.save(event);
     return event.getId();
   }
@@ -145,6 +155,7 @@ public class DefaultEventService implements EventService {
       event.setOrganisationUnit(organisationUnit);
       event.setScheduledDate(dueDate);
       event.setStatus(EventStatus.SCHEDULE);
+      event.setAttributeOptionCombo(categoryService.getDefaultCategoryOptionCombo());
 
       if (programStage.getOpenAfterEnrollment()
           || enrollment.getProgram().isWithoutRegistration()

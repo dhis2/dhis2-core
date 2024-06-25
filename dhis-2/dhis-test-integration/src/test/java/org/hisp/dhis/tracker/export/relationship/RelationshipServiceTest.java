@@ -48,6 +48,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
@@ -71,11 +72,15 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private EnrollmentService enrollmentService;
 
+  @Autowired private EventService eventService;
+
   @Autowired private RelationshipService relationshipService;
 
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private TrackerOwnershipManager trackerOwnershipAccessManager;
+
+  private Date enrollmentDate;
 
   private TrackedEntity teA;
 
@@ -117,6 +122,8 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
   protected void setUpTest() throws Exception {
     userService = _userService;
 
+    enrollmentDate = new Date();
+
     orgUnitA = createOrganisationUnit('A');
     manager.save(orgUnitA, false);
 
@@ -157,20 +164,17 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
     manager.save(program, false);
 
     enrollmentA =
-        enrollmentService.enrollTrackedEntity(teA, program, new Date(), new Date(), orgUnitA);
-    eventA = new Event();
-    eventA.setEnrollment(enrollmentA);
-    eventA.setProgramStage(programStage);
-    eventA.setOrganisationUnit(orgUnitA);
-    manager.save(eventA, false);
+        enrollmentService.enrollTrackedEntity(
+            teA, program, enrollmentDate, enrollmentDate, orgUnitA);
+    eventA =
+        eventService.createEvent(
+            enrollmentA, programStage, enrollmentDate, enrollmentDate, orgUnitA);
 
     Enrollment enrollmentB =
         enrollmentService.enrollTrackedEntity(teB, program, new Date(), new Date(), orgUnitA);
-    inaccessibleEvent = new Event();
-    inaccessibleEvent.setEnrollment(enrollmentB);
-    inaccessibleEvent.setProgramStage(inaccessibleProgramStage);
-    inaccessibleEvent.setOrganisationUnit(orgUnitA);
-    manager.save(inaccessibleEvent, false);
+    inaccessibleEvent =
+        eventService.createEvent(
+            enrollmentB, inaccessibleProgramStage, enrollmentDate, enrollmentDate, orgUnitA);
 
     teToTeType
         .getFromConstraint()

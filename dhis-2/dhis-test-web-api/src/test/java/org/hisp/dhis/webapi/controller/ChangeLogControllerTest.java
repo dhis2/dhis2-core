@@ -31,6 +31,8 @@ import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Set;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -51,9 +53,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 class ChangeLogControllerTest extends DhisControllerConvenienceTest {
 
-  private static final String DATA_ELEMENT_VALUE = "value";
-
   @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private CategoryService categoryService;
+
+  private CategoryOptionCombo coc;
 
   private OrganisationUnit orgUnit;
 
@@ -82,6 +86,8 @@ class ChangeLogControllerTest extends DhisControllerConvenienceTest {
   @BeforeEach
   void setUp() {
     owner = makeUser("owner");
+
+    coc = categoryService.getDefaultCategoryOptionCombo();
 
     orgUnit = createOrganisationUnit('A');
     orgUnit.getSharing().setOwner(owner);
@@ -125,9 +131,11 @@ class ChangeLogControllerTest extends DhisControllerConvenienceTest {
     manager.save(enrollment);
 
     event1 = createEvent(programStage, enrollment, enrollment.getOrganisationUnit());
+    event1.setAttributeOptionCombo(coc);
     manager.save(event1);
 
     event2 = createEvent(programStage, enrollment, enrollment.getOrganisationUnit());
+    event2.setAttributeOptionCombo(coc);
     manager.save(event2);
   }
 
