@@ -1252,16 +1252,16 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     boolean hasLastUpdatedBy =
         schema.getPersistedProperty(BaseIdentifiableObject_.LAST_UPDATED_BY) != null;
 
-    UserDetails currentUserDetails = UserDetails.fromUser(user);
-    if (currentUserDetails == null)
+    UserDetails userToSearch = UserDetails.fromUser(user);
+    if (userToSearch == null)
       throw new IllegalArgumentException(
           "Nonnull UserDetails required when calling IdentifiableObjetStore methods");
     if (hasCreatedBy && hasLastUpdatedBy) {
-      return store.findByUser(currentUserDetails);
+      return store.findByUser(userToSearch);
     } else if (hasLastUpdatedBy) {
-      return store.findByLastUpdatedBy(currentUserDetails);
+      return store.findByLastUpdatedBy(userToSearch);
     } else if (hasCreatedBy) {
-      return store.findByCreatedBy(currentUserDetails);
+      return store.findByCreatedBy(userToSearch);
     }
 
     return List.of();
