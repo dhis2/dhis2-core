@@ -1253,6 +1253,9 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
         schema.getPersistedProperty(BaseIdentifiableObject_.LAST_UPDATED_BY) != null;
 
     UserDetails currentUserDetails = UserDetails.fromUser(user);
+    if (currentUserDetails == null)
+      throw new IllegalArgumentException(
+          "Nonnull UserDetails required when calling IdentifiableObjetStore methods");
     if (hasCreatedBy && hasLastUpdatedBy) {
       return store.findByUser(currentUserDetails);
     } else if (hasLastUpdatedBy) {
