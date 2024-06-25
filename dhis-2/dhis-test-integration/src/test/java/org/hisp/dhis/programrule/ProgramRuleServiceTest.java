@@ -40,6 +40,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.DeleteNotAllowedException;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectStore;
 import org.hisp.dhis.program.Program;
@@ -49,6 +51,8 @@ import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageSectionService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -90,6 +94,10 @@ class ProgramRuleServiceTest extends IntegrationTestBase {
 
   @Autowired private DeletedObjectStore deletedObjectStore;
 
+  @Autowired private DataElementService dataElementService;
+
+  @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
+
   @Override
   public void setUpTest() {
     programA = createProgram('A', null, null);
@@ -127,6 +135,121 @@ class ProgramRuleServiceTest extends IntegrationTestBase {
     programRuleVariableB = createProgramRuleVariable('B', programA);
     programRuleVariableService.addProgramRuleVariable(programRuleVariableA);
     programRuleVariableService.addProgramRuleVariable(programRuleVariableB);
+  }
+
+  @Test
+  void shouldRetrieveAllDataElementFromServerRuleActions() {
+    DataElement dataElementA = createDataElement('A');
+    dataElementA.setUid("TvctPPhpD8u");
+    DataElement dataElementB = createDataElement('B');
+    dataElementB.setUid("h4w96yEMlzO");
+    DataElement dataElementC = createDataElement('C');
+    dataElementC.setUid("NpsdDv6kKSO");
+
+    dataElementService.addDataElement(dataElementA);
+    dataElementService.addDataElement(dataElementB);
+    dataElementService.addDataElement(dataElementC);
+
+    ProgramRule ruleA =
+        new ProgramRule("RuleA", "descriptionA", programB, null, null, "true", null);
+    ProgramRule ruleB = new ProgramRule("RuleB", "descriptionG", programB, null, null, "!false", 0);
+    ProgramRule ruleC = new ProgramRule("RuleC", "descriptionF", programB, null, null, "!false", 0);
+    programRuleService.addProgramRule(ruleA);
+    programRuleService.addProgramRule(ruleB);
+    programRuleService.addProgramRule(ruleC);
+
+    ProgramRuleAction showWarningAction = createProgramRuleAction('D');
+    showWarningAction.setProgramRuleActionType(ProgramRuleActionType.SHOWWARNING);
+    showWarningAction.setDataElement(dataElementA);
+    showWarningAction.setProgramRule(ruleA);
+
+    ProgramRuleAction showErrorAction = createProgramRuleAction('E');
+    showErrorAction.setProgramRuleActionType(ProgramRuleActionType.SHOWERROR);
+    showErrorAction.setDataElement(dataElementB);
+    showErrorAction.setProgramRule(ruleB);
+
+    ProgramRuleAction hideFieldAction = createProgramRuleAction('F');
+    hideFieldAction.setProgramRuleActionType(ProgramRuleActionType.HIDEFIELD);
+    hideFieldAction.setDataElement(dataElementC);
+    hideFieldAction.setProgramRule(ruleC);
+
+    programRuleActonService.addProgramRuleAction(showWarningAction);
+    programRuleActonService.addProgramRuleAction(showErrorAction);
+    programRuleActonService.addProgramRuleAction(hideFieldAction);
+
+    ruleA.setProgramRuleActions(Set.of(showWarningAction));
+    ruleB.setProgramRuleActions(Set.of(showErrorAction));
+    ruleC.setProgramRuleActions(Set.of(hideFieldAction));
+
+    programRuleService.updateProgramRule(ruleA);
+    programRuleService.updateProgramRule(ruleB);
+    programRuleService.updateProgramRule(ruleC);
+
+    entityManager.clear();
+    entityManager.flush();
+
+    List<String> dataElementsPresentInProgramRules =
+        programRuleService.getDataElementsPresentInProgramRules();
+
+    assertContainsOnly(List.of("TvctPPhpD8u", "h4w96yEMlzO"), dataElementsPresentInProgramRules);
+  }
+
+  @Test
+  void shouldRetrieveAllTrackedEntityAttributesFromServerRuleActions() {
+    TrackedEntityAttribute trackedEntityAttributeA = createTrackedEntityAttribute('A');
+    trackedEntityAttributeA.setUid("TvctPPhpD8u");
+    TrackedEntityAttribute trackedEntityAttributeB = createTrackedEntityAttribute('B');
+    trackedEntityAttributeB.setUid("h4w96yEMlzO");
+    TrackedEntityAttribute trackedEntityAttributeC = createTrackedEntityAttribute('C');
+    trackedEntityAttributeC.setUid("NpsdDv6kKSO");
+
+    trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttributeA);
+    trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttributeB);
+    trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttributeC);
+
+    ProgramRule ruleA =
+        new ProgramRule("RuleA", "descriptionA", programB, null, null, "true", null);
+    ProgramRule ruleB = new ProgramRule("RuleB", "descriptionG", programB, null, null, "!false", 0);
+    ProgramRule ruleC = new ProgramRule("RuleC", "descriptionF", programB, null, null, "!false", 0);
+    programRuleService.addProgramRule(ruleA);
+    programRuleService.addProgramRule(ruleB);
+    programRuleService.addProgramRule(ruleC);
+
+    ProgramRuleAction showWarningAction = createProgramRuleAction('D');
+    showWarningAction.setProgramRuleActionType(ProgramRuleActionType.SHOWWARNING);
+    showWarningAction.setAttribute(trackedEntityAttributeA);
+    showWarningAction.setProgramRule(ruleA);
+
+    ProgramRuleAction showErrorAction = createProgramRuleAction('E');
+    showErrorAction.setProgramRuleActionType(ProgramRuleActionType.SHOWERROR);
+    showErrorAction.setAttribute(trackedEntityAttributeB);
+    showErrorAction.setProgramRule(ruleB);
+
+    ProgramRuleAction hideFieldAction = createProgramRuleAction('F');
+    hideFieldAction.setProgramRuleActionType(ProgramRuleActionType.HIDEFIELD);
+    hideFieldAction.setAttribute(trackedEntityAttributeC);
+    hideFieldAction.setProgramRule(ruleC);
+
+    programRuleActonService.addProgramRuleAction(showWarningAction);
+    programRuleActonService.addProgramRuleAction(showErrorAction);
+    programRuleActonService.addProgramRuleAction(hideFieldAction);
+
+    ruleA.setProgramRuleActions(Set.of(showWarningAction));
+    ruleB.setProgramRuleActions(Set.of(showErrorAction));
+    ruleC.setProgramRuleActions(Set.of(hideFieldAction));
+
+    programRuleService.updateProgramRule(ruleA);
+    programRuleService.updateProgramRule(ruleB);
+    programRuleService.updateProgramRule(ruleC);
+
+    entityManager.clear();
+    entityManager.flush();
+
+    List<String> trackedEntityAttributesPresentInProgramRules =
+        programRuleService.getTrackedEntityAttributesPresentInProgramRules();
+
+    assertContainsOnly(
+        List.of("TvctPPhpD8u", "h4w96yEMlzO"), trackedEntityAttributesPresentInProgramRules);
   }
 
   @Test
