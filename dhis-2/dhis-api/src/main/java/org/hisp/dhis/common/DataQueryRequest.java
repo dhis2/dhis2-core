@@ -331,6 +331,7 @@ public class DataQueryRequest {
 
     /**
      * Retrieves default UserOrgUnitType if the type is equal null
+     *
      * @param userOrgUnitType
      */
     private UserOrgUnitType getAnalyticsOrgUnitType(UserOrgUnitType userOrgUnitType) {
