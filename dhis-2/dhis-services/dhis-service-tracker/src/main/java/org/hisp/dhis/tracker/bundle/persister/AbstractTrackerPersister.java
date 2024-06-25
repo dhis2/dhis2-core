@@ -144,6 +144,10 @@ public abstract class AbstractTrackerPersister<
           }
         }
 
+        if (!bundle.isSkipSideEffects()) {
+          sideEffectDataBundles.add(handleSideEffects(bundle, convertedDto));
+        }
+
         //
         // Add the entity to the Preheat
         //
@@ -151,10 +155,6 @@ public abstract class AbstractTrackerPersister<
 
         if (FlushMode.OBJECT == bundle.getFlushMode()) {
           session.flush();
-        }
-
-        if (!bundle.isSkipSideEffects()) {
-          sideEffectDataBundles.add(handleSideEffects(bundle, convertedDto));
         }
 
         bundle.setUpdatedTrackedEntities(updatedTrackedEntities);
