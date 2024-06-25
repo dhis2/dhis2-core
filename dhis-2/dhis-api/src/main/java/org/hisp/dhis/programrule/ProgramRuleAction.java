@@ -321,22 +321,25 @@ public class ProgramRuleAction extends BaseIdentifiableObject implements Metadat
     this.dataElement = dataElement;
   }
 
-  @JsonIgnore
-  public ProgramNotificationTemplate getNotificationTemplate() {
-    return notificationTemplate;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getTemplateUid() {
     return notificationTemplate.getUid();
   }
 
-  public void setTemplateUid(String uid) {
+  public void setTemplateUid(String templateUid) {
     ProgramNotificationTemplate template = new ProgramNotificationTemplate();
-    template.setUid(uid);
-
+    template.setUid(templateUid);
     this.notificationTemplate = template;
+  }
+
+  @JsonIgnore
+  public ProgramNotificationTemplate getNotificationTemplate() {
+    return notificationTemplate;
+  }
+
+  public void setNotificationTemplate(ProgramNotificationTemplate notificationTemplate) {
+    this.notificationTemplate = notificationTemplate;
   }
 
   @JsonProperty("trackedEntityAttribute")
