@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,33 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.common.query.jsonextractor;
 
-import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
-
+import java.util.Arrays;
+import java.util.function.Function;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.analytics.common.ValueTypeMapping;
-import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
-import org.hisp.dhis.analytics.common.query.BaseRenderable;
-import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension;
 
-@RequiredArgsConstructor(staticName = "of")
-public class DataElementCondition extends BaseRenderable {
-  private final QueryContext queryContext;
+/**
+ * This enum maps static dimensions to functions that extract the corresponding values from an
+ * JsonEvent
+ */
+@RequiredArgsConstructor
+enum EventExtractor {
+  OCCURREDDATE(
+      StaticDimension.OCCURREDDATE, a -> JsonExtractorUtils.getFormattedDate(a.getOccurredDate())),
+  OUNAME(DimensionParam.StaticDimension.OUNAME, JsonEnrollment.JsonEvent::getOrgUnitName),
+  OUCODE(DimensionParam.StaticDimension.OUCODE, JsonEnrollment.JsonEvent::getOrgUnitCode),
+  OUNAMEHIERARCHY(
+      DimensionParam.StaticDimension.OUNAMEHIERARCHY,
+      JsonEnrollment.JsonEvent::getOrgUnitNameHierarchy),
+  EVENT_STATUS(StaticDimension.EVENT_STATUS, JsonEnrollment.JsonEvent::getEventStatus);
 
-  private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
+  private final DimensionParam.StaticDimension dimension;
 
-  @Override
-  public String render() {
-    return dimensionIdentifier.hasLegendSet()
-        ? DataElementWithLegendSetCondition.of(queryContext, dimensionIdentifier).render()
-        : DataElementWithStaticValuesCondition.of(queryContext, dimensionIdentifier).render();
-  }
+  @Getter private final Function<JsonEnrollment.JsonEvent, Object> extractor;
 
-  static RenderableDataValue getDataValueRenderable(
-      DimensionIdentifier<DimensionParam> dimensionIdentifier, ValueTypeMapping valueTypeMapping) {
-    return RenderableDataValue.of(
-        EMPTY, dimensionIdentifier.getDimension().getUid(), valueTypeMapping);
+  static EventExtractor byDimension(DimensionParam.StaticDimension dimension) {
+    return Arrays.stream(values())
+        .filter(eventExtractor -> eventExtractor.dimension.equals(dimension))
+        .findFirst()
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException(
+                    "No event extractor is defined for static dimension " + dimension));
   }
 }
