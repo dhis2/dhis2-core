@@ -42,6 +42,8 @@ import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.hibernate.SessionFactory;
+import org.hibernate.cache.ehcache.ConfigSettings;
+import org.hibernate.cache.ehcache.MissingCacheStrategy;
 import org.hibernate.cache.ehcache.internal.EhcacheRegionFactory;
 import org.hibernate.cfg.AvailableSettings;
 import org.hisp.dhis.cache.DefaultHibernateCacheManager;
@@ -153,6 +155,7 @@ public class HibernateConfig {
       properties.put(AvailableSettings.USE_SECOND_LEVEL_CACHE, "true");
       properties.put(AvailableSettings.CACHE_REGION_FACTORY, EhcacheRegionFactory.class.getName());
       properties.put(AvailableSettings.USE_QUERY_CACHE, dhisConfig.getProperty(USE_QUERY_CACHE));
+      properties.put(ConfigSettings.MISSING_CACHE_STRATEGY, MissingCacheStrategy.CREATE);
     }
 
     // TODO: this is anti-pattern and should be turn off
