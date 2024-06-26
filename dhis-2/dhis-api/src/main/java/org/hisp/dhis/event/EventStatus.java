@@ -28,6 +28,7 @@
 package org.hisp.dhis.event;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Set;
 import org.hisp.dhis.common.DxfNamespaces;
 
 /**
@@ -62,7 +63,7 @@ public enum EventStatus {
     throw new IllegalArgumentException();
   }
 
-  public static boolean isExistingEvent(EventStatus status) {
-    return status != null && (COMPLETED.equals(status) || VISITED.equals(status));
-  }
+  public static Set<EventStatus> ALLOW_DATA_VALUES_STATUSES = Set.of(ACTIVE, VISITED, COMPLETED);
+
+  public static Set<EventStatus> NO_ALLOW_DATA_VALUES_STATUSES = Set.of(SCHEDULE, SKIPPED, OVERDUE);
 }

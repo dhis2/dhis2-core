@@ -27,56 +27,43 @@
  */
 package org.hisp.dhis.tracker.validation.validator.event;
 
-import static org.hisp.dhis.tracker.validation.validator.All.all;
-import static org.hisp.dhis.tracker.validation.validator.Each.each;
-import static org.hisp.dhis.tracker.validation.validator.Field.field;
-import static org.hisp.dhis.tracker.validation.validator.Seq.seq;
+import static org.hisp.dhis.tracker.TrackerImportStrategy.UPDATE;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1316;
 
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
-import org.springframework.stereotype.Component;
 
-/** Validator to validate all {@link Event}s in the {@link TrackerBundle}. */
-@Component("org.hisp.dhis.tracker.validation.validator.event.EventValidator")
-public class EventValidator implements Validator<TrackerBundle> {
-  private final Validator<TrackerBundle> validator;
+class DataStatusValidator implements Validator<Event> {
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
+    org.hisp.dhis.program.ProgramStageInstance savedEvent =
+        bundle.getPreheat().getEvent(event.getUid());
 
-  public EventValidator(
-      SecurityOwnershipValidator securityOwnershipValidator,
-      CategoryOptValidator categoryOptValidator) {
-    validator =
-        all(
-            each(
-                TrackerBundle::getEvents,
-                seq(
-                    new UidValidator(),
-                    new ExistenceValidator(),
-                    new MandatoryFieldsValidator(),
-                    new MetaValidator(),
-                    new UpdatableFieldsValidator(),
-                    new DataRelationsValidator(),
-                    securityOwnershipValidator,
-                    all(
-                        categoryOptValidator,
-                        new DateValidator(),
-                        new GeoValidator(),
-                        new NoteValidator(),
-                        new DataValuesValidator(),
-                        new DataStatusValidator(),
-                        new AssignedUserValidator()))),
-            field(TrackerBundle::getEvents, new RepeatedEventsValidator()));
+    if (checkInvalidStatusTransition(savedEvent.getStatus(), event.getStatus())) {
+      reporter.addError(event, E1316, savedEvent.getStatus(), event.getStatus());
+    }
   }
 
-  @Override
-  public void validate(Reporter reporter, TrackerBundle bundle, TrackerBundle input) {
-    validator.validate(reporter, bundle, input);
+  private boolean checkInvalidStatusTransition(EventStatus fromStatus, EventStatus toStatus) {
+    switch (fromStatus) {
+      case VISITED:
+      case ACTIVE:
+      case COMPLETED:
+        return EventStatus.NO_ALLOW_DATA_VALUES_STATUSES.contains(toStatus);
+      case OVERDUE:
+      case SKIPPED:
+      case SCHEDULE:
+        return toStatus == EventStatus.OVERDUE;
+    }
+    return false;
   }
 
   @Override
   public boolean needsToRun(TrackerImportStrategy strategy) {
-    return true; // this main validator should always run
+    return strategy == UPDATE;
   }
 }
