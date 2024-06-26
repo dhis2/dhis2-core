@@ -194,6 +194,8 @@ public class DataSet extends BaseDimensionalItemObject
 
   private ObjectStyle style;
 
+  private String displayOptions;
+
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
@@ -776,6 +778,16 @@ public class DataSet extends BaseDimensionalItemObject
 
   public void setStyle(ObjectStyle style) {
     this.style = style;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getDisplayOptions() {
+    return displayOptions;
+  }
+
+  public void setDisplayOptions(String displayOptions) {
+    this.displayOptions = displayOptions;
   }
 
   @Override
