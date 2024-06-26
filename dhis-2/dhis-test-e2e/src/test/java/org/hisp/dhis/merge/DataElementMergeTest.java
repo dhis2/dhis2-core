@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.merge;
 
+import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 
 import com.google.gson.JsonArray;
@@ -80,7 +82,7 @@ class DataElementMergeTest extends ApiTest {
       "Valid DataElement merge completes successfully with all DataElement associations updated")
   void testValidIndicatorMerge() {
     // given
-    setupDataElementData();
+    setupDataElementData("A");
 
     // login as user with merge auth
     loginActions.loginAsUser("userWithMergeAuth", "Test1234!");
@@ -106,6 +108,64 @@ class DataElementMergeTest extends ApiTest {
     dataElementApiActions.get(sourceUid1).validateStatus(404);
     dataElementApiActions.get(sourceUid2).validateStatus(404);
     dataElementApiActions.get(targetUid).validateStatus(200);
+  }
+
+  @Test
+  @DisplayName("Invalid DataElement merge when DataElements have different value types")
+  void invalidIndicatorMergeValueType() {
+    // given
+    setupDataElementDataDifferentValueTypes("B");
+
+    // login as user with merge auth
+    loginActions.loginAsUser("userWithMergeAuth", "Test1234!");
+
+    // when a data element merge request is submitted, deleting sources
+    ApiResponse response =
+        dataElementApiActions
+            .post("merge", getMergeBody(sourceUid1, sourceUid2, targetUid, true))
+            .validateStatus(409);
+
+    // then a successful response is received and sources are deleted
+    response
+        .validate()
+        .statusCode(409)
+        .body("httpStatus", equalTo("Conflict"))
+        .body("response.mergeReport.message", equalTo("DATA_ELEMENT merge has errors"))
+        .body(
+            "response.mergeReport.mergeErrors.message",
+            allOf(
+                hasItem(
+                    "All source ValueTypes must match target ValueType: `TEXT`. Other ValueTypes found: `[NUMBER]`")))
+        .body("response.mergeReport.mergeErrors.errorCode", allOf(hasItem("E1554")));
+  }
+
+  @Test
+  @DisplayName("Invalid DataElement merge when DataElements have different domain types")
+  void invalidIndicatorMergeDomainType() {
+    // given
+    setupDataElementDataDifferentDomainTypes("C");
+
+    // login as user with merge auth
+    loginActions.loginAsUser("userWithMergeAuth", "Test1234!");
+
+    // when a data element merge request is submitted, deleting sources
+    ApiResponse response =
+        dataElementApiActions
+            .post("merge", getMergeBody(sourceUid1, sourceUid2, targetUid, true))
+            .validateStatus(409);
+
+    // then a successful response is received and sources are deleted
+    response
+        .validate()
+        .statusCode(409)
+        .body("httpStatus", equalTo("Conflict"))
+        .body("response.mergeReport.message", equalTo("DATA_ELEMENT merge has errors"))
+        .body(
+            "response.mergeReport.mergeErrors.message",
+            allOf(
+                hasItem(
+                    "All source DataElementDomains must match target DataElementDomain: `AGGREGATE`. Other DataElementDomains found: `[TRACKER]`")))
+        .body("response.mergeReport.mergeErrors.errorCode", allOf(hasItem("E1555")));
   }
 
   @Test
@@ -154,13 +214,58 @@ class DataElementMergeTest extends ApiTest {
             equalTo("One or more errors occurred, please see full details in merge report."));
   }
 
-  private void setupDataElementData() {
+  private void setupDataElementDataDifferentValueTypes(String uniqueChar) {
     // 2 DE sources
-    sourceUid1 = dataElementApiActions.post(createDataElement("source 1")).extractUid();
-    sourceUid2 = dataElementApiActions.post(createDataElement("source 2")).extractUid();
+    sourceUid1 =
+        dataElementApiActions
+            .post(createDataElement("source 1" + uniqueChar, "TEXT", "AGGREGATE"))
+            .extractUid();
+    sourceUid2 =
+        dataElementApiActions
+            .post(createDataElement("source 2" + uniqueChar, "NUMBER", "AGGREGATE"))
+            .extractUid();
 
     // 1 DE target
-    targetUid = dataElementApiActions.post(createDataElement("target")).extractUid();
+    targetUid =
+        dataElementApiActions
+            .post(createDataElement("target" + uniqueChar, "TEXT", "AGGREGATE"))
+            .extractUid();
+  }
+
+  private void setupDataElementDataDifferentDomainTypes(String uniqueChar) {
+    // 2 DE sources
+    sourceUid1 =
+        dataElementApiActions
+            .post(createDataElement("source 1" + uniqueChar, "TEXT", "TRACKER"))
+            .extractUid();
+    sourceUid2 =
+        dataElementApiActions
+            .post(createDataElement("source 2" + uniqueChar, "TEXT", "AGGREGATE"))
+            .extractUid();
+
+    // 1 DE target
+    targetUid =
+        dataElementApiActions
+            .post(createDataElement("target" + uniqueChar, "TEXT", "AGGREGATE"))
+            .extractUid();
+  }
+
+  private void setupDataElementData(String uniqueChar) {
+    // 2 DE sources
+    sourceUid1 =
+        dataElementApiActions
+            .post(createDataElement("source 1" + uniqueChar, "TEXT", "AGGREGATE"))
+            .extractUid();
+    sourceUid2 =
+        dataElementApiActions
+            .post(createDataElement("source 2" + uniqueChar, "TEXT", "AGGREGATE"))
+            .extractUid();
+
+    // 1 DE target
+    targetUid =
+        dataElementApiActions
+            .post(createDataElement("target" + uniqueChar, "TEXT", "AGGREGATE"))
+            .extractUid();
 
     // source refs in other metadata
 
@@ -179,17 +284,17 @@ class DataElementMergeTest extends ApiTest {
     return json;
   }
 
-  private String createDataElement(String name) {
+  private String createDataElement(String name, String valueType, String domainType) {
     return """
       {
            "aggregationType": "DEFAULT",
-           "domainType": "AGGREGATE",
+           "domainType": "%s",
            "name": "%s",
            "shortName": "%s",
            "displayName": "%s",
-           "valueType": "TEXT"
+           "valueType": "%s"
        }
     """
-        .formatted(name, name, name);
+        .formatted(domainType, name, name, name, valueType);
   }
 }
