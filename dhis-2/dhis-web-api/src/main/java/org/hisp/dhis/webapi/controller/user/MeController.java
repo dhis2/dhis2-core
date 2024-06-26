@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.user;
 
-import static org.hisp.dhis.user.User.populateUserCredentialsDtoFields;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.CacheControl.noStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -84,7 +83,6 @@ import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.PasswordValidationResult;
 import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentialsDto;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
@@ -186,10 +184,6 @@ public class MeController {
     MeDto meDto = new MeDto(user, userSettings, programs, dataSets, patTokens);
     determineUserImpersonation(meDto);
 
-    // TODO: To remove when we remove old UserCredentials compatibility
-    UserCredentialsDto userCredentialsDto = user.getUserCredentials();
-    meDto.setUserCredentials(userCredentialsDto);
-
     var params = org.hisp.dhis.fieldfiltering.FieldFilterParams.of(meDto, fields);
 
     ObjectNode jsonNodes = fieldFilterService.toObjectNodes(params).get(0);
@@ -240,9 +234,6 @@ public class MeController {
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
     User user = renderService.fromJson(request.getInputStream(), User.class);
-
-    // TODO: To remove when we remove old UserCredentials compatibility
-    populateUserCredentialsDtoFields(user);
 
     merge(currentUser, user);
 
