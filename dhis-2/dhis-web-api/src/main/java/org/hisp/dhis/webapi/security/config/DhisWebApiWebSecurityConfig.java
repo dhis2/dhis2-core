@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.security.config;
 
 import java.util.Arrays;
 import java.util.Set;
+import javax.servlet.http.HttpServletRequest;
 import javax.sql.DataSource;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -74,6 +75,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.header.HeaderWriterFilter;
+import org.springframework.security.web.savedrequest.CookieRequestCache;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -136,9 +138,22 @@ public class DhisWebApiWebSecurityConfig {
     return new SessionRegistryImpl();
   }
 
+
+  private static class CustomRequestMatcher implements RequestMatcher {
+
+    @Override
+    public boolean matches(HttpServletRequest request) {
+      // Match any URL except for "/"
+      return !"/".equals(request.getRequestURI());
+    }
+  }
+
   @Bean
   public RequestCache requestCache() {
-    return new HttpSessionRequestCache();
+    HttpSessionRequestCache httpSessionRequestCache = new HttpSessionRequestCache();
+//    CookieRequestCache cookieRequestCache = new CookieRequestCache();
+    httpSessionRequestCache.setRequestMatcher(new CustomRequestMatcher());
+    return httpSessionRequestCache;
   }
 
   @Bean(name = "customAuthenticationManager")
