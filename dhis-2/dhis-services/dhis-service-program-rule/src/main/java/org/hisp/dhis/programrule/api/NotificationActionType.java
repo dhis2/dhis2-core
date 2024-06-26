@@ -25,7 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.programrule.engine;
+package org.hisp.dhis.programrule.api;
 
-public record ValidationEffect(
-    String ruleId, String data, String field, String content, ValidationActionType type) {}
+import java.util.Arrays;
+
+public enum NotificationActionType {
+  SENDMESSAGE,
+  SCHEDULEMESSAGE;
+
+  public static boolean contains(String value) {
+    return Arrays.stream(values()).anyMatch(v -> v.name().equalsIgnoreCase(value));
+  }
+}

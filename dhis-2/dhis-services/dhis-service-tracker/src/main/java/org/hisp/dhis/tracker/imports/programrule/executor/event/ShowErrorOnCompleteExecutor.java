@@ -32,7 +32,7 @@ import static org.hisp.dhis.tracker.imports.programrule.IssueType.ERROR;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.programrule.engine.ValidationEffect;
+import org.hisp.dhis.programrule.api.ValidationEffect;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.programrule.IssueType;

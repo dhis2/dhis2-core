@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.programrule.engine;
 
-import static org.hisp.dhis.programrule.engine.NotificationActionType.SENDMESSAGE;
+import static org.hisp.dhis.programrule.api.NotificationActionType.SENDMESSAGE;
 
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
@@ -36,6 +36,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.notification.ProgramNotificationService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.programrule.api.NotificationEffect;
 import org.springframework.stereotype.Component;
 
 /**

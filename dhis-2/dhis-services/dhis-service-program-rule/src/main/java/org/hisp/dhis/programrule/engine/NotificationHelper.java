@@ -37,6 +37,7 @@ import org.hisp.dhis.notification.logging.NotificationValidationResult;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
+import org.hisp.dhis.programrule.api.NotificationEffect;
 import org.springframework.stereotype.Component;
 
 @Slf4j

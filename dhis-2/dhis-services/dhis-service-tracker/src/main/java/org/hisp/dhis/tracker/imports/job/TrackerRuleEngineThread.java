@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.programrule.engine.NotificationEffect;
+import org.hisp.dhis.programrule.api.NotificationEffect;
 import org.hisp.dhis.programrule.engine.RuleActionImplementer;
 import org.hisp.dhis.security.SecurityContextRunnable;
 import org.hisp.dhis.system.notification.Notifier;

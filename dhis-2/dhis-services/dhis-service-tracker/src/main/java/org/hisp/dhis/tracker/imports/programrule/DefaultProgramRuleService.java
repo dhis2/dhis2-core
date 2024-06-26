@@ -39,8 +39,8 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.programrule.api.RuleEngineEffects;
 import org.hisp.dhis.programrule.engine.ProgramRuleEngine;
-import org.hisp.dhis.programrule.engine.RuleEngineEffects;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -91,16 +91,16 @@ class DefaultProgramRuleService implements ProgramRuleService {
         RuleEngineEffects.merge(
             RuleEngineEffects.merge(
                 calculateEnrollmentRuleEffects(bundle, preheat),
-                calculateProgramEventRuleEffects(bundle, preheat)),
-            calculateTrackerEventRuleEffects(bundle, preheat));
+                calculateTrackerEventRuleEffects(bundle, preheat)),
+            calculateProgramEventRuleEffects(bundle, preheat));
 
-    // This is needed for bundle side effects process
-    bundle.setRuleEffects(ruleEffects);
-
-    // These are needed for rule engine validation
+    bundle.setEnrollmentNotificationEffects(ruleEffects.getEnrollmentNotificationEffects());
+    bundle.setEventNotificationEffects(ruleEffects.getEventNotificationEffects());
     bundle.setEnrollmentRuleActionExecutors(
-        ruleActionEnrollmentMapper.mapRuleEffects(ruleEffects, bundle));
-    bundle.setEventRuleActionExecutors(ruleActionEventMapper.mapRuleEffects(ruleEffects, bundle));
+        ruleActionEnrollmentMapper.mapRuleEffects(
+            ruleEffects.getEnrollmentValidationEffects(), bundle));
+    bundle.setEventRuleActionExecutors(
+        ruleActionEventMapper.mapRuleEffects(ruleEffects.getEventValidationEffects(), bundle));
   }
 
   private RuleEngineEffects calculateEnrollmentRuleEffects(

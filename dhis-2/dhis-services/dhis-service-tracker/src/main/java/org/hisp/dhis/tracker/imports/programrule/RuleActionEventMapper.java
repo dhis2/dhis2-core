@@ -37,8 +37,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.programrule.engine.RuleEngineEffects;
-import org.hisp.dhis.programrule.engine.ValidationEffect;
+import org.hisp.dhis.programrule.api.ValidationEffect;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
@@ -59,17 +58,15 @@ class RuleActionEventMapper {
   private final SystemSettingManager systemSettingManager;
 
   public Map<Event, List<RuleActionExecutor<Event>>> mapRuleEffects(
-      RuleEngineEffects ruleEffects, TrackerBundle bundle) {
-    return ruleEffects.eventValidationEffects().keySet().stream()
+      Map<String, List<ValidationEffect>> eventValidationEffects, TrackerBundle bundle) {
+    return eventValidationEffects.keySet().stream()
         .filter(e -> bundle.findEventByUid(e).isPresent())
         .collect(
             Collectors.toMap(
                 e -> bundle.findEventByUid(e).get(),
                 e ->
                     mapRuleEffects(
-                        bundle.findEventByUid(e).get(),
-                        ruleEffects.eventValidationEffects().get(e),
-                        bundle)));
+                        bundle.findEventByUid(e).get(), eventValidationEffects.get(e), bundle)));
   }
 
   private List<RuleActionExecutor<Event>> mapRuleEffects(

@@ -33,8 +33,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.ListUtils;
-import org.hisp.dhis.programrule.engine.RuleEngineEffects;
-import org.hisp.dhis.programrule.engine.ValidationEffect;
+import org.hisp.dhis.programrule.api.ValidationEffect;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
@@ -56,8 +55,8 @@ class RuleActionEnrollmentMapper {
   private final SystemSettingManager systemSettingManager;
 
   public Map<Enrollment, List<RuleActionExecutor<Enrollment>>> mapRuleEffects(
-      RuleEngineEffects ruleEffects, TrackerBundle bundle) {
-    return ruleEffects.enrollmentValidationEffects().keySet().stream()
+      Map<String, List<ValidationEffect>> enrollmentValidationEffects, TrackerBundle bundle) {
+    return enrollmentValidationEffects.keySet().stream()
         .filter(e -> bundle.findEnrollmentByUid(e).isPresent())
         .collect(
             Collectors.toMap(
@@ -65,7 +64,7 @@ class RuleActionEnrollmentMapper {
                 e ->
                     mapRuleEffects(
                         bundle.findEnrollmentByUid(e).get(),
-                        ruleEffects.enrollmentValidationEffects().get(e),
+                        enrollmentValidationEffects.get(e),
                         bundle)));
   }
 

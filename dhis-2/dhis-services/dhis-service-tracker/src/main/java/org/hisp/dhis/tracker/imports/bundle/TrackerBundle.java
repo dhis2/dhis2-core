@@ -42,8 +42,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import org.hisp.dhis.program.UserInfoSnapshot;
-import org.hisp.dhis.programrule.engine.NotificationEffect;
-import org.hisp.dhis.programrule.engine.RuleEngineEffects;
+import org.hisp.dhis.programrule.api.NotificationEffect;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.FlushMode;
@@ -109,15 +108,20 @@ public class TrackerBundle {
   /** Relationships to import. */
   @Builder.Default private List<Relationship> relationships = new ArrayList<>();
 
-  /** Rule effects for Enrollments. */
-  @Builder.Default private RuleEngineEffects ruleEffects = RuleEngineEffects.empty();
+  /** Notification effects for enrollments. */
+  @Builder.Default
+  private Map<String, List<NotificationEffect>> enrollmentNotificationEffects = new HashMap<>();
 
-  /** Rule action executors for Enrollments. */
+  /** Notification effects for events. */
+  @Builder.Default
+  private Map<String, List<NotificationEffect>> eventNotificationEffects = new HashMap<>();
+
+  /** Rule action executors for enrollments. */
   @Builder.Default
   private Map<Enrollment, List<RuleActionExecutor<Enrollment>>> enrollmentRuleActionExecutors =
       new HashMap<>();
 
-  /** Rule action executors for Events. */
+  /** Rule action executors for events. */
   @Builder.Default
   private Map<Event, List<RuleActionExecutor<Event>>> eventRuleActionExecutors = new HashMap<>();
 
@@ -165,11 +169,11 @@ public class TrackerBundle {
   }
 
   public Map<String, List<NotificationEffect>> getEnrollmentRuleEffects() {
-    return ruleEffects.enrollmentNotificationEffects();
+    return enrollmentNotificationEffects;
   }
 
   public Map<String, List<NotificationEffect>> getEventRuleEffects() {
-    return ruleEffects.eventNotificationEffects();
+    return eventNotificationEffects;
   }
 
   public TrackerImportStrategy setStrategy(TrackerDto dto, TrackerImportStrategy strategy) {

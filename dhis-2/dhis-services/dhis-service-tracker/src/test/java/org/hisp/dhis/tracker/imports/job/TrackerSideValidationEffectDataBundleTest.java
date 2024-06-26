@@ -38,7 +38,7 @@ import org.hisp.dhis.artemis.MessageType;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.programrule.engine.NotificationEffect;
+import org.hisp.dhis.programrule.api.NotificationEffect;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.junit.jupiter.api.Test;
 
