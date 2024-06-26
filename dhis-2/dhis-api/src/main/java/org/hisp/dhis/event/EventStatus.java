@@ -53,7 +53,9 @@ public enum EventStatus {
     return value;
   }
 
-  public static Set<EventStatus> ALLOW_DATA_VALUES_STATUSES = Set.of(ACTIVE, VISITED, COMPLETED);
+  public static final Set<EventStatus> ALLOW_DATA_VALUES_STATUSES =
+      Set.of(ACTIVE, VISITED, COMPLETED);
 
-  public static Set<EventStatus> NO_ALLOW_DATA_VALUES_STATUSES = Set.of(SCHEDULE, SKIPPED, OVERDUE);
+  public static final Set<EventStatus> NO_ALLOW_DATA_VALUES_STATUSES =
+      Set.of(SCHEDULE, SKIPPED, OVERDUE);
 }
