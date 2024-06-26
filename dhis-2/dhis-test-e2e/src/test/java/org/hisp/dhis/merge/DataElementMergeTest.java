@@ -28,6 +28,7 @@
 package org.hisp.dhis.merge;
 
 import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
@@ -48,17 +49,20 @@ import org.junit.jupiter.api.Test;
 class DataElementMergeTest extends ApiTest {
 
   private RestApiActions dataElementApiActions;
+  private RestApiActions datasetApiActions;
   private UserActions userActions;
   private LoginActions loginActions;
   private String sourceUid1;
   private String sourceUid2;
   private String targetUid;
+  private String dsUid;
 
   @BeforeAll
   public void before() {
     userActions = new UserActions();
     loginActions = new LoginActions();
     dataElementApiActions = new RestApiActions("dataElements");
+    datasetApiActions = new RestApiActions("dataSets");
     loginActions.loginAsSuperUser();
 
     // add user with required merge auth
@@ -108,6 +112,32 @@ class DataElementMergeTest extends ApiTest {
     dataElementApiActions.get(sourceUid1).validateStatus(404);
     dataElementApiActions.get(sourceUid2).validateStatus(404);
     dataElementApiActions.get(targetUid).validateStatus(200);
+  }
+
+  @Test
+  @DisplayName("DataElement merge fails when dataset db unique key constraint met")
+  void dbConstraintTest() {
+    // given
+    setupDataElementDataForDatasetConstraint("A");
+
+    // login as user with merge auth
+    loginActions.loginAsUser("userWithMergeAuth", "Test1234!");
+
+    // when
+    ApiResponse response =
+        dataElementApiActions
+            .post("merge", getMergeBody(sourceUid1, sourceUid2, targetUid, true))
+            .validateStatus(409);
+
+    // then
+    response
+        .validate()
+        .statusCode(409)
+        .body("httpStatus", equalTo("Conflict"))
+        .body("status", equalTo("ERROR"))
+        .body("message", containsString("ERROR: duplicate key value violates unique constraint"))
+        .body("message", containsString("datasetelement_unique_key"))
+        .body("message", containsString("already exists"));
   }
 
   @Test
@@ -272,6 +302,29 @@ class DataElementMergeTest extends ApiTest {
     // source refs as implicit refs (in expressions etc.)
   }
 
+  private void setupDataElementDataForDatasetConstraint(String uniqueChar) {
+    // 2 DE sources
+    sourceUid1 =
+        dataElementApiActions
+            .post(createDataElement("source 1" + uniqueChar, "TEXT", "AGGREGATE"))
+            .extractUid();
+    sourceUid2 =
+        dataElementApiActions
+            .post(createDataElement("source 2" + uniqueChar, "TEXT", "AGGREGATE"))
+            .extractUid();
+
+    // 1 DE target
+    targetUid =
+        dataElementApiActions
+            .post(createDataElement("target" + uniqueChar, "TEXT", "AGGREGATE"))
+            .extractUid();
+
+    dsUid =
+        datasetApiActions
+            .post(createDataset("ds1", sourceUid1, sourceUid2, targetUid))
+            .extractUid();
+  }
+
   private JsonObject getMergeBody(
       String source1, String source2, String target, boolean deleteSources) {
     JsonObject json = new JsonObject();
@@ -296,5 +349,33 @@ class DataElementMergeTest extends ApiTest {
        }
     """
         .formatted(domainType, name, name, name, valueType);
+  }
+
+  private String createDataset(String name, String dataEl1, String dataEl2, String dataEl3) {
+    return """
+      {
+        "name": "%s",
+        "shortName": "%s",
+        "periodType": "Daily",
+        "dataSetElements": [
+          {
+              "dataElement": {
+                  "id": "%s"
+              }
+          },
+          {
+              "dataElement": {
+                  "id": "%s"
+              }
+          },
+          {
+              "dataElement": {
+                  "id": "%s"
+              }
+          }
+        ]
+      }
+    """
+        .formatted(name, name, dataEl1, dataEl2, dataEl3);
   }
 }

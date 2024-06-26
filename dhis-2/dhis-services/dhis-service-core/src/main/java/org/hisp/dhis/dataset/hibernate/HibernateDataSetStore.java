@@ -46,7 +46,6 @@ import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AclService;
-import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -127,14 +126,13 @@ public class HibernateDataSetStore extends HibernateIdentifiableObjectStore<Data
   @Override
   public List<DataSetElement> getDataSetElementsByDataElement(
       Collection<DataElement> dataElements) {
-    @Language("hql")
-    String hql =
-        """
-          from DataSetElement dse where dse.dataElement in :dataElements
-          """;
-    Query<DataSetElement> query = getTypedQuery(hql);
-    query.setParameter("dataElements", dataElements);
-    return query.list();
+    return getQuery(
+            """
+            from DataSetElement dse where dse.dataElement in :dataElements
+            """,
+            DataSetElement.class)
+        .setParameter("dataElements", dataElements)
+        .list();
   }
 
   @Override

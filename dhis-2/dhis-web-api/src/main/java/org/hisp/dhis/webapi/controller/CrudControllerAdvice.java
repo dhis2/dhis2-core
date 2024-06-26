@@ -710,7 +710,7 @@ public class CrudControllerAdvice {
 
   /**
    * {@link PersistenceException}s can have deeply-nested root causes and may have a very vague
-   * message, which may not be very helpful. This method checks if a more-detailed, user-friendly
+   * message, which may not be very helpful. This method checks if a more detailed, user-friendly
    * message is available and returns it if found.
    *
    * <p>For example, instead of returning: <b><i>"Could not execute statement"</i></b> , potentially
