@@ -363,8 +363,11 @@ class EventStoreTest extends TransactionalIntegrationTest {
   void eventDataValuesSearchStringTest() {
     // given
     Event e1 = createEvent(stageA, enrollmentA, organisationUnitA);
+    e1.setAttributeOptionCombo(coA);
     Event e2 = createEvent(stageB, enrollmentB, organisationUnitB);
+    e2.setAttributeOptionCombo(coA);
     Event e3 = createEvent(stageC, enrollmentB, organisationUnitB);
+    e3.setAttributeOptionCombo(coA);
     EventDataValue edv1 = new EventDataValue("dataEl1", "value1");
     EventDataValue edv11 = new EventDataValue("dataEl1", "value11");
     EventDataValue edv2 = new EventDataValue("dataEl2", "value2");
