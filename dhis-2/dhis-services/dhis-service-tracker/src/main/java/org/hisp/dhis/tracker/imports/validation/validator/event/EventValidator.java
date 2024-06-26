@@ -65,6 +65,7 @@ public class EventValidator implements Validator<TrackerBundle> {
                         new GeoValidator(),
                         new NoteValidator(),
                         new DataValuesValidator(),
+                        new DataStatusValidator(),
                         new AssignedUserValidator()))),
             field(TrackerBundle::getEvents, new RepeatedEventsValidator()));
   }
