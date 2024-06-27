@@ -63,7 +63,7 @@ class StatusUpdateValidatorTest {
 
   @Mock TrackerPreheat preheat;
 
-  private static final String eventUid = "event";
+  private static final String EVENT_UID = "h4w96yEMlzO";
 
   @Mock private TrackerBundle bundle;
 
@@ -84,11 +84,11 @@ class StatusUpdateValidatorTest {
   void shouldPassValidationWhenGoingFromStatusToStatus(
       EventStatus fromStatus, EventStatus toStatus) {
     org.hisp.dhis.program.Event savedEvent = new org.hisp.dhis.program.Event();
-    savedEvent.setUid(eventUid);
+    savedEvent.setUid(EVENT_UID);
     savedEvent.setStatus(fromStatus);
-    when(preheat.getEvent(eventUid)).thenReturn(savedEvent);
+    when(preheat.getEvent(EVENT_UID)).thenReturn(savedEvent);
 
-    Event event = Event.builder().event(eventUid).status(toStatus).build();
+    Event event = Event.builder().event(EVENT_UID).status(toStatus).build();
 
     validator.validate(reporter, bundle, event);
 
@@ -100,11 +100,11 @@ class StatusUpdateValidatorTest {
   void shouldFailValidationWhenGoingFromStatusToStatus(
       EventStatus fromStatus, EventStatus toStatus) {
     org.hisp.dhis.program.Event savedEvent = new org.hisp.dhis.program.Event();
-    savedEvent.setUid(eventUid);
+    savedEvent.setUid(EVENT_UID);
     savedEvent.setStatus(fromStatus);
-    when(preheat.getEvent(eventUid)).thenReturn(savedEvent);
+    when(preheat.getEvent(EVENT_UID)).thenReturn(savedEvent);
 
-    Event event = Event.builder().event(eventUid).status(toStatus).build();
+    Event event = Event.builder().event(EVENT_UID).status(toStatus).build();
 
     validator.validate(reporter, bundle, event);
 
