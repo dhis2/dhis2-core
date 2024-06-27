@@ -136,7 +136,10 @@ class StatusUpdateValidatorTest {
         Arguments.of(OVERDUE, COMPLETED),
         Arguments.of(OVERDUE, VISITED),
         Arguments.of(OVERDUE, SCHEDULE),
-        Arguments.of(OVERDUE, SKIPPED));
+        Arguments.of(OVERDUE, SKIPPED),
+        Arguments.of(SCHEDULE, OVERDUE),
+        Arguments.of(SKIPPED, OVERDUE),
+        Arguments.of(OVERDUE, OVERDUE));
   }
 
   private static Stream<Arguments> invalidTransitions() {
@@ -149,9 +152,6 @@ class StatusUpdateValidatorTest {
         Arguments.of(VISITED, SCHEDULE),
         Arguments.of(COMPLETED, OVERDUE),
         Arguments.of(COMPLETED, SKIPPED),
-        Arguments.of(COMPLETED, SCHEDULE),
-        Arguments.of(SCHEDULE, OVERDUE),
-        Arguments.of(SKIPPED, OVERDUE),
-        Arguments.of(OVERDUE, OVERDUE));
+        Arguments.of(COMPLETED, SCHEDULE));
   }
 }
