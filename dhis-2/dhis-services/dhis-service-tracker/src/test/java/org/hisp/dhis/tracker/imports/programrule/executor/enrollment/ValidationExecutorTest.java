@@ -57,8 +57,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class ValidationExecutorTest extends DhisConvenienceTest {
-  private static final UID ATTRIBUTE_UID = UID.of("h4w96yEMlzO");
-
   private static final UID RULE_UID = UID.of("TvctPPhpD8u");
 
   private static final String CONTENT = "SHOW ERROR DATA";
