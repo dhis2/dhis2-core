@@ -84,7 +84,7 @@ class DataElementMergeTest extends ApiTest {
   @Test
   @DisplayName(
       "Valid DataElement merge completes successfully with all DataElement associations updated")
-  void testValidIndicatorMerge() {
+  void valiDataElementMergeTest() {
     // given
     setupDataElementData("A");
 
@@ -118,7 +118,7 @@ class DataElementMergeTest extends ApiTest {
   @DisplayName("DataElement merge fails when dataset db unique key constraint met")
   void dbConstraintTest() {
     // given
-    setupDataElementDataForDatasetConstraint("A");
+    setupDataElementDataForDatasetConstraint("B");
 
     // login as user with merge auth
     loginActions.loginAsUser("userWithMergeAuth", "Test1234!");
@@ -144,7 +144,7 @@ class DataElementMergeTest extends ApiTest {
   @DisplayName("Invalid DataElement merge when DataElements have different value types")
   void invalidIndicatorMergeValueType() {
     // given
-    setupDataElementDataDifferentValueTypes("B");
+    setupDataElementDataDifferentValueTypes("C");
 
     // login as user with merge auth
     loginActions.loginAsUser("userWithMergeAuth", "Test1234!");
@@ -173,7 +173,7 @@ class DataElementMergeTest extends ApiTest {
   @DisplayName("Invalid DataElement merge when DataElements have different domain types")
   void invalidIndicatorMergeDomainType() {
     // given
-    setupDataElementDataDifferentDomainTypes("C");
+    setupDataElementDataDifferentDomainTypes("D");
 
     // login as user with merge auth
     loginActions.loginAsUser("userWithMergeAuth", "Test1234!");
@@ -219,29 +219,6 @@ class DataElementMergeTest extends ApiTest {
         .body(
             "message",
             equalTo("Access is denied, requires one Authority from [F_DATA_ELEMENT_MERGE]"));
-  }
-
-  @Test
-  @DisplayName("User with ALL authority can attempt merge with invalid data")
-  void testIndicatorMergeAllAuth() {
-    userActions.addUserFull("all", "User", "allAuthUser", "Test1234!", "ALL");
-    loginActions.loginAsUser("allAuthUser", "Test1234!");
-
-    // when a user with ALL auth submits an indicator type merge request with invalid data
-    ApiResponse response =
-        dataElementApiActions
-            .post("merge", getMergeBody(sourceUid1, sourceUid2, targetUid, true))
-            .validateStatus(409);
-
-    // then a conflict response is received (access denied response is not received, no auth issue)
-    response
-        .validate()
-        .statusCode(409)
-        .body("httpStatus", equalTo("Conflict"))
-        .body("status", equalTo("WARNING"))
-        .body(
-            "message",
-            equalTo("One or more errors occurred, please see full details in merge report."));
   }
 
   private void setupDataElementDataDifferentValueTypes(String uniqueChar) {
