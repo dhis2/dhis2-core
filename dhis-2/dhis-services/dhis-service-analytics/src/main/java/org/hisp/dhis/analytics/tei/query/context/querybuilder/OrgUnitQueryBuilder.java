@@ -83,6 +83,7 @@ public class OrgUnitQueryBuilder implements SqlQueryBuilder {
                     getPrefix(dimensionIdentifier),
                     () -> dimensionIdentifier.getDimension().getUid(),
                     dimensionIdentifier.toString()))
+        .map(Field::asVirtual)
         .forEach(builder::selectField);
 
     acceptedDimensions.stream()
@@ -90,7 +91,9 @@ public class OrgUnitQueryBuilder implements SqlQueryBuilder {
         .map(
             dimId ->
                 GroupableCondition.of(
-                    dimId.getGroupId(), OrganisationUnitCondition.of(dimId, queryContext)))
+                    dimId.getGroupId(),
+                    SqlQueryHelper.buildExistsValueSubquery(
+                        dimId, OrganisationUnitCondition.of(dimId, queryContext))))
         .forEach(builder::groupableCondition);
 
     acceptedSortingParams.forEach(
@@ -99,7 +102,9 @@ public class OrgUnitQueryBuilder implements SqlQueryBuilder {
                 IndexedOrder.of(
                     sortingParam.getIndex(),
                     Order.of(
-                        Field.ofDimensionIdentifier(sortingParam.getOrderBy()),
+                        SqlQueryHelper.buildOrderSubQuery(
+                            sortingParam.getOrderBy(),
+                            () -> sortingParam.getOrderBy().getDimension().getUid()),
                         sortingParam.getSortDirection()))));
 
     return builder.build();

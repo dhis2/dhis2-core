@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,33 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
-import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
+import java.util.Comparator;
+import java.util.Optional;
+import java.util.stream.Stream;
+import org.hisp.dhis.analytics.tei.query.context.querybuilder.OffsetHelper.Offset;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.analytics.common.ValueTypeMapping;
-import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
-import org.hisp.dhis.analytics.common.query.BaseRenderable;
-import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
+/** Tests for {@link OffsetHelper}. */
+class OffsetHelperTest {
 
-@RequiredArgsConstructor(staticName = "of")
-public class DataElementCondition extends BaseRenderable {
-  private final QueryContext queryContext;
+  @ParameterizedTest(name = "testGetItemBasedOnOffset - {index}")
+  @CsvSource({"2,d", "1,e", "0,a", "-1,b", "-2,c"})
+  void testGetItemBasedOnOffset(String offsetParam, String expectedResponse) {
+    // Given
+    Stream<String> stream = Stream.of("a", "b", "c", "d", "e");
+    Comparator<String> comparator = Comparator.naturalOrder();
+    int offset = Integer.parseInt(offsetParam);
 
-  private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
+    // When
+    Optional<String> result = OffsetHelper.getItemBasedOnOffset(stream, comparator, offset);
 
-  @Override
-  public String render() {
-    return dimensionIdentifier.hasLegendSet()
-        ? DataElementWithLegendSetCondition.of(queryContext, dimensionIdentifier).render()
-        : DataElementWithStaticValuesCondition.of(queryContext, dimensionIdentifier).render();
+    // Then
+    Assertions.assertTrue(result.isPresent());
+    Assertions.assertEquals(expectedResponse, result.get());
   }
 
-  static RenderableDataValue getDataValueRenderable(
-      DimensionIdentifier<DimensionParam> dimensionIdentifier, ValueTypeMapping valueTypeMapping) {
-    return RenderableDataValue.of(
-        EMPTY, dimensionIdentifier.getDimension().getUid(), valueTypeMapping);
+  @ParameterizedTest
+  @CsvSource({"1,1,asc", "2,2,asc", "0,1,desc", "-1,2,desc", "-2,3,desc"})
+  void testGetOffset(String offsetParam, String expectedOffset, String expectedDirection) {
+    // When
+    Offset offset = OffsetHelper.getOffset(Integer.parseInt(offsetParam));
+
+    // Then
+    Assertions.assertEquals(expectedOffset, offset.offset());
+    Assertions.assertEquals(expectedDirection, offset.direction());
   }
 }
