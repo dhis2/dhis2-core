@@ -111,7 +111,7 @@ public class DataItemQueryTests extends ApiTest {
     response.validate().statusCode(is(OK));
     response.validate().body("pager", isA(Object.class));
     response.validate().body("dataItems", is(not(empty())));
-    response.validate().body("dataItems.code", hasItem("AAAAAAA-1234"));
+    response.validate().body("dataItems.code", hasItem("IN_52486"));
   }
 
   @Test
