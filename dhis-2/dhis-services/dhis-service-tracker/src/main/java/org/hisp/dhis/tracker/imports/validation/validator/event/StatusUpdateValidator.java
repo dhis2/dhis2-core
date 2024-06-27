@@ -37,7 +37,7 @@ import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 
-class DataStatusValidator implements Validator<Event> {
+class StatusUpdateValidator implements Validator<Event> {
   @Override
   public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
     org.hisp.dhis.program.Event savedEvent = bundle.getPreheat().getEvent(event.getUid());
@@ -50,7 +50,7 @@ class DataStatusValidator implements Validator<Event> {
   private boolean checkInvalidStatusTransition(EventStatus fromStatus, EventStatus toStatus) {
     return switch (fromStatus) {
       case VISITED, ACTIVE, COMPLETED ->
-          EventStatus.NO_ALLOW_DATA_VALUES_STATUSES.contains(toStatus);
+          EventStatus.STATUSES_WITHOUT_DATA_VALUES.contains(toStatus);
       case OVERDUE, SKIPPED, SCHEDULE -> toStatus == EventStatus.OVERDUE;
     };
   }
