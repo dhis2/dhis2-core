@@ -53,11 +53,11 @@ class DataStatusValidationHook implements TrackerValidationHook {
       case VISITED:
       case ACTIVE:
       case COMPLETED:
-        return EventStatus.NO_ALLOW_DATA_VALUES_STATUSES.contains(toStatus);
+        return EventStatus.STATUSES_WITHOUT_DATA_VALUES.contains(toStatus);
       case OVERDUE:
       case SKIPPED:
       case SCHEDULE:
-        return toStatus == EventStatus.OVERDUE;
+        return false;
     }
     return false;
   }
