@@ -55,7 +55,6 @@ class DataElementMergeTest extends ApiTest {
   private String sourceUid1;
   private String sourceUid2;
   private String targetUid;
-  private String dsUid;
 
   @BeforeAll
   public void before() {
@@ -84,9 +83,11 @@ class DataElementMergeTest extends ApiTest {
   @Test
   @DisplayName(
       "Valid DataElement merge completes successfully with all DataElement associations updated")
-  void valiDataElementMergeTest() {
+  void validDataElementMergeTest() {
     // given
-    setupDataElementData("A");
+    sourceUid1 = setupDataElement("A", "TEXT", "AGGREGATE");
+    sourceUid2 = setupDataElement("B", "TEXT", "AGGREGATE");
+    targetUid = setupDataElement("C", "TEXT", "AGGREGATE");
 
     // login as user with merge auth
     loginActions.loginAsUser("userWithMergeAuth", "Test1234!");
@@ -118,7 +119,10 @@ class DataElementMergeTest extends ApiTest {
   @DisplayName("DataElement merge fails when dataset db unique key constraint met")
   void dbConstraintTest() {
     // given
-    setupDataElementDataForDatasetConstraint("B");
+    sourceUid1 = setupDataElement("D", "TEXT", "AGGREGATE");
+    sourceUid2 = setupDataElement("E", "TEXT", "AGGREGATE");
+    targetUid = setupDataElement("F", "TEXT", "AGGREGATE");
+    setupDataSet(sourceUid1, sourceUid2, targetUid);
 
     // login as user with merge auth
     loginActions.loginAsUser("userWithMergeAuth", "Test1234!");
@@ -126,7 +130,7 @@ class DataElementMergeTest extends ApiTest {
     // when
     ApiResponse response =
         dataElementApiActions
-            .post("merge", getMergeBody(sourceUid1, sourceUid2, targetUid, true))
+            .post("merge", getMergeBody(sourceUid1, sourceUid2, targetUid, false))
             .validateStatus(409);
 
     // then
@@ -144,7 +148,9 @@ class DataElementMergeTest extends ApiTest {
   @DisplayName("Invalid DataElement merge when DataElements have different value types")
   void invalidIndicatorMergeValueType() {
     // given
-    setupDataElementDataDifferentValueTypes("C");
+    sourceUid1 = setupDataElement("G", "NUMBER", "AGGREGATE");
+    sourceUid2 = setupDataElement("H", "TEXT", "AGGREGATE");
+    targetUid = setupDataElement("I", "TEXT", "AGGREGATE");
 
     // login as user with merge auth
     loginActions.loginAsUser("userWithMergeAuth", "Test1234!");
@@ -173,7 +179,9 @@ class DataElementMergeTest extends ApiTest {
   @DisplayName("Invalid DataElement merge when DataElements have different domain types")
   void invalidIndicatorMergeDomainType() {
     // given
-    setupDataElementDataDifferentDomainTypes("D");
+    sourceUid1 = setupDataElement("J", "TEXT", "AGGREGATE");
+    sourceUid2 = setupDataElement("K", "TEXT", "TRACKER");
+    targetUid = setupDataElement("L", "TEXT", "AGGREGATE");
 
     // login as user with merge auth
     loginActions.loginAsUser("userWithMergeAuth", "Test1234!");
@@ -221,85 +229,14 @@ class DataElementMergeTest extends ApiTest {
             equalTo("Access is denied, requires one Authority from [F_DATA_ELEMENT_MERGE]"));
   }
 
-  private void setupDataElementDataDifferentValueTypes(String uniqueChar) {
-    // 2 DE sources
-    sourceUid1 =
-        dataElementApiActions
-            .post(createDataElement("source 1" + uniqueChar, "TEXT", "AGGREGATE"))
-            .extractUid();
-    sourceUid2 =
-        dataElementApiActions
-            .post(createDataElement("source 2" + uniqueChar, "NUMBER", "AGGREGATE"))
-            .extractUid();
-
-    // 1 DE target
-    targetUid =
-        dataElementApiActions
-            .post(createDataElement("target" + uniqueChar, "TEXT", "AGGREGATE"))
-            .extractUid();
+  private String setupDataElement(String uniqueChar, String valueType, String domainType) {
+    return dataElementApiActions
+        .post(createDataElement("source 1" + uniqueChar, valueType, domainType))
+        .extractUid();
   }
 
-  private void setupDataElementDataDifferentDomainTypes(String uniqueChar) {
-    // 2 DE sources
-    sourceUid1 =
-        dataElementApiActions
-            .post(createDataElement("source 1" + uniqueChar, "TEXT", "TRACKER"))
-            .extractUid();
-    sourceUid2 =
-        dataElementApiActions
-            .post(createDataElement("source 2" + uniqueChar, "TEXT", "AGGREGATE"))
-            .extractUid();
-
-    // 1 DE target
-    targetUid =
-        dataElementApiActions
-            .post(createDataElement("target" + uniqueChar, "TEXT", "AGGREGATE"))
-            .extractUid();
-  }
-
-  private void setupDataElementData(String uniqueChar) {
-    // 2 DE sources
-    sourceUid1 =
-        dataElementApiActions
-            .post(createDataElement("source 1" + uniqueChar, "TEXT", "AGGREGATE"))
-            .extractUid();
-    sourceUid2 =
-        dataElementApiActions
-            .post(createDataElement("source 2" + uniqueChar, "TEXT", "AGGREGATE"))
-            .extractUid();
-
-    // 1 DE target
-    targetUid =
-        dataElementApiActions
-            .post(createDataElement("target" + uniqueChar, "TEXT", "AGGREGATE"))
-            .extractUid();
-
-    // source refs in other metadata
-
-    // source refs as implicit refs (in expressions etc.)
-  }
-
-  private void setupDataElementDataForDatasetConstraint(String uniqueChar) {
-    // 2 DE sources
-    sourceUid1 =
-        dataElementApiActions
-            .post(createDataElement("source 1" + uniqueChar, "TEXT", "AGGREGATE"))
-            .extractUid();
-    sourceUid2 =
-        dataElementApiActions
-            .post(createDataElement("source 2" + uniqueChar, "TEXT", "AGGREGATE"))
-            .extractUid();
-
-    // 1 DE target
-    targetUid =
-        dataElementApiActions
-            .post(createDataElement("target" + uniqueChar, "TEXT", "AGGREGATE"))
-            .extractUid();
-
-    dsUid =
-        datasetApiActions
-            .post(createDataset("ds1", sourceUid1, sourceUid2, targetUid))
-            .extractUid();
+  private void setupDataSet(String sourceUid1, String sourceUid2, String targetUid) {
+    datasetApiActions.post(createDataset(sourceUid1, sourceUid2, targetUid)).extractUid();
   }
 
   private JsonObject getMergeBody(
@@ -328,11 +265,11 @@ class DataElementMergeTest extends ApiTest {
         .formatted(domainType, name, name, name, valueType);
   }
 
-  private String createDataset(String name, String dataEl1, String dataEl2, String dataEl3) {
+  private String createDataset(String dataEl1, String dataEl2, String dataEl3) {
     return """
       {
-        "name": "%s",
-        "shortName": "%s",
+        "name": "ds1",
+        "shortName": "ds1",
         "periodType": "Daily",
         "dataSetElements": [
           {
@@ -353,6 +290,6 @@ class DataElementMergeTest extends ApiTest {
         ]
       }
     """
-        .formatted(name, name, dataEl1, dataEl2, dataEl3);
+        .formatted(dataEl1, dataEl2, dataEl3);
   }
 }
