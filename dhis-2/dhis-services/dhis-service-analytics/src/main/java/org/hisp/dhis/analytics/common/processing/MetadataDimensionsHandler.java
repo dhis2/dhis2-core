@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.analytics.common.params.CommonParams;
+import org.hisp.dhis.analytics.data.handler.MetadataHandler;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -76,15 +77,8 @@ public class MetadataDimensionsHandler {
         commonParams.delegate().getPeriodDimensionOrFilterItems();
     List<QueryItem> itemFilters = commonParams.delegate().getItemsAsFilters();
 
-    Calendar calendar = PeriodType.getCalendar();
-
-    List<String> periodUids =
-        calendar.isIso8601()
-            ? getUids(periodDimensionOrFilterItems)
-            : getLocalPeriodIdentifiers(periodDimensionOrFilterItems, calendar);
-
     Map<String, List<String>> dimensionItems = new HashMap<>();
-    dimensionItems.put(PERIOD_DIM_ID, periodUids);
+    dimensionItems.put(PERIOD_DIM_ID, getDistinctPeriodUids(periodDimensionOrFilterItems));
 
     for (DimensionalObject dim : allDimensionalObjects) {
       dimensionItems.put(dim.getDimension(), getDimensionalItemIds(dim.getItems()));
@@ -94,6 +88,20 @@ public class MetadataDimensionsHandler {
     putFilterItemsIntoMap(dimensionItems, itemFilters);
 
     return dimensionItems;
+  }
+
+  /**
+   * Returns a list of distinct period UIDs. This method was extracted from the original code to be
+   * used in the {@link MetadataDimensionsHandler} and {@link MetadataHandler} classes.
+   *
+   * @param items the list of {@link DimensionalItemObject} of type period.
+   * @return a list of distinct period UIDs.
+   */
+  public static List<String> getDistinctPeriodUids(List<DimensionalItemObject> items) {
+    Calendar calendar = PeriodType.getCalendar();
+    List<String> periodUids =
+        calendar.isIso8601() ? getUids(items) : getLocalPeriodIdentifiers(items, calendar);
+    return periodUids.stream().distinct().toList();
   }
 
   /**
