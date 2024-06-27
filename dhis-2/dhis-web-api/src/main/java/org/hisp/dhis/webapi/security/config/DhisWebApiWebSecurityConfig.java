@@ -28,7 +28,9 @@
 package org.hisp.dhis.webapi.security.config;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
+import javax.servlet.http.HttpServletRequest;
 import javax.sql.DataSource;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -134,9 +136,23 @@ public class DhisWebApiWebSecurityConfig {
     return new SessionRegistryImpl();
   }
 
+  private static class CustomRequestMatcher implements RequestMatcher {
+
+    private final List<String> excludePatterns =
+        List.of("", "/", "/dhis-web-login", "/dhis-web-login/");
+
+    @Override
+    public boolean matches(HttpServletRequest request) {
+      String requestURI = request.getRequestURI();
+      return excludePatterns.stream().noneMatch(pattern -> pattern.equals(requestURI));
+    }
+  }
+
   @Bean
   public RequestCache requestCache() {
-    return new HttpSessionRequestCache();
+    HttpSessionRequestCache httpSessionRequestCache = new HttpSessionRequestCache();
+    httpSessionRequestCache.setRequestMatcher(new CustomRequestMatcher());
+    return httpSessionRequestCache;
   }
 
   @Bean(name = "customAuthenticationManager")
