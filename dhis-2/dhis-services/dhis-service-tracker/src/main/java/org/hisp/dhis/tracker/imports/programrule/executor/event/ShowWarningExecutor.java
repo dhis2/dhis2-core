@@ -31,6 +31,7 @@ import static org.hisp.dhis.tracker.imports.programrule.IssueType.WARNING;
 
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.programrule.api.ValidationEffect;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
@@ -41,7 +42,7 @@ import org.hisp.dhis.tracker.imports.programrule.executor.ValidationExecutor;
 /** This executor shows warnings calculated by Rule Engine. @Author Enrico Colasante */
 @RequiredArgsConstructor
 public class ShowWarningExecutor implements ValidationExecutor<Event> {
-  private final ValidationEffect ruleAction;
+  private final ValidationEffect validationEffect;
 
   @Override
   public boolean needsToRun(Event event) {
@@ -54,12 +55,12 @@ public class ShowWarningExecutor implements ValidationExecutor<Event> {
   }
 
   @Override
-  public String getDataElementUid() {
-    return ruleAction.field();
+  public UID getDataElementUid() {
+    return validationEffect.field();
   }
 
   @Override
   public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Event event) {
-    return execute(ruleAction, event);
+    return execute(validationEffect, event);
   }
 }

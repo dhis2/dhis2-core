@@ -29,11 +29,24 @@ package org.hisp.dhis.programrule.api;
 
 import java.util.Arrays;
 
-public enum NotificationActionType {
-  SENDMESSAGE,
-  SCHEDULEMESSAGE;
+public enum NotificationAction {
+  SEND_MESSAGE("SENDMESSAGE"),
+  SCHEDULE_MESSAGE("SCHEDULEMESSAGE");
 
   public static boolean contains(String value) {
-    return Arrays.stream(values()).anyMatch(v -> v.name().equalsIgnoreCase(value));
+    return Arrays.stream(values()).anyMatch(v -> v.ruleEngineName.equalsIgnoreCase(value));
+  }
+
+  public static NotificationAction fromName(String name) {
+    return Arrays.stream(values())
+        .filter(v -> v.ruleEngineName.equalsIgnoreCase(name))
+        .findAny()
+        .orElseThrow();
+  }
+
+  private final String ruleEngineName;
+
+  NotificationAction(String ruleEngineName) {
+    this.ruleEngineName = ruleEngineName;
   }
 }

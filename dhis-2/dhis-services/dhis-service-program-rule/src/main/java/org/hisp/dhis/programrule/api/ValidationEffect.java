@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.programrule.api;
 
+import org.hisp.dhis.common.UID;
+
 /** This effect will be used in tracker to create a validation rule. */
 public record ValidationEffect(
-    String ruleId, String data, String field, String content, ValidationActionType type) {}
+    ValidationAction type, UID ruleId, String data, UID field, String message) {}

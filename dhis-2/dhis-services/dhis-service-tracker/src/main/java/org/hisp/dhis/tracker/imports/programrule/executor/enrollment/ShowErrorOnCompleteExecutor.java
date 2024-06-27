@@ -45,7 +45,7 @@ import org.hisp.dhis.tracker.imports.programrule.executor.ValidationExecutor;
  */
 @RequiredArgsConstructor
 public class ShowErrorOnCompleteExecutor implements ValidationExecutor<Enrollment> {
-  private final ValidationEffect ruleAction;
+  private final ValidationEffect validationEffect;
 
   @Override
   public boolean needsToRun(Enrollment enrollment) {
@@ -59,6 +59,6 @@ public class ShowErrorOnCompleteExecutor implements ValidationExecutor<Enrollmen
 
   @Override
   public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Enrollment enrollment) {
-    return execute(ruleAction, enrollment);
+    return execute(validationEffect, enrollment);
   }
 }

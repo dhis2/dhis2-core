@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -130,28 +131,30 @@ public class RuleEngineEffects {
 
   private static List<ValidationEffect> mapValidationEffect(List<RuleEffect> effects) {
     return effects.stream()
-        .filter(e -> ValidationActionType.contains(e.getRuleAction().getType()))
+        .filter(e -> ValidationAction.contains(e.getRuleAction().getType()))
         .map(
             e ->
                 new ValidationEffect(
-                    e.getRuleId(),
+                    ValidationAction.fromName(e.getRuleAction().getType()),
+                    UID.of(e.getRuleId()),
                     e.getData(),
-                    e.getRuleAction().field(),
-                    e.getRuleAction().content(),
-                    ValidationActionType.valueOf(e.getRuleAction().getType())))
+                    StringUtils.isEmpty(e.getRuleAction().field())
+                        ? null
+                        : UID.of(e.getRuleAction().field()),
+                    e.getRuleAction().content()))
         .toList();
   }
 
   private static List<NotificationEffect> mapNotificationEffect(List<RuleEffect> effects) {
     return effects.stream()
-        .filter(e -> NotificationActionType.contains(e.getRuleAction().getType()))
+        .filter(e -> NotificationAction.contains(e.getRuleAction().getType()))
         .map(
             e ->
                 new NotificationEffect(
-                    e.getRuleId(),
-                    e.getData(),
-                    e.getRuleAction().getValues().get(NOTIFICATION),
-                    NotificationActionType.valueOf(e.getRuleAction().getType())))
+                    NotificationAction.fromName(e.getRuleAction().getType()),
+                    UID.of(e.getRuleId()),
+                    UID.of(e.getRuleAction().getValues().get(NOTIFICATION)),
+                    e.getData()))
         .toList();
   }
 }

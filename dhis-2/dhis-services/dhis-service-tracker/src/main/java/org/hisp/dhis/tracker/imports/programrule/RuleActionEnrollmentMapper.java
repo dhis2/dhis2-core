@@ -93,13 +93,14 @@ class RuleActionEnrollmentMapper {
               validationEffect.data(),
               validationEffect.field(),
               attributes);
-      case SETMANDATORYFIELD ->
+      case SET_MANDATORY_FIELD ->
           new SetMandatoryFieldExecutor(validationEffect.ruleId(), validationEffect.field());
-      case SHOWERROR -> new ShowErrorExecutor(validationEffect);
-      case SHOWWARNING -> new ShowWarningExecutor(validationEffect);
-      case ERRORONCOMPLETE -> new ShowErrorOnCompleteExecutor(validationEffect);
-      case WARNINGONCOMPLETE -> new ShowWarningOnCompleteExecutor(validationEffect);
-      case ERROR -> new RuleEngineErrorExecutor(validationEffect.ruleId(), validationEffect.data());
+      case SHOW_ERROR -> new ShowErrorExecutor(validationEffect);
+      case SHOW_WARNING -> new ShowWarningExecutor(validationEffect);
+      case SHOW_ERROR_ON_COMPLETE -> new ShowErrorOnCompleteExecutor(validationEffect);
+      case SHOW_WARNING_ON_COMPLETE -> new ShowWarningOnCompleteExecutor(validationEffect);
+      case RAISE_ERROR ->
+          new RuleEngineErrorExecutor(validationEffect.ruleId(), validationEffect.data());
     };
   }
 }

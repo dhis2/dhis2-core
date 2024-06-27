@@ -68,6 +68,7 @@ class TrackerProgramRuleBundleServiceTest extends TrackerTest {
     programRuleService.addProgramRule(programRule);
     ProgramRuleAction programRuleAction = createProgramRuleAction('A', programRule);
     programRuleAction.setProgramRuleActionType(ProgramRuleActionType.SENDMESSAGE);
+    programRuleAction.setTemplateUid("pmPWHy7XTmL");
     programRuleActionService.addProgramRuleAction(programRuleAction);
     programRule.getProgramRuleActions().add(programRuleAction);
     programRuleService.updateProgramRule(programRule);

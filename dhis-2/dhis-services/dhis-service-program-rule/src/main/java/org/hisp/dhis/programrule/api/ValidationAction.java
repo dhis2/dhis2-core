@@ -29,16 +29,29 @@ package org.hisp.dhis.programrule.api;
 
 import java.util.Arrays;
 
-public enum ValidationActionType {
-  ASSIGN,
-  SETMANDATORYFIELD,
-  SHOWERROR,
-  SHOWWARNING,
-  ERRORONCOMPLETE,
-  WARNINGONCOMPLETE,
-  ERROR;
+public enum ValidationAction {
+  ASSIGN("ASSIGN"),
+  SET_MANDATORY_FIELD("SETMANDATORYFIELD"),
+  SHOW_ERROR("SHOWERROR"),
+  SHOW_WARNING("SHOWWARNING"),
+  SHOW_ERROR_ON_COMPLETE("ERRORONCOMPLETE"),
+  SHOW_WARNING_ON_COMPLETE("WARNINGONCOMPLETE"),
+  RAISE_ERROR("ERROR");
 
   public static boolean contains(String value) {
-    return Arrays.stream(values()).anyMatch(v -> v.name().equalsIgnoreCase(value));
+    return Arrays.stream(values()).anyMatch(v -> v.ruleEngineName.equalsIgnoreCase(value));
+  }
+
+  public static ValidationAction fromName(String name) {
+    return Arrays.stream(values())
+        .filter(v -> v.ruleEngineName.equalsIgnoreCase(name))
+        .findAny()
+        .orElseThrow();
+  }
+
+  private final String ruleEngineName;
+
+  ValidationAction(String ruleEngineName) {
+    this.ruleEngineName = ruleEngineName;
   }
 }

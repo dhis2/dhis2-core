@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.programrule.engine;
 
-import static org.hisp.dhis.programrule.api.NotificationActionType.SCHEDULEMESSAGE;
+import static org.hisp.dhis.programrule.api.NotificationAction.SCHEDULE_MESSAGE;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -59,7 +59,7 @@ public class RuleActionScheduleMessageImplementer implements RuleActionImplement
 
   @Override
   public boolean accept(NotificationEffect notificationEffect) {
-    return notificationEffect.type() == SCHEDULEMESSAGE;
+    return notificationEffect.type() == SCHEDULE_MESSAGE;
   }
 
   @Override
@@ -68,7 +68,7 @@ public class RuleActionScheduleMessageImplementer implements RuleActionImplement
     ProgramNotificationTemplate template =
         notificationHelper.getNotificationTemplate(notificationEffect);
 
-    String date = StringUtils.unwrap(notificationEffect.data(), '\'');
+    String date = StringUtils.unwrap(notificationEffect.date(), '\'');
 
     if (isInvalid(date)) {
       return;
@@ -98,7 +98,7 @@ public class RuleActionScheduleMessageImplementer implements RuleActionImplement
     ProgramNotificationTemplate template =
         notificationHelper.getNotificationTemplate(notificationEffect);
 
-    String date = StringUtils.unwrap(notificationEffect.data(), '\'');
+    String date = StringUtils.unwrap(notificationEffect.date(), '\'');
 
     if (isInvalid(date)) {
       return;

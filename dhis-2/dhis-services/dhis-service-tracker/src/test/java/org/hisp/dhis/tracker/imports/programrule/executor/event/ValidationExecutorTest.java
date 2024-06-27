@@ -41,12 +41,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ValidationStrategy;
-import org.hisp.dhis.programrule.api.ValidationActionType;
+import org.hisp.dhis.programrule.api.ValidationAction;
 import org.hisp.dhis.programrule.api.ValidationEffect;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
@@ -65,7 +66,7 @@ import org.mockito.quality.Strictness;
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 class ValidationExecutorTest extends DhisConvenienceTest {
-  private static final String RULE_UID = "Rule uid";
+  private static final UID RULE_UID = UID.of("TvctPPhpD8u");
 
   private static final String CONTENT = "SHOW ERROR DATA";
 
@@ -83,17 +84,17 @@ class ValidationExecutorTest extends DhisConvenienceTest {
 
   private final ShowWarningOnCompleteExecutor warningOnCompleteExecutor =
       new ShowWarningOnCompleteExecutor(
-          getValidationRuleAction(WARNING, ValidationActionType.WARNINGONCOMPLETE));
+          getValidationRuleAction(WARNING, ValidationAction.SHOW_WARNING_ON_COMPLETE));
 
   private final ShowErrorOnCompleteExecutor errorOnCompleteExecutor =
       new ShowErrorOnCompleteExecutor(
-          getValidationRuleAction(ERROR, ValidationActionType.ERRORONCOMPLETE));
+          getValidationRuleAction(ERROR, ValidationAction.SHOW_ERROR_ON_COMPLETE));
 
   private final ShowErrorExecutor showErrorExecutor =
-      new ShowErrorExecutor(getValidationRuleAction(ERROR, ValidationActionType.SHOWERROR));
+      new ShowErrorExecutor(getValidationRuleAction(ERROR, ValidationAction.SHOW_ERROR));
 
   private final ShowWarningExecutor showWarningExecutor =
-      new ShowWarningExecutor(getValidationRuleAction(WARNING, ValidationActionType.SHOWWARNING));
+      new ShowWarningExecutor(getValidationRuleAction(WARNING, ValidationAction.SHOW_WARNING));
 
   private TrackerBundle bundle;
 
@@ -197,9 +198,9 @@ class ValidationExecutorTest extends DhisConvenienceTest {
   }
 
   private ValidationEffect getValidationRuleAction(
-      IssueType issueType, ValidationActionType actionType) {
+      IssueType issueType, ValidationAction actionType) {
     return new ValidationEffect(
-        RULE_UID, EVALUATED_DATA, null, issueType.name() + CONTENT, actionType);
+        actionType, RULE_UID, EVALUATED_DATA, null, issueType.name() + CONTENT);
   }
 
   private List<Event> getEvents() {

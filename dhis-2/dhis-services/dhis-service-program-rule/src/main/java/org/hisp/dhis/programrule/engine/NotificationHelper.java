@@ -61,7 +61,7 @@ class NotificationHelper {
 
   public ProgramNotificationTemplate getNotificationTemplate(
       NotificationEffect notificationEffect) {
-    String uid = notificationEffect.notification();
+    String uid = notificationEffect.template().getValue();
     return programNotificationTemplateService.getByUid(uid);
   }
 

@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.ProgramStage;
@@ -94,24 +93,24 @@ class RuleActionEventMapper {
               validationEffect.data(),
               validationEffect.field(),
               dataValues);
-      case SETMANDATORYFIELD ->
+      case SET_MANDATORY_FIELD ->
           new SetMandatoryFieldExecutor(validationEffect.ruleId(), validationEffect.field());
-      case SHOWERROR -> new ShowErrorExecutor(validationEffect);
-      case SHOWWARNING -> new ShowWarningExecutor(validationEffect);
-      case ERRORONCOMPLETE -> new ShowErrorOnCompleteExecutor(validationEffect);
-      case WARNINGONCOMPLETE -> new ShowWarningOnCompleteExecutor(validationEffect);
-      case ERROR -> new RuleEngineErrorExecutor(validationEffect.ruleId(), validationEffect.data());
+      case SHOW_ERROR -> new ShowErrorExecutor(validationEffect);
+      case SHOW_WARNING -> new ShowWarningExecutor(validationEffect);
+      case SHOW_ERROR_ON_COMPLETE -> new ShowErrorOnCompleteExecutor(validationEffect);
+      case SHOW_WARNING_ON_COMPLETE -> new ShowWarningOnCompleteExecutor(validationEffect);
+      case RAISE_ERROR ->
+          new RuleEngineErrorExecutor(validationEffect.ruleId(), validationEffect.data());
     };
   }
 
-  private boolean isDataElementPartOfProgramStage(
-      String dataElementUid, ProgramStage programStage) {
-    if (StringUtils.isEmpty(dataElementUid)) {
+  private boolean isDataElementPartOfProgramStage(UID dataElementUid, ProgramStage programStage) {
+    if (dataElementUid == null) {
       return true;
     }
 
     return programStage.getDataElements().stream()
         .map(IdentifiableObject::getUid)
-        .anyMatch(de -> de.equals(dataElementUid));
+        .anyMatch(de -> de.equals(dataElementUid.getValue()));
   }
 }

@@ -32,6 +32,7 @@ import static org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue.warning
 
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.programrule.api.ValidationEffect;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.programrule.IssueType;
@@ -47,31 +48,32 @@ public interface ValidationExecutor<T> extends RuleActionExecutor<T> {
 
   boolean needsToRun(T t);
 
-  default Optional<ProgramRuleIssue> execute(ValidationEffect ruleAction, T t) {
+  default Optional<ProgramRuleIssue> execute(ValidationEffect validationEffect, T t) {
     if (needsToRun(t)) {
-      return mapToIssue(ruleAction);
+      return mapToIssue(validationEffect);
     }
     return Optional.empty();
   }
 
-  private Optional<ProgramRuleIssue> mapToIssue(ValidationEffect ruleAction) {
-    StringBuilder validationMessage = new StringBuilder(ruleAction.content());
-    String data = ruleAction.data();
+  private Optional<ProgramRuleIssue> mapToIssue(ValidationEffect validationEffect) {
+    StringBuilder validationMessage = new StringBuilder(validationEffect.message());
+    String data = validationEffect.data();
     if (!StringUtils.isEmpty(data)) {
       validationMessage.append(" ").append(data);
     }
-    String field = ruleAction.field();
-    if (!StringUtils.isEmpty(field)) {
-      validationMessage.append(" (").append(field).append(")");
+    UID field = validationEffect.field();
+    if (field != null) {
+      validationMessage.append(" (").append(field.getValue()).append(")");
     }
 
     return switch (getIssueType()) {
       case WARNING ->
           Optional.of(
-              warning(ruleAction.ruleId(), ValidationCode.E1300, validationMessage.toString()));
+              warning(
+                  validationEffect.ruleId(), ValidationCode.E1300, validationMessage.toString()));
       case ERROR ->
           Optional.of(
-              error(ruleAction.ruleId(), ValidationCode.E1300, validationMessage.toString()));
+              error(validationEffect.ruleId(), ValidationCode.E1300, validationMessage.toString()));
     };
   }
 }

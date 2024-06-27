@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.programrule.api;
 
+import org.hisp.dhis.common.UID;
+
 /** This effect will be used in tracker to send a notification. */
-public record NotificationEffect(
-    String ruleId, String data, String notification, NotificationActionType type) {}
+public record NotificationEffect(NotificationAction type, UID ruleId, UID template, String date) {}

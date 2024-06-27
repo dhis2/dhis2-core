@@ -41,7 +41,7 @@ import org.hisp.dhis.tracker.imports.programrule.executor.ValidationExecutor;
 /** This executor shows warnings calculated by Rule Engine. @Author Enrico Colasante */
 @RequiredArgsConstructor
 public class ShowWarningExecutor implements ValidationExecutor<Enrollment> {
-  private final ValidationEffect ruleAction;
+  private final ValidationEffect validationEffect;
 
   @Override
   public boolean needsToRun(Enrollment enrollment) {
@@ -55,6 +55,6 @@ public class ShowWarningExecutor implements ValidationExecutor<Enrollment> {
 
   @Override
   public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Enrollment enrollment) {
-    return execute(ruleAction, enrollment);
+    return execute(validationEffect, enrollment);
   }
 }

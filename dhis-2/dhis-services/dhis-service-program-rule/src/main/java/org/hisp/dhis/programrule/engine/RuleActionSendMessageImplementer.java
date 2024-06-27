@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.programrule.engine;
 
-import static org.hisp.dhis.programrule.api.NotificationActionType.SENDMESSAGE;
+import static org.hisp.dhis.programrule.api.NotificationAction.SEND_MESSAGE;
 
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
@@ -59,7 +59,7 @@ public class RuleActionSendMessageImplementer implements RuleActionImplementer {
 
   @Override
   public boolean accept(NotificationEffect notificationEffect) {
-    return notificationEffect.type() == SENDMESSAGE;
+    return notificationEffect.type() == SEND_MESSAGE;
   }
 
   @Override
