@@ -57,9 +57,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Enrico Colasante
  */
 @ExtendWith(MockitoExtension.class)
-class DataStatusValidatorTest {
+class StatusUpdateValidatorTest {
 
-  private DataStatusValidator validator;
+  private StatusUpdateValidator validator;
 
   @Mock TrackerPreheat preheat;
 
@@ -71,7 +71,7 @@ class DataStatusValidatorTest {
 
   @BeforeEach
   public void setUp() {
-    validator = new DataStatusValidator();
+    validator = new StatusUpdateValidator();
 
     when(bundle.getPreheat()).thenReturn(preheat);
 
