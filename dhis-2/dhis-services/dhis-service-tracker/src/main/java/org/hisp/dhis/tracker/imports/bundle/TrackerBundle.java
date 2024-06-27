@@ -41,6 +41,7 @@ import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.programrule.api.NotificationEffect;
 import org.hisp.dhis.tracker.TrackerType;
@@ -110,11 +111,11 @@ public class TrackerBundle {
 
   /** Notification effects for enrollments. */
   @Builder.Default
-  private Map<String, List<NotificationEffect>> enrollmentNotificationEffects = new HashMap<>();
+  private Map<UID, List<NotificationEffect>> enrollmentNotificationEffects = new HashMap<>();
 
   /** Notification effects for events. */
   @Builder.Default
-  private Map<String, List<NotificationEffect>> eventNotificationEffects = new HashMap<>();
+  private Map<UID, List<NotificationEffect>> eventNotificationEffects = new HashMap<>();
 
   /** Rule action executors for enrollments. */
   @Builder.Default
@@ -168,12 +169,12 @@ public class TrackerBundle {
     return entities.stream().filter(e -> Objects.equals(e.getUid(), uid)).findFirst();
   }
 
-  public Map<String, List<NotificationEffect>> getEnrollmentRuleEffects() {
-    return enrollmentNotificationEffects;
+  public Map<UID, List<NotificationEffect>> getEnrollmentRuleEffects() {
+    return Map.copyOf(enrollmentNotificationEffects);
   }
 
-  public Map<String, List<NotificationEffect>> getEventRuleEffects() {
-    return eventNotificationEffects;
+  public Map<UID, List<NotificationEffect>> getEventRuleEffects() {
+    return Map.copyOf(eventNotificationEffects);
   }
 
   public TrackerImportStrategy setStrategy(TrackerDto dto, TrackerImportStrategy strategy) {

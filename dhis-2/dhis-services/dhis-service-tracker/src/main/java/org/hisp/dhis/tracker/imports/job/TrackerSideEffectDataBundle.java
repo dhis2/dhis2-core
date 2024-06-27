@@ -39,6 +39,7 @@ import lombok.Data;
 import org.hisp.dhis.artemis.Message;
 import org.hisp.dhis.artemis.MessageType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
@@ -72,10 +73,10 @@ public class TrackerSideEffectDataBundle implements Message {
   @JsonProperty private List<SideEffectTrigger> triggers = new ArrayList<>();
 
   @JsonProperty @Builder.Default
-  private Map<String, List<NotificationEffect>> enrollmentNotificationEffects = new HashMap<>();
+  private Map<UID, List<NotificationEffect>> enrollmentNotificationEffects = new HashMap<>();
 
   @JsonProperty @Builder.Default
-  private Map<String, List<NotificationEffect>> eventNotificationEffects = new HashMap<>();
+  private Map<UID, List<NotificationEffect>> eventNotificationEffects = new HashMap<>();
 
   @JsonProperty private TrackerImportStrategy importStrategy;
 

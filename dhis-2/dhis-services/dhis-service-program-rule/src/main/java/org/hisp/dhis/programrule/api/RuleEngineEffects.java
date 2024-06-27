@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.Getter;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.rules.models.RuleEffect;
@@ -47,16 +48,16 @@ import org.hisp.dhis.rules.models.RuleEffects;
  */
 @Getter
 public class RuleEngineEffects {
-  private final Map<String, List<ValidationEffect>> enrollmentValidationEffects;
-  private final Map<String, List<ValidationEffect>> eventValidationEffects;
-  private final Map<String, List<NotificationEffect>> enrollmentNotificationEffects;
-  private final Map<String, List<NotificationEffect>> eventNotificationEffects;
+  private final Map<UID, List<ValidationEffect>> enrollmentValidationEffects;
+  private final Map<UID, List<ValidationEffect>> eventValidationEffects;
+  private final Map<UID, List<NotificationEffect>> enrollmentNotificationEffects;
+  private final Map<UID, List<NotificationEffect>> eventNotificationEffects;
 
   private RuleEngineEffects(
-      Map<String, List<ValidationEffect>> enrollmentValidationEffects,
-      Map<String, List<ValidationEffect>> eventValidationEffects,
-      Map<String, List<NotificationEffect>> enrollmentNotificationEffects,
-      Map<String, List<NotificationEffect>> eventNotificationEffects) {
+      Map<UID, List<ValidationEffect>> enrollmentValidationEffects,
+      Map<UID, List<ValidationEffect>> eventValidationEffects,
+      Map<UID, List<NotificationEffect>> enrollmentNotificationEffects,
+      Map<UID, List<NotificationEffect>> eventNotificationEffects) {
     this.enrollmentValidationEffects = enrollmentValidationEffects;
     this.eventValidationEffects = eventValidationEffects;
     this.enrollmentNotificationEffects = enrollmentNotificationEffects;
@@ -67,18 +68,50 @@ public class RuleEngineEffects {
     return new RuleEngineEffects(Map.of(), Map.of(), Map.of(), Map.of());
   }
 
-  public static RuleEngineEffects fromRuleEffects(List<RuleEffects> effects) {
-    return map(effects);
+  public static RuleEngineEffects of(List<RuleEffects> ruleEffects) {
+    Map<UID, List<ValidationEffect>> enrollmentValidationEffects =
+        ruleEffects.stream()
+            .filter(RuleEffects::isEnrollment)
+            .collect(
+                Collectors.toMap(
+                    e -> UID.of(e.getTrackerObjectUid()),
+                    e -> mapValidationEffect(e.getRuleEffects())));
+    Map<UID, List<ValidationEffect>> eventValidationEffects =
+        ruleEffects.stream()
+            .filter(RuleEffects::isEvent)
+            .collect(
+                Collectors.toMap(
+                    e -> UID.of(e.getTrackerObjectUid()),
+                    e -> mapValidationEffect(e.getRuleEffects())));
+    Map<UID, List<NotificationEffect>> enrollmentNotificationEffects =
+        ruleEffects.stream()
+            .filter(RuleEffects::isEnrollment)
+            .collect(
+                Collectors.toMap(
+                    e -> UID.of(e.getTrackerObjectUid()),
+                    e -> mapNotificationEffect(e.getRuleEffects())));
+    Map<UID, List<NotificationEffect>> eventNotificationEffects =
+        ruleEffects.stream()
+            .filter(RuleEffects::isEvent)
+            .collect(
+                Collectors.toMap(
+                    e -> UID.of(e.getTrackerObjectUid()),
+                    e -> mapNotificationEffect(e.getRuleEffects())));
+    return new RuleEngineEffects(
+        enrollmentValidationEffects,
+        eventValidationEffects,
+        enrollmentNotificationEffects,
+        eventNotificationEffects);
   }
 
   public static RuleEngineEffects merge(RuleEngineEffects effects, RuleEngineEffects effects2) {
-    Map<String, List<ValidationEffect>> enrollmentValidationEffects =
+    Map<UID, List<ValidationEffect>> enrollmentValidationEffects =
         merge(effects.enrollmentValidationEffects, effects2.enrollmentValidationEffects);
-    Map<String, List<ValidationEffect>> eventValidationEffects =
+    Map<UID, List<ValidationEffect>> eventValidationEffects =
         merge(effects.eventValidationEffects, effects2.eventValidationEffects);
-    Map<String, List<NotificationEffect>> enrollmentNotificationEffects =
+    Map<UID, List<NotificationEffect>> enrollmentNotificationEffects =
         merge(effects.enrollmentNotificationEffects, effects2.enrollmentNotificationEffects);
-    Map<String, List<NotificationEffect>> eventNotificationEffects =
+    Map<UID, List<NotificationEffect>> eventNotificationEffects =
         merge(effects.eventNotificationEffects, effects2.eventNotificationEffects);
 
     return new RuleEngineEffects(
@@ -88,47 +121,11 @@ public class RuleEngineEffects {
         eventNotificationEffects);
   }
 
-  private static <T> Map<String, List<T>> merge(
-      Map<String, List<T>> effects, Map<String, List<T>> effects2) {
+  private static <T> Map<UID, List<T>> merge(
+      Map<UID, List<T>> effects, Map<UID, List<T>> effects2) {
     return Stream.of(effects.entrySet(), effects2.entrySet())
         .flatMap(Collection::stream)
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-  }
-
-  private static RuleEngineEffects map(List<RuleEffects> ruleEffects) {
-    Map<String, List<ValidationEffect>> enrollmentValidationEffects =
-        ruleEffects.stream()
-            .filter(RuleEffects::isEnrollment)
-            .collect(
-                Collectors.toMap(
-                    RuleEffects::getTrackerObjectUid,
-                    e -> mapValidationEffect(e.getRuleEffects())));
-    Map<String, List<ValidationEffect>> eventValidationEffects =
-        ruleEffects.stream()
-            .filter(RuleEffects::isEvent)
-            .collect(
-                Collectors.toMap(
-                    RuleEffects::getTrackerObjectUid,
-                    e -> mapValidationEffect(e.getRuleEffects())));
-    Map<String, List<NotificationEffect>> enrollmentNotificationEffects =
-        ruleEffects.stream()
-            .filter(RuleEffects::isEnrollment)
-            .collect(
-                Collectors.toMap(
-                    RuleEffects::getTrackerObjectUid,
-                    e -> mapNotificationEffect(e.getRuleEffects())));
-    Map<String, List<NotificationEffect>> eventNotificationEffects =
-        ruleEffects.stream()
-            .filter(RuleEffects::isEvent)
-            .collect(
-                Collectors.toMap(
-                    RuleEffects::getTrackerObjectUid,
-                    e -> mapNotificationEffect(e.getRuleEffects())));
-    return new RuleEngineEffects(
-        enrollmentValidationEffects,
-        eventValidationEffects,
-        enrollmentNotificationEffects,
-        eventNotificationEffects);
   }
 
   private static List<ValidationEffect> mapValidationEffect(List<RuleEffect> effects) {

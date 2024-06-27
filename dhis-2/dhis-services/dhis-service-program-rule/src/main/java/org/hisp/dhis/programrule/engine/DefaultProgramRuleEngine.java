@@ -101,13 +101,13 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
             enrollment.getProgram(),
             getRuleEvents(events),
             rules);
-    return RuleEngineEffects.fromRuleEffects(ruleEffects);
+    return RuleEngineEffects.of(ruleEffects);
   }
 
   @Override
   public RuleEngineEffects evaluateProgramEvents(Set<Event> events, Program program) {
     List<ProgramRule> rules = implementableRuleService.getProgramRules(program, null);
-    return RuleEngineEffects.fromRuleEffects(
+    return RuleEngineEffects.of(
         evaluateProgramRulesForMultipleTrackerObjects(null, program, getRuleEvents(events), rules));
   }
 

@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.artemis.MessageType;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.programrule.api.NotificationEffect;
@@ -51,9 +52,9 @@ class TrackerSideValidationEffectDataBundleTest {
   void testSideEffectDataBundleForEnrollment() {
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
         new org.hisp.dhis.tracker.imports.domain.Enrollment();
-    enrollment.setEnrollment("test-enrollment");
-    Map<String, List<NotificationEffect>> enrollmentRuleEffects = new HashMap<>();
-    enrollmentRuleEffects.put(enrollment.getEnrollment(), Lists.newArrayList());
+    enrollment.setEnrollment("ja8NY4PW7Xm");
+    Map<UID, List<NotificationEffect>> enrollmentRuleEffects = new HashMap<>();
+    enrollmentRuleEffects.put(UID.of(enrollment.getEnrollment()), Lists.newArrayList());
     String enrollmentUid = CodeGenerator.generateUid();
     TrackerSideEffectDataBundle bundle =
         TrackerSideEffectDataBundle.builder()
@@ -65,7 +66,7 @@ class TrackerSideValidationEffectDataBundleTest {
             .build();
     assertEquals(enrollmentUid, bundle.getObject());
     assertEquals(Enrollment.class, bundle.getKlass());
-    assertTrue(bundle.getEnrollmentNotificationEffects().containsKey("test-enrollment"));
+    assertTrue(bundle.getEnrollmentNotificationEffects().containsKey(UID.of("ja8NY4PW7Xm")));
     assertTrue(bundle.getEventNotificationEffects().isEmpty());
     assertEquals(TrackerImportStrategy.CREATE, bundle.getImportStrategy());
     assertEquals(MessageType.TRACKER_SIDE_EFFECT, bundle.getMessageType());
@@ -75,9 +76,9 @@ class TrackerSideValidationEffectDataBundleTest {
   void testSideEffectDataBundleForEvent() {
     org.hisp.dhis.tracker.imports.domain.Event event =
         new org.hisp.dhis.tracker.imports.domain.Event();
-    event.setEvent("test-event");
-    Map<String, List<NotificationEffect>> eventRuleEffects = new HashMap<>();
-    eventRuleEffects.put(event.getEvent(), Lists.newArrayList());
+    event.setEvent("ja8NY4PW7Xm");
+    Map<UID, List<NotificationEffect>> eventRuleEffects = new HashMap<>();
+    eventRuleEffects.put(UID.of(event.getEvent()), Lists.newArrayList());
     Event expected = new Event();
     expected.setAutoFields();
     TrackerSideEffectDataBundle bundle =
@@ -88,7 +89,7 @@ class TrackerSideValidationEffectDataBundleTest {
             .build();
     assertEquals(expected.getUid(), bundle.getObject());
     assertEquals(Event.class, bundle.getKlass());
-    assertTrue(bundle.getEventNotificationEffects().containsKey("test-event"));
+    assertTrue(bundle.getEventNotificationEffects().containsKey(UID.of("ja8NY4PW7Xm")));
     assertTrue(bundle.getEnrollmentNotificationEffects().isEmpty());
   }
 }

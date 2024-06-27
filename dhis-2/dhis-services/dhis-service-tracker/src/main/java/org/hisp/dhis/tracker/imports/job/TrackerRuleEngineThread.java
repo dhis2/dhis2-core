@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.imports.job;
 
 import java.util.List;
 import java.util.Map;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.programrule.api.NotificationEffect;
@@ -73,13 +74,13 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable {
       return;
     }
 
-    Map<String, List<NotificationEffect>> enrollmentRuleEffects =
+    Map<UID, List<NotificationEffect>> enrollmentRuleEffects =
         sideEffectDataBundle.getEnrollmentNotificationEffects();
-    Map<String, List<NotificationEffect>> eventRuleEffects =
+    Map<UID, List<NotificationEffect>> eventRuleEffects =
         sideEffectDataBundle.getEventNotificationEffects();
 
     for (RuleActionImplementer ruleActionImplementer : ruleActionImplementers) {
-      for (Map.Entry<String, List<NotificationEffect>> entry : enrollmentRuleEffects.entrySet()) {
+      for (Map.Entry<UID, List<NotificationEffect>> entry : enrollmentRuleEffects.entrySet()) {
         Enrollment enrollment = sideEffectDataBundle.getEnrollment();
         enrollment.setProgram(sideEffectDataBundle.getProgram());
 
@@ -88,7 +89,7 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable {
             .forEach(effect -> ruleActionImplementer.implement(effect, enrollment));
       }
 
-      for (Map.Entry<String, List<NotificationEffect>> entry : eventRuleEffects.entrySet()) {
+      for (Map.Entry<UID, List<NotificationEffect>> entry : eventRuleEffects.entrySet()) {
         Event event = sideEffectDataBundle.getEvent();
         event.getProgramStage().setProgram(sideEffectDataBundle.getProgram());
 
