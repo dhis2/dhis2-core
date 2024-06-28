@@ -67,14 +67,6 @@ public interface EventService {
   boolean eventExistsIncludingDeleted(String uid);
 
   /**
-   * Returns an {@link Event}.
-   *
-   * @param id the id of the Event to return.
-   * @return the Event with the given id.
-   */
-  Event getEvent(long id);
-
-  /**
    * Returns the {@link Event} with the given UID.
    *
    * @param uid the UID.
