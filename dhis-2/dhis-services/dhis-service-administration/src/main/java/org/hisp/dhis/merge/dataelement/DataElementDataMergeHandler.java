@@ -28,6 +28,7 @@
 package org.hisp.dhis.merge.dataelement;
 
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.merge.DataMergeStrategy;
 
@@ -38,5 +39,8 @@ import org.hisp.dhis.merge.DataMergeStrategy;
  */
 @FunctionalInterface
 public interface DataElementDataMergeHandler {
-  void merge(List<DataElement> sources, DataElement target, DataMergeStrategy mergeStrategy);
+  void merge(
+      @Nonnull List<DataElement> sources,
+      @Nonnull DataElement target,
+      @Nonnull DataMergeStrategy mergeStrategy);
 }

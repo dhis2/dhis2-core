@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dataelement.DataElement;
@@ -62,7 +63,9 @@ public class DataDataElementMergeHandler {
    *     DataValue}
    */
   public void handleDataValueDataElement(
-      List<DataElement> sources, DataElement target, DataMergeStrategy dataMergeStrategy) {
+      @Nonnull List<DataElement> sources,
+      @Nonnull DataElement target,
+      @Nonnull DataMergeStrategy dataMergeStrategy) {
     // get DVs from sources
     List<DataValue> sourceDataValues = dataValueStore.getAllDataValuesByDataElement(sources);
     log.info(sourceDataValues.size() + " source data values retrieved");
@@ -72,23 +75,19 @@ public class DataDataElementMergeHandler {
         dataValueStore.getAllDataValuesByDataElement(List.of(target));
     log.info(targetDataValues.size() + " target data values retrieved");
 
-    // check merge strategy
-    switch (dataMergeStrategy) {
-      case DISCARD -> {
-        log.info(dataMergeStrategy + " dataMergeStrategy being used, deleting source data values");
-        sources.forEach(dataValueStore::deleteDataValues);
-      }
-      case LAST_UPDATED -> {
-        log.info(dataMergeStrategy + " dataMergeStrategy being used");
-        Map<Boolean, List<DataValue>> sourceDuplicateList =
-            sourceDataValues.stream()
-                .collect(
-                    Collectors.partitioningBy(
-                        dv -> dataValueDuplicates.test(dv, targetDataValues)));
+    // merge based on chosen strategy
+    if (dataMergeStrategy == DataMergeStrategy.DISCARD) {
+      log.info(dataMergeStrategy + " dataMergeStrategy being used, deleting source data values");
+      sources.forEach(dataValueStore::deleteDataValues);
+    } else if (dataMergeStrategy == DataMergeStrategy.LAST_UPDATED) {
+      log.info(dataMergeStrategy + " dataMergeStrategy being used");
+      Map<Boolean, List<DataValue>> sourceDuplicateList =
+          sourceDataValues.stream()
+              .collect(
+                  Collectors.partitioningBy(dv -> dataValueDuplicates.test(dv, targetDataValues)));
 
-        handleNonDuplicates(sourceDuplicateList.get(false), sources, target);
-        handleDuplicates(sourceDuplicateList.get(true), targetDataValues, target);
-      }
+      handleNonDuplicates(sourceDuplicateList.get(false), sources, target);
+      handleDuplicates(sourceDuplicateList.get(true), targetDataValues, target);
     }
   }
 
@@ -110,7 +109,9 @@ public class DataDataElementMergeHandler {
    * @param target target {@link DataElement}
    */
   private void handleDuplicates(
-      List<DataValue> dataValues, List<DataValue> targetDataValues, DataElement target) {
+      @Nonnull List<DataValue> dataValues,
+      @Nonnull List<DataValue> targetDataValues,
+      @Nonnull DataElement target) {
     log.info(
         "Updating "
             + dataValues.size()
@@ -149,7 +150,9 @@ public class DataDataElementMergeHandler {
    * @param target target {@link DataElement}
    */
   private void handleNonDuplicates(
-      List<DataValue> dataValues, List<DataElement> sources, DataElement target) {
+      @Nonnull List<DataValue> dataValues,
+      @Nonnull List<DataElement> sources,
+      @Nonnull DataElement target) {
     log.info(
         "Handling "
             + dataValues.size()
