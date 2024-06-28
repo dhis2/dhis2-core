@@ -31,6 +31,7 @@ import static org.springframework.util.Assert.notNull;
 
 import java.util.Optional;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.analytics.common.query.jsonextractor.SqlRowSetJsonExtractorDelegator;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -54,14 +55,15 @@ public class SqlQueryExecutor implements QueryExecutor<SqlQuery, SqlQueryResult>
    * @throws IllegalArgumentException if the query argument is null.
    */
   @Override
-  public SqlQueryResult find(SqlQuery query) {
+  public SqlQueryResult find(@Nonnull SqlQuery query) {
     notNull(query, "The 'query' must not be null");
 
     SqlRowSet rowSet =
         namedParameterJdbcTemplate.queryForRowSet(
             query.getStatement(), new MapSqlParameterSource().addValues(query.getParams()));
 
-    return new SqlQueryResult(rowSet);
+    return new SqlQueryResult(
+        new SqlRowSetJsonExtractorDelegator(rowSet, query.getDimensionIdentifiers()));
   }
 
   /**

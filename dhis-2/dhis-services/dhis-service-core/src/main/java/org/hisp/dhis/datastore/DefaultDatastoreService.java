@@ -29,6 +29,7 @@ package org.hisp.dhis.datastore;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static java.util.Comparator.comparing;
 
 import java.util.Date;
 import java.util.List;
@@ -41,6 +42,7 @@ import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
@@ -69,11 +71,28 @@ public class DefaultDatastoreService implements DatastoreService {
   private final AclService aclService;
 
   @Override
+  @NonTransactional
+  public DatastoreNamespaceProtection getProtection(@Nonnull String namespace) {
+    return protectionByNamespace.get(namespace);
+  }
+
+  @Nonnull
+  @Override
+  @NonTransactional
+  public List<DatastoreNamespaceProtection> getProtections() {
+    return protectionByNamespace.values().stream()
+        .sorted(comparing(DatastoreNamespaceProtection::getNamespace))
+        .toList();
+  }
+
+  @Override
+  @NonTransactional
   public void addProtection(DatastoreNamespaceProtection protection) {
     protectionByNamespace.put(protection.getNamespace(), protection);
   }
 
   @Override
+  @NonTransactional
   public void removeProtection(String namespace) {
     protectionByNamespace.remove(namespace);
   }

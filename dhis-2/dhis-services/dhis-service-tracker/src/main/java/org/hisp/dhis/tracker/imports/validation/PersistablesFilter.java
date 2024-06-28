@@ -43,7 +43,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.tracker.TrackerType;
@@ -69,10 +68,9 @@ import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
  * TrackerBundle} is not mutated!
  *
  * <p>Errors are only added to {@link Result#errors} if they add information. For example a valid
- * entity with invalid children cannot be deleted because of its children. Since the valid parent
- * did not already have an error added during validation on will be added here. For more information
- * see {@link #addErrorsForParents(List, TrackerDto)} and {@link #addErrorsForChildren(List,
- * TrackerDto)}.
+ * entity with invalid parent cannot be created because of its parent. Since the valid children did
+ * not already have an error added during validation on will be added here. For more information see
+ * {@link #addErrorsForChildren(List, TrackerDto)}.
  *
  * <p>This filter relies on preprocessing and all {@link
  * org.hisp.dhis.tracker.imports.validation.Validator}s having run beforehand. The following are
@@ -82,17 +80,18 @@ import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
  *   <li>This does not validate whether the {@link TrackerImportStrategy} matches the state of a
  *       given entity. In case a non existing entity is updated it is expected to already be flagged
  *       in the {@code invalidEntities}.
- *   <li>Existence is only checked in relation to a parent or child. During {@link
+ *   <li>Existence is only checked in relation to a parent. During {@link
  *       TrackerImportStrategy#UPDATE} a valid enrollment can be updated if its parent the TE is
- *       invalid but exists. Same applies to {@link TrackerImportStrategy#DELETE} as you cannot
- *       delete an entity that does not yet exist.
+ *       invalid but exists.
  *   <li>An {@link Event} in an event program does not have an {@link Event#getEnrollment()}
  *       (parent) set in the payload. This expects one to be set during preprocessing. So events in
  *       program with or without registration do not get any special treatment.
- *   <li>{@link TrackerImportStrategy#DELETE} with {@link
- *       org.hisp.dhis.security.Authorities#F_TEI_CASCADE_DELETE} is not treated differently than a
- *       delete without such authority. Validation should have already flagged entities in {@code
- *       invalidEntities} if they have children that cannot be deleted by that user.
+ *   <li>It is not possible to have a valid parent with invalid children in {@link
+ *       TrackerImportStrategy#DELETE} as an entity can be invalid only in 2 cases:
+ *       <ul>
+ *         <li>if it doesn't exist there are no children to check
+ *         <li>if user has no access to it, then it will not have access to its children
+ *       </ul>
  * </ul>
  */
 class PersistablesFilter {
@@ -158,11 +157,12 @@ class PersistablesFilter {
   private void filter() {
     if (onDelete()) {
       // bottom-up
-      collectDeletables(Relationship.class, RELATIONSHIP_PARENTS, bundle.getRelationships());
-      collectDeletables(Event.class, EVENT_PARENTS, bundle.getEvents());
-      collectDeletables(Enrollment.class, ENROLLMENT_PARENTS, bundle.getEnrollments());
-      collectDeletables(TrackedEntity.class, TRACKED_ENTITY_PARENTS, bundle.getTrackedEntities());
+      collectDeletables(Relationship.class, bundle.getRelationships());
+      collectDeletables(Event.class, bundle.getEvents());
+      collectDeletables(Enrollment.class, bundle.getEnrollments());
+      collectDeletables(TrackedEntity.class, bundle.getTrackedEntities());
     } else {
+
       // top-down
       collectPersistables(TrackedEntity.class, TRACKED_ENTITY_PARENTS, bundle.getTrackedEntities());
       collectPersistables(Enrollment.class, ENROLLMENT_PARENTS, bundle.getEnrollments());
@@ -171,16 +171,11 @@ class PersistablesFilter {
     }
   }
 
-  private <T extends TrackerDto> void collectDeletables(
-      Class<T> type, List<Function<T, TrackerDto>> parents, List<T> entities) {
+  private <T extends TrackerDto> void collectDeletables(Class<T> type, List<T> entities) {
     for (T entity : entities) {
-      if (isValid(entity) && isDeletable(entity)) {
+      if (isValid(entity)) {
         collectPersistable(type, entity);
-        continue;
       }
-
-      List<Error> errors = addErrorsForParents(parents, entity);
-      markAsNonDeletable(errors);
     }
   }
 
@@ -209,10 +204,6 @@ class PersistablesFilter {
     return map.get(entity.getTrackerType()).contains(entity.getUid());
   }
 
-  private <T extends TrackerDto> boolean isDeletable(T entity) {
-    return !isMarked(entity);
-  }
-
   /**
    * Collect given entity in the persistables result. This entity can be created, updated or deleted
    * (depending on context and {@link TrackerImportStrategy}).
@@ -238,20 +229,8 @@ class PersistablesFilter {
     this.markedEntities.get(entity.getTrackerType()).add(entity.getUid());
   }
 
-  private void mark(Error error) {
-    this.markedEntities.get(error.getTrackerType()).add(error.getUid());
-  }
-
   private <T extends TrackerDto> boolean isMarked(T entity) {
     return isContained(this.markedEntities, entity);
-  }
-
-  /**
-   * Mark parents as non-deletable for potential children. For example an invalid relationship
-   * (child) referencing a valid tracked entity (parent).
-   */
-  private void markAsNonDeletable(List<Error> errors) {
-    errors.forEach(this::mark);
   }
 
   /**
@@ -282,23 +261,6 @@ class PersistablesFilter {
         // certain conditions
         .reduce(Predicate::and)
         .orElse(t -> true); // predicate always returning true for entities without parents
-  }
-
-  /**
-   * Add error for valid parents in the payload with invalid child as the reason. So users know why
-   * a valid entity could not be deleted.
-   */
-  private <T extends TrackerDto> List<Error> addErrorsForParents(
-      List<Function<T, TrackerDto>> parents, T entity) {
-    List<Error> errors =
-        parents.stream()
-            .map(p -> p.apply(entity))
-            .filter(this::isValid) // remove invalid parents
-            .filter(this.bundle::exists) // remove parents not in payload
-            .map(p -> error(ValidationCode.E5001, p, entity))
-            .collect(Collectors.toList());
-    this.result.errors.addAll(errors);
-    return errors;
   }
 
   /**

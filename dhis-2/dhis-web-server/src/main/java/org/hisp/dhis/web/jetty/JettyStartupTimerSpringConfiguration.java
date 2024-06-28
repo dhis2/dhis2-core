@@ -25,30 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.notification.event;
+package org.hisp.dhis.web.jetty;
 
-import org.hisp.dhis.program.Enrollment;
-import org.springframework.context.ApplicationEvent;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 
 /**
- * @author Zubair Asghar.
+ * Configuration class for a simple startup timer for embedded Jetty.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class ProgramRuleEnrollmentEvent extends ApplicationEvent {
-  private long template;
+@Configuration
+@Order(100)
+@ComponentScan(basePackages = {"org.hisp.dhis"})
+public class JettyStartupTimerSpringConfiguration {
 
-  private Enrollment enrollment;
-
-  public ProgramRuleEnrollmentEvent(Object source, long template, Enrollment enrollment) {
-    super(source);
-    this.template = template;
-    this.enrollment = enrollment;
-  }
-
-  public long getTemplate() {
-    return template;
-  }
-
-  public Enrollment getEnrollment() {
-    return enrollment;
+  @Bean("org.hisp.dhis.web.embeddedjetty.StartupFinishedRoutine")
+  public StartupFinishedRoutine startupFinishedRoutine() {
+    StartupFinishedRoutine startupRoutine = new StartupFinishedRoutine();
+    startupRoutine.setName("StartupFinishedRoutine");
+    startupRoutine.setRunlevel(42);
+    startupRoutine.setSkipInTests(true);
+    return startupRoutine;
   }
 }

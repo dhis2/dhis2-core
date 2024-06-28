@@ -157,6 +157,7 @@ public enum ValidationCode {
   E1312("Referral events need to have both sides of a relationship."),
   E1313(
       "Event {0} of an enrollment does not point to an existing tracked entity. The data in your system might be corrupted"),
+  E1316("No event can transition from status `{0}` to status `{1}.`"),
 
   /* Relationship */
   E4000("Relationship: `{0}` cannot link to itself"),
@@ -175,8 +176,6 @@ public enum ValidationCode {
   E4020("User: `{0}`, has no write access to relationship: `{1}`."),
   E5000(
       "\"{0}\" `{1}` cannot be persisted because \"{2}\" `{3}` referenced by it cannot be persisted."),
-  E5001(
-      "\"{0}\" `{1}` cannot be deleted because \"{2}\" `{3}` referenced by it cannot be deleted."),
   E9999("N/A");
 
   private final String message;

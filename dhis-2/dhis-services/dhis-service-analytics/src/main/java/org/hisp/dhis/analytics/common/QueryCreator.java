@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,24 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.analytics.common;
 
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.user.UserCredentialsDto;
+public interface QueryCreator {
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class UserCredentialsSchemaDescriptor implements SchemaDescriptor {
-  public static final String SINGULAR = "userCredentials";
+  Query createForSelect();
 
-  public static final String PLURAL = "userCredentials";
-
-  public static final String API_ENDPOINT = "/" + PLURAL;
-
-  @Override
-  public Schema getSchema() {
-    return new Schema(UserCredentialsDto.class, SINGULAR, PLURAL);
-  }
+  Query createForCount();
 }

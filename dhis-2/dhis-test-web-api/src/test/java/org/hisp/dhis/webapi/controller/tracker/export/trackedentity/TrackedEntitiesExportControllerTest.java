@@ -45,6 +45,8 @@ import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -100,6 +102,10 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
   @Autowired private EnrollmentService enrollmentService;
 
+  @Autowired private CategoryService categoryService;
+
+  private CategoryOptionCombo coc;
+
   private OrganisationUnit orgUnit;
 
   private OrganisationUnit anotherOrgUnit;
@@ -124,6 +130,8 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   @BeforeEach
   void setUp() {
     owner = makeUser("owner");
+
+    coc = categoryService.getDefaultCategoryOptionCombo();
 
     orgUnit = createOrganisationUnit('A');
     orgUnit.getSharing().setOwner(owner);
@@ -938,7 +946,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   }
 
   private Event eventWithDataValue(Enrollment enrollment) {
-    Event event = new Event(enrollment, programStage, enrollment.getOrganisationUnit());
+    Event event = new Event(enrollment, programStage, enrollment.getOrganisationUnit(), coc);
     event.setAutoFields();
     event.setOccurredDate(DateUtils.parseDate(EVENT_OCCURRED_AT));
 

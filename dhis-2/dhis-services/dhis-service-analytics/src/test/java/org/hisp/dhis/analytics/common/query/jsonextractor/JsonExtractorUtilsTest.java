@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,38 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.web.jetty;
+package org.hisp.dhis.analytics.common.query.jsonextractor;
 
-import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.security.SystemAuthoritiesProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Profile;
-import org.springframework.core.annotation.Order;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-@Configuration
-@Order(100)
-@ComponentScan(basePackages = {"org.hisp.dhis"})
-@Profile("embeddedJetty")
-public class SpringConfiguration {
+import java.time.LocalDateTime;
+import java.util.stream.Stream;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-  @Primary
-  @Bean("org.hisp.dhis.security.SystemAuthoritiesProvider")
-  public SystemAuthoritiesProvider systemAuthoritiesProvider() {
-    return Authorities::getAllAuthorities;
+class JsonExtractorUtilsTest {
+
+  private final LocalDateTime aDate = LocalDateTime.of(2022, 1, 1, 0, 0, 0);
+
+  @ParameterizedTest
+  @MethodSource("provideDataForTest")
+  void testGetFormattedDate(Integer millis, String expected) {
+    LocalDateTime testedDate = aDate.withNano(millis * 1000 * 1000);
+    assertEquals(expected, JsonExtractorUtils.getFormattedDate(testedDate));
   }
 
-  @Bean("org.hisp.dhis.web.embeddedjetty.StartupFinishedRoutine")
-  public StartupFinishedRoutine startupFinishedRoutine() {
-    StartupFinishedRoutine startupRoutine = new StartupFinishedRoutine();
-    startupRoutine.setName("StartupFinishedRoutine");
-    startupRoutine.setRunlevel(42);
-    startupRoutine.setSkipInTests(true);
-    return startupRoutine;
+  private static Stream<Arguments> provideDataForTest() {
+    return Stream.of(
+        Arguments.of(100, "2022-01-01 00:00:00.1"),
+        Arguments.of(110, "2022-01-01 00:00:00.11"),
+        Arguments.of(111, "2022-01-01 00:00:00.111"),
+        Arguments.of(0, "2022-01-01 00:00:00.0"));
   }
 }

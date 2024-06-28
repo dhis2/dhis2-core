@@ -103,10 +103,10 @@
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.4</dhis-hisp-quick.version>
     <dhis-hisp-staxwax.version>2.0.0</dhis-hisp-staxwax.version>
-    <dhis-json-tree.version>1.0</dhis-json-tree.version>
+    <dhis-json-tree.version>1.1</dhis-json-tree.version>
 
     <!-- Security -->
-    <spring-security.version>5.8.12</spring-security.version>
+    <spring-security.version>5.8.13</spring-security.version>
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
@@ -171,13 +171,13 @@
     <batik-transcoder.version>1.17</batik-transcoder.version>
     <fop.version>2.9</fop.version>
     <mapstruct.version>1.5.5.Final</mapstruct.version>
-    <geotools.version>29.5</geotools.version>
+    <geotools.version>29.6</geotools.version>
     <jts.version>1.19.0</jts.version>
 
     <!-- Apache Artemis -->
-    <artemis.version>2.34.0</artemis.version>
+    <artemis.version>2.35.0</artemis.version>
     <netty-all.version>4.1.111.Final</netty-all.version>
-    <classgraph.version>4.8.173</classgraph.version>
+    <classgraph.version>4.8.174</classgraph.version>
 
     <!-- SMS/SMPP -->
     <sms-compression.version>0.2.1.1</sms-compression.version>
@@ -221,7 +221,7 @@
     <slf4j.version>1.7.36</slf4j.version>
 
     <!-- Test -->
-    <junit.version>5.10.2</junit.version>
+    <junit.version>5.10.3</junit.version>
     <mockito.version>5.2.0</mockito.version>
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>2.2</hamcrest.version>
@@ -235,10 +235,10 @@
     <javax.persistence-api.version>2.2</javax.persistence-api.version>
 
     <!-- Maven plugin versions -->
-    <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
+    <maven-surefire-plugin.version>3.3.0</maven-surefire-plugin.version>
     <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
     <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
-    <maven-failsafe-plugin.version>3.2.5</maven-failsafe-plugin.version>
+    <maven-failsafe-plugin.version>3.3.0</maven-failsafe-plugin.version>
     <maven-javadoc-plugin.version>3.7.0</maven-javadoc-plugin.version>
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
     <maven-enforcer-plugin.version>3.5.0</maven-enforcer-plugin.version>
@@ -246,7 +246,7 @@
     <restrict-imports-enforcer.version>2.5.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.16.2</versions-maven-plugin.version>
     <dependency-check-maven.version>9.2.0</dependency-check-maven.version>
-    <spotbugs-maven-plugin.version>4.8.5.0</spotbugs-maven-plugin.version>
+    <spotbugs-maven-plugin.version>4.8.6.1</spotbugs-maven-plugin.version>
     <spotless.version>2.43.0</spotless.version>
     <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.2.0</jrebel-x-maven-plugin.version>
@@ -254,7 +254,7 @@
     <jai-imageio.version>1.1.1</jai-imageio.version>
     <gson.version>2.11.0</gson.version>
     <semver4j.version>3.1.0</semver4j.version>
-    <opentelemetry.version>2.4.0</opentelemetry.version>
+    <opentelemetry.version>2.5.0</opentelemetry.version>
   </properties>
 
   <dependencyManagement>
@@ -1383,6 +1383,16 @@
         <artifactId>gt-referencing</artifactId>
         <version>${geotools.version}</version>
       </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-epsg-hsql</artifactId>
+        <version>${geotools.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-cql</artifactId>
+        <version>${geotools.version}</version>
+      </dependency>
 
       <!-- JAXB -->
       <dependency>
@@ -1939,7 +1949,7 @@
             <dependency>
               <groupId>com.github.spotbugs</groupId>
               <artifactId>spotbugs</artifactId>
-              <version>4.8.5</version>
+              <version>4.8.6</version>
             </dependency>
           </dependencies>
         </plugin>
@@ -2032,6 +2042,8 @@ jasperreports.version=${jasperreports.version}
             <failOnWarning>true</failOnWarning>
             <ignoredUnusedDeclaredDependencies>
               <ignoredUnusedDeclaredDependency>org.geotools:gt-main</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.geotools:gt-epsg-hsql</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.geotools:gt-cql</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>net.postgis:postgis-jdbc</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-starter-tomcat</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.flywaydb:flyway-database-postgresql</ignoredUnusedDeclaredDependency>

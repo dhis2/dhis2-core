@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.notification.event;
+package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
-import org.hisp.dhis.program.Event;
-import org.springframework.context.ApplicationEvent;
+import java.util.Comparator;
+import java.util.Optional;
+import java.util.stream.Stream;
+import org.hisp.dhis.analytics.tei.query.context.querybuilder.OffsetHelper.Offset;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
-/**
- * @author Zubair Asghar.
- */
-public class ProgramRuleStageEvent extends ApplicationEvent {
-  private long template;
+/** Tests for {@link OffsetHelper}. */
+class OffsetHelperTest {
 
-  private Event event;
+  @ParameterizedTest(name = "testGetItemBasedOnOffset - {index}")
+  @CsvSource({"2,d", "1,e", "0,a", "-1,b", "-2,c"})
+  void testGetItemBasedOnOffset(String offsetParam, String expectedResponse) {
+    // Given
+    Stream<String> stream = Stream.of("a", "b", "c", "d", "e");
+    Comparator<String> comparator = Comparator.naturalOrder();
+    int offset = Integer.parseInt(offsetParam);
 
-  public ProgramRuleStageEvent(Object source, long template, Event event) {
-    super(source);
-    this.template = template;
-    this.event = event;
+    // When
+    Optional<String> result = OffsetHelper.getItemBasedOnOffset(stream, comparator, offset);
+
+    // Then
+    Assertions.assertTrue(result.isPresent());
+    Assertions.assertEquals(expectedResponse, result.get());
   }
 
-  public long getTemplate() {
-    return template;
-  }
+  @ParameterizedTest
+  @CsvSource({"1,1,asc", "2,2,asc", "0,1,desc", "-1,2,desc", "-2,3,desc"})
+  void testGetOffset(String offsetParam, String expectedOffset, String expectedDirection) {
+    // When
+    Offset offset = OffsetHelper.getOffset(Integer.parseInt(offsetParam));
 
-  public Event getEvent() {
-    return event;
+    // Then
+    Assertions.assertEquals(expectedOffset, offset.offset());
+    Assertions.assertEquals(expectedDirection, offset.direction());
   }
 }
