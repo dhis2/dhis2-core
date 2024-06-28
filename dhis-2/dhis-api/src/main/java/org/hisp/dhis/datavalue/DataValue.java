@@ -272,6 +272,25 @@ public class DataValue implements Serializable {
     this.deleted = other.isDeleted();
   }
 
+  public static DataValue dataValueWithNewDataElement(DataValue oldDv, DataElement newDataElement) {
+    DataValue newValue =
+        DataValue.builder()
+            .dataElement(newDataElement)
+            .period(oldDv.getPeriod())
+            .source(oldDv.getSource())
+            .categoryOptionCombo(oldDv.getCategoryOptionCombo())
+            .attributeOptionCombo(oldDv.getAttributeOptionCombo())
+            .value(oldDv.getValue())
+            .storedBy(oldDv.getStoredBy())
+            .lastUpdated(oldDv.getLastUpdated())
+            .comment(oldDv.getComment())
+            .followup(oldDv.isFollowup())
+            .deleted(oldDv.isDeleted())
+            .build();
+    newValue.setCreated(oldDv.getCreated());
+    return newValue;
+  }
+
   // -------------------------------------------------------------------------
   // hashCode and equals
   // -------------------------------------------------------------------------

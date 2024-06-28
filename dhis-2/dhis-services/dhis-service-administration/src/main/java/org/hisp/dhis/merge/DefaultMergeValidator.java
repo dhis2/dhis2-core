@@ -88,6 +88,7 @@ public class DefaultMergeValidator implements MergeValidator {
                     .sources(sources)
                     .target(t)
                     .deleteSources(params.isDeleteSources())
+                    .dataMergeStrategy(params.getDataMergeStrategy())
                     .build())
         .orElse(MergeRequest.empty());
   }

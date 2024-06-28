@@ -50,7 +50,6 @@ import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorStore;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventStore;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorStore;
@@ -312,24 +311,6 @@ public class MetadataDataElementMergeHandler {
     List<ProgramRuleAction> programRuleActions = programRuleActionService.getByDataElement(sources);
 
     programRuleActions.forEach(pra -> pra.setDataElement(target));
-  }
-
-  /**
-   * Method retrieving {@link Event}s by source {@link DataElement} references present in their
-   * eventDataValues property. All retrieved {@link Event}s will have their {@link DataElement} ref
-   * in eventDataValues replaced with the target {@link DataElement}.
-   *
-   * @param sources source {@link DataElement}s used to retrieve {@link Event}s
-   * @param target {@link DataElement} which will be set as the {@link DataElement} in {@link Event}
-   *     eventDataValues
-   */
-  public void handleEventEventDataValues(List<DataElement> sources, DataElement target) {
-    List<String> deUids = IdentifiableObjectUtils.getUids(sources);
-    List<Event> events = eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(deUids);
-    events.stream()
-        .flatMap(e -> e.getEventDataValues().stream())
-        .filter(edv -> deUids.contains(edv.getDataElement()))
-        .forEach(edv -> edv.setDataElement(target.getUid()));
   }
 
   /**

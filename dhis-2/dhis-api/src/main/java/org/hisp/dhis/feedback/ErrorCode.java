@@ -108,6 +108,7 @@ public enum ErrorCode {
   E1554("All source ValueTypes must match target ValueType: `{0}`. Other ValueTypes found: `{1}`"),
   E1555(
       "All source DataElementDomains must match target DataElementDomain: `{0}`. Other DataElementDomains found: `{1}`"),
+  E1556("dataMergeStrategy field must be specified. With value `DISCARD` or `LAST_UPDATED`"),
 
   /* Data */
   E2000("Query parameters cannot be null"),

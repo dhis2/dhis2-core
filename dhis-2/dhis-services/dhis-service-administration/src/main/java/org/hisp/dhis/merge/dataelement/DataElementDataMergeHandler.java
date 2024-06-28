@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,41 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.merge;
+package org.hisp.dhis.merge.dataelement;
 
-import java.util.HashSet;
-import java.util.Set;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.ToString;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.UID;
+import java.util.List;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.merge.DataMergeStrategy;
 
 /**
- * Encapsulation of a merge request. Contains source {@link UID}s that extend {@link
- * IdentifiableObject} to be merged into a target of the same type. Also indicates whether sources
- * should be deleted.
+ * Functional interface representing a {@link DataElement} merge operation.
  *
  * @author david mackessy
  */
-@Builder
-@ToString
-@AllArgsConstructor
-public class MergeRequest {
-  @Builder.Default private final Set<UID> sources = new HashSet<>();
-
-  @Getter private final UID target;
-
-  @Getter private final boolean deleteSources;
-
-  @Getter private final DataMergeStrategy dataMergeStrategy;
-
-  public Set<UID> getSources() {
-    return Set.copyOf(sources);
-  }
-
-  public static MergeRequest empty() {
-    return MergeRequest.builder().build();
-  }
+@FunctionalInterface
+public interface DataElementDataMergeHandler {
+  void merge(List<DataElement> sources, DataElement target, DataMergeStrategy mergeStrategy);
 }

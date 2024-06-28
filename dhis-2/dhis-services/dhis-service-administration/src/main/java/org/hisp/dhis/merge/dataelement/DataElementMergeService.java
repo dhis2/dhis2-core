@@ -41,6 +41,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.merge.CommonMergeHandler;
 import org.hisp.dhis.merge.MergeHandler;
@@ -49,6 +51,7 @@ import org.hisp.dhis.merge.MergeRequest;
 import org.hisp.dhis.merge.MergeService;
 import org.hisp.dhis.merge.MergeValidator;
 import org.hisp.dhis.merge.dataelement.handler.AnalyticalDataElementMergeHandler;
+import org.hisp.dhis.merge.dataelement.handler.DataDataElementMergeHandler;
 import org.hisp.dhis.merge.dataelement.handler.MetadataDataElementMergeHandler;
 import org.hisp.dhis.merge.dataelement.handler.TrackerDataElementMergeHandler;
 import org.springframework.stereotype.Service;
@@ -66,17 +69,25 @@ public class DataElementMergeService implements MergeService {
 
   private final DataElementService dataElementService;
   private final MetadataDataElementMergeHandler metadataMergeHandler;
+  private final DataDataElementMergeHandler dataDataElementMergeHandler;
   private final AnalyticalDataElementMergeHandler analyticalMergeHandler;
   private final TrackerDataElementMergeHandler trackerMergeHandler;
   private final CommonMergeHandler commonMergeHandler;
   private final MergeValidator validator;
   private final DataElementMergeValidator dataElementMergeValidator;
-  private ImmutableList<org.hisp.dhis.merge.dataelement.DataElementMergeHandler> mergeHandlers;
+  private ImmutableList<org.hisp.dhis.merge.dataelement.DataElementMergeHandler>
+      metadataMergeHandlers;
   private ImmutableList<MergeHandler> commonMergeHandlers;
+  private ImmutableList<DataElementDataMergeHandler> dataMergeHandlers;
 
   @Override
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
     log.info("Validating DataElement merge request");
+    if (params.getDataMergeStrategy() == null) {
+      mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1550));
+      return null;
+    }
+
     // sources
     Set<UID> sources = new HashSet<>();
     validator.verifySources(params.getSources(), sources, mergeReport, DataElement.class);
@@ -115,8 +126,9 @@ public class DataElementMergeService implements MergeService {
     DataElement target = dataElementService.getDataElement(request.getTarget().getValue());
 
     // merge metadata
-    log.info("Handling DataElement reference associations");
-    mergeHandlers.forEach(h -> h.merge(sources, target));
+    log.info("Handling DataElement reference associations and merges");
+    dataMergeHandlers.forEach(h -> h.merge(sources, target, request.getDataMergeStrategy()));
+    metadataMergeHandlers.forEach(h -> h.merge(sources, target));
     commonMergeHandlers.forEach(h -> h.merge(sources, target));
 
     // handle deletes
@@ -135,9 +147,8 @@ public class DataElementMergeService implements MergeService {
 
   @PostConstruct
   private void initMergeHandlers() {
-    mergeHandlers =
+    metadataMergeHandlers =
         ImmutableList.<org.hisp.dhis.merge.dataelement.DataElementMergeHandler>builder()
-            // metadata
             .add(analyticalMergeHandler::handleDataDimensionItems)
             .add(analyticalMergeHandler::handleEventVisualization)
             .add(analyticalMergeHandler::handleTrackedEntityDataElementDimension)
@@ -158,7 +169,11 @@ public class DataElementMergeService implements MergeService {
             .add(metadataMergeHandler::handleSection)
             .add(metadataMergeHandler::handleDataElementGroup)
             .add(metadataMergeHandler::handleSmsCode)
-            // data
+            .build();
+
+    dataMergeHandlers =
+        ImmutableList.<DataElementDataMergeHandler>builder()
+            .add(dataDataElementMergeHandler::handleDataValueDataElement)
             .build();
 
     commonMergeHandlers =
