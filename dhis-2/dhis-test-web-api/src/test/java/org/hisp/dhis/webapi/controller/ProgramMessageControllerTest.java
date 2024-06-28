@@ -82,7 +82,7 @@ class ProgramMessageControllerTest extends DhisControllerConvenienceTest {
     enrollmentA = createEnrollment(prA, trackedEntityA, ouA);
     enrollmentService.addEnrollment(enrollmentA);
     eventA = createEvent(psA, enrollmentA, ouA);
-    eventService.addEvent(eventA);
+    manager.save(eventA);
   }
 
   @Test

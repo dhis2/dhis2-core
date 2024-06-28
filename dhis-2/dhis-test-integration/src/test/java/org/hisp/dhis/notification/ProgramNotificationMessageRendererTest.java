@@ -35,8 +35,10 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
@@ -47,7 +49,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
@@ -143,8 +144,6 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
 
   @Autowired private EnrollmentService enrollmentService;
 
-  @Autowired private EventService eventService;
-
   @Autowired private ProgramNotificationTemplateStore programNotificationTemplateStore;
 
   @Autowired private OrganisationUnitService organisationUnitService;
@@ -153,6 +152,10 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
 
   @Autowired
   private ProgramStageNotificationMessageRenderer programStageNotificationMessageRenderer;
+
+  @Autowired private CategoryService categoryService;
+
+  @Autowired private IdentifiableObjectManager manager;
 
   @Override
   protected void setUpTest() throws Exception {
@@ -218,8 +221,7 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
     enrollmentA.setUid(enrollmentUid);
     enrollmentService.updateEnrollment(enrollmentA);
     // Event to be provided in message renderer
-    eventA = new Event(enrollmentA, programStageA);
-    eventA.setOrganisationUnit(organisationUnitA);
+    eventA = createEvent(programStageA, enrollmentA, organisationUnitA);
     eventA.setScheduledDate(enrollmentDate);
     eventA.setOccurredDate(new Date());
     eventA.setUid("PSI-UID");
@@ -232,7 +234,7 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
     eventDataValueB.setAutoFields();
     eventDataValueB.setValue("dataElementB-Text");
     eventA.setEventDataValues(Sets.newHashSet(eventDataValueA, eventDataValueB));
-    eventService.addEvent(eventA);
+    manager.save(eventA);
     enrollmentA.getEvents().add(eventA);
     enrollmentService.updateEnrollment(enrollmentA);
     programNotificationTemplate = new ProgramNotificationTemplate();
