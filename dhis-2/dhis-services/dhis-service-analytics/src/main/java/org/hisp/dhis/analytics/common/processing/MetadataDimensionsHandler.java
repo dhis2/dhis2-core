@@ -39,7 +39,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.hisp.dhis.analytics.common.params.CommonParams;
+import org.hisp.dhis.analytics.common.params.CommonParamsDelegator;
+import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -65,16 +66,16 @@ public class MetadataDimensionsHandler {
    * Handles all required logic/rules in order to return a map of metadata item identifiers.
    *
    * @param grid the {@link Grid}.
-   * @param commonParams the {@link CommonParams}.
+   * @param commonParsed the {@link CommonParsedParams}.
    * @return the map of {@link MetadataItem}.
    */
-  Map<String, List<String>> handle(Grid grid, CommonParams commonParams) {
-    List<QueryItem> items = commonParams.delegate().getAllItems();
-    List<DimensionalObject> allDimensionalObjects =
-        commonParams.delegate().getAllDimensionalObjects();
+  Map<String, List<String>> handle(Grid grid, CommonParsedParams commonParsed) {
+    CommonParamsDelegator delegator = commonParsed.delegate();
+    List<QueryItem> items = delegator.getAllItems();
+    List<DimensionalObject> allDimensionalObjects = delegator.getAllDimensionalObjects();
     List<DimensionalItemObject> periodDimensionOrFilterItems =
-        commonParams.delegate().getPeriodDimensionOrFilterItems();
-    List<QueryItem> itemFilters = commonParams.delegate().getItemsAsFilters();
+        delegator.getPeriodDimensionOrFilterItems();
+    List<QueryItem> itemFilters = delegator.getItemsAsFilters();
 
     Calendar calendar = PeriodType.getCalendar();
 

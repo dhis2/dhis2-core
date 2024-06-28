@@ -100,7 +100,7 @@ public class TeiQueryBuilder extends SqlQueryBuilderAdaptor {
             TeiFields.getStaticFields(),
 
             // Tei/Program attributes.
-            TeiFields.getDimensionFields(queryContext.getTeiQueryParams()))
+            TeiFields.getDimensionFields(queryContext.getContextParams()))
         .flatMap(Function.identity());
   }
 

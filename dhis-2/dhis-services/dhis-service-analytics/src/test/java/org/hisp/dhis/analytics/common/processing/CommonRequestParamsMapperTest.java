@@ -51,8 +51,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.hisp.dhis.analytics.DataQueryService;
-import org.hisp.dhis.analytics.common.CommonQueryRequest;
-import org.hisp.dhis.analytics.common.params.CommonParams;
+import org.hisp.dhis.analytics.common.CommonRequestParams;
+import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.common.params.dimension.StringUid;
@@ -66,14 +66,17 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-/** Unit tests for {@link CommonQueryRequestMapper}. */
+/** Unit tests for {@link CommonRequestParamsParser}. */
 @ExtendWith(MockitoExtension.class)
-class CommonQueryRequestMapperTest {
+class CommonRequestParamsMapperTest {
+  @Mock SystemSettingManager systemSettingManager;
+
   @Mock private DataQueryService dataQueryService;
 
   @Mock private EventDataQueryService eventDataQueryService;
@@ -113,35 +116,36 @@ class CommonQueryRequestMapperTest {
             emptyList(),
             new DimensionItemKeywords());
 
-    CommonQueryRequest aCommonQueryRequest =
-        new CommonQueryRequest()
+    CommonRequestParams aCommonRequestParams =
+        new CommonRequestParams()
             .withUserOrgUnit("PEZNsGbZaVJ")
             .withProgram(new HashSet<>(asList("ur1Edk5Oe2n", "lxAQ7Zs9VYR")))
             .withDimension(new HashSet<>(asList(dimension + ":" + queryItem)));
 
-    when(dataQueryService.getUserOrgUnits(null, aCommonQueryRequest.getUserOrgUnit()))
+    when(dataQueryService.getUserOrgUnits(null, aCommonRequestParams.getUserOrgUnit()))
         .thenReturn(organisationUnits);
-    when(programService.getPrograms(aCommonQueryRequest.getProgram())).thenReturn(programs);
+    when(programService.getPrograms(aCommonRequestParams.getProgram())).thenReturn(programs);
     when(dimensionIdentifierConverter.fromString(programs, dimension))
         .thenReturn(deDimensionIdentifier);
     when((dataQueryService.getDimension(
             deDimensionIdentifier.getDimension().getUid(),
             asList(queryItem),
-            aCommonQueryRequest.getRelativePeriodDate(),
+            aCommonRequestParams.getRelativePeriodDate(),
             organisationUnits,
             true,
-            aCommonQueryRequest.getDisplayProperty(),
+            aCommonRequestParams.getDisplayProperty(),
             UID)))
         .thenReturn(dimensionalObject);
 
     // When
-    CommonParams params =
-        new CommonQueryRequestMapper(
+    CommonParsedParams params =
+        new CommonRequestParamsParser(
+                systemSettingManager,
                 dataQueryService,
                 eventDataQueryService,
                 programService,
                 dimensionIdentifierConverter)
-            .map(aCommonQueryRequest, aCommonQueryRequest);
+            .parse(aCommonRequestParams);
 
     // Then
     assertEquals(2, params.getPrograms().size(), "Should contain 2 programs.");
@@ -212,35 +216,36 @@ class CommonQueryRequestMapperTest {
             emptyList(),
             new DimensionItemKeywords());
 
-    CommonQueryRequest aCommonQueryRequest =
-        new CommonQueryRequest()
+    CommonRequestParams aCommonRequestParams =
+        new CommonRequestParams()
             .withUserOrgUnit(orgUnitUid)
             .withProgram(Set.of("lxAQ7Zs9VYR", "ur1Edk5Oe2n"))
             .withFilter(Set.of("ur1Edk5Oe2n.OU:PEZNsGbZaVJ"));
 
-    when(dataQueryService.getUserOrgUnits(null, aCommonQueryRequest.getUserOrgUnit()))
+    when(dataQueryService.getUserOrgUnits(null, aCommonRequestParams.getUserOrgUnit()))
         .thenReturn(organisationUnits);
-    when(programService.getPrograms(aCommonQueryRequest.getProgram())).thenReturn(programs);
+    when(programService.getPrograms(aCommonRequestParams.getProgram())).thenReturn(programs);
     when(dimensionIdentifierConverter.fromString(programs, queryItem))
         .thenReturn(ouDimensionIdentifier);
     when((dataQueryService.getDimension(
             ouDimensionIdentifier.getDimension().getUid(),
             List.of(orgUnitUid),
-            aCommonQueryRequest.getRelativePeriodDate(),
+            aCommonRequestParams.getRelativePeriodDate(),
             organisationUnits,
             true,
-            aCommonQueryRequest.getDisplayProperty(),
+            aCommonRequestParams.getDisplayProperty(),
             UID)))
         .thenReturn(dimensionalObject);
 
     // When
-    CommonParams params =
-        new CommonQueryRequestMapper(
+    CommonParsedParams params =
+        new CommonRequestParamsParser(
+                systemSettingManager,
                 dataQueryService,
                 eventDataQueryService,
                 programService,
                 dimensionIdentifierConverter)
-            .map(aCommonQueryRequest, aCommonQueryRequest);
+            .parse(aCommonRequestParams);
 
     // Then
     assertEquals(2, params.getPrograms().size(), "Should contain 2 programs.");
@@ -322,25 +327,25 @@ class CommonQueryRequestMapperTest {
             organisationUnits,
             new DimensionItemKeywords());
 
-    CommonQueryRequest aCommonQueryRequest =
-        new CommonQueryRequest()
+    CommonRequestParams aCommonRequestParams =
+        new CommonRequestParams()
             .withUserOrgUnit(queryItemFilter)
             .withProgram(new HashSet<>(asList("lxAQ7Zs9VYR", "ur1Edk5Oe2n")))
             .withDimension(new HashSet<>(asList(dimension + ":" + queryItemDimension)))
             .withFilter(new HashSet<>(asList("ur1Edk5Oe2n.OU:PEZNsGbZaVJ")));
 
-    when(dataQueryService.getUserOrgUnits(null, aCommonQueryRequest.getUserOrgUnit()))
+    when(dataQueryService.getUserOrgUnits(null, aCommonRequestParams.getUserOrgUnit()))
         .thenReturn(organisationUnits);
-    when(programService.getPrograms(aCommonQueryRequest.getProgram())).thenReturn(programs);
+    when(programService.getPrograms(aCommonRequestParams.getProgram())).thenReturn(programs);
     when(dimensionIdentifierConverter.fromString(programs, dimension))
         .thenReturn(deDimensionIdentifier);
     when((dataQueryService.getDimension(
             deDimensionIdentifier.getDimension().getUid(),
             asList(queryItemDimension),
-            aCommonQueryRequest.getRelativePeriodDate(),
+            aCommonRequestParams.getRelativePeriodDate(),
             organisationUnits,
             true,
-            aCommonQueryRequest.getDisplayProperty(),
+            aCommonRequestParams.getDisplayProperty(),
             UID)))
         .thenReturn(dimensionalObject);
 
@@ -349,21 +354,22 @@ class CommonQueryRequestMapperTest {
     when((dataQueryService.getDimension(
             ouDimensionIdentifier.getDimension().getUid(),
             asList(queryItemFilter),
-            aCommonQueryRequest.getRelativePeriodDate(),
+            aCommonRequestParams.getRelativePeriodDate(),
             organisationUnits,
             true,
-            aCommonQueryRequest.getDisplayProperty(),
+            aCommonRequestParams.getDisplayProperty(),
             UID)))
         .thenReturn(orgUnitObject);
 
     // When
-    CommonParams params =
-        new CommonQueryRequestMapper(
+    CommonParsedParams params =
+        new CommonRequestParamsParser(
+                systemSettingManager,
                 dataQueryService,
                 eventDataQueryService,
                 programService,
                 dimensionIdentifierConverter)
-            .map(aCommonQueryRequest, aCommonQueryRequest);
+            .parse(aCommonRequestParams);
 
     // Then
     assertEquals(2, params.getPrograms().size(), "Should contain 2 programs.");
@@ -412,30 +418,34 @@ class CommonQueryRequestMapperTest {
     List<OrganisationUnit> organisationUnits =
         List.of(new OrganisationUnit("org-1"), new OrganisationUnit("org-2"));
 
-    CommonQueryRequestMapper commonQueryRequestMapper =
-        new CommonQueryRequestMapper(
-            dataQueryService, eventDataQueryService, programService, dimensionIdentifierConverter);
+    CommonRequestParamsParser commonRequestParamsParser =
+        new CommonRequestParamsParser(
+            systemSettingManager,
+            dataQueryService,
+            eventDataQueryService,
+            programService,
+            dimensionIdentifierConverter);
 
     // List has only one Program, but the CommonQueryRequest, below, has
     // two.
     List<Program> programs = List.of(program1);
 
-    CommonQueryRequest aCommonQueryRequest =
-        new CommonQueryRequest()
+    CommonRequestParams commonRequestParams =
+        new CommonRequestParams()
             .withUserOrgUnit("PEZNsGbZaVJ")
             .withDimension(Set.of(dimension + ":" + queryItem))
             // Two programs, where "ur1Edk5Oe2n" does not exist.
             .withProgram(Set.of("lxAQ7Zs9VYR", "ur1Edk5Oe2n"));
 
-    when(dataQueryService.getUserOrgUnits(null, aCommonQueryRequest.getUserOrgUnit()))
+    when(dataQueryService.getUserOrgUnits(null, commonRequestParams.getUserOrgUnit()))
         .thenReturn(organisationUnits);
-    when(programService.getPrograms(aCommonQueryRequest.getProgram())).thenReturn(programs);
+    when(programService.getPrograms(commonRequestParams.getProgram())).thenReturn(programs);
 
     // When
     IllegalQueryException thrown =
         assertThrows(
             IllegalQueryException.class,
-            () -> commonQueryRequestMapper.map(aCommonQueryRequest, aCommonQueryRequest));
+            () -> commonRequestParamsParser.parse(commonRequestParams));
 
     // Then
     assertEquals(
@@ -467,24 +477,24 @@ class CommonQueryRequestMapperTest {
             ElementWithOffset.of(programStage1, 2),
             StringUid.of("yLIPuJHRgey"));
 
-    CommonQueryRequest aCommonQueryRequest =
-        new CommonQueryRequest()
+    CommonRequestParams aCommonRequestParams =
+        new CommonRequestParams()
             .withUserOrgUnit("PEZNsGbZaVJ")
             .withProgram(new HashSet<>(asList("lxAQ7Zs9VYR", "ur1Edk5Oe2n")))
             .withDimension(new HashSet<>(asList(dimension + ":" + queryItem)));
 
-    when(dataQueryService.getUserOrgUnits(null, aCommonQueryRequest.getUserOrgUnit()))
+    when(dataQueryService.getUserOrgUnits(null, aCommonRequestParams.getUserOrgUnit()))
         .thenReturn(organisationUnits);
-    when(programService.getPrograms(aCommonQueryRequest.getProgram())).thenReturn(programs);
+    when(programService.getPrograms(aCommonRequestParams.getProgram())).thenReturn(programs);
     when(dimensionIdentifierConverter.fromString(programs, dimension))
         .thenReturn(deDimensionIdentifier);
     when((dataQueryService.getDimension(
             deDimensionIdentifier.getDimension().getUid(),
             asList(queryItem),
-            aCommonQueryRequest.getRelativePeriodDate(),
+            aCommonRequestParams.getRelativePeriodDate(),
             organisationUnits,
             true,
-            aCommonQueryRequest.getDisplayProperty(),
+            aCommonRequestParams.getDisplayProperty(),
             UID)))
         .thenReturn(null);
     when(eventDataQueryService.getQueryItem(
@@ -494,13 +504,14 @@ class CommonQueryRequestMapperTest {
         .thenReturn(anyQueryItem);
 
     // When
-    CommonParams params =
-        new CommonQueryRequestMapper(
+    CommonParsedParams params =
+        new CommonRequestParamsParser(
+                systemSettingManager,
                 dataQueryService,
                 eventDataQueryService,
                 programService,
                 dimensionIdentifierConverter)
-            .map(aCommonQueryRequest, aCommonQueryRequest);
+            .parse(aCommonRequestParams);
 
     // Then
     assertEquals(2, params.getPrograms().size(), "Should contain 2 programs.");
@@ -547,35 +558,38 @@ class CommonQueryRequestMapperTest {
             null, // The null stage
             StringUid.of(nonFullyQualifiedDimension));
 
-    CommonQueryRequest aCommonQueryRequest =
-        new CommonQueryRequest()
+    CommonRequestParams commonParsedParams =
+        new CommonRequestParams()
             .withUserOrgUnit("PEZNsGbZaVJ")
             .withDimension(new HashSet<>(asList(nonFullyQualifiedDimension + ":" + queryItem)));
 
-    CommonQueryRequestMapper commonQueryRequestMapper =
-        new CommonQueryRequestMapper(
-            dataQueryService, eventDataQueryService, programService, dimensionIdentifierConverter);
+    CommonRequestParamsParser commonRequestParamsParser =
+        new CommonRequestParamsParser(
+            systemSettingManager,
+            dataQueryService,
+            eventDataQueryService,
+            programService,
+            dimensionIdentifierConverter);
 
-    when(dataQueryService.getUserOrgUnits(null, aCommonQueryRequest.getUserOrgUnit()))
+    when(dataQueryService.getUserOrgUnits(null, commonParsedParams.getUserOrgUnit()))
         .thenReturn(organisationUnits);
-    when(programService.getPrograms(aCommonQueryRequest.getProgram())).thenReturn(noPrograms);
+    when(programService.getPrograms(commonParsedParams.getProgram())).thenReturn(noPrograms);
     when(dimensionIdentifierConverter.fromString(noPrograms, nonFullyQualifiedDimension))
         .thenReturn(deDimensionIdentifier);
     when((dataQueryService.getDimension(
             deDimensionIdentifier.getDimension().getUid(),
             asList(queryItem),
-            aCommonQueryRequest.getRelativePeriodDate(),
+            commonParsedParams.getRelativePeriodDate(),
             organisationUnits,
             true,
-            aCommonQueryRequest.getDisplayProperty(),
+            commonParsedParams.getDisplayProperty(),
             UID)))
         .thenReturn(null);
 
     // When
     IllegalQueryException thrown =
         assertThrows(
-            IllegalQueryException.class,
-            () -> commonQueryRequestMapper.map(aCommonQueryRequest, aCommonQueryRequest));
+            IllegalQueryException.class, () -> commonRequestParamsParser.parse(commonParsedParams));
 
     // Then
     assertEquals(
@@ -616,8 +630,8 @@ class CommonQueryRequestMapperTest {
             emptyList(),
             new DimensionItemKeywords());
 
-    CommonQueryRequest aCommonQueryRequest =
-        new CommonQueryRequest()
+    CommonRequestParams aCommonRequestParams =
+        new CommonRequestParams()
             .withUserOrgUnit("PEZNsGbZaVJ")
             .withProgram(Set.of("ur1Edk5Oe2n", "lxAQ7Zs9VYR"))
             .withDimension(
@@ -631,9 +645,9 @@ class CommonQueryRequestMapperTest {
                             + ":"
                             + queryItem_2)));
 
-    when(dataQueryService.getUserOrgUnits(null, aCommonQueryRequest.getUserOrgUnit()))
+    when(dataQueryService.getUserOrgUnits(null, aCommonRequestParams.getUserOrgUnit()))
         .thenReturn(organisationUnits);
-    when(programService.getPrograms(aCommonQueryRequest.getProgram())).thenReturn(programs);
+    when(programService.getPrograms(aCommonRequestParams.getProgram())).thenReturn(programs);
     when(dimensionIdentifierConverter.fromString(programs, dimension))
         .thenReturn(deDimensionIdentifier);
 
@@ -643,21 +657,22 @@ class CommonQueryRequestMapperTest {
                 when((dataQueryService.getDimension(
                         deDimensionIdentifier.getDimension().getUid(),
                         asList(s),
-                        aCommonQueryRequest.getRelativePeriodDate(),
+                        aCommonRequestParams.getRelativePeriodDate(),
                         organisationUnits,
                         true,
-                        aCommonQueryRequest.getDisplayProperty(),
+                        aCommonRequestParams.getDisplayProperty(),
                         UID)))
                     .thenReturn(dimensionalObject));
 
     // When
-    CommonParams params =
-        new CommonQueryRequestMapper(
+    CommonParsedParams params =
+        new CommonRequestParamsParser(
+                systemSettingManager,
                 dataQueryService,
                 eventDataQueryService,
                 programService,
                 dimensionIdentifierConverter)
-            .map(aCommonQueryRequest, aCommonQueryRequest);
+            .parse(aCommonRequestParams);
 
     Set<String> groups =
         params.getDimensionIdentifiers().stream()

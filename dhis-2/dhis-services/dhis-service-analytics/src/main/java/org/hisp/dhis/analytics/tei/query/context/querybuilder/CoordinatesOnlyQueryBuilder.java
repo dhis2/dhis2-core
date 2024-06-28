@@ -48,7 +48,7 @@ public class CoordinatesOnlyQueryBuilder extends SqlQueryBuilderAdaptor {
   @Override
   protected Stream<GroupableCondition> getWhereClauses(
       QueryContext queryContext, List<DimensionIdentifier<DimensionParam>> unused) {
-    if (queryContext.getTeiQueryParams().getCommonParams().isCoordinatesOnly()) {
+    if (queryContext.getContextParams().getCommonRaw().isCoordinatesOnly()) {
       return Stream.of(ofUngroupedCondition(CoordinatesOnlyCondition.INSTANCE));
     }
     return Stream.empty();

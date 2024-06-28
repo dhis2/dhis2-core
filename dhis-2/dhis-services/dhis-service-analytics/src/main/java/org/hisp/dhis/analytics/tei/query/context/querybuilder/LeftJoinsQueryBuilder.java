@@ -110,7 +110,8 @@ public class LeftJoinsQueryBuilder implements SqlQueryBuilder {
                             dimensionIdentifier.getProgramStage()))
                 .collect(Collectors.toSet());
 
-    TrackedEntityType trackedEntityType = queryContext.getTeiQueryParams().getTrackedEntityType();
+    TrackedEntityType trackedEntityType =
+        queryContext.getContextParams().getTypedParsed().getTrackedEntityType();
     SqlParameterManager sqlParameterManager = queryContext.getSqlParameterManager();
 
     for (ElementWithOffset<Program> program : allDeclaredPrograms) {
