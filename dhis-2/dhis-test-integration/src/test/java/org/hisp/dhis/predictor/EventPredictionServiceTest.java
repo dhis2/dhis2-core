@@ -45,6 +45,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
@@ -124,6 +125,8 @@ class EventPredictionServiceTest extends IntegrationTestBase {
   @Autowired private CategoryManager categoryManager;
 
   @Autowired private UserService _userService;
+
+  @Autowired private IdentifiableObjectManager manager;
 
   private CategoryOptionCombo defaultCombo;
 
@@ -257,16 +260,13 @@ class EventPredictionServiceTest extends IntegrationTestBase {
         enrollmentService.enrollTrackedEntity(
             trackedEntity, program, dateMar20, dateMar20, orgUnitA);
     enrollmentService.addEnrollment(enrollment);
-    Event stageInstanceA =
-        eventService.createEvent(enrollment, stageA, dateMar20, dateMar20, orgUnitA);
-    Event stageInstanceB =
-        eventService.createEvent(enrollment, stageA, dateApr10, dateApr10, orgUnitA);
+    Event stageInstanceA = createEvent(stageA, enrollment, orgUnitA);
     stageInstanceA.setOccurredDate(dateMar20);
+    manager.save(stageInstanceA);
+    Event stageInstanceB = createEvent(stageA, enrollment, orgUnitA);
     stageInstanceB.setOccurredDate(dateApr10);
-    stageInstanceA.setAttributeOptionCombo(defaultCombo);
     stageInstanceB.setAttributeOptionCombo(defaultCombo);
-    eventService.addEvent(stageInstanceA);
-    eventService.addEvent(stageInstanceB);
+    manager.save(stageInstanceB);
     categoryManager.addAndPruneAllOptionCombos();
     Expression expressionA = new Expression(EXPRESSION_A, "ProgramTrackedEntityAttribute");
     Expression expressionD = new Expression(EXPRESSION_D, "ProgramDataElement");

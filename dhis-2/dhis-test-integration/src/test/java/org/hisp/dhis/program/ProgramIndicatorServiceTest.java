@@ -46,6 +46,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
@@ -92,11 +93,11 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
-  @Autowired private EventService eventService;
-
   @Autowired private ConstantService constantService;
 
-  private Date incidentDate;
+  @Autowired private IdentifiableObjectManager manager;
+
+  private Date occurredDate;
 
   private Date enrollmentDate;
 
@@ -236,16 +237,16 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest {
     // ---------------------------------------------------------------------
     TrackedEntity trackedEntity = createTrackedEntity(organisationUnit);
     trackedEntityService.addTrackedEntity(trackedEntity);
-    incidentDate = DateUtils.toMediumDate("2014-10-22");
+    occurredDate = DateUtils.toMediumDate("2014-10-22");
     enrollmentDate = DateUtils.toMediumDate("2014-12-31");
     enrollment =
         enrollmentService.enrollTrackedEntity(
-            trackedEntity, programA, enrollmentDate, incidentDate, organisationUnit);
-    incidentDate = DateUtils.toMediumDate("2014-10-22");
+            trackedEntity, programA, enrollmentDate, occurredDate, organisationUnit);
+    occurredDate = DateUtils.toMediumDate("2014-10-22");
     enrollmentDate = DateUtils.toMediumDate("2014-12-31");
     enrollment =
         enrollmentService.enrollTrackedEntity(
-            trackedEntity, programA, enrollmentDate, incidentDate, organisationUnit);
+            trackedEntity, programA, enrollmentDate, occurredDate, organisationUnit);
     // TODO enroll twice?
     // ---------------------------------------------------------------------
     // TrackedEntityAttribute
@@ -265,13 +266,13 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest {
     // ---------------------------------------------------------------------
     // TrackedEntityDataValue
     // ---------------------------------------------------------------------
-    Event eventA =
-        eventService.createEvent(enrollment, psA, enrollmentDate, incidentDate, organisationUnit);
-    Event eventB =
-        eventService.createEvent(enrollment, psB, enrollmentDate, incidentDate, organisationUnit);
+    Event eventA = createEvent(psA, enrollment, organisationUnit);
+    eventA.setOccurredDate(occurredDate);
+    manager.save(eventA);
+    Event eventB = createEvent(psB, enrollment, organisationUnit);
+    eventB.setOccurredDate(occurredDate);
+    manager.save(eventB);
     Set<Event> events = new HashSet<>();
-    events.add(eventA);
-    events.add(eventB);
     enrollment.setEvents(events);
     enrollment.setProgram(programA);
     // ---------------------------------------------------------------------
