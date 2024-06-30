@@ -592,15 +592,11 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   /**
    * Generates an INNER JOIN for program owner. This segment is only included if program is
-   * specified or user is not super.
+   * specified.
    *
-   * @return a SQL INNER JOIN for program owner, or empty string if no program is specified.
+   * @return a SQL INNER JOIN for program owner, or a LEFT JOIN if no program is specified.
    */
   private String getFromSubQueryJoinProgramOwnerConditions(TrackedEntityQueryParams params) {
-    if (skipOwnershipCheck(params)) {
-      return "";
-    }
-
     if (params.hasProgram()) {
       return " INNER JOIN trackedentityprogramowner PO "
           + " ON PO.programid = "
@@ -649,11 +645,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   }
 
   private String getOwnerOrgUnit(TrackedEntityQueryParams params) {
-
-    if (skipOwnershipCheck(params)) {
-      return "TE.organisationunitid ";
-    }
-
     if (params.hasProgram()) {
       return "PO.organisationunitid ";
     }
@@ -1082,9 +1073,5 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   @Override
   protected TrackedEntity postProcessObject(TrackedEntity trackedEntity) {
     return (trackedEntity == null || trackedEntity.isDeleted()) ? null : trackedEntity;
-  }
-
-  private boolean skipOwnershipCheck(TrackedEntityQueryParams params) {
-    return params.getUser() != null && params.getUser().isSuper();
   }
 }

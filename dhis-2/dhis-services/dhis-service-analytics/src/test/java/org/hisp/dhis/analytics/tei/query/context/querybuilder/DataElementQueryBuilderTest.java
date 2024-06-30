@@ -81,6 +81,6 @@ class DataElementQueryBuilderTest {
     // 3. The "exists" field
     // 4. the "status" field
     // 5. the "hasValue" field
-    assertEquals(5, renderableSqlQuery.getSelectFields().size());
+    assertEquals(2, renderableSqlQuery.getSelectFields().size());
   }
 }

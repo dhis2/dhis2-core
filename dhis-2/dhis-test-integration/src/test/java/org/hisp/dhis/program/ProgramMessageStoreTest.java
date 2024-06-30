@@ -57,6 +57,20 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class ProgramMessageStoreTest extends TransactionalIntegrationTest {
 
+  @Autowired private ProgramMessageStore programMessageStore;
+
+  @Autowired private EnrollmentStore enrollmentStore;
+
+  @Autowired private OrganisationUnitService orgUnitService;
+
+  @Autowired private TrackedEntityService trackedEntityService;
+
+  @Autowired private ProgramService programService;
+
+  @Autowired private ProgramStageService programStageService;
+
+  @Autowired private EventService eventService;
+
   private OrganisationUnit ouA;
 
   private OrganisationUnit ouB;
@@ -104,23 +118,6 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest {
   private Date incidentDate;
 
   private Date enrollmentDate;
-
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
-  @Autowired private ProgramMessageStore programMessageStore;
-
-  @Autowired private EnrollmentStore enrollmentStore;
-
-  @Autowired private OrganisationUnitService orgUnitService;
-
-  @Autowired private TrackedEntityService trackedEntityService;
-
-  @Autowired private ProgramService programService;
-
-  @Autowired private ProgramStageService programStageService;
-
-  @Autowired private EventStore eventStore;
 
   // -------------------------------------------------------------------------
   // Prerequisite
@@ -274,7 +271,7 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest {
   @Test
   void testGetProgramMessageByEvent() {
     enrollmentStore.save(enrollmentA);
-    eventStore.save(eventA);
+    eventService.addEvent(eventA);
     pmsgA.setEvent(eventA);
     pmsgB.setEvent(eventA);
     programMessageStore.save(pmsgA);

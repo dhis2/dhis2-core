@@ -32,7 +32,9 @@ import lombok.Data;
 import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 
 /**
- * This object holds common objects required by most analytics flows as well as specialized objects related to a specific flow.
+ * This object holds common objects required by most analytics flows as well as specialized objects
+ * related to a specific flow.
+ *
  * @param <R> the raw specialize request object for the respective flow.
  * @param <P> the parsed version of the specialized raw object.
  */

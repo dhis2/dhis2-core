@@ -41,7 +41,9 @@ import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.analytics.common.params.CommonParamsDelegator;
 import org.hisp.dhis.analytics.common.params.CommonParsedParams;
+import org.hisp.dhis.analytics.data.handler.MetadataHandler;
 import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
@@ -72,20 +74,17 @@ public class MetadataDimensionsHandler {
   Map<String, List<String>> handle(Grid grid, CommonParsedParams commonParsed) {
     CommonParamsDelegator delegator = commonParsed.delegate();
     List<QueryItem> items = delegator.getAllItems();
-    List<DimensionalObject> allDimensionalObjects = delegator.getAllDimensionalObjects();
+    List<DimensionalObject> allDimensionalObjects =
+        delegator.getAllDimensionalObjects().stream()
+            // We're adding periods separately, so we need to filter them out.
+            .filter(MetadataDimensionsHandler::isNotPeriod)
+            .toList();
     List<DimensionalItemObject> periodDimensionOrFilterItems =
         delegator.getPeriodDimensionOrFilterItems();
     List<QueryItem> itemFilters = delegator.getItemsAsFilters();
 
-    Calendar calendar = PeriodType.getCalendar();
-
-    List<String> periodUids =
-        calendar.isIso8601()
-            ? getUids(periodDimensionOrFilterItems)
-            : getLocalPeriodIdentifiers(periodDimensionOrFilterItems, calendar);
-
     Map<String, List<String>> dimensionItems = new HashMap<>();
-    dimensionItems.put(PERIOD_DIM_ID, periodUids);
+    dimensionItems.put(PERIOD_DIM_ID, getDistinctPeriodUids(periodDimensionOrFilterItems));
 
     for (DimensionalObject dim : allDimensionalObjects) {
       dimensionItems.put(dim.getDimension(), getDimensionalItemIds(dim.getItems()));
@@ -95,6 +94,24 @@ public class MetadataDimensionsHandler {
     putFilterItemsIntoMap(dimensionItems, itemFilters);
 
     return dimensionItems;
+  }
+
+  private static boolean isNotPeriod(DimensionalObject dimensionalObject) {
+    return !dimensionalObject.getDimensionType().equals(DimensionType.PERIOD);
+  }
+
+  /**
+   * Returns a list of distinct period UIDs. This method was extracted from the original code to be
+   * used in the {@link MetadataDimensionsHandler} and {@link MetadataHandler} classes.
+   *
+   * @param items the list of {@link DimensionalItemObject} of type period.
+   * @return a list of distinct period UIDs.
+   */
+  public static List<String> getDistinctPeriodUids(List<DimensionalItemObject> items) {
+    Calendar calendar = PeriodType.getCalendar();
+    List<String> periodUids =
+        calendar.isIso8601() ? getUids(items) : getLocalPeriodIdentifiers(items, calendar);
+    return periodUids.stream().distinct().toList();
   }
 
   /**

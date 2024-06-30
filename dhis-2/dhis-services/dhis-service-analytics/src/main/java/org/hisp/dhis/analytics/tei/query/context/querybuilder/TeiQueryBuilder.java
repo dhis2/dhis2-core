@@ -32,6 +32,7 @@ import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObje
 import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.hasRestrictions;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.isOfType;
+import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 
 import java.util.List;
 import java.util.function.Function;
@@ -64,6 +65,37 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @org.springframework.core.annotation.Order(1)
 public class TeiQueryBuilder extends SqlQueryBuilderAdaptor {
+  private static final String JSON_AGGREGATION_QUERY =
+      """
+        coalesce( (select json_agg(json_build_object('programUid', pr.uid,
+                                              'enrollmentUid', en.programinstanceuid,
+                                              'enrollmentDate', en.enrollmentdate,
+                                              'incidentDate', en.incidentdate,
+                                              'endDate', en.enddate,
+                                              'orgUnitUid', en.ou,
+                                              'orgUnitName', en.ouname,
+                                              'orgUnitCode', en.oucode,
+                                              'orgUnitNameHierarchy', en.ounamehierarchy,
+                                              'enrollmentStatus', en.enrollmentstatus,
+                                              'events',
+                                              coalesce( (select json_agg(json_build_object('programStageUid', ps.uid,
+                                                                                 'eventUid', ev.programstageuid,
+                                                                                 'occurredDate', ev.occurreddate,
+                                                                                 'dueDate', ev.scheduleddate,
+                                                                                 'orgUnitUid', ev.ou,
+                                                                                 'orgUnitName', ev.ouname,
+                                                                                 'orgUnitCode', ev.oucode,
+                                                                                 'orgUnitNameHierarchy', ev.ounamehierarchy,
+                                                                                 'eventStatus', ev.status,
+                                                                                 'eventDataValues', ev.eventdatavalues))
+                                               from analytics_tei_events_%s ev,
+                                                    programstage ps
+                                               where ev.programinstanceuid = en.programinstanceuid
+                                                 and ps.uid = ev.programstageuid), '[]'::json)))
+            from analytics_tei_enrollments_%s en,
+                 program pr
+            where en.trackedentityinstanceuid = t_1.trackedentityinstanceuid
+              and pr.uid = en.programuid), '[]'::json)""";
 
   private final IdentifiableObjectManager identifiableObjectManager;
 
@@ -88,6 +120,13 @@ public class TeiQueryBuilder extends SqlQueryBuilderAdaptor {
 
   @Override
   protected Stream<Field> getSelect(QueryContext queryContext) {
+    String aggregationQuery =
+        JSON_AGGREGATION_QUERY.formatted(
+            queryContext.getTetTableSuffix(), queryContext.getTetTableSuffix());
+
+    Field aggregatedEnrollments =
+        Field.ofUnquoted(EMPTY, () -> aggregationQuery, "enrollments").withUsedInHeaders(false);
+
     return Stream.of(
             // Organisation unit group set columns.
             identifiableObjectManager
@@ -95,12 +134,12 @@ public class TeiQueryBuilder extends SqlQueryBuilderAdaptor {
                 .stream()
                 .map(OrganisationUnitGroupSet::getUid)
                 .map(attr -> Field.of(TEI_ALIAS, () -> attr, attr)),
-
             // Static fields column.
             TeiFields.getStaticFields(),
-
             // Tei/Program attributes.
-            TeiFields.getDimensionFields(queryContext.getContextParams()))
+            TeiFields.getDimensionFields(queryContext.getContextParams()),
+            // Enrollments
+            Stream.of(aggregatedEnrollments))
         .flatMap(Function.identity());
   }
 

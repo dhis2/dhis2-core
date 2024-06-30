@@ -51,6 +51,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.With;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -65,8 +66,8 @@ import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.program.EnrollmentStatus;
 
 /**
- * This object wraps the common params/request attributes used across analytics requests/flows.
- * It represents the client request which should remain intact until the very end for further usage.
+ * This object wraps the common params/request attributes used across analytics requests/flows. It
+ * represents the client request which should remain intact until the very end for further usage.
  * They should not be transformed or overridden after the controller level.
  *
  * <p>Some objects are specified as Set/LinkedHashSet as they might require enforcing ordering and
@@ -77,6 +78,7 @@ import org.hisp.dhis.program.EnrollmentStatus;
  */
 @Getter
 @Setter
+@With
 @NoArgsConstructor
 @AllArgsConstructor
 public class CommonRequestParams {

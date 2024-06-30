@@ -90,11 +90,10 @@ class CommonRequestParamsValidatorTest {
 
   @Test
   void testProgramStatusAndEnrollmentStatusThrowsException() {
-    CommonRequestParams request =
-        new CommonRequestParams()
-            .withProgram(Set.of("IpHINAT79UW"))
-            .withProgramStatus(Set.of("IpHINAT79UW.COMPLETED"))
-            .withEnrollmentStatus(Set.of("IpHINAT79UW.COMPLETED"));
+    CommonRequestParams request = new CommonRequestParams();
+    request.setProgram(Set.of("IpHINAT79UW"));
+    request.setProgramStatus(Set.of("IpHINAT79UW.COMPLETED"));
+    request.setEnrollmentStatus(Set.of("IpHINAT79UW.COMPLETED"));
 
     IllegalQueryException exception =
         assertThrows(

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,24 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.analytics.common.query.jsonextractor;
 
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.user.UserCredentialsDto;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class UserCredentialsSchemaDescriptor implements SchemaDescriptor {
-  public static final String SINGULAR = "userCredentials";
+import java.time.LocalDateTime;
+import java.util.stream.Stream;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-  public static final String PLURAL = "userCredentials";
+class JsonExtractorUtilsTest {
 
-  public static final String API_ENDPOINT = "/" + PLURAL;
+  private final LocalDateTime aDate = LocalDateTime.of(2022, 1, 1, 0, 0, 0);
 
-  @Override
-  public Schema getSchema() {
-    return new Schema(UserCredentialsDto.class, SINGULAR, PLURAL);
+  @ParameterizedTest
+  @MethodSource("provideDataForTest")
+  void testGetFormattedDate(Integer millis, String expected) {
+    LocalDateTime testedDate = aDate.withNano(millis * 1000 * 1000);
+    assertEquals(expected, JsonExtractorUtils.getFormattedDate(testedDate));
+  }
+
+  private static Stream<Arguments> provideDataForTest() {
+    return Stream.of(
+        Arguments.of(100, "2022-01-01 00:00:00.1"),
+        Arguments.of(110, "2022-01-01 00:00:00.11"),
+        Arguments.of(111, "2022-01-01 00:00:00.111"),
+        Arguments.of(0, "2022-01-01 00:00:00.0"));
   }
 }

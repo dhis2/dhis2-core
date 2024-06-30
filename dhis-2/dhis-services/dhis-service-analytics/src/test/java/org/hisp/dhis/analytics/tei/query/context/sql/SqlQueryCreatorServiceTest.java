@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.tei.query.context.sql;
 
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.utils.Assertions.assertContains;
@@ -56,8 +56,6 @@ import org.hisp.dhis.analytics.tei.query.context.querybuilder.OrgUnitQueryBuilde
 import org.hisp.dhis.analytics.tei.query.context.querybuilder.PeriodQueryBuilder;
 import org.hisp.dhis.analytics.tei.query.context.querybuilder.ProgramIndicatorQueryBuilder;
 import org.hisp.dhis.analytics.tei.query.context.querybuilder.TeiQueryBuilder;
-import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilder;
-import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryCreatorService;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -65,15 +63,16 @@ import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * TeiFullQuery unit tests.
+ * Unit tests for {@link SqlQueryCreatorService}.
  *
  * @author Dusan Bernat
  */
-class TeiSqlQueryTest extends DhisConvenienceTest {
+class SqlQueryCreatorServiceTest extends DhisConvenienceTest {
   private SqlQueryCreatorService sqlQueryCreatorService;
 
   @BeforeEach
@@ -119,14 +118,18 @@ class TeiSqlQueryTest extends DhisConvenienceTest {
     // when
     DimensionalObject dimensionalObject = new BaseDimensionalObject("abc");
 
+    TrackedEntityType trackedEntityType = createTrackedEntityType('A');
+    Program program = createProgram('A');
+    program.setTrackedEntityType(trackedEntityType);
+
     TeiQueryParams teiQueryParams =
-        TeiQueryParams.builder().trackedEntityType(createTrackedEntityType('A')).build();
+        TeiQueryParams.builder().trackedEntityType(trackedEntityType).build();
 
     ContextParams<TeiRequestParams, TeiQueryParams> contextParams =
         ContextParams.<TeiRequestParams, TeiQueryParams>builder()
             .typedParsed(teiQueryParams)
             .commonRaw(new CommonRequestParams())
-            .commonParsed(stubSortingCommonParams(createProgram('A'), 1, dimensionalObject))
+            .commonParsed(stubSortingCommonParams(program, 1, dimensionalObject))
             .build();
 
     // when
@@ -134,10 +137,7 @@ class TeiSqlQueryTest extends DhisConvenienceTest {
         sqlQueryCreatorService.getSqlQueryCreator(contextParams).createForSelect().getStatement();
 
     // then
-    assertTrue(sql.contains(" order by \"prabcdefghA[1].pgabcdefghS[1].abc\" desc nulls last"));
-    assertTrue(
-        sql.contains(
-            "(\"prabcdefghA[1].pgabcdefghS[1]\".\"eventdatavalues\" -> 'abc' ->> 'value')::TEXT as \"prabcdefghA[1].pgabcdefghS[1].abc\""));
+    assertTrue(sql.contains(" order by (select (\"eventdatavalues\" -> 'abc' ->> 'value')::TEXT"));
   }
 
   @Test

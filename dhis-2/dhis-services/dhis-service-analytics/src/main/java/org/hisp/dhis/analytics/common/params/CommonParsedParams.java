@@ -46,9 +46,7 @@ import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 
-/**
- * Responsible for consolidating all parsed objects and collections used across analytics flows.
- */
+/** Responsible for consolidating all parsed objects and collections used across analytics flows. */
 @Data
 @Builder(toBuilder = true)
 public class CommonParsedParams {

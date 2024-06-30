@@ -27,33 +27,33 @@
  */
 package org.hisp.dhis.analytics.common;
 
+import static java.lang.String.format;
 import static java.util.Objects.isNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.sql.ResultSet;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
-import org.apache.commons.lang3.StringUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.query.jsonextractor.SqlRowSetJsonExtractorDelegator;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.analytics.tei.TeiRequestParams;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.ValueStatus;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
+@Slf4j
 public class TeiListGrid extends ListGrid {
 
   private static final List<ValueType> ROUNDABLE_TYPES =
@@ -115,7 +115,8 @@ public class TeiListGrid extends ListGrid {
           addValue(value);
           headersSet.add(columnLabel);
 
-          rowContextItems.putAll(getRowContextItem(rs, cols[i], i));
+          rowContextItems.putAll(
+              ((SqlRowSetJsonExtractorDelegator) rs).getRowContextItem(cols[i], i));
         }
       }
       if (!rowContextItems.isEmpty()) {
@@ -133,17 +134,26 @@ public class TeiListGrid extends ListGrid {
   private Object getValueAndRoundIfNecessary(
       SqlRowSet rs, String columnLabel, boolean skipRounding) {
     ValueType valueType = getValueType(columnLabel);
+    Object value = rs.getObject(columnLabel);
     if (skipRounding || isNotRoundableType(valueType)) {
-      return rs.getObject(columnLabel);
+      return value;
     }
-    return roundIfNecessary(rs, columnLabel);
+    // if roundable type we try to parse from string into double and round it
+    try {
+      return roundIfNecessary(value);
+    } catch (Exception e) {
+      log.warn(
+          format("Failed to parse value as double: %s for column: %s ", value, columnLabel), e);
+      // as a fallback we return the value as is
+      return value;
+    }
   }
 
-  private Double roundIfNecessary(SqlRowSet rs, String columnLabel) {
-    if (isNull(rs.getObject(columnLabel))) {
+  private Double roundIfNecessary(Object value) {
+    if (isNull(value)) {
       return null;
     }
-    double doubleValue = rs.getDouble(columnLabel);
+    double doubleValue = Double.parseDouble(value.toString());
     if (commonRequestParams.isSkipRounding()) {
       return doubleValue;
     }
@@ -162,50 +172,5 @@ public class TeiListGrid extends ListGrid {
         .map(DimensionIdentifier::getDimension)
         .map(DimensionParam::getValueType)
         .orElse(ValueType.TEXT);
-  }
-
-  /**
-   * The method retrieves row context content that describes the origin of the data value,
-   * indicating whether it is set, not set, or undefined. The column index is used as the map key,
-   * and the corresponding value contains information about the origin, also known as the value
-   * status.
-   *
-   * @param rs the {@link ResultSet},
-   * @param columnName the {@link String}, grid row column name
-   * @return Map of column index and value status
-   */
-  private Map<String, Object> getRowContextItem(SqlRowSet rs, String columnName, int rowIndex) {
-    Map<String, Object> rowContextItem = new HashMap<>();
-    String existIndicatorColumnLabel = columnName + EXISTS;
-    String statusIndicatorColumnLabel = columnName + STATUS;
-    String hasValueIndicatorColumnLabel = columnName + HAS_VALUE;
-
-    if (Arrays.stream(rs.getMetaData().getColumnNames())
-        .anyMatch(n -> n.equalsIgnoreCase(existIndicatorColumnLabel))) {
-
-      boolean isDefined = rs.getBoolean(existIndicatorColumnLabel);
-      boolean isSet = rs.getBoolean(hasValueIndicatorColumnLabel);
-      boolean isScheduled =
-          StringUtils.equalsIgnoreCase(
-              rs.getString(statusIndicatorColumnLabel), EventStatus.SCHEDULE.toString());
-
-      ValueStatus valueStatus = ValueStatus.SET;
-
-      if (!isDefined) {
-        valueStatus = ValueStatus.NOT_DEFINED;
-      } else if (isScheduled) {
-        valueStatus = ValueStatus.SCHEDULED;
-      } else if (!isSet) {
-        valueStatus = ValueStatus.NOT_SET;
-      }
-
-      if (valueStatus != ValueStatus.SET) {
-        Map<String, String> valueStatusMap = new HashMap<>();
-        valueStatusMap.put("valueStatus", valueStatus.getValue());
-        rowContextItem.put(Integer.toString(rowIndex), valueStatusMap);
-      }
-    }
-
-    return rowContextItem;
   }
 }
