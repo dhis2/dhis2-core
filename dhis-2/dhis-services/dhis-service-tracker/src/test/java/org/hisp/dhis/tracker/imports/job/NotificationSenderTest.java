@@ -57,7 +57,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class NotificationSenderTest {
   private static final UID TEMPLATE_UID = UID.of("h4w96yEMlzO");
-  private static final UID RULE_UID = UID.of("TvctPPhpD8u");
   private static final String ENROLLMENT_UID = "enrollmentUid";
   private static final String EVENT_UID = "eventUid";
 

@@ -159,13 +159,13 @@ public class RuleEngineEffects {
             e ->
                 new NotificationEffect(
                     UID.of(e.getRuleAction().getValues().get(NOTIFICATION)),
-                    DateUtils.parseDate(e.getData())))
+                    DateUtils.parseDate(StringUtils.unwrap(e.getData(), '\''))))
         .toList();
   }
 
   private static boolean isValid(RuleEffect effect) {
     if (effect.getRuleAction().getType().equals(SCHEDULEMESSAGE.name())) {
-      return DateUtils.dateIsValid(effect.getData());
+      return DateUtils.dateIsValid(StringUtils.unwrap(effect.getData(), '\''));
     }
     return true;
   }

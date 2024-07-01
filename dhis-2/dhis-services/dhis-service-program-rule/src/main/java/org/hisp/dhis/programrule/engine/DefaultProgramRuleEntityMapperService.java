@@ -390,7 +390,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
               null, SENDMESSAGE.name(), createValues(NOTIFICATION, pra.getTemplateUid()));
       case SCHEDULEMESSAGE ->
           new RuleAction(
-              StringUtils.unwrap(pra.getData(), '\''),
+              pra.getData(),
               SCHEDULEMESSAGE.name(),
               createValues(NOTIFICATION, pra.getTemplateUid()));
       default -> null;
