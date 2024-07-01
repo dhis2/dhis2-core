@@ -120,7 +120,7 @@ public class CommonRequestParamsParser implements Parser<CommonRequestParams, Co
 
     // Adds all program attributes from all applicable programs as dimensions.
     request
-        .getDimension()
+        .getEnrichedDimensions()
         .addAll(
             getProgramAttributes(programs)
                 .map(IdentifiableObject::getUid)

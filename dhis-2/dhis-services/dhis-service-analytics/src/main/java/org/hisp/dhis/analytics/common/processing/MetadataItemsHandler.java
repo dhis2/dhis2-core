@@ -180,7 +180,7 @@ public class MetadataItemsHandler {
       return true;
     }
 
-    return originalRequest.getDimension().stream().anyMatch(uId -> uId.contains(uid))
+    return originalRequest.getEnrichedDimensions().stream().anyMatch(uId -> uId.contains(uid))
         || originalRequest.getFilter().stream().anyMatch(uId -> uId.contains(uid))
         || originalRequest.getHeaders().stream().anyMatch(uId -> uId.contains(uid))
         || originalRequest.getProgram().stream().anyMatch(uId -> uId.contains(uid))

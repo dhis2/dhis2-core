@@ -219,12 +219,15 @@ class TeiAnalyticsController {
       CommonRequestParams commonRequestParams,
       Function<ContextParams<TeiRequestParams, TeiQueryParams>, Grid> executor) {
 
+    // This happens first because of the particularity of TE, where the programs be loaded come from
+    // the TE and not from the request param.
+    TeiQueryParams teiQueryParams =
+        mapper.map(teiRequestParams.getTrackedEntityType(), commonRequestParams);
+
     commonQueryRequestValidator.validate(commonRequestParams);
     teiQueryRequestValidator.validate(teiRequestParams);
 
     CommonParsedParams commonParsedParams = commonRequestParamsParser.parse(commonRequestParams);
-    TeiQueryParams teiQueryParams =
-        mapper.map(teiRequestParams.getTrackedEntityType(), commonRequestParams);
 
     ContextParams<TeiRequestParams, TeiQueryParams> contextParams =
         ContextParams.<TeiRequestParams, TeiQueryParams>builder()

@@ -63,9 +63,7 @@ class CommonRequestParamsValidatorTest {
 
     // When
     IllegalQueryException exception =
-        assertThrows(
-            IllegalQueryException.class,
-            () -> validator.validate(commonRequestParams));
+        assertThrows(IllegalQueryException.class, () -> validator.validate(commonRequestParams));
 
     // Then
     assertEquals("Query item or filter is invalid: `pe:LAST_YEAR`", exception.getMessage());
@@ -83,9 +81,7 @@ class CommonRequestParamsValidatorTest {
 
     // When
     IllegalQueryException exception =
-        assertThrows(
-            IllegalQueryException.class,
-            () -> validator.validate(commonRequestParams));
+        assertThrows(IllegalQueryException.class, () -> validator.validate(commonRequestParams));
 
     // Then
     assertEquals(
@@ -102,8 +98,7 @@ class CommonRequestParamsValidatorTest {
     CommonQueryRequestValidator validator = new CommonQueryRequestValidator();
 
     IllegalQueryException exception =
-        assertThrows(
-            IllegalQueryException.class, () -> validator.validate(request));
+        assertThrows(IllegalQueryException.class, () -> validator.validate(request));
 
     assertEquals(
         "Parameters programStatus and enrollmentStatus cannot be used together",
