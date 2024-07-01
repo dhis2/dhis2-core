@@ -105,6 +105,10 @@ public class DimensionIdentifier<D extends UidObject> implements IdentifiableKey
     return hasProgram() && !hasProgramStage();
   }
 
+  public boolean isTeDimension() {
+    return !hasProgram() && !hasProgramStage();
+  }
+
   public boolean isEventDimension() {
     return hasProgram() && hasProgramStage();
   }

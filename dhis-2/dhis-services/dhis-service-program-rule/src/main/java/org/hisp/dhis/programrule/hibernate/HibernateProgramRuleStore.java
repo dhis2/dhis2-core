@@ -47,6 +47,7 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.programrule.ProgramRuleStore")
 public class HibernateProgramRuleStore extends HibernateIdentifiableObjectStore<ProgramRule>
     implements ProgramRuleStore {
+
   public HibernateProgramRuleStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
@@ -66,25 +67,26 @@ public class HibernateProgramRuleStore extends HibernateIdentifiableObjectStore<
   }
 
   @Override
-  public List<String> getDataElementsPresentInProgramRules() {
-
+  public List<String> getDataElementsPresentInProgramRules(Set<ProgramRuleActionType> actionTypes) {
     String sql =
         """
             SELECT distinct de.uid
-            FROM ProgramRuleAction pra join dataelement de ON pra.dataelementid = de.dataelementid
+            FROM ProgramRuleAction pra JOIN pra.dataElement de
+            WHERE pra.programRuleActionType in (:types)
         """;
-    return jdbcTemplate.queryForList(sql, String.class);
+    return getQuery(sql, String.class).setParameter("types", actionTypes).getResultList();
   }
 
   @Override
-  public List<String> getTrackedEntityAttributesPresentInProgramRules() {
-
+  public List<String> getTrackedEntityAttributesPresentInProgramRules(
+      Set<ProgramRuleActionType> actionTypes) {
     String sql =
         """
-            SELECT distinct tea.uid
-            FROM ProgramRuleAction pra JOIN trackedentityattribute tea ON pra.trackedentityattributeid = tea.trackedentityattributeid
-        """;
-    return jdbcTemplate.queryForList(sql, String.class);
+                SELECT distinct att.uid
+                FROM ProgramRuleAction pra JOIN pra.attribute att
+                WHERE pra.programRuleActionType in (:types)
+            """;
+    return getQuery(sql, String.class).setParameter("types", actionTypes).getResultList();
   }
 
   @Override

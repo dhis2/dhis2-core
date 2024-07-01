@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
-import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
+import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
@@ -52,8 +52,6 @@ public class DataElementCondition extends BaseRenderable {
   static RenderableDataValue getDataValueRenderable(
       DimensionIdentifier<DimensionParam> dimensionIdentifier, ValueTypeMapping valueTypeMapping) {
     return RenderableDataValue.of(
-        doubleQuote(dimensionIdentifier.getPrefix()),
-        dimensionIdentifier.getDimension().getUid(),
-        valueTypeMapping);
+        EMPTY, dimensionIdentifier.getDimension().getUid(), valueTypeMapping);
   }
 }
