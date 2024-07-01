@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fileresource.FileResource;
@@ -81,17 +82,19 @@ class DataValuesValidator implements Validator<Event> {
       validateDataValue(reporter, bundle, dataElement, dataValue, programStage, event);
     }
 
-    if (EventStatus.STATUSES_WITHOUT_DATA_VALUES.contains(event.getStatus())) {
-      validateNoDataValuesArePresent(reporter, event);
-    }
-
+    validateEventStatus(reporter, event);
     validateMandatoryDataValues(reporter, bundle, event);
     validateDataValueDataElementIsConnectedToProgramStage(reporter, bundle, event, programStage);
   }
 
-  private void validateNoDataValuesArePresent(Reporter reporter, Event event) {
-    if (!event.getDataValues().isEmpty()) {
-      reporter.addError(event, ValidationCode.E1315, event.getStatus());
+  private void validateEventStatus(Reporter reporter, Event event) {
+    if (EventStatus.STATUSES_WITHOUT_DATA_VALUES.contains(event.getStatus())
+        && !event.getDataValues().isEmpty()) {
+      reporter.addError(
+          event,
+          ValidationCode.E1315,
+          event.getStatus().name(),
+          StringUtils.join(EventStatus.STATUSES_WITH_DATA_VALUES));
     }
   }
 
