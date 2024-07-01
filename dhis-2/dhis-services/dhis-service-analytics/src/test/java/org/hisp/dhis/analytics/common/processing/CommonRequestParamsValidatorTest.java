@@ -59,11 +59,13 @@ class CommonRequestParamsValidatorTest {
     commonRequestParams.setProgram(Set.of("prgabcdef11"));
     commonRequestParams.setDimension(Set.of("pe:LAST_YEAR"));
 
+    CommonQueryRequestValidator validator = new CommonQueryRequestValidator();
+
     // When
     IllegalQueryException exception =
         assertThrows(
             IllegalQueryException.class,
-            () -> new CommonQueryRequestValidator().validate(commonRequestParams));
+            () -> validator.validate(commonRequestParams));
 
     // Then
     assertEquals("Query item or filter is invalid: `pe:LAST_YEAR`", exception.getMessage());
@@ -77,11 +79,13 @@ class CommonRequestParamsValidatorTest {
     CommonRequestParams commonRequestParams = new CommonRequestParams();
     commonRequestParams.setProgram(Set.of(validProgramUid, invalidProgramUid));
 
+    CommonQueryRequestValidator validator = new CommonQueryRequestValidator();
+
     // When
     IllegalQueryException exception =
         assertThrows(
             IllegalQueryException.class,
-            () -> new CommonQueryRequestValidator().validate(commonRequestParams));
+            () -> validator.validate(commonRequestParams));
 
     // Then
     assertEquals(
@@ -95,9 +99,11 @@ class CommonRequestParamsValidatorTest {
     request.setProgramStatus(Set.of("IpHINAT79UW.COMPLETED"));
     request.setEnrollmentStatus(Set.of("IpHINAT79UW.COMPLETED"));
 
+    CommonQueryRequestValidator validator = new CommonQueryRequestValidator();
+
     IllegalQueryException exception =
         assertThrows(
-            IllegalQueryException.class, () -> new CommonQueryRequestValidator().validate(request));
+            IllegalQueryException.class, () -> validator.validate(request));
 
     assertEquals(
         "Parameters programStatus and enrollmentStatus cannot be used together",

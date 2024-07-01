@@ -607,8 +607,8 @@ class CommonRequestParamsMapperTest {
     program2.setUid("ur1Edk5Oe2n");
 
     ProgramStage programStage1 = new ProgramStage("ps-1", program1);
-    String queryItem_1 = "EQ:john";
-    String queryItem_2 = "EQ:joe";
+    String queryItem1 = "EQ:john";
+    String queryItem2 = "EQ:joe";
     String dimension = "ur1Edk5Oe2n[1].jdRD35YwbRH[y].yLIPuJHRgey";
 
     List<OrganisationUnit> organisationUnits =
@@ -639,11 +639,11 @@ class CommonRequestParamsMapperTest {
                     asList(
                         dimension
                             + ":"
-                            + queryItem_1
+                            + queryItem1
                             + DIMENSION_OR_SEPARATOR
                             + dimension
                             + ":"
-                            + queryItem_2)));
+                            + queryItem2)));
 
     when(dataQueryService.getUserOrgUnits(null, aCommonRequestParams.getUserOrgUnit()))
         .thenReturn(organisationUnits);
@@ -651,7 +651,7 @@ class CommonRequestParamsMapperTest {
     when(dimensionIdentifierConverter.fromString(programs, dimension))
         .thenReturn(deDimensionIdentifier);
 
-    Stream.of(queryItem_1, queryItem_2)
+    Stream.of(queryItem1, queryItem2)
         .forEach(
             s ->
                 when((dataQueryService.getDimension(

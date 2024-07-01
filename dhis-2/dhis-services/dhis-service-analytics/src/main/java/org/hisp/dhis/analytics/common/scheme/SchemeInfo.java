@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.common.scheme;
 
 import java.util.List;
 import java.util.Set;
-import javax.annotation.Nonnull;
 import lombok.Builder;
 import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -44,11 +43,6 @@ import org.hisp.dhis.program.ProgramStage;
  * @author maikel arabori
  */
 public record SchemeInfo(Settings settings, Data data) {
-
-  public SchemeInfo(@Nonnull Settings settings, @Nonnull Data data) {
-    this.settings = settings;
-    this.data = data;
-  }
 
   @lombok.Data
   @Builder(toBuilder = true)

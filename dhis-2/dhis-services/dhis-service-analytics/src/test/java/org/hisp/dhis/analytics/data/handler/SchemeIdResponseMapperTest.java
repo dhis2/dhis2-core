@@ -344,6 +344,7 @@ class SchemeIdResponseMapperTest {
   @Test
   void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToUid() {
     List<DataElementOperand> dataElementOperands = stubDataElementOperands();
+    DataElement dataElement = stubDataElement();
     OrganisationUnit organisationUnit = stubOrgUnit();
     Period period = stubPeriod();
 
@@ -351,11 +352,11 @@ class SchemeIdResponseMapperTest {
         Data.builder()
             .organizationUnits(List.of(organisationUnit))
             .dataElementOperands(List.of(dataElementOperands.get(0), dataElementOperands.get(1)))
-            .dimensionalItemObjects(Set.of(period, organisationUnit))
+            .dimensionalItemObjects(Set.of(period, organisationUnit, dataElement))
             .build();
 
     Settings schemeSettings =
-        Settings.builder().outputFormat(DATA_VALUE_SET).outputOrgUnitIdScheme(UID).build();
+        Settings.builder().outputFormat(DATA_VALUE_SET).outputDataElementIdScheme(UID).build();
 
     SchemeInfo schemeInfo = new SchemeInfo(schemeSettings, schemeData);
 
@@ -371,6 +372,7 @@ class SchemeIdResponseMapperTest {
     assertThat(responseMap.get(periodIsoDate), is(equalTo(period.getUid())));
     assertThat(responseMap.get(dataElementA.getUid()), is(emptyOrNullString()));
     assertThat(responseMap.get(dataElementB.getUid()), is(emptyOrNullString()));
+    assertThat(responseMap.get(dataElement.getUid()), is(dataElement.getUid()));
     assertThat(responseMap.get(categoryOptionComboC.getUid()), is(emptyOrNullString()));
     assertThat(responseMap.get(categoryOptionComboC.getUid()), is(emptyOrNullString()));
   }
@@ -885,35 +887,6 @@ class SchemeIdResponseMapperTest {
         .programs(List.of(program))
         .dimensionalItemObjects(Set.of(stubPeriod(), stubOrgUnit(), stubDataElement()))
         .build();
-  }
-
-  private DimensionIdentifier<DimensionParam> stubDimensionIdentifier(
-      List<String> ous, String programUid, String programStageUid, String dimensionUid) {
-    BaseDimensionalObject tea =
-        new BaseDimensionalObject(
-            dimensionUid,
-            DATA_X,
-            ous.stream().map(item -> new BaseDimensionalItemObject(item)).toList(),
-            TEXT);
-
-    DimensionParam dimensionParam = DimensionParam.ofObject(tea, DIMENSIONS, UID, ous);
-
-    ElementWithOffset<Program> program = emptyElementWithOffset();
-    ElementWithOffset<ProgramStage> programStage = emptyElementWithOffset();
-
-    if (isNotBlank(programUid)) {
-      Program p = new Program();
-      p.setUid(programUid);
-      program = ElementWithOffset.of(p, null);
-    }
-
-    if (isNotBlank(programStageUid)) {
-      ProgramStage ps = new ProgramStage();
-      ps.setUid(programStageUid);
-      programStage = ElementWithOffset.of(ps, null);
-    }
-
-    return DimensionIdentifier.of(program, programStage, dimensionParam);
   }
 
   private Period stubPeriod() {

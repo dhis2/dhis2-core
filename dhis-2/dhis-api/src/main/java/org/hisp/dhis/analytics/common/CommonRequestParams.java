@@ -315,7 +315,7 @@ public class CommonRequestParams {
     // Builds a map of [program,program stage] with a list of event statuses.
     Map<Pair<String, String>, List<EventStatus>> statusesByProgramAndProgramStage =
         eventStatuses.stream()
-            .map(eventStatus -> splitAndValidate(eventStatus, IS_EVENT_STATUS, 3, E7141))
+            .map(evStatus -> splitAndValidate(evStatus, IS_EVENT_STATUS, 3, E7141))
             .map(
                 parts ->
                     Pair.of(
@@ -356,12 +356,12 @@ public class CommonRequestParams {
 
     return statusesByProgram.keySet().stream()
         .map(
-            program ->
-                program
+            p ->
+                p
                     + DIMENSION_IDENTIFIER_SEP
                     + "ENROLLMENT_STATUS"
                     + DIMENSION_NAME_SEP
-                    + statusesByProgram.get(program).stream()
+                    + statusesByProgram.get(p).stream()
                         .filter(Objects::nonNull)
                         .map(EnrollmentStatus::name)
                         .collect(Collectors.joining(";")))

@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.common.params;
 
 import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
 import java.util.ArrayList;
@@ -86,7 +85,7 @@ public class CommonParsedParams {
   @Builder.Default private final List<String> coordinateFields = Collections.emptyList();
 
   public List<DimensionIdentifier<DimensionParam>> getDimensionIdentifiers() {
-    return emptyIfNull(dimensionIdentifiers).stream().filter(Objects::nonNull).collect(toList());
+    return emptyIfNull(dimensionIdentifiers).stream().filter(Objects::nonNull).toList();
   }
 
   /**
