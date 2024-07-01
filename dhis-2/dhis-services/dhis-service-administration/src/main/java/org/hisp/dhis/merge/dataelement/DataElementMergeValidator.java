@@ -41,9 +41,9 @@ public class DataElementMergeValidator {
 
   /**
    * Method that performs property validations between source {@link DataElement} property values
-   * and target {@link DataElement} property values, using a {@link DataElementPropertyValidation}.
-   * If there are any validation failures then an error is added to the {@link MergeReport}. Any
-   * error will provide the details of the validation failures, if any found.
+   * and target {@link DataElement} property values, using {@link DataElementPropertyValidation}. If
+   * there are any validation failures then an error is added to the {@link MergeReport}. Any error
+   * will provide the details of the validation failures.
    *
    * @param target target {@link DataElement}
    * @param sources source {@link DataElement}s

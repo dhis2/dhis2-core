@@ -95,7 +95,7 @@ class DataElementMergeTest extends ApiTest {
     // when a data element merge request is submitted, deleting sources
     ApiResponse response =
         dataElementApiActions
-            .post("merge", getMergeBody(sourceUid1, sourceUid2, targetUid, true))
+            .post("merge", getMergeBody(sourceUid1, sourceUid2, targetUid, true, "LAST_UPDATED"))
             .validateStatus(200);
 
     // then a successful response is received and sources are deleted
@@ -130,7 +130,7 @@ class DataElementMergeTest extends ApiTest {
     // when
     ApiResponse response =
         dataElementApiActions
-            .post("merge", getMergeBody(sourceUid1, sourceUid2, targetUid, false))
+            .post("merge", getMergeBody(sourceUid1, sourceUid2, targetUid, false, "LAST_UPDATED"))
             .validateStatus(409);
 
     // then
@@ -146,7 +146,7 @@ class DataElementMergeTest extends ApiTest {
 
   @Test
   @DisplayName("Invalid DataElement merge when DataElements have different value types")
-  void invalidIndicatorMergeValueType() {
+  void invalidDataElementMergeValueType() {
     // given
     sourceUid1 = setupDataElement("G", "NUMBER", "AGGREGATE");
     sourceUid2 = setupDataElement("H", "TEXT", "AGGREGATE");
@@ -158,7 +158,7 @@ class DataElementMergeTest extends ApiTest {
     // when a data element merge request is submitted, deleting sources
     ApiResponse response =
         dataElementApiActions
-            .post("merge", getMergeBody(sourceUid1, sourceUid2, targetUid, true))
+            .post("merge", getMergeBody(sourceUid1, sourceUid2, targetUid, true, "LAST_UPDATED"))
             .validateStatus(409);
 
     // then a successful response is received and sources are deleted
@@ -177,7 +177,7 @@ class DataElementMergeTest extends ApiTest {
 
   @Test
   @DisplayName("Invalid DataElement merge when DataElements have different domain types")
-  void invalidIndicatorMergeDomainType() {
+  void invalidDataElementMergeDomainType() {
     // given
     sourceUid1 = setupDataElement("J", "TEXT", "AGGREGATE");
     sourceUid2 = setupDataElement("K", "TEXT", "TRACKER");
@@ -189,7 +189,7 @@ class DataElementMergeTest extends ApiTest {
     // when a data element merge request is submitted, deleting sources
     ApiResponse response =
         dataElementApiActions
-            .post("merge", getMergeBody(sourceUid1, sourceUid2, targetUid, true))
+            .post("merge", getMergeBody(sourceUid1, sourceUid2, targetUid, true, "LAST_UPDATED"))
             .validateStatus(409);
 
     // then a successful response is received and sources are deleted
@@ -215,7 +215,7 @@ class DataElementMergeTest extends ApiTest {
     // when
     ApiResponse response =
         dataElementApiActions
-            .post("merge", getMergeBody(sourceUid1, sourceUid2, targetUid, true))
+            .post("merge", getMergeBody(sourceUid1, sourceUid2, targetUid, true, "LAST_UPDATED"))
             .validateStatus(403);
 
     // then
@@ -232,6 +232,7 @@ class DataElementMergeTest extends ApiTest {
   private String setupDataElement(String uniqueChar, String valueType, String domainType) {
     return dataElementApiActions
         .post(createDataElement("source 1" + uniqueChar, valueType, domainType))
+        .validateStatus(201)
         .extractUid();
   }
 
@@ -240,7 +241,7 @@ class DataElementMergeTest extends ApiTest {
   }
 
   private JsonObject getMergeBody(
-      String source1, String source2, String target, boolean deleteSources) {
+      String source1, String source2, String target, boolean deleteSources, String mergeStrategy) {
     JsonObject json = new JsonObject();
     JsonArray sources = new JsonArray();
     sources.add(source1);
@@ -248,6 +249,7 @@ class DataElementMergeTest extends ApiTest {
     json.add("sources", sources);
     json.addProperty("target", target);
     json.addProperty("deleteSources", deleteSources);
+    json.addProperty("dataMergeStrategy", mergeStrategy);
     return json;
   }
 

@@ -198,11 +198,11 @@ public class TrackerDataElementMergeHandler {
    *     eventDataValues
    */
   public void handleEventEventDataValues(List<DataElement> sources, DataElement target) {
-    List<String> deUids = IdentifiableObjectUtils.getUids(sources);
-    List<Event> events = eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(deUids);
+    List<String> sourceDeUids = IdentifiableObjectUtils.getUids(sources);
+    List<Event> events = eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(sourceDeUids);
     events.stream()
         .flatMap(e -> e.getEventDataValues().stream())
-        .filter(edv -> deUids.contains(edv.getDataElement()))
+        .filter(edv -> sourceDeUids.contains(edv.getDataElement()))
         .forEach(edv -> edv.setDataElement(target.getUid()));
   }
 }

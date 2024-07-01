@@ -84,7 +84,7 @@ public class DataElementMergeService implements MergeService {
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
     log.info("Validating DataElement merge request");
     if (params.getDataMergeStrategy() == null) {
-      mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1550));
+      mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1556));
       return null;
     }
 

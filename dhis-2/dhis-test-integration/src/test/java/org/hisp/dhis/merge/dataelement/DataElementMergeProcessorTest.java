@@ -69,6 +69,7 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorStore;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.mapping.MapView;
+import org.hisp.dhis.merge.DataMergeStrategy;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
@@ -367,9 +368,7 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     identifiableObjectManager.save(List.of(ev5, ev6, ev7, ev8));
 
     // params
-    MergeParams mergeParams = new MergeParams();
-    mergeParams.setSources(UID.of(List.of(deSource1.getUid(), deSource2.getUid())));
-    mergeParams.setTarget(UID.of(deTarget.getUid()));
+    MergeParams mergeParams = getMergeParams();
     mergeParams.setDeleteSources(true);
 
     // when
@@ -1373,6 +1372,8 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesNotDeleted(report, eventSources, eventTarget, allDataElements);
+
+    // TODO check how duplicate event data values were handled (last entry?)
   }
 
   @Test
@@ -2248,6 +2249,7 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     MergeParams mergeParams = new MergeParams();
     mergeParams.setSources(UID.of(List.of(deSource1.getUid(), deSource2.getUid())));
     mergeParams.setTarget(UID.of(deTarget.getUid()));
+    mergeParams.setDataMergeStrategy(DataMergeStrategy.LAST_UPDATED);
     return mergeParams;
   }
 
