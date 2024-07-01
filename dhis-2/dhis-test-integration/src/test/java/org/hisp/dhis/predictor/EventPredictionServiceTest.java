@@ -64,7 +64,6 @@ import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -109,8 +108,6 @@ class EventPredictionServiceTest extends IntegrationTestBase {
   @Autowired private ProgramStageService programStageService;
 
   @Autowired private ProgramIndicatorService programIndicatorService;
-
-  @Autowired private EventService eventService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -260,13 +257,13 @@ class EventPredictionServiceTest extends IntegrationTestBase {
         enrollmentService.enrollTrackedEntity(
             trackedEntity, program, dateMar20, dateMar20, orgUnitA);
     enrollmentService.addEnrollment(enrollment);
-    Event stageInstanceA = createEvent(stageA, enrollment, orgUnitA);
-    stageInstanceA.setOccurredDate(dateMar20);
-    manager.save(stageInstanceA);
-    Event stageInstanceB = createEvent(stageA, enrollment, orgUnitA);
-    stageInstanceB.setOccurredDate(dateApr10);
-    stageInstanceB.setAttributeOptionCombo(defaultCombo);
-    manager.save(stageInstanceB);
+    Event eventA = createEvent(stageA, enrollment, orgUnitA);
+    eventA.setOccurredDate(dateMar20);
+    manager.save(eventA);
+    Event eventB = createEvent(stageA, enrollment, orgUnitA);
+    eventB.setOccurredDate(dateApr10);
+    eventB.setAttributeOptionCombo(defaultCombo);
+    manager.save(eventB);
     categoryManager.addAndPruneAllOptionCombos();
     Expression expressionA = new Expression(EXPRESSION_A, "ProgramTrackedEntityAttribute");
     Expression expressionD = new Expression(EXPRESSION_D, "ProgramDataElement");
