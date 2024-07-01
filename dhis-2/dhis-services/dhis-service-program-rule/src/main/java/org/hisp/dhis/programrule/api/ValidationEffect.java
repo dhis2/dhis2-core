@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,42 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.programrule.executor.event;
+package org.hisp.dhis.programrule.api;
 
-import static org.hisp.dhis.tracker.imports.programrule.IssueType.ERROR;
-
-import java.util.Optional;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.programrule.api.ValidationEffect;
-import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.Event;
-import org.hisp.dhis.tracker.imports.programrule.IssueType;
-import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
-import org.hisp.dhis.tracker.imports.programrule.executor.ValidationExecutor;
 
-/** This executor shows errors calculated by Rule Engine. @Author Enrico Colasante */
-@RequiredArgsConstructor
-public class ShowErrorExecutor implements ValidationExecutor<Event> {
-  private final ValidationEffect validationEffect;
-
-  @Override
-  public boolean needsToRun(Event event) {
-    return true;
-  }
-
-  @Override
-  public IssueType getIssueType() {
-    return ERROR;
-  }
-
-  @Override
-  public UID getDataElementUid() {
-    return validationEffect.field();
-  }
-
-  @Override
-  public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Event event) {
-    return execute(validationEffect, event);
-  }
-}
+/**
+ * This effect will be used in tracker to create a validation rule.
+ *
+ * @param type the effect type
+ * @param rule the UID of the rule that generated this effect
+ * @param data additional data needed by the effect to be applied
+ * @param field the UID of the attribute/data value linked to the effect
+ * @param message a message shown by some types of effects
+ */
+public record ValidationEffect(
+    ValidationAction type, UID rule, String data, UID field, String message) {}
