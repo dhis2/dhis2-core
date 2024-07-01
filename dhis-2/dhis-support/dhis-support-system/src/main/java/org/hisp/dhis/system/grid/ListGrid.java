@@ -77,10 +77,6 @@ import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
  * @author Lars Helge Overland
  */
 public class ListGrid implements Grid, Serializable {
-
-  public static final String HAS_VALUE = ".hasValue";
-  public static final String STATUS = ".status";
-  public static final String EXISTS = ".exists";
   public static final String LEGEND = ".legend";
 
   private static final String REGRESSION_SUFFIX = "_regression";

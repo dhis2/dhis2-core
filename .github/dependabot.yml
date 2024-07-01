@@ -168,6 +168,12 @@ updates:
       - dependency-name: "org.jfree:jcommon" # will update in https://dhis2.atlassian.net/browse/DHIS2-16796
         versions:
           - ">= 1.0.24"
+      - dependency-name: "io.micrometer:micrometer-core" # updates have breaking changes which we won't backport
+        versions:
+          - ">= 1.13.0"
+      - dependency-name: "io.micrometer:micrometer-registry-prometheus" # updates have breaking changes which we won't backport
+        versions:
+          - ">= 1.13.0"
   - package-ecosystem: "maven"
     directory: "/dhis-2/dhis-test-e2e"
     schedule:
@@ -264,6 +270,12 @@ updates:
       - dependency-name: "org.jfree:jcommon" # will update in https://dhis2.atlassian.net/browse/DHIS2-16796
         versions:
           - ">= 1.0.24"
+      - dependency-name: "io.micrometer:micrometer-core" # updates have breaking changes which we won't backport
+        versions:
+          - ">= 1.13.0"
+      - dependency-name: "io.micrometer:micrometer-registry-prometheus" # updates have breaking changes which we won't backport
+        versions:
+          - ">= 1.13.0"
   # 2.39
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -349,5 +361,11 @@ updates:
       - dependency-name: "org.jfree:jcommon" # will update in https://dhis2.atlassian.net/browse/DHIS2-16796
         versions:
           - ">= 1.0.24"
+      - dependency-name: "io.micrometer:micrometer-core" # updates have breaking changes which we won't backport
+        versions:
+          - ">= 1.13.0"
+      - dependency-name: "io.micrometer:micrometer-registry-prometheus" # updates have breaking changes which we won't backport
+        versions:
+          - ">= 1.13.0"
     target-branch: "2.39"
     open-pull-requests-limit: 1 # only initially so we do not take away too many CI resources

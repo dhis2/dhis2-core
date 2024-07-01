@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,33 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.common.query.jsonextractor;
 
-import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
+import java.util.regex.Pattern;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.util.DateUtils;
 
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.analytics.common.ValueTypeMapping;
-import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
-import org.hisp.dhis.analytics.common.query.BaseRenderable;
-import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class JsonExtractorUtils {
 
-@RequiredArgsConstructor(staticName = "of")
-public class DataElementCondition extends BaseRenderable {
-  private final QueryContext queryContext;
+  private static final Pattern TRAILING_ZEROES = Pattern.compile("0*$");
+  private static final Pattern ENDING_WITH_DOT = Pattern.compile("\\.$");
 
-  private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
+  public static String getFormattedDate(LocalDateTime date) {
+    if (date == null) {
+      return null;
+    }
 
-  @Override
-  public String render() {
-    return dimensionIdentifier.hasLegendSet()
-        ? DataElementWithLegendSetCondition.of(queryContext, dimensionIdentifier).render()
-        : DataElementWithStaticValuesCondition.of(queryContext, dimensionIdentifier).render();
+    return withOutTrailingZeroes(
+        DateUtils.toLongDateNoT(Date.from(date.atZone(ZoneId.systemDefault()).toInstant())));
   }
 
-  static RenderableDataValue getDataValueRenderable(
-      DimensionIdentifier<DimensionParam> dimensionIdentifier, ValueTypeMapping valueTypeMapping) {
-    return RenderableDataValue.of(
-        EMPTY, dimensionIdentifier.getDimension().getUid(), valueTypeMapping);
+  /**
+   * Removes trailing zeroes from the date string Examples: - "2020-01-01T00:00:00.000" ->
+   * "2020-01-01T00:00:00.0" - "2020-01-01T00:00:00.100" -> "2020-01-01T00:00:00.1" -
+   * "2020-01-01T00:00:00.010" -> "2020-01-01T00:00:00.01" - "2020-01-01T00:00:00.001" ->
+   * "2020-01-01T00:00:00.001"
+   *
+   * @param date date string
+   * @return date string without trailing zeroes
+   */
+  private static String withOutTrailingZeroes(String date) {
+    return ENDING_WITH_DOT.matcher(TRAILING_ZEROES.matcher(date).replaceAll("")).replaceAll(".0");
   }
 }

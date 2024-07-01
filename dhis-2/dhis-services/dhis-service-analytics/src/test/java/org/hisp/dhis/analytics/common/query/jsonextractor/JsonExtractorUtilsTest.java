@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,33 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.common.query.jsonextractor;
 
-import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.analytics.common.ValueTypeMapping;
-import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
-import org.hisp.dhis.analytics.common.query.BaseRenderable;
-import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
+import java.time.LocalDateTime;
+import java.util.stream.Stream;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RequiredArgsConstructor(staticName = "of")
-public class DataElementCondition extends BaseRenderable {
-  private final QueryContext queryContext;
+class JsonExtractorUtilsTest {
 
-  private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
+  private final LocalDateTime aDate = LocalDateTime.of(2022, 1, 1, 0, 0, 0);
 
-  @Override
-  public String render() {
-    return dimensionIdentifier.hasLegendSet()
-        ? DataElementWithLegendSetCondition.of(queryContext, dimensionIdentifier).render()
-        : DataElementWithStaticValuesCondition.of(queryContext, dimensionIdentifier).render();
+  @ParameterizedTest
+  @MethodSource("provideDataForTest")
+  void testGetFormattedDate(Integer millis, String expected) {
+    LocalDateTime testedDate = aDate.withNano(millis * 1000 * 1000);
+    assertEquals(expected, JsonExtractorUtils.getFormattedDate(testedDate));
   }
 
-  static RenderableDataValue getDataValueRenderable(
-      DimensionIdentifier<DimensionParam> dimensionIdentifier, ValueTypeMapping valueTypeMapping) {
-    return RenderableDataValue.of(
-        EMPTY, dimensionIdentifier.getDimension().getUid(), valueTypeMapping);
+  private static Stream<Arguments> provideDataForTest() {
+    return Stream.of(
+        Arguments.of(100, "2022-01-01 00:00:00.1"),
+        Arguments.of(110, "2022-01-01 00:00:00.11"),
+        Arguments.of(111, "2022-01-01 00:00:00.111"),
+        Arguments.of(0, "2022-01-01 00:00:00.0"));
   }
 }
