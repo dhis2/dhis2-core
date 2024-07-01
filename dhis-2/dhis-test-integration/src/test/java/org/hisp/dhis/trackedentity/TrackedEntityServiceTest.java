@@ -35,6 +35,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -80,6 +81,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   @Autowired private TrackedEntityTypeService trackedEntityTypeService;
 
   @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
+
+  @Autowired private IdentifiableObjectManager manager;
 
   private Event event;
 
@@ -204,14 +207,14 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     trackedEntityService.updateTrackedEntity(trackedEntityA1);
     TrackedEntity trackedEntityA = trackedEntityService.getTrackedEntity(idA);
     Enrollment psA = enrollmentService.getEnrollment(psIdA);
-    Event eventA = eventService.getEvent(eventIdA);
+    Event eventA = manager.get(Event.class, eventIdA);
     assertNotNull(trackedEntityA);
     assertNotNull(psA);
     assertNotNull(eventA);
     trackedEntityService.deleteTrackedEntity(trackedEntityA1);
     assertNull(trackedEntityService.getTrackedEntity(trackedEntityA.getUid()));
     assertNull(enrollmentService.getEnrollment(psIdA));
-    assertNull(eventService.getEvent(eventIdA));
+    assertNull(manager.get(Event.class, eventIdA));
   }
 
   @Test
