@@ -190,6 +190,11 @@ pipeline {
                             env.IMAGE_TAG = version
                             def instanceName = "stable-${version.replace(".", "-")}"
 
+                            def imageTag = env.DOCKER_IMAGE_TAG
+
+                            // If version contains more than 2 dots... It's a hotfix.
+                            boolean isHotfix = imageTag.length() - imageTag.replace(".", "").length() > 2
+
                             if (isHotfix) {
                                 def endIndex = version.lastIndexOf(".")
                                 version = version.substring(0, endIndex)
