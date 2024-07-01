@@ -89,18 +89,18 @@ class RuleActionEventMapper {
       case ASSIGN ->
           new AssignDataValueExecutor(
               systemSettingManager,
-              validationEffect.ruleId(),
+              validationEffect.rule(),
               validationEffect.data(),
               validationEffect.field(),
               dataValues);
       case SET_MANDATORY_FIELD ->
-          new SetMandatoryFieldExecutor(validationEffect.ruleId(), validationEffect.field());
+          new SetMandatoryFieldExecutor(validationEffect.rule(), validationEffect.field());
       case SHOW_ERROR -> new ShowErrorExecutor(validationEffect);
       case SHOW_WARNING -> new ShowWarningExecutor(validationEffect);
       case SHOW_ERROR_ON_COMPLETE -> new ShowErrorOnCompleteExecutor(validationEffect);
       case SHOW_WARNING_ON_COMPLETE -> new ShowWarningOnCompleteExecutor(validationEffect);
       case RAISE_ERROR ->
-          new RuleEngineErrorExecutor(validationEffect.ruleId(), validationEffect.data());
+          new RuleEngineErrorExecutor(validationEffect.rule(), validationEffect.data());
     };
   }
 

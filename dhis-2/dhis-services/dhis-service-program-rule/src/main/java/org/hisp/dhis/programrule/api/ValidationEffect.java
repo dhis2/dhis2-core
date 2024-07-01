@@ -29,6 +29,14 @@ package org.hisp.dhis.programrule.api;
 
 import org.hisp.dhis.common.UID;
 
-/** This effect will be used in tracker to create a validation rule. */
+/**
+ * This effect will be used in tracker to create a validation rule.
+ *
+ * @param type the effect type
+ * @param rule the UID of the rule that generated this effect
+ * @param data additional data needed by the effect to be applied
+ * @param field the UID of the attribute/data value linked to the effect
+ * @param message a message shown by some types of effects
+ */
 public record ValidationEffect(
-    ValidationAction type, UID ruleId, String data, UID field, String message) {}
+    ValidationAction type, UID rule, String data, UID field, String message) {}

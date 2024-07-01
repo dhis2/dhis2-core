@@ -33,13 +33,13 @@ public enum NotificationAction {
   SEND_MESSAGE("SENDMESSAGE"),
   SCHEDULE_MESSAGE("SCHEDULEMESSAGE");
 
-  public static boolean contains(String value) {
-    return Arrays.stream(values()).anyMatch(v -> v.ruleEngineName.equalsIgnoreCase(value));
+  public static boolean contains(String ruleEngineName) {
+    return Arrays.stream(values()).anyMatch(v -> v.ruleEngineName.equalsIgnoreCase(ruleEngineName));
   }
 
-  public static NotificationAction fromName(String name) {
+  public static NotificationAction fromName(String ruleEngineName) {
     return Arrays.stream(values())
-        .filter(v -> v.ruleEngineName.equalsIgnoreCase(name))
+        .filter(v -> v.ruleEngineName.equalsIgnoreCase(ruleEngineName))
         .findAny()
         .orElseThrow();
   }

@@ -38,13 +38,13 @@ public enum ValidationAction {
   SHOW_WARNING_ON_COMPLETE("WARNINGONCOMPLETE"),
   RAISE_ERROR("ERROR");
 
-  public static boolean contains(String value) {
-    return Arrays.stream(values()).anyMatch(v -> v.ruleEngineName.equalsIgnoreCase(value));
+  public static boolean contains(String ruleEngineName) {
+    return Arrays.stream(values()).anyMatch(v -> v.ruleEngineName.equalsIgnoreCase(ruleEngineName));
   }
 
-  public static ValidationAction fromName(String name) {
+  public static ValidationAction fromName(String ruleEngineName) {
     return Arrays.stream(values())
-        .filter(v -> v.ruleEngineName.equalsIgnoreCase(name))
+        .filter(v -> v.ruleEngineName.equalsIgnoreCase(ruleEngineName))
         .findAny()
         .orElseThrow();
   }
