@@ -31,15 +31,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import lombok.Builder;
 import lombok.Data;
 import org.hisp.dhis.artemis.Message;
 import org.hisp.dhis.artemis.MessageType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
@@ -73,10 +70,10 @@ public class TrackerSideEffectDataBundle implements Message {
   @JsonProperty private List<SideEffectTrigger> triggers = new ArrayList<>();
 
   @JsonProperty @Builder.Default
-  private Map<UID, List<NotificationEffect>> enrollmentNotificationEffects = new HashMap<>();
+  private List<NotificationEffect> enrollmentNotificationEffects = new ArrayList<>();
 
   @JsonProperty @Builder.Default
-  private Map<UID, List<NotificationEffect>> eventNotificationEffects = new HashMap<>();
+  private List<NotificationEffect> eventNotificationEffects = new ArrayList<>();
 
   @JsonProperty private TrackerImportStrategy importStrategy;
 

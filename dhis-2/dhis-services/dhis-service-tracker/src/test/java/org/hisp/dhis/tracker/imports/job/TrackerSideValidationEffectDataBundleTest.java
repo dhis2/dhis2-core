@@ -30,16 +30,11 @@ package org.hisp.dhis.tracker.imports.job;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.google.common.collect.Lists;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import org.hisp.dhis.artemis.MessageType;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.programrule.api.NotificationEffect;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.junit.jupiter.api.Test;
 
@@ -53,12 +48,10 @@ class TrackerSideValidationEffectDataBundleTest {
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
         new org.hisp.dhis.tracker.imports.domain.Enrollment();
     enrollment.setEnrollment("ja8NY4PW7Xm");
-    Map<UID, List<NotificationEffect>> enrollmentRuleEffects = new HashMap<>();
-    enrollmentRuleEffects.put(UID.of(enrollment.getEnrollment()), Lists.newArrayList());
     String enrollmentUid = CodeGenerator.generateUid();
     TrackerSideEffectDataBundle bundle =
         TrackerSideEffectDataBundle.builder()
-            .enrollmentNotificationEffects(enrollmentRuleEffects)
+            .enrollmentNotificationEffects(List.of())
             .accessedBy("testUser")
             .importStrategy(TrackerImportStrategy.CREATE)
             .object(enrollmentUid)
@@ -66,7 +59,7 @@ class TrackerSideValidationEffectDataBundleTest {
             .build();
     assertEquals(enrollmentUid, bundle.getObject());
     assertEquals(Enrollment.class, bundle.getKlass());
-    assertTrue(bundle.getEnrollmentNotificationEffects().containsKey(UID.of("ja8NY4PW7Xm")));
+    assertTrue(bundle.getEnrollmentNotificationEffects().isEmpty());
     assertTrue(bundle.getEventNotificationEffects().isEmpty());
     assertEquals(TrackerImportStrategy.CREATE, bundle.getImportStrategy());
     assertEquals(MessageType.TRACKER_SIDE_EFFECT, bundle.getMessageType());
@@ -77,19 +70,17 @@ class TrackerSideValidationEffectDataBundleTest {
     org.hisp.dhis.tracker.imports.domain.Event event =
         new org.hisp.dhis.tracker.imports.domain.Event();
     event.setEvent("ja8NY4PW7Xm");
-    Map<UID, List<NotificationEffect>> eventRuleEffects = new HashMap<>();
-    eventRuleEffects.put(UID.of(event.getEvent()), Lists.newArrayList());
     Event expected = new Event();
     expected.setAutoFields();
     TrackerSideEffectDataBundle bundle =
         TrackerSideEffectDataBundle.builder()
-            .eventNotificationEffects(eventRuleEffects)
+            .eventNotificationEffects(List.of())
             .object(expected.getUid())
             .klass(Event.class)
             .build();
     assertEquals(expected.getUid(), bundle.getObject());
     assertEquals(Event.class, bundle.getKlass());
-    assertTrue(bundle.getEventNotificationEffects().containsKey(UID.of("ja8NY4PW7Xm")));
+    assertTrue(bundle.getEventNotificationEffects().isEmpty());
     assertTrue(bundle.getEnrollmentNotificationEffects().isEmpty());
   }
 }

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.programrule.api;
 
+import static org.hisp.dhis.programrule.ProgramRuleActionType.SCHEDULEMESSAGE;
+import static org.hisp.dhis.programrule.ProgramRuleActionType.SENDMESSAGE;
 import static org.hisp.dhis.programrule.engine.RuleActionKey.NOTIFICATION;
 
 import java.util.Collection;
@@ -41,6 +43,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleEffects;
+import org.hisp.dhis.util.DateUtils;
 
 /**
  * This class holds the action results from rule-engine organized by effect type ({@link
@@ -147,14 +150,23 @@ public class RuleEngineEffects {
 
   private static List<NotificationEffect> mapNotificationEffect(List<RuleEffect> effects) {
     return effects.stream()
-        .filter(e -> NotificationAction.contains(e.getRuleAction().getType()))
+        .filter(
+            e ->
+                e.getRuleAction().getType().equals(SENDMESSAGE.name())
+                    || e.getRuleAction().getType().equals(SCHEDULEMESSAGE.name()))
+        .filter(RuleEngineEffects::isValid)
         .map(
             e ->
                 new NotificationEffect(
-                    NotificationAction.fromName(e.getRuleAction().getType()),
-                    UID.of(e.getRuleId()),
                     UID.of(e.getRuleAction().getValues().get(NOTIFICATION)),
-                    e.getData()))
+                    DateUtils.parseDate(e.getData())))
         .toList();
+  }
+
+  private static boolean isValid(RuleEffect effect) {
+    if (effect.getRuleAction().getType().equals(SCHEDULEMESSAGE.name())) {
+      return DateUtils.dateIsValid(effect.getData());
+    }
+    return true;
   }
 }

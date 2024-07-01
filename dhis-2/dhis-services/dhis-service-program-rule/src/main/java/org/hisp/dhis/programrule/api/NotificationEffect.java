@@ -27,14 +27,13 @@
  */
 package org.hisp.dhis.programrule.api;
 
+import java.util.Date;
 import org.hisp.dhis.common.UID;
 
 /**
  * This effect will be used in tracker to send a notification.
  *
- * @param type the effect type
- * @param rule the UID of the rule that generated this effect
  * @param template the UID of the template of the notification
- * @param date the date when to send the notification. Only needed for `SCHEDULE_MESSAGE` type
+ * @param date the date when to send the notification. It will be sent immediately if missing.
  */
-public record NotificationEffect(NotificationAction type, UID rule, UID template, String date) {}
+public record NotificationEffect(UID template, Date date) {}

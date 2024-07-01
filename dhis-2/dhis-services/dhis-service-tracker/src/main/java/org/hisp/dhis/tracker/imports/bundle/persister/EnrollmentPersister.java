@@ -29,10 +29,10 @@ package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import javax.persistence.EntityManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
@@ -137,8 +137,8 @@ public class EnrollmentPersister
 
     return TrackerSideEffectDataBundle.builder()
         .klass(Enrollment.class)
-        .enrollmentNotificationEffects(bundle.getEnrollmentRuleEffects())
-        .eventNotificationEffects(new HashMap<>())
+        .enrollmentNotificationEffects(
+            bundle.getEnrollmentRuleEffects().get(UID.of(enrollment.getUid())))
         .object(enrollment.getUid())
         .importStrategy(bundle.getImportStrategy())
         .accessedBy(bundle.getUsername())

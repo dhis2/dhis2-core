@@ -27,16 +27,12 @@
  */
 package org.hisp.dhis.tracker.imports.job;
 
-import java.util.List;
-import java.util.Map;
-import org.hisp.dhis.common.UID;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.programrule.api.NotificationEffect;
-import org.hisp.dhis.programrule.engine.RuleActionImplementer;
 import org.hisp.dhis.security.SecurityContextRunnable;
 import org.hisp.dhis.system.notification.Notifier;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -50,23 +46,12 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class TrackerRuleEngineThread extends SecurityContextRunnable {
-  private final List<RuleActionImplementer> ruleActionImplementers;
-
+  private final NotificationSender notificationSender;
   private final Notifier notifier;
 
   private TrackerSideEffectDataBundle sideEffectDataBundle;
-
-  public TrackerRuleEngineThread(
-      @Qualifier("org.hisp.dhis.programrule.engine.RuleActionSendMessageImplementer")
-          RuleActionImplementer sendMessageRuleActionImplementer,
-      @Qualifier("org.hisp.dhis.programrule.engine.RuleActionScheduleMessageImplementer")
-          RuleActionImplementer scheduleMessageRuleActionImplementer,
-      Notifier notifier) {
-    this.ruleActionImplementers =
-        List.of(scheduleMessageRuleActionImplementer, sendMessageRuleActionImplementer);
-    this.notifier = notifier;
-  }
 
   @Override
   public void call() {
@@ -74,29 +59,16 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable {
       return;
     }
 
-    Map<UID, List<NotificationEffect>> enrollmentRuleEffects =
-        sideEffectDataBundle.getEnrollmentNotificationEffects();
-    Map<UID, List<NotificationEffect>> eventRuleEffects =
-        sideEffectDataBundle.getEventNotificationEffects();
+    for (NotificationEffect effect : sideEffectDataBundle.getEnrollmentNotificationEffects()) {
+      Enrollment enrollment = sideEffectDataBundle.getEnrollment();
+      enrollment.setProgram(sideEffectDataBundle.getProgram());
+      this.notificationSender.send(effect, enrollment);
+    }
 
-    for (RuleActionImplementer ruleActionImplementer : ruleActionImplementers) {
-      for (Map.Entry<UID, List<NotificationEffect>> entry : enrollmentRuleEffects.entrySet()) {
-        Enrollment enrollment = sideEffectDataBundle.getEnrollment();
-        enrollment.setProgram(sideEffectDataBundle.getProgram());
-
-        entry.getValue().stream()
-            .filter(ruleActionImplementer::accept)
-            .forEach(effect -> ruleActionImplementer.implement(effect, enrollment));
-      }
-
-      for (Map.Entry<UID, List<NotificationEffect>> entry : eventRuleEffects.entrySet()) {
-        Event event = sideEffectDataBundle.getEvent();
-        event.getProgramStage().setProgram(sideEffectDataBundle.getProgram());
-
-        entry.getValue().stream()
-            .filter(ruleActionImplementer::accept)
-            .forEach(effect -> ruleActionImplementer.implement(effect, event));
-      }
+    for (NotificationEffect effect : sideEffectDataBundle.getEventNotificationEffects()) {
+      Event event = sideEffectDataBundle.getEvent();
+      event.getProgramStage().setProgram(sideEffectDataBundle.getProgram());
+      this.notificationSender.send(effect, event);
     }
 
     notifier.notify(

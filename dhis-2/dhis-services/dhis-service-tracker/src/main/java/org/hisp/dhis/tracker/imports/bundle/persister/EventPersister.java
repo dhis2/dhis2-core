@@ -46,6 +46,7 @@ import lombok.Builder;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.changelog.ChangeLogType;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.note.Note;
@@ -124,8 +125,7 @@ public class EventPersister
 
     return TrackerSideEffectDataBundle.builder()
         .klass(Event.class)
-        .enrollmentNotificationEffects(new HashMap<>())
-        .eventNotificationEffects(bundle.getEventRuleEffects())
+        .eventNotificationEffects(bundle.getEventRuleEffects().get(UID.of(event.getUid())))
         .object(event.getUid())
         .importStrategy(bundle.getImportStrategy())
         .accessedBy(bundle.getUsername())
