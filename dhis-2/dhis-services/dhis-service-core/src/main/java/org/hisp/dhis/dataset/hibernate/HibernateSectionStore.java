@@ -66,26 +66,26 @@ public class HibernateSectionStore extends HibernateIdentifiableObjectStore<Sect
   }
 
   @Override
-  public List<Section> getSectionsByDataElement(String dataElementUid) {
+  public List<Section> getSectionsByDataElement(String uid) {
     String sql =
-        "select * from section s"
-            + " left join sectiondataelements sde on s.sectionid = sde.sectionid"
-            + " left join sectiongreyedfields sgf on s.sectionid = sgf.sectionid"
-            + " left join dataelementoperand deo on sgf.dataelementoperandid = deo.dataelementoperandid"
-            + ", dataelement de"
-            + " where de.uid = :dataElementId and (sde.dataelementid = de.dataelementid or deo.dataelementid = de.dataelementid);";
-    return nativeSynchronizedTypedQuery(sql).setParameter("dataElementId", dataElementUid).list();
+        "select * from section s "
+            + "left join sectiondataelements sde on s.sectionid = sde.sectionid "
+            + "left join sectiongreyedfields sgf on s.sectionid = sgf.sectionid "
+            + "left join dataelementoperand deo on sgf.dataelementoperandid = deo.dataelementoperandid"
+            + ", dataelement de "
+            + "where de.uid = :dataElementId and (sde.dataelementid = de.dataelementid or deo.dataelementid = de.dataelementid);";
+    return nativeSynchronizedTypedQuery(sql).setParameter("dataElementId", uid).list();
   }
 
   @Override
   public List<Section> getSectionsByIndicators(List<Indicator> indicators) {
     String sql =
         """
-            select s.* from section s
-            join sectionindicators si on s.sectionid = si.sectionid
-            where si.indicatorid in :indicators
-            group by s.sectionid
-          """;
+        select s.* from section s
+        join sectionindicators si on s.sectionid = si.sectionid
+        where si.indicatorid in :indicators
+        group by s.sectionid""";
+
     return nativeSynchronizedTypedQuery(sql).setParameter("indicators", indicators).list();
   }
 }

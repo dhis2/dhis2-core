@@ -28,11 +28,11 @@
 package org.hisp.dhis.dataset;
 
 import java.util.Iterator;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
-import lombok.RequiredArgsConstructor;
 
 /**
  * @author Lars Helge Overland
@@ -60,10 +60,7 @@ public class SectionDeletionHandler extends IdObjectDeletionHandler<Section> {
   }
 
   private void deleteIndicator(Indicator indicator) {
-    for (Section section : sectionStore.getSectionsByDataElement(indicator.getUid())) {
-      section.getIndicators().removeIf(i -> i.equals(indicator));
-      sectionService.updateSection(section);
-    }
+    // TODO
   }
 
   private void deleteDataSet(DataSet dataSet) {

@@ -35,17 +35,23 @@ public interface SectionStore extends IdentifiableObjectStore<Section> {
   String ID = SectionStore.class.getName();
 
   /**
-   * Retrieves the Section with the given name and the given DataSet.
+   * Retrieves the {@link Section} with the given name and the given DataSet.
    *
    * @param name the name of the Section to retrieve.
    * @return the Section.
    */
   Section getSectionByName(String name, DataSet dataSet);
 
-  List<Section> getSectionsByDataElement(String dataElementUid);
+  /**
+   * Returns a list of {@link Section} for the given data element identifier.
+   *
+   * @param uid the data element UID.
+   * @return a list of {@link Section}.
+   */
+  List<Section> getSectionsByDataElement(String uid);
 
   /**
-   * Retrieves all {@link Section}s referencing the provided {@link Indicator}s.
+   * Retrieves all {@link Section} referencing the provided {@link Indicator}s.
    *
    * @return a Collection of {@link Section}s.
    */
