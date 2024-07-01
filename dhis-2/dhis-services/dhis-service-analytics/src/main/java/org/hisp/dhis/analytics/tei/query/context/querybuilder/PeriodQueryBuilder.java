@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
+import static java.util.function.Predicate.not;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.DIMENSION_SEPARATOR;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getPrefix;
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
@@ -36,7 +37,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
@@ -79,23 +79,24 @@ public class PeriodQueryBuilder extends SqlQueryBuilderAdaptor {
     RenderableSqlQuery.RenderableSqlQueryBuilder builder = RenderableSqlQuery.builder();
 
     streamDimensions(acceptedHeaders, acceptedDimensions, acceptedSortingParams)
-        .map(
-            dimensionIdentifier -> {
-              String field = getTimeField(dimensionIdentifier, StaticDimension::getColumnName);
-              String alias = getTimeField(dimensionIdentifier, StaticDimension::getHeaderName);
+        .filter(DimensionIdentifier::isTeDimension)
+        .map(PeriodQueryBuilder::asField)
+        .forEach(builder::selectField);
 
-              String prefix = getPrefix(dimensionIdentifier, false);
-
-              return Field.ofUnquoted(
-                  doubleQuote(prefix), () -> field, prefix + DIMENSION_SEPARATOR + alias);
-            })
+    streamDimensions(acceptedHeaders, acceptedDimensions, acceptedSortingParams)
+        .filter(not(DimensionIdentifier::isTeDimension))
+        .map(PeriodQueryBuilder::asField)
+        // non TEI periods are virtual fields, since those will be extracted from JSON
+        .map(Field::asVirtual)
         .forEach(builder::selectField);
 
     acceptedDimensions.stream()
         .map(
             dimensionIdentifier ->
                 GroupableCondition.of(
-                    getGroupId(dimensionIdentifier), PeriodCondition.of(dimensionIdentifier, ctx)))
+                    getGroupId(dimensionIdentifier),
+                    SqlQueryHelper.buildExistsValueSubquery(
+                        dimensionIdentifier, PeriodCondition.of(dimensionIdentifier, ctx))))
         .forEach(builder::groupableCondition);
 
     acceptedSortingParams.forEach(
@@ -103,12 +104,12 @@ public class PeriodQueryBuilder extends SqlQueryBuilderAdaptor {
           DimensionIdentifier<DimensionParam> dimensionIdentifier = sortingParam.getOrderBy();
           String fieldName = getTimeField(dimensionIdentifier, StaticDimension::getColumnName);
 
-          Field field =
-              Field.ofUnquoted(
-                  getPrefix(sortingParam.getOrderBy()), () -> fieldName, StringUtils.EMPTY);
           builder.orderClause(
               IndexedOrder.of(
-                  sortingParam.getIndex(), Order.of(field, sortingParam.getSortDirection())));
+                  sortingParam.getIndex(),
+                  Order.of(
+                      SqlQueryHelper.buildOrderSubQuery(sortingParam.getOrderBy(), () -> fieldName),
+                      sortingParam.getSortDirection())));
         });
 
     return builder.build();
@@ -123,6 +124,15 @@ public class PeriodQueryBuilder extends SqlQueryBuilderAdaptor {
    */
   private String getGroupId(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
     return dimensionIdentifier.getGroupId() + ":" + getTimeField(dimensionIdentifier, Enum::name);
+  }
+
+  private static Field asField(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+    String field = getTimeField(dimensionIdentifier, StaticDimension::getColumnName);
+    String alias = getTimeField(dimensionIdentifier, StaticDimension::getHeaderName);
+
+    String prefix = getPrefix(dimensionIdentifier, false);
+
+    return Field.ofUnquoted(doubleQuote(prefix), () -> field, prefix + DIMENSION_SEPARATOR + alias);
   }
 
   /**

@@ -62,6 +62,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class TeiAnalyticsQueryService {
+
   private final QueryExecutor<SqlQuery, SqlQueryResult> queryExecutor;
 
   private final GridAdaptor gridAdaptor;

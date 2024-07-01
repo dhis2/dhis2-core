@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,36 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.programrule.engine;
+package org.hisp.dhis.analytics.common.query.jsonextractor;
 
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleEffect;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * Service is responsible for implementing actions which are generated as a result of Rule-Engine
- * evaluations. Each action type has a corresponding RuleActionImplementer class responsible for
- * carrying out the action.
- *
- * <p>Created by zubair@dhis2.org on 04.01.18.
- */
-public interface RuleActionImplementer {
-  boolean accept(RuleAction ruleAction);
+import java.time.LocalDateTime;
+import java.util.stream.Stream;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-  /**
-   * This method is directly called by SideEffectHandlerService to implement actions
-   *
-   * @param ruleEffect received tracker importer
-   * @param enrollment enrollment to implement the action against
-   */
-  void implement(RuleEffect ruleEffect, Enrollment enrollment);
+class JsonExtractorUtilsTest {
 
-  /**
-   * This method is directly called by SideEffectHandlerService to implement actions
-   *
-   * @param ruleEffect received tracker importer
-   * @param event event to implement the action against
-   */
-  void implement(RuleEffect ruleEffect, Event event);
+  private final LocalDateTime aDate = LocalDateTime.of(2022, 1, 1, 0, 0, 0);
+
+  @ParameterizedTest
+  @MethodSource("provideDataForTest")
+  void testGetFormattedDate(Integer millis, String expected) {
+    LocalDateTime testedDate = aDate.withNano(millis * 1000 * 1000);
+    assertEquals(expected, JsonExtractorUtils.getFormattedDate(testedDate));
+  }
+
+  private static Stream<Arguments> provideDataForTest() {
+    return Stream.of(
+        Arguments.of(100, "2022-01-01 00:00:00.1"),
+        Arguments.of(110, "2022-01-01 00:00:00.11"),
+        Arguments.of(111, "2022-01-01 00:00:00.111"),
+        Arguments.of(0, "2022-01-01 00:00:00.0"));
+  }
 }
