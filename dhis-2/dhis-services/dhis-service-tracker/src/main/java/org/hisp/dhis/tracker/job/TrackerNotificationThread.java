@@ -60,7 +60,6 @@ public class TrackerNotificationThread extends SecurityContextRunnable {
       ProgramNotificationService programNotificationService,
       Notifier notifier,
       IdentifiableObjectManager manager) {
-    this.programNotificationService = programNotificationService;
     this.notifier = notifier;
     this.manager = manager;
     this.serviceMapper =
