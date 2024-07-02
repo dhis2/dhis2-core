@@ -53,6 +53,16 @@ public enum EventStatus {
     return value;
   }
 
+  public static EventStatus fromInt(int status) {
+    for (EventStatus eventStatus : EventStatus.values()) {
+      if (eventStatus.getValue() == status) {
+        return eventStatus;
+      }
+    }
+
+    throw new IllegalArgumentException();
+  }
+
   public static final Set<EventStatus> STATUSES_WITH_DATA_VALUES =
       Set.of(ACTIVE, VISITED, COMPLETED);
 
