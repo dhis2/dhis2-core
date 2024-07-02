@@ -376,7 +376,7 @@ class EventImportValidationTest extends TrackerTest {
   private void testDeletedEventFails(TrackerImportStrategy importStrategy) {
     // Given -> Creates an event
     createEvent("tracker/validations/events-with-notes-data.json");
-    Event event = programStageServiceInstance.getEvent("uLxFbxfYDQE");
+    Event event = manager.get(Event.class, "uLxFbxfYDQE");
     assertNotNull(event);
     // When -> Soft-delete the event
     programStageServiceInstance.deleteEvent(event);
@@ -436,6 +436,6 @@ class EventImportValidationTest extends TrackerTest {
     final Map<TrackerType, TrackerTypeReport> typeReportMap =
         importReport.getPersistenceReport().getTypeReportMap();
     String newEvent = typeReportMap.get(TrackerType.EVENT).getEntityReport().get(0).getUid();
-    return programStageServiceInstance.getEvent(newEvent);
+    return manager.get(Event.class, newEvent);
   }
 }
