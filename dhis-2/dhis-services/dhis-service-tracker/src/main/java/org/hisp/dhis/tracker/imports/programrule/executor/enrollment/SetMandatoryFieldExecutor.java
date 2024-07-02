@@ -32,6 +32,7 @@ import static org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue.error;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -47,15 +48,15 @@ import org.hisp.dhis.tracker.imports.validation.ValidationCode;
  */
 @RequiredArgsConstructor
 public class SetMandatoryFieldExecutor implements RuleActionExecutor<Enrollment> {
-  private final String ruleUid;
+  private final UID ruleUid;
 
-  private final String attributeUid;
+  private final UID attributeUid;
 
   @Override
   public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Enrollment enrollment) {
     TrackerIdSchemeParams idSchemes = bundle.getPreheat().getIdSchemes();
     TrackedEntityAttribute ruleAttribute =
-        bundle.getPreheat().getTrackedEntityAttribute(attributeUid);
+        bundle.getPreheat().getTrackedEntityAttribute(attributeUid.getValue());
     Optional<Attribute> any =
         enrollment.getAttributes().stream()
             .filter(attribute -> attribute.getAttribute().isEqualTo(ruleAttribute))

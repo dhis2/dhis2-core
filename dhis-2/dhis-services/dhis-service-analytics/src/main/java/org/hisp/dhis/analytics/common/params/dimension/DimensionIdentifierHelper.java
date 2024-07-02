@@ -36,8 +36,10 @@ import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.Sta
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension.INCIDENTDATE;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension.OCCURREDDATE;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension.OUNAME;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.DATA_ELEMENT;
 import static org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset.emptyElementWithOffset;
 import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_ALIAS;
+import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.isOfType;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
@@ -279,5 +281,15 @@ public class DimensionIdentifierHelper {
     } catch (Exception e) {
       return null;
     }
+  }
+
+  /**
+   * Checks if the given dimension identifier is of type data element.
+   *
+   * @param dimensionIdentifier the dimension identifier to check.
+   * @return true if the dimension identifier is of type data element, false otherwise.
+   */
+  public static boolean isDataElement(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+    return isOfType(dimensionIdentifier, DATA_ELEMENT) && dimensionIdentifier.isEventDimension();
   }
 }

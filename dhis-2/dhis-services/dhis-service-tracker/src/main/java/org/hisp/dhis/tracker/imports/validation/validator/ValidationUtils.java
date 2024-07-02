@@ -137,7 +137,7 @@ public class ValidationUtils {
         .filter(issue -> issue.getIssueType().equals(ERROR))
         .forEach(
             issue -> {
-              List<String> args = Lists.newArrayList(issue.getRuleUid());
+              List<String> args = Lists.newArrayList(issue.getRuleUid().getValue());
               args.addAll(issue.getArgs());
               reporter.addError(dto, issue.getIssueCode(), args.toArray());
             });
@@ -146,7 +146,7 @@ public class ValidationUtils {
         .filter(issue -> issue.getIssueType().equals(WARNING))
         .forEach(
             issue -> {
-              List<String> args = Lists.newArrayList(issue.getRuleUid());
+              List<String> args = Lists.newArrayList(issue.getRuleUid().getValue());
               args.addAll(issue.getArgs());
               reporter.addWarning(dto, issue.getIssueCode(), args.toArray());
             });

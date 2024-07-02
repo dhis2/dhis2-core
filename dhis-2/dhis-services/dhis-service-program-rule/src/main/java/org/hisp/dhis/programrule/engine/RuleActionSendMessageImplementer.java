@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.programrule.engine;
 
+import static org.hisp.dhis.programrule.api.NotificationAction.SEND_MESSAGE;
+
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationValidationResult;
@@ -34,9 +36,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.notification.ProgramNotificationService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.programrule.ProgramRuleActionType;
-import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.programrule.api.NotificationEffect;
 import org.springframework.stereotype.Component;
 
 /**
@@ -58,14 +58,14 @@ public class RuleActionSendMessageImplementer implements RuleActionImplementer {
   private final ProgramNotificationService programNotificationService;
 
   @Override
-  public boolean accept(RuleAction ruleAction) {
-    return ruleAction.getType().equals(ProgramRuleActionType.SENDMESSAGE.name());
+  public boolean accept(NotificationEffect notificationEffect) {
+    return notificationEffect.type() == SEND_MESSAGE;
   }
 
   @Override
-  public void implement(RuleEffect ruleEffect, Enrollment enrollment) {
+  public void implement(NotificationEffect notificationEffect, Enrollment enrollment) {
     ProgramNotificationTemplate template =
-        notificationHelper.getNotificationTemplate(ruleEffect.getRuleAction());
+        notificationHelper.getNotificationTemplate(notificationEffect);
 
     NotificationValidationResult result = notificationHelper.validate(template, enrollment);
 
@@ -79,9 +79,9 @@ public class RuleActionSendMessageImplementer implements RuleActionImplementer {
   }
 
   @Override
-  public void implement(RuleEffect ruleEffect, Event event) {
+  public void implement(NotificationEffect notificationEffect, Event event) {
     ProgramNotificationTemplate template =
-        notificationHelper.getNotificationTemplate(ruleEffect.getRuleAction());
+        notificationHelper.getNotificationTemplate(notificationEffect);
     NotificationValidationResult result =
         notificationHelper.validate(template, event.getEnrollment());
 

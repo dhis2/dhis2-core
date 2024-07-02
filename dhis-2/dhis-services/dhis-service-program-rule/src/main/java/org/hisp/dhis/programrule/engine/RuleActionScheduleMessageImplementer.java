@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.programrule.engine;
 
+import static org.hisp.dhis.programrule.api.NotificationAction.SCHEDULE_MESSAGE;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -37,9 +39,7 @@ import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.template.snapshot.NotificationTemplateService;
-import org.hisp.dhis.programrule.ProgramRuleActionType;
-import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.programrule.api.NotificationEffect;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,17 +58,17 @@ public class RuleActionScheduleMessageImplementer implements RuleActionImplement
   private final NotificationTemplateService notificationTemplateService;
 
   @Override
-  public boolean accept(RuleAction ruleAction) {
-    return ruleAction.getType().equals(ProgramRuleActionType.SCHEDULEMESSAGE.name());
+  public boolean accept(NotificationEffect notificationEffect) {
+    return notificationEffect.type() == SCHEDULE_MESSAGE;
   }
 
   @Override
   @Transactional
-  public void implement(RuleEffect ruleEffect, Enrollment enrollment) {
+  public void implement(NotificationEffect notificationEffect, Enrollment enrollment) {
     ProgramNotificationTemplate template =
-        notificationHelper.getNotificationTemplate(ruleEffect.getRuleAction());
+        notificationHelper.getNotificationTemplate(notificationEffect);
 
-    String date = StringUtils.unwrap(ruleEffect.getData(), '\'');
+    String date = StringUtils.unwrap(notificationEffect.date(), '\'');
 
     if (isInvalid(date)) {
       return;
@@ -94,11 +94,11 @@ public class RuleActionScheduleMessageImplementer implements RuleActionImplement
 
   @Override
   @Transactional
-  public void implement(RuleEffect ruleEffect, Event event) {
+  public void implement(NotificationEffect notificationEffect, Event event) {
     ProgramNotificationTemplate template =
-        notificationHelper.getNotificationTemplate(ruleEffect.getRuleAction());
+        notificationHelper.getNotificationTemplate(notificationEffect);
 
-    String date = StringUtils.unwrap(ruleEffect.getData(), '\'');
+    String date = StringUtils.unwrap(notificationEffect.date(), '\'');
 
     if (isInvalid(date)) {
       return;

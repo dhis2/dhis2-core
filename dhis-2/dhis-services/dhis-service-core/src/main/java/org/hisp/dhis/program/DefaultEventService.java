@@ -97,12 +97,6 @@ public class DefaultEventService implements EventService {
 
   @Override
   @Transactional(readOnly = true)
-  public Event getEvent(long id) {
-    return eventStore.get(id);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public Event getEvent(String uid) {
     return eventStore.getByUid(uid);
   }

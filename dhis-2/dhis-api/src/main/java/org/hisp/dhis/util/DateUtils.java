@@ -145,6 +145,9 @@ public class DateUtils {
   private static final DateTimeFormatter LONG_DATE_FORMAT_WITH_MILLIS =
       DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
 
+  private static final DateTimeFormatter LONG_DATE_FORMAT_NO_T =
+      DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSS");
+
   private static final DateTimeFormatter HTTP_DATE_FORMAT =
       DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss 'GMT'").withLocale(Locale.ENGLISH);
 
@@ -204,6 +207,16 @@ public class DateUtils {
    */
   public static String toLongDate(Date date) {
     return date != null ? LONG_DATE_FORMAT.print(new DateTime(date)) : null;
+  }
+
+  /**
+   * Formats a Date to the format yyyy-MM-dd HH:mm:ss.S
+   *
+   * @param date the Date to parse.
+   * @return A formatted date string.
+   */
+  public static String toLongDateNoT(Date date) {
+    return date != null ? LONG_DATE_FORMAT_NO_T.print(new DateTime(date)) : null;
   }
 
   /**
