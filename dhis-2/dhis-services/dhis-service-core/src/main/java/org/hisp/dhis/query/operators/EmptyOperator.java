@@ -28,6 +28,7 @@
 package org.hisp.dhis.query.operators;
 
 import java.util.Collection;
+import java.util.Map;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
@@ -66,6 +67,10 @@ public class EmptyOperator<T extends Comparable<? super T>> extends Operator<T> 
     if (type.isCollection()) {
       Collection<?> collection = (Collection<?>) value;
       return collection.isEmpty();
+    }
+    if (type.isMap()) {
+      Map<?, ?> map = (Map<?, ?>) value;
+      return map.isEmpty();
     }
 
     return false;

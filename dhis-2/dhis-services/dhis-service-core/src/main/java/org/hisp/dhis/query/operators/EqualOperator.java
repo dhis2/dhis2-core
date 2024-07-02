@@ -29,6 +29,7 @@ package org.hisp.dhis.query.operators;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.Map;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
@@ -125,6 +126,12 @@ public class EqualOperator<T extends Comparable<? super T>> extends Operator<T> 
       Integer size = getValue(Integer.class);
 
       return size != null && collection.size() == size;
+    }
+    if (type.isMap()) {
+      Map<?, ?> map = (Map<?, ?>) value;
+      Integer size = getValue(Integer.class);
+
+      return size != null && map.size() == size;
     }
     if (type.isDate()) {
       Date s1 = getValue(Date.class);
