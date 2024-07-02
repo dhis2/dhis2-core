@@ -11,7 +11,6 @@
   <artifactId>dhis-service-event-hook</artifactId>
   <packaging>jar</packaging>
   <name>DHIS Event Hooks</name>
-  <description>Service for event hooks to respond to system events.</description>
 
   <properties>
     <rootDir>../../</rootDir>

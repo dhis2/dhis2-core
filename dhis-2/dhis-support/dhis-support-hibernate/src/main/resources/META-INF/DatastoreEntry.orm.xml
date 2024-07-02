@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
+ <entity class="org.hisp.dhis.datastore.DatastoreEntry" metadata-complete="true" cacheable="true">
+        <table name="keyjsonvalue"/>
+     <description>
+          Represents a key-value pair in the datastore.
+     </description>
+     
+     <convert converter="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryTypeConverter" attribute-name="jbPlainValue"/>
+        <convert converter="org.hisp.dhis.hibernate.encryption.type.EncryptedStringUserType"  attribute-name="encryptedValue"/>
+        <attributes>
+            <id name="id">
+                <column name="keyjsonvalueid"/>
+            </id>
+            <basic name="uid" fetch="EAGER" optional="false">
+                <column name="uid" unique="true" nullable="false" length="11"/>
+            </basic>
+            <basic name="code" fetch="EAGER" optional="true">
+                <column name="code" unique="true" nullable="true" length="50"/>
+            </basic>
+            <basic name="created" fetch="EAGER" optional="false"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="false"/>
+            <basic name="namespace" fetch="EAGER" optional="false">
+                <column name="namespace" unique="false" nullable="false" length="255"/>
+            </basic>
+            <basic name="key" fetch="EAGER" optional="false">
+                <column name="namespacekey" unique="false" nullable="false" length="255"/>
+            </basic>
+            <basic name="jbPlainValue" fetch="EAGER" optional="true" access="PROPERTY" >
+                <column name="jbvalue" unique="false" column-definition="" />
+            </basic>
+            <basic name="encryptedValue" fetch="EAGER" optional="true" access="PROPERTY">
+                <column name="encrypted_value" unique="false"/>
+            </basic>
+            <basic name="encrypted" fetch="EAGER" optional="true">
+                <column name="encrypted" unique="false"/>
+            </basic>
+            <basic name="sharing" fetch="EAGER" optional="true"/>
+            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true" >
+                <join-column name="lastupdatedby" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_lastupdateby_userid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="createdBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
+                <join-column name="userid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_keyjsonvalue_userid"/>
+                <cascade/>
+            </many-to-one>
+        </attributes>
+    </entity>
+</entity-mappings>

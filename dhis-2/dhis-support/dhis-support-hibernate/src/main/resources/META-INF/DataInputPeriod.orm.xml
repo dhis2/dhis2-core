@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
+ <entity class="org.hisp.dhis.dataset.DataInputPeriod" metadata-complete="true" cacheable="true">
+        <table name="datainputperiod"/>
+        
+        <attributes>
+            <id name="id">
+                <column name="datainputperiodid"/>
+            </id>
+            <basic name="openingDate" fetch="EAGER" optional="true">
+                <column name="openingdate" unique="false" nullable="true"/>
+            </basic>
+            <basic name="closingDate" fetch="EAGER" optional="true">
+                <column name="closingdate" unique="false" nullable="true"/>
+            </basic>
+            <many-to-one name="period" target-entity="org.hisp.dhis.period.Period" fetch="LAZY" optional="false">
+                <join-column name="periodid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_datainputperiod_period"/>
+                <cascade/>
+            </many-to-one>
+        </attributes>
+    </entity>
+</entity-mappings>

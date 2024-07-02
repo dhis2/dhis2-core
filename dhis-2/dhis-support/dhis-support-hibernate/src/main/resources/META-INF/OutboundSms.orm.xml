@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
+ <entity class="org.hisp.dhis.sms.outbound.OutboundSms" metadata-complete="true">
+        <table name="outbound_sms"/>
+        <attributes>
+            <id name="id"/>
+            <basic name="uid" fetch="EAGER" optional="false">
+                <column name="uid" unique="true" nullable="false" length="11"/>
+            </basic>
+            <basic name="date" fetch="EAGER" optional="false"/>
+            <basic name="message" fetch="EAGER" optional="true"/>
+            <basic name="status" fetch="EAGER" optional="false"/>
+            <basic name="sender" fetch="EAGER" optional="true"/>
+            <element-collection name="recipients">
+              <collection-table name="outbound_sms_recipients">
+                <join-column name="outbound_sms_id"/>
+              </collection-table>
+            </element-collection>
+        </attributes>
+    </entity>
+</entity-mappings>

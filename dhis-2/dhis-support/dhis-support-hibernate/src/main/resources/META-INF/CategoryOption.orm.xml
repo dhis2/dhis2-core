@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
+ <entity class="org.hisp.dhis.category.CategoryOption" metadata-complete="true" cacheable="true">
+        <table name="categoryoption"/>
+        
+        <attributes>
+            <id name="id">
+                <column name="categoryoptionid"/>
+            </id>
+            <basic name="uid" fetch="EAGER" optional="false">
+                <column name="uid" unique="true" nullable="false" length="11"/>
+            </basic>
+            <basic name="code" fetch="EAGER" optional="true">
+                <column name="code" unique="true" nullable="true" length="50"/>
+            </basic>
+            <basic name="created" fetch="EAGER" optional="false"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="false"/>
+            <basic name="name" fetch="EAGER" optional="false">
+                <column name="name" unique="true" nullable="false" length="230"/>
+            </basic>
+            <basic name="shortName" fetch="EAGER" optional="false">
+                <column name="shortname" unique="true" nullable="false" length="50"/>
+            </basic>
+            <basic name="description" fetch="EAGER" optional="true"/>
+            <basic name="formName" fetch="EAGER" optional="true"/>
+            <basic name="startDate" fetch="EAGER" optional="true"/>
+            <basic name="endDate" fetch="EAGER" optional="true"/>
+            <basic name="style" fetch="EAGER" optional="true">
+                <column name="style" unique="false"/>
+            </basic>
+            <basic name="translations" fetch="EAGER" optional="true"/>
+            <basic name="attributeValues" fetch="EAGER" optional="true"/>
+            <basic name="sharing" fetch="EAGER" optional="true"/>
+            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
+                <join-column name="lastupdatedby" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_lastupdateby_userid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="createdBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
+                <join-column name="userid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_dataelementcategoryoption_userid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-many name="organisationUnits" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit">
+              
+            </many-to-many>
+            <many-to-many name="categoryOptionCombos" target-entity="org.hisp.dhis.category.CategoryOptionCombo">
+              
+            </many-to-many>
+            <many-to-many name="categories" target-entity="org.hisp.dhis.category.Category">
+              
+            </many-to-many>
+            <many-to-many name="groups" target-entity="org.hisp.dhis.category.CategoryOptionGroup">
+              
+            </many-to-many>
+        </attributes>
+    </entity>
+</entity-mappings>

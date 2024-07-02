@@ -50,6 +50,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
+import javax.persistence.MappedSuperclass;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Immutable;
@@ -79,6 +80,7 @@ import org.hisp.dhis.user.sharing.UserGroupAccess;
 /**
  * @author Bob Jolliffe
  */
+@MappedSuperclass
 @JacksonXmlRootElement(localName = "identifiableObject", namespace = DxfNamespaces.DXF_2_0)
 public class BaseIdentifiableObject extends BaseLinkableObject implements IdentifiableObject {
   /** The database internal identifier for this Object. */

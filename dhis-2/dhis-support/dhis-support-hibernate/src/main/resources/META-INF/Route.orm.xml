@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
+ <entity class="org.hisp.dhis.route.Route" metadata-complete="true" cacheable="true">
+        <table name="route"/>
+        
+        <attributes>
+            <id name="id">
+                <column name="routeid"/>
+            </id>
+            <basic name="uid" fetch="EAGER" optional="false">
+                <column name="uid" unique="true" nullable="false" length="11"/>
+            </basic>
+            <basic name="code" fetch="EAGER" optional="true">
+                <column name="code" unique="true" nullable="true" length="50"/>
+            </basic>
+            <basic name="created" fetch="EAGER" optional="false"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="false"/>
+            <basic name="name" fetch="EAGER" optional="false">
+                <column name="name" unique="true" nullable="false" length="230"/>
+            </basic>
+            <basic name="description" fetch="EAGER" optional="true"/>
+            <basic name="disabled" fetch="EAGER" optional="true"/>
+            <basic name="url" fetch="EAGER" optional="true"/>
+            <basic name="headers" fetch="EAGER" optional="false">
+                <column name="headers" unique="false" nullable="false"/>
+            </basic>
+            <basic name="auth" fetch="EAGER" optional="true">
+                <column name="auth" unique="false" nullable="true"/>
+            </basic>
+            <basic name="authorities" fetch="EAGER" optional="false">
+                <column name="authorities" unique="false" nullable="false"/>
+            </basic>
+            <basic name="translations" fetch="EAGER" optional="true">
+                <column name="translations" unique="false"/>
+            </basic>
+            <basic name="sharing" fetch="EAGER" optional="true">
+                <column name="sharing" unique="false"/>
+            </basic>
+            <basic name="attributeValues" fetch="EAGER" optional="true">
+                <column name="attributevalues" unique="false"/>
+            </basic>
+            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
+                <join-column name="lastupdatedby" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_lastupdateby_userid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="createdBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
+                <join-column name="userid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_route_userid_userinfoid"/>
+                <cascade/>
+            </many-to-one>
+        </attributes>
+    </entity>
+</entity-mappings>
