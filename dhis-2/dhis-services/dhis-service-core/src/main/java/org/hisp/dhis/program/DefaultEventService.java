@@ -29,7 +29,6 @@ package org.hisp.dhis.program;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
-import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -44,7 +43,6 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
@@ -89,15 +87,6 @@ public class DefaultEventService implements EventService {
   @Transactional(readOnly = true)
   public boolean eventExistsIncludingDeleted(String uid) {
     return eventStore.existsIncludingDeleted(uid);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public long getEventCount(int days) {
-    Calendar cal = PeriodType.createCalendarInstance();
-    cal.add(Calendar.DAY_OF_YEAR, (days * -1));
-
-    return eventStore.getEventCountLastUpdatedAfter(cal.getTime());
   }
 
   @Override
