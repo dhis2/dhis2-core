@@ -37,6 +37,7 @@ import static org.hisp.dhis.analytics.AnalyticsTableType.OWNERSHIP;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_ENROLLMENTS;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS;
+import static org.hisp.dhis.analytics.AnalyticsTableType.VALIDATION_RESULT;
 import static org.hisp.dhis.common.DhisApiVersion.ALL;
 import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
@@ -93,6 +94,7 @@ public class ResourceTableController {
   public WebMessage analytics(
       @RequestParam(defaultValue = "false") Boolean skipResourceTables,
       @RequestParam(defaultValue = "false") Boolean skipAggregate,
+      @RequestParam(defaultValue = "false") Boolean skipValidationResult,
       @RequestParam(defaultValue = "false") Boolean skipEvents,
       @RequestParam(defaultValue = "false") Boolean skipEnrollment,
       @RequestParam(defaultValue = "false") Boolean skipTrackedEntities,
@@ -107,6 +109,10 @@ public class ResourceTableController {
       skipTableTypes.add(DATA_VALUE);
       skipTableTypes.add(COMPLETENESS);
       skipTableTypes.add(COMPLETENESS_TARGET);
+    }
+
+    if (isTrue(skipValidationResult)) {
+      skipTableTypes.add(VALIDATION_RESULT);
     }
 
     if (isTrue(skipEvents)) {

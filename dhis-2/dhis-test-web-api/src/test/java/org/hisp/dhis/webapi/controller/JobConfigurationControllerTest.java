@@ -73,20 +73,20 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest {
         """
       {"name":"test","jobType":"CONTINUOUS_ANALYTICS_TABLE","delay":"1",
       "jobParameters":{"fullUpdateHourOfDay":"1","lastYears":"2",
-        "skipTableTypes":["DATA_VALUE","COMPLETENESS","COMPLETENESS_TARGET","ORG_UNIT_TARGET","EVENT","ENROLLMENT","VALIDATION_RESULT"]}}""";
+        "skipTableTypes":["DATA_VALUE","COMPLETENESS","COMPLETENESS_TARGET","ORG_UNIT_TARGET","VALIDATION_RESULT","EVENT","ENROLLMENT"]}}""";
     String jobId = assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", json));
     JsonObject parameters = assertJobConfigurationExists(jobId, "CONTINUOUS_ANALYTICS_TABLE");
     assertEquals(1, parameters.getNumber("fullUpdateHourOfDay").intValue());
     assertEquals(2, parameters.getNumber("lastYears").intValue());
     assertContainsOnly(
         List.of(
-            "ENROLLMENT",
-            "VALIDATION_RESULT",
             "DATA_VALUE",
             "COMPLETENESS",
-            "EVENT",
+            "COMPLETENESS_TARGET",
             "ORG_UNIT_TARGET",
-            "COMPLETENESS_TARGET"),
+            "VALIDATION_RESULT",
+            "EVENT",
+            "ENROLLMENT"),
         parameters.getArray("skipTableTypes").stringValues());
   }
 
@@ -219,10 +219,10 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest {
                     "COMPLETENESS",
                     "COMPLETENESS_TARGET",
                     "ORG_UNIT_TARGET",
+                    "VALIDATION_RESULT",
                     "EVENT",
                     "ENROLLMENT",
                     "OWNERSHIP",
-                    "VALIDATION_RESULT",
                     "TRACKED_ENTITY_INSTANCE_EVENTS",
                     "TRACKED_ENTITY_INSTANCE_ENROLLMENTS",
                     "TRACKED_ENTITY_INSTANCE"),
@@ -243,10 +243,10 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest {
             "COMPLETENESS",
             "COMPLETENESS_TARGET",
             "ORG_UNIT_TARGET",
+            "VALIDATION_RESULT",
             "EVENT",
             "ENROLLMENT",
             "OWNERSHIP",
-            "VALIDATION_RESULT",
             "TRACKED_ENTITY_INSTANCE_EVENTS",
             "TRACKED_ENTITY_INSTANCE_ENROLLMENTS",
             "TRACKED_ENTITY_INSTANCE"),
