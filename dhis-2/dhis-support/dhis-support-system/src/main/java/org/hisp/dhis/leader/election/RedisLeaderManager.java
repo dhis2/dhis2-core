@@ -46,13 +46,15 @@ public class RedisLeaderManager implements LeaderManager {
   private static final String NODE_ID_KEY_PREFIX = "dhis2:leader:";
 
   private final String nodeUuid;
+  private final boolean primaryLeader;
   private final StringRedisTemplate redisTemplate;
 
   public RedisLeaderManager(
-      StringRedisTemplate redisTemplate, DhisConfigurationProvider dhisConfigurationProvider) {
+      StringRedisTemplate redisTemplate, DhisConfigurationProvider configuration) {
     this.redisTemplate = redisTemplate;
     this.nodeUuid = UUID.randomUUID().toString();
-    String nodeId = dhisConfigurationProvider.getProperty(ConfigurationKey.NODE_ID);
+    this.primaryLeader = configuration.isEnabled(ConfigurationKey.NODE_PRIMARY_LEADER);
+    String nodeId = configuration.getProperty(ConfigurationKey.NODE_ID);
     log.info(
         "Setting up redis based leader manager with NodeUuid:{} and NodeID:{}", nodeUuid, nodeId);
     redisTemplate.opsForValue().set(NODE_ID_KEY_PREFIX + nodeUuid, nodeId);
@@ -67,7 +69,9 @@ public class RedisLeaderManager implements LeaderManager {
 
   @Override
   public void electLeader(int ttlSeconds) {
-    redisTemplate.opsForValue().setIfAbsent(KEY, nodeUuid, ttlSeconds, TimeUnit.SECONDS);
+    if (primaryLeader) {
+      redisTemplate.opsForValue().set(KEY, nodeUuid, ttlSeconds, TimeUnit.SECONDS);
+    } else redisTemplate.opsForValue().setIfAbsent(KEY, nodeUuid, ttlSeconds, TimeUnit.SECONDS);
   }
 
   @Override

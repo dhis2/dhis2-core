@@ -75,6 +75,12 @@ public enum ConfigurationKey {
   /** Node identifier, optional, useful in clusters. */
   NODE_ID("node.id", "", false),
 
+  /**
+   * When true, the node will unconditionally set its node ID during leader election causing it to
+   * win the election as long as it is alive.
+   */
+  NODE_PRIMARY_LEADER("node.primary_leader", "false", false),
+
   /** Encryption password (sensitive). */
   ENCRYPTION_PASSWORD("encryption.password", "", true),
 
