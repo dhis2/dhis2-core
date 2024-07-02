@@ -28,10 +28,13 @@
 package org.hisp.dhis.tracker.imports.programrule.executor.event;
 
 import static org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue.error;
+import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateDeletionMandatoryDataValue;
+import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateMandatoryDataValue;
 
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -40,7 +43,6 @@ import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
-import org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils;
 
 /**
  * This executor checks if a field is not empty in the {@link TrackerBundle} @Author Enrico
@@ -48,35 +50,37 @@ import org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils;
  */
 @RequiredArgsConstructor
 public class SetMandatoryFieldExecutor implements RuleActionExecutor<Event> {
-  private final String ruleUid;
+  private final UID ruleUid;
 
-  private final String fieldUid;
+  private final UID fieldUid;
 
   @Override
-  public String getDataElementUid() {
+  public UID getDataElementUid() {
     return fieldUid;
   }
 
   @Override
   public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Event event) {
     TrackerPreheat preheat = bundle.getPreheat();
-    ProgramStage programStage = preheat.getProgramStage(event.getProgramStage());
     TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
+    ProgramStage programStage = preheat.getProgramStage(event.getProgramStage());
 
     Optional<ProgramRuleIssue> programRuleIssue =
-        ValidationUtils.validateDeletionMandatoryDataValue(
-                programStage,
+        validateDeletionMandatoryDataValue(
                 event,
-                List.of(idSchemes.toMetadataIdentifier(preheat.getDataElement(fieldUid))))
+                programStage,
+                List.of(
+                    idSchemes.toMetadataIdentifier(preheat.getDataElement(fieldUid.getValue()))))
             .stream()
             .map(e -> error(ruleUid, ValidationCode.E1314, e.getIdentifierOrAttributeValue()))
             .findAny();
 
-    if (programRuleIssue.isEmpty() && bundle.getStrategy(event).isCreate()) {
-      return ValidationUtils.validateMandatoryDataValue(
-              programStage,
+    if (programRuleIssue.isEmpty()) {
+      return validateMandatoryDataValue(
+              bundle,
               event,
-              List.of(idSchemes.toMetadataIdentifier(preheat.getDataElement(fieldUid))))
+              programStage,
+              List.of(idSchemes.toMetadataIdentifier(preheat.getDataElement(fieldUid.getValue()))))
           .stream()
           .map(e -> error(ruleUid, ValidationCode.E1301, e.getIdentifierOrAttributeValue()))
           .findAny();

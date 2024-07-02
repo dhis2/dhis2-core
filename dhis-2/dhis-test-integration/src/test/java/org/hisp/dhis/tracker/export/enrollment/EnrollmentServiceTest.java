@@ -80,6 +80,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class EnrollmentServiceTest extends TransactionalIntegrationTest {
+
   @Autowired private org.hisp.dhis.tracker.export.enrollment.EnrollmentService enrollmentService;
 
   @Autowired protected UserService _userService;
@@ -87,6 +88,8 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   @Autowired private EnrollmentService apiEnrollmentService;
 
   @Autowired private IdentifiableObjectManager manager;
+
+  private final Date incidentDate = new Date();
 
   private User admin;
 
@@ -251,11 +254,9 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     enrollmentA =
         apiEnrollmentService.enrollTrackedEntity(
             trackedEntityA, programA, new Date(), new Date(), orgUnitA);
-    eventA = new Event();
-    eventA.setEnrollment(enrollmentA);
-    eventA.setProgramStage(programStageA);
-    eventA.setOrganisationUnit(orgUnitA);
-    manager.save(eventA, false);
+    eventA = createEvent(programStageA, enrollmentA, orgUnitA);
+    eventA.setOccurredDate(incidentDate);
+    manager.save(eventA);
     enrollmentA.setEvents(Set.of(eventA));
     enrollmentA.setRelationshipItems(Set.of(from, to));
     manager.save(enrollmentA, false);

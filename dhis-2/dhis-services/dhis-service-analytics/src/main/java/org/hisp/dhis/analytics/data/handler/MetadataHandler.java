@@ -35,6 +35,7 @@ import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY;
 import static org.hisp.dhis.analytics.OutputFormat.DATA_VALUE_SET;
+import static org.hisp.dhis.analytics.common.processing.MetadataDimensionsHandler.getDistinctPeriodUids;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getCocNameMap;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getDimensionMetadataItemMap;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.handleGridForDataValueSet;
@@ -43,8 +44,6 @@ import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentifiers;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
 
@@ -57,11 +56,9 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.orgunit.OrgUnitHelper;
 import org.hisp.dhis.analytics.util.AnalyticsOrganisationUnitUtils;
-import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -110,15 +107,8 @@ public class MetadataHandler {
 
       Map<String, Object> dimensionItems = new HashMap<>();
 
-      Calendar calendar = PeriodType.getCalendar();
-
-      List<String> periodUids =
-          calendar.isIso8601()
-              ? getUids(params.getDimensionOrFilterItems(PERIOD_DIM_ID))
-              : getLocalPeriodIdentifiers(
-                  params.getDimensionOrFilterItems(PERIOD_DIM_ID), calendar);
-
-      dimensionItems.put(PERIOD_DIM_ID, periodUids);
+      dimensionItems.put(
+          PERIOD_DIM_ID, getDistinctPeriodUids(params.getDimensionOrFilterItems(PERIOD_DIM_ID)));
       dimensionItems.put(CATEGORYOPTIONCOMBO_DIM_ID, Sets.newHashSet(cocNameMap.keySet()));
 
       for (DimensionalObject dim : params.getDimensionsAndFilters()) {
@@ -183,10 +173,8 @@ public class MetadataHandler {
    * @param grid the {@link Grid}.
    */
   void applyIdScheme(DataQueryParams params, Grid grid) {
-    if (!params.isSkipMeta()) {
-      if (params.hasCustomIdSchemeSet()) {
-        grid.substituteMetaData(schemeIdResponseMapper.getSchemeIdResponseMap(params));
-      }
+    if (!params.isSkipMeta() && params.hasCustomIdSchemeSet()) {
+      grid.substituteMetaData(schemeIdResponseMapper.getSchemeIdResponseMap(params));
     }
   }
 }

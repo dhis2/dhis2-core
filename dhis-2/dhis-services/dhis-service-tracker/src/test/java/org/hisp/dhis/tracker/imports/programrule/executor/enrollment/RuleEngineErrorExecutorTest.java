@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Optional;
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -46,7 +47,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class RuleEngineErrorExecutorTest extends DhisConvenienceTest {
-  private static final String RULE_ENROLLMENT_ID = "Rule_enrollment_id";
+  private static final UID RULE_UID = UID.of("TvctPPhpD8u");
 
   private static final String ENROLLMENT_ERROR_MESSAGE = "Enrollment error message";
 
@@ -55,7 +56,7 @@ class RuleEngineErrorExecutorTest extends DhisConvenienceTest {
   private static final String TE_ID = "TeiId";
 
   private final RuleEngineErrorExecutor executor =
-      new RuleEngineErrorExecutor(RULE_ENROLLMENT_ID, ENROLLMENT_ERROR_MESSAGE);
+      new RuleEngineErrorExecutor(RULE_UID, ENROLLMENT_ERROR_MESSAGE);
 
   private TrackerBundle bundle;
 
@@ -72,7 +73,7 @@ class RuleEngineErrorExecutorTest extends DhisConvenienceTest {
     Optional<ProgramRuleIssue> warning = executor.executeRuleAction(bundle, getEnrollment());
 
     assertTrue(warning.isPresent());
-    assertEquals(warning(RULE_ENROLLMENT_ID, E1300, ENROLLMENT_ERROR_MESSAGE), warning.get());
+    assertEquals(warning(RULE_UID, E1300, ENROLLMENT_ERROR_MESSAGE), warning.get());
   }
 
   private Enrollment getEnrollment() {

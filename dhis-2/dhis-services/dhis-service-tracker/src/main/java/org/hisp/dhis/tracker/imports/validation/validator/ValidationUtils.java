@@ -101,11 +101,10 @@ public class ValidationUtils {
   }
 
   public static List<MetadataIdentifier> validateDeletionMandatoryDataValue(
-      ProgramStage programStage, Event event, List<MetadataIdentifier> mandatoryDataElements) {
+      Event event, ProgramStage programStage, List<MetadataIdentifier> mandatoryDataElements) {
     if (!needsToValidateDataValues(event, programStage)) {
       return List.of();
     }
-
     Set<MetadataIdentifier> eventDataElements =
         event.getDataValues().stream()
             .filter(dv -> dv.getValue() == null)
@@ -116,8 +115,11 @@ public class ValidationUtils {
   }
 
   public static List<MetadataIdentifier> validateMandatoryDataValue(
-      ProgramStage programStage, Event event, List<MetadataIdentifier> mandatoryDataElements) {
-    if (!needsToValidateDataValues(event, programStage)) {
+      TrackerBundle bundle,
+      Event event,
+      ProgramStage programStage,
+      List<MetadataIdentifier> mandatoryDataElements) {
+    if (!areDataValuesBeingCreated(bundle, event, programStage)) {
       return List.of();
     }
 
@@ -127,9 +129,23 @@ public class ValidationUtils {
     return mandatoryDataElements.stream().filter(de -> !eventDataElements.contains(de)).toList();
   }
 
+  public static boolean areDataValuesBeingCreated(
+      TrackerBundle bundle, Event event, ProgramStage programStage) {
+    if (!needsToValidateDataValues(event, programStage)) {
+      return false;
+    }
+
+    if (bundle.getStrategy(event).isCreate()) {
+      return true;
+    }
+
+    EventStatus savedStatus = bundle.getPreheat().getEvent(event.getUid()).getStatus();
+    return EventStatus.STATUSES_WITHOUT_DATA_VALUES.contains(savedStatus)
+        && EventStatus.STATUSES_WITH_DATA_VALUES.contains(event.getStatus());
+  }
+
   public static boolean needsToValidateDataValues(Event event, ProgramStage programStage) {
-    if (event.getStatus().equals(EventStatus.SCHEDULE)
-        || event.getStatus().equals(EventStatus.SKIPPED)) {
+    if (EventStatus.STATUSES_WITHOUT_DATA_VALUES.contains(event.getStatus())) {
       return false;
     } else if (programStage.getValidationStrategy().equals(ValidationStrategy.ON_COMPLETE)
         && event.getStatus().equals(EventStatus.COMPLETED)) {
@@ -145,7 +161,7 @@ public class ValidationUtils {
         .filter(issue -> issue.getIssueType().equals(ERROR))
         .forEach(
             issue -> {
-              List<String> args = Lists.newArrayList(issue.getRuleUid());
+              List<String> args = Lists.newArrayList(issue.getRuleUid().getValue());
               args.addAll(issue.getArgs());
               reporter.addError(dto, issue.getIssueCode(), args.toArray());
             });
@@ -154,7 +170,7 @@ public class ValidationUtils {
         .filter(issue -> issue.getIssueType().equals(WARNING))
         .forEach(
             issue -> {
-              List<String> args = Lists.newArrayList(issue.getRuleUid());
+              List<String> args = Lists.newArrayList(issue.getRuleUid().getValue());
               args.addAll(issue.getArgs());
               reporter.addWarning(dto, issue.getIssueCode(), args.toArray());
             });

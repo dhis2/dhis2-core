@@ -43,7 +43,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
@@ -54,6 +56,7 @@ import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
+import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 
 /**
@@ -68,8 +71,20 @@ class DataValuesValidator implements Validator<Event> {
       validateDataValue(reporter, bundle, dataValue, event);
     }
 
+    validateEventStatus(reporter, event);
     validateMandatoryDataValues(reporter, bundle, event, programStage);
     validateDataValueDataElementIsConnectedToProgramStage(reporter, bundle, event, programStage);
+  }
+
+  private void validateEventStatus(Reporter reporter, Event event) {
+    if (EventStatus.STATUSES_WITHOUT_DATA_VALUES.contains(event.getStatus())
+        && !event.getDataValues().isEmpty()) {
+      reporter.addError(
+          event,
+          ValidationCode.E1315,
+          event.getStatus().name(),
+          StringUtils.join(EventStatus.STATUSES_WITH_DATA_VALUES));
+    }
   }
 
   private void validateMandatoryDataValues(
@@ -80,11 +95,9 @@ class DataValuesValidator implements Validator<Event> {
             .map(de -> bundle.getPreheat().getIdSchemes().toMetadataIdentifier(de.getDataElement()))
             .toList();
 
-    if (bundle.getStrategy(event).isCreate()) {
-      validateMandatoryDataValue(programStage, event, mandatoryDataElements)
-          .forEach(de -> reporter.addError(event, E1303, de));
-    }
-    validateDeletionMandatoryDataValue(programStage, event, mandatoryDataElements)
+    validateMandatoryDataValue(bundle, event, programStage, mandatoryDataElements)
+        .forEach(de -> reporter.addError(event, E1303, de));
+    validateDeletionMandatoryDataValue(event, programStage, mandatoryDataElements)
         .forEach(de -> reporter.addError(event, E1076, DataElement.class.getSimpleName(), de));
   }
 

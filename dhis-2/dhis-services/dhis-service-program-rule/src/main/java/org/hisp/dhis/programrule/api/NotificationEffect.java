@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,54 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.job;
+package org.hisp.dhis.programrule.api;
 
-import java.io.IOException;
-import javax.jms.JMSException;
-import javax.jms.TextMessage;
-import org.hisp.dhis.artemis.MessageManager;
-import org.hisp.dhis.common.AsyncTaskExecutor;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.render.RenderService;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.common.UID;
 
 /**
- * @author Zubair Asghar
+ * This effect will be used in tracker to send a notification.
+ *
+ * @param type the effect type
+ * @param rule the UID of the rule that generated this effect
+ * @param template the UID of the template of the notification
+ * @param date the date when to send the notification. Only needed for `SCHEDULE_MESSAGE` type
  */
-@Component
-public abstract class BaseMessageManager {
-  private final MessageManager messageManager;
-
-  private final AsyncTaskExecutor taskExecutor;
-
-  private final RenderService renderService;
-
-  public BaseMessageManager(
-      MessageManager messageManager, AsyncTaskExecutor taskExecutor, RenderService renderService) {
-    this.messageManager = messageManager;
-    this.taskExecutor = taskExecutor;
-    this.renderService = renderService;
-  }
-
-  public String addJob(TrackerSideEffectDataBundle sideEffectDataBundle) {
-    String jobId = CodeGenerator.generateUid();
-    sideEffectDataBundle.setJobId(jobId);
-
-    messageManager.sendQueue(getTopic(), sideEffectDataBundle);
-
-    return jobId;
-  }
-
-  public void executeJob(Runnable runnable) {
-    taskExecutor.executeTask(runnable);
-  }
-
-  public TrackerSideEffectDataBundle toBundle(TextMessage message)
-      throws JMSException, IOException {
-    String payload = message.getText();
-
-    return renderService.fromJson(payload, TrackerSideEffectDataBundle.class);
-  }
-
-  public abstract String getTopic();
-}
+public record NotificationEffect(NotificationAction type, UID rule, UID template, String date) {}

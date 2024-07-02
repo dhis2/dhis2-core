@@ -44,8 +44,11 @@ import org.hisp.dhis.audit.AuditQuery;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditService;
 import org.hisp.dhis.audit.AuditType;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -112,9 +115,15 @@ class MaintenanceServiceTest extends IntegrationTestBase {
 
   @Autowired private AuditService auditService;
 
+  @Autowired private CategoryService categoryService;
+
+  @Autowired private IdentifiableObjectManager manager;
+
   private Date incidenDate;
 
   private Date enrollmentDate;
+
+  private CategoryOptionCombo coA;
 
   private Program program;
 
@@ -144,6 +153,7 @@ class MaintenanceServiceTest extends IntegrationTestBase {
 
   @Override
   public void setUpTest() {
+    coA = categoryService.getDefaultCategoryOptionCombo();
     organisationUnit = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnit);
     program = createProgram('A', new HashSet<>(), organisationUnit);
@@ -190,11 +200,13 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     event.setOrganisationUnit(organisationUnit);
     event.setEnrollment(enrollment);
     event.setOccurredDate(new Date());
+    event.setAttributeOptionCombo(coA);
     eventWithTeAssociation = new Event(enrollmentWithTeAssociation, stageA);
     eventWithTeAssociation.setUid("PSUID-C");
     eventWithTeAssociation.setOrganisationUnit(organisationUnit);
     eventWithTeAssociation.setEnrollment(enrollmentWithTeAssociation);
     eventWithTeAssociation.setOccurredDate(new Date());
+    eventWithTeAssociation.setAttributeOptionCombo(coA);
     eventService.addEvent(eventWithTeAssociation);
     relationshipType = createPersonToPersonRelationshipType('A', program, trackedEntityType, false);
     relationshipTypeService.addRelationshipType(relationshipType);
@@ -226,7 +238,9 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     assertNull(relationshipService.getRelationship(r.getId()));
     assertTrue(trackedEntityService.trackedEntityExistsIncludingDeleted(trackedEntity.getUid()));
     assertTrue(relationshipService.relationshipExistsIncludingDeleted(r.getUid()));
+
     maintenanceService.deleteSoftDeletedTrackedEntities();
+
     assertFalse(trackedEntityService.trackedEntityExistsIncludingDeleted(trackedEntity.getUid()));
     assertFalse(relationshipService.relationshipExistsIncludingDeleted(r.getUid()));
   }
@@ -252,7 +266,9 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     enrollmentService.deleteEnrollment(enrollment);
     assertNull(enrollmentService.getEnrollment(idA));
     assertTrue(enrollmentService.enrollmentExistsIncludingDeleted(enrollment.getUid()));
+
     maintenanceService.deleteSoftDeletedEnrollments();
+
     assertFalse(enrollmentService.enrollmentExistsIncludingDeleted(enrollment.getUid()));
   }
 
@@ -272,11 +288,13 @@ class MaintenanceServiceTest extends IntegrationTestBase {
             .build();
     long idA = eventService.addEvent(event);
     programMessageService.saveProgramMessage(message);
-    assertNotNull(eventService.getEvent(idA));
+    assertNotNull(getEvent(idA));
     eventService.deleteEvent(event);
-    assertNull(eventService.getEvent(idA));
+    assertNull(getEvent(idA));
     assertTrue(eventService.eventExistsIncludingDeleted(event.getUid()));
+
     maintenanceService.deleteSoftDeletedEvents();
+
     assertFalse(eventService.eventExistsIncludingDeleted(event.getUid()));
   }
 
@@ -300,7 +318,9 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     trackedEntityService.deleteTrackedEntity(trackedEntityB);
     assertNull(trackedEntityService.getTrackedEntity(idA));
     assertTrue(trackedEntityService.trackedEntityExistsIncludingDeleted(trackedEntityB.getUid()));
+
     maintenanceService.deleteSoftDeletedTrackedEntities();
+
     assertFalse(trackedEntityService.trackedEntityExistsIncludingDeleted(trackedEntityB.getUid()));
   }
 
@@ -311,6 +331,7 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     Event eventA = new Event(enrollment, program.getProgramStageByStage(1));
     eventA.setScheduledDate(enrollmentDate);
     eventA.setUid("UID-A");
+    eventA.setAttributeOptionCombo(coA);
     eventService.addEvent(eventA);
     TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog =
         new TrackedEntityDataValueChangeLog(
@@ -322,7 +343,9 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     enrollmentService.deleteEnrollment(enrollment);
     assertNull(enrollmentService.getEnrollment(idA));
     assertTrue(enrollmentService.enrollmentExistsIncludingDeleted(enrollment.getUid()));
+
     maintenanceService.deleteSoftDeletedEnrollments();
+
     assertFalse(enrollmentService.enrollmentExistsIncludingDeleted(enrollment.getUid()));
   }
 
@@ -338,6 +361,7 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     Event eventA = new Event(enrollment, program.getProgramStageByStage(1));
     eventA.setScheduledDate(enrollmentDate);
     eventA.setUid("UID-A");
+    eventA.setAttributeOptionCombo(coA);
     long idA = eventService.addEvent(eventA);
     Relationship r = new Relationship();
     RelationshipItem rItem1 = new RelationshipItem();
@@ -350,14 +374,16 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     r.setKey(RelationshipUtils.generateRelationshipKey(r));
     r.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(r));
     relationshipService.addRelationship(r);
-    assertNotNull(eventService.getEvent(idA));
+    assertNotNull(getEvent(idA));
     assertNotNull(relationshipService.getRelationship(r.getId()));
     eventService.deleteEvent(eventA);
-    assertNull(eventService.getEvent(idA));
+    assertNull(getEvent(idA));
     assertNull(relationshipService.getRelationship(r.getId()));
     assertTrue(eventService.eventExistsIncludingDeleted(eventA.getUid()));
     assertTrue(relationshipService.relationshipExistsIncludingDeleted(r.getUid()));
+
     maintenanceService.deleteSoftDeletedEvents();
+
     assertFalse(eventService.eventExistsIncludingDeleted(eventA.getUid()));
     assertFalse(relationshipService.relationshipExistsIncludingDeleted(r.getUid()));
   }
@@ -388,7 +414,9 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     assertNull(relationshipService.getRelationship(r.getId()));
     assertTrue(enrollmentService.enrollmentExistsIncludingDeleted(enrollment.getUid()));
     assertTrue(relationshipService.relationshipExistsIncludingDeleted(r.getUid()));
+
     maintenanceService.deleteSoftDeletedEnrollments();
+
     assertFalse(enrollmentService.enrollmentExistsIncludingDeleted(enrollment.getUid()));
     assertFalse(relationshipService.relationshipExistsIncludingDeleted(r.getUid()));
   }
@@ -437,5 +465,9 @@ class MaintenanceServiceTest extends IntegrationTestBase {
 
     maintenanceService.deleteSoftDeletedRelationships();
     assertNull(relationshipService.getRelationshipIncludeDeleted(relationship.getUid()));
+  }
+
+  private Event getEvent(long id) {
+    return manager.get(Event.class, id);
   }
 }

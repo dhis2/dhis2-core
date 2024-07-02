@@ -34,6 +34,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.jsontree.JsonList;
@@ -70,6 +72,10 @@ class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
 
   @Autowired private IdentifiableObjectManager manager;
 
+  @Autowired private CategoryService categoryService;
+
+  private CategoryOptionCombo coc;
+
   private OrganisationUnit orgUnit;
 
   private Program program;
@@ -86,6 +92,8 @@ class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
   void setUp() {
     owner = makeUser("o");
     manager.save(owner, false);
+
+    coc = categoryService.getDefaultCategoryOptionCombo();
 
     orgUnit = createOrganisationUnit('A');
     orgUnit.getSharing().setOwner(owner);
@@ -367,7 +375,7 @@ class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
   }
 
   private Event event(Enrollment enrollment) {
-    Event event = new Event(enrollment, programStage, orgUnit);
+    Event event = new Event(enrollment, programStage, orgUnit, coc);
     event.setAutoFields();
     manager.save(event, false);
     enrollment.setEvents(Set.of(event));

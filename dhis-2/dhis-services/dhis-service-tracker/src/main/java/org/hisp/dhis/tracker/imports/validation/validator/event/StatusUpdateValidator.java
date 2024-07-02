@@ -25,58 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.filter;
+package org.hisp.dhis.tracker.imports.validation.validator.event;
 
-import java.io.IOException;
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.stereotype.Component;
+import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.UPDATE;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1316;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Component
-public class CustomAuthenticationFilter implements InitializingBean, Filter {
-  private static CustomAuthenticationFilter instance;
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.validation.Reporter;
+import org.hisp.dhis.tracker.imports.validation.Validator;
 
+class StatusUpdateValidator implements Validator<Event> {
   @Override
-  public void afterPropertiesSet() throws Exception {
-    instance = this;
-  }
+  public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
+    org.hisp.dhis.program.Event savedEvent = bundle.getPreheat().getEvent(event.getUid());
 
-  public static CustomAuthenticationFilter get() {
-    return instance;
-  }
-
-  public static final String PARAM_MOBILE_VERSION = "mobileVersion";
-
-  public static final String PARAM_AUTH_ONLY = "authOnly";
-
-  @Override
-  public void init(FilterConfig filterConfig) throws ServletException {}
-
-  @Override
-  public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain)
-      throws IOException, ServletException {
-    String mobileVersion = request.getParameter(PARAM_MOBILE_VERSION);
-    String authOnly = request.getParameter(PARAM_AUTH_ONLY);
-
-    if (mobileVersion != null) {
-      request.setAttribute(PARAM_MOBILE_VERSION, mobileVersion);
+    if (checkInvalidStatusTransition(savedEvent.getStatus(), event.getStatus())) {
+      reporter.addError(event, E1316, savedEvent.getStatus(), event.getStatus());
     }
+  }
 
-    if (authOnly != null) {
-      request.setAttribute(PARAM_AUTH_ONLY, authOnly);
-    }
-
-    filterChain.doFilter(request, response);
+  private boolean checkInvalidStatusTransition(EventStatus fromStatus, EventStatus toStatus) {
+    return switch (fromStatus) {
+        // An event cannot transition from a STATUSES_WITH_DATA_VALUES to a
+        // STATUSES_WITHOUT_DATA_VALUES
+      case VISITED, ACTIVE, COMPLETED ->
+          EventStatus.STATUSES_WITHOUT_DATA_VALUES.contains(toStatus);
+        // An event can transition from a STATUSES_WITHOUT_DATA_VALUES to any status
+        // TODO: Is OVERDUE a read-only status?
+      case OVERDUE, SKIPPED, SCHEDULE -> false;
+    };
   }
 
   @Override
-  public void destroy() {}
+  public boolean needsToRun(TrackerImportStrategy strategy) {
+    return strategy == UPDATE;
+  }
 }

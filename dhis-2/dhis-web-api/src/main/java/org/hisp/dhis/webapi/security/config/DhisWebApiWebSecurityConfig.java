@@ -28,7 +28,9 @@
 package org.hisp.dhis.webapi.security.config;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
+import javax.servlet.http.HttpServletRequest;
 import javax.sql.DataSource;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -48,7 +50,6 @@ import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.hisp.dhis.webapi.filter.CorsFilter;
 import org.hisp.dhis.webapi.filter.CspFilter;
-import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
 import org.hisp.dhis.webapi.security.Http401LoginUrlAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthManager;
 import org.hisp.dhis.webapi.security.apikey.Dhis2ApiTokenFilter;
@@ -70,7 +71,6 @@ import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.header.HeaderWriterFilter;
@@ -136,9 +136,23 @@ public class DhisWebApiWebSecurityConfig {
     return new SessionRegistryImpl();
   }
 
+  private static class CustomRequestMatcher implements RequestMatcher {
+
+    private final List<String> excludePatterns =
+        List.of("", "/", "/dhis-web-login", "/dhis-web-login/");
+
+    @Override
+    public boolean matches(HttpServletRequest request) {
+      String requestURI = request.getRequestURI();
+      return excludePatterns.stream().noneMatch(pattern -> pattern.equals(requestURI));
+    }
+  }
+
   @Bean
   public RequestCache requestCache() {
-    return new HttpSessionRequestCache();
+    HttpSessionRequestCache httpSessionRequestCache = new HttpSessionRequestCache();
+    httpSessionRequestCache.setRequestMatcher(new CustomRequestMatcher());
+    return httpSessionRequestCache;
   }
 
   @Bean(name = "customAuthenticationManager")
@@ -166,7 +180,6 @@ public class DhisWebApiWebSecurityConfig {
     configureFormLogin(http);
     configureCspFilter(http, dhisConfig, configurationService);
     configureCorsFilter(http);
-    configureMobileAuthFilter(http);
     configureApiTokenAuthorizationFilter(http);
     configureOAuthTokenFilters(http);
 
@@ -441,11 +454,6 @@ public class DhisWebApiWebSecurityConfig {
 
   private void configureCorsFilter(HttpSecurity http) {
     http.addFilterBefore(CorsFilter.get(), BasicAuthenticationFilter.class);
-  }
-
-  private void configureMobileAuthFilter(HttpSecurity http) {
-    http.addFilterBefore(
-        CustomAuthenticationFilter.get(), UsernamePasswordAuthenticationFilter.class);
   }
 
   private void configureApiTokenAuthorizationFilter(HttpSecurity http) {

@@ -137,8 +137,8 @@ public class EnrollmentPersister
 
     return TrackerSideEffectDataBundle.builder()
         .klass(Enrollment.class)
-        .enrollmentRuleEffects(bundle.getEnrollmentRuleEffects())
-        .eventRuleEffects(new HashMap<>())
+        .enrollmentNotificationEffects(bundle.getEnrollmentRuleEffects())
+        .eventNotificationEffects(new HashMap<>())
         .object(enrollment.getUid())
         .importStrategy(bundle.getImportStrategy())
         .accessedBy(bundle.getUsername())

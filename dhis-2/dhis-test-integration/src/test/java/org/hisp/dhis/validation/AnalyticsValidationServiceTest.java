@@ -56,6 +56,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataanalysis.ValidationRuleExpressionDetails;
 import org.hisp.dhis.dataelement.DataElement;
@@ -73,7 +74,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -113,8 +113,6 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private ProgramIndicatorService programIndicatorService;
 
-  @Autowired private EventService eventService;
-
   @Autowired private OrganisationUnitService organisationUnitService;
 
   @Autowired private PeriodService periodService;
@@ -134,6 +132,8 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest {
   @Autowired private DataValidationRunner runner;
 
   @Autowired private UserService _userService;
+
+  @Autowired private IdentifiableObjectManager manager;
 
   private CategoryOptionCombo defaultCombo;
 
@@ -228,16 +228,12 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest {
         enrollmentService.enrollTrackedEntity(
             trackedEntity, program, dateMar20, dateMar20, orgUnitA);
     enrollmentService.addEnrollment(enrollment);
-    Event stageInstanceA =
-        eventService.createEvent(enrollment, stageA, dateMar20, dateMar20, orgUnitA);
-    Event stageInstanceB =
-        eventService.createEvent(enrollment, stageA, dateApr10, dateApr10, orgUnitA);
-    stageInstanceA.setOccurredDate(dateMar20);
-    stageInstanceB.setOccurredDate(dateApr10);
-    stageInstanceA.setAttributeOptionCombo(defaultCombo);
-    stageInstanceB.setAttributeOptionCombo(defaultCombo);
-    eventService.addEvent(stageInstanceA);
-    eventService.addEvent(stageInstanceB);
+    Event eventA = createEvent(stageA, enrollment, orgUnitA);
+    eventA.setOccurredDate(dateMar20);
+    manager.save(eventA);
+    Event eventB = createEvent(stageA, enrollment, orgUnitA);
+    eventB.setOccurredDate(dateApr10);
+    manager.save(eventB);
     categoryManager.addAndPruneAllOptionCombos();
     Expression expressionA = new Expression(EXPRESSION_A, "ProgramTrackedEntityAttribute");
     Expression expressionD = new Expression(EXPRESSION_D, "ProgramDataElement");
