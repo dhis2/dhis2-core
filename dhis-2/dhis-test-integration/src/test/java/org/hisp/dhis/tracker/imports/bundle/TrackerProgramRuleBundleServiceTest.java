@@ -33,7 +33,10 @@ import java.io.IOException;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.notification.NotificationTrigger;
+import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionService;
@@ -57,10 +60,21 @@ class TrackerProgramRuleBundleServiceTest extends TrackerTest {
 
   @Autowired private ProgramRuleActionService programRuleActionService;
 
+  @Autowired private ProgramNotificationTemplateService notificationTemplateService;
+
   @Autowired protected UserService _userService;
 
   @Override
   protected void initTest() throws IOException {
+
+    ProgramNotificationTemplate pnt =
+        createProgramNotificationTemplate(
+            "test_pnt",
+            0,
+            NotificationTrigger.PROGRAM_RULE,
+            ProgramNotificationRecipient.USER_GROUP);
+    notificationTemplateService.save(pnt);
+
     userService = _userService;
     ObjectBundle bundle = setUpMetadata("tracker/event_metadata.json");
     ProgramRule programRule =
@@ -69,9 +83,8 @@ class TrackerProgramRuleBundleServiceTest extends TrackerTest {
     programRuleService.addProgramRule(programRule);
     ProgramRuleAction programRuleAction = createProgramRuleAction('A', programRule);
     programRuleAction.setProgramRuleActionType(ProgramRuleActionType.SENDMESSAGE);
-    programRuleAction.setTemplateUid("pmPWHy7XTmL");
-    programRuleAction.setNotificationTemplate(
-        manager.get(ProgramNotificationTemplate.class, "pmPWHy7XTmL"));
+    programRuleAction.setTemplateUid(pnt.getUid());
+    programRuleAction.setNotificationTemplate(pnt);
     programRuleActionService.addProgramRuleAction(programRuleAction);
     programRule.getProgramRuleActions().add(programRuleAction);
     programRuleService.updateProgramRule(programRule);
