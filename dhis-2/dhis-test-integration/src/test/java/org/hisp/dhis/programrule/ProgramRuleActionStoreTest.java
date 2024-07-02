@@ -160,21 +160,6 @@ class ProgramRuleActionStoreTest extends SingleSetupIntegrationTestBase {
             "$placeofliving",
             null,
             null);
-    ProgramRuleAction actionC =
-        new ProgramRuleAction(
-            "ActionC",
-            programRuleA,
-            ProgramRuleActionType.HIDESECTION,
-            null,
-            null,
-            null,
-            null,
-            null,
-            "con",
-            "Hello",
-            "$placeofliving",
-            null,
-            null);
 
     ProgramNotificationTemplate pnt =
         createProgramNotificationTemplate(
@@ -185,10 +170,9 @@ class ProgramRuleActionStoreTest extends SingleSetupIntegrationTestBase {
 
     programNotificationTemplateService.save(pnt);
 
-    actionA.setTemplateUid(pnt.getUid());
+    actionA.setNotificationTemplate(pnt);
     actionStore.save(actionA);
     actionStore.save(actionB);
-    actionStore.save(actionC);
     assertEquals(1, actionStore.getProgramActionsWithNoNotification().size());
     assertTrue(actionStore.getProgramActionsWithNoNotification().contains(actionB));
   }

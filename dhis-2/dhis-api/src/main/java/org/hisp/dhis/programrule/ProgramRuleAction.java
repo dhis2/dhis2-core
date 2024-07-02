@@ -324,7 +324,7 @@ public class ProgramRuleAction extends BaseIdentifiableObject implements Metadat
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getTemplateUid() {
-    return notificationTemplate.getUid();
+    return hasNotification() ? notificationTemplate.getUid() : null;
   }
 
   public void setTemplateUid(String templateUid) {

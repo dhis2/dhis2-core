@@ -33,6 +33,7 @@ import java.io.IOException;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionService;
@@ -69,6 +70,8 @@ class TrackerProgramRuleBundleServiceTest extends TrackerTest {
     ProgramRuleAction programRuleAction = createProgramRuleAction('A', programRule);
     programRuleAction.setProgramRuleActionType(ProgramRuleActionType.SENDMESSAGE);
     programRuleAction.setTemplateUid("pmPWHy7XTmL");
+    programRuleAction.setNotificationTemplate(
+        manager.get(ProgramNotificationTemplate.class, "pmPWHy7XTmL"));
     programRuleActionService.addProgramRuleAction(programRuleAction);
     programRule.getProgramRuleActions().add(programRuleAction);
     programRuleService.updateProgramRule(programRule);
