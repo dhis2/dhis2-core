@@ -136,9 +136,12 @@ public class CategoryResourceTable implements ResourceTable {
               and cco.categoryid = ${categoryId} limit 1) as ${categoryUid}, \
               """,
               Map.of(
-                  "categoryId", valueOf(category.getId()),
-                  "categoryName", quote(category.getName()),
-                  "categoryUid", quote(category.getUid())));
+                  "categoryId",
+                  valueOf(category.getId()),
+                  "categoryName",
+                  quote(category.getName()),
+                  "categoryUid",
+                  quote(category.getUid())));
     }
 
     for (CategoryOptionGroupSet groupSet : groupSets) {
