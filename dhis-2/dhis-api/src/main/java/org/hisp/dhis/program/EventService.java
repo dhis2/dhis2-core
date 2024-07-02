@@ -37,14 +37,6 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 public interface EventService {
   String ID = EventService.class.getName();
 
-  /**
-   * Adds an {@link Event}
-   *
-   * @param event The Event to add.
-   * @return A generated unique id of the added {@link Event}.
-   */
-  long addEvent(Event event);
-
   /** Soft deletes an {@link Event}. */
   void deleteEvent(Event event);
 

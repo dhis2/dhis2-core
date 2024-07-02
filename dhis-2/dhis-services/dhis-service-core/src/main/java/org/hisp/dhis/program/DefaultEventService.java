@@ -69,20 +69,6 @@ public class DefaultEventService implements EventService {
 
   @Override
   @Transactional
-  public long addEvent(Event event) {
-    event.setAutoFields();
-
-    if (!event.hasAttributeOptionCombo()) {
-      CategoryOptionCombo aoc = categoryService.getDefaultCategoryOptionCombo();
-      event.setAttributeOptionCombo(aoc);
-    }
-
-    eventStore.save(event);
-    return event.getId();
-  }
-
-  @Override
-  @Transactional
   public void deleteEvent(Event event) {
     eventStore.delete(event);
   }
@@ -121,7 +107,13 @@ public class DefaultEventService implements EventService {
     validateEventDataValues(dataElementEventDataValueMap);
     Set<EventDataValue> eventDataValues = new HashSet<>(dataElementEventDataValueMap.values());
     event.setEventDataValues(eventDataValues);
-    addEvent(event);
+
+    event.setAutoFields();
+    if (!event.hasAttributeOptionCombo()) {
+      CategoryOptionCombo aoc = categoryService.getDefaultCategoryOptionCombo();
+      event.setAttributeOptionCombo(aoc);
+    }
+    eventStore.save(event);
 
     for (Map.Entry<DataElement, EventDataValue> entry : dataElementEventDataValueMap.entrySet()) {
       entry.getValue().setAutoFields();
@@ -129,14 +121,6 @@ public class DefaultEventService implements EventService {
       handleFileDataValueSave(entry.getValue(), entry.getKey());
     }
   }
-
-  // -------------------------------------------------------------------------
-  // Supportive methods
-  // -------------------------------------------------------------------------
-
-  // -------------------------------------------------------------------------
-  // Validation
-  // -------------------------------------------------------------------------
 
   private String validateEventDataValue(DataElement dataElement, EventDataValue eventDataValue) {
 
@@ -173,10 +157,6 @@ public class DefaultEventService implements EventService {
     }
   }
 
-  // -------------------------------------------------------------------------
-  // Audit
-  // -------------------------------------------------------------------------
-
   private void createAndAddAudit(
       EventDataValue dataValue, DataElement dataElement, Event event, ChangeLogType changeLogType) {
     if (!config.isEnabled(CHANGELOG_TRACKER) || dataElement == null) {
@@ -194,10 +174,6 @@ public class DefaultEventService implements EventService {
 
     dataValueAuditService.addTrackedEntityDataValueChangeLog(dataValueAudit);
   }
-
-  // -------------------------------------------------------------------------
-  // File data values
-  // -------------------------------------------------------------------------
 
   /** Update FileResource with 'assigned' status. */
   private void handleFileDataValueSave(EventDataValue dataValue, DataElement dataElement) {
