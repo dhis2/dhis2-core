@@ -38,6 +38,7 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
@@ -57,6 +58,9 @@ import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -82,6 +86,32 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
   private TrackerBundle bundle;
 
   @Mock private TrackerPreheat preheat;
+
+  public static Stream<Arguments> transactionsCreatingDataValues() {
+    return Stream.of(
+        Arguments.of(EventStatus.SCHEDULE, EventStatus.ACTIVE),
+        Arguments.of(EventStatus.SCHEDULE, EventStatus.COMPLETED),
+        Arguments.of(EventStatus.SCHEDULE, EventStatus.VISITED),
+        Arguments.of(EventStatus.OVERDUE, EventStatus.ACTIVE),
+        Arguments.of(EventStatus.OVERDUE, EventStatus.COMPLETED),
+        Arguments.of(EventStatus.OVERDUE, EventStatus.VISITED),
+        Arguments.of(EventStatus.SKIPPED, EventStatus.ACTIVE),
+        Arguments.of(EventStatus.SKIPPED, EventStatus.COMPLETED),
+        Arguments.of(EventStatus.SKIPPED, EventStatus.VISITED));
+  }
+
+  public static Stream<Arguments> transactionsNotCreatingDataValues() {
+    return Stream.of(
+        Arguments.of(EventStatus.ACTIVE, EventStatus.ACTIVE),
+        Arguments.of(EventStatus.ACTIVE, EventStatus.COMPLETED),
+        Arguments.of(EventStatus.ACTIVE, EventStatus.VISITED),
+        Arguments.of(EventStatus.VISITED, EventStatus.ACTIVE),
+        Arguments.of(EventStatus.VISITED, EventStatus.COMPLETED),
+        Arguments.of(EventStatus.VISITED, EventStatus.VISITED),
+        Arguments.of(EventStatus.COMPLETED, EventStatus.ACTIVE),
+        Arguments.of(EventStatus.COMPLETED, EventStatus.COMPLETED),
+        Arguments.of(EventStatus.COMPLETED, EventStatus.VISITED));
+  }
 
   @BeforeEach
   void setUpTest() {
@@ -152,13 +182,15 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
     assertEquals(error(RULE_UID, E1314, dataElement.getUid()), error.get());
   }
 
-  @Test
-  void shouldPassValidationWhenMandatoryFieldIsNotPresentAndStrategyIsUpdate() {
+  @ParameterizedTest
+  @MethodSource("transactionsNotCreatingDataValues")
+  void shouldPassValidationWhenMandatoryFieldIsNotPresentAndStrategyIsUpdate(
+      EventStatus savedStatus, EventStatus newStatus) {
     when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
     when(preheat.getDataElement(DATA_ELEMENT_UID.getValue())).thenReturn(dataElement);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
-    Event event = getEventWithMandatoryValueNOTSet();
-    when(preheat.getEvent(event.getUid())).thenReturn(new org.hisp.dhis.program.Event());
+    Event event = getEventWithMandatoryValueNOTSet(savedStatus);
+    when(preheat.getEvent(event.getUid())).thenReturn(event(event.getUid(), newStatus));
     bundle.setEvents(List.of(event));
     bundle.setStrategy(event, TrackerImportStrategy.UPDATE);
     Optional<ProgramRuleIssue> error = executor.executeRuleAction(bundle, event);
@@ -199,6 +231,31 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
     assertEquals(error(RULE_UID, E1301, dataElement.getUid()), error.get());
   }
 
+  @ParameterizedTest
+  @MethodSource("transactionsCreatingDataValues")
+  void shouldFailValidationWhenMandatoryFieldIsNotPresentAndDataValuesAreCreated(
+      EventStatus savedStatus, EventStatus newStatus) {
+    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
+    when(preheat.getDataElement(DATA_ELEMENT_UID.getValue())).thenReturn(dataElement);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
+    Event event = getEventWithMandatoryValueNOTSet(EventStatus.SCHEDULE);
+    when(preheat.getEvent(event.getUid())).thenReturn(event(event.getUid(), savedStatus));
+    bundle.setEvents(List.of(event));
+    bundle.setStrategy(event, TrackerImportStrategy.UPDATE);
+    Optional<ProgramRuleIssue> error =
+        executor.executeRuleAction(bundle, getEventWithMandatoryValueNOTSet());
+
+    assertFalse(error.isEmpty());
+    assertEquals(error(RULE_UID, E1301, dataElement.getUid()), error.get());
+  }
+
+  private org.hisp.dhis.program.Event event(String uid, EventStatus status) {
+    org.hisp.dhis.program.Event event = new org.hisp.dhis.program.Event();
+    event.setUid(uid);
+    event.setStatus(status);
+    return event;
+  }
+
   private Event getEventWithDeleteMandatoryValue() {
     return Event.builder()
         .event(ACTIVE_EVENT_ID)
@@ -230,6 +287,14 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
     return Event.builder()
         .event(COMPLETED_EVENT_ID)
         .status(EventStatus.ACTIVE)
+        .programStage(MetadataIdentifier.ofUid(programStage))
+        .build();
+  }
+
+  private Event getEventWithMandatoryValueNOTSet(EventStatus status) {
+    return Event.builder()
+        .event(COMPLETED_EVENT_ID)
+        .status(status)
         .programStage(MetadataIdentifier.ofUid(programStage))
         .build();
   }

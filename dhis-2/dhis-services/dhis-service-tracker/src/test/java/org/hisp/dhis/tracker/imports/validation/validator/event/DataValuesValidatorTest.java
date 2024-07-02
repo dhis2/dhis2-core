@@ -34,6 +34,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -59,6 +60,9 @@ import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -83,6 +87,32 @@ class DataValuesValidatorTest {
   private Reporter reporter;
 
   private TrackerIdSchemeParams idSchemes;
+
+  public static Stream<Arguments> transactionsCreatingDataValues() {
+    return Stream.of(
+        Arguments.of(EventStatus.SCHEDULE, EventStatus.ACTIVE),
+        Arguments.of(EventStatus.SCHEDULE, EventStatus.COMPLETED),
+        Arguments.of(EventStatus.SCHEDULE, EventStatus.VISITED),
+        Arguments.of(EventStatus.OVERDUE, EventStatus.ACTIVE),
+        Arguments.of(EventStatus.OVERDUE, EventStatus.COMPLETED),
+        Arguments.of(EventStatus.OVERDUE, EventStatus.VISITED),
+        Arguments.of(EventStatus.SKIPPED, EventStatus.ACTIVE),
+        Arguments.of(EventStatus.SKIPPED, EventStatus.COMPLETED),
+        Arguments.of(EventStatus.SKIPPED, EventStatus.VISITED));
+  }
+
+  public static Stream<Arguments> transactionsNotCreatingDataValues() {
+    return Stream.of(
+        Arguments.of(EventStatus.ACTIVE, EventStatus.ACTIVE),
+        Arguments.of(EventStatus.ACTIVE, EventStatus.COMPLETED),
+        Arguments.of(EventStatus.ACTIVE, EventStatus.VISITED),
+        Arguments.of(EventStatus.VISITED, EventStatus.ACTIVE),
+        Arguments.of(EventStatus.VISITED, EventStatus.COMPLETED),
+        Arguments.of(EventStatus.VISITED, EventStatus.VISITED),
+        Arguments.of(EventStatus.COMPLETED, EventStatus.ACTIVE),
+        Arguments.of(EventStatus.COMPLETED, EventStatus.COMPLETED),
+        Arguments.of(EventStatus.COMPLETED, EventStatus.VISITED));
+  }
 
   @BeforeEach
   public void setUp() {
@@ -253,14 +283,17 @@ class DataValuesValidatorTest {
     assertIsEmpty(reporter.getErrors());
   }
 
-  @Test
-  void shouldPassValidationWhenAMandatoryDataElementIsMissingAndStrategyIsUpdate() {
+  @ParameterizedTest
+  @MethodSource("transactionsNotCreatingDataValues")
+  void shouldPassValidationWhenAMandatoryDataElementIsMissingAndDataValuesAreNotCreated(
+      EventStatus savedStatus, EventStatus newStatus) {
     DataElement dataElement = dataElement();
     String eventUid = CodeGenerator.generateUid();
     when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid))).thenReturn(dataElement);
 
     ProgramStage programStage = new ProgramStage();
     programStage.setAutoFields();
+    programStage.setValidationStrategy(ValidationStrategy.ON_UPDATE_AND_INSERT);
     ProgramStageDataElement mandatoryStageElement1 = new ProgramStageDataElement();
     DataElement mandatoryElement1 = new DataElement();
     mandatoryElement1.setUid("MANDATORY_DE");
@@ -274,13 +307,13 @@ class DataValuesValidatorTest {
     programStage.setProgramStageDataElements(
         Set.of(mandatoryStageElement1, mandatoryStageElement2));
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
-    when(preheat.getEvent(eventUid)).thenReturn(new org.hisp.dhis.program.Event());
+    when(preheat.getEvent(eventUid)).thenReturn(event(eventUid, savedStatus));
 
     Event event =
         Event.builder()
             .event(eventUid)
             .programStage(idSchemes.toMetadataIdentifier(programStage))
-            .status(EventStatus.COMPLETED)
+            .status(newStatus)
             .dataValues(Set.of(dataValue()))
             .build();
 
@@ -288,6 +321,46 @@ class DataValuesValidatorTest {
     validator.validate(reporter, bundle, event);
 
     assertNoErrors(reporter);
+  }
+
+  @ParameterizedTest
+  @MethodSource("transactionsCreatingDataValues")
+  void shouldFailValidationWhenAMandatoryDataElementIsMissingAndDataValuesAreCreated(
+      EventStatus savedStatus, EventStatus newStatus) {
+    DataElement dataElement = dataElement();
+    String eventUid = CodeGenerator.generateUid();
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid))).thenReturn(dataElement);
+
+    ProgramStage programStage = new ProgramStage();
+    programStage.setAutoFields();
+    programStage.setValidationStrategy(ValidationStrategy.ON_UPDATE_AND_INSERT);
+    ProgramStageDataElement mandatoryStageElement1 = new ProgramStageDataElement();
+    DataElement mandatoryElement1 = new DataElement();
+    mandatoryElement1.setUid("MANDATORY_DE");
+    mandatoryStageElement1.setDataElement(mandatoryElement1);
+    mandatoryStageElement1.setCompulsory(true);
+    ProgramStageDataElement mandatoryStageElement2 = new ProgramStageDataElement();
+    DataElement mandatoryElement2 = new DataElement();
+    mandatoryElement2.setUid(dataElementUid);
+    mandatoryStageElement2.setDataElement(mandatoryElement2);
+    mandatoryStageElement2.setCompulsory(true);
+    programStage.setProgramStageDataElements(
+        Set.of(mandatoryStageElement1, mandatoryStageElement2));
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
+    when(preheat.getEvent(eventUid)).thenReturn(event(eventUid, savedStatus));
+
+    Event event =
+        Event.builder()
+            .event(eventUid)
+            .programStage(idSchemes.toMetadataIdentifier(programStage))
+            .status(newStatus)
+            .dataValues(Set.of(dataValue()))
+            .build();
+
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
+    validator.validate(reporter, bundle, event);
+
+    assertHasError(reporter, event, ValidationCode.E1303);
   }
 
   @Test
@@ -504,6 +577,7 @@ class DataValuesValidatorTest {
   @Test
   void shouldFailValidationWhenDataElementValueNullAndStrategyUpdate() {
     DataElement validDataElement = dataElement();
+    String eventUid = CodeGenerator.generateUid();
     when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
         .thenReturn(validDataElement);
 
@@ -511,18 +585,19 @@ class DataValuesValidatorTest {
     programStage.setValidationStrategy(ValidationStrategy.ON_UPDATE_AND_INSERT);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
         .thenReturn(programStage);
+    when(preheat.getEvent(eventUid)).thenReturn(new org.hisp.dhis.program.Event());
 
     DataValue validDataValue = dataValue();
     validDataValue.setValue(null);
     Event event =
         Event.builder()
-            .event(CodeGenerator.generateUid())
+            .event(eventUid)
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
             .dataValues(Set.of(validDataValue))
             .build();
 
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, ValidationCode.E1076);
@@ -1019,6 +1094,13 @@ class DataValuesValidatorTest {
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, ValidationCode.E1302);
+  }
+
+  private org.hisp.dhis.program.Event event(String uid, EventStatus status) {
+    org.hisp.dhis.program.Event event = new org.hisp.dhis.program.Event();
+    event.setUid(uid);
+    event.setStatus(status);
+    return event;
   }
 
   private DataElement dataElement(ValueType type) {
