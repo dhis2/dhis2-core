@@ -54,12 +54,28 @@ public interface Generator {
   String getClassNamePrefix();
 
   /**
-   * The default file where the input tests wil be read from.
+   * The file where the test scenarios will be read from.
    *
    * @return the file name.
    */
-  default String getFile() {
-    return "test-urls.txt";
+  String getScenarioFile();
+
+  /**
+   * Returns specific scenarios for test generation. If empty, ALL scenarios will be generated.
+   *
+   * @return the scenarios.
+   */
+  default String[] getScenarios() {
+    return new String[] {};
+  }
+
+  /**
+   * The folder where the input test scenarios are living.
+   *
+   * @return the file name.
+   */
+  default String getScenarioFolder() {
+    return "scenarios";
   }
 
   /**
