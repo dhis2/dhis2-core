@@ -44,13 +44,13 @@ import org.hisp.dhis.tracker.imports.bundle.persister.CommitService;
 import org.hisp.dhis.tracker.imports.bundle.persister.PersistenceException;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
+import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
+import org.hisp.dhis.tracker.imports.notification.NotificationHandlerService;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheatService;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleService;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
-import org.hisp.dhis.tracker.imports.sideeffect.SideEffectHandlerService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,11 +77,11 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
 
   private final ObjectMapper mapper;
 
-  private List<SideEffectHandlerService> sideEffectHandlers = new ArrayList<>();
+  private List<NotificationHandlerService> notificationHandlers = new ArrayList<>();
 
   @Autowired(required = false)
-  public void setSideEffectHandlers(List<SideEffectHandlerService> sideEffectHandlers) {
-    this.sideEffectHandlers = sideEffectHandlers;
+  public void setNotificationHandlers(List<NotificationHandlerService> notificationHandlers) {
+    this.notificationHandlers = notificationHandlers;
   }
 
   @Override
@@ -147,8 +147,8 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
   }
 
   @Override
-  public void handleTrackerSideEffects(List<TrackerSideEffectDataBundle> bundles) {
-    sideEffectHandlers.forEach(handler -> handler.handleSideEffects(bundles));
+  public void sendNotifications(List<TrackerNotificationDataBundle> bundles) {
+    notificationHandlers.forEach(handler -> handler.handleNotifications(bundles));
   }
 
   @Override
