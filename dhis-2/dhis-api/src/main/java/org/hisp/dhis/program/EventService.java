@@ -27,11 +27,9 @@
  */
 package org.hisp.dhis.program;
 
-import java.util.Date;
 import java.util.Map;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
  * @author Abyot Asalefew
@@ -67,14 +65,6 @@ public interface EventService {
   boolean eventExistsIncludingDeleted(String uid);
 
   /**
-   * Returns an {@link Event}.
-   *
-   * @param id the id of the Event to return.
-   * @return the Event with the given id.
-   */
-  Event getEvent(long id);
-
-  /**
    * Returns the {@link Event} with the given UID.
    *
    * @param uid the UID.
@@ -89,23 +79,6 @@ public interface EventService {
    * @return the number of events.
    */
   long getEventCount(int days);
-
-  /**
-   * Creates and saves an event.
-   *
-   * @param enrollment the Enrollment.
-   * @param programStage the ProgramStage.
-   * @param enrollmentDate the enrollment date.
-   * @param incidentDate date of the incident.
-   * @param organisationUnit the OrganisationUnit where the event took place.
-   * @return Event the Event which was created.
-   */
-  Event createEvent(
-      Enrollment enrollment,
-      ProgramStage programStage,
-      Date enrollmentDate,
-      Date incidentDate,
-      OrganisationUnit organisationUnit);
 
   /**
    * Validates EventDataValues, handles files for File EventDataValues and creates audit logs for

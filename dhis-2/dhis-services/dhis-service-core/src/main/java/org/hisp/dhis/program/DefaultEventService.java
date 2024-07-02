@@ -30,7 +30,6 @@ package org.hisp.dhis.program;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -41,17 +40,14 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
-import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,10 +67,6 @@ public class DefaultEventService implements EventService {
 
   private final DhisConfigurationProvider config;
 
-  // -------------------------------------------------------------------------
-  // Implementation methods
-  // -------------------------------------------------------------------------
-
   @Override
   @Transactional
   public long addEvent(Event event) {
@@ -93,12 +85,6 @@ public class DefaultEventService implements EventService {
   @Transactional
   public void deleteEvent(Event event) {
     eventStore.delete(event);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Event getEvent(long id) {
-    return eventStore.get(id);
   }
 
   @Override
@@ -126,48 +112,6 @@ public class DefaultEventService implements EventService {
     cal.add(Calendar.DAY_OF_YEAR, (days * -1));
 
     return eventStore.getEventCountLastUpdatedAfter(cal.getTime());
-  }
-
-  @Override
-  @Transactional
-  public Event createEvent(
-      Enrollment enrollment,
-      ProgramStage programStage,
-      Date enrollmentDate,
-      Date occurredDate,
-      OrganisationUnit organisationUnit) {
-    Event event = null;
-    Date currentDate = new Date();
-    Date dateCreatedEvent;
-
-    if (programStage.getGeneratedByEnrollmentDate()) {
-      dateCreatedEvent = enrollmentDate;
-    } else {
-      dateCreatedEvent = occurredDate;
-    }
-
-    Date dueDate = DateUtils.addDays(dateCreatedEvent, programStage.getMinDaysFromStart());
-
-    if (!enrollment.getProgram().getIgnoreOverdueEvents() || dueDate.before(currentDate)) {
-      event = new Event();
-      event.setEnrollment(enrollment);
-      event.setProgramStage(programStage);
-      event.setOrganisationUnit(organisationUnit);
-      event.setScheduledDate(dueDate);
-      event.setStatus(EventStatus.SCHEDULE);
-      event.setAttributeOptionCombo(categoryService.getDefaultCategoryOptionCombo());
-
-      if (programStage.getOpenAfterEnrollment()
-          || enrollment.getProgram().isWithoutRegistration()
-          || programStage.getPeriodType() != null) {
-        event.setOccurredDate(dueDate);
-        event.setStatus(EventStatus.ACTIVE);
-      }
-
-      addEvent(event);
-    }
-
-    return event;
   }
 
   @Override

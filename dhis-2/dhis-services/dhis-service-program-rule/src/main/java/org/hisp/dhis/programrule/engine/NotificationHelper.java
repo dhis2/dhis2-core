@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.programrule.engine;
 
-import static org.hisp.dhis.programrule.engine.RuleActionKey.NOTIFICATION;
-
 import java.util.Date;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +37,7 @@ import org.hisp.dhis.notification.logging.NotificationValidationResult;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
-import org.hisp.dhis.rules.models.RuleAction;
+import org.hisp.dhis.programrule.api.NotificationEffect;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -61,8 +59,9 @@ class NotificationHelper {
     notificationLoggingService.save(entry);
   }
 
-  public ProgramNotificationTemplate getNotificationTemplate(RuleAction action) {
-    String uid = action.getValues().get(NOTIFICATION);
+  public ProgramNotificationTemplate getNotificationTemplate(
+      NotificationEffect notificationEffect) {
+    String uid = notificationEffect.template().getValue();
     return programNotificationTemplateService.getByUid(uid);
   }
 

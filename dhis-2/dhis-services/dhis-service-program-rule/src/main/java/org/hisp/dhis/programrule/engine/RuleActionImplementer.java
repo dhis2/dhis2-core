@@ -25,42 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.programrule.executor.event;
+package org.hisp.dhis.programrule.engine;
 
-import static org.hisp.dhis.tracker.imports.programrule.IssueType.ERROR;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.programrule.api.NotificationEffect;
 
-import java.util.Optional;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.programrule.api.ValidationEffect;
-import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.Event;
-import org.hisp.dhis.tracker.imports.programrule.IssueType;
-import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
-import org.hisp.dhis.tracker.imports.programrule.executor.ValidationExecutor;
+/**
+ * Service is responsible for implementing actions which are generated as a result of Rule-Engine
+ * evaluations. Each action type has a corresponding RuleActionImplementer class responsible for
+ * carrying out the action.
+ *
+ * <p>Created by zubair@dhis2.org on 04.01.18.
+ */
+public interface RuleActionImplementer {
+  boolean accept(NotificationEffect notificationEffect);
 
-/** This executor shows errors calculated by Rule Engine. @Author Enrico Colasante */
-@RequiredArgsConstructor
-public class ShowErrorExecutor implements ValidationExecutor<Event> {
-  private final ValidationEffect validationEffect;
+  /**
+   * This method is directly called by SideEffectHandlerService to implement actions
+   *
+   * @param notificationEffect received tracker importer
+   * @param enrollment enrollment to implement the action against
+   */
+  void implement(NotificationEffect notificationEffect, Enrollment enrollment);
 
-  @Override
-  public boolean needsToRun(Event event) {
-    return true;
-  }
-
-  @Override
-  public IssueType getIssueType() {
-    return ERROR;
-  }
-
-  @Override
-  public UID getDataElementUid() {
-    return validationEffect.field();
-  }
-
-  @Override
-  public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Event event) {
-    return execute(validationEffect, event);
-  }
+  /**
+   * This method is directly called by SideEffectHandlerService to implement actions
+   *
+   * @param notificationEffect received tracker importer
+   * @param event event to implement the action against
+   */
+  void implement(NotificationEffect notificationEffect, Event event);
 }

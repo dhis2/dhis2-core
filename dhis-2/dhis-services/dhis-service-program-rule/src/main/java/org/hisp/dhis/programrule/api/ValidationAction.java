@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,42 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.programrule.executor.event;
+package org.hisp.dhis.programrule.api;
 
-import static org.hisp.dhis.tracker.imports.programrule.IssueType.ERROR;
+import java.util.Arrays;
 
-import java.util.Optional;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.programrule.api.ValidationEffect;
-import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.Event;
-import org.hisp.dhis.tracker.imports.programrule.IssueType;
-import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
-import org.hisp.dhis.tracker.imports.programrule.executor.ValidationExecutor;
+public enum ValidationAction {
+  ASSIGN("ASSIGN"),
+  SET_MANDATORY_FIELD("SETMANDATORYFIELD"),
+  SHOW_ERROR("SHOWERROR"),
+  SHOW_WARNING("SHOWWARNING"),
+  SHOW_ERROR_ON_COMPLETE("ERRORONCOMPLETE"),
+  SHOW_WARNING_ON_COMPLETE("WARNINGONCOMPLETE"),
+  RAISE_ERROR("ERROR");
 
-/** This executor shows errors calculated by Rule Engine. @Author Enrico Colasante */
-@RequiredArgsConstructor
-public class ShowErrorExecutor implements ValidationExecutor<Event> {
-  private final ValidationEffect validationEffect;
-
-  @Override
-  public boolean needsToRun(Event event) {
-    return true;
+  public static boolean contains(String ruleEngineName) {
+    return Arrays.stream(values()).anyMatch(v -> v.ruleEngineName.equalsIgnoreCase(ruleEngineName));
   }
 
-  @Override
-  public IssueType getIssueType() {
-    return ERROR;
+  public static ValidationAction fromName(String ruleEngineName) {
+    return Arrays.stream(values())
+        .filter(v -> v.ruleEngineName.equalsIgnoreCase(ruleEngineName))
+        .findAny()
+        .orElseThrow();
   }
 
-  @Override
-  public UID getDataElementUid() {
-    return validationEffect.field();
-  }
+  private final String ruleEngineName;
 
-  @Override
-  public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Event event) {
-    return execute(validationEffect, event);
+  ValidationAction(String ruleEngineName) {
+    this.ruleEngineName = ruleEngineName;
   }
 }

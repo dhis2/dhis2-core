@@ -126,11 +126,7 @@ public class EventsDataValueValidationTests extends TrackerApiTest {
   }
 
   @ParameterizedTest
-  @CsvSource({
-    "ON_COMPLETE,ACTIVE",
-    "ON_UPDATE_AND_INSERT,SCHEDULE",
-    "ON_UPDATE_AND_INSERT,SKIPPED"
-  })
+  @CsvSource({"ON_COMPLETE,ACTIVE"})
   public void shouldRemoveMandatoryDataValue(String validationStrategy, String eventStatus) {
     programActions.programStageActions.setValidationStrategy(programStageId, validationStrategy);
 

@@ -166,15 +166,15 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
     enrollmentA =
         enrollmentService.enrollTrackedEntity(
             teA, program, enrollmentDate, enrollmentDate, orgUnitA);
-    eventA =
-        eventService.createEvent(
-            enrollmentA, programStage, enrollmentDate, enrollmentDate, orgUnitA);
+    eventA = createEvent(programStage, enrollmentA, orgUnitA);
+    eventA.setOccurredDate(enrollmentDate);
+    manager.save(eventA);
 
     Enrollment enrollmentB =
         enrollmentService.enrollTrackedEntity(teB, program, new Date(), new Date(), orgUnitA);
-    inaccessibleEvent =
-        eventService.createEvent(
-            enrollmentB, inaccessibleProgramStage, enrollmentDate, enrollmentDate, orgUnitA);
+    inaccessibleEvent = createEvent(inaccessibleProgramStage, enrollmentB, orgUnitA);
+    inaccessibleEvent.setOccurredDate(enrollmentDate);
+    manager.save(inaccessibleEvent);
 
     teToTeType
         .getFromConstraint()

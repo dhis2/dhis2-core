@@ -29,10 +29,11 @@ package org.hisp.dhis.tracker.imports.job;
 
 import java.util.List;
 import java.util.Map;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.programrule.api.NotificationEffect;
 import org.hisp.dhis.programrule.engine.RuleActionImplementer;
-import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.security.SecurityContextRunnable;
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -73,26 +74,27 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable {
       return;
     }
 
-    Map<String, List<RuleEffect>> enrollmentRuleEffects =
-        sideEffectDataBundle.getEnrollmentRuleEffects();
-    Map<String, List<RuleEffect>> eventRuleEffects = sideEffectDataBundle.getEventRuleEffects();
+    Map<UID, List<NotificationEffect>> enrollmentRuleEffects =
+        sideEffectDataBundle.getEnrollmentNotificationEffects();
+    Map<UID, List<NotificationEffect>> eventRuleEffects =
+        sideEffectDataBundle.getEventNotificationEffects();
 
     for (RuleActionImplementer ruleActionImplementer : ruleActionImplementers) {
-      for (Map.Entry<String, List<RuleEffect>> entry : enrollmentRuleEffects.entrySet()) {
+      for (Map.Entry<UID, List<NotificationEffect>> entry : enrollmentRuleEffects.entrySet()) {
         Enrollment enrollment = sideEffectDataBundle.getEnrollment();
         enrollment.setProgram(sideEffectDataBundle.getProgram());
 
         entry.getValue().stream()
-            .filter(effect -> ruleActionImplementer.accept(effect.getRuleAction()))
+            .filter(ruleActionImplementer::accept)
             .forEach(effect -> ruleActionImplementer.implement(effect, enrollment));
       }
 
-      for (Map.Entry<String, List<RuleEffect>> entry : eventRuleEffects.entrySet()) {
+      for (Map.Entry<UID, List<NotificationEffect>> entry : eventRuleEffects.entrySet()) {
         Event event = sideEffectDataBundle.getEvent();
         event.getProgramStage().setProgram(sideEffectDataBundle.getProgram());
 
         entry.getValue().stream()
-            .filter(effect -> ruleActionImplementer.accept(effect.getRuleAction()))
+            .filter(ruleActionImplementer::accept)
             .forEach(effect -> ruleActionImplementer.implement(effect, event));
       }
     }
