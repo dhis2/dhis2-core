@@ -37,14 +37,6 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 public interface EventService {
   String ID = EventService.class.getName();
 
-  /**
-   * Adds an {@link Event}
-   *
-   * @param event The Event to add.
-   * @return A generated unique id of the added {@link Event}.
-   */
-  long addEvent(Event event);
-
   /** Soft deletes an {@link Event}. */
   void deleteEvent(Event event);
 
@@ -71,14 +63,6 @@ public interface EventService {
    * @return the Event with the given UID, or null if no match.
    */
   Event getEvent(String uid);
-
-  /**
-   * Gets the number of events added since the given number of days.
-   *
-   * @param days number of days.
-   * @return the number of events.
-   */
-  long getEventCount(int days);
 
   /**
    * Validates EventDataValues, handles files for File EventDataValues and creates audit logs for

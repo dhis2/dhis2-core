@@ -38,6 +38,7 @@ import org.hisp.dhis.audit.UserInfoTestHelper;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.changelog.ChangeLogType;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -47,7 +48,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
@@ -81,9 +81,9 @@ class TrackedEntityDataValueChangeLogStoreTest extends SingleSetupIntegrationTes
 
   @Autowired private EnrollmentService enrollmentService;
 
-  @Autowired private EventService eventService;
-
   @Autowired private CategoryService categoryService;
+
+  @Autowired private IdentifiableObjectManager manager;
 
   private CategoryOptionCombo coc;
 
@@ -175,11 +175,11 @@ class TrackedEntityDataValueChangeLogStoreTest extends SingleSetupIntegrationTes
     eventC = createEvent(enrollmentA, psA, ouC, Set.of(dvA, dvB));
     eventD = createEvent(enrollmentA, psB, ouD, Set.of(dvC, dvD));
     eventE = createEvent(enrollmentA, psA, ouE, Set.of(dvA, dvE));
-    eventService.addEvent(eventA);
-    eventService.addEvent(eventB);
-    eventService.addEvent(eventC);
-    eventService.addEvent(eventD);
-    eventService.addEvent(eventE);
+    manager.save(eventA);
+    manager.save(eventB);
+    manager.save(eventC);
+    manager.save(eventD);
+    manager.save(eventE);
   }
 
   @Test

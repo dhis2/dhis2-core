@@ -69,8 +69,6 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private ProgramStageService programStageService;
 
-  @Autowired private EventService eventService;
-
   @Autowired protected UserService _userService;
 
   @Autowired private NoteService noteService;
@@ -201,7 +199,8 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   @Test
   void testSoftDeleteEnrollmentAndLinkedEvent() {
     long idA = enrollmentService.addEnrollment(enrollmentA);
-    long eventIdA = eventService.addEvent(eventA);
+    manager.save(eventA);
+    long eventIdA = eventA.getId();
     enrollmentA.setEvents(Sets.newHashSet(eventA));
     enrollmentService.updateEnrollment(enrollmentA);
     assertNotNull(enrollmentService.getEnrollment(idA));

@@ -29,7 +29,6 @@ package org.hisp.dhis.program;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
-import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -44,7 +43,6 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
@@ -66,20 +64,6 @@ public class DefaultEventService implements EventService {
   private final FileResourceService fileResourceService;
 
   private final DhisConfigurationProvider config;
-
-  @Override
-  @Transactional
-  public long addEvent(Event event) {
-    event.setAutoFields();
-
-    if (!event.hasAttributeOptionCombo()) {
-      CategoryOptionCombo aoc = categoryService.getDefaultCategoryOptionCombo();
-      event.setAttributeOptionCombo(aoc);
-    }
-
-    eventStore.save(event);
-    return event.getId();
-  }
 
   @Override
   @Transactional
@@ -106,22 +90,19 @@ public class DefaultEventService implements EventService {
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public long getEventCount(int days) {
-    Calendar cal = PeriodType.createCalendarInstance();
-    cal.add(Calendar.DAY_OF_YEAR, (days * -1));
-
-    return eventStore.getEventCountLastUpdatedAfter(cal.getTime());
-  }
-
-  @Override
   @Transactional
   public void saveEventDataValuesAndSaveEvent(
       Event event, Map<DataElement, EventDataValue> dataElementEventDataValueMap) {
     validateEventDataValues(dataElementEventDataValueMap);
     Set<EventDataValue> eventDataValues = new HashSet<>(dataElementEventDataValueMap.values());
     event.setEventDataValues(eventDataValues);
-    addEvent(event);
+
+    event.setAutoFields();
+    if (!event.hasAttributeOptionCombo()) {
+      CategoryOptionCombo aoc = categoryService.getDefaultCategoryOptionCombo();
+      event.setAttributeOptionCombo(aoc);
+    }
+    eventStore.save(event);
 
     for (Map.Entry<DataElement, EventDataValue> entry : dataElementEventDataValueMap.entrySet()) {
       entry.getValue().setAutoFields();
@@ -129,14 +110,6 @@ public class DefaultEventService implements EventService {
       handleFileDataValueSave(entry.getValue(), entry.getKey());
     }
   }
-
-  // -------------------------------------------------------------------------
-  // Supportive methods
-  // -------------------------------------------------------------------------
-
-  // -------------------------------------------------------------------------
-  // Validation
-  // -------------------------------------------------------------------------
 
   private String validateEventDataValue(DataElement dataElement, EventDataValue eventDataValue) {
 
@@ -173,10 +146,6 @@ public class DefaultEventService implements EventService {
     }
   }
 
-  // -------------------------------------------------------------------------
-  // Audit
-  // -------------------------------------------------------------------------
-
   private void createAndAddAudit(
       EventDataValue dataValue, DataElement dataElement, Event event, ChangeLogType changeLogType) {
     if (!config.isEnabled(CHANGELOG_TRACKER) || dataElement == null) {
@@ -194,10 +163,6 @@ public class DefaultEventService implements EventService {
 
     dataValueAuditService.addTrackedEntityDataValueChangeLog(dataValueAudit);
   }
-
-  // -------------------------------------------------------------------------
-  // File data values
-  // -------------------------------------------------------------------------
 
   /** Update FileResource with 'assigned' status. */
   private void handleFileDataValueSave(EventDataValue dataValue, DataElement dataElement) {

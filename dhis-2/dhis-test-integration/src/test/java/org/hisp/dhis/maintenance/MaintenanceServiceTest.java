@@ -119,7 +119,7 @@ class MaintenanceServiceTest extends IntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
 
-  private Date incidenDate;
+  private Date occurredDate;
 
   private Date enrollmentDate;
 
@@ -181,15 +181,15 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     DateTime testDate1 = DateTime.now();
     testDate1.withTimeAtStartOfDay();
     testDate1 = testDate1.minusDays(70);
-    incidenDate = testDate1.toDate();
+    occurredDate = testDate1.toDate();
     DateTime testDate2 = DateTime.now();
     testDate2.withTimeAtStartOfDay();
     enrollmentDate = testDate2.toDate();
-    enrollment = new Enrollment(enrollmentDate, incidenDate, trackedEntity, program);
+    enrollment = new Enrollment(enrollmentDate, occurredDate, trackedEntity, program);
     enrollment.setUid("UID-A");
     enrollment.setOrganisationUnit(organisationUnit);
     enrollmentWithTeAssociation =
-        new Enrollment(enrollmentDate, incidenDate, trackedEntityWithAssociations, program);
+        new Enrollment(enrollmentDate, occurredDate, trackedEntityWithAssociations, program);
     enrollmentWithTeAssociation.setUid("UID-B");
     enrollmentWithTeAssociation.setOrganisationUnit(organisationUnit);
     trackedEntityService.addTrackedEntity(trackedEntityWithAssociations);
@@ -207,7 +207,7 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     eventWithTeAssociation.setEnrollment(enrollmentWithTeAssociation);
     eventWithTeAssociation.setOccurredDate(new Date());
     eventWithTeAssociation.setAttributeOptionCombo(coA);
-    eventService.addEvent(eventWithTeAssociation);
+    manager.save(eventWithTeAssociation);
     relationshipType = createPersonToPersonRelationshipType('A', program, trackedEntityType, false);
     relationshipTypeService.addRelationshipType(relationshipType);
   }
@@ -286,7 +286,8 @@ class MaintenanceServiceTest extends IntegrationTestBase {
             .deliveryChannels(Sets.newHashSet(DeliveryChannel.EMAIL))
             .event(event)
             .build();
-    long idA = eventService.addEvent(event);
+    manager.save(event);
+    long idA = event.getId();
     programMessageService.saveProgramMessage(message);
     assertNotNull(getEvent(idA));
     eventService.deleteEvent(event);
@@ -332,7 +333,7 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     eventA.setScheduledDate(enrollmentDate);
     eventA.setUid("UID-A");
     eventA.setAttributeOptionCombo(coA);
-    eventService.addEvent(eventA);
+    manager.save(eventA);
     TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog =
         new TrackedEntityDataValueChangeLog(
             dataElement, eventA, "value", "modifiedBy", false, ChangeLogType.UPDATE);
@@ -362,7 +363,8 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     eventA.setScheduledDate(enrollmentDate);
     eventA.setUid("UID-A");
     eventA.setAttributeOptionCombo(coA);
-    long idA = eventService.addEvent(eventA);
+    manager.save(eventA);
+    long idA = eventA.getId();
     Relationship r = new Relationship();
     RelationshipItem rItem1 = new RelationshipItem();
     rItem1.setEvent(eventA);

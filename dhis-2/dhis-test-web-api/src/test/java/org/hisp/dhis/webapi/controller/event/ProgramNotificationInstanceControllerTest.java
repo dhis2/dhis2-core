@@ -102,7 +102,7 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
     programNotificationInstanceService.save(enrollmentNotification2);
 
     event = createEvent(psA, enrollment, ouA);
-    eventService.addEvent(event);
+    manager.save(event);
     eventNotification = new ProgramNotificationInstance();
     eventNotification.setName("event A notification");
     eventNotification.setEvent(event);
