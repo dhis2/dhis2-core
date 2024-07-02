@@ -110,7 +110,8 @@ public enum Authorities {
   F_MOBILE_SETTINGS,
   F_PREVIOUS_IMPERSONATOR_AUTHORITY,
   // bundled authority,
-  M_DHIS_WEB_APP_MANAGEMENT("M_dhis-web-app-management");
+  M_DHIS_WEB_APP_MANAGEMENT("M_dhis-web-app-management"),
+  M_DHIS_WEB_LINE_LISTING("M_dhis-web-line-listing");
 
   private final String authorityName;
 
