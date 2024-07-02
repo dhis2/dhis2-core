@@ -2230,19 +2230,19 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202101", "J40PpdN4Wkk", "20.74", "11184.0", "539.34", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202101", "J40PpdN4Wkk", "21.08", "11184.0", "530.54", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202101", "b0EsAxm8Nge", "29.83", "16916.0", "567.0", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202101", "b0EsAxm8Nge", "30.33", "16916.0", "557.74", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202101", "jqBqIXoXpfy", "207.05", "12837.0", "62.0", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202101", "jqBqIXoXpfy", "210.48", "12837.0", "60.99", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202101", "nlX2VoouN63", "31.39", "7157.0", "228.0", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202101", "nlX2VoouN63", "31.91", "7157.0", "224.28", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
@@ -2262,163 +2262,163 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202103", "J40PpdN4Wkk", "24.99", "13480.0", "539.34", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202103", "J40PpdN4Wkk", "25.41", "13480.0", "530.54", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202103", "b0EsAxm8Nge", "36.93", "20940.0", "567.0", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202103", "b0EsAxm8Nge", "37.54", "20940.0", "557.74", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202103", "jqBqIXoXpfy", "239.92", "14875.0", "62.0", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202103", "jqBqIXoXpfy", "243.89", "14875.0", "60.99", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202103", "nlX2VoouN63", "35.71", "8143.0", "228.0", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202103", "nlX2VoouN63", "36.31", "8143.0", "224.28", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202104", "J40PpdN4Wkk", "24.7", "13324.0", "539.34", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202104", "J40PpdN4Wkk", "25.11", "13324.0", "530.54", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202104", "b0EsAxm8Nge", "29.52", "16739.0", "567.0", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202104", "b0EsAxm8Nge", "30.01", "16739.0", "557.74", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202104", "jqBqIXoXpfy", "214.85", "13321.0", "62.0", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202104", "jqBqIXoXpfy", "218.41", "13321.0", "60.99", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202104", "nlX2VoouN63", "29.25", "6669.0", "228.0", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202104", "nlX2VoouN63", "29.74", "6669.0", "224.28", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202105", "J40PpdN4Wkk", "30.27", "16324.0", "539.34", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202105", "J40PpdN4Wkk", "30.77", "16324.0", "530.54", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202105", "b0EsAxm8Nge", "48.89", "27723.0", "567.0", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202105", "b0EsAxm8Nge", "49.71", "27723.0", "557.74", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202105", "jqBqIXoXpfy", "256.47", "15901.0", "62.0", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202105", "jqBqIXoXpfy", "260.71", "15901.0", "60.99", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202105", "nlX2VoouN63", "38.5", "8777.0", "228.0", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202105", "nlX2VoouN63", "39.13", "8777.0", "224.28", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202106", "J40PpdN4Wkk", "27.09", "14611.0", "539.34", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202106", "J40PpdN4Wkk", "27.54", "14611.0", "530.54", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202106", "b0EsAxm8Nge", "43.33", "24567.0", "567.0", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202106", "b0EsAxm8Nge", "44.05", "24567.0", "557.74", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202106", "jqBqIXoXpfy", "261.56", "16217.0", "62.0", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202106", "jqBqIXoXpfy", "265.9", "16217.0", "60.99", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202106", "nlX2VoouN63", "38.82", "8851.0", "228.0", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202106", "nlX2VoouN63", "39.46", "8851.0", "224.28", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202107", "J40PpdN4Wkk", "29.71", "13560.0", "456.45", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202107", "J40PpdN4Wkk", "30.2", "13560.0", "449.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202107", "b0EsAxm8Nge", "4356.5", "22131.0", "5.08", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202107", "b0EsAxm8Nge", "4426.2", "22131.0", "5.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202107", "jqBqIXoXpfy", "56.02", "16173.0", "288.7", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202107", "jqBqIXoXpfy", "56.95", "16173.0", "284.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202107", "nlX2VoouN63", "23.12", "8204.0", "354.79", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202107", "nlX2VoouN63", "23.51", "8204.0", "349.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202108", "J40PpdN4Wkk", "32.17", "14684.0", "456.45", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202108", "J40PpdN4Wkk", "32.7", "14684.0", "449.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202108", "b0EsAxm8Nge", "4168.7", "21177.0", "5.08", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202108", "b0EsAxm8Nge", "4235.4", "21177.0", "5.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202108", "jqBqIXoXpfy", "52.63", "15194.0", "288.7", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202108", "jqBqIXoXpfy", "53.5", "15194.0", "284.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202108", "nlX2VoouN63", "22.47", "7971.0", "354.79", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202108", "nlX2VoouN63", "22.84", "7971.0", "349.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202109", "J40PpdN4Wkk", "33.8", "15427.0", "456.45", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202109", "J40PpdN4Wkk", "34.36", "15427.0", "449.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202109", "b0EsAxm8Nge", "4367.32", "22186.0", "5.08", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202109", "b0EsAxm8Nge", "4437.2", "22186.0", "5.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202109", "jqBqIXoXpfy", "55.22", "15941.0", "288.7", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202109", "jqBqIXoXpfy", "56.13", "15941.0", "284.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202109", "nlX2VoouN63", "21.2", "7523.0", "354.79", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202109", "nlX2VoouN63", "21.56", "7523.0", "349.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202110", "J40PpdN4Wkk", "20.8", "9495.0", "456.45", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202110", "J40PpdN4Wkk", "21.15", "9495.0", "449.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202110", "b0EsAxm8Nge", "3960.83", "20121.0", "5.08", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202110", "b0EsAxm8Nge", "4024.2", "20121.0", "5.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202110", "jqBqIXoXpfy", "43.02", "12421.0", "288.7", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202110", "jqBqIXoXpfy", "43.74", "12421.0", "284.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202110", "nlX2VoouN63", "11.84", "4201.0", "354.79", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202110", "nlX2VoouN63", "12.04", "4201.0", "349.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202111", "J40PpdN4Wkk", "19.27", "8797.0", "456.45", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202111", "J40PpdN4Wkk", "19.59", "8797.0", "449.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202111", "b0EsAxm8Nge", "4632.09", "23531.0", "5.08", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202111", "b0EsAxm8Nge", "4706.2", "23531.0", "5.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202111", "jqBqIXoXpfy", "65.21", "18825.0", "288.7", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202111", "jqBqIXoXpfy", "66.29", "18825.0", "284.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202111", "nlX2VoouN63", "13.04", "4626.0", "354.79", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202111", "nlX2VoouN63", "13.26", "4626.0", "349.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202112", "J40PpdN4Wkk", "26.56", "12122.0", "456.45", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202112", "J40PpdN4Wkk", "27.0", "12122.0", "449.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202112", "b0EsAxm8Nge", "2828.15", "14367.0", "5.08", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202112", "b0EsAxm8Nge", "2873.4", "14367.0", "5.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202112", "jqBqIXoXpfy", "37.78", "10908.0", "288.7", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202112", "jqBqIXoXpfy", "38.41", "10908.0", "284.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202112", "nlX2VoouN63", "11.38", "4036.0", "354.79", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202112", "nlX2VoouN63", "11.56", "4036.0", "349.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
