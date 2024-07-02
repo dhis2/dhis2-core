@@ -48,6 +48,7 @@ import static org.mockito.Mockito.when;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import javax.sql.rowset.RowSetMetaDataImpl;
@@ -60,6 +61,7 @@ import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.common.processing.HeaderParamsHandler;
 import org.hisp.dhis.analytics.common.processing.MetadataParamsHandler;
 import org.hisp.dhis.analytics.common.query.Field;
+import org.hisp.dhis.analytics.common.query.jsonextractor.SqlRowSetJsonExtractorDelegator;
 import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -108,7 +110,7 @@ class GridAdaptorTest extends DhisConvenienceTest {
     RowSetMetaDataImpl metaData = new RowSetMetaDataImpl();
     metaData.setColumnCount(2);
     metaData.setColumnName(1, "anyFakeCol-1");
-    metaData.setColumnName(2, "anyFakeCol-2");
+    metaData.setColumnName(2, "oucode");
 
     TeiQueryParams teiQueryParams =
         TeiQueryParams.builder()
@@ -122,7 +124,8 @@ class GridAdaptorTest extends DhisConvenienceTest {
     when(resultSet.getMetaData()).thenReturn(metaData);
 
     SqlRowSet sqlRowSet = new ResultSetWrappingSqlRowSet(resultSet);
-    SqlQueryResult mockSqlResult = new SqlQueryResult(sqlRowSet);
+    SqlQueryResult mockSqlResult =
+        new SqlQueryResult(new SqlRowSetJsonExtractorDelegator(sqlRowSet, Collections.emptyList()));
     long anyCount = 0;
 
     // When
@@ -159,7 +162,8 @@ class GridAdaptorTest extends DhisConvenienceTest {
     when(resultSet.getMetaData()).thenReturn(metaData);
 
     SqlRowSet sqlRowSet = new ResultSetWrappingSqlRowSet(resultSet);
-    SqlQueryResult mockSqlResult = new SqlQueryResult(sqlRowSet);
+    SqlQueryResult mockSqlResult =
+        new SqlQueryResult(new SqlRowSetJsonExtractorDelegator(sqlRowSet, Collections.emptyList()));
     long anyCount = 0;
 
     // When

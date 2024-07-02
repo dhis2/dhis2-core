@@ -80,6 +80,7 @@ import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.comparator.AscendingPeriodComparator;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -374,6 +375,9 @@ public class AnalyticsOutlierService {
                 .stream()
                 .map(p -> (Period) p);
 
-    return periodStream.map(IdentifiableObject::getName).findFirst().orElse(outlier.getPe());
+    return periodStream
+        .min(AscendingPeriodComparator.INSTANCE)
+        .map(Period::getName)
+        .orElse(outlier.getPe());
   }
 }

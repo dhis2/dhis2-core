@@ -157,6 +157,9 @@ public enum ValidationCode {
   E1312("Referral events need to have both sides of a relationship."),
   E1313(
       "Event {0} of an enrollment does not point to an existing tracked entity. The data in your system might be corrupted"),
+  E1315(
+      "Status `{0}` does not allow defining data values. Statuses that do allow defining data values are: {1}"),
+  E1316("No event can transition from status `{0}` to status `{1}.`"),
 
   /* Relationship */
   E4000("Relationship: `{0}` cannot link to itself"),

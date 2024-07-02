@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStage;
@@ -63,18 +64,18 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
 
   private static final String COMPLETED_EVENT_ID = "CompletedEventUid";
 
-  private static final String DATA_ELEMENT_ID = "DataElementId";
+  private static final UID DATA_ELEMENT_UID = UID.of("h4w96yEMlzO");
 
   private static final String DATA_ELEMENT_VALUE = "1.0";
 
-  private static final String RULE_UID = "Rule uid";
+  private static final UID RULE_UID = UID.of("TvctPPhpD8u");
 
   private static ProgramStage programStage;
 
   private static DataElement dataElement;
 
   private final SetMandatoryFieldExecutor executor =
-      new SetMandatoryFieldExecutor(RULE_UID, DATA_ELEMENT_ID);
+      new SetMandatoryFieldExecutor(RULE_UID, DATA_ELEMENT_UID);
 
   private TrackerBundle bundle;
 
@@ -85,7 +86,7 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
     programStage = createProgramStage('A', 0);
     programStage.setValidationStrategy(ValidationStrategy.ON_UPDATE_AND_INSERT);
     dataElement = createDataElement('A');
-    dataElement.setUid(DATA_ELEMENT_ID);
+    dataElement.setUid(DATA_ELEMENT_UID.getValue());
     ProgramStageDataElement programStageDataElementA =
         createProgramStageDataElement(programStage, dataElement, 0);
     programStage.setProgramStageDataElements(Set.of(programStageDataElementA));
@@ -97,7 +98,7 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
   @Test
   void shouldReturnNoErrorWhenMandatoryFieldIsPresentForEnrollment() {
     when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
-    when(preheat.getDataElement(DATA_ELEMENT_ID)).thenReturn(dataElement);
+    when(preheat.getDataElement(DATA_ELEMENT_UID.getValue())).thenReturn(dataElement);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
     bundle.setEvents(List.of(getEventWithMandatoryValueSet()));
 
@@ -112,7 +113,7 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
     TrackerIdSchemeParams idSchemes =
         TrackerIdSchemeParams.builder().dataElementIdScheme(TrackerIdSchemeParam.CODE).build();
     when(preheat.getIdSchemes()).thenReturn(idSchemes);
-    when(preheat.getDataElement(DATA_ELEMENT_ID)).thenReturn(dataElement);
+    when(preheat.getDataElement(DATA_ELEMENT_UID.getValue())).thenReturn(dataElement);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
     bundle.setEvents(List.of(getEventWithMandatoryValueSet(idSchemes)));
 
@@ -125,7 +126,7 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
   @Test
   void testValidateWithErrorMandatoryFieldsForEvents() {
     when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
-    when(preheat.getDataElement(DATA_ELEMENT_ID)).thenReturn(dataElement);
+    when(preheat.getDataElement(DATA_ELEMENT_UID.getValue())).thenReturn(dataElement);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
     bundle.setEvents(List.of(getEventWithMandatoryValueSet(), getEventWithMandatoryValueNOTSet()));
 
@@ -178,7 +179,7 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
     DataValue dataValue =
         DataValue.builder()
             .value(DATA_ELEMENT_VALUE)
-            .dataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_ID))
+            .dataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID.getValue()))
             .build();
     return Set.of(dataValue);
   }

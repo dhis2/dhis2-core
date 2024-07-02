@@ -31,6 +31,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static lombok.AccessLevel.PRIVATE;
 
+import com.google.common.collect.ImmutableMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -384,5 +385,21 @@ public class CollectionUtils {
       return elements.stream().anyMatch(el -> el.getUid().equals(element.getUid()));
     }
     return false;
+  }
+
+  /**
+   * Merges the given maps into a single map. The order of the maps is important, as the maps are
+   * merged in the order they are provided, meaning that the last map will override any duplicate
+   * keys from the previous maps.
+   *
+   * @param maps the maps to merge
+   * @param <T> the type of the keys and values in the maps
+   * @return the merged map
+   */
+  @SafeVarargs
+  public static <T> Map<T, T> merge(Map<T, T>... maps) {
+    Map<T, T> result = new HashMap<>();
+    Stream.of(maps).forEach(result::putAll);
+    return ImmutableMap.copyOf(result);
   }
 }
