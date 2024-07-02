@@ -154,6 +154,7 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
     manager.update(programStageA);
   }
 
+  @Test
   void shouldSendTrackerNotificationAtEnrollmentCompletionAndThenEventCompletion() {
     org.hisp.dhis.tracker.domain.Enrollment enrollment =
         org.hisp.dhis.tracker.domain.Enrollment.builder()
