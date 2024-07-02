@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,68 +25,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.datavalueset;
+package org.hisp.dhis.webapi.json.domain;
 
-/**
- * An entry in an {@link DataValueSet} while processing it in context of a {@link
- * DataValueSetReader} or {@link DataValueSetWriter}.
- *
- * @author Jan Bernitt
- */
-public interface DataValueEntry {
-  String getDataElement();
+import org.hisp.dhis.jsontree.JsonObject;
 
-  String getPeriod();
-
-  String getOrgUnit();
-
-  String getCategoryOptionCombo();
-
-  String getAttributeOptionCombo();
-
-  String getValue();
-
-  String getStoredBy();
-
-  String getCreated();
-
-  String getLastUpdated();
-
-  String getComment();
-
-  boolean getFollowup();
-
-  Boolean getDeleted();
-
-  default boolean hasLastUpdated() {
-    String updated = getLastUpdated();
-    return updated != null && !updated.isEmpty();
+public interface JsonDataValue extends JsonObject {
+  default String getDataElement() {
+    return getString("dataElement").string();
   }
 
-  default boolean hasCreated() {
-    String created = getCreated();
-    return created != null && !created.isEmpty();
+  default String getPeriod() {
+    return getString("period").string();
   }
 
-  default boolean hasStoredBy() {
-    String storedBy = getStoredBy();
-    return storedBy != null && !storedBy.isEmpty();
+  default String getOrgUnit() {
+    return getString("orgUnit").string();
   }
 
-  default String getPrimaryKey() {
-    return getDataElement()
-        + getPeriod()
-        + getOrgUnit()
-        + getCategoryOptionCombo()
-        + getAttributeOptionCombo();
+  default String getCategoryOptionCombo() {
+    return getString("categoryOptionCombo").string();
   }
 
-  default boolean isNullValue() {
-    return getValue() == null && getComment() == null;
+  default String getAttributeOptionCombo() {
+    return getString("attributeOptionCombo").string();
   }
 
-  default boolean isDeletedValue() {
-    Boolean deleted = getDeleted();
-    return deleted != null && deleted;
+  default String getValue() {
+    return getString("value").string();
+  }
+
+  default JsonLocalDateTime getCreated() {
+    return get("created", JsonLocalDateTime.class);
+  }
+
+  default JsonLocalDateTime getLastUpdated() {
+    return get("lastUpdated", JsonLocalDateTime.class);
+  }
+
+  default String getStoredBy() {
+    return getString("storedBy").string();
+  }
+
+  default String getComment() {
+    return getString("comment").string();
+  }
+
+  default String getFollowUp() {
+    return getString("followUp").string();
   }
 }
