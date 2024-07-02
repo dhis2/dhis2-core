@@ -27,12 +27,15 @@
  */
 package org.hisp.dhis.merge.dataelement.handler;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
+import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dataelement.DataElement;
@@ -52,6 +55,7 @@ import org.springframework.stereotype.Service;
 public class DataDataElementMergeHandler {
 
   private final DataValueStore dataValueStore;
+  private final EntityManager entityManager;
 
   /**
    * Method retrieving {@link DataValue}s by source {@link DataElement} references. All retrieved
@@ -86,14 +90,19 @@ public class DataDataElementMergeHandler {
               .collect(
                   Collectors.partitioningBy(dv -> dataValueDuplicates.test(dv, targetDataValues)));
 
-      handleNonDuplicates(sourceDuplicateList.get(false), sources, target);
-      handleDuplicates(sourceDuplicateList.get(true), targetDataValues, target);
+      if (!sourceDuplicateList.get(false).isEmpty())
+        handleNonDuplicates(sourceDuplicateList.get(false), sources, target);
+      if (!sourceDuplicateList.get(true).isEmpty())
+        handleDuplicates(sourceDuplicateList.get(true), targetDataValues, sources, target);
     }
   }
 
   /**
-   * Method to handle merging duplicate {@link DataValue}s. It will first compare the source {@link
-   * DataValue} lastUpdated date with the target {@link DataValue} lastUpdated date.
+   * Method to handle merging duplicate {@link DataValue}s. There may be multiple potential {@link
+   * DataValue} duplicates. The {@link DataValue} with the latest `lastUpdated` value is filtered
+   * out, the rest are then deleted at the end of the process (We can only have one of these entries
+   * due to the composite key constraint). The filtered-out {@link DataValue} will be compared with
+   * the target {@link DataValue} lastUpdated date.
    *
    * <p>If the target date is later, the source {@link DataValue} is deleted.
    *
@@ -104,41 +113,53 @@ public class DataDataElementMergeHandler {
    * DataElement} ref in a source {@link DataValue}. The matching target {@link DataValue}s will
    * then be deleted.
    *
-   * @param dataValues {@link DataValue}s to merge
+   * @param sourceDataValuesDuplicates {@link DataValue}s to merge
    * @param targetDataValues target {@link DataValue}s
+   * @param sources source {@link DataElement}s
    * @param target target {@link DataElement}
    */
   private void handleDuplicates(
-      @Nonnull List<DataValue> dataValues,
+      @Nonnull List<DataValue> sourceDataValuesDuplicates,
       @Nonnull List<DataValue> targetDataValues,
+      @Nonnull List<DataElement> sources,
       @Nonnull DataElement target) {
     log.info(
         "Updating "
-            + dataValues.size()
+            + sourceDataValuesDuplicates.size()
             + " duplicate data values, keeping later lastUpdated value");
-    dataValues.forEach(
-        sourceDataValue -> {
-          DataValue matchingTargetDataValue =
-              matchingDataValueUniqueKey.apply(targetDataValues, sourceDataValue);
 
-          if (matchingTargetDataValue.getLastUpdated().after(sourceDataValue.getLastUpdated())) {
-            log.info("target duplicate has later lastUpdated date, delete source data value");
-            dataValueStore.deleteDataValue(sourceDataValue);
-          } else {
-            log.info(
-                "target duplicate has earlier lastUpdated date, assign source data value with target and delete target data value");
-            DataValue copyWithNewDataElementRef =
-                DataValue.dataValueWithNewDataElement(sourceDataValue, target);
+    // get duplicate with latest last updated value
+    DataValue lastUpdateDataValue =
+        Collections.max(
+            sourceDataValuesDuplicates, Comparator.comparing(DataValue::getLastUpdated));
 
-            dataValueStore.addDataValue(copyWithNewDataElementRef);
-            dataValueStore.deleteDataValue(matchingTargetDataValue);
-          }
-        });
+    DataValue matchingTargetDataValue =
+        matchingDataValueUniqueKey.apply(targetDataValues, lastUpdateDataValue);
+
+    if (matchingTargetDataValue.getLastUpdated().after(lastUpdateDataValue.getLastUpdated())) {
+      log.info("target duplicate has later lastUpdated date, delete source data value");
+      dataValueStore.deleteDataValue(lastUpdateDataValue);
+    } else {
+      log.info(
+          "target duplicate has earlier lastUpdated date, assign source data value with target and delete target data value");
+      dataValueStore.deleteDataValue(matchingTargetDataValue);
+
+      // detaching is required here as it's not possible to add a new DataValue with essentially the
+      // same composite primary key - Throws `NonUniqueObjectException: A different object with the
+      // same identifier value was already associated with the session`
+      entityManager.detach(matchingTargetDataValue);
+      DataValue copyWithNewDataElementRef =
+          DataValue.dataValueWithNewDataElement(lastUpdateDataValue, target);
+      dataValueStore.addDataValue(copyWithNewDataElementRef);
+    }
+
+    // delete the rest of the source data values after handling the last update duplicate
+    sources.forEach(dataValueStore::deleteDataValues);
   }
 
   /**
    * Method to handle merging non-duplicate {@link DataValue}s. A new {@link DataValue} will be
-   * created from the old {@link DataValue} values and it will use the target {@link DataElement}
+   * created from the old {@link DataValue} values, and it will use the target {@link DataElement}
    * ref. This new {@link DataValue} will be saved to the database. This sequence is required as a
    * {@link DataValue} has a composite primary key which includes {@link DataElement}. This
    * prohibits updating the {@link DataElement} ref in a source {@link DataValue}.

@@ -28,6 +28,7 @@
 package org.hisp.dhis.merge.dataelement.handler;
 
 import java.util.List;
+import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.UID;
@@ -64,6 +65,7 @@ public class TrackerDataElementMergeHandler {
   private final ProgramRuleActionService programRuleActionService;
   private final ProgramIndicatorStore programIndicatorStore;
   private final EventStore eventStore;
+  private final EntityManager entityManager;
 
   /**
    * Method retrieving {@link ProgramIndicator}s which have a source {@link DataElement} reference
@@ -193,6 +195,11 @@ public class TrackerDataElementMergeHandler {
    * eventDataValues property. All retrieved {@link Event}s will have their {@link DataElement} ref
    * in eventDataValues replaced with the target {@link DataElement}.
    *
+   * <p>A native query to retrieve events is required here as Hibernate does not support json
+   * functions. Because of this, all events are then updated at the end of this method using the
+   * entity manager to bring the system to a consistent state, which should prevent inconsistent
+   * state between Hibernate/JPA
+   *
    * @param sources source {@link DataElement}s used to retrieve {@link Event}s
    * @param target {@link DataElement} which will be set as the {@link DataElement} in {@link Event}
    *     eventDataValues
@@ -204,5 +211,7 @@ public class TrackerDataElementMergeHandler {
         .flatMap(e -> e.getEventDataValues().stream())
         .filter(edv -> sourceDeUids.contains(edv.getDataElement()))
         .forEach(edv -> edv.setDataElement(target.getUid()));
+
+    events.forEach(entityManager::merge);
   }
 }

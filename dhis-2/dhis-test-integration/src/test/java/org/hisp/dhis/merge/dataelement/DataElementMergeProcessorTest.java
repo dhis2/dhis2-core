@@ -59,6 +59,8 @@ import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.DataSetStore;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.SectionService;
+import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationStore;
@@ -76,6 +78,7 @@ import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.predictor.Predictor;
@@ -100,9 +103,10 @@ import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.code.SMSCode;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
+import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -118,7 +122,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * <p>- Check that source DataElements have had their references removed/replaced with the target
  * DataElement
  */
-class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
+class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private DataElementService dataElementService;
   @Autowired private DataElementMergeProcessor mergeProcessor;
@@ -145,6 +149,7 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
   @Autowired private ProgramIndicatorStore programIndicatorStore;
   @Autowired private EventStore eventStore;
   @Autowired private DataDimensionItemStore dataDimensionItemStore;
+  @Autowired private DataValueStore dataValueStore;
 
   private DataElement deSource1;
   private DataElement deSource2;
@@ -1344,6 +1349,7 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     edvs1.add(edv1);
     edvs1.add(edv11);
     edvs1.add(edv2);
+    edvs1.add(edv3);
     Set<EventDataValue> edvs2 = new HashSet<>();
     Set<EventDataValue> edvs3 = new HashSet<>();
     Set<EventDataValue> edvs4 = new HashSet<>();
@@ -1371,9 +1377,22 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
         eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(List.of(deTarget.getUid()));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
-    assertMergeSuccessfulSourcesNotDeleted(report, eventSources, eventTarget, allDataElements);
+    List<EventDataValue> allTargetEventDataValues =
+        eventTarget.stream().flatMap(e -> e.getEventDataValues().stream()).toList();
+    assertEquals(3, allTargetEventDataValues.size());
+    eventDataValuesShouldHaveOnlyOneUniqueDataElementRef(eventTarget, deTarget.getUid());
 
-    // TODO check how duplicate event data values were handled (last entry?)
+    assertMergeSuccessfulSourcesNotDeleted(report, eventSources, eventTarget, allDataElements);
+  }
+
+  private void eventDataValuesShouldHaveOnlyOneUniqueDataElementRef(
+      List<Event> eventTarget, String targetUid) {
+    for (Event e : eventTarget) {
+      assertEquals(1, e.getEventDataValues().size());
+      assertEquals(
+          targetUid,
+          e.getEventDataValues().stream().map(EventDataValue::getDataElement).toList().get(0));
+    }
   }
 
   @Test
@@ -1406,6 +1425,7 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     edvs1.add(edv1);
     edvs1.add(edv11);
     edvs1.add(edv2);
+    edvs1.add(edv3);
     Set<EventDataValue> edvs2 = new HashSet<>();
     Set<EventDataValue> edvs3 = new HashSet<>();
     Set<EventDataValue> edvs4 = new HashSet<>();
@@ -2213,14 +2233,180 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     assertMergeSuccessfulSourcesDeleted(report, sourceItems, targetItems, allDataElements);
   }
 
+  // ------------------------
+  // -- DataValue --
+  // ------------------------
+  @Test
+  @DisplayName(
+      "Non-duplicate DataValues with references for DataElement are merged as expected using LAST_UPDATED strategy")
+  void dataValueMergeLastUpdatedTest() throws ConflictException {
+    // given
+    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
+    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    Period p2 = createPeriod(DateUtils.parseDate("2024-2-4"), DateUtils.parseDate("2024-2-4"));
+    p2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    Period p3 = createPeriod(DateUtils.parseDate("2024-3-4"), DateUtils.parseDate("2024-3-4"));
+    p3.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    identifiableObjectManager.save(List.of(p1, p2, p3));
+
+    DataValue dv1 = createDataValue(deSource1, p1, ou1, "value1", coc1);
+    DataValue dv2 = createDataValue(deSource2, p2, ou1, "value2", coc1);
+    DataValue dv3 = createDataValue(deTarget, p3, ou1, "value3", coc1);
+
+    dataValueStore.addDataValue(dv1);
+    dataValueStore.addDataValue(dv2);
+    dataValueStore.addDataValue(dv3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<DataValue> sourceItems =
+        dataValueStore.getAllDataValuesByDataElement(List.of(deSource1, deSource2));
+    List<DataValue> targetItems = dataValueStore.getAllDataValuesByDataElement(List.of(deTarget));
+
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertMergeSuccessfulSourcesNotDeleted(report, sourceItems, targetItems, allDataElements);
+  }
+
+  @Test
+  @DisplayName(
+      "Duplicate DataValues with references for DataElement are merged as expected using LAST_UPDATED strategy")
+  void duplicateDataValueMergeLastUpdatedTest() throws ConflictException {
+    // given
+    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
+    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    identifiableObjectManager.save(p1);
+
+    // data values have the same (period, orgUnit, coc, aoc) triggering duplicate merge path
+    DataValue dv1 = createDataValue(deSource1, p1, ou1, "value1", coc1);
+    dv1.setLastUpdated(DateUtils.parseDate("2024-6-8"));
+    DataValue dv2 = createDataValue(deSource2, p1, ou1, "value2", coc1);
+    dv2.setLastUpdated(DateUtils.parseDate("2021-6-18"));
+    DataValue dv3 = createDataValue(deTarget, p1, ou1, "value3", coc1);
+    dv3.setLastUpdated(DateUtils.parseDate("2022-4-15"));
+
+    dataValueStore.addDataValue(dv1);
+    dataValueStore.addDataValue(dv2);
+    dataValueStore.addDataValue(dv3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then there should be no source data values present
+    List<DataValue> sourceItems =
+        dataValueStore.getAllDataValuesByDataElement(List.of(deSource1, deSource2));
+    // and only 1 target data value (as 3 duplicates merged using last updated value)
+    List<DataValue> targetItems = dataValueStore.getAllDataValuesByDataElement(List.of(deTarget));
+
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, sourceItems.size(), "Expect 0 entries with source data element refs");
+    assertEquals(1, targetItems.size(), "Expect 1 entry with target data element refs");
+    assertEquals(
+        DateUtils.parseDate("2024-6-8"),
+        targetItems.get(0).getLastUpdated(),
+        "It should be the latest lastUpdated value from duplicate data values");
+    assertEquals(4, allDataElements.size(), "Expect 4 data elements present");
+    assertTrue(allDataElements.containsAll(List.of(deTarget, deSource1, deSource2)));
+  }
+
+  @Test
+  @DisplayName(
+      "DataValues with references for DataElement are merged as expected using DISCARD strategy")
+  void dataValueMergeDiscardTest() throws ConflictException {
+    // given
+    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
+    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    Period p2 = createPeriod(DateUtils.parseDate("2024-2-4"), DateUtils.parseDate("2024-2-4"));
+    p2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    Period p3 = createPeriod(DateUtils.parseDate("2024-3-4"), DateUtils.parseDate("2024-3-4"));
+    p3.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    identifiableObjectManager.save(List.of(p1, p2, p3));
+
+    DataValue dv1 = createDataValue(deSource1, p1, ou1, "value1", coc1);
+    DataValue dv2 = createDataValue(deSource2, p2, ou1, "value2", coc1);
+    DataValue dv3 = createDataValue(deTarget, p3, ou1, "value3", coc1);
+
+    dataValueStore.addDataValue(dv1);
+    dataValueStore.addDataValue(dv2);
+    dataValueStore.addDataValue(dv3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDataMergeStrategy(DataMergeStrategy.DISCARD);
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<DataValue> sourceItems =
+        dataValueStore.getAllDataValuesByDataElement(List.of(deSource1, deSource2));
+    List<DataValue> targetItems = dataValueStore.getAllDataValuesByDataElement(List.of(deTarget));
+
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, sourceItems.size(), "Expect 0 entries with source data element refs");
+    assertEquals(1, targetItems.size(), "Expect 1 entry with target data element ref only");
+    assertEquals(4, allDataElements.size(), "Expect 4 data elements present");
+    assertTrue(allDataElements.containsAll(List.of(deTarget, deSource1, deSource2)));
+  }
+
+  @Test
+  @DisplayName(
+      "DataValues with references for DataElement are replaced as expected, source DataElements are deleted")
+  void dataValueMergeSourcesDeletedTest() throws ConflictException {
+    // given
+    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
+    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    Period p2 = createPeriod(DateUtils.parseDate("2024-2-4"), DateUtils.parseDate("2024-2-4"));
+    p2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    Period p3 = createPeriod(DateUtils.parseDate("2024-3-4"), DateUtils.parseDate("2024-3-4"));
+    p3.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    identifiableObjectManager.save(List.of(p1, p2, p3));
+
+    DataValue dv1 = createDataValue(deSource1, p1, ou1, "value1", coc1);
+    DataValue dv2 = createDataValue(deSource2, p2, ou1, "value2", coc1);
+    DataValue dv3 = createDataValue(deTarget, p3, ou1, "value3", coc1);
+
+    dataValueStore.addDataValue(dv1);
+    dataValueStore.addDataValue(dv2);
+    dataValueStore.addDataValue(dv3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDeleteSources(true);
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<DataValue> sourceItems =
+        dataValueStore.getAllDataValuesByDataElement(List.of(deSource1, deSource2));
+    List<DataValue> targetItems = dataValueStore.getAllDataValuesByDataElement(List.of(deTarget));
+
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertMergeSuccessfulSourcesDeleted(report, sourceItems, targetItems, allDataElements);
+  }
+
   private void assertMergeSuccessfulSourcesNotDeleted(
       MergeReport report,
       Collection<?> sources,
       Collection<?> target,
       Collection<DataElement> dataElements) {
     assertFalse(report.hasErrorMessages());
-    assertEquals(0, sources.size(), "Expect 0 source data elements present");
-    assertEquals(3, target.size(), "Expect 3 target data elements present");
+    assertEquals(0, sources.size(), "Expect 0 entries with source data element refs");
+    assertEquals(3, target.size(), "Expect 3 entries with target data element refs");
     assertEquals(4, dataElements.size(), "Expect 4 data elements present");
     assertTrue(dataElements.containsAll(List.of(deTarget, deSource1, deSource2)));
   }
@@ -2231,8 +2417,8 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
       Collection<?> target,
       Collection<DataElement> dataElements) {
     assertFalse(report.hasErrorMessages());
-    assertEquals(0, sources.size(), "Expect 0 source data elements present");
-    assertEquals(3, target.size(), "Expect 3 target data elements present");
+    assertEquals(0, sources.size(), "Expect 0 entries with source data element refs");
+    assertEquals(3, target.size(), "Expect 3 entries with target data element refs");
     assertEquals(2, dataElements.size(), "Expect 2 data elements present");
     assertTrue(dataElements.contains(deTarget));
   }
