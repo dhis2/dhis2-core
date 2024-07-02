@@ -155,6 +155,9 @@ public class CommonRequestParams {
   /** Indicates if additional ou hierarchy data should be provided. */
   private boolean showHierarchy;
 
+  /** Indicates if this request contains one or more programs as URL params. */
+  private boolean requestPrograms;
+
   /** The page number. Default page is 1. */
   private Integer page = 1;
 
