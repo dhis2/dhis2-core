@@ -226,17 +226,6 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   }
 
   @Override
-  public <T extends IdentifiableObject> List<T> findByUser(Class<T> type, @Nonnull User user) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return findByUser(store, user);
-  }
-
-  @Override
   public <T extends IdentifiableObject> boolean existsByUser(Class<T> type, @Nonnull User user) {
     IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
 
@@ -1235,36 +1224,6 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
           }
           return store;
         });
-  }
-
-  /**
-   * Look up list objects by property createdBy or lastUpdatedBy. Among those properties, only
-   * persisted ones will be used for looking up.
-   *
-   * @param store the store to be used for looking up objects.
-   * @param user the {@link User} that is linked to createdBy or lastUpdateBy property.
-   * @return list of {@link IdentifiableObject} found.
-   */
-  private <T extends IdentifiableObject> List<T> findByUser(
-      IdentifiableObjectStore<T> store, User user) {
-    Schema schema = schemaService.getDynamicSchema(store.getClazz());
-    boolean hasCreatedBy = schema.getPersistedProperty(BaseIdentifiableObject_.CREATED_BY) != null;
-    boolean hasLastUpdatedBy =
-        schema.getPersistedProperty(BaseIdentifiableObject_.LAST_UPDATED_BY) != null;
-
-    UserDetails userToSearch = UserDetails.fromUser(user);
-    if (userToSearch == null)
-      throw new IllegalArgumentException(
-          "Nonnull UserDetails required when calling IdentifiableObjetStore methods");
-    if (hasCreatedBy && hasLastUpdatedBy) {
-      return store.findByUser(userToSearch);
-    } else if (hasLastUpdatedBy) {
-      return store.findByLastUpdatedBy(userToSearch);
-    } else if (hasCreatedBy) {
-      return store.findByCreatedBy(userToSearch);
-    }
-
-    return List.of();
   }
 
   /**
