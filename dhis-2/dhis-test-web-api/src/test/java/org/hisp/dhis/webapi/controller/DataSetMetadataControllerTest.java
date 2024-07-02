@@ -36,6 +36,7 @@ import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.web.WebClient;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -68,6 +69,37 @@ class DataSetMetadataControllerTest extends DhisControllerIntegrationTest {
             .filter(cc -> cc.getString("name").string().equals("default"))
             .count();
     assertEquals(expectedDefaultCatComboCount, count, defaultCatComboCondition);
+  }
+
+  @Test
+  @DisplayName("Dataset display options are correctly saved and retrieved")
+  void getDatasetMetadataDisplayOptionsTest() {
+    String expectedDisplayOptions = "{\"aDisplay\": \"option\"}";
+    String dataSetsBody =
+        """
+            {
+              "dataSets": [
+                {
+                  "name": "hellobrenda",
+                  "shortName": "hellobrenda",
+                  "periodType": "Daily",
+                  "displayOptions": "{\\"aDisplay\\": \\"option\\"}"
+                }
+              ]
+            }
+        """;
+
+    // given
+    POST("/metadata", WebClient.Body(dataSetsBody)).content(HttpStatus.OK);
+
+    // when the data entry metadata is retrieves
+    JsonObject dataEntryMetadata = GET("/dataEntry/metadata").content();
+    JsonArray dataSets = dataEntryMetadata.getArray("dataSets");
+    String actualDisplayOptions = dataSets.getObject(0).getString("displayOptions").string();
+
+    // then
+    assertEquals(1, dataSets.size());
+    assertEquals(expectedDisplayOptions, actualDisplayOptions);
   }
 
   private static Stream<Arguments> defaultCatComboData() {
