@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.programrule.implementers;
 
 import static org.hisp.dhis.rules.models.AttributeType.DATA_ELEMENT;
 import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1301;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -38,6 +39,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
@@ -50,6 +52,7 @@ import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.DataValue;
@@ -64,6 +67,9 @@ import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -106,6 +112,32 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest {
 
   @Mock private TrackerPreheat preheat;
 
+  public static Stream<Arguments> transactionsCreatingDataValues() {
+    return Stream.of(
+        Arguments.of(EventStatus.SCHEDULE, EventStatus.ACTIVE),
+        Arguments.of(EventStatus.SCHEDULE, EventStatus.COMPLETED),
+        Arguments.of(EventStatus.SCHEDULE, EventStatus.VISITED),
+        Arguments.of(EventStatus.OVERDUE, EventStatus.ACTIVE),
+        Arguments.of(EventStatus.OVERDUE, EventStatus.COMPLETED),
+        Arguments.of(EventStatus.OVERDUE, EventStatus.VISITED),
+        Arguments.of(EventStatus.SKIPPED, EventStatus.ACTIVE),
+        Arguments.of(EventStatus.SKIPPED, EventStatus.COMPLETED),
+        Arguments.of(EventStatus.SKIPPED, EventStatus.VISITED));
+  }
+
+  public static Stream<Arguments> transactionsNotCreatingDataValues() {
+    return Stream.of(
+        Arguments.of(EventStatus.ACTIVE, EventStatus.ACTIVE),
+        Arguments.of(EventStatus.ACTIVE, EventStatus.COMPLETED),
+        Arguments.of(EventStatus.ACTIVE, EventStatus.VISITED),
+        Arguments.of(EventStatus.VISITED, EventStatus.ACTIVE),
+        Arguments.of(EventStatus.VISITED, EventStatus.COMPLETED),
+        Arguments.of(EventStatus.VISITED, EventStatus.VISITED),
+        Arguments.of(EventStatus.COMPLETED, EventStatus.ACTIVE),
+        Arguments.of(EventStatus.COMPLETED, EventStatus.COMPLETED),
+        Arguments.of(EventStatus.COMPLETED, EventStatus.VISITED));
+  }
+
   @BeforeEach
   void setUpTest() {
     firstProgramStage = createProgramStage('A', 0);
@@ -128,6 +160,49 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest {
 
     bundle = TrackerBundle.builder().build();
     bundle.setPreheat(preheat);
+  }
+
+  @ParameterizedTest
+  @MethodSource("transactionsCreatingDataValues")
+  void shouldFailValidationWhenMandatoryFieldIsNotPresentAndDataValuesAreCreated(
+      EventStatus savedStatus, EventStatus newStatus) {
+    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
+    when(preheat.getDataElement(DATA_ELEMENT_ID)).thenReturn(dataElementA);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(firstProgramStage.getUid())))
+        .thenReturn(firstProgramStage);
+    Event event = getEventWithMandatoryValueNOTSet(newStatus);
+    when(preheat.getEvent(event.getUid())).thenReturn(event(event.getUid(), savedStatus));
+    bundle.setEvents(List.of(event));
+    bundle.setStrategy(event, TrackerImportStrategy.UPDATE);
+    List<ProgramRuleIssue> programRuleIssues =
+        implementerToTest.validateEvent(bundle, getRuleEventEffects(), event);
+
+    assertFalse(programRuleIssues.isEmpty());
+    programRuleIssues.forEach(
+        e -> {
+          assertEquals("RULE_DATA_VALUE", e.getRuleUid());
+          assertEquals(E1301, e.getIssueCode());
+          assertEquals(IssueType.ERROR, e.getIssueType());
+          assertEquals(Lists.newArrayList(dataElementA.getUid()), e.getArgs());
+        });
+  }
+
+  @ParameterizedTest
+  @MethodSource("transactionsNotCreatingDataValues")
+  void shouldPassValidationWhenMandatoryFieldIsNotPresentAndStrategyIsUpdate(
+      EventStatus savedStatus, EventStatus newStatus) {
+    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
+    when(preheat.getDataElement(DATA_ELEMENT_ID)).thenReturn(dataElementA);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(firstProgramStage.getUid())))
+        .thenReturn(firstProgramStage);
+    Event event = getEventWithMandatoryValueNOTSet(savedStatus);
+    when(preheat.getEvent(event.getUid())).thenReturn(event(event.getUid(), newStatus));
+    bundle.setEvents(List.of(event));
+    bundle.setStrategy(event, TrackerImportStrategy.UPDATE);
+    List<ProgramRuleIssue> programRuleIssues =
+        implementerToTest.validateEvent(bundle, getRuleEventEffects(), event);
+
+    assertTrue(programRuleIssues.isEmpty());
   }
 
   @Test
@@ -184,7 +259,7 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest {
     errors.forEach(
         e -> {
           assertEquals("RULE_DATA_VALUE", e.getRuleUid());
-          assertEquals(TrackerErrorCode.E1301, e.getIssueCode());
+          assertEquals(E1301, e.getIssueCode());
           assertEquals(IssueType.ERROR, e.getIssueType());
           assertEquals(Lists.newArrayList(dataElementA.getUid()), e.getArgs());
         });
@@ -273,6 +348,14 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest {
         });
   }
 
+  private org.hisp.dhis.program.ProgramStageInstance event(String uid, EventStatus status) {
+    org.hisp.dhis.program.ProgramStageInstance event =
+        new org.hisp.dhis.program.ProgramStageInstance();
+    event.setUid(uid);
+    event.setStatus(status);
+    return event;
+  }
+
   private Event getEventWithMandatoryValueSet(TrackerIdSchemeParams idSchemes) {
     return Event.builder()
         .event(FIRST_EVENT_ID)
@@ -323,6 +406,14 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest {
             .dataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_ID))
             .build();
     return Sets.newHashSet(dataValue);
+  }
+
+  private Event getEventWithMandatoryValueNOTSet(EventStatus status) {
+    return Event.builder()
+        .event(SECOND_EVENT_ID)
+        .status(status)
+        .programStage(MetadataIdentifier.ofUid(firstProgramStage))
+        .build();
   }
 
   private Enrollment getEnrollmentWithMandatoryAttributeSet(TrackerIdSchemeParams idSchemes) {
