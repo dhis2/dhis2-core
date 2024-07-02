@@ -57,6 +57,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItemMethod;
 import org.hisp.dhis.parser.expression.ProgramExpressionParams;
+import org.hisp.dhis.parser.expression.literal.NumericLiteral;
 import org.hisp.dhis.parser.expression.literal.SqlLiteral;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -202,9 +203,19 @@ class ProgramSqlGeneratorItemsTest extends TestBase {
     assertThrows(org.hisp.dhis.antlr.ParserException.class, () -> test("I{notValidItm}"));
   }
 
+  @Test
+  void testNumericExpression() {
+    String sql = testNumeric("1/2");
+    assertThat(sql, is("1::numeric / 2::numeric"));
+  }
+
   // -------------------------------------------------------------------------
   // Supportive methods
   // -------------------------------------------------------------------------
+
+  private String testNumeric(String expression) {
+    return castString(test(expression, new NumericLiteral(), ITEM_GET_SQL));
+  }
 
   private String test(String expression) {
     test(expression, new DefaultLiteral(), ITEM_GET_DESCRIPTIONS);
