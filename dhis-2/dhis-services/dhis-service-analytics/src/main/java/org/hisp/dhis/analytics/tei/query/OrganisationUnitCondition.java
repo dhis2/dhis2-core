@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
-import static org.hisp.dhis.analytics.common.CommonQueryRequest.DEFAULT_ORG_UNIT_SELECTION_MODE;
+import static org.hisp.dhis.analytics.common.CommonRequestParams.DEFAULT_ORG_UNIT_SELECTION_MODE;
 import static org.hisp.dhis.analytics.common.ValueTypeMapping.STRING;
 import static org.hisp.dhis.analytics.common.query.RenderableHelper.FALSE_CONDITION;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
@@ -42,7 +42,8 @@ import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.analytics.common.params.CommonParams;
+import org.hisp.dhis.analytics.common.CommonRequestParams;
+import org.hisp.dhis.analytics.common.ContextParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.query.BaseRenderable;
@@ -50,7 +51,6 @@ import org.hisp.dhis.analytics.common.query.BinaryConditionRenderer;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.OrCondition;
 import org.hisp.dhis.analytics.common.query.Renderable;
-import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -130,10 +130,9 @@ public class OrganisationUnitCondition extends BaseRenderable {
   }
 
   private OrganisationUnitSelectionMode getOuMode() {
-    return Optional.of(queryContext)
-        .map(QueryContext::getTeiQueryParams)
-        .map(TeiQueryParams::getCommonParams)
-        .map(CommonParams::getOuMode)
+    return Optional.of(queryContext.getContextParams())
+        .map(ContextParams::getCommonRaw)
+        .map(CommonRequestParams::getOuMode)
         .filter(ACCEPTED_OU_MODES::contains)
         .orElse(DEFAULT_ORG_UNIT_SELECTION_MODE);
   }

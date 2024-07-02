@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,18 +30,19 @@ package org.hisp.dhis.analytics.common.processing;
 import javax.annotation.Nonnull;
 
 /**
- * Interface responsible for processing and/or transforming the internals of objects of the given
- * type.
+ * Interface responsible for mapping and/or transforming a given input object into its parsed
+ * version. type.
  *
- * @param <T>
+ * @param <I> the input object.
+ * @param <P> the parsed version.
  */
-public interface Processor<T> {
+public interface Parser<I, P> {
   /**
-   * Processes the given object based on the implementation logic/rules.
+   * Parses the given object based on the implementation logic/rules.
    *
-   * @param object to be processed.
-   * @return the processed object T.
+   * @param object the input object to be parsed.
+   * @return the parsed object P.
    */
   @Nonnull
-  T process(@Nonnull T object);
+  P parse(@Nonnull I object);
 }

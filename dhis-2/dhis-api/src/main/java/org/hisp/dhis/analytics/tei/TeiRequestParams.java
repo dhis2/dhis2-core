@@ -37,6 +37,6 @@ import lombok.With;
 @Setter
 @With
 @AllArgsConstructor
-public class TeiQueryRequest {
+public class TeiRequestParams {
   private String trackedEntityType;
 }

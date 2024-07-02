@@ -41,6 +41,9 @@ import static org.mockito.Mockito.when;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
+import org.hisp.dhis.analytics.common.scheme.SchemeInfo;
+import org.hisp.dhis.analytics.common.scheme.SchemeInfo.Data;
+import org.hisp.dhis.analytics.common.scheme.SchemeInfo.Settings;
 import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
@@ -121,6 +124,8 @@ class DefaultEventAnalyticsServiceTest {
     OrganisationUnit mockOrgUnit = createOrganisationUnit('A');
     Program mockProgram = createProgram('A', null, null, Sets.newHashSet(mockOrgUnit), null);
     EventQueryParams mockParams = mockEventQueryParams(mockOrgUnit, mockProgram, codeScheme);
+    SchemeInfo mockSchemeInfo =
+        new SchemeInfo(mockSchemeSettings(mockParams), mockDataSettings(mockParams));
 
     doNothing().when(securityManager).decideAccessEventQuery(mockParams);
     when(securityManager.withUserConstraints(mockParams)).thenReturn(mockParams);
@@ -129,7 +134,7 @@ class DefaultEventAnalyticsServiceTest {
 
     defaultEventAnalyticsService.getEvents(mockParams);
 
-    verify(schemeIdResponseMapper, atMost(1)).getSchemeIdResponseMap(mockParams);
+    verify(schemeIdResponseMapper, atMost(1)).getSchemeIdResponseMap(mockSchemeInfo);
   }
 
   @Test
@@ -138,6 +143,8 @@ class DefaultEventAnalyticsServiceTest {
     OrganisationUnit mockOrgUnit = createOrganisationUnit('A');
     Program mockProgram = createProgram('A', null, null, Sets.newHashSet(mockOrgUnit), null);
     EventQueryParams mockParams = mockEventQueryParams(mockOrgUnit, mockProgram, noScheme);
+    SchemeInfo mockSchemeInfo =
+        new SchemeInfo(mockSchemeSettings(mockParams), mockDataSettings(mockParams));
 
     doNothing().when(securityManager).decideAccessEventQuery(mockParams);
     when(securityManager.withUserConstraints(mockParams)).thenReturn(mockParams);
@@ -146,7 +153,7 @@ class DefaultEventAnalyticsServiceTest {
 
     defaultEventAnalyticsService.getEvents(mockParams);
 
-    verify(schemeIdResponseMapper, never()).getSchemeIdResponseMap(mockParams);
+    verify(schemeIdResponseMapper, never()).getSchemeIdResponseMap(mockSchemeInfo);
   }
 
   private EventQueryParams mockEventQueryParams(
@@ -158,5 +165,16 @@ class DefaultEventAnalyticsServiceTest {
         .withProgram(mockProgram)
         .withOutputIdScheme(scheme)
         .build();
+  }
+
+  private Data mockDataSettings(EventQueryParams eventQueryParams) {
+    return Data.builder()
+        .program(eventQueryParams.getProgram())
+        .organizationUnits(eventQueryParams.getOrganisationUnits())
+        .build();
+  }
+
+  private Settings mockSchemeSettings(EventQueryParams eventQueryParams) {
+    return Settings.builder().outputIdScheme(eventQueryParams.getOutputIdScheme()).build();
   }
 }

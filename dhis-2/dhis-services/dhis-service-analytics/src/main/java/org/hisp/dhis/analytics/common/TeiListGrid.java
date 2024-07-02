@@ -38,11 +38,14 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.query.jsonextractor.SqlRowSetJsonExtractorDelegator;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
+import org.hisp.dhis.analytics.tei.TeiRequestParams;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.ValueType;
@@ -56,11 +59,15 @@ public class TeiListGrid extends ListGrid {
   private static final List<ValueType> ROUNDABLE_TYPES =
       List.of(ValueType.PERCENTAGE, ValueType.NUMBER);
 
-  @JsonIgnore private final transient TeiQueryParams teiQueryParams;
+  @JsonIgnore private final transient ContextParams<TeiRequestParams, TeiQueryParams> contextParams;
+  @JsonIgnore private final transient CommonRequestParams commonRequestParams;
+  @JsonIgnore private final transient CommonParsedParams commonParsedParams;
 
-  public TeiListGrid(TeiQueryParams teiQueryParams) {
+  public TeiListGrid(@Nonnull ContextParams<TeiRequestParams, TeiQueryParams> contextParams) {
     super();
-    this.teiQueryParams = teiQueryParams;
+    this.contextParams = contextParams;
+    this.commonRequestParams = contextParams.getCommonRaw();
+    this.commonParsedParams = contextParams.getCommonParsed();
   }
 
   /**
@@ -86,25 +93,21 @@ public class TeiListGrid extends ListGrid {
           String columnLabel = cols[i];
 
           boolean columnHasLegendSet =
-              teiQueryParams
-                  .getCommonParams()
+              commonParsedParams
                   .streamDimensions()
                   .filter(DimensionIdentifier::hasLegendSet)
                   .map(DimensionIdentifier::getKey)
                   .anyMatch(columnLabel::equals);
 
           boolean columnHasOptionSet =
-              teiQueryParams
-                  .getCommonParams()
+              commonParsedParams
                   .streamDimensions()
                   .filter(DimensionIdentifier::hasOptionSet)
                   .map(DimensionIdentifier::getKey)
                   .anyMatch(columnLabel::equals);
 
           boolean skipRounding =
-              teiQueryParams.getCommonParams().isSkipRounding()
-                  || columnHasLegendSet
-                  || columnHasOptionSet;
+              commonRequestParams.isSkipRounding() || columnHasLegendSet || columnHasOptionSet;
 
           Object value =
               getValueAndRoundIfNecessary(
@@ -151,7 +154,7 @@ public class TeiListGrid extends ListGrid {
       return null;
     }
     double doubleValue = Double.parseDouble(value.toString());
-    if (teiQueryParams.getCommonParams().isSkipRounding()) {
+    if (commonRequestParams.isSkipRounding()) {
       return doubleValue;
     }
     return MathUtils.getRounded(doubleValue);
@@ -162,8 +165,7 @@ public class TeiListGrid extends ListGrid {
   }
 
   private ValueType getValueType(String col) {
-    return teiQueryParams
-        .getCommonParams()
+    return commonParsedParams
         .streamDimensions()
         .filter(d -> d.toString().equals(col))
         .findFirst()

@@ -48,7 +48,7 @@ public class GeometryOnlyQueryBuilder extends SqlQueryBuilderAdaptor {
   @Override
   protected Stream<GroupableCondition> getWhereClauses(
       QueryContext queryContext, List<DimensionIdentifier<DimensionParam>> unused) {
-    if (queryContext.getTeiQueryParams().getCommonParams().isGeometryOnly()) {
+    if (queryContext.getContextParams().getCommonRaw().isGeometryOnly()) {
       return Stream.of(ofUngroupedCondition(GeometryOnlyCondition.INSTANCE));
     }
     return Stream.empty();

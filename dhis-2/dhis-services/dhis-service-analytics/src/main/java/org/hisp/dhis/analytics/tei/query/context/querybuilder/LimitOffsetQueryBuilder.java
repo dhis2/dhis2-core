@@ -48,7 +48,7 @@ public class LimitOffsetQueryBuilder implements SqlQueryBuilder {
       List<DimensionIdentifier<DimensionParam>> unusedOne,
       List<AnalyticsSortingParams> unusedTwo) {
     AnalyticsPagingParams pagingParams =
-        queryContext.getTeiQueryParams().getCommonParams().getPagingParams();
+        queryContext.getContextParams().getCommonParsed().getPagingParams();
 
     return RenderableSqlQuery.builder().limitOffset(LimitOffset.of(pagingParams)).build();
   }

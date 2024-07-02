@@ -32,10 +32,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import org.hisp.dhis.analytics.common.ContextParams;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
-import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlParameterManager;
@@ -66,7 +66,7 @@ class DataElementQueryBuilderTest {
     when(dWithNoLegendSet.getKey()).thenReturn("key");
 
     QueryContext queryContext =
-        QueryContext.of(mock(TeiQueryParams.class), mock(SqlParameterManager.class));
+        QueryContext.of(mock(ContextParams.class), mock(SqlParameterManager.class));
     List<DimensionIdentifier<DimensionParam>> acceptedHeaders = List.of(dWithNoLegendSet);
     List<DimensionIdentifier<DimensionParam>> acceptedDimensions = List.of(dWithLegendSet);
     List<AnalyticsSortingParams> acceptedSortingParams = List.of();

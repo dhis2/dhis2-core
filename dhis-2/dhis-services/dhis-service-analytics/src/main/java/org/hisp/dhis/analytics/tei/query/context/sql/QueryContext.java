@@ -33,7 +33,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Delegate;
+import org.hisp.dhis.analytics.common.ContextParams;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
+import org.hisp.dhis.analytics.tei.TeiRequestParams;
 
 /**
  * This class is used to hold the context of the query and the parameters that are used to build it.
@@ -41,7 +43,7 @@ import org.hisp.dhis.analytics.tei.TeiQueryParams;
 @Getter
 @RequiredArgsConstructor(staticName = "of")
 public class QueryContext {
-  private final TeiQueryParams teiQueryParams;
+  private final ContextParams<TeiRequestParams, TeiQueryParams> contextParams;
 
   @Delegate private final SqlParameterManager sqlParameterManager;
 
@@ -52,6 +54,7 @@ public class QueryContext {
   }
 
   public String getTetTableSuffix() {
+    TeiQueryParams teiQueryParams = contextParams.getTypedParsed();
     return teiQueryParams.getTrackedEntityType().getUid().toLowerCase();
   }
 }
