@@ -33,17 +33,7 @@
   "trackedEntities": [],
   "enrollments": [
     {
-      "enrollment": "TvctPPhpD8u",
-      "createdAtClient": "2017-01-26T13:48:13.363",
-      "trackedEntity": "NCc1rCEOKaY",
-      "program": {
-        "idScheme": "UID",
-        "identifier": "E8o1E9tAppy"
-      },
-      "orgUnit": {
-        "idScheme": "UID",
-        "identifier": "QfUVllTs6cS"
-      }
+      "enrollment": "TvctPPhpD8u"
     }
   ],
   "events": [],

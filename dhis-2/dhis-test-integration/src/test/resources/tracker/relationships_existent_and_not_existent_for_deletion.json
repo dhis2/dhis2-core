@@ -30,17 +30,16 @@
   "skipPatternValidation": false,
   "skipSideEffects": false,
   "skipRuleEngine": false,
-  "trackedEntities": [
-    {
-      "trackedEntity": "PB9VMezGkwA"
-    }
-  ],
-  "enrollments": [
-    {
-      "enrollment": "TvctPPhpD8u"
-    }
-  ],
+  "trackedEntities": [],
+  "enrollments": [],
   "events": [],
-  "relationships": [],
+  "relationships": [
+    {
+      "relationship": "Nva3Xj2j79U"
+    },
+    {
+      "relationship": "Nva3Xj2j75W"
+    }
+  ],
   "username": "system-process"
 }
