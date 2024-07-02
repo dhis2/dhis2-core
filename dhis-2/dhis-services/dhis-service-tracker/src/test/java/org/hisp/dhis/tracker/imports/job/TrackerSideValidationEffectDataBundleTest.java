@@ -44,14 +44,14 @@ import org.junit.jupiter.api.Test;
 class TrackerSideValidationEffectDataBundleTest {
 
   @Test
-  void testSideEffectDataBundleForEnrollment() {
+  void testNotificationDataBundleForEnrollment() {
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
         new org.hisp.dhis.tracker.imports.domain.Enrollment();
     enrollment.setEnrollment("ja8NY4PW7Xm");
     String enrollmentUid = CodeGenerator.generateUid();
-    TrackerSideEffectDataBundle bundle =
-        TrackerSideEffectDataBundle.builder()
-            .enrollmentNotificationEffects(List.of())
+    TrackerNotificationDataBundle bundle =
+        TrackerNotificationDataBundle.builder()
+            .enrollmentNotifications(List.of())
             .accessedBy("testUser")
             .importStrategy(TrackerImportStrategy.CREATE)
             .object(enrollmentUid)
@@ -59,28 +59,28 @@ class TrackerSideValidationEffectDataBundleTest {
             .build();
     assertEquals(enrollmentUid, bundle.getObject());
     assertEquals(Enrollment.class, bundle.getKlass());
-    assertTrue(bundle.getEnrollmentNotificationEffects().isEmpty());
-    assertTrue(bundle.getEventNotificationEffects().isEmpty());
+    assertTrue(bundle.getEnrollmentNotifications().isEmpty());
+    assertTrue(bundle.getEventNotifications().isEmpty());
     assertEquals(TrackerImportStrategy.CREATE, bundle.getImportStrategy());
     assertEquals(MessageType.TRACKER_SIDE_EFFECT, bundle.getMessageType());
   }
 
   @Test
-  void testSideEffectDataBundleForEvent() {
+  void testNotificationDataBundleForEvent() {
     org.hisp.dhis.tracker.imports.domain.Event event =
         new org.hisp.dhis.tracker.imports.domain.Event();
     event.setEvent("ja8NY4PW7Xm");
     Event expected = new Event();
     expected.setAutoFields();
-    TrackerSideEffectDataBundle bundle =
-        TrackerSideEffectDataBundle.builder()
-            .eventNotificationEffects(List.of())
+    TrackerNotificationDataBundle bundle =
+        TrackerNotificationDataBundle.builder()
+            .eventNotifications(List.of())
             .object(expected.getUid())
             .klass(Event.class)
             .build();
     assertEquals(expected.getUid(), bundle.getObject());
     assertEquals(Event.class, bundle.getKlass());
-    assertTrue(bundle.getEventNotificationEffects().isEmpty());
-    assertTrue(bundle.getEnrollmentNotificationEffects().isEmpty());
+    assertTrue(bundle.getEventNotifications().isEmpty());
+    assertTrue(bundle.getEnrollmentNotifications().isEmpty());
   }
 }

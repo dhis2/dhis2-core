@@ -25,29 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.sideeffect;
+package org.hisp.dhis.tracker.imports.notification;
 
 import java.util.List;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.tracker.imports.job.TrackerRuleEngineMessageManager;
-import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
-import org.springframework.stereotype.Service;
+import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 
 /**
+ * Service responsible for asynchronous handling of TrackerImport notifications.
+ *
  * @author Zubair Asghar
  */
-@RequiredArgsConstructor
-@Service
-public class RuleEngineSideEffectHandlerService implements SideEffectHandlerService {
-  private final TrackerRuleEngineMessageManager trackerRuleEngineMessageManager;
+public interface NotificationHandlerService {
+  void handleNotification(TrackerNotificationDataBundle notificationDataBundle);
 
-  @Override
-  public void handleSideEffect(TrackerSideEffectDataBundle sideEffectDataBundle) {
-    trackerRuleEngineMessageManager.sendRuleEngineNotifications(sideEffectDataBundle);
-  }
-
-  @Override
-  public void handleSideEffects(List<TrackerSideEffectDataBundle> sideEffectDataBundles) {
-    sideEffectDataBundles.forEach(this::handleSideEffect);
-  }
+  void handleNotifications(List<TrackerNotificationDataBundle> notificationDataBundles);
 }

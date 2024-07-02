@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,29 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.sideeffect;
+package org.hisp.dhis.programrule.api;
 
-import java.util.List;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.tracker.imports.job.TrackerNotificationMessageManager;
-import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
-import org.springframework.stereotype.Service;
+import java.util.Date;
+import org.hisp.dhis.common.UID;
 
 /**
- * @author Zubair Asghar
+ * This effect will be used in tracker to send a notification.
+ *
+ * @param template the UID of the template of the notification
+ * @param scheduledAt the date when to send the notification. The notification is sent immediately
+ *     when the date is null.
  */
-@RequiredArgsConstructor
-@Service
-public class NotificationSideEffectHandlerService implements SideEffectHandlerService {
-  private final TrackerNotificationMessageManager trackerNotificationMessageManager;
-
-  @Override
-  public void handleSideEffect(TrackerSideEffectDataBundle sideEffectDataBundle) {
-    trackerNotificationMessageManager.sendNotifications(sideEffectDataBundle);
-  }
-
-  @Override
-  public void handleSideEffects(List<TrackerSideEffectDataBundle> sideEffectDataBundles) {
-    sideEffectDataBundles.forEach(this::handleSideEffect);
-  }
-}
+public record Notification(UID template, Date scheduledAt) {}

@@ -30,7 +30,7 @@ package org.hisp.dhis.tracker.imports.bundle;
 import java.util.List;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
+import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.user.User;
 
@@ -61,11 +61,11 @@ public interface TrackerBundleService {
   PersistenceReport commit(TrackerBundle bundle);
 
   /**
-   * Carry out side effect for TrackerImporter i.e audits, notifications and program rule actions.
+   * Carry out notifications for TrackerImporter.
    *
-   * @param bundles {@link TrackerSideEffectDataBundle} to hold data for side effects.
+   * @param bundles {@link TrackerNotificationDataBundle} to hold data for notifications.
    */
-  void handleTrackerSideEffects(List<TrackerSideEffectDataBundle> bundles);
+  void handleTrackerNotifications(List<TrackerNotificationDataBundle> bundles);
 
   /**
    * Deletes objects in the bundle from persistence store if bundle mode DELETE is enabled.

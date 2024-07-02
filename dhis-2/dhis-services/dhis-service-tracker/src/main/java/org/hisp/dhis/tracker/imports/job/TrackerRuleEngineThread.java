@@ -30,7 +30,7 @@ package org.hisp.dhis.tracker.imports.job;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.programrule.api.NotificationEffect;
+import org.hisp.dhis.programrule.api.Notification;
 import org.hisp.dhis.security.SecurityContextRunnable;
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -51,31 +51,32 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable {
   private final NotificationSender notificationSender;
   private final Notifier notifier;
 
-  private TrackerSideEffectDataBundle sideEffectDataBundle;
+  private TrackerNotificationDataBundle notificationDataBundle;
 
   @Override
   public void call() {
-    if (sideEffectDataBundle == null) {
+    if (notificationDataBundle == null) {
       return;
     }
 
-    for (NotificationEffect effect : sideEffectDataBundle.getEnrollmentNotificationEffects()) {
-      Enrollment enrollment = sideEffectDataBundle.getEnrollment();
-      enrollment.setProgram(sideEffectDataBundle.getProgram());
+    for (Notification effect : notificationDataBundle.getEnrollmentNotifications()) {
+      Enrollment enrollment = notificationDataBundle.getEnrollment();
+      enrollment.setProgram(notificationDataBundle.getProgram());
       this.notificationSender.send(effect, enrollment);
     }
 
-    for (NotificationEffect effect : sideEffectDataBundle.getEventNotificationEffects()) {
-      Event event = sideEffectDataBundle.getEvent();
-      event.getProgramStage().setProgram(sideEffectDataBundle.getProgram());
+    for (Notification effect : notificationDataBundle.getEventNotifications()) {
+      Event event = notificationDataBundle.getEvent();
+      event.getProgramStage().setProgram(notificationDataBundle.getProgram());
       this.notificationSender.send(effect, event);
     }
 
     notifier.notify(
-        sideEffectDataBundle.getJobConfiguration(), "Tracker Rule-engine side effects completed");
+        notificationDataBundle.getJobConfiguration(),
+        "Tracker Rule-engine notifications completed");
   }
 
-  public void setSideEffectDataBundle(TrackerSideEffectDataBundle sideEffectDataBundle) {
-    this.sideEffectDataBundle = sideEffectDataBundle;
+  public void setNotificationDataBundle(TrackerNotificationDataBundle notificationDataBundle) {
+    this.notificationDataBundle = notificationDataBundle;
   }
 }

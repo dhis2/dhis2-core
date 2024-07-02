@@ -47,21 +47,21 @@ import org.hisp.dhis.util.DateUtils;
 
 /**
  * This class holds the action results from rule-engine organized by effect type ({@link
- * ValidationEffect} and {@link NotificationEffect}) and by tracker entity ({@link Enrollment} and
- * {@link Event}
+ * ValidationEffect} and {@link Notification}) and by tracker entity ({@link Enrollment} and {@link
+ * Event}
  */
 @Getter
 public class RuleEngineEffects {
   private final Map<UID, List<ValidationEffect>> enrollmentValidationEffects;
   private final Map<UID, List<ValidationEffect>> eventValidationEffects;
-  private final Map<UID, List<NotificationEffect>> enrollmentNotificationEffects;
-  private final Map<UID, List<NotificationEffect>> eventNotificationEffects;
+  private final Map<UID, List<Notification>> enrollmentNotificationEffects;
+  private final Map<UID, List<Notification>> eventNotificationEffects;
 
   private RuleEngineEffects(
       Map<UID, List<ValidationEffect>> enrollmentValidationEffects,
       Map<UID, List<ValidationEffect>> eventValidationEffects,
-      Map<UID, List<NotificationEffect>> enrollmentNotificationEffects,
-      Map<UID, List<NotificationEffect>> eventNotificationEffects) {
+      Map<UID, List<Notification>> enrollmentNotificationEffects,
+      Map<UID, List<Notification>> eventNotificationEffects) {
     this.enrollmentValidationEffects = enrollmentValidationEffects;
     this.eventValidationEffects = eventValidationEffects;
     this.enrollmentNotificationEffects = enrollmentNotificationEffects;
@@ -87,14 +87,14 @@ public class RuleEngineEffects {
                 Collectors.toMap(
                     e -> UID.of(e.getTrackerObjectUid()),
                     e -> mapValidationEffect(e.getRuleEffects())));
-    Map<UID, List<NotificationEffect>> enrollmentNotificationEffects =
+    Map<UID, List<Notification>> enrollmentNotificationEffects =
         ruleEffects.stream()
             .filter(RuleEffects::isEnrollment)
             .collect(
                 Collectors.toMap(
                     e -> UID.of(e.getTrackerObjectUid()),
                     e -> mapNotificationEffect(e.getRuleEffects())));
-    Map<UID, List<NotificationEffect>> eventNotificationEffects =
+    Map<UID, List<Notification>> eventNotificationEffects =
         ruleEffects.stream()
             .filter(RuleEffects::isEvent)
             .collect(
@@ -113,9 +113,9 @@ public class RuleEngineEffects {
         merge(effects.enrollmentValidationEffects, effects2.enrollmentValidationEffects);
     Map<UID, List<ValidationEffect>> eventValidationEffects =
         merge(effects.eventValidationEffects, effects2.eventValidationEffects);
-    Map<UID, List<NotificationEffect>> enrollmentNotificationEffects =
+    Map<UID, List<Notification>> enrollmentNotificationEffects =
         merge(effects.enrollmentNotificationEffects, effects2.enrollmentNotificationEffects);
-    Map<UID, List<NotificationEffect>> eventNotificationEffects =
+    Map<UID, List<Notification>> eventNotificationEffects =
         merge(effects.eventNotificationEffects, effects2.eventNotificationEffects);
 
     return new RuleEngineEffects(
@@ -148,23 +148,23 @@ public class RuleEngineEffects {
         .toList();
   }
 
-  private static List<NotificationEffect> mapNotificationEffect(List<RuleEffect> effects) {
+  private static List<Notification> mapNotificationEffect(List<RuleEffect> effects) {
     return effects.stream()
         .filter(
             e ->
-                e.getRuleAction().getType().equals(SENDMESSAGE.name())
-                    || e.getRuleAction().getType().equals(SCHEDULEMESSAGE.name()))
+                SENDMESSAGE.name().equals(e.getRuleAction().getType())
+                    || SCHEDULEMESSAGE.name().equals(e.getRuleAction().getType()))
         .filter(RuleEngineEffects::isValid)
         .map(
             e ->
-                new NotificationEffect(
+                new Notification(
                     UID.of(e.getRuleAction().getValues().get(NOTIFICATION)),
                     DateUtils.parseDate(StringUtils.unwrap(e.getData(), '\''))))
         .toList();
   }
 
   private static boolean isValid(RuleEffect effect) {
-    if (effect.getRuleAction().getType().equals(SCHEDULEMESSAGE.name())) {
+    if (SCHEDULEMESSAGE.name().equals(effect.getRuleAction().getType())) {
       return DateUtils.dateIsValid(StringUtils.unwrap(effect.getData(), '\''));
     }
     return true;

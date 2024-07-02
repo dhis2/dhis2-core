@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,15 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.programrule.api;
+package org.hisp.dhis.tracker.imports.notification;
 
-import java.util.Date;
-import org.hisp.dhis.common.UID;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
+import org.hisp.dhis.tracker.imports.job.TrackerNotificationMessageManager;
+import org.springframework.stereotype.Service;
 
 /**
- * This effect will be used in tracker to send a notification.
- *
- * @param template the UID of the template of the notification
- * @param date the date when to send the notification. It will be sent immediately if missing.
+ * @author Zubair Asghar
  */
-public record NotificationEffect(UID template, Date date) {}
+@RequiredArgsConstructor
+@Service
+public class TrackerNotificationHandlerService implements NotificationHandlerService {
+  private final TrackerNotificationMessageManager trackerNotificationMessageManager;
+
+  @Override
+  public void handleNotification(TrackerNotificationDataBundle notificationDataBundle) {
+    trackerNotificationMessageManager.sendNotifications(notificationDataBundle);
+  }
+
+  @Override
+  public void handleNotifications(List<TrackerNotificationDataBundle> notificationDataBundles) {
+    notificationDataBundles.forEach(this::handleNotification);
+  }
+}

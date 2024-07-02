@@ -42,11 +42,11 @@ import org.hisp.dhis.program.notification.ProgramNotificationService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.program.notification.template.snapshot.NotificationTemplateService;
-import org.hisp.dhis.programrule.api.NotificationEffect;
+import org.hisp.dhis.programrule.api.Notification;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Sends or schedule notification as a result of rule-engine evaluation. */
+/** Sends or schedules a notification to be sent as a result of a rule-engine evaluation. */
 @Slf4j
 @RequiredArgsConstructor
 @Component
@@ -59,55 +59,59 @@ public class NotificationSender {
   private final NotificationLoggingService notificationLoggingService;
 
   @Transactional
-  public void send(NotificationEffect notificationEffect, Enrollment enrollment) {
-    ProgramNotificationTemplate template = getNotificationTemplate(notificationEffect);
+  public void send(Notification notification, Enrollment enrollment) {
+    ProgramNotificationTemplate template = getNotificationTemplate(notification);
 
     NotificationValidationResult result = validate(template, enrollment);
 
-    if (result.isValid()) {
-      if (notificationEffect.date() != null) {
-        ProgramNotificationInstance notificationInstance =
-            notificationTemplateService.createNotificationInstance(
-                template, notificationEffect.date());
-        notificationInstance.setEvent(null);
-        notificationInstance.setEnrollment(enrollment);
+    if (!result.isValid()) {
+      return;
+    }
 
-        programNotificationInstanceService.save(notificationInstance);
+    if (notification.scheduledAt() != null) {
+      ProgramNotificationInstance notificationInstance =
+          notificationTemplateService.createNotificationInstance(
+              template, notification.scheduledAt());
+      notificationInstance.setEvent(null);
+      notificationInstance.setEnrollment(enrollment);
 
-        log.info(String.format(LOG_MESSAGE, template.getUid()));
-      } else {
-        programNotificationService.sendProgramRuleTriggeredNotifications(template, enrollment);
-      }
-      if (result.needsToCreateLogEntry()) {
-        createLogEntry(template, enrollment);
-      }
+      programNotificationInstanceService.save(notificationInstance);
+
+      log.info(String.format(LOG_MESSAGE, template.getUid()));
+    } else {
+      programNotificationService.sendProgramRuleTriggeredNotifications(template, enrollment);
+    }
+    if (result.needsToCreateLogEntry()) {
+      createLogEntry(template, enrollment);
     }
   }
 
   @Transactional
-  public void send(NotificationEffect notificationEffect, Event event) {
-    ProgramNotificationTemplate template = getNotificationTemplate(notificationEffect);
+  public void send(Notification notification, Event event) {
+    ProgramNotificationTemplate template = getNotificationTemplate(notification);
 
     NotificationValidationResult result = validate(template, event.getEnrollment());
 
-    if (result.isValid()) {
-      if (notificationEffect.date() != null) {
-        ProgramNotificationInstance notificationInstance =
-            notificationTemplateService.createNotificationInstance(
-                template, notificationEffect.date());
-        notificationInstance.setEvent(event);
-        notificationInstance.setEnrollment(null);
+    if (!result.isValid()) {
+      return;
+    }
 
-        programNotificationInstanceService.save(notificationInstance);
+    if (notification.scheduledAt() != null) {
+      ProgramNotificationInstance notificationInstance =
+          notificationTemplateService.createNotificationInstance(
+              template, notification.scheduledAt());
+      notificationInstance.setEvent(event);
+      notificationInstance.setEnrollment(null);
 
-        log.info(String.format(LOG_MESSAGE, template.getUid()));
-      } else {
-        programNotificationService.sendProgramRuleTriggeredEventNotifications(template, event);
-      }
+      programNotificationInstanceService.save(notificationInstance);
 
-      if (result.needsToCreateLogEntry()) {
-        createLogEntry(template, event.getEnrollment());
-      }
+      log.info(String.format(LOG_MESSAGE, template.getUid()));
+    } else {
+      programNotificationService.sendProgramRuleTriggeredEventNotifications(template, event);
+    }
+
+    if (result.needsToCreateLogEntry()) {
+      createLogEntry(template, event.getEnrollment());
     }
   }
 
@@ -123,9 +127,8 @@ public class NotificationSender {
     notificationLoggingService.save(entry);
   }
 
-  private ProgramNotificationTemplate getNotificationTemplate(
-      NotificationEffect notificationEffect) {
-    String uid = notificationEffect.template().getValue();
+  private ProgramNotificationTemplate getNotificationTemplate(Notification notification) {
+    String uid = notification.template().getValue();
     return programNotificationTemplateService.getByUid(uid);
   }
 

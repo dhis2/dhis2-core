@@ -41,7 +41,7 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
+import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preprocess.TrackerPreprocessService;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
@@ -160,24 +160,24 @@ public class DefaultTrackerImportService implements TrackerImportService {
     PersistenceReport persistenceReport = trackerBundleService.commit(trackerBundle);
 
     if (!trackerBundle.isSkipSideEffects()) {
-      List<TrackerSideEffectDataBundle> sideEffectDataBundles =
+      List<TrackerNotificationDataBundle> notificationDataBundles =
           Stream.of(TrackerType.ENROLLMENT, TrackerType.EVENT)
-              .map(trackerType -> safelyGetSideEffectsDataBundles(persistenceReport, trackerType))
+              .map(trackerType -> safelyGetNotificationDataBundles(persistenceReport, trackerType))
               .flatMap(Collection::stream)
               .toList();
 
-      trackerBundleService.handleTrackerSideEffects(sideEffectDataBundles);
+      trackerBundleService.handleTrackerNotifications(notificationDataBundles);
     }
 
     return persistenceReport;
   }
 
-  private List<TrackerSideEffectDataBundle> safelyGetSideEffectsDataBundles(
+  private List<TrackerNotificationDataBundle> safelyGetNotificationDataBundles(
       PersistenceReport persistenceReport, TrackerType trackerType) {
     return Optional.ofNullable(persistenceReport)
         .map(PersistenceReport::getTypeReportMap)
         .map(reportMap -> reportMap.get(trackerType))
-        .map(TrackerTypeReport::getSideEffectDataBundles)
+        .map(TrackerTypeReport::getNotificationDataBundles)
         .orElse(Collections.emptyList());
   }
 
