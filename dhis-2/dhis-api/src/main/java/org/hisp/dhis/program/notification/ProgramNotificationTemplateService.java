@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.program.notification;
 
+import java.util.Collection;
 import java.util.List;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 
@@ -76,4 +78,6 @@ public interface ProgramNotificationTemplateService {
 
   List<ProgramNotificationTemplate> getProgramNotificationTemplates(
       ProgramNotificationTemplateParam programNotificationTemplateParam);
+
+  List<ProgramNotificationTemplate> getByDataElement(Collection<DataElement> dataElements);
 }

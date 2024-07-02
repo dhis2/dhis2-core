@@ -134,6 +134,16 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
   }
 
   @Override
+  public List<T> getByDataElementDimensionsWithAnyOf(List<DataElement> dataElements) {
+    return getQuery(
+            "select distinct c from "
+                + clazz.getName()
+                + " c join c.dataElementDimensions d where d.dataElement in :dataElements")
+        .setParameter("dataElements", dataElements)
+        .getResultList();
+  }
+
+  @Override
   public List<T> getAnalyticalObjects(Period period) {
     String hql = "from " + clazz.getName() + " c where :period in elements(c.periods)";
     return getQuery(hql).setParameter("period", period).list();
@@ -190,10 +200,10 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
   public List<T> getVisualizationsBySortingIndicator(List<String> indicators) {
     String sql =
         """
-    select v.* from visualization v, jsonb_array_elements(sorting) as sort
-    where sort->>'dimension' in :indicators
-    group by v.visualizationid
-    """;
+          select v.* from visualization v, jsonb_array_elements(sorting) as sort
+          where sort->>'dimension' in :indicators
+          group by v.visualizationid
+        """;
 
     return nativeSynchronizedTypedQuery(sql).setParameter("indicators", indicators).list();
   }

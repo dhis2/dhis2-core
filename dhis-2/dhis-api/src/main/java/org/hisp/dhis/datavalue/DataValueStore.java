@@ -91,6 +91,8 @@ public interface DataValueStore {
    */
   void deleteDataValues(DataElement dataElement);
 
+  void deleteDataValue(DataValue dataValue);
+
   /**
    * Returns a DataValue.
    *
@@ -161,6 +163,8 @@ public interface DataValueStore {
    * @return a list of deflated data values.
    */
   List<DeflatedDataValue> getDeflatedDataValues(DataExportParams params);
+
+  List<DataValue> getAllDataValuesByDataElement(List<DataElement> dataElements);
 
   /**
    * Gets the number of DataValues which have been updated between the given start and end date.

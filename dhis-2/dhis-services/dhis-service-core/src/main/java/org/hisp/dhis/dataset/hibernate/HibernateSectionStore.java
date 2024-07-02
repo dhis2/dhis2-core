@@ -27,10 +27,12 @@
  */
 package org.hisp.dhis.dataset.hibernate;
 
+import java.util.Collection;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.SectionStore;
@@ -87,5 +89,19 @@ public class HibernateSectionStore extends HibernateIdentifiableObjectStore<Sect
             group by s.sectionid
           """;
     return nativeSynchronizedTypedQuery(sql).setParameter("indicators", indicators).list();
+  }
+
+  @Override
+  public List<Section> getByDataElement(Collection<DataElement> dataElements) {
+    return getQuery(
+            """
+            select s from Section s
+            join s.dataElements de
+            where de in :dataElements
+            group by s.id
+            """,
+            Section.class)
+        .setParameter("dataElements", dataElements)
+        .getResultList();
   }
 }

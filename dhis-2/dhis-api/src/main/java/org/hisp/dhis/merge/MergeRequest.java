@@ -53,6 +53,8 @@ public class MergeRequest {
 
   @Getter private final boolean deleteSources;
 
+  @Getter private final DataMergeStrategy dataMergeStrategy;
+
   public Set<UID> getSources() {
     return Set.copyOf(sources);
   }

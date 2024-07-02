@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.program.hibernate;
 
+import java.util.Collection;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -36,6 +37,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementStore;
 import org.hisp.dhis.security.acl.AclService;
+import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -73,5 +75,17 @@ public class HibernateProgramStageDataElementStore
         builder,
         newJpaParameters()
             .addPredicate(root -> builder.equal(root.get("dataElement"), dataElement)));
+  }
+
+  @Override
+  public List<ProgramStageDataElement> getAllByDataElement(Collection<DataElement> dataElements) {
+    @Language("SQL")
+    String sql =
+        """
+        select * from programstagedataelement psde
+        where psde.dataelementid in :dataElements
+        """;
+
+    return nativeSynchronizedTypedQuery(sql).setParameter("dataElements", dataElements).list();
   }
 }

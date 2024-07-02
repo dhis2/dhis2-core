@@ -61,6 +61,8 @@ public interface AnalyticalObjectStore<T extends AnalyticalObject>
 
   List<T> getAnalyticalObjects(ProgramIndicator programIndicator);
 
+  List<T> getByDataElementDimensionsWithAnyOf(List<DataElement> dataElements);
+
   List<T> getAnalyticalObjects(Period period);
 
   List<T> getAnalyticalObjects(OrganisationUnit organisationUnit);

@@ -27,9 +27,14 @@
  */
 package org.hisp.dhis.dataelement;
 
+import java.util.Collection;
+import java.util.List;
+
 /**
  * @author Stian Sandvold
  */
 public interface DataElementGroupService {
   DataElementGroup getDataElementGroupByUid(String uid);
+
+  List<DataElementGroup> getByDataElement(Collection<DataElement> deSource1);
 }

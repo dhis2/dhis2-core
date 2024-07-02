@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dataelement;
 
+import java.util.Collection;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,5 +45,10 @@ public class DefaultDataElementGroupService implements DataElementGroupService {
   @Override
   public DataElementGroup getDataElementGroupByUid(String uid) {
     return dataElementGroupStore.getByUid(uid);
+  }
+
+  @Override
+  public List<DataElementGroup> getByDataElement(Collection<DataElement> dataElements) {
+    return dataElementGroupStore.getByDataElement(dataElements);
   }
 }

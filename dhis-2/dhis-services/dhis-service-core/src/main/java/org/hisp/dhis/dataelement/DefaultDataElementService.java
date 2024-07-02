@@ -198,6 +198,12 @@ public class DefaultDataElementService implements DataElementService {
     return dataElementStore.getDataElementsByAggregationLevel(aggregationLevel);
   }
 
+  @Override
+  @Transactional(readOnly = true)
+  public List<DataElement> getDataElementsByUid(List<String> dataElements) {
+    return dataElementStore.getByUid(dataElements);
+  }
+
   // -------------------------------------------------------------------------
   // DataElementGroup
   // -------------------------------------------------------------------------

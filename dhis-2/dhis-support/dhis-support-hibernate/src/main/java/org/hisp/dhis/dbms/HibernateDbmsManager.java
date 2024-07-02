@@ -79,8 +79,8 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("constant");
     emptyTable("sqlview");
 
-    emptyTable("smscodes");
     emptyTable("smscommandcodes");
+    emptyTable("smscodes");
     emptyTable("smscommands");
     emptyTable("incomingsms");
 

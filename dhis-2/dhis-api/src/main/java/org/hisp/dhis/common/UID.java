@@ -34,6 +34,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.EqualsAndHashCode;
@@ -82,6 +83,10 @@ public final class UID implements Serializable {
 
   public static UID of(@CheckForNull UidObject object) {
     return object == null ? null : new UID(object.getUid());
+  }
+
+  public static Set<UID> of(@Nonnull Collection<String> values) {
+    return values.stream().map(UID::of).collect(Collectors.toSet());
   }
 
   public static Set<String> toValueSet(Collection<UID> uids) {

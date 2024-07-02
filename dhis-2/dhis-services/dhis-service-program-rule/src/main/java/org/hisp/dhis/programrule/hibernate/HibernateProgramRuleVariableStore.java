@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.programrule.hibernate;
 
+import java.util.Collection;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -37,6 +38,7 @@ import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.hisp.dhis.programrule.ProgramRuleVariableStore;
 import org.hisp.dhis.security.acl.AclService;
+import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -90,5 +92,17 @@ public class HibernateProgramRuleVariableStore
             "FROM ProgramRuleVariable prv WHERE prv.sourceType IN ( :attributeTypes ) AND prv.attribute IS NULL")
         .setParameter("attributeTypes", ProgramRuleVariableSourceType.getAttributeTypes())
         .getResultList();
+  }
+
+  @Override
+  public List<ProgramRuleVariable> getByDataElement(Collection<DataElement> dataElements) {
+    @Language("SQL")
+    String sql =
+        """
+        select * from programrulevariable prv
+        where prv.dataelementid in :dataElements
+        """;
+
+    return nativeSynchronizedTypedQuery(sql).setParameter("dataElements", dataElements).list();
   }
 }

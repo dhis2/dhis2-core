@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.program.notification;
 
+import java.util.Collection;
 import java.util.List;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.springframework.stereotype.Service;
@@ -132,5 +134,11 @@ public class DefaultProgramNotificationTemplateService
   public List<ProgramNotificationTemplate> getProgramNotificationTemplates(
       ProgramNotificationTemplateParam programNotificationTemplateParam) {
     return store.getProgramNotificationTemplates(programNotificationTemplateParam);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<ProgramNotificationTemplate> getByDataElement(Collection<DataElement> dataElements) {
+    return store.getByDataElement(dataElements);
   }
 }

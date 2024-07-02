@@ -55,6 +55,7 @@ public class DefaultMergeValidator implements MergeValidator {
   private final IdentifiableObjectManager manager;
   private static final String INDICATOR_TYPE = "IndicatorType";
   private static final String INDICATOR = "Indicator";
+  private static final String DATA_ELEMENT = "DataElement";
   private static final String MERGE_ERROR = "Unexpected value retrieving merge error code: ";
 
   @Override
@@ -87,6 +88,7 @@ public class DefaultMergeValidator implements MergeValidator {
                     .sources(sources)
                     .target(t)
                     .deleteSources(params.isDeleteSources())
+                    .dataMergeStrategy(params.getDataMergeStrategy())
                     .build())
         .orElse(MergeRequest.empty());
   }
@@ -155,6 +157,7 @@ public class DefaultMergeValidator implements MergeValidator {
     return switch (clazz) {
       case INDICATOR_TYPE -> ErrorCode.E1530;
       case INDICATOR -> ErrorCode.E1540;
+      case DATA_ELEMENT -> ErrorCode.E1550;
       default -> throw new IllegalStateException(MERGE_ERROR + clazz);
     };
   }
@@ -163,6 +166,7 @@ public class DefaultMergeValidator implements MergeValidator {
     return switch (clazz) {
       case INDICATOR_TYPE -> ErrorCode.E1531;
       case INDICATOR -> ErrorCode.E1541;
+      case DATA_ELEMENT -> ErrorCode.E1551;
       default -> throw new IllegalStateException(MERGE_ERROR + clazz);
     };
   }
@@ -171,6 +175,7 @@ public class DefaultMergeValidator implements MergeValidator {
     return switch (clazz) {
       case INDICATOR_TYPE -> ErrorCode.E1532;
       case INDICATOR -> ErrorCode.E1542;
+      case DATA_ELEMENT -> ErrorCode.E1552;
       default -> throw new IllegalStateException(MERGE_ERROR + clazz);
     };
   }
@@ -179,6 +184,7 @@ public class DefaultMergeValidator implements MergeValidator {
     return switch (clazz) {
       case INDICATOR_TYPE -> ErrorCode.E1533;
       case INDICATOR -> ErrorCode.E1543;
+      case DATA_ELEMENT -> ErrorCode.E1553;
       default -> throw new IllegalStateException(MERGE_ERROR + clazz);
     };
   }

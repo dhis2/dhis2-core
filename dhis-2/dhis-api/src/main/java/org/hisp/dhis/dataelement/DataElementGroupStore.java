@@ -27,6 +27,11 @@
  */
 package org.hisp.dhis.dataelement;
 
+import java.util.Collection;
+import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
-public interface DataElementGroupStore extends IdentifiableObjectStore<DataElementGroup> {}
+public interface DataElementGroupStore extends IdentifiableObjectStore<DataElementGroup> {
+
+  List<DataElementGroup> getByDataElement(Collection<DataElement> dataElements);
+}
