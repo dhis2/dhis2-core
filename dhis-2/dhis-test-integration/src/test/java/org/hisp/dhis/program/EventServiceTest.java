@@ -243,9 +243,9 @@ class EventServiceTest extends TransactionalIntegrationTest {
      * Prepare data for EventDataValues manipulation tests
      */
     manager.save(eventA);
-    // Check that there are no EventDataValues assigned to PSI
-    Event tempPsiA = eventService.getEvent(eventA.getUid());
-    assertEquals(0, tempPsiA.getEventDataValues().size());
+    // Check that there are no EventDataValues assigned to the event
+    Event tempEventA = manager.get(Event.class, eventA.getUid());
+    assertEquals(0, tempEventA.getEventDataValues().size());
     // Prepare EventDataValues to manipulate with
     dataElementMap.put(dataElementA.getUid(), dataElementA);
     dataElementMap.put(dataElementB.getUid(), dataElementB);
@@ -297,8 +297,8 @@ class EventServiceTest extends TransactionalIntegrationTest {
     long idB = eventB.getId();
     assertEquals(eventA, getEvent(idA));
     assertEquals(eventB, getEvent(idB));
-    assertEquals(eventA, eventService.getEvent("UID-A"));
-    assertEquals(eventB, eventService.getEvent("UID-B"));
+    assertEquals(eventA, manager.get(Event.class, "UID-A"));
+    assertEquals(eventB, manager.get(Event.class, "UID-B"));
   }
 
   @Test
@@ -316,11 +316,11 @@ class EventServiceTest extends TransactionalIntegrationTest {
 
     manager.save(event);
 
-    assertNotNull(eventService.getEvent(event.getUid()));
+    assertNotNull(manager.get(Event.class, event.getUid()));
 
     eventService.deleteEvent(event);
 
-    assertNull(eventService.getEvent(event.getUid()));
+    assertNull(manager.get(Event.class, event.getUid()));
     assertTrue(noteService.noteExists(note.getUid()));
   }
 

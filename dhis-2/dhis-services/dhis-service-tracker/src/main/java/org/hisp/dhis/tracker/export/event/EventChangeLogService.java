@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.export.event;
 
 import java.util.Set;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
@@ -42,7 +43,7 @@ public interface EventChangeLogService {
    */
   Page<EventChangeLog> getEventChangeLog(
       UID event, EventChangeLogOperationParams operationParams, PageParams pageParams)
-      throws NotFoundException;
+      throws NotFoundException, ForbiddenException;
 
   /**
    * Fields the {@link #getEventChangeLog(UID, EventChangeLogOperationParams, PageParams)} can order

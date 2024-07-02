@@ -45,11 +45,18 @@ import org.hisp.dhis.tracker.export.PageParams;
  */
 public interface EventService {
   /** Get a file for an events' data element. */
-  FileResourceStream getFileResource(UID event, UID dataElement) throws NotFoundException;
+  FileResourceStream getFileResource(UID event, UID dataElement)
+      throws NotFoundException, ForbiddenException;
 
   /** Get an image for an events' data element in the given dimension. */
   FileResourceStream getFileResourceImage(UID event, UID dataElement, ImageFileDimension dimension)
-      throws NotFoundException;
+      throws NotFoundException, ForbiddenException;
+
+  /**
+   * Get event matching given {@code UID}. Use {@link #getEvent(String, EventParams)} instead to
+   * also get the events relationships.
+   */
+  Event getEvent(UID uid) throws NotFoundException, ForbiddenException;
 
   /** Get event matching given {@code UID} and params. */
   Event getEvent(String uid, EventParams eventParams) throws NotFoundException, ForbiddenException;
