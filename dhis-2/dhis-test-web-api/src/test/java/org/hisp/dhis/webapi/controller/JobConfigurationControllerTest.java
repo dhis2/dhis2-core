@@ -35,9 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +50,8 @@ import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonJobConfiguration;
 import org.junit.jupiter.api.Test;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.scheduling.JobConfigurationController}. Since
@@ -219,10 +218,10 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest {
                     "COMPLETENESS",
                     "COMPLETENESS_TARGET",
                     "ORG_UNIT_TARGET",
+                    "VALIDATION_RESULT",
                     "EVENT",
                     "ENROLLMENT",
                     "OWNERSHIP",
-                    "VALIDATION_RESULT",
                     "TRACKED_ENTITY_INSTANCE_EVENTS",
                     "TRACKED_ENTITY_INSTANCE_ENROLLMENTS",
                     "TRACKED_ENTITY_INSTANCE"),
