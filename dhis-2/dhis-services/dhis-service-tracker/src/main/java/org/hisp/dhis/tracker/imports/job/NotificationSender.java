@@ -76,8 +76,6 @@ public class NotificationSender {
       notificationInstance.setEnrollment(enrollment);
 
       programNotificationInstanceService.save(notificationInstance);
-
-      log.info(String.format(LOG_MESSAGE, template.getUid()));
     } else {
       programNotificationService.sendProgramRuleTriggeredNotifications(template, enrollment);
     }
@@ -104,8 +102,6 @@ public class NotificationSender {
       notificationInstance.setEnrollment(null);
 
       programNotificationInstanceService.save(notificationInstance);
-
-      log.info(String.format(LOG_MESSAGE, template.getUid()));
     } else {
       programNotificationService.sendProgramRuleTriggeredEventNotifications(template, event);
     }
