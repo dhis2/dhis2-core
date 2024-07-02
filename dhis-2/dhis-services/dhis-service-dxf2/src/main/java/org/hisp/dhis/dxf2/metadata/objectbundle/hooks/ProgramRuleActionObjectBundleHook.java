@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 import java.util.Map;
 import java.util.function.Consumer;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
@@ -53,15 +52,11 @@ public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook<
 
   @Nonnull private final ProgramRuleActionValidationContextLoader contextLoader;
 
-  @Nonnull private final IdentifiableObjectManager manager;
-
   public ProgramRuleActionObjectBundleHook(
       @Nonnull Map<ProgramRuleActionType, ProgramRuleActionValidator> programRuleActionValidatorMap,
-      @Nonnull ProgramRuleActionValidationContextLoader contextLoader,
-      IdentifiableObjectManager manager) {
+      @Nonnull ProgramRuleActionValidationContextLoader contextLoader) {
     this.programRuleActionValidatorMap = programRuleActionValidatorMap;
     this.contextLoader = contextLoader;
-    this.manager = manager;
   }
 
   @Override
