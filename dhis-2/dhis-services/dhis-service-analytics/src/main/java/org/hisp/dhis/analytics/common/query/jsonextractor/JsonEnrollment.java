@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,24 +25,57 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.analytics.common.query.jsonextractor;
 
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.user.UserCredentialsDto;
+import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.Map;
+import lombok.Data;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class UserCredentialsSchemaDescriptor implements SchemaDescriptor {
-  public static final String SINGULAR = "userCredentials";
+@Data
+class JsonEnrollment {
+  private String programUid;
 
-  public static final String PLURAL = "userCredentials";
+  private String enrollmentUid;
 
-  public static final String API_ENDPOINT = "/" + PLURAL;
+  private LocalDateTime enrollmentDate;
 
-  @Override
-  public Schema getSchema() {
-    return new Schema(UserCredentialsDto.class, SINGULAR, PLURAL);
+  private LocalDateTime incidentDate;
+
+  private LocalDateTime endDate;
+
+  private String orgUnitUid;
+
+  private String orgUnitName;
+
+  private String orgUnitCode;
+
+  private String orgUnitNameHierarchy;
+
+  private String enrollmentStatus;
+
+  private Collection<JsonEvent> events;
+
+  @Data
+  static class JsonEvent {
+    private String programStageUid;
+
+    private String eventUid;
+
+    private LocalDateTime occurredDate;
+
+    private LocalDateTime dueDate;
+
+    private String orgUnitUid;
+
+    private String orgUnitName;
+
+    private String orgUnitCode;
+
+    private String orgUnitNameHierarchy;
+
+    private String eventStatus;
+
+    private Map<String, Object> eventDataValues;
   }
 }

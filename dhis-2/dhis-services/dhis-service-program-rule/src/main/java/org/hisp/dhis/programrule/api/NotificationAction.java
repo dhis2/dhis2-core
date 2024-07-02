@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.notification.event;
+package org.hisp.dhis.programrule.api;
 
-import org.hisp.dhis.program.Event;
-import org.springframework.context.ApplicationEvent;
+import java.util.Arrays;
 
-/**
- * @author Zubair Asghar.
- */
-public class ProgramRuleStageEvent extends ApplicationEvent {
-  private long template;
+public enum NotificationAction {
+  SEND_MESSAGE("SENDMESSAGE"),
+  SCHEDULE_MESSAGE("SCHEDULEMESSAGE");
 
-  private Event event;
-
-  public ProgramRuleStageEvent(Object source, long template, Event event) {
-    super(source);
-    this.template = template;
-    this.event = event;
+  public static boolean contains(String ruleEngineName) {
+    return Arrays.stream(values()).anyMatch(v -> v.ruleEngineName.equalsIgnoreCase(ruleEngineName));
   }
 
-  public long getTemplate() {
-    return template;
+  public static NotificationAction fromName(String ruleEngineName) {
+    return Arrays.stream(values())
+        .filter(v -> v.ruleEngineName.equalsIgnoreCase(ruleEngineName))
+        .findAny()
+        .orElseThrow();
   }
 
-  public Event getEvent() {
-    return event;
+  private final String ruleEngineName;
+
+  NotificationAction(String ruleEngineName) {
+    this.ruleEngineName = ruleEngineName;
   }
 }

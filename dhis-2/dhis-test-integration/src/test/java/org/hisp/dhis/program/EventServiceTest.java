@@ -39,6 +39,7 @@ import java.util.Set;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.TestCache;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -82,7 +83,9 @@ class EventServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
-  @Autowired NoteService noteService;
+  @Autowired private NoteService noteService;
+
+  @Autowired private IdentifiableObjectManager manager;
 
   private OrganisationUnit organisationUnitA;
 
@@ -251,38 +254,38 @@ class EventServiceTest extends TransactionalIntegrationTest {
   void testAddEvent() {
     long idA = eventService.addEvent(eventA);
     long idB = eventService.addEvent(eventB);
-    assertNotNull(eventService.getEvent(idA));
-    assertNotNull(eventService.getEvent(idB));
+    assertNotNull(getEvent(idA));
+    assertNotNull(getEvent(idB));
   }
 
   @Test
   void testDeleteEvent() {
     long idA = eventService.addEvent(eventA);
     long idB = eventService.addEvent(eventB);
-    assertNotNull(eventService.getEvent(idA));
-    assertNotNull(eventService.getEvent(idB));
+    assertNotNull(getEvent(idA));
+    assertNotNull(getEvent(idB));
     eventService.deleteEvent(eventA);
-    assertNull(eventService.getEvent(idA));
-    assertNotNull(eventService.getEvent(idB));
+    assertNull(getEvent(idA));
+    assertNotNull(getEvent(idB));
     eventService.deleteEvent(eventB);
-    assertNull(eventService.getEvent(idA));
-    assertNull(eventService.getEvent(idB));
+    assertNull(getEvent(idA));
+    assertNull(getEvent(idB));
   }
 
   @Test
   void testGetEventById() {
     long idA = eventService.addEvent(eventA);
     long idB = eventService.addEvent(eventB);
-    assertEquals(eventA, eventService.getEvent(idA));
-    assertEquals(eventB, eventService.getEvent(idB));
+    assertEquals(eventA, getEvent(idA));
+    assertEquals(eventB, getEvent(idB));
   }
 
   @Test
   void testGetEventByUid() {
     long idA = eventService.addEvent(eventA);
     long idB = eventService.addEvent(eventB);
-    assertEquals(eventA, eventService.getEvent(idA));
-    assertEquals(eventB, eventService.getEvent(idB));
+    assertEquals(eventA, getEvent(idA));
+    assertEquals(eventB, getEvent(idB));
     assertEquals(eventA, eventService.getEvent("UID-A"));
     assertEquals(eventB, eventService.getEvent("UID-B"));
   }
@@ -309,5 +312,9 @@ class EventServiceTest extends TransactionalIntegrationTest {
 
     assertNull(eventService.getEvent(event.getUid()));
     assertTrue(noteService.noteExists(note.getUid()));
+  }
+
+  private Event getEvent(long id) {
+    return manager.get(Event.class, id);
   }
 }

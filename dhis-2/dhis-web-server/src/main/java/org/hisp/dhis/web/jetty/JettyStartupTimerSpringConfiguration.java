@@ -25,29 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.web.jetty;
 
-import org.hisp.dhis.datastore.DatastoreEntry;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 
 /**
- * @author Ameen Mohamed <ameen@dhis2.org>
+ * Configuration class for a simple startup timer for embedded Jetty.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class KeyJsonValueSchemaDescriptor implements SchemaDescriptor {
-  public static final String SINGULAR = "dataStore";
+@Configuration
+@Order(100)
+@ComponentScan(basePackages = {"org.hisp.dhis"})
+public class JettyStartupTimerSpringConfiguration {
 
-  public static final String PLURAL = "dataStores";
-
-  public static final String API_ENDPOINT = "/" + SINGULAR;
-
-  @Override
-  public Schema getSchema() {
-    Schema schema = new Schema(DatastoreEntry.class, SINGULAR, PLURAL);
-    schema.setRelativeApiEndpoint(API_ENDPOINT);
-    schema.setOrder(9060);
-    schema.setShareable(true);
-
-    return schema;
+  @Bean("org.hisp.dhis.web.embeddedjetty.StartupFinishedRoutine")
+  public StartupFinishedRoutine startupFinishedRoutine() {
+    StartupFinishedRoutine startupRoutine = new StartupFinishedRoutine();
+    startupRoutine.setName("StartupFinishedRoutine");
+    startupRoutine.setRunlevel(42);
+    startupRoutine.setSkipInTests(true);
+    return startupRoutine;
   }
 }

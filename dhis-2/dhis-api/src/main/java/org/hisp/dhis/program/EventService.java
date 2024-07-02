@@ -67,14 +67,6 @@ public interface EventService {
   boolean eventExistsIncludingDeleted(String uid);
 
   /**
-   * Returns an {@link Event}.
-   *
-   * @param id the id of the Event to return.
-   * @return the Event with the given id.
-   */
-  Event getEvent(long id);
-
-  /**
    * Returns the {@link Event} with the given UID.
    *
    * @param uid the UID.
@@ -91,7 +83,7 @@ public interface EventService {
   long getEventCount(int days);
 
   /**
-   * Creates an event.
+   * Creates and saves an event.
    *
    * @param enrollment the Enrollment.
    * @param programStage the ProgramStage.
