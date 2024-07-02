@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,68 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.datavalueset;
+package org.hisp.dhis.webapi.json.domain;
 
-/**
- * An entry in an {@link DataValueSet} while processing it in context of a {@link
- * DataValueSetReader} or {@link DataValueSetWriter}.
- *
- * @author Jan Bernitt
- */
-public interface DataValueEntry {
-  String getDataElement();
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import org.hisp.dhis.jsontree.JsonString;
 
-  String getPeriod();
+public interface JsonLocalDateTime extends JsonString {
+  DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
 
-  String getOrgUnit();
-
-  String getCategoryOptionCombo();
-
-  String getAttributeOptionCombo();
-
-  String getValue();
-
-  String getStoredBy();
-
-  String getCreated();
-
-  String getLastUpdated();
-
-  String getComment();
-
-  boolean getFollowup();
-
-  Boolean getDeleted();
-
-  default boolean hasLastUpdated() {
-    String updated = getLastUpdated();
-    return updated != null && !updated.isEmpty();
+  default LocalDateTime date() {
+    return parsed(str -> LocalDateTime.parse(str, formatter));
   }
 
-  default boolean hasCreated() {
-    String created = getCreated();
-    return created != null && !created.isEmpty();
+  default LocalDate dateOnly() {
+    return parsed(str -> LocalDate.parse(str, formatter));
   }
 
-  default boolean hasStoredBy() {
-    String storedBy = getStoredBy();
-    return storedBy != null && !storedBy.isEmpty();
-  }
-
-  default String getPrimaryKey() {
-    return getDataElement()
-        + getPeriod()
-        + getOrgUnit()
-        + getCategoryOptionCombo()
-        + getAttributeOptionCombo();
-  }
-
-  default boolean isNullValue() {
-    return getValue() == null && getComment() == null;
-  }
-
-  default boolean isDeletedValue() {
-    Boolean deleted = getDeleted();
-    return deleted != null && deleted;
+  default LocalTime timeOnly() {
+    return parsed(str -> LocalTime.parse(str, formatter));
   }
 }
