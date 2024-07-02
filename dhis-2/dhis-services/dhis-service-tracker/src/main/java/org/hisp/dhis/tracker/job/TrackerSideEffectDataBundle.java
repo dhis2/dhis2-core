@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.job;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +68,9 @@ public class TrackerSideEffectDataBundle implements Message {
   @JsonProperty private ProgramInstance programInstance;
 
   @JsonProperty private ProgramStageInstance programStageInstance;
+
+  @JsonProperty
+  private List<org.hisp.dhis.tracker.job.SideEffectTrigger> triggers = new ArrayList<>();
 
   @JsonProperty @Builder.Default
   private Map<String, List<TrackerRuleEngineSideEffect>> enrollmentRuleEffects = new HashMap<>();

@@ -27,12 +27,10 @@
  */
 package org.hisp.dhis.tracker.job;
 
-import com.google.common.collect.ImmutableMap;
+import java.util.Map;
 import java.util.function.Consumer;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationService;
 import org.hisp.dhis.security.SecurityContextRunnable;
 import org.hisp.dhis.system.notification.NotificationLevel;
@@ -52,30 +50,25 @@ import org.springframework.stereotype.Component;
 public class TrackerNotificationThread extends SecurityContextRunnable {
   private final Notifier notifier;
 
-  private ProgramNotificationService programNotificationService;
-
   private TrackerSideEffectDataBundle sideEffectDataBundle;
 
   private IdentifiableObjectManager manager;
 
-  private final ImmutableMap<Class<? extends BaseIdentifiableObject>, Consumer<Long>>
-      serviceMapper =
-          new ImmutableMap.Builder<Class<? extends BaseIdentifiableObject>, Consumer<Long>>()
-              .put(
-                  ProgramInstance.class,
-                  id -> programNotificationService.sendEnrollmentNotifications(id))
-              .put(
-                  ProgramStageInstance.class,
-                  id -> programNotificationService.sendEventCompletionNotifications(id))
-              .build();
+  private final Map<SideEffectTrigger, Consumer<Long>> serviceMapper;
 
   public TrackerNotificationThread(
       ProgramNotificationService programNotificationService,
       Notifier notifier,
       IdentifiableObjectManager manager) {
-    this.programNotificationService = programNotificationService;
     this.notifier = notifier;
     this.manager = manager;
+    this.serviceMapper =
+        Map.of(
+            SideEffectTrigger.ENROLLMENT, programNotificationService::sendEnrollmentNotifications,
+            SideEffectTrigger.EVENT_COMPLETION,
+                programNotificationService::sendEventCompletionNotifications,
+            SideEffectTrigger.ENROLLMENT_COMPLETION,
+                programNotificationService::sendEnrollmentCompletionNotifications);
   }
 
   @Override
@@ -84,11 +77,14 @@ public class TrackerNotificationThread extends SecurityContextRunnable {
       return;
     }
 
-    if (serviceMapper.containsKey(sideEffectDataBundle.getKlass())) {
-      BaseIdentifiableObject object =
-          manager.get(sideEffectDataBundle.getKlass(), sideEffectDataBundle.getObject());
-
-      serviceMapper.get(sideEffectDataBundle.getKlass()).accept(object.getId());
+    for (SideEffectTrigger trigger : sideEffectDataBundle.getTriggers()) {
+      if (serviceMapper.containsKey(trigger)) {
+        BaseIdentifiableObject object =
+            manager.get(sideEffectDataBundle.getKlass(), sideEffectDataBundle.getObject());
+        if (object != null) {
+          serviceMapper.get(trigger).accept(object.getId());
+        }
+      }
     }
 
     notifier.notify(
