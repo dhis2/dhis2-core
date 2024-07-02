@@ -41,9 +41,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataset.DataSet;
@@ -1101,6 +1103,112 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest {
                 .formatted(dataElementGroup.getUid()))
             .content();
     assertFalse(response.getArray("dataElements").isEmpty());
+  }
+
+  @Test
+  void testFilterSharingEmptyTrue() {
+    String userId = getCurrentUser().getUid();
+    // first create an object which can be shared
+    String programId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programs/",
+                "{'name':'test', 'shortName':'test', 'programType':'WITHOUT_REGISTRATION'}"));
+    String sharing =
+        TextUtils.replace(
+            """
+      {'owner':'${userId}', 'public':'rwrw----', 'external': true,'users':{},'userGroups':{}}}""",
+            Map.of("userId", userId));
+    assertStatus(HttpStatus.NO_CONTENT, PUT("/programs/" + programId + "/sharing", sharing));
+    JsonObject programs =
+        GET("/programs?filter=sharing.users:empty", programId).content().as(JsonObject.class);
+
+    assertFalse(programs.get("programs").as(JsonArray.class).isEmpty());
+  }
+
+  @Test
+  void testFilterSharingEmptyFalse() {
+    String userId = getCurrentUser().getUid();
+    // first create an object which can be shared
+    String programId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programs/",
+                "{'name':'test', 'shortName':'test', 'programType':'WITHOUT_REGISTRATION'}"));
+    String sharing =
+        TextUtils.replace(
+            """
+      {'owner':'${userId}', 'public':'rwrw----', 'external': true,'users':{'${userId}':{'id':'${userId}','access':'rw------'}},'userGroups':{}}}""",
+            Map.of("userId", userId));
+    assertStatus(HttpStatus.NO_CONTENT, PUT("/programs/" + programId + "/sharing", sharing));
+    JsonObject programs =
+        GET("/programs?filter=sharing.users:empty", programId).content().as(JsonObject.class);
+    assertTrue(programs.get("programs").as(JsonArray.class).isEmpty());
+  }
+
+  @Test
+  void testFilterSharingEqTrue() {
+    String userId = getCurrentUser().getUid();
+    // first create an object which can be shared
+    String programId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programs/",
+                "{'name':'test', 'shortName':'test', 'programType':'WITHOUT_REGISTRATION'}"));
+    String sharing =
+        TextUtils.replace(
+            """
+      {'owner':'${userId}', 'public':'rwrw----', 'external': true,'users':{'${userId}':{'id':'${userId}','access':'rw------'}},'userGroups':{}}}""",
+            Map.of("userId", userId));
+    assertStatus(HttpStatus.NO_CONTENT, PUT("/programs/" + programId + "/sharing", sharing));
+    JsonObject programs =
+        GET("/programs?filter=sharing.users:eq:2", programId).content().as(JsonObject.class);
+    assertTrue(programs.get("programs").as(JsonArray.class).isEmpty());
+  }
+
+  @Test
+  void testFilterSharingGt() {
+    String userId = getCurrentUser().getUid();
+    // first create an object which can be shared
+    String programId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programs/",
+                "{'name':'test', 'shortName':'test', 'programType':'WITHOUT_REGISTRATION'}"));
+    String sharing =
+        TextUtils.replace(
+            """
+      {'owner':'${userId}', 'public':'rwrw----', 'external': true,'users':{'${userId}':{'id':'${userId}','access':'rw------'}},'userGroups':{}}}""",
+            Map.of("userId", userId));
+    assertStatus(HttpStatus.NO_CONTENT, PUT("/programs/" + programId + "/sharing", sharing));
+    JsonObject programs =
+        GET("/programs?filter=sharing.users:gt:0", programId).content().as(JsonObject.class);
+    assertEquals(1, programs.get("programs").as(JsonArray.class).size());
+  }
+
+  @Test
+  void testFilterSharingLt() {
+    String userId = getCurrentUser().getUid();
+    // first create an object which can be shared
+    String programId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programs/",
+                "{'name':'test', 'shortName':'test', 'programType':'WITHOUT_REGISTRATION'}"));
+    String sharing =
+        TextUtils.replace(
+            """
+      {'owner':'${userId}', 'public':'rwrw----', 'external': true,'users':{'${userId}':{'id':'${userId}','access':'rw------'}},'userGroups':{}}}""",
+            Map.of("userId", userId));
+    assertStatus(HttpStatus.NO_CONTENT, PUT("/programs/" + programId + "/sharing", sharing));
+    JsonObject programs =
+        GET("/programs?filter=sharing.users:lt:2", programId).content().as(JsonObject.class);
+    assertEquals(1, programs.get("programs").as(JsonArray.class).size());
   }
 
   private void assertUserGroupHasOnlyUser(String groupId, String userId) {
