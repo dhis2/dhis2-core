@@ -137,7 +137,8 @@ public class EnrollmentPersister
 
     return TrackerNotificationDataBundle.builder()
         .klass(Enrollment.class)
-        .enrollmentNotifications(bundle.getEnrollmentRuleEffects().get(UID.of(enrollment.getUid())))
+        .enrollmentNotifications(
+            bundle.getEnrollmentNotifications().get(UID.of(enrollment.getUid())))
         .object(enrollment.getUid())
         .importStrategy(bundle.getImportStrategy())
         .accessedBy(bundle.getUsername())

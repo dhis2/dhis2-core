@@ -147,7 +147,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
   }
 
   @Override
-  public void handleTrackerNotifications(List<TrackerNotificationDataBundle> bundles) {
+  public void sendNotifications(List<TrackerNotificationDataBundle> bundles) {
     notificationHandlers.forEach(handler -> handler.handleNotifications(bundles));
   }
 

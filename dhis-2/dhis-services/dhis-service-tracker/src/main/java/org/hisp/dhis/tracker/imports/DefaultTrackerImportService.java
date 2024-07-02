@@ -166,7 +166,7 @@ public class DefaultTrackerImportService implements TrackerImportService {
               .flatMap(Collection::stream)
               .toList();
 
-      trackerBundleService.handleTrackerNotifications(notificationDataBundles);
+      trackerBundleService.sendNotifications(notificationDataBundles);
     }
 
     return persistenceReport;

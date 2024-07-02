@@ -65,7 +65,7 @@ public interface TrackerBundleService {
    *
    * @param bundles {@link TrackerNotificationDataBundle} to hold data for notifications.
    */
-  void handleTrackerNotifications(List<TrackerNotificationDataBundle> bundles);
+  void sendNotifications(List<TrackerNotificationDataBundle> bundles);
 
   /**
    * Deletes objects in the bundle from persistence store if bundle mode DELETE is enabled.

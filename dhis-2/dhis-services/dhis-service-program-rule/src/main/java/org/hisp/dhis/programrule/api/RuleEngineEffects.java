@@ -54,18 +54,18 @@ import org.hisp.dhis.util.DateUtils;
 public class RuleEngineEffects {
   private final Map<UID, List<ValidationEffect>> enrollmentValidationEffects;
   private final Map<UID, List<ValidationEffect>> eventValidationEffects;
-  private final Map<UID, List<Notification>> enrollmentNotificationEffects;
-  private final Map<UID, List<Notification>> eventNotificationEffects;
+  private final Map<UID, List<Notification>> enrollmentNotifications;
+  private final Map<UID, List<Notification>> eventNotifications;
 
   private RuleEngineEffects(
       Map<UID, List<ValidationEffect>> enrollmentValidationEffects,
       Map<UID, List<ValidationEffect>> eventValidationEffects,
-      Map<UID, List<Notification>> enrollmentNotificationEffects,
-      Map<UID, List<Notification>> eventNotificationEffects) {
+      Map<UID, List<Notification>> enrollmentNotifications,
+      Map<UID, List<Notification>> eventNotifications) {
     this.enrollmentValidationEffects = enrollmentValidationEffects;
     this.eventValidationEffects = eventValidationEffects;
-    this.enrollmentNotificationEffects = enrollmentNotificationEffects;
-    this.eventNotificationEffects = eventNotificationEffects;
+    this.enrollmentNotifications = enrollmentNotifications;
+    this.eventNotifications = eventNotifications;
   }
 
   public static RuleEngineEffects empty() {
@@ -114,9 +114,9 @@ public class RuleEngineEffects {
     Map<UID, List<ValidationEffect>> eventValidationEffects =
         merge(effects.eventValidationEffects, effects2.eventValidationEffects);
     Map<UID, List<Notification>> enrollmentNotificationEffects =
-        merge(effects.enrollmentNotificationEffects, effects2.enrollmentNotificationEffects);
+        merge(effects.enrollmentNotifications, effects2.enrollmentNotifications);
     Map<UID, List<Notification>> eventNotificationEffects =
-        merge(effects.eventNotificationEffects, effects2.eventNotificationEffects);
+        merge(effects.eventNotifications, effects2.eventNotifications);
 
     return new RuleEngineEffects(
         enrollmentValidationEffects,

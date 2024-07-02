@@ -109,12 +109,11 @@ public class TrackerBundle {
   /** Relationships to import. */
   @Builder.Default private List<Relationship> relationships = new ArrayList<>();
 
-  /** Notification effects for enrollments. */
-  @Builder.Default
-  private Map<UID, List<Notification>> enrollmentNotificationEffects = new HashMap<>();
+  /** Notifications for enrollments. */
+  @Builder.Default private Map<UID, List<Notification>> enrollmentNotifications = new HashMap<>();
 
-  /** Notification effects for events. */
-  @Builder.Default private Map<UID, List<Notification>> eventNotificationEffects = new HashMap<>();
+  /** Notifications for events. */
+  @Builder.Default private Map<UID, List<Notification>> eventNotifications = new HashMap<>();
 
   /** Rule action executors for enrollments. */
   @Builder.Default
@@ -168,12 +167,12 @@ public class TrackerBundle {
     return entities.stream().filter(e -> Objects.equals(e.getUid(), uid)).findFirst();
   }
 
-  public Map<UID, List<Notification>> getEnrollmentRuleEffects() {
-    return Map.copyOf(enrollmentNotificationEffects);
+  public Map<UID, List<Notification>> getEnrollmentNotifications() {
+    return Map.copyOf(enrollmentNotifications);
   }
 
-  public Map<UID, List<Notification>> getEventRuleEffects() {
-    return Map.copyOf(eventNotificationEffects);
+  public Map<UID, List<Notification>> getEventNotifications() {
+    return Map.copyOf(eventNotifications);
   }
 
   public TrackerImportStrategy setStrategy(TrackerDto dto, TrackerImportStrategy strategy) {
