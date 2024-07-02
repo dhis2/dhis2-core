@@ -50,8 +50,6 @@ import org.springframework.stereotype.Component;
 public class TrackerNotificationThread extends SecurityContextRunnable {
   private final Notifier notifier;
 
-  private ProgramNotificationService programNotificationService;
-
   private TrackerSideEffectDataBundle sideEffectDataBundle;
 
   private IdentifiableObjectManager manager;
