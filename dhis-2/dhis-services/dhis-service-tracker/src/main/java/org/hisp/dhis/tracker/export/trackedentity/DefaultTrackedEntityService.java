@@ -452,8 +452,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     }
     UserDetails currentUser = getCurrentUserDetails();
 
-    List<String> errors = trackerAccessManager.canRead(currentUser, trackedEntity);
-    if (!errors.isEmpty()) {
+    if (!trackerAccessManager.canRead(currentUser, trackedEntity).isEmpty()) {
       return null;
     }
 
