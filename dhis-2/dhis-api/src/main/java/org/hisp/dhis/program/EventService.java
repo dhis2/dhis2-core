@@ -65,14 +65,6 @@ public interface EventService {
   Event getEvent(String uid);
 
   /**
-   * Gets the number of events added since the given number of days.
-   *
-   * @param days number of days.
-   * @return the number of events.
-   */
-  long getEventCount(int days);
-
-  /**
    * Validates EventDataValues, handles files for File EventDataValues and creates audit logs for
    * the upcoming create/save changes. DOES PERSIST the changes to the Event object.
    *
