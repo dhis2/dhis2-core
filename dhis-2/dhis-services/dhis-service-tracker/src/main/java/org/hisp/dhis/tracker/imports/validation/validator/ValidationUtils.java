@@ -120,8 +120,7 @@ public class ValidationUtils {
   }
 
   public static boolean needsToValidateDataValues(Event event, ProgramStage programStage) {
-    if (event.getStatus().equals(EventStatus.SCHEDULE)
-        || event.getStatus().equals(EventStatus.SKIPPED)) {
+    if (EventStatus.STATUSES_WITHOUT_DATA_VALUES.contains(event.getStatus())) {
       return false;
     } else if (programStage.getValidationStrategy().equals(ValidationStrategy.ON_COMPLETE)
         && event.getStatus().equals(EventStatus.COMPLETED)) {
