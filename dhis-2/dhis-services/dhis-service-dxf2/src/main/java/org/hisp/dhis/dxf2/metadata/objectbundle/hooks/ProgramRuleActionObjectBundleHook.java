@@ -32,6 +32,7 @@ import java.util.function.Consumer;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
@@ -67,6 +68,21 @@ public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook<
     if (!validationResult.isValid()) {
       addReports.accept(validationResult.getErrorReport());
     }
+  }
+
+  @Override
+  public void preCreate(ProgramRuleAction object, ObjectBundle bundle) {
+    ProgramNotificationTemplate template =
+        manager.get(ProgramNotificationTemplate.class, object.getTemplateUid());
+    object.setNotificationTemplate(template);
+  }
+
+  @Override
+  public void preUpdate(
+      ProgramRuleAction object, ProgramRuleAction persistedObject, ObjectBundle bundle) {
+    ProgramNotificationTemplate template =
+        manager.get(ProgramNotificationTemplate.class, object.getTemplateUid());
+    object.setNotificationTemplate(template);
   }
 
   private ProgramRuleActionValidationResult validateProgramRuleAction(

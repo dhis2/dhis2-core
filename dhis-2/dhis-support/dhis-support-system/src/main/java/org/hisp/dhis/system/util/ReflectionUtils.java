@@ -371,6 +371,8 @@ public class ReflectionUtils {
     try {
       return (T) method.invoke(target, args);
     } catch (InvocationTargetException | IllegalAccessException e) {
+      Throwable cause = e.getCause();
+      cause.printStackTrace();
       throw new RuntimeException(e);
     } catch (ClassCastException e) {
       log.error("fail, ClassCastException:" + e.getMessage(), e);
