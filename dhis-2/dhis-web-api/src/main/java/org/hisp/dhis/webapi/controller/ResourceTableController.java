@@ -37,6 +37,7 @@ import static org.hisp.dhis.analytics.AnalyticsTableType.OWNERSHIP;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_ENROLLMENTS;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS;
+import static org.hisp.dhis.analytics.AnalyticsTableType.VALIDATION_RESULT;
 import static org.hisp.dhis.common.DhisApiVersion.ALL;
 import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
@@ -46,11 +47,8 @@ import static org.hisp.dhis.scheduling.JobType.RESOURCE_TABLE;
 import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
-
 import java.util.HashSet;
 import java.util.Set;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -70,6 +68,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland. This is the AnalyticsExportController
@@ -93,6 +93,7 @@ public class ResourceTableController {
   public WebMessage analytics(
       @RequestParam(defaultValue = "false") Boolean skipResourceTables,
       @RequestParam(defaultValue = "false") Boolean skipAggregate,
+      @RequestParam(defaultValue = "false") Boolean skipValidationResult,
       @RequestParam(defaultValue = "false") Boolean skipEvents,
       @RequestParam(defaultValue = "false") Boolean skipEnrollment,
       @RequestParam(defaultValue = "false") Boolean skipTrackedEntities,
@@ -109,6 +110,10 @@ public class ResourceTableController {
       skipTableTypes.add(COMPLETENESS_TARGET);
     }
 
+    if (isTrue(skipValidationResult)) {
+      skipTableTypes.add(VALIDATION_RESULT);
+    }
+    
     if (isTrue(skipEvents)) {
       skipTableTypes.add(EVENT);
     }
