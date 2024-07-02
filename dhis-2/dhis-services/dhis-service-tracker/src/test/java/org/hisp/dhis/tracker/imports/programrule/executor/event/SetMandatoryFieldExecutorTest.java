@@ -238,7 +238,7 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
     when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
     when(preheat.getDataElement(DATA_ELEMENT_UID.getValue())).thenReturn(dataElement);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
-    Event event = getEventWithMandatoryValueNOTSet(EventStatus.SCHEDULE);
+    Event event = getEventWithMandatoryValueNOTSet(newStatus);
     when(preheat.getEvent(event.getUid())).thenReturn(event(event.getUid(), savedStatus));
     bundle.setEvents(List.of(event));
     bundle.setStrategy(event, TrackerImportStrategy.UPDATE);
