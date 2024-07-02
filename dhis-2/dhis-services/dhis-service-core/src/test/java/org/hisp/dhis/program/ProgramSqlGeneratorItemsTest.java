@@ -199,6 +199,12 @@ class ProgramSqlGeneratorItemsTest extends DhisConvenienceTest {
     assertThrows(org.hisp.dhis.antlr.ParserException.class, () -> test("I{notValidItm}"));
   }
 
+  @Test
+  void testNumericExpression() {
+    String sql = test("1/2");
+    assertThat(sql, is("1::numeric / 2::numeric"));
+  }
+
   // -------------------------------------------------------------------------
   // Supportive methods
   // -------------------------------------------------------------------------
