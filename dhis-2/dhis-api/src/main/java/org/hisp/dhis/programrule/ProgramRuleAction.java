@@ -34,6 +34,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
@@ -276,7 +277,7 @@ public class ProgramRuleAction extends BaseIdentifiableObject implements Metadat
   }
 
   public boolean hasNotification() {
-    return templateUid != null;
+    return StringUtils.isNotBlank(this.templateUid);
   }
 
   public boolean hasOption() {
