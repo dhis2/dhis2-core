@@ -68,13 +68,11 @@ class ProgramRuleActionControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void testGetDataExpressionDescription_NoSuchProgram() {
-    assertWebMessage(
-        "Conflict",
-        409,
-        "ERROR",
-        "Expression is not valid",
-        POST("/programRuleActions/data/expression/description?programId=xyz", "70")
-            .content(HttpStatus.CONFLICT));
+    assertEquals(
+        "Program is specified but does not exist: abcdefghijk",
+        POST("/programRuleActions/data/expression/description?programId=abcdefghijk", "70")
+            .error(HttpStatus.BAD_REQUEST)
+            .getMessage());
   }
 
   @Test

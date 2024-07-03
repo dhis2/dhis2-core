@@ -33,11 +33,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.constant.ConstantService;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
@@ -58,8 +61,6 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class DefaultProgramRuleEngine implements ProgramRuleEngine {
-  private static final String ERROR = "Program cannot be null";
-
   private final ProgramRuleEntityMapperService programRuleEntityMapperService;
 
   private final ProgramRuleVariableService programRuleVariableService;
@@ -70,6 +71,8 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
 
   private final SupplementaryDataProvider supplementaryDataProvider;
 
+  private final ProgramService programService;
+
   private final RuleEngine ruleEngine;
 
   public DefaultProgramRuleEngine(
@@ -77,12 +80,14 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
       ProgramRuleVariableService programRuleVariableService,
       ConstantService constantService,
       ImplementableRuleService implementableRuleService,
-      SupplementaryDataProvider supplementaryDataProvider) {
+      SupplementaryDataProvider supplementaryDataProvider,
+      ProgramService programService) {
     this.programRuleEntityMapperService = programRuleEntityMapperService;
     this.programRuleVariableService = programRuleVariableService;
     this.constantService = constantService;
     this.implementableRuleService = implementableRuleService;
     this.supplementaryDataProvider = supplementaryDataProvider;
+    this.programService = programService;
     this.ruleEngine = RuleEngine.getInstance();
   }
 
@@ -112,12 +117,13 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
   }
 
   @Override
-  public RuleValidationResult getDescription(String condition, Program program) {
-    if (program == null) {
-      log.error(ERROR);
-      return RuleValidationResult.invalid(ERROR);
-    }
+  public RuleValidationResult getDescription(String condition, UID programUid)
+      throws BadRequestException {
+    Program program = programService.getProgram(programUid.getValue());
 
+    if (program == null) {
+      throw new BadRequestException("Program is specified but does not exist: " + programUid);
+    }
     return ruleEngine.validate(
         condition,
         programRuleEntityMapperService.getItemStore(
@@ -125,12 +131,13 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
   }
 
   @Override
-  public RuleValidationResult getDataExpressionDescription(String dataExpression, Program program) {
-    if (program == null) {
-      log.error(ERROR);
-      return RuleValidationResult.invalid(ERROR);
-    }
+  public RuleValidationResult getDataExpressionDescription(String dataExpression, UID programUid)
+      throws BadRequestException {
+    Program program = programService.getProgram(programUid.getValue());
 
+    if (program == null) {
+      throw new BadRequestException("Program is specified but does not exist: " + programUid);
+    }
     return ruleEngine.validateDataFieldExpression(
         dataExpression,
         programRuleEntityMapperService.getItemStore(
