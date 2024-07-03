@@ -27,10 +27,6 @@
  */
 package org.hisp.dhis.program;
 
-import java.util.Collection;
-import java.util.List;
-import org.hisp.dhis.dataelement.DataElement;
-
 /**
  * @author Chau Thu Tran
  */
@@ -78,6 +74,4 @@ public interface ProgramStageSectionService {
    * @return the ProgramStageSection with the given id
    */
   ProgramStageSection getProgramStageSection(String uid);
-
-  List<ProgramStageSection> getAllByDataElement(Collection<DataElement> dataElements);
 }

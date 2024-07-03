@@ -27,10 +27,7 @@
  */
 package org.hisp.dhis.program;
 
-import java.util.Collection;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.dataelement.DataElement;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -75,11 +72,5 @@ public class DefaultProgramStageSectionService implements ProgramStageSectionSer
   @Transactional(readOnly = true)
   public ProgramStageSection getProgramStageSection(String uid) {
     return programStageSectionStore.getByUid(uid);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<ProgramStageSection> getAllByDataElement(Collection<DataElement> dataElements) {
-    return programStageSectionStore.getAllByDataElement(dataElements);
   }
 }

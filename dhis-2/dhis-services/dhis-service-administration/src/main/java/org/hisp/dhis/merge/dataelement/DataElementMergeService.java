@@ -160,7 +160,6 @@ public class DataElementMergeService implements MergeService {
             .add(trackerMergeHandler::handleProgramRuleAction)
             .add(trackerMergeHandler::handleProgramIndicatorExpression)
             .add(trackerMergeHandler::handleProgramIndicatorFilter)
-            .add(trackerMergeHandler::handleEventEventDataValues)
             .add(metadataMergeHandler::handlePredictor)
             .add(metadataMergeHandler::handlePredictorGeneratorExpression)
             .add(metadataMergeHandler::handlePredictorSampleSkipTestExpression)
@@ -174,6 +173,7 @@ public class DataElementMergeService implements MergeService {
 
     dataMergeHandlers =
         ImmutableList.<DataElementDataMergeHandler>builder()
+            .add(trackerMergeHandler::handleEventEventDataValues)
             .add(dataDataElementMergeHandler::handleDataValueDataElement)
             .build();
 

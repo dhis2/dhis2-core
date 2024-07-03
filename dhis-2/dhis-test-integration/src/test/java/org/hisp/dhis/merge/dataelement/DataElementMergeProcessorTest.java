@@ -79,7 +79,7 @@ import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.merge.DataMergeStrategy;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.minmax.MinMaxDataElement;
-import org.hisp.dhis.minmax.MinMaxDataElementService;
+import org.hisp.dhis.minmax.MinMaxDataElementStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -96,18 +96,18 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorStore;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.program.ProgramStageDataElementService;
+import org.hisp.dhis.program.ProgramStageDataElementStore;
 import org.hisp.dhis.program.ProgramStageSection;
-import org.hisp.dhis.program.ProgramStageSectionService;
+import org.hisp.dhis.program.ProgramStageSectionStore;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
 import org.hisp.dhis.programrule.ProgramRuleAction;
-import org.hisp.dhis.programrule.ProgramRuleActionService;
+import org.hisp.dhis.programrule.ProgramRuleActionStore;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
-import org.hisp.dhis.programrule.ProgramRuleVariableService;
+import org.hisp.dhis.programrule.ProgramRuleVariableStore;
 import org.hisp.dhis.sms.command.SMSCommand;
-import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.code.SMSCode;
+import org.hisp.dhis.sms.command.hibernate.SMSCommandStore;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
@@ -134,19 +134,19 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private DataElementService dataElementService;
   @Autowired private DataElementMergeProcessor mergeProcessor;
-  @Autowired private MinMaxDataElementService minMaxDataElementService;
+  @Autowired private MinMaxDataElementStore minMaxDataElementStore;
   @Autowired private EventVisualizationStore eventVisualizationStore;
   @Autowired private AnalyticalObjectStore<EventVisualization> analyticalEventVizStore;
   @Autowired private AnalyticalObjectStore<MapView> mapViewStore;
   @Autowired private OrganisationUnitService orgUnitService;
-  @Autowired private SMSCommandService smsCommandService;
+  @Autowired private SMSCommandStore smsCommandStore;
   @Autowired private PredictorStore predictorStore;
   @Autowired private CategoryService categoryService;
-  @Autowired private ProgramStageDataElementService programStageDataElementService;
-  @Autowired private ProgramStageSectionService programStageSectionService;
-  @Autowired private ProgramNotificationTemplateService programNotificationTemplateService;
-  @Autowired private ProgramRuleVariableService programRuleVariableService;
-  @Autowired private ProgramRuleActionService programRuleActionService;
+  @Autowired private ProgramStageDataElementStore programStageDataElementStore;
+  @Autowired private ProgramStageSectionStore programStageSectionStore;
+  @Autowired private ProgramNotificationTemplateStore programNotificationTemplateStore;
+  @Autowired private ProgramRuleVariableStore programRuleVariableStore;
+  @Autowired private ProgramRuleActionStore programRuleActionStore;
   @Autowired private IdentifiableObjectManager identifiableObjectManager;
   @Autowired private DataElementOperandStore dataElementOperandStore;
   @Autowired private DataSetStore dataSetStore;
@@ -232,10 +232,10 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
         new MinMaxDataElement(deTarget, ou3, coc1, 0, 100, false);
     MinMaxDataElement minMaxDataElement4 =
         new MinMaxDataElement(deRandom, ou3, coc1, 0, 100, false);
-    minMaxDataElementService.addMinMaxDataElement(minMaxDataElement1);
-    minMaxDataElementService.addMinMaxDataElement(minMaxDataElement2);
-    minMaxDataElementService.addMinMaxDataElement(minMaxDataElement3);
-    minMaxDataElementService.addMinMaxDataElement(minMaxDataElement4);
+    minMaxDataElementStore.save(minMaxDataElement1);
+    minMaxDataElementStore.save(minMaxDataElement2);
+    minMaxDataElementStore.save(minMaxDataElement3);
+    minMaxDataElementStore.save(minMaxDataElement4);
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -245,9 +245,9 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
     // then
     List<MinMaxDataElement> minMaxSources =
-        minMaxDataElementService.getAllByDataElement(List.of(deSource1, deSource2));
+        minMaxDataElementStore.getByDataElement(List.of(deSource1, deSource2));
     List<MinMaxDataElement> minMaxTarget =
-        minMaxDataElementService.getAllByDataElement(List.of(deTarget));
+        minMaxDataElementStore.getByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesNotDeleted(report, minMaxSources, minMaxTarget, allDataElements);
@@ -266,10 +266,10 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
         new MinMaxDataElement(deTarget, ou3, coc1, 0, 100, false);
     MinMaxDataElement minMaxDataElement4 =
         new MinMaxDataElement(deRandom, ou3, coc1, 0, 100, false);
-    minMaxDataElementService.addMinMaxDataElement(minMaxDataElement1);
-    minMaxDataElementService.addMinMaxDataElement(minMaxDataElement2);
-    minMaxDataElementService.addMinMaxDataElement(minMaxDataElement3);
-    minMaxDataElementService.addMinMaxDataElement(minMaxDataElement4);
+    minMaxDataElementStore.save(minMaxDataElement1);
+    minMaxDataElementStore.save(minMaxDataElement2);
+    minMaxDataElementStore.save(minMaxDataElement3);
+    minMaxDataElementStore.save(minMaxDataElement4);
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -280,9 +280,9 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
     // then
     List<MinMaxDataElement> minMaxSources =
-        minMaxDataElementService.getAllByDataElement(List.of(deSource1, deSource2));
+        minMaxDataElementStore.getByDataElement(List.of(deSource1, deSource2));
     List<MinMaxDataElement> minMaxTarget =
-        minMaxDataElementService.getAllByDataElement(List.of(deTarget));
+        minMaxDataElementStore.getByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesDeleted(report, minMaxSources, minMaxTarget, allDataElements);
@@ -301,10 +301,10 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
         new MinMaxDataElement(deTarget, ou1, coc1, 0, 100, false);
     MinMaxDataElement minMaxDataElement4 =
         new MinMaxDataElement(deRandom, ou3, coc1, 0, 100, false);
-    minMaxDataElementService.addMinMaxDataElement(minMaxDataElement1);
-    minMaxDataElementService.addMinMaxDataElement(minMaxDataElement2);
-    minMaxDataElementService.addMinMaxDataElement(minMaxDataElement3);
-    minMaxDataElementService.addMinMaxDataElement(minMaxDataElement4);
+    minMaxDataElementStore.save(minMaxDataElement1);
+    minMaxDataElementStore.save(minMaxDataElement2);
+    minMaxDataElementStore.save(minMaxDataElement3);
+    minMaxDataElementStore.save(minMaxDataElement4);
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -570,7 +570,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
     smsCommand.setName("CMD 1");
     smsCommand.setCodes(Set.of(smsCode1, smsCode2, smsCode3, smsCode4));
 
-    smsCommandService.save(smsCommand);
+    smsCommandStore.save(smsCommand);
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -580,8 +580,8 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
     // then
     List<SMSCode> smsCommandSources =
-        smsCommandService.getSmsCodesByDataElement(List.of(deSource1, deSource2));
-    List<SMSCode> smsCommandTarget = smsCommandService.getSmsCodesByDataElement(List.of(deTarget));
+        smsCommandStore.getCodesByDataElement(List.of(deSource1, deSource2));
+    List<SMSCode> smsCommandTarget = smsCommandStore.getCodesByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesNotDeleted(
@@ -601,7 +601,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
     smsCommand.setName("CMD 1");
     smsCommand.setCodes(Set.of(smsCode1, smsCode2, smsCode3, smsCode4));
 
-    smsCommandService.save(smsCommand);
+    smsCommandStore.save(smsCommand);
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -612,8 +612,8 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
     // then
     List<SMSCode> smsCommandSources =
-        smsCommandService.getSmsCodesByDataElement(List.of(deSource1, deSource2));
-    List<SMSCode> smsCommandTarget = smsCommandService.getSmsCodesByDataElement(List.of(deTarget));
+        smsCommandStore.getCodesByDataElement(List.of(deSource1, deSource2));
+    List<SMSCode> smsCommandTarget = smsCommandStore.getCodesByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesDeleted(
@@ -833,9 +833,9 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
     // then
     List<ProgramStageDataElement> psdeSources =
-        programStageDataElementService.getAllByDataElement(List.of(deSource1, deSource2));
+        programStageDataElementStore.getAllByDataElement(List.of(deSource1, deSource2));
     List<ProgramStageDataElement> psdeTarget =
-        programStageDataElementService.getAllByDataElement(List.of(deTarget));
+        programStageDataElementStore.getAllByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesNotDeleted(report, psdeSources, psdeTarget, allDataElements);
@@ -867,9 +867,9 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
     // then
     List<ProgramStageDataElement> psdeSources =
-        programStageDataElementService.getAllByDataElement(List.of(deSource1, deSource2));
+        programStageDataElementStore.getAllByDataElement(List.of(deSource1, deSource2));
     List<ProgramStageDataElement> psdeTarget =
-        programStageDataElementService.getAllByDataElement(List.of(deTarget));
+        programStageDataElementStore.getAllByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesDeleted(report, psdeSources, psdeTarget, allDataElements);
@@ -941,9 +941,9 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
     // then
     List<ProgramStageSection> pssSources =
-        programStageSectionService.getAllByDataElement(List.of(deSource1, deSource2));
+        programStageSectionStore.getAllByDataElement(List.of(deSource1, deSource2));
     List<ProgramStageSection> pssTarget =
-        programStageSectionService.getAllByDataElement(List.of(deTarget));
+        programStageSectionStore.getAllByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesNotDeleted(report, pssSources, pssTarget, allDataElements);
@@ -974,9 +974,9 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
     // then
     List<ProgramStageSection> pssSources =
-        programStageSectionService.getAllByDataElement(List.of(deSource1, deSource2));
+        programStageSectionStore.getAllByDataElement(List.of(deSource1, deSource2));
     List<ProgramStageSection> pssTarget =
-        programStageSectionService.getAllByDataElement(List.of(deTarget));
+        programStageSectionStore.getAllByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesDeleted(report, pssSources, pssTarget, allDataElements);
@@ -1009,9 +1009,9 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
     // then
     List<ProgramNotificationTemplate> pntSources =
-        programNotificationTemplateService.getByDataElement(List.of(deSource1, deSource2));
+        programNotificationTemplateStore.getByDataElement(List.of(deSource1, deSource2));
     List<ProgramNotificationTemplate> pntTarget =
-        programNotificationTemplateService.getByDataElement(List.of(deTarget));
+        programNotificationTemplateStore.getByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesNotDeleted(report, pntSources, pntTarget, allDataElements);
@@ -1042,9 +1042,9 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
     // then
     List<ProgramNotificationTemplate> pntSources =
-        programNotificationTemplateService.getByDataElement(List.of(deSource1, deSource2));
+        programNotificationTemplateStore.getByDataElement(List.of(deSource1, deSource2));
     List<ProgramNotificationTemplate> pntTarget =
-        programNotificationTemplateService.getByDataElement(List.of(deTarget));
+        programNotificationTemplateStore.getByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesDeleted(report, pntSources, pntTarget, allDataElements);
@@ -1077,9 +1077,9 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
     // then
     List<ProgramRuleVariable> prvSources =
-        programRuleVariableService.getByDataElement(List.of(deSource1, deSource2));
+        programRuleVariableStore.getByDataElement(List.of(deSource1, deSource2));
     List<ProgramRuleVariable> prvTarget =
-        programRuleVariableService.getByDataElement(List.of(deTarget));
+        programRuleVariableStore.getByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesNotDeleted(report, prvSources, prvTarget, allDataElements);
@@ -1110,9 +1110,9 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
     // then
     List<ProgramRuleVariable> prvSources =
-        programRuleVariableService.getByDataElement(List.of(deSource1, deSource2));
+        programRuleVariableStore.getByDataElement(List.of(deSource1, deSource2));
     List<ProgramRuleVariable> prvTarget =
-        programRuleVariableService.getByDataElement(List.of(deTarget));
+        programRuleVariableStore.getByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesDeleted(report, prvSources, prvTarget, allDataElements);
@@ -1145,9 +1145,8 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
     // then
     List<ProgramRuleAction> prvSources =
-        programRuleActionService.getByDataElement(List.of(deSource1, deSource2));
-    List<ProgramRuleAction> prvTarget =
-        programRuleActionService.getByDataElement(List.of(deTarget));
+        programRuleActionStore.getByDataElement(List.of(deSource1, deSource2));
+    List<ProgramRuleAction> prvTarget = programRuleActionStore.getByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesNotDeleted(report, prvSources, prvTarget, allDataElements);
@@ -1178,9 +1177,8 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
     // then
     List<ProgramRuleAction> prvSources =
-        programRuleActionService.getByDataElement(List.of(deSource1, deSource2));
-    List<ProgramRuleAction> prvTarget =
-        programRuleActionService.getByDataElement(List.of(deTarget));
+        programRuleActionStore.getByDataElement(List.of(deSource1, deSource2));
+    List<ProgramRuleAction> prvTarget = programRuleActionStore.getByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesDeleted(report, prvSources, prvTarget, allDataElements);
@@ -1396,8 +1394,8 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
   }
 
   private void eventDataValuesShouldHaveOnlyOneUniqueDataElementRef(
-      List<Event> eventTarget, String targetUid) {
-    for (Event e : eventTarget) {
+      List<Event> targetEvents, String targetUid) {
+    for (Event e : targetEvents) {
       assertEquals(1, e.getEventDataValues().size());
       assertEquals(
           targetUid,

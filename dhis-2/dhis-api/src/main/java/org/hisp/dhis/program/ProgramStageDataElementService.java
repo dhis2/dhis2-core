@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.program;
 
-import java.util.Collection;
 import java.util.List;
 import org.hisp.dhis.dataelement.DataElement;
 
@@ -85,6 +84,4 @@ public interface ProgramStageDataElementService {
    *     DataElement}
    */
   List<ProgramStageDataElement> getProgramStageDataElements(DataElement dataElement);
-
-  List<ProgramStageDataElement> getAllByDataElement(Collection<DataElement> dataElements);
 }

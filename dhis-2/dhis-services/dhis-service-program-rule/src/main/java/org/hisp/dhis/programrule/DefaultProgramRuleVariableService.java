@@ -27,10 +27,8 @@
  */
 package org.hisp.dhis.programrule;
 
-import java.util.Collection;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -95,11 +93,5 @@ public class DefaultProgramRuleVariableService implements ProgramRuleVariableSer
   @Transactional(readOnly = true)
   public List<ProgramRuleVariable> getVariablesWithNoAttribute() {
     return programRuleVariableStore.getVariablesWithNoAttribute();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<ProgramRuleVariable> getByDataElement(Collection<DataElement> dataElements) {
-    return programRuleVariableStore.getByDataElement(dataElements);
   }
 }

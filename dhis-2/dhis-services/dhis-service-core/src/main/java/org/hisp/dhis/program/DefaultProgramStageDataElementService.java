@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.program;
 
-import java.util.Collection;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dataelement.DataElement;
@@ -80,11 +79,5 @@ public class DefaultProgramStageDataElementService implements ProgramStageDataEl
   @Transactional
   public void updateProgramStageDataElement(ProgramStageDataElement programStageDataElement) {
     programStageDataElementStore.update(programStageDataElement);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<ProgramStageDataElement> getAllByDataElement(Collection<DataElement> dataElements) {
-    return programStageDataElementStore.getAllByDataElement(dataElements);
   }
 }

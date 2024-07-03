@@ -119,10 +119,4 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
       Collection<DataElement> dataElements, OrganisationUnit parent) {
     minMaxDataElementStore.delete(dataElements, parent);
   }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<MinMaxDataElement> getAllByDataElement(Collection<DataElement> dataElements) {
-    return minMaxDataElementStore.getByDataElement(dataElements);
-  }
 }

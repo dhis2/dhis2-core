@@ -36,21 +36,22 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValueAudit;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.merge.MergeRequest;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventStore;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorStore;
 import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.program.ProgramStageDataElementService;
+import org.hisp.dhis.program.ProgramStageDataElementStore;
 import org.hisp.dhis.program.ProgramStageSection;
-import org.hisp.dhis.program.ProgramStageSectionService;
+import org.hisp.dhis.program.ProgramStageSectionStore;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
 import org.hisp.dhis.programrule.ProgramRuleAction;
-import org.hisp.dhis.programrule.ProgramRuleActionService;
+import org.hisp.dhis.programrule.ProgramRuleActionStore;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
-import org.hisp.dhis.programrule.ProgramRuleVariableService;
+import org.hisp.dhis.programrule.ProgramRuleVariableStore;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogStore;
 import org.springframework.stereotype.Service;
@@ -65,11 +66,11 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class TrackerDataElementMergeHandler {
 
-  private final ProgramStageDataElementService programStageDataElementService;
-  private final ProgramStageSectionService programStageSectionService;
-  private final ProgramNotificationTemplateService programNotificationTemplateService;
-  private final ProgramRuleVariableService programRuleVariableService;
-  private final ProgramRuleActionService programRuleActionService;
+  private final ProgramStageDataElementStore programStageDataElementStore;
+  private final ProgramStageSectionStore programStageSectionStore;
+  private final ProgramNotificationTemplateStore programNotificationTemplateStore;
+  private final ProgramRuleVariableStore programRuleVariableStore;
+  private final ProgramRuleActionStore programRuleActionStore;
   private final ProgramIndicatorStore programIndicatorStore;
   private final EventStore eventStore;
   private final TrackedEntityDataValueChangeLogStore teDataValueChangeLogStore;
@@ -124,7 +125,7 @@ public class TrackerDataElementMergeHandler {
    */
   public void handleProgramStageDataElement(List<DataElement> sources, DataElement target) {
     List<ProgramStageDataElement> programStageDataElements =
-        programStageDataElementService.getAllByDataElement(sources);
+        programStageDataElementStore.getAllByDataElement(sources);
     programStageDataElements.forEach(p -> p.setDataElement(target));
   }
 
@@ -139,7 +140,7 @@ public class TrackerDataElementMergeHandler {
    */
   public void handleProgramStageSection(List<DataElement> sources, DataElement target) {
     List<ProgramStageSection> programStageSections =
-        programStageSectionService.getAllByDataElement(sources);
+        programStageSectionStore.getAllByDataElement(sources);
 
     sources.forEach(
         source ->
@@ -162,7 +163,7 @@ public class TrackerDataElementMergeHandler {
    */
   public void handleProgramNotificationTemplate(List<DataElement> sources, DataElement target) {
     List<ProgramNotificationTemplate> programNotificationTemplates =
-        programNotificationTemplateService.getByDataElement(sources);
+        programNotificationTemplateStore.getByDataElement(sources);
 
     programNotificationTemplates.forEach(pnt -> pnt.setRecipientDataElement(target));
   }
@@ -178,7 +179,7 @@ public class TrackerDataElementMergeHandler {
    */
   public void handleProgramRuleVariable(List<DataElement> sources, DataElement target) {
     List<ProgramRuleVariable> programRuleVariables =
-        programRuleVariableService.getByDataElement(sources);
+        programRuleVariableStore.getByDataElement(sources);
 
     programRuleVariables.forEach(prv -> prv.setDataElement(target));
   }
@@ -193,28 +194,32 @@ public class TrackerDataElementMergeHandler {
    *     ProgramRuleAction}
    */
   public void handleProgramRuleAction(List<DataElement> sources, DataElement target) {
-    List<ProgramRuleAction> programRuleActions = programRuleActionService.getByDataElement(sources);
+    List<ProgramRuleAction> programRuleActions = programRuleActionStore.getByDataElement(sources);
 
     programRuleActions.forEach(pra -> pra.setDataElement(target));
   }
 
   /**
    * Method retrieving {@link Event}s by source {@link DataElement} references present in their
-   * eventDataValues property. All retrieved {@link Event}s will have their {@link DataElement} ref
-   * in eventDataValues replaced with the target {@link DataElement}.
+   * {@link EventDataValue}s. All retrieved {@link Event}s will have their {@link DataElement} ref
+   * in {@link EventDataValue}s replaced with the target {@link DataElement}.
    *
    * <p>A native query to retrieve events is required here as Hibernate does not support json
-   * functions. Because of this, all events are then updated at the end of this method using the
-   * entity manager to bring the system to a consistent state, which should prevent inconsistent
-   * state between Hibernate/JPA
+   * functions in the query. Because of this, all events are then updated at the end of this method,
+   * which should prevent inconsistent state between Hibernate/JPA
    *
    * @param sources source {@link DataElement}s used to retrieve {@link Event}s
    * @param target {@link DataElement} which will be set as the {@link DataElement} in {@link Event}
    *     eventDataValues
+   * @param request merge request
    */
-  public void handleEventEventDataValues(List<DataElement> sources, DataElement target) {
+  public void handleEventEventDataValues(
+      List<DataElement> sources, DataElement target, MergeRequest request) {
     List<String> sourceDeUids = IdentifiableObjectUtils.getUids(sources);
     List<Event> events = eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(sourceDeUids);
+
+    // TODO possibly need to use last updated strategy, or else just delete source event data values
+    // might need to check for duplicates here (if target DE uid is already present in edvs)
     events.stream()
         .flatMap(e -> e.getEventDataValues().stream())
         .filter(edv -> sourceDeUids.contains(edv.getDataElement()))

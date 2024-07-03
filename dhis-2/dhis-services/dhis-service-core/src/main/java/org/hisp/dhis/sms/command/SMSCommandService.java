@@ -27,10 +27,8 @@
  */
 package org.hisp.dhis.sms.command;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.parse.ParserType;
@@ -59,6 +57,4 @@ public interface SMSCommandService {
   int countDataSetSmsCommands(DataSet dataSet);
 
   SMSCommand getSMSCommand(String name);
-
-  List<SMSCode> getSmsCodesByDataElement(Collection<DataElement> dataElements);
 }
