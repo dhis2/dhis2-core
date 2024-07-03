@@ -94,8 +94,8 @@ class DefaultProgramRuleService implements ProgramRuleService {
                 calculateTrackerEventRuleEffects(bundle, preheat)),
             calculateProgramEventRuleEffects(bundle, preheat));
 
-    bundle.setEnrollmentNotificationEffects(ruleEffects.getEnrollmentNotificationEffects());
-    bundle.setEventNotificationEffects(ruleEffects.getEventNotificationEffects());
+    bundle.setEnrollmentNotifications(ruleEffects.getEnrollmentNotifications());
+    bundle.setEventNotifications(ruleEffects.getEventNotifications());
     bundle.setEnrollmentRuleActionExecutors(
         ruleActionEnrollmentMapper.mapRuleEffects(
             ruleEffects.getEnrollmentValidationEffects(), bundle));

@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.programrule.engine;
+package org.hisp.dhis.tracker.imports.job;
 
 import java.util.Date;
 import lombok.RequiredArgsConstructor;
@@ -35,19 +35,83 @@ import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.notification.logging.NotificationTriggerEvent;
 import org.hisp.dhis.notification.logging.NotificationValidationResult;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.notification.ProgramNotificationInstance;
+import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
+import org.hisp.dhis.program.notification.ProgramNotificationService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
-import org.hisp.dhis.programrule.api.NotificationEffect;
+import org.hisp.dhis.program.notification.template.snapshot.NotificationTemplateService;
+import org.hisp.dhis.programrule.api.Notification;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
+/** Sends or schedules a notification to be sent as a result of a rule-engine evaluation. */
 @Slf4j
 @RequiredArgsConstructor
 @Component
-class NotificationHelper {
+public class NotificationSender {
+  public static final String LOG_MESSAGE = "Notification with id:%s has been scheduled";
+  private final ProgramNotificationInstanceService programNotificationInstanceService;
+  private final ProgramNotificationService programNotificationService;
+  private final NotificationTemplateService notificationTemplateService;
   private final ProgramNotificationTemplateService programNotificationTemplateService;
   private final NotificationLoggingService notificationLoggingService;
 
-  public void createLogEntry(ProgramNotificationTemplate template, Enrollment enrollment) {
+  @Transactional
+  public void send(Notification notification, Enrollment enrollment) {
+    ProgramNotificationTemplate template = getNotificationTemplate(notification);
+
+    NotificationValidationResult result = validate(template, enrollment);
+
+    if (!result.isValid()) {
+      return;
+    }
+
+    if (notification.scheduledAt() != null) {
+      ProgramNotificationInstance notificationInstance =
+          notificationTemplateService.createNotificationInstance(
+              template, notification.scheduledAt());
+      notificationInstance.setEvent(null);
+      notificationInstance.setEnrollment(enrollment);
+
+      programNotificationInstanceService.save(notificationInstance);
+    } else {
+      programNotificationService.sendProgramRuleTriggeredNotifications(template, enrollment);
+    }
+    if (result.needsToCreateLogEntry()) {
+      createLogEntry(template, enrollment);
+    }
+  }
+
+  @Transactional
+  public void send(Notification notification, Event event) {
+    ProgramNotificationTemplate template = getNotificationTemplate(notification);
+
+    NotificationValidationResult result = validate(template, event.getEnrollment());
+
+    if (!result.isValid()) {
+      return;
+    }
+
+    if (notification.scheduledAt() != null) {
+      ProgramNotificationInstance notificationInstance =
+          notificationTemplateService.createNotificationInstance(
+              template, notification.scheduledAt());
+      notificationInstance.setEvent(event);
+      notificationInstance.setEnrollment(null);
+
+      programNotificationInstanceService.save(notificationInstance);
+    } else {
+      programNotificationService.sendProgramRuleTriggeredEventNotifications(template, event);
+    }
+
+    if (result.needsToCreateLogEntry()) {
+      createLogEntry(template, event.getEnrollment());
+    }
+  }
+
+  private void createLogEntry(ProgramNotificationTemplate template, Enrollment enrollment) {
     String key = generateKey(template, enrollment);
     ExternalNotificationLogEntry entry = new ExternalNotificationLogEntry();
     entry.setLastSentAt(new Date());
@@ -59,13 +123,12 @@ class NotificationHelper {
     notificationLoggingService.save(entry);
   }
 
-  public ProgramNotificationTemplate getNotificationTemplate(
-      NotificationEffect notificationEffect) {
-    String uid = notificationEffect.template().getValue();
+  private ProgramNotificationTemplate getNotificationTemplate(Notification notification) {
+    String uid = notification.template().getValue();
     return programNotificationTemplateService.getByUid(uid);
   }
 
-  public NotificationValidationResult validate(
+  private NotificationValidationResult validate(
       ProgramNotificationTemplate template, Enrollment enrollment) {
     if (template == null) {
       return NotificationValidationResult.invalid();
