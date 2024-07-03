@@ -286,7 +286,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     }
 
     Set<TrackedEntityAttribute> readableAttributes =
-        new HashSet<>(daoTrackedEntityInstance.getTrackedEntityType().getTrackedEntityAttributes());
+        trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes(user);
 
     return getTei(daoTrackedEntityInstance, readableAttributes, params, user, null);
   }
@@ -305,7 +305,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     User user = currentUserService.getCurrentUser();
 
     Set<TrackedEntityAttribute> readableAttributes =
-        new HashSet<>(daoTrackedEntityInstance.getTrackedEntityType().getTrackedEntityAttributes());
+        trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes(user);
     readableAttributes.addAll(program.getTrackedEntityAttributes());
 
     return getTei(daoTrackedEntityInstance, readableAttributes, params, user, program);
