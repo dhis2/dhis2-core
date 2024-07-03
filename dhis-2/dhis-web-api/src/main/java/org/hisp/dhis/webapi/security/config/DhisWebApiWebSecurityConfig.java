@@ -271,8 +271,6 @@ public class DhisWebApiWebSecurityConfig {
                   .hasAnyAuthority("ALL", "M_dhis-web-usage-analytics")
                   .requestMatchers(new AntPathRequestMatcher("/dhis-web-event-capture/**"))
                   .hasAnyAuthority("ALL", "M_dhis-web-event-capture")
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-tracker-capture/**"))
-                  .hasAnyAuthority("ALL", "M_dhis-web-tracker-capture")
                   .requestMatchers(new AntPathRequestMatcher("/dhis-web-cache-cleaner/**"))
                   .hasAnyAuthority("ALL", "M_dhis-web-cache-cleaner")
                   .requestMatchers(new AntPathRequestMatcher("/dhis-web-data-administration/**"))
