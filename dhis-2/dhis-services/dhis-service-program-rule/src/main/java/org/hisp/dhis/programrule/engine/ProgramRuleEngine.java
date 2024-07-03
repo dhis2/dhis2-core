@@ -29,6 +29,8 @@ package org.hisp.dhis.programrule.engine;
 
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
@@ -48,17 +50,18 @@ public interface ProgramRuleEngine {
    * To getDescription rule condition in order to fetch its description
    *
    * @param condition of program rule
-   * @param program {@link Program} which the programRule is associated with.
+   * @param programUid {@link Program} which the programRule is associated with.
    * @return RuleValidationResult contains description of program rule condition or errorMessage
    */
-  RuleValidationResult getDescription(String condition, Program program);
+  RuleValidationResult getDescription(String condition, UID programUid) throws BadRequestException;
 
   /**
    * To get description for program rule action data field.
    *
    * @param dataExpression of program rule action data field expression.
-   * @param program {@link Program} which the programRule is associated with.
+   * @param programUid {@link Program} which the programRule is associated with.
    * @return RuleValidationResult contains description of program rule condition or errorMessage
    */
-  RuleValidationResult getDataExpressionDescription(String dataExpression, Program program);
+  RuleValidationResult getDataExpressionDescription(String dataExpression, UID programUid)
+      throws BadRequestException;
 }
