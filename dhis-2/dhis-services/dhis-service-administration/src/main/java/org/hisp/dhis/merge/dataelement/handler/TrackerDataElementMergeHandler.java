@@ -28,11 +28,15 @@
 package org.hisp.dhis.merge.dataelement.handler;
 
 import java.util.List;
+import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.datavalue.DataValueAudit;
+import org.hisp.dhis.merge.MergeRequest;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventStore;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -47,6 +51,8 @@ import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionService;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogStore;
 import org.springframework.stereotype.Service;
 
 /**
@@ -54,6 +60,7 @@ import org.springframework.stereotype.Service;
  *
  * @author david mackessy
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TrackerDataElementMergeHandler {
@@ -65,6 +72,7 @@ public class TrackerDataElementMergeHandler {
   private final ProgramRuleActionService programRuleActionService;
   private final ProgramIndicatorStore programIndicatorStore;
   private final EventStore eventStore;
+  private final TrackedEntityDataValueChangeLogStore teDataValueChangeLogStore;
   private final EntityManager entityManager;
 
   /**
@@ -213,5 +221,25 @@ public class TrackerDataElementMergeHandler {
         .forEach(edv -> edv.setDataElement(target.getUid()));
 
     events.forEach(entityManager::merge);
+  }
+
+  /**
+   * Method handling {@link TrackedEntityDataValueChangeLog}s. All {@link
+   * TrackedEntityDataValueChangeLog}s will either be deleted or left as is, based on whether the
+   * source {@link DataElement}s are being deleted or not.
+   *
+   * @param sources source {@link DataElement}s used to retrieve {@link DataValueAudit}s
+   * @param mergeRequest merge request
+   */
+  public void handleTrackedEntityDataValueChangelog(
+      @Nonnull List<DataElement> sources, @Nonnull MergeRequest mergeRequest) {
+    if (mergeRequest.isDeleteSources()) {
+      log.info(
+          "Deleting source tracked entity data value change log records as source DataElements are being deleted");
+      sources.forEach(teDataValueChangeLogStore::deleteTrackedEntityDataValueChangeLog);
+    } else {
+      log.info(
+          "Leaving source tracked entity data value change log records as is, source DataElements are not being deleted");
+    }
   }
 }

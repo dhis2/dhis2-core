@@ -33,14 +33,11 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.merge.MergeRequest;
 
 /**
- * Functional interface representing a {@link DataElement} data merge operation.
+ * Functional interface representing a {@link DataElement} audit merge operation.
  *
  * @author david mackessy
  */
 @FunctionalInterface
-public interface DataElementDataMergeHandler {
-  void merge(
-      @Nonnull List<DataElement> sources,
-      @Nonnull DataElement target,
-      @Nonnull MergeRequest mergeRequest);
+public interface DataElementAuditMergeHandler {
+  void merge(@Nonnull List<DataElement> sources, @Nonnull MergeRequest mergeRequest);
 }

@@ -79,6 +79,7 @@ public class DataElementMergeService implements MergeService {
       metadataMergeHandlers;
   private ImmutableList<MergeHandler> commonMergeHandlers;
   private ImmutableList<DataElementDataMergeHandler> dataMergeHandlers;
+  private ImmutableList<DataElementAuditMergeHandler> auditMergeHandlers;
 
   @Override
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
@@ -94,7 +95,6 @@ public class DataElementMergeService implements MergeService {
 
     // target
     validator.checkIsTargetInSources(sources, params.getTarget(), mergeReport, DataElement.class);
-
     MergeRequest request = validator.verifyTarget(mergeReport, sources, params, DataElement.class);
 
     if (mergeReport.hasErrorMessages()) return request;
@@ -127,9 +127,10 @@ public class DataElementMergeService implements MergeService {
 
     // merge metadata
     log.info("Handling DataElement reference associations and merges");
-    dataMergeHandlers.forEach(h -> h.merge(sources, target, request.getDataMergeStrategy()));
+    dataMergeHandlers.forEach(h -> h.merge(sources, target, request));
     metadataMergeHandlers.forEach(h -> h.merge(sources, target));
     commonMergeHandlers.forEach(h -> h.merge(sources, target));
+    auditMergeHandlers.forEach(h -> h.merge(sources, request));
 
     // handle deletes
     if (request.isDeleteSources()) handleDeleteSources(sources, mergeReport);
@@ -174,6 +175,12 @@ public class DataElementMergeService implements MergeService {
     dataMergeHandlers =
         ImmutableList.<DataElementDataMergeHandler>builder()
             .add(dataDataElementMergeHandler::handleDataValueDataElement)
+            .build();
+
+    auditMergeHandlers =
+        ImmutableList.<DataElementAuditMergeHandler>builder()
+            .add(trackerMergeHandler::handleTrackedEntityDataValueChangelog)
+            .add(dataDataElementMergeHandler::handleDataValueAuditDataElement)
             .build();
 
     commonMergeHandlers =

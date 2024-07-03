@@ -35,12 +35,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.persistence.PersistenceException;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -60,6 +62,9 @@ import org.hisp.dhis.dataset.DataSetStore;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.SectionService;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueAudit;
+import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
+import org.hisp.dhis.datavalue.DataValueAuditStore;
 import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.eventvisualization.EventVisualization;
@@ -106,6 +111,9 @@ import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
+import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogStore;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -150,6 +158,8 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
   @Autowired private EventStore eventStore;
   @Autowired private DataDimensionItemStore dataDimensionItemStore;
   @Autowired private DataValueStore dataValueStore;
+  @Autowired private DataValueAuditStore dataValueAuditStore;
+  @Autowired private TrackedEntityDataValueChangeLogStore teDataValueChangeLogStore;
 
   private DataElement deSource1;
   private DataElement deSource2;
@@ -2397,6 +2407,249 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesDeleted(report, sourceItems, targetItems, allDataElements);
+  }
+
+  // ------------------------
+  // -- DataValueAudit --
+  // ------------------------
+  @Test
+  @DisplayName(
+      "DataValueAudits with references to DataElements are not changed or deleted when sources not deleted")
+  void dataValueAuditMergeTest() throws ConflictException {
+    // given
+    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
+    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    identifiableObjectManager.save(p1);
+
+    DataValueAudit dva1 = createDataValueAudit(deSource1, "1", p1);
+    DataValueAudit dva2 = createDataValueAudit(deSource1, "2", p1);
+    DataValueAudit dva3 = createDataValueAudit(deSource2, "1", p1);
+    DataValueAudit dva4 = createDataValueAudit(deSource2, "2", p1);
+    DataValueAudit dva5 = createDataValueAudit(deTarget, "1", p1);
+
+    dataValueAuditStore.addDataValueAudit(dva1);
+    dataValueAuditStore.addDataValueAudit(dva2);
+    dataValueAuditStore.addDataValueAudit(dva3);
+    dataValueAuditStore.addDataValueAudit(dva4);
+    dataValueAuditStore.addDataValueAudit(dva5);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    DataValueAuditQueryParams sourceDvaQueryParams =
+        getQueryParams(List.of(deSource1, deSource2), List.of(p1));
+    DataValueAuditQueryParams targetDvaQueryParams = getQueryParams(List.of(deTarget), List.of(p1));
+
+    List<DataValueAudit> sourceAudits =
+        dataValueAuditStore.getDataValueAudits(sourceDvaQueryParams);
+    List<DataValueAudit> targetItems = dataValueAuditStore.getDataValueAudits(targetDvaQueryParams);
+
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(4, sourceAudits.size(), "Expect 4 entries with source data element refs");
+    assertEquals(1, targetItems.size(), "Expect 1 entry with target data element ref");
+    assertEquals(4, allDataElements.size(), "Expect 4 data elements present");
+    assertTrue(allDataElements.containsAll(List.of(deTarget, deSource1, deSource2)));
+  }
+
+  @Test
+  @DisplayName(
+      "DataValueAudits with references to DataElements are deleted when sources are deleted")
+  void dataValueAuditMergeDeleteTest() throws ConflictException {
+    // given
+    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
+    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
+    identifiableObjectManager.save(p1);
+
+    DataValueAudit dva1 = createDataValueAudit(deSource1, "1", p1);
+    DataValueAudit dva2 = createDataValueAudit(deSource1, "2", p1);
+    DataValueAudit dva3 = createDataValueAudit(deSource2, "1", p1);
+    DataValueAudit dva4 = createDataValueAudit(deSource2, "2", p1);
+    DataValueAudit dva5 = createDataValueAudit(deTarget, "1", p1);
+
+    dataValueAuditStore.addDataValueAudit(dva1);
+    dataValueAuditStore.addDataValueAudit(dva2);
+    dataValueAuditStore.addDataValueAudit(dva3);
+    dataValueAuditStore.addDataValueAudit(dva4);
+    dataValueAuditStore.addDataValueAudit(dva5);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDeleteSources(true);
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    DataValueAuditQueryParams sourceDvaQueryParams =
+        getQueryParams(List.of(deSource1, deSource2), List.of(p1));
+    DataValueAuditQueryParams targetDvaQueryParams = getQueryParams(List.of(deTarget), List.of(p1));
+
+    List<DataValueAudit> sourceAudits =
+        dataValueAuditStore.getDataValueAudits(sourceDvaQueryParams);
+    List<DataValueAudit> targetItems = dataValueAuditStore.getDataValueAudits(targetDvaQueryParams);
+
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, sourceAudits.size(), "Expect 0 entries with source data element refs");
+    assertEquals(1, targetItems.size(), "Expect 1 entry with target data element ref");
+    assertEquals(2, allDataElements.size(), "Expect 2 data elements present");
+    assertTrue(allDataElements.contains(deTarget));
+    assertFalse(allDataElements.containsAll(List.of(deSource1, deSource2)));
+  }
+
+  // --------------------------------------
+  // -- TrackedEntityDataValueChangeLog --
+  // --------------------------------------
+  @Test
+  @DisplayName(
+      "TrackedEntityDataValueChangeLog with references to DataElements are not changed or deleted when sources not deleted")
+  void trackedEntityDataValueChangeLogMergeTest() throws ConflictException {
+    // given
+    TrackedEntity trackedEntity = createTrackedEntity(ou1);
+    identifiableObjectManager.save(trackedEntity);
+    Enrollment enrollment = createEnrollment(program, trackedEntity, ou1);
+    identifiableObjectManager.save(enrollment);
+    ProgramStage stage = createProgramStage('s', 2);
+    identifiableObjectManager.save(stage);
+    Event e = createEvent(stage, enrollment, ou1);
+    e.setAttributeOptionCombo(coc1);
+    identifiableObjectManager.save(e);
+
+    TrackedEntityDataValueChangeLog tedvcl1 = createTrackedEntityDataValueAudit(e, deSource1, "1");
+    TrackedEntityDataValueChangeLog tedvcl2 = createTrackedEntityDataValueAudit(e, deSource1, "2");
+    TrackedEntityDataValueChangeLog tedvcl3 = createTrackedEntityDataValueAudit(e, deSource2, "1");
+    TrackedEntityDataValueChangeLog tedvcl4 = createTrackedEntityDataValueAudit(e, deSource2, "2");
+    TrackedEntityDataValueChangeLog tedvcl5 = createTrackedEntityDataValueAudit(e, deTarget, "1");
+
+    teDataValueChangeLogStore.addTrackedEntityDataValueChangeLog(tedvcl1);
+    teDataValueChangeLogStore.addTrackedEntityDataValueChangeLog(tedvcl2);
+    teDataValueChangeLogStore.addTrackedEntityDataValueChangeLog(tedvcl3);
+    teDataValueChangeLogStore.addTrackedEntityDataValueChangeLog(tedvcl4);
+    teDataValueChangeLogStore.addTrackedEntityDataValueChangeLog(tedvcl5);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    TrackedEntityDataValueChangeLogQueryParams sourceTeDvChangeLogQuery =
+        getTeQueryParams(e, List.of(deSource1, deSource2));
+    TrackedEntityDataValueChangeLogQueryParams targeteDvChangeLogQuery =
+        getTeQueryParams(e, List.of(deTarget));
+
+    List<TrackedEntityDataValueChangeLog> sourceAudits =
+        teDataValueChangeLogStore.getTrackedEntityDataValueChangeLogs(sourceTeDvChangeLogQuery);
+    List<TrackedEntityDataValueChangeLog> targetAudits =
+        teDataValueChangeLogStore.getTrackedEntityDataValueChangeLogs(targeteDvChangeLogQuery);
+
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(4, sourceAudits.size(), "Expect 4 entries with source data element refs");
+    assertEquals(1, targetAudits.size(), "Expect 1 entry with target data element ref");
+    assertEquals(4, allDataElements.size(), "Expect 4 data elements present");
+    assertTrue(allDataElements.containsAll(List.of(deTarget, deSource1, deSource2)));
+  }
+
+  @Test
+  @DisplayName(
+      "TrackedEntityDataValueChangeLog with references to DataElements are deleted when sources are deleted")
+  void trackedEntityDataValueChangeLogMergeDeletedTest() throws ConflictException {
+    // given
+    TrackedEntity trackedEntity = createTrackedEntity(ou1);
+    identifiableObjectManager.save(trackedEntity);
+    Enrollment enrollment = createEnrollment(program, trackedEntity, ou1);
+    identifiableObjectManager.save(enrollment);
+    ProgramStage stage = createProgramStage('s', 2);
+    identifiableObjectManager.save(stage);
+    Event e = createEvent(stage, enrollment, ou1);
+    e.setAttributeOptionCombo(coc1);
+    identifiableObjectManager.save(e);
+
+    TrackedEntityDataValueChangeLog tedvcl1 = createTrackedEntityDataValueAudit(e, deSource1, "1");
+    TrackedEntityDataValueChangeLog tedvcl2 = createTrackedEntityDataValueAudit(e, deSource1, "2");
+    TrackedEntityDataValueChangeLog tedvcl3 = createTrackedEntityDataValueAudit(e, deSource2, "1");
+    TrackedEntityDataValueChangeLog tedvcl4 = createTrackedEntityDataValueAudit(e, deSource2, "2");
+    TrackedEntityDataValueChangeLog tedvcl5 = createTrackedEntityDataValueAudit(e, deTarget, "1");
+
+    teDataValueChangeLogStore.addTrackedEntityDataValueChangeLog(tedvcl1);
+    teDataValueChangeLogStore.addTrackedEntityDataValueChangeLog(tedvcl2);
+    teDataValueChangeLogStore.addTrackedEntityDataValueChangeLog(tedvcl3);
+    teDataValueChangeLogStore.addTrackedEntityDataValueChangeLog(tedvcl4);
+    teDataValueChangeLogStore.addTrackedEntityDataValueChangeLog(tedvcl5);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDeleteSources(true);
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    TrackedEntityDataValueChangeLogQueryParams sourceTeDvChangeLogQuery =
+        getTeQueryParams(e, List.of(deSource1, deSource2));
+    TrackedEntityDataValueChangeLogQueryParams targeteDvChangeLogQuery =
+        getTeQueryParams(e, List.of(deTarget));
+
+    List<TrackedEntityDataValueChangeLog> sourceAudits =
+        teDataValueChangeLogStore.getTrackedEntityDataValueChangeLogs(sourceTeDvChangeLogQuery);
+    List<TrackedEntityDataValueChangeLog> targetAudits =
+        teDataValueChangeLogStore.getTrackedEntityDataValueChangeLogs(targeteDvChangeLogQuery);
+
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, sourceAudits.size(), "Expect 0 entries with source data element refs");
+    assertEquals(1, targetAudits.size(), "Expect 1 entry with target data element ref");
+    assertEquals(2, allDataElements.size(), "Expect 2 data elements present");
+    assertTrue(allDataElements.contains(deTarget));
+    assertFalse(allDataElements.containsAll(List.of(deSource1, deSource2)));
+  }
+
+  private TrackedEntityDataValueChangeLog createTrackedEntityDataValueAudit(
+      Event e, DataElement de, String value) {
+    TrackedEntityDataValueChangeLog dva = new TrackedEntityDataValueChangeLog();
+    dva.setEvent(e);
+    dva.setDataElement(de);
+    dva.setValue(value);
+    dva.setAuditType(ChangeLogType.CREATE);
+    dva.setCreated(new Date());
+    dva.setProvidedElsewhere(false);
+    return dva;
+  }
+
+  private DataValueAudit createDataValueAudit(DataElement de, String value, Period p) {
+    DataValueAudit dva = new DataValueAudit();
+    dva.setDataElement(de);
+    dva.setValue(value);
+    dva.setAuditType(ChangeLogType.CREATE);
+    dva.setCreated(new Date());
+    dva.setCategoryOptionCombo(coc1);
+    dva.setAttributeOptionCombo(coc1);
+    dva.setPeriod(p);
+    dva.setOrganisationUnit(ou1);
+    return dva;
+  }
+
+  private DataValueAuditQueryParams getQueryParams(
+      List<DataElement> dataElements, List<Period> periods) {
+    return new DataValueAuditQueryParams().setDataElements(dataElements).setPeriods(periods);
+  }
+
+  private TrackedEntityDataValueChangeLogQueryParams getTeQueryParams(
+      Event e, List<DataElement> dataElements) {
+    return new TrackedEntityDataValueChangeLogQueryParams()
+        .setEvents(List.of(e))
+        .setDataElements(dataElements);
   }
 
   private void assertMergeSuccessfulSourcesNotDeleted(

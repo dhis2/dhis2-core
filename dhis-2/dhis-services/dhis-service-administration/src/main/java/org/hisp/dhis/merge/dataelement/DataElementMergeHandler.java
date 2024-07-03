@@ -31,8 +31,7 @@ import java.util.List;
 import org.hisp.dhis.dataelement.DataElement;
 
 /**
- * Functional interface representing a {@link org.hisp.dhis.dataelement.DataElement} merge
- * operation.
+ * Functional interface representing a {@link DataElement} merge operation.
  *
  * @author david mackessy
  */

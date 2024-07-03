@@ -40,8 +40,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueAudit;
+import org.hisp.dhis.datavalue.DataValueAuditStore;
 import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.merge.DataMergeStrategy;
+import org.hisp.dhis.merge.MergeRequest;
 import org.springframework.stereotype.Service;
 
 /**
@@ -55,6 +58,7 @@ import org.springframework.stereotype.Service;
 public class DataDataElementMergeHandler {
 
   private final DataValueStore dataValueStore;
+  private final DataValueAuditStore dataValueAuditStore;
   private final EntityManager entityManager;
 
   /**
@@ -69,7 +73,7 @@ public class DataDataElementMergeHandler {
   public void handleDataValueDataElement(
       @Nonnull List<DataElement> sources,
       @Nonnull DataElement target,
-      @Nonnull DataMergeStrategy dataMergeStrategy) {
+      @Nonnull MergeRequest mergeRequest) {
     // get DVs from sources
     List<DataValue> sourceDataValues = dataValueStore.getAllDataValuesByDataElement(sources);
     log.info(sourceDataValues.size() + " source data values retrieved");
@@ -80,6 +84,7 @@ public class DataDataElementMergeHandler {
     log.info(targetDataValues.size() + " target data values retrieved");
 
     // merge based on chosen strategy
+    DataMergeStrategy dataMergeStrategy = mergeRequest.getDataMergeStrategy();
     if (dataMergeStrategy == DataMergeStrategy.DISCARD) {
       log.info(dataMergeStrategy + " dataMergeStrategy being used, deleting source data values");
       sources.forEach(dataValueStore::deleteDataValues);
@@ -94,6 +99,24 @@ public class DataDataElementMergeHandler {
         handleNonDuplicates(sourceDuplicateList.get(false), sources, target);
       if (!sourceDuplicateList.get(true).isEmpty())
         handleDuplicates(sourceDuplicateList.get(true), targetDataValues, sources, target);
+    }
+  }
+
+  /**
+   * Method retrieving {@link DataValueAudit}s by source {@link DataElement} references. All
+   * retrieved {@link DataValueAudit}s will either be deleted or left as is, based on whether the
+   * source {@link DataElement}s are being deleted or not.
+   *
+   * @param sources source {@link DataElement}s used to retrieve {@link DataValueAudit}s
+   */
+  public void handleDataValueAuditDataElement(
+      @Nonnull List<DataElement> sources, @Nonnull MergeRequest mergeRequest) {
+    if (mergeRequest.isDeleteSources()) {
+      log.info("Deleting source data value audit records as source DataElements are being deleted");
+      sources.forEach(dataValueAuditStore::deleteDataValueAudits);
+    } else {
+      log.info(
+          "Leaving source data value audit records as is, source DataElements are not being deleted");
     }
   }
 
