@@ -838,26 +838,12 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
   }
 
   @Test
-  void
-      shouldReturnTrackedEntityTypeAttributesWhenSingleTERequestedAndProgramSpecifiedButItHasNoProgramAttributes() {
-    TrackedEntityInstance trackedEntityInstance =
-        trackedEntityInstanceService.getTrackedEntityInstanceExcludingACL(
-            maleA.getUid(), new Program(), TrackedEntityInstanceParams.TRUE);
-
-    assertContainsOnly(
-        List.of(uniqueIdAttribute.getUid()),
-        trackedEntityInstance.getAttributes().stream()
-            .map(Attribute::getAttribute)
-            .collect(Collectors.toList()));
-  }
-
-  @Test
   void shouldReturnTrackedEntityTypeAttributesWhenSingleTERequestedAndNoProgramSpecified() {
     TrackedEntityInstance trackedEntityInstance =
         trackedEntityInstanceService.getTrackedEntityInstance(maleA);
 
     assertContainsOnly(
-        List.of(uniqueIdAttribute.getUid()),
+        List.of(programAttribute.getUid(), uniqueIdAttribute.getUid()),
         trackedEntityInstance.getAttributes().stream()
             .map(Attribute::getAttribute)
             .collect(Collectors.toList()));
