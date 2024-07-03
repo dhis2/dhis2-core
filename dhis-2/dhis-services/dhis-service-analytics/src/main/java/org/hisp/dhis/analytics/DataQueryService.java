@@ -42,6 +42,7 @@ import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
@@ -85,7 +86,9 @@ public interface DataQueryService {
       DisplayProperty displayProperty,
       IdScheme inputIdScheme) {
     List<DimensionalObject> list = new ArrayList<>();
-    List<OrganisationUnit> userOrgUnits = getUserOrgUnits(null, userOrgUnit);
+    DataQueryParams params =
+        DataQueryParams.newBuilder().withUserOrgUnitType(UserOrgUnitType.DATA_OUTPUT).build();
+    List<OrganisationUnit> userOrgUnits = getUserOrgUnits(params, userOrgUnit);
 
     if (dimensionParams != null) {
       for (String param : dimensionParams) {
