@@ -221,7 +221,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
   // -------------------------------
   @Test
   @DisplayName(
-      "MinMaxDataElement references for DataElement are replaced as expected, source DataElements are not deleted")
+      "MinMaxDataElement references to source DataElements are replaced with target DataElement, source DataElements are not deleted")
   void minMaxDataElementMergeTest() throws ConflictException {
     // given
     MinMaxDataElement minMaxDataElement1 =
@@ -255,7 +255,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "MinMaxDataElement references for DataElement are replaced as expected, source DataElements are deleted")
+      "MinMaxDataElement references to source DataElements are replaced with target DataElement, source DataElements are deleted")
   void minMaxDataElementMergeDeleteSourcesTest() throws ConflictException {
     // given
     MinMaxDataElement minMaxDataElement1 =
@@ -289,7 +289,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("MinMaxDataElements DB constraint error when updating")
+  @DisplayName("MinMaxDataElements unique key constraint DB error when updating")
   void testMinMaxDataElementMergeDbConstraint() {
     // given unique key DB constraint exists (orgUnit, dataElement, catOptionCombo)
     // create min max data elements all of which have the same org unit and cat option combo
@@ -333,7 +333,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
   // -------------------------------
   @Test
   @DisplayName(
-      "EventVisualization references for DataElement are replaced as expected, source DataElements are not ")
+      "EventVisualization references to source DataElements are replaced with target DataElement, source DataElements are not deleted")
   void eventVisualizationMergeTest() throws ConflictException {
     // given
     // event visualizations
@@ -367,7 +367,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "EventVisualization references for DataElement are replaced as expected, source DataElements are deleted")
+      "EventVisualization references to source DataElements are replaced with target DataElement, source DataElements are deleted")
   void eventVisualizationMergeDeleteSourcesTest() throws ConflictException {
     // given
     // min max data elements
@@ -404,7 +404,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
   // -------------------------------------------
   @Test
   @DisplayName(
-      "TrackedEntityDataElementDimension references to source DataElements are replaced as expected, source DataElements are not deleted")
+      "TrackedEntityDataElementDimension references to source DataElements are replaced with target DataElement, source DataElements are not deleted")
   void trackedEntityDataElDimMergeTest() throws ConflictException {
     // given
     // event visualizations
@@ -479,7 +479,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "TrackedEntityDataElementDimension references to source DataElements are replaced as expected, source DataElements are deleted")
+      "TrackedEntityDataElementDimension references to source DataElements are replaced with target DataElement, source DataElements are deleted")
   void trackedEntityDataElDimMergeSourcesDeletedTest() throws ConflictException {
     // given
     // event visualizations
@@ -557,7 +557,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
   // -------------------------------
   @Test
   @DisplayName(
-      "SMS Code references for DataElement are replaced as expected, source DataElements are not deleted")
+      "SMS Code references to source DataElements are replaced with target DataElement, source DataElements are not deleted")
   void smsCodeMergeTest() throws ConflictException {
     // given
     // sms codes
@@ -590,7 +590,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "SMS Code references for DataElement are replaced as expected, source DataElements are deleted")
+      "SMS Code references to source DataElements are replaced with target DataElement, source DataElements are deleted")
   void smsCodesMergeDeleteSourcesTest() throws ConflictException {
     SMSCode smsCode1 = createSmsCode("code source 1", deSource1);
     SMSCode smsCode2 = createSmsCode("code source 2", deSource2);
@@ -625,7 +625,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
   // -------------------------------
   @Test
   @DisplayName(
-      "Predictor references for DataElement are replaced as expected, source DataElements are not deleted")
+      "Predictor references to source DataElements are replaced with target DataElement, source DataElements are not deleted")
   void predictorMergeTest() throws ConflictException {
     // given
     Predictor predictor1 = createPredictor('1', deSource1);
@@ -653,7 +653,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "Predictor references for DataElement are replaced as expected, source DataElements are deleted")
+      "Predictor references to source DataElements are replaced with target DataElement, source DataElements are deleted")
   void predictorMergeDeleteSourcesTest() throws ConflictException {
     // given
     Predictor p1 = createPredictor('1', deSource1);
@@ -685,7 +685,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "Predictor generator expression references with DataElement are replaced as expected, source DataElements are not deleted")
+      "Predictor generator expression references to source DataElements are replaced with target DataElement, source DataElements are not deleted")
   void predictorGeneratorMergeTest() throws ConflictException {
     // given
     Predictor p1 = createPredictorWithGenerator('1', deRandom, deSource1);
@@ -715,7 +715,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "Predictor generator expression references with DataElement are replaced as expected, source DataElements are deleted")
+      "Predictor generator expression references to source DataElements are replaced with target DataElement, source DataElements are deleted")
   void predictorGeneratorMergeSourcesDeletedTest() throws ConflictException {
     // given
     Predictor p1 = createPredictorWithGenerator('1', deRandom, deSource1);
@@ -745,7 +745,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "Predictor sample skip test expression references with DataElement are replaced as expected, source DataElements are not deleted")
+      "Predictor sample skip test expression references to source DataElements are replaced with target DataElement, source DataElements are not deleted")
   void predictorSampleSkipTestMergeTest() throws ConflictException {
     // given
     Predictor p1 = createPredictorWithSkipTest('1', deRandom, deSource1);
@@ -776,7 +776,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "Predictor sample skip test expression references with DataElement are replaced as expected, source DataElements are deleted")
+      "Predictor sample skip test expression references to source DataElements are replaced with target DataElement, source DataElements are deleted")
   void predictorSampleSkipTestMergeSourcesDeletedTest() throws ConflictException {
     // given
     Predictor p1 = createPredictorWithSkipTest('1', deRandom, deSource1);
@@ -810,7 +810,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
   // -------------------------------
   @Test
   @DisplayName(
-      "ProgramStageDataElement references for DataElement are replaced as expected, source DataElements are not deleted")
+      "ProgramStageDataElement references to source DataElement are replaced with target DataElement, source DataElements are not deleted")
   void programStageDEMergeTest() throws ConflictException {
     // given
     ProgramStage stage1 = createProgramStage('S', program);
@@ -843,7 +843,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "ProgramStageDataElement references for DataElement are replaced as expected, source DataElements are deleted")
+      "ProgramStageDataElement references to source DataElement are replaced with target DataElement, source DataElements are deleted")
   void programStageDEMergeDeleteSourcesTest() throws ConflictException {
     // given
     ProgramStage stage1 = createProgramStage('S', program);
@@ -876,7 +876,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("ProgramStageDataElement DB constraint error when updating")
+  @DisplayName("ProgramStageDataElement unique key constraint DB error when updating")
   void programStageDEMergeDbConstraint() {
     // given unique key DB constraint exists (programstageid, dataelementid)
     // create program stage data elements, all of which have the same stage
@@ -919,7 +919,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
   // -------------------------------
   @Test
   @DisplayName(
-      "ProgramStageSection references for DataElement are replaced as expected, source DataElements are not deleted")
+      "ProgramStageSection references to source DataElements are replaced with target DataElement, source DataElements are not deleted")
   void programStageSectionMergeTest() throws ConflictException {
     // given
     ProgramStageSection pss1 = createProgramStageSection('a', 1);
@@ -951,7 +951,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "ProgramStageSection references for DataElement are replaced as expected, source DataElements are deleted")
+      "ProgramStageSection references to source DataElements are replaced with target DataElement, source DataElements are deleted")
   void programStageSectionMergeDeleteSourcesTest() throws ConflictException {
     // given
     ProgramStageSection pss1 = createProgramStageSection('e', 1);
@@ -987,7 +987,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
   // -------------------------------
   @Test
   @DisplayName(
-      "ProgramNotificationTemplate references for DataElement are replaced as expected, source DataElements are not deleted")
+      "ProgramNotificationTemplate references to source DataElements are replaced with target DataElement, source DataElements are not deleted")
   void programNotificationTemplateMergeTest() throws ConflictException {
     // given
     ProgramNotificationTemplate pnt1 = createProgramNotificationTemplate("pnt1", 1, null, null);
@@ -1019,7 +1019,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "ProgramNotificationTemplate references for DataElement are replaced as expected, source DataElements are deleted")
+      "ProgramNotificationTemplate references to source DataElements are replaced with target DataElement, source DataElements are deleted")
   void programNotificationTemplateDeleteSourcesMergeTest() throws ConflictException {
     // given
     ProgramNotificationTemplate pnt1 = createProgramNotificationTemplate("pnt1", 1, null, null);
@@ -1055,7 +1055,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
   // -------------------------------
   @Test
   @DisplayName(
-      "ProgramRuleVariable references for DataElement are replaced as expected, source DataElements are not deleted")
+      "ProgramRuleVariable references to source DataElements are replaced with target DataElement, source DataElements are not deleted")
   void programRuleVariableMergeTest() throws ConflictException {
     // given
     ProgramRuleVariable prv1 = createProgramRuleVariable('a', program);
@@ -1087,7 +1087,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "ProgramRuleVariable references for DataElement are replaced as expected, source DataElements are deleted")
+      "ProgramRuleVariable references to source DataElements are replaced with target DataElement, source DataElements are deleted")
   void programRuleVariableSourcesDeletedMergeTest() throws ConflictException {
     // given
     ProgramRuleVariable prv1 = createProgramRuleVariable('a', program);
@@ -1123,7 +1123,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
   // -------------------------------
   @Test
   @DisplayName(
-      "ProgramRuleAction references for DataElement are replaced as expected, source DataElements are not deleted")
+      "ProgramRuleAction references to source DataElements are replaced with target DataElement, source DataElements are not deleted")
   void programRuleActionMergeTest() throws ConflictException {
     // given
     ProgramRuleAction pra1 = createProgramRuleAction('a');
@@ -1154,7 +1154,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "ProgramRuleAction references for DataElement are replaced as expected, source DataElements are deleted")
+      "ProgramRuleAction references to source DataElements are replaced with target DataElement, source DataElements are deleted")
   void programRuleActionSourcesDeletedMergeTest() throws ConflictException {
     // given
     ProgramRuleAction pra1 = createProgramRuleAction('a');
@@ -1189,7 +1189,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
   // ---------------------------------
   @Test
   @DisplayName(
-      "ProgramIndicator expression references with DataElement have the DataElement ref replaced as expected, source DataElements are not deleted")
+      "ProgramIndicator expression references to source DataElements are replaced with target DataElement, source DataElements are not deleted")
   void programIndicatorExpressionMergeTest() throws ConflictException {
     // given
     ProgramIndicator pi1 =
@@ -1259,7 +1259,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
   // -----------------------------
   @Test
   @DisplayName(
-      "ProgramIndicator filter references with DataElement have the DataElement ref replaced as expected, source DataElements are not deleted")
+      "ProgramIndicator filter references to source DataElements are replaced with target DataElement, source DataElements are not deleted")
   void programIndicatorFilterMergeTest() throws ConflictException {
     // given
     ProgramIndicator pi1 =
@@ -1292,7 +1292,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "ProgramIndicator filter references with DataElement have the DataElement ref replaced as expected, source DataElements are deleted")
+      "ProgramIndicator filter references to source DataElements are replaced with target DataElement, source DataElements are deleted")
   void programIndicatorFilterMergeSourcesDeletedTest() throws ConflictException {
     // given
     ProgramIndicator pi1 =
@@ -1329,7 +1329,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
   // -----------------------------
   @Test
   @DisplayName(
-      "Event eventDataValues references with DataElement have the DataElement ref replaced as expected, source DataElements are not deleted")
+      "Event eventDataValues references to source DataElements are replaced with target DataElement, source DataElements are not deleted")
   void eventMergeTest() throws ConflictException {
     // given
     TrackedEntity trackedEntity = createTrackedEntity(ou1);
@@ -1405,7 +1405,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "Event eventDataValues references with DataElement have the DataElement ref replaced as expected, source DataElements are deleted")
+      "Event eventDataValues references to source DataElements are replaced with target DataElement, source DataElements are deleted")
   void eventMergeSourcesDeletedTest() throws ConflictException {
     // given
     TrackedEntity trackedEntity = createTrackedEntity(ou1);
@@ -1470,7 +1470,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
   // -------------------------------
   @Test
   @DisplayName(
-      "DataElementOperand references for DataElement are replaced as expected, source DataElements are not deleted")
+      "DataElementOperand references to source DataElements are replaced with target DataElement, source DataElements are not deleted")
   void dataElementOperandMergeTest() throws ConflictException {
     // given
     DataElementOperand deo1 = new DataElementOperand();
@@ -1502,7 +1502,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "DataElementOperand references for DataElement are replaced as expected, source DataElements are deleted")
+      "DataElementOperand references to source DataElements are replaced with target DataElement, source DataElements are deleted")
   void dataElementOperandSourcesDeletedMergeTest() throws ConflictException {
     // given
     DataElementOperand deo1 = new DataElementOperand();
@@ -1538,7 +1538,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
   // -------------------------------
   @Test
   @DisplayName(
-      "DataSetElement references for DataElement are replaced as expected, source DataElements are not deleted")
+      "DataSetElement references to source DataElements are replaced with target DataElement, source DataElements are not deleted")
   void dataSetElementTest() throws ConflictException {
     // given
     DataSet ds1 = createDataSet('1', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
@@ -1599,7 +1599,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "DataSetElement references for DataElement are replaced as expected, source DataElements are deleted")
+      "DataSetElement references to source DataElements are replaced with target DataElement, source DataElements are deleted")
   void dataSetElementDeleteSourcesTest() throws ConflictException {
     // given
     DataSet ds1 = createDataSet('1', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
@@ -1662,7 +1662,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("DataSetElement DB constraint error when updating")
+  @DisplayName("DataSetElement unique key constraint DB error when updating")
   void dataSetElementDbConstraintTest() {
     // given
     DataSet ds1 = createDataSet('1', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
@@ -1705,7 +1705,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
   // -------------------------------
   @Test
   @DisplayName(
-      "Section references for DataElement are replaced as expected, source DataElements are not deleted")
+      "Section references to source DataElements are replaced with target DataElement, source DataElements are not deleted")
   void programSectionMergeTest() throws ConflictException {
     // given
     DataSet ds1 = createDataSet('1', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
@@ -1733,7 +1733,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "Section references for DataElement are replaced as expected, source DataElements are deleted")
+      "Section references to source DataElements are replaced with target DataElement, source DataElements are deleted")
   void programSectionMergeDeleteSourcesTest() throws ConflictException {
     // given
     DataSet ds1 = createDataSet('1', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
@@ -1765,7 +1765,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
   // -------------------------------
   @Test
   @DisplayName(
-      "DataElementGroup references for DataElement are replaced as expected, source DataElements are not deleted")
+      "DataElementGroup references to source DataElements are replaced with target DataElement, source DataElements are not deleted")
   void dataElementGroupMergeTest() throws ConflictException {
     // given
     DataElementGroup deg1 = createDataElementGroup('1');
@@ -1795,7 +1795,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "DataElementGroup references for DataElement are replaced as expected, source DataElements are deleted")
+      "DataElementGroup references to source DataElements are replaced with target DataElement, source DataElements are deleted")
   void dataElementGroupMergeSourceDeletedTest() throws ConflictException {
     // given
     DataElementGroup deg1 = createDataElementGroup('1');
@@ -1829,7 +1829,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
   // -------------------------------
   @Test
   @DisplayName(
-      "Indicator numerator references for DataElement are replaced as expected, source DataElements are not deleted")
+      "Indicator numerator references to source DataElements are replaced with target DataElement, source DataElements are not deleted")
   void indicatorNumeratorMergeTest() throws ConflictException {
     // given
     IndicatorType it = createIndicatorType('a');
@@ -1874,7 +1874,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "Indicator numerator references for DataElement are replaced as expected, source DataElements are deleted")
+      "Indicator numerator references to source DataElements are replaced with target DataElement, source DataElements are deleted")
   void indicatorNumeratorMergeSourcesDeletedTest() throws ConflictException {
     // given
     IndicatorType it = createIndicatorType('a');
@@ -1916,7 +1916,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
   // -------------------------------
   @Test
   @DisplayName(
-      "Indicator denominator references for DataElement are replaced as expected, source DataElements are not deleted")
+      "Indicator denominator references to source DataElements are replaced with target DataElement, source DataElements are not deleted")
   void indicatorDenominatorMergeTest() throws ConflictException {
     // given
     IndicatorType it = createIndicatorType('a');
@@ -1954,7 +1954,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "Indicator denominator references for DataElement are replaced as expected, source DataElements are deleted")
+      "Indicator denominator references to source DataElements are replaced with target DataElement, source DataElements are deleted")
   void indicatorDenominatorMergeSourcesDeletedTest() throws ConflictException {
     // given
     IndicatorType it = createIndicatorType('a');
@@ -1996,7 +1996,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
   // ---------------------------------------
   @Test
   @DisplayName(
-      "Indicator numerator + denominator references for DataElement are replaced as expected, source DataElements are not deleted")
+      "Indicator numerator + denominator references to source DataElements are replaced with target DataElement, source DataElements are not deleted")
   void indicatorNumeratorDenominatorMergeTest() throws ConflictException {
     // given
     IndicatorType it = createIndicatorType('a');
@@ -2049,7 +2049,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "Indicator numerator + denominator references for DataElement are replaced as expected, source DataElements are deleted")
+      "Indicator numerator + denominator references to source DataElements are replaced with target DataElement, source DataElements are deleted")
   void indicatorNumeratorDenominatorMergeSourcesDeletedTest() throws ConflictException {
     // given
     IndicatorType it = createIndicatorType('a');
@@ -2092,7 +2092,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
   // ------------------------
   @Test
   @DisplayName(
-      "DataEntryForm html references for DataElement are replaced as expected, source DataElements are not deleted")
+      "DataEntryForm html references to source DataElements are replaced with target DataElement, source DataElements are not deleted")
   void formHtmlMergeTest() throws ConflictException {
     // given
     DataEntryForm form1 =
@@ -2133,7 +2133,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "DataEntryForm html references for DataElement are replaced as expected, source DataElements are deleted")
+      "DataEntryForm html references to source DataElements are replaced with target DataElement, source DataElements are deleted")
   void formHtmlMergeSourceDeletedTest() throws ConflictException {
     // given
     DataEntryForm form1 =
@@ -2178,7 +2178,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
   // ------------------------
   @Test
   @DisplayName(
-      "DataDimensionItems with references for DataElement are replaced as expected, source DataElements are not deleted")
+      "DataDimensionItems with references to source DataElements are replaced with target DataElement, source DataElements are not deleted")
   void dataDimItemMergeTest() throws ConflictException {
     // given
     DataDimensionItem item1 = DataDimensionItem.create(deSource1);
@@ -2210,7 +2210,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "DataDimensionItems with references for DataElement are replaced as expected, source DataElements are deleted")
+      "DataDimensionItems with references to source DataElements are replaced with target DataElement, source DataElements are deleted")
   void dataDimItemMergeSourcesDeletedTest() throws ConflictException {
     // given
     DataDimensionItem item1 = DataDimensionItem.create(deSource1);
@@ -2246,7 +2246,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
   // ------------------------
   @Test
   @DisplayName(
-      "Non-duplicate DataValues with references for DataElement are merged as expected using LAST_UPDATED strategy")
+      "Non-duplicate DataValues with references to source DataElements are replaced with target DataElement using LAST_UPDATED strategy")
   void dataValueMergeLastUpdatedTest() throws ConflictException {
     // given
     Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
@@ -2283,7 +2283,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "Duplicate DataValues with references for DataElement are merged as expected using LAST_UPDATED strategy")
+      "Duplicate DataValues with references to source DataElements are replaced with target DataElement using LAST_UPDATED strategy")
   void duplicateDataValueMergeLastUpdatedTest() throws ConflictException {
     // given
     Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
@@ -2329,7 +2329,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "DataValues with references for DataElement are merged as expected using DISCARD strategy")
+      "DataValues with references to source DataElements are replaced with target DataElement using DISCARD strategy")
   void dataValueMergeDiscardTest() throws ConflictException {
     // given
     Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
@@ -2371,7 +2371,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "DataValues with references for DataElement are replaced as expected, source DataElements are deleted")
+      "DataValues with references to source DataElements are replaced with target DataElement, source DataElements are deleted")
   void dataValueMergeSourcesDeletedTest() throws ConflictException {
     // given
     Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
@@ -2412,7 +2412,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
   // ------------------------
   @Test
   @DisplayName(
-      "DataValueAudits with references to DataElements are not changed or deleted when sources not deleted")
+      "DataValueAudits with references to source DataElements are not changed or deleted when sources not deleted")
   void dataValueAuditMergeTest() throws ConflictException {
     // given
     Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
@@ -2457,7 +2457,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "DataValueAudits with references to DataElements are deleted when sources are deleted")
+      "DataValueAudits with references to source DataElements are deleted when sources are deleted")
   void dataValueAuditMergeDeleteTest() throws ConflictException {
     // given
     Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
@@ -2507,7 +2507,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
   // --------------------------------------
   @Test
   @DisplayName(
-      "TrackedEntityDataValueChangeLog with references to DataElements are not changed or deleted when sources not deleted")
+      "TrackedEntityDataValueChangeLog with references to source DataElements are not changed or deleted when sources not deleted")
   void trackedEntityDataValueChangeLogMergeTest() throws ConflictException {
     // given
     TrackedEntity trackedEntity = createTrackedEntity(ou1);
@@ -2560,7 +2560,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "TrackedEntityDataValueChangeLog with references to DataElements are deleted when sources are deleted")
+      "TrackedEntityDataValueChangeLog with references to source DataElements are deleted when sources are deleted")
   void trackedEntityDataValueChangeLogMergeDeletedTest() throws ConflictException {
     // given
     TrackedEntity trackedEntity = createTrackedEntity(ou1);
