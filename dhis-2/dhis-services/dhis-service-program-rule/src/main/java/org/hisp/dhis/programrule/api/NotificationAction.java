@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,29 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.sideeffect;
+package org.hisp.dhis.programrule.api;
 
-import java.util.List;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.tracker.imports.job.TrackerNotificationMessageManager;
-import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
-import org.springframework.stereotype.Service;
+import java.util.Arrays;
 
-/**
- * @author Zubair Asghar
- */
-@RequiredArgsConstructor
-@Service
-public class NotificationSideEffectHandlerService implements SideEffectHandlerService {
-  private final TrackerNotificationMessageManager trackerNotificationMessageManager;
+public enum NotificationAction {
+  SEND_MESSAGE("SENDMESSAGE"),
+  SCHEDULE_MESSAGE("SCHEDULEMESSAGE");
 
-  @Override
-  public void handleSideEffect(TrackerSideEffectDataBundle sideEffectDataBundle) {
-    trackerNotificationMessageManager.sendNotifications(sideEffectDataBundle);
+  public static boolean contains(String ruleEngineName) {
+    return Arrays.stream(values()).anyMatch(v -> v.ruleEngineName.equalsIgnoreCase(ruleEngineName));
   }
 
-  @Override
-  public void handleSideEffects(List<TrackerSideEffectDataBundle> sideEffectDataBundles) {
-    sideEffectDataBundles.forEach(this::handleSideEffect);
+  public static NotificationAction fromName(String ruleEngineName) {
+    return Arrays.stream(values())
+        .filter(v -> v.ruleEngineName.equalsIgnoreCase(ruleEngineName))
+        .findAny()
+        .orElseThrow();
+  }
+
+  private final String ruleEngineName;
+
+  NotificationAction(String ruleEngineName) {
+    this.ruleEngineName = ruleEngineName;
   }
 }

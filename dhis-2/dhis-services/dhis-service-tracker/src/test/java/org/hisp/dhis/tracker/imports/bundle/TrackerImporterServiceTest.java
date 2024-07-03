@@ -132,14 +132,12 @@ class TrackerImporterServiceTest {
 
     subject.importTracker(parameters, trackerObjects, JobProgress.noop());
 
-    verify(trackerBundleService, times(0)).handleTrackerSideEffects(anyList());
+    verify(trackerBundleService, times(0)).sendNotifications(anyList());
   }
 
   @Test
   void testWithSideEffects() {
-    doAnswer(invocationOnMock -> null)
-        .when(trackerBundleService)
-        .handleTrackerSideEffects(anyList());
+    doAnswer(invocationOnMock -> null).when(trackerBundleService).sendNotifications(anyList());
     when(trackerBundleService.create(any(TrackerImportParams.class), any(), any()))
         .thenReturn(ParamsConverter.convert(params, trackerObjects, new User()));
     when(trackerBundleService.commit(any(TrackerBundle.class)))
@@ -147,7 +145,7 @@ class TrackerImporterServiceTest {
 
     subject.importTracker(params, trackerObjects, JobProgress.noop());
 
-    verify(trackerBundleService, times(1)).handleTrackerSideEffects(anyList());
+    verify(trackerBundleService, times(1)).sendNotifications(anyList());
   }
 
   @Test

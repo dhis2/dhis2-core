@@ -68,6 +68,7 @@ class TrackerProgramRuleBundleServiceTest extends TrackerTest {
     programRuleService.addProgramRule(programRule);
     ProgramRuleAction programRuleAction = createProgramRuleAction('A', programRule);
     programRuleAction.setProgramRuleActionType(ProgramRuleActionType.SENDMESSAGE);
+    programRuleAction.setTemplateUid("pmPWHy7XTmL");
     programRuleActionService.addProgramRuleAction(programRuleAction);
     programRule.getProgramRuleActions().add(programRuleAction);
     programRuleService.updateProgramRule(programRule);
@@ -81,6 +82,6 @@ class TrackerProgramRuleBundleServiceTest extends TrackerTest {
         trackerBundleService.create(
             new TrackerImportParams(), trackerObjects, userService.getUser(ADMIN_USER_UID));
     trackerBundle = trackerBundleService.runRuleEngine(trackerBundle);
-    assertEquals(trackerBundle.getEvents().size(), trackerBundle.getEventRuleEffects().size());
+    assertEquals(trackerBundle.getEvents().size(), trackerBundle.getEventNotifications().size());
   }
 }

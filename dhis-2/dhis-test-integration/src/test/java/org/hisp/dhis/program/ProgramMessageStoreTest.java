@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.program;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -36,8 +37,10 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.message.ProgramMessage;
@@ -69,23 +72,15 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest {
 
   @Autowired private ProgramStageService programStageService;
 
-  @Autowired private EventService eventService;
+  @Autowired private IdentifiableObjectManager manager;
 
-  private OrganisationUnit ouA;
-
-  private OrganisationUnit ouB;
-
-  private Program programA;
+  @Autowired private CategoryService categoryService;
 
   private Enrollment enrollmentA;
 
-  private TrackedEntity trackedEntityA;
+  private final ProgramMessageStatus messageStatus = ProgramMessageStatus.SENT;
 
-  private TrackedEntity trackedEntityB;
-
-  private ProgramMessageStatus messageStatus = ProgramMessageStatus.SENT;
-
-  private Set<DeliveryChannel> channels = new HashSet<>();
+  private final Set<DeliveryChannel> channels = new HashSet<>();
 
   private ProgramMessageQueryParams params;
 
@@ -97,38 +92,15 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest {
 
   private ProgramMessage pmsgC;
 
-  private ProgramMessageRecipients recipientsA;
+  private final String notificationTemplate = CodeGenerator.generateUid();
 
-  private ProgramMessageRecipients recipientsB;
-
-  private ProgramMessageRecipients recipientsC;
-
-  private String uidA;
-
-  private String uidB;
-
-  private String uidC;
-
-  private String text = "Hi";
-
-  private String msisdn = "4740332255";
-
-  private String notificationTemplate = CodeGenerator.generateUid();
-
-  private Date incidentDate;
-
-  private Date enrollmentDate;
-
-  // -------------------------------------------------------------------------
-  // Prerequisite
-  // -------------------------------------------------------------------------
   @Override
   public void setUpTest() {
-    ouA = createOrganisationUnit('A');
-    ouB = createOrganisationUnit('B');
-    orgUnitService.addOrganisationUnit(ouA);
-    orgUnitService.addOrganisationUnit(ouB);
-    programA = createProgram('A', new HashSet<>(), ouA);
+    OrganisationUnit orgUnitA = createOrganisationUnit('A');
+    OrganisationUnit orgUnitB = createOrganisationUnit('B');
+    orgUnitService.addOrganisationUnit(orgUnitA);
+    orgUnitService.addOrganisationUnit(orgUnitB);
+    Program programA = createProgram('A', new HashSet<>(), orgUnitA);
     programService.addProgram(programA);
     ProgramStage stageA = new ProgramStage("StageA", programA);
     stageA.setSortOrder(1);
@@ -137,37 +109,35 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest {
     programStages.add(stageA);
     programA.setProgramStages(programStages);
     programService.updateProgram(programA);
-    trackedEntityB = createTrackedEntity(ouA);
+    TrackedEntity trackedEntityB = createTrackedEntity(orgUnitA);
     trackedEntityService.addTrackedEntity(trackedEntityB);
     DateTime testDate1 = DateTime.now();
     testDate1.withTimeAtStartOfDay();
     testDate1 = testDate1.minusDays(70);
-    incidentDate = testDate1.toDate();
+    Date incidentDate = testDate1.toDate();
     DateTime testDate2 = DateTime.now();
     testDate2.withTimeAtStartOfDay();
-    enrollmentDate = testDate2.toDate();
+    Date enrollmentDate = testDate2.toDate();
     enrollmentA = new Enrollment(enrollmentDate, incidentDate, trackedEntityB, programA);
     enrollmentA.setUid("UID-A");
-    eventA = new Event(enrollmentA, stageA);
+    eventA = createEvent(stageA, enrollmentA, orgUnitA);
     eventA.setScheduledDate(enrollmentDate);
     eventA.setUid("UID-A");
-    Set<OrganisationUnit> ouSet = new HashSet<>();
-    ouSet.add(ouA);
-    Set<String> ouUids = new HashSet<>();
-    ouUids.add(ouA.getUid());
-    // ouSet.add( ouB );
-    trackedEntityA = createTrackedEntity(ouA);
+    Set<String> orgUnits = new HashSet<>();
+    orgUnits.add(orgUnitA.getUid());
+    TrackedEntity trackedEntityA = createTrackedEntity(orgUnitA);
     trackedEntityService.addTrackedEntity(trackedEntityA);
-    recipientsA = new ProgramMessageRecipients();
-    recipientsA.setOrganisationUnit(ouA);
+    ProgramMessageRecipients recipientsA = new ProgramMessageRecipients();
+    recipientsA.setOrganisationUnit(orgUnitA);
     recipientsA.setTrackedEntity(trackedEntityA);
-    recipientsB = new ProgramMessageRecipients();
-    recipientsB.setOrganisationUnit(ouA);
+    ProgramMessageRecipients recipientsB = new ProgramMessageRecipients();
+    recipientsB.setOrganisationUnit(orgUnitA);
     recipientsB.setTrackedEntity(trackedEntityA);
-    recipientsC = new ProgramMessageRecipients();
-    recipientsC.setOrganisationUnit(ouA);
+    ProgramMessageRecipients recipientsC = new ProgramMessageRecipients();
+    recipientsC.setOrganisationUnit(orgUnitA);
     recipientsC.setTrackedEntity(trackedEntityA);
     Set<String> phoneNumberListA = new HashSet<>();
+    String msisdn = "4740332255";
     phoneNumberListA.add(msisdn);
     recipientsA.setPhoneNumbers(phoneNumberListA);
     Set<String> phoneNumberListB = new HashSet<>();
@@ -177,6 +147,7 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest {
     phoneNumberListC.add(msisdn);
     recipientsC.setPhoneNumbers(phoneNumberListC);
     channels.add(DeliveryChannel.SMS);
+    String text = "Hi";
     pmsgA =
         ProgramMessage.builder()
             .subject(text)
@@ -204,19 +175,16 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest {
             .deliveryChannels(channels)
             .notificationTemplate(notificationTemplate)
             .build();
-    uidA = CodeGenerator.generateCode(10);
-    uidB = CodeGenerator.generateCode(10);
-    uidC = CodeGenerator.generateCode(10);
+    String uidA = CodeGenerator.generateCode(10);
+    String uidB = CodeGenerator.generateCode(10);
+    String uidC = CodeGenerator.generateCode(10);
     pmsgA.setUid(uidA);
     pmsgB.setUid(uidB);
     pmsgC.setUid(uidC);
     params = new ProgramMessageQueryParams();
-    params.setOrganisationUnit(ouUids);
+    params.setOrganisationUnit(orgUnits);
   }
 
-  // -------------------------------------------------------------------------
-  // Tests
-  // -------------------------------------------------------------------------
   @Test
   void testGetProgramMessage() {
     programMessageStore.save(pmsgA);
@@ -224,7 +192,7 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest {
     ProgramMessage actual = programMessageStore.get(id.intValue());
     assertNotNull(id);
     assertNotNull(actual);
-    assertTrue(actual.equals(pmsgA));
+    assertEquals(actual, pmsgA);
   }
 
   @Test
@@ -264,14 +232,14 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest {
     List<ProgramMessage> programMessages = programMessageStore.getProgramMessages(params);
     assertNotNull(programMessages);
     assertTrue(equals(programMessages, pmsgA, pmsgB));
-    assertTrue(channels.equals(programMessages.get(0).getDeliveryChannels()));
-    assertTrue(enrollmentA.equals(programMessages.get(0).getEnrollment()));
+    assertEquals(channels, programMessages.get(0).getDeliveryChannels());
+    assertEquals(enrollmentA, programMessages.get(0).getEnrollment());
   }
 
   @Test
   void testGetProgramMessageByEvent() {
     enrollmentStore.save(enrollmentA);
-    eventService.addEvent(eventA);
+    manager.save(eventA);
     pmsgA.setEvent(eventA);
     pmsgB.setEvent(eventA);
     programMessageStore.save(pmsgA);
@@ -280,8 +248,8 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest {
     List<ProgramMessage> programMessages = programMessageStore.getProgramMessages(params);
     assertNotNull(programMessages);
     assertTrue(equals(programMessages, pmsgA, pmsgB));
-    assertTrue(channels.equals(programMessages.get(0).getDeliveryChannels()));
-    assertTrue(eventA.equals(programMessages.get(0).getEvent()));
+    assertEquals(channels, programMessages.get(0).getDeliveryChannels());
+    assertEquals(eventA, programMessages.get(0).getEvent());
   }
 
   @Test
@@ -292,8 +260,8 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest {
     List<ProgramMessage> programMessages = programMessageStore.getProgramMessages(params);
     assertNotNull(programMessages);
     assertTrue(equals(programMessages, pmsgA, pmsgB));
-    assertTrue(channels.equals(programMessages.get(0).getDeliveryChannels()));
-    assertTrue(messageStatus.equals(programMessages.get(0).getMessageStatus()));
+    assertEquals(channels, programMessages.get(0).getDeliveryChannels());
+    assertEquals(messageStatus, programMessages.get(0).getMessageStatus());
   }
 
   @Test
@@ -308,7 +276,7 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest {
     List<ProgramMessage> programMessages = programMessageStore.getProgramMessages(params);
     assertNotNull(programMessages);
     assertTrue(equals(programMessages, pmsgA, pmsgB));
-    assertTrue(channels.equals(programMessages.get(0).getDeliveryChannels()));
-    assertTrue(enrollmentA.equals(programMessages.get(0).getEnrollment()));
+    assertEquals(channels, programMessages.get(0).getDeliveryChannels());
+    assertEquals(enrollmentA, programMessages.get(0).getEnrollment());
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,29 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.sideeffect;
+package org.hisp.dhis.programrule.api;
 
-import java.util.List;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.tracker.imports.job.TrackerRuleEngineMessageManager;
-import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
-import org.springframework.stereotype.Service;
+import org.hisp.dhis.common.UID;
 
 /**
- * @author Zubair Asghar
+ * This effect will be used in tracker to create a validation rule.
+ *
+ * @param type the effect type
+ * @param rule the UID of the rule that generated this effect
+ * @param data additional data needed by the effect to be applied
+ * @param field the UID of the attribute/data value linked to the effect
+ * @param message a message shown by some types of effects
  */
-@RequiredArgsConstructor
-@Service
-public class RuleEngineSideEffectHandlerService implements SideEffectHandlerService {
-  private final TrackerRuleEngineMessageManager trackerRuleEngineMessageManager;
-
-  @Override
-  public void handleSideEffect(TrackerSideEffectDataBundle sideEffectDataBundle) {
-    trackerRuleEngineMessageManager.sendRuleEngineNotifications(sideEffectDataBundle);
-  }
-
-  @Override
-  public void handleSideEffects(List<TrackerSideEffectDataBundle> sideEffectDataBundles) {
-    sideEffectDataBundles.forEach(this::handleSideEffect);
-  }
-}
+public record ValidationEffect(
+    ValidationAction type, UID rule, String data, UID field, String message) {}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,36 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.programrule.engine;
+package org.hisp.dhis.programrule.api;
 
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleEffect;
+import java.util.Arrays;
 
-/**
- * Service is responsible for implementing actions which are generated as a result of Rule-Engine
- * evaluations. Each action type has a corresponding RuleActionImplementer class responsible for
- * carrying out the action.
- *
- * <p>Created by zubair@dhis2.org on 04.01.18.
- */
-public interface RuleActionImplementer {
-  boolean accept(RuleAction ruleAction);
+public enum ValidationAction {
+  ASSIGN("ASSIGN"),
+  SET_MANDATORY_FIELD("SETMANDATORYFIELD"),
+  SHOW_ERROR("SHOWERROR"),
+  SHOW_WARNING("SHOWWARNING"),
+  SHOW_ERROR_ON_COMPLETE("ERRORONCOMPLETE"),
+  SHOW_WARNING_ON_COMPLETE("WARNINGONCOMPLETE"),
+  RAISE_ERROR("ERROR");
 
-  /**
-   * This method is directly called by SideEffectHandlerService to implement actions
-   *
-   * @param ruleEffect received tracker importer
-   * @param enrollment enrollment to implement the action against
-   */
-  void implement(RuleEffect ruleEffect, Enrollment enrollment);
+  public static boolean contains(String ruleEngineName) {
+    return Arrays.stream(values()).anyMatch(v -> v.ruleEngineName.equalsIgnoreCase(ruleEngineName));
+  }
 
-  /**
-   * This method is directly called by SideEffectHandlerService to implement actions
-   *
-   * @param ruleEffect received tracker importer
-   * @param event event to implement the action against
-   */
-  void implement(RuleEffect ruleEffect, Event event);
+  public static ValidationAction fromName(String ruleEngineName) {
+    return Arrays.stream(values())
+        .filter(v -> v.ruleEngineName.equalsIgnoreCase(ruleEngineName))
+        .findAny()
+        .orElseThrow();
+  }
+
+  private final String ruleEngineName;
+
+  ValidationAction(String ruleEngineName) {
+    this.ruleEngineName = ruleEngineName;
+  }
 }

@@ -60,7 +60,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
@@ -88,13 +87,9 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private EnrollmentService apiEnrollmentService;
 
-  @Autowired private EventService eventService;
-
   @Autowired private IdentifiableObjectManager manager;
 
-  private Date incidentDate = new Date();
-
-  private Date enrollmentDate = new Date();
+  private final Date incidentDate = new Date();
 
   private User admin;
 
@@ -259,9 +254,9 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     enrollmentA =
         apiEnrollmentService.enrollTrackedEntity(
             trackedEntityA, programA, new Date(), new Date(), orgUnitA);
-    eventA =
-        eventService.createEvent(
-            enrollmentA, programStageA, enrollmentDate, incidentDate, orgUnitA);
+    eventA = createEvent(programStageA, enrollmentA, orgUnitA);
+    eventA.setOccurredDate(incidentDate);
+    manager.save(eventA);
     enrollmentA.setEvents(Set.of(eventA));
     enrollmentA.setRelationshipItems(Set.of(from, to));
     manager.save(enrollmentA, false);
