@@ -2282,8 +2282,13 @@ public abstract class DhisConvenienceTest {
 
   public static ProgramNotificationTemplate createProgramNotificationTemplate(
       String name, int days, NotificationTrigger trigger, ProgramNotificationRecipient recipient) {
-    return new ProgramNotificationTemplate(
-        name, "Subject", "Message", trigger, recipient, Sets.newHashSet(), days, null, null);
+    ProgramNotificationTemplate template =
+        new ProgramNotificationTemplate(
+            name, "Subject", "Message", trigger, recipient, Sets.newHashSet(), days, null, null);
+
+    template.setAutoFields();
+
+    return template;
   }
 
   public static ProgramNotificationTemplate createProgramNotificationTemplate(
@@ -2292,8 +2297,12 @@ public abstract class DhisConvenienceTest {
       NotificationTrigger trigger,
       ProgramNotificationRecipient recipient,
       Date scheduledDate) {
-    return new ProgramNotificationTemplate(
-        name, "Subject", "Message", trigger, recipient, Sets.newHashSet(), days, null, null);
+    ProgramNotificationTemplate template =
+        new ProgramNotificationTemplate(
+            name, "Subject", "Message", trigger, recipient, Sets.newHashSet(), days, null, null);
+    template.setAutoFields();
+
+    return template;
   }
 
   public static DataSetNotificationTemplate createDataSetNotificationTemplate(
