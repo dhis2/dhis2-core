@@ -42,6 +42,7 @@ import java.util.Map;
 import org.hisp.dhis.analytics.common.params.CommonParams;
 import org.hisp.dhis.analytics.data.handler.MetadataHandler;
 import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
@@ -71,8 +72,13 @@ public class MetadataDimensionsHandler {
    */
   Map<String, List<String>> handle(Grid grid, CommonParams commonParams) {
     List<QueryItem> items = commonParams.delegate().getAllItems();
+
     List<DimensionalObject> allDimensionalObjects =
-        commonParams.delegate().getAllDimensionalObjects();
+        commonParams.delegate().getAllDimensionalObjects().stream()
+            // we're adding periods separately so we need to filter them out
+            .filter(MetadataDimensionsHandler::isNotPeriod)
+            .toList();
+
     List<DimensionalItemObject> periodDimensionOrFilterItems =
         commonParams.delegate().getPeriodDimensionOrFilterItems();
     List<QueryItem> itemFilters = commonParams.delegate().getItemsAsFilters();
@@ -88,6 +94,10 @@ public class MetadataDimensionsHandler {
     putFilterItemsIntoMap(dimensionItems, itemFilters);
 
     return dimensionItems;
+  }
+
+  private static boolean isNotPeriod(DimensionalObject dimensionalObject) {
+    return !dimensionalObject.getDimensionType().equals(DimensionType.PERIOD);
   }
 
   /**

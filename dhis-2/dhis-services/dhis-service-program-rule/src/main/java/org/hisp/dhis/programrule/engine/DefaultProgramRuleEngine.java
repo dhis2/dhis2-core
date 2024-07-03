@@ -42,6 +42,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
+import org.hisp.dhis.programrule.api.RuleEngineEffects;
 import org.hisp.dhis.rules.api.RuleEngine;
 import org.hisp.dhis.rules.api.RuleEngineContext;
 import org.hisp.dhis.rules.models.RuleEffects;
@@ -86,7 +87,7 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
   }
 
   @Override
-  public List<RuleEffects> evaluateEnrollmentAndEvents(
+  public RuleEngineEffects evaluateEnrollmentAndEvents(
       Enrollment enrollment,
       Set<Event> events,
       List<TrackedEntityAttributeValue> trackedEntityAttributeValues) {
@@ -94,18 +95,20 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
         getProgramRules(
             enrollment.getProgram(),
             events.stream().map(Event::getProgramStage).distinct().toList());
-    return evaluateProgramRulesForMultipleTrackerObjects(
-        getRuleEnrollment(enrollment, trackedEntityAttributeValues),
-        enrollment.getProgram(),
-        getRuleEvents(events),
-        rules);
+    List<RuleEffects> ruleEffects =
+        evaluateProgramRulesForMultipleTrackerObjects(
+            getRuleEnrollment(enrollment, trackedEntityAttributeValues),
+            enrollment.getProgram(),
+            getRuleEvents(events),
+            rules);
+    return RuleEngineEffects.of(ruleEffects);
   }
 
   @Override
-  public List<RuleEffects> evaluateProgramEvents(Set<Event> events, Program program) {
+  public RuleEngineEffects evaluateProgramEvents(Set<Event> events, Program program) {
     List<ProgramRule> rules = implementableRuleService.getProgramRules(program, null);
-    return evaluateProgramRulesForMultipleTrackerObjects(
-        null, program, getRuleEvents(events), rules);
+    return RuleEngineEffects.of(
+        evaluateProgramRulesForMultipleTrackerObjects(null, program, getRuleEvents(events), rules));
   }
 
   @Override

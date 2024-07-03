@@ -46,6 +46,7 @@ import lombok.Builder;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.changelog.ChangeLogType;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.note.Note;
@@ -58,8 +59,8 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
-import org.hisp.dhis.tracker.imports.job.SideEffectTrigger;
-import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
+import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
+import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
@@ -107,25 +108,24 @@ public class EventPersister
   }
 
   @Override
-  protected TrackerSideEffectDataBundle handleSideEffects(TrackerBundle bundle, Event event) {
+  protected TrackerNotificationDataBundle handleNotifications(TrackerBundle bundle, Event event) {
     TrackerPreheat preheat = bundle.getPreheat();
-    List<SideEffectTrigger> triggers = new ArrayList<>();
+    List<NotificationTrigger> triggers = new ArrayList<>();
 
     if (isNew(preheat, event.getUid())) {
       if (event.isCompleted()) {
-        triggers.add(SideEffectTrigger.EVENT_COMPLETION);
+        triggers.add(NotificationTrigger.EVENT_COMPLETION);
       }
     } else {
       Event existingEvent = preheat.getEvent(event.getUid());
       if (existingEvent.getStatus() != event.getStatus() && event.isCompleted()) {
-        triggers.add(SideEffectTrigger.EVENT_COMPLETION);
+        triggers.add(NotificationTrigger.EVENT_COMPLETION);
       }
     }
 
-    return TrackerSideEffectDataBundle.builder()
+    return TrackerNotificationDataBundle.builder()
         .klass(Event.class)
-        .enrollmentRuleEffects(new HashMap<>())
-        .eventRuleEffects(bundle.getEventRuleEffects())
+        .eventNotifications(bundle.getEventNotifications().get(UID.of(event.getUid())))
         .object(event.getUid())
         .importStrategy(bundle.getImportStrategy())
         .accessedBy(bundle.getUsername())

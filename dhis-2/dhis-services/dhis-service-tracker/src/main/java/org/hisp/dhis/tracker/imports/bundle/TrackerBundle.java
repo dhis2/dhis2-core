@@ -38,13 +38,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.UserInfoSnapshot;
-import org.hisp.dhis.rules.models.RuleEffect;
-import org.hisp.dhis.rules.models.RuleEffects;
+import org.hisp.dhis.programrule.api.Notification;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.FlushMode;
@@ -110,23 +109,20 @@ public class TrackerBundle {
   /** Relationships to import. */
   @Builder.Default private List<Relationship> relationships = new ArrayList<>();
 
-  /** Rule effects for Enrollments. */
-  @Builder.Default private List<RuleEffects> ruleEffects = new ArrayList<>();
+  /** Notifications for enrollments. */
+  @Builder.Default private Map<UID, List<Notification>> enrollmentNotifications = new HashMap<>();
 
-  /** Rule action executors for Enrollments. */
+  /** Notifications for events. */
+  @Builder.Default private Map<UID, List<Notification>> eventNotifications = new HashMap<>();
+
+  /** Rule action executors for enrollments. */
   @Builder.Default
   private Map<Enrollment, List<RuleActionExecutor<Enrollment>>> enrollmentRuleActionExecutors =
       new HashMap<>();
 
-  /** Rule action executors for Events. */
+  /** Rule action executors for events. */
   @Builder.Default
   private Map<Event, List<RuleActionExecutor<Event>>> eventRuleActionExecutors = new HashMap<>();
-
-  /** Rule effects for Enrollments. */
-  @Builder.Default private Map<String, List<RuleEffect>> enrollmentRuleEffects = new HashMap<>();
-
-  /** Rule effects for Events. */
-  @Builder.Default private Map<String, List<RuleEffect>> eventRuleEffects = new HashMap<>();
 
   @Builder.Default
   private Map<TrackerType, Map<String, TrackerImportStrategy>> resolvedStrategyMap =
@@ -171,16 +167,12 @@ public class TrackerBundle {
     return entities.stream().filter(e -> Objects.equals(e.getUid(), uid)).findFirst();
   }
 
-  public Map<String, List<RuleEffect>> getEnrollmentRuleEffects() {
-    return ruleEffects.stream()
-        .filter(RuleEffects::isEnrollment)
-        .collect(Collectors.toMap(RuleEffects::getTrackerObjectUid, RuleEffects::getRuleEffects));
+  public Map<UID, List<Notification>> getEnrollmentNotifications() {
+    return Map.copyOf(enrollmentNotifications);
   }
 
-  public Map<String, List<RuleEffect>> getEventRuleEffects() {
-    return ruleEffects.stream()
-        .filter(RuleEffects::isEvent)
-        .collect(Collectors.toMap(RuleEffects::getTrackerObjectUid, RuleEffects::getRuleEffects));
+  public Map<UID, List<Notification>> getEventNotifications() {
+    return Map.copyOf(eventNotifications);
   }
 
   public TrackerImportStrategy setStrategy(TrackerDto dto, TrackerImportStrategy strategy) {

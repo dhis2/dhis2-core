@@ -40,6 +40,7 @@ import java.util.Set;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.note.NoteService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -68,13 +69,13 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private ProgramStageService programStageService;
 
-  @Autowired private EventService eventService;
-
   @Autowired protected UserService _userService;
 
   @Autowired private NoteService noteService;
 
   @Autowired private CategoryService categoryService;
+
+  @Autowired private IdentifiableObjectManager manager;
 
   private Date incidentDate;
 
@@ -198,14 +199,17 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   @Test
   void testSoftDeleteEnrollmentAndLinkedEvent() {
     long idA = enrollmentService.addEnrollment(enrollmentA);
-    long eventIdA = eventService.addEvent(eventA);
+    manager.save(eventA);
+    long eventIdA = eventA.getId();
     enrollmentA.setEvents(Sets.newHashSet(eventA));
     enrollmentService.updateEnrollment(enrollmentA);
     assertNotNull(enrollmentService.getEnrollment(idA));
-    assertNotNull(eventService.getEvent(eventIdA));
+    assertNotNull(manager.get(Event.class, eventIdA));
+
     enrollmentService.deleteEnrollment(enrollmentA);
+
     assertNull(enrollmentService.getEnrollment(idA));
-    assertNull(eventService.getEvent(eventIdA));
+    assertNull(manager.get(Event.class, eventIdA));
   }
 
   @Test

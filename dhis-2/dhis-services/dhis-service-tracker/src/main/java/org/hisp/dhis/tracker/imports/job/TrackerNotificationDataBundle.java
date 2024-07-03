@@ -31,9 +31,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import lombok.Builder;
 import lombok.Data;
 import org.hisp.dhis.artemis.Message;
@@ -42,19 +40,19 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.programrule.api.Notification;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 
 /**
- * Class holding data necessary for implementation of side effects.
+ * Class holding data necessary for implementation of notifications.
  *
  * @author Zubair Asghar
  */
 @Data
-@Builder(builderClassName = "TrackerSideEffectBundleBuilder")
-@JsonDeserialize(builder = TrackerSideEffectDataBundle.TrackerSideEffectBundleBuilder.class)
-public class TrackerSideEffectDataBundle implements Message {
+@Builder(builderClassName = "TrackerNotificationBundleBuilder")
+@JsonDeserialize(builder = TrackerNotificationDataBundle.TrackerNotificationBundleBuilder.class)
+public class TrackerNotificationDataBundle implements Message {
   @JsonProperty private String uid;
 
   @JsonProperty private Class<? extends BaseIdentifiableObject> klass;
@@ -69,13 +67,12 @@ public class TrackerSideEffectDataBundle implements Message {
 
   @JsonProperty private Event event;
 
-  @JsonProperty private List<SideEffectTrigger> triggers = new ArrayList<>();
+  @JsonProperty private List<NotificationTrigger> triggers = new ArrayList<>();
 
   @JsonProperty @Builder.Default
-  private Map<String, List<RuleEffect>> enrollmentRuleEffects = new HashMap<>();
+  private List<Notification> enrollmentNotifications = new ArrayList<>();
 
-  @JsonProperty @Builder.Default
-  private Map<String, List<RuleEffect>> eventRuleEffects = new HashMap<>();
+  @JsonProperty @Builder.Default private List<Notification> eventNotifications = new ArrayList<>();
 
   @JsonProperty private TrackerImportStrategy importStrategy;
 
@@ -90,5 +87,5 @@ public class TrackerSideEffectDataBundle implements Message {
   }
 
   @JsonPOJOBuilder(withPrefix = "")
-  public static final class TrackerSideEffectBundleBuilder {}
+  public static final class TrackerNotificationBundleBuilder {}
 }

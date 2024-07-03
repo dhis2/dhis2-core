@@ -45,7 +45,7 @@ public class TrackerNotificationMessageManager {
   private final ObjectFactory<TrackerNotificationThread> trackerNotificationThreadObjectFactory;
   private final AsyncTaskExecutor taskExecutor;
 
-  public void sendNotifications(TrackerSideEffectDataBundle bundle) {
+  public void sendNotifications(TrackerNotificationDataBundle bundle) {
     if (bundle == null) {
       return;
     }
@@ -58,7 +58,7 @@ public class TrackerNotificationMessageManager {
     TrackerNotificationThread notificationThread =
         trackerNotificationThreadObjectFactory.getObject();
 
-    notificationThread.setSideEffectDataBundle(bundle);
+    notificationThread.setNotificationDataBundle(bundle);
 
     taskExecutor.executeTask(notificationThread);
   }
