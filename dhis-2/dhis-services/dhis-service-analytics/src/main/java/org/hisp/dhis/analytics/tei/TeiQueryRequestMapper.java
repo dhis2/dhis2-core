@@ -80,8 +80,9 @@ public class TeiQueryRequestMapper {
     }
 
     // Adding tracked entity type attributes to the list of dimensions.
+    requestParams.getEntityTypeAttributes().clear();
     requestParams
-        .getEnrichedDimensions()
+        .getEntityTypeAttributes()
         .addAll(
             getTrackedEntityAttributes(trackedEntityType).map(IdentifiableObject::getUid).toList());
 

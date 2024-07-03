@@ -71,7 +71,7 @@ public class CommonQueryRequestValidator implements Validator<CommonRequestParam
       throw new IllegalQueryException(new ErrorMessage(E7139));
     }
 
-    checkAllowedDimensions(commonRequestParams.getEnrichedDimensions());
+    checkAllowedDimensions(commonRequestParams.getAllDimensions());
   }
 
   /**

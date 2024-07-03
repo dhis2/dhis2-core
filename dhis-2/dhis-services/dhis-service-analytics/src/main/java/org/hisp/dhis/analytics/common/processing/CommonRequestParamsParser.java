@@ -106,7 +106,8 @@ public class CommonRequestParamsParser implements Parser<CommonRequestParams, Co
   /**
    * Based on the given query request object {@link CommonRequestParams}, this method will
    * process/parse existing values in the request object, and populated all necessary attributes in
-   * the return object {@link CommonParsedParams}.
+   * the return object {@link CommonParsedParams}. It appends program attributes to the dimension
+   * list.
    *
    * @param request the {@link CommonRequestParams} to process.
    * @return the parsed {@link CommonParsedParams}.
@@ -119,8 +120,9 @@ public class CommonRequestParamsParser implements Parser<CommonRequestParams, Co
     List<Program> programs = getPrograms(request);
 
     // Adds all program attributes from all applicable programs as dimensions.
+    request.getProgramAttributes().clear();
     request
-        .getEnrichedDimensions()
+        .getProgramAttributes()
         .addAll(
             getProgramAttributes(programs)
                 .map(IdentifiableObject::getUid)

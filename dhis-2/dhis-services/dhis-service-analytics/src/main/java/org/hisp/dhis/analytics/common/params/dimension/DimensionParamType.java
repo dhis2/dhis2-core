@@ -49,7 +49,7 @@ import org.hisp.dhis.common.AnalyticsDateFilter;
 @Getter
 @RequiredArgsConstructor
 public enum DimensionParamType {
-  DIMENSIONS(CommonRequestParams::getEnrichedDimensions),
+  DIMENSIONS(CommonRequestParams::getAllDimensions),
   FILTERS(CommonRequestParams::getFilter),
   HEADERS(CommonRequestParams::getHeaders),
   DATE_FILTERS(

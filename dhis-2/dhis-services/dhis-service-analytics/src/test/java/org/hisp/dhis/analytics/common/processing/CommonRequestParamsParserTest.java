@@ -221,7 +221,7 @@ class CommonRequestParamsParserTest {
     CommonRequestParams request =
         new CommonRequestParams().withProgramStatus(Set.of("programUid.COMPLETED"));
 
-    String parsedDimension = request.getEnrichedDimensions().iterator().next();
+    String parsedDimension = request.getAllDimensions().iterator().next();
 
     assertEquals("programUid.ENROLLMENT_STATUS:COMPLETED", parsedDimension);
   }
@@ -231,7 +231,7 @@ class CommonRequestParamsParserTest {
     CommonRequestParams request =
         new CommonRequestParams().withEnrollmentStatus(Set.of("programUid.COMPLETED"));
 
-    String parsedDimension = request.getEnrichedDimensions().iterator().next();
+    String parsedDimension = request.getAllDimensions().iterator().next();
 
     assertEquals("programUid.ENROLLMENT_STATUS:COMPLETED", parsedDimension);
   }
@@ -241,7 +241,7 @@ class CommonRequestParamsParserTest {
     CommonRequestParams request =
         new CommonRequestParams().withEventStatus((Set.of("programUid.programStageUid.COMPLETED")));
 
-    String parsedDimension = request.getEnrichedDimensions().iterator().next();
+    String parsedDimension = request.getAllDimensions().iterator().next();
 
     assertEquals("programUid.programStageUid.EVENT_STATUS:COMPLETED", parsedDimension);
   }

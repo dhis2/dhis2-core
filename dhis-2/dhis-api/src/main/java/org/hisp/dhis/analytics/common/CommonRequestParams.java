@@ -36,6 +36,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.feedback.ErrorCode.E7140;
 import static org.hisp.dhis.feedback.ErrorCode.E7141;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -90,6 +91,12 @@ public class CommonRequestParams {
 
   /** The dimensions to be returned/filtered at. */
   private Set<String> dimension = new LinkedHashSet<>();
+
+  /** The dimensions of the given entity type. */
+  @JsonIgnore private Set<String> entityTypeAttributes = new LinkedHashSet<>();
+
+  /** The dimensions of the given program. */
+  @JsonIgnore private Set<String> programAttributes = new LinkedHashSet<>();
 
   /** The filters to be applied at querying time. */
   private Set<String> filter = new HashSet<>();
@@ -269,12 +276,21 @@ public class CommonRequestParams {
     return emptyIfNull(eventStatus).stream().anyMatch(StringUtils::isNotBlank);
   }
 
-  public Set<String> getEnrichedDimensions() {
+  public Set<String> getAllDimensions() {
+    Set<String> eventStatusDims = computeEventStatus(this);
+    Set<String> enrollmentStatusDims = computeEnrollmentStatus(this);
+    Set<String> allStatusDims =
+        org.hisp.dhis.common.collection.CollectionUtils.union(
+            eventStatusDims, enrollmentStatusDims);
+    Set<String> programEntityAttributesDims =
+        org.hisp.dhis.common.collection.CollectionUtils.union(
+            programAttributes, entityTypeAttributes);
+
     return new LinkedHashSet<>(
         org.hisp.dhis.common.collection.CollectionUtils.union(
             dimension,
             org.hisp.dhis.common.collection.CollectionUtils.union(
-                computeEventStatus(this), computeEnrollmentStatus(this))));
+                allStatusDims, programEntityAttributesDims)));
   }
 
   /**
