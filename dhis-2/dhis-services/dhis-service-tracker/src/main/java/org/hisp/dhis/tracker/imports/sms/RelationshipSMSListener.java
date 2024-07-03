@@ -25,18 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.listener;
+package org.hisp.dhis.tracker.imports.sms;
 
 import java.util.Date;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
@@ -46,6 +48,8 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
+import org.hisp.dhis.sms.listener.CompressionSMSListener;
+import org.hisp.dhis.sms.listener.SMSProcessingException;
 import org.hisp.dhis.smscompression.SmsConsts.SubmissionType;
 import org.hisp.dhis.smscompression.SmsResponse;
 import org.hisp.dhis.smscompression.models.RelationshipSmsSubmission;
@@ -55,17 +59,20 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.tracker.export.event.EventService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-@Component("org.hisp.dhis.sms.listener.RelationshipSMSListener")
+@Component("org.hisp.dhis.tracker.sms.RelationshipSMSListener")
 @Transactional
 public class RelationshipSMSListener extends CompressionSMSListener {
   private enum RelationshipDir {
     FROM,
-    TO;
+    TO
   }
 
   private final EventService eventService;
@@ -113,7 +120,7 @@ public class RelationshipSMSListener extends CompressionSMSListener {
   }
 
   @Override
-  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission)
+  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission, User user)
       throws SMSProcessingException {
     RelationshipSmsSubmission subm = (RelationshipSmsSubmission) submission;
 
@@ -127,8 +134,8 @@ public class RelationshipSMSListener extends CompressionSMSListener {
       throw new SMSProcessingException(SmsResponse.INVALID_RELTYPE.set(typeid));
     }
 
-    RelationshipItem fromItem = createRelationshipItem(relType, RelationshipDir.FROM, fromid);
-    RelationshipItem toItem = createRelationshipItem(relType, RelationshipDir.TO, toid);
+    RelationshipItem fromItem = createRelationshipItem(user, relType, RelationshipDir.FROM, fromid);
+    RelationshipItem toItem = createRelationshipItem(user, relType, RelationshipDir.TO, toid);
 
     Relationship rel = new Relationship();
 
@@ -152,7 +159,7 @@ public class RelationshipSMSListener extends CompressionSMSListener {
   }
 
   private RelationshipItem createRelationshipItem(
-      RelationshipType relType, RelationshipDir dir, Uid objId) {
+      User user, RelationshipType relType, RelationshipDir dir, Uid objId) {
     RelationshipItem relItem = new RelationshipItem();
     RelationshipEntity fromEnt = relType.getFromConstraint().getRelationshipEntity();
     RelationshipEntity toEnt = relType.getFromConstraint().getRelationshipEntity();
@@ -176,8 +183,10 @@ public class RelationshipSMSListener extends CompressionSMSListener {
         break;
 
       case PROGRAM_STAGE_INSTANCE:
-        Event event = eventService.getEvent(objId.getUid());
-        if (event == null) {
+        Event event;
+        try {
+          event = eventService.getEvent(UID.of(objId.getUid()), UserDetails.fromUser(user));
+        } catch (NotFoundException | ForbiddenException e) {
           throw new SMSProcessingException(SmsResponse.INVALID_EVENT.set(objId));
         }
         relItem.setEvent(event);

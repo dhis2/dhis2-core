@@ -25,45 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.listener;
+package org.hisp.dhis.tracker.imports.sms;
 
-import java.util.List;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
-import org.hisp.dhis.program.EventService;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
+import org.hisp.dhis.sms.listener.CompressionSMSListener;
+import org.hisp.dhis.sms.listener.SMSProcessingException;
 import org.hisp.dhis.smscompression.SmsConsts.SubmissionType;
 import org.hisp.dhis.smscompression.SmsResponse;
+import org.hisp.dhis.smscompression.models.DeleteSmsSubmission;
 import org.hisp.dhis.smscompression.models.SmsSubmission;
-import org.hisp.dhis.smscompression.models.TrackerEventSmsSubmission;
-import org.hisp.dhis.smscompression.models.Uid;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-@Component("org.hisp.dhis.sms.listener.TrackerEventSMSListener")
+@Component("org.hisp.dhis.tracker.sms.DeleteEventSMSListener")
 @Transactional
-public class TrackerEventSMSListener extends EventSavingSMSListener {
-  private final ProgramStageService programStageService;
+public class DeleteEventSMSListener extends CompressionSMSListener {
+  private final org.hisp.dhis.program.EventService apiEventService;
+  private final EventService eventService;
 
-  private final EnrollmentService enrollmentService;
-
-  public TrackerEventSMSListener(
+  public DeleteEventSMSListener(
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
       UserService userService,
@@ -74,9 +72,8 @@ public class TrackerEventSMSListener extends EventSavingSMSListener {
       CategoryService categoryService,
       DataElementService dataElementService,
       IdentifiableObjectManager identifiableObjectManager,
-      EventService eventService,
-      ProgramStageService programStageService,
-      EnrollmentService enrollmentService) {
+      org.hisp.dhis.program.EventService apiEventService,
+      EventService eventService) {
     super(
         incomingSmsService,
         smsSender,
@@ -87,68 +84,30 @@ public class TrackerEventSMSListener extends EventSavingSMSListener {
         organisationUnitService,
         categoryService,
         dataElementService,
-        identifiableObjectManager,
-        eventService);
-    this.programStageService = programStageService;
-    this.enrollmentService = enrollmentService;
+        identifiableObjectManager);
+    this.apiEventService = apiEventService;
+    this.eventService = eventService;
   }
 
   @Override
-  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission)
+  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission, User user)
       throws SMSProcessingException {
-    TrackerEventSmsSubmission subm = (TrackerEventSmsSubmission) submission;
+    DeleteSmsSubmission subm = (DeleteSmsSubmission) submission;
 
-    Uid ouid = subm.getOrgUnit();
-    Uid stageid = subm.getProgramStage();
-    Uid enrolmentid = subm.getEnrollment();
-    Uid aocid = subm.getAttributeOptionCombo();
-
-    OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(ouid.getUid());
-    User user = userService.getUser(subm.getUserId().getUid());
-
-    Enrollment enrollment = enrollmentService.getEnrollment(enrolmentid.getUid());
-
-    if (enrollment == null) {
-      throw new SMSProcessingException(SmsResponse.INVALID_ENROLL.set(enrolmentid));
+    Event event;
+    try {
+      event = eventService.getEvent(UID.of(subm.getEvent().getUid()), UserDetails.fromUser(user));
+    } catch (NotFoundException | ForbiddenException e) {
+      throw new SMSProcessingException(SmsResponse.INVALID_EVENT.set(subm.getEvent()));
     }
 
-    ProgramStage programStage = programStageService.getProgramStage(stageid.getUid());
-
-    if (programStage == null) {
-      throw new SMSProcessingException(SmsResponse.INVALID_STAGE.set(stageid));
-    }
-
-    CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo(aocid.getUid());
-
-    if (aoc == null) {
-      throw new SMSProcessingException(SmsResponse.INVALID_AOC.set(aocid));
-    }
-
-    List<Object> errorUIDs =
-        saveNewEvent(
-            subm.getEvent().getUid(),
-            orgUnit,
-            programStage,
-            enrollment,
-            aoc,
-            user,
-            subm.getValues(),
-            subm.getEventStatus(),
-            subm.getEventDate(),
-            subm.getDueDate(),
-            subm.getCoordinates());
-    if (!errorUIDs.isEmpty()) {
-      return SmsResponse.WARN_DVERR.setList(errorUIDs);
-    } else if (subm.getValues() == null || subm.getValues().isEmpty()) {
-      // TODO: Should we save the event if there are no data values?
-      return SmsResponse.WARN_DVEMPTY;
-    }
+    apiEventService.deleteEvent(event);
 
     return SmsResponse.SUCCESS;
   }
 
   @Override
   protected boolean handlesType(SubmissionType type) {
-    return (type == SubmissionType.TRACKER_EVENT);
+    return (type == SubmissionType.DELETE);
   }
 }

@@ -25,36 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.listener;
+package org.hisp.dhis.tracker.imports.sms;
 
+import java.util.List;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
+import org.hisp.dhis.sms.listener.SMSProcessingException;
 import org.hisp.dhis.smscompression.SmsConsts.SubmissionType;
 import org.hisp.dhis.smscompression.SmsResponse;
-import org.hisp.dhis.smscompression.models.DeleteSmsSubmission;
 import org.hisp.dhis.smscompression.models.SmsSubmission;
+import org.hisp.dhis.smscompression.models.TrackerEventSmsSubmission;
 import org.hisp.dhis.smscompression.models.Uid;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.tracker.export.event.EventService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-@Component("org.hisp.dhis.sms.listener.DeleteEventSMSListener")
+@Component("org.hisp.dhis.tracker.sms.TrackerEventSMSListener")
 @Transactional
-public class DeleteEventSMSListener extends CompressionSMSListener {
-  private final EventService eventService;
+public class TrackerEventSMSListener extends EventSavingSMSListener {
+  private final ProgramStageService programStageService;
 
-  public DeleteEventSMSListener(
+  private final EnrollmentService enrollmentService;
+
+  public TrackerEventSMSListener(
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
       UserService userService,
@@ -65,7 +75,10 @@ public class DeleteEventSMSListener extends CompressionSMSListener {
       CategoryService categoryService,
       DataElementService dataElementService,
       IdentifiableObjectManager identifiableObjectManager,
-      EventService eventService) {
+      org.hisp.dhis.program.EventService apiEventService,
+      EventService eventService,
+      ProgramStageService programStageService,
+      EnrollmentService enrollmentService) {
     super(
         incomingSmsService,
         smsSender,
@@ -76,29 +89,65 @@ public class DeleteEventSMSListener extends CompressionSMSListener {
         organisationUnitService,
         categoryService,
         dataElementService,
-        identifiableObjectManager);
-    this.eventService = eventService;
+        identifiableObjectManager,
+        apiEventService,
+        eventService);
+    this.programStageService = programStageService;
+    this.enrollmentService = enrollmentService;
   }
 
   @Override
-  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission)
+  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission, User user)
       throws SMSProcessingException {
-    DeleteSmsSubmission subm = (DeleteSmsSubmission) submission;
+    TrackerEventSmsSubmission subm = (TrackerEventSmsSubmission) submission;
 
-    Uid eventid = subm.getEvent();
-    Event event = eventService.getEvent(eventid.getUid());
+    Uid ouid = subm.getOrgUnit();
+    Uid stageid = subm.getProgramStage();
+    Uid enrolmentid = subm.getEnrollment();
+    Uid aocid = subm.getAttributeOptionCombo();
 
-    if (event == null) {
-      throw new SMSProcessingException(SmsResponse.INVALID_EVENT.set(eventid));
+    OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(ouid.getUid());
+
+    Enrollment enrollment = enrollmentService.getEnrollment(enrolmentid.getUid());
+    if (enrollment == null) {
+      throw new SMSProcessingException(SmsResponse.INVALID_ENROLL.set(enrolmentid));
     }
 
-    eventService.deleteEvent(event);
+    ProgramStage programStage = programStageService.getProgramStage(stageid.getUid());
+    if (programStage == null) {
+      throw new SMSProcessingException(SmsResponse.INVALID_STAGE.set(stageid));
+    }
+
+    CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo(aocid.getUid());
+    if (aoc == null) {
+      throw new SMSProcessingException(SmsResponse.INVALID_AOC.set(aocid));
+    }
+
+    List<Object> errorUIDs =
+        saveEvent(
+            subm.getEvent().getUid(),
+            orgUnit,
+            programStage,
+            enrollment,
+            aoc,
+            user,
+            subm.getValues(),
+            subm.getEventStatus(),
+            subm.getEventDate(),
+            subm.getDueDate(),
+            subm.getCoordinates());
+    if (!errorUIDs.isEmpty()) {
+      return SmsResponse.WARN_DVERR.setList(errorUIDs);
+    } else if (subm.getValues() == null || subm.getValues().isEmpty()) {
+      // TODO: Should we save the event if there are no data values?
+      return SmsResponse.WARN_DVEMPTY;
+    }
 
     return SmsResponse.SUCCESS;
   }
 
   @Override
   protected boolean handlesType(SubmissionType type) {
-    return (type == SubmissionType.DELETE);
+    return (type == SubmissionType.TRACKER_EVENT);
   }
 }

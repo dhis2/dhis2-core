@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.listener;
+package org.hisp.dhis.tracker.imports.sms;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +50,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Zubair <rajazubair.asghar@gmail.com> */
-@Component("org.hisp.dhis.sms.listener.SingleEventListener")
+@Component("org.hisp.dhis.tracker.sms.SingleEventListener")
 @Transactional
 public class SingleEventListener extends RegisterSMSListener {
   private final SMSCommandService smsCommandService;

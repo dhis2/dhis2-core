@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.listener;
+package org.hisp.dhis.tracker.imports.sms;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -53,7 +53,6 @@ import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
@@ -67,6 +66,7 @@ import org.hisp.dhis.smscompression.models.SmsDataValue;
 import org.hisp.dhis.smscompression.models.TrackerEventSmsSubmission;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -99,13 +99,14 @@ class TrackerEventSMSListenerTest extends CompressionSMSListenerTest {
 
   @Mock private CategoryService categoryService;
 
+  @Mock private org.hisp.dhis.program.EventService apiEventService;
   @Mock private EventService eventService;
 
   @Mock private IdentifiableObjectManager identifiableObjectManager;
 
   private User user;
 
-  private OutboundMessageResponse response = new OutboundMessageResponse();
+  private final OutboundMessageResponse response = new OutboundMessageResponse();
 
   private IncomingSms updatedIncomingSms;
 
@@ -131,8 +132,6 @@ class TrackerEventSMSListenerTest extends CompressionSMSListenerTest {
 
   private DataElement dataElement;
 
-  private Program program;
-
   private ProgramStage programStage;
 
   private Enrollment enrollment;
@@ -153,6 +152,7 @@ class TrackerEventSMSListenerTest extends CompressionSMSListenerTest {
             categoryService,
             dataElementService,
             identifiableObjectManager,
+            apiEventService,
             eventService,
             programStageService,
             enrollmentService);
@@ -230,7 +230,7 @@ class TrackerEventSMSListenerTest extends CompressionSMSListenerTest {
 
   private void setUpInstances() throws SmsCompressionException {
     organisationUnit = createOrganisationUnit('O');
-    program = createProgram('P');
+    Program program = createProgram('P');
     programStage = createProgramStage('S', program);
 
     user = makeUser("U");

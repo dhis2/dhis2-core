@@ -39,37 +39,58 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface EventService {
-  /** Get a file for an events' data element. */
+  /**
+   * Get a file for an events' data element under the privileges of the currently authenticated
+   * user.
+   */
   FileResourceStream getFileResource(UID event, UID dataElement)
       throws NotFoundException, ForbiddenException;
 
-  /** Get an image for an events' data element in the given dimension. */
+  /**
+   * Get an image for an events' data element in the given dimension under the privileges of the
+   * currently authenticated user.
+   */
   FileResourceStream getFileResourceImage(UID event, UID dataElement, ImageFileDimension dimension)
       throws NotFoundException, ForbiddenException;
 
   /**
-   * Get event matching given {@code UID}. Use {@link #getEvent(String, EventParams)} instead to
-   * also get the events relationships.
+   * Get event matching given {@code UID} under the privileges of the currently authenticated user.
+   * Use {@link #getEvent(UID, EventParams)} instead to also get the events relationships.
    */
   Event getEvent(UID uid) throws NotFoundException, ForbiddenException;
 
-  /** Get event matching given {@code UID} and params. */
-  Event getEvent(String uid, EventParams eventParams) throws NotFoundException, ForbiddenException;
+  /**
+   * Get event matching given {@code UID} under the privileges of given user. This method does not
+   * get the events relationships.
+   */
+  Event getEvent(UID uid, UserDetails user) throws NotFoundException, ForbiddenException;
 
-  /** Get all events matching given params. */
+  /**
+   * Get event matching given {@code UID} and params under the privileges of the currently
+   * authenticated user.
+   */
+  Event getEvent(UID uid, EventParams eventParams) throws NotFoundException, ForbiddenException;
+
+  /**
+   * Get all events matching given params under the privileges of the currently authenticated user.
+   */
   List<Event> getEvents(EventOperationParams params) throws BadRequestException, ForbiddenException;
 
-  /** Get a page of events matching given params. */
+  /**
+   * Get a page of events matching given params under the privileges of the currently authenticated
+   * user.
+   */
   Page<Event> getEvents(EventOperationParams params, PageParams pageParams)
       throws BadRequestException, ForbiddenException;
 
   RelationshipItem getEventInRelationshipItem(String uid, EventParams eventParams)
-      throws NotFoundException, ForbiddenException;
+      throws NotFoundException;
 
   /**
    * Fields the {@link #getEvents(EventOperationParams)} and {@link #getEvents(EventOperationParams,

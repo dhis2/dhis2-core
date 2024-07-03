@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.listener;
+package org.hisp.dhis.tracker.imports.sms;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -33,25 +33,39 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.smscompression.SmsCompressionException;
-import org.hisp.dhis.smscompression.models.DeleteSmsSubmission;
+import org.hisp.dhis.smscompression.SmsConsts.SmsEventStatus;
+import org.hisp.dhis.smscompression.models.GeoPoint;
+import org.hisp.dhis.smscompression.models.SimpleEventSmsSubmission;
+import org.hisp.dhis.smscompression.models.SmsDataValue;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,7 +75,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class DeleteEventSMSListenerTest extends CompressionSMSListenerTest {
+class SimpleEventSMSListenerTest extends CompressionSMSListenerTest {
 
   @Mock private UserService userService;
 
@@ -81,13 +95,15 @@ class DeleteEventSMSListenerTest extends CompressionSMSListenerTest {
 
   @Mock private CategoryService categoryService;
 
+  @Mock private org.hisp.dhis.program.EventService apiEventService;
+
   @Mock private EventService eventService;
 
   @Mock private IdentifiableObjectManager identifiableObjectManager;
 
   private User user;
 
-  private OutboundMessageResponse response = new OutboundMessageResponse();
+  private final OutboundMessageResponse response = new OutboundMessageResponse();
 
   private IncomingSms updatedIncomingSms;
 
@@ -95,16 +111,30 @@ class DeleteEventSMSListenerTest extends CompressionSMSListenerTest {
 
   // Needed for this test
 
-  DeleteEventSMSListener subject;
+  @Mock private EnrollmentService enrollmentService;
 
-  private IncomingSms incomingSmsDelete;
+  private SimpleEventSMSListener subject;
+
+  private IncomingSms incomingSmsSimpleEvent;
+
+  private IncomingSms incomingSmsSimpleEventWithNulls;
+
+  private IncomingSms incomingSmsSimpleEventNoValues;
+
+  private OrganisationUnit organisationUnit;
+
+  private CategoryOptionCombo categoryOptionCombo;
+
+  private DataElement dataElement;
+
+  private Program program;
 
   private Event event;
 
   @BeforeEach
   public void initTest() throws SmsCompressionException {
     subject =
-        new DeleteEventSMSListener(
+        new SimpleEventSMSListener(
             incomingSmsService,
             smsSender,
             userService,
@@ -114,8 +144,10 @@ class DeleteEventSMSListenerTest extends CompressionSMSListenerTest {
             organisationUnitService,
             categoryService,
             dataElementService,
-            identifiableObjectManager,
-            eventService);
+            apiEventService,
+            eventService,
+            enrollmentService,
+            identifiableObjectManager);
 
     setUpInstances();
 
@@ -127,7 +159,11 @@ class DeleteEventSMSListenerTest extends CompressionSMSListenerTest {
               message = (String) invocation.getArguments()[1];
               return response;
             });
-    when(eventService.getEvent(anyString())).thenReturn(event);
+
+    when(organisationUnitService.getOrganisationUnit(anyString())).thenReturn(organisationUnit);
+    when(programService.getProgram(anyString())).thenReturn(program);
+    lenient().when(dataElementService.getDataElement(anyString())).thenReturn(dataElement);
+    when(categoryService.getCategoryOptionCombo(anyString())).thenReturn(categoryOptionCombo);
 
     doAnswer(
             invocation -> {
@@ -136,11 +172,14 @@ class DeleteEventSMSListenerTest extends CompressionSMSListenerTest {
             })
         .when(incomingSmsService)
         .update(any());
+
+    when(programService.hasOrgUnit(any(Program.class), any(OrganisationUnit.class)))
+        .thenReturn(true);
   }
 
   @Test
-  void testDeleteEvent() {
-    subject.receive(incomingSmsDelete);
+  void testSimpleEvent() {
+    subject.receive(incomingSmsSimpleEvent);
 
     assertNotNull(updatedIncomingSms);
     assertTrue(updatedIncomingSms.isParsed());
@@ -149,22 +188,99 @@ class DeleteEventSMSListenerTest extends CompressionSMSListenerTest {
     verify(incomingSmsService, times(1)).update(any());
   }
 
+  @Test
+  void testSimpleEventRepeat() {
+    subject.receive(incomingSmsSimpleEvent);
+    subject.receive(incomingSmsSimpleEvent);
+
+    assertNotNull(updatedIncomingSms);
+    assertTrue(updatedIncomingSms.isParsed());
+    assertEquals(SUCCESS_MESSAGE, message);
+
+    verify(incomingSmsService, times(2)).update(any());
+  }
+
+  @Test
+  void testSimpleEventWithNulls() {
+    subject.receive(incomingSmsSimpleEventWithNulls);
+
+    assertNotNull(updatedIncomingSms);
+    assertTrue(updatedIncomingSms.isParsed());
+    assertEquals(SUCCESS_MESSAGE, message);
+
+    verify(incomingSmsService, times(1)).update(any());
+  }
+
+  @Test
+  void testSimpleEventNoValues() {
+    subject.receive(incomingSmsSimpleEventNoValues);
+
+    assertNotNull(updatedIncomingSms);
+    assertTrue(updatedIncomingSms.isParsed());
+    assertEquals(NOVALUES_MESSAGE, message);
+
+    verify(incomingSmsService, times(1)).update(any());
+  }
+
   private void setUpInstances() throws SmsCompressionException {
+    organisationUnit = createOrganisationUnit('O');
+    program = createProgram('P');
+    ProgramStage programStage = createProgramStage('S', program);
+
     user = makeUser("U");
     user.setPhoneNumber(ORIGINATOR);
+    user.setOrganisationUnits(Sets.newHashSet(organisationUnit));
+
+    categoryOptionCombo = createCategoryOptionCombo('C');
+    dataElement = createDataElement('D');
+
+    program.getOrganisationUnits().add(organisationUnit);
+    HashSet<ProgramStage> stages = new HashSet<>();
+    stages.add(programStage);
+    program.setProgramStages(stages);
 
     event = new Event();
     event.setAutoFields();
 
-    incomingSmsDelete = createSMSFromSubmission(createDeleteSubmission());
+    incomingSmsSimpleEvent = createSMSFromSubmission(createSimpleEventSubmission());
+    incomingSmsSimpleEventWithNulls =
+        createSMSFromSubmission(createSimpleEventSubmissionWithNulls());
+    incomingSmsSimpleEventNoValues = createSMSFromSubmission(createSimpleEventSubmissionNoValues());
   }
 
-  private DeleteSmsSubmission createDeleteSubmission() {
-    DeleteSmsSubmission subm = new DeleteSmsSubmission();
+  private SimpleEventSmsSubmission createSimpleEventSubmission() {
+    SimpleEventSmsSubmission subm = new SimpleEventSmsSubmission();
 
     subm.setUserId(user.getUid());
+    subm.setOrgUnit(organisationUnit.getUid());
+    subm.setEventProgram(program.getUid());
+    subm.setAttributeOptionCombo(categoryOptionCombo.getUid());
     subm.setEvent(event.getUid());
+    subm.setEventStatus(SmsEventStatus.COMPLETED);
+    subm.setEventDate(new Date());
+    subm.setDueDate(new Date());
+    subm.setCoordinates(new GeoPoint(59.9399586f, 10.7195609f));
+
+    ArrayList<SmsDataValue> values = new ArrayList<>();
+    values.add(new SmsDataValue(categoryOptionCombo.getUid(), dataElement.getUid(), "true"));
+    subm.setValues(values);
     subm.setSubmissionId(1);
+
+    return subm;
+  }
+
+  private SimpleEventSmsSubmission createSimpleEventSubmissionWithNulls() {
+    SimpleEventSmsSubmission subm = createSimpleEventSubmission();
+    subm.setEventDate(null);
+    subm.setDueDate(null);
+    subm.setCoordinates(null);
+
+    return subm;
+  }
+
+  private SimpleEventSmsSubmission createSimpleEventSubmissionNoValues() {
+    SimpleEventSmsSubmission subm = createSimpleEventSubmission();
+    subm.setValues(null);
 
     return subm;
   }

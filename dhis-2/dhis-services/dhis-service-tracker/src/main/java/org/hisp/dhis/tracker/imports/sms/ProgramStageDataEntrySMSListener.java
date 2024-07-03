@@ -25,13 +25,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.listener;
+package org.hisp.dhis.tracker.imports.sms;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -61,7 +60,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Created by zubair@dhis2.org on 11.08.17. */
-@Component("org.hisp.dhis.sms.listener.ProgramStageDataEntrySMSListener")
+@Component("org.hisp.dhis.tracker.sms.ProgramStageDataEntrySMSListener")
 @Transactional
 public class ProgramStageDataEntrySMSListener extends RegisterSMSListener {
   private static final String MORE_THAN_ONE_TE =
@@ -137,7 +136,7 @@ public class ProgramStageDataEntrySMSListener extends RegisterSMSListener {
     List<TrackedEntityAttribute> attributes =
         trackedEntityAttributeService.getAllTrackedEntityAttributes().stream()
             .filter(attr -> attr.getValueType().equals(ValueType.PHONE_NUMBER))
-            .collect(Collectors.toList());
+            .toList();
 
     List<TrackedEntity> trackedEntities = new ArrayList<>();
 
