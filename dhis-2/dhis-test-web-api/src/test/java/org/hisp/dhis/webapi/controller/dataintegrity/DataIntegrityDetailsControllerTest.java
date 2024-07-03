@@ -85,7 +85,7 @@ class DataIntegrityDetailsControllerTest extends AbstractDataIntegrityIntegratio
     assertEquals(1, issues.size());
     assertEquals(uid, issues.get(0).getId());
     assertEquals("CatDog", issues.get(0).getName());
-    assertEquals("categories", details.getIssuesIdType());
+    assertEquals("category", details.getIssuesIdType());
   }
 
   @Test

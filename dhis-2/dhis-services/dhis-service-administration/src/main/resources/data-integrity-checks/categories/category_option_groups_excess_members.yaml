@@ -78,7 +78,7 @@ details_sql: >-
   INNER JOIN categoryoptiongroupset cogs on e.categoryoptiongroupsetid = cogs.categoryoptiongroupsetid
   INNER JOIN categoryoptiongroup cog on e.categoryoptiongroupid = cog.categoryoptiongroupid ) x
   GROUP BY x.uid,x.name,x.cogs_name
-details_id_type: category
+details_id_type: categoryOptionGroups
 severity: SEVERE
 introduction: >
   Category options should belong to exactly one category option group

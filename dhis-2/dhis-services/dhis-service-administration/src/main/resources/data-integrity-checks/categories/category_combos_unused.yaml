@@ -27,7 +27,7 @@
 ---
   name: category_combos_unused
   description:  Category combinations not used by other metadata objects
-  section: category
+section: Categories
   section_order: 6
   summary_sql: >-
     WITH unused_category_combo as (

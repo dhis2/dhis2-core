@@ -27,7 +27,7 @@
 ---
   name: category_option_combos_disjoint
   description: Category option combinations with disjoint associations.
-  section: category
+section: Categories
   section_order: 4
   summary_sql: >-
     WITH cocs_disjoint_associations as (
