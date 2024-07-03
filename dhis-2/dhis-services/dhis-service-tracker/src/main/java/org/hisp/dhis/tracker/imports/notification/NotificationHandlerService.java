@@ -25,19 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.sideeffect;
+package org.hisp.dhis.tracker.imports.notification;
 
 import java.util.List;
-import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
+import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 
 /**
- * Service responsible for asynchronous handling of TrackerImport side effect. For now they related
- * to audit, notifications and program rule effect.
+ * Service responsible for asynchronous handling of TrackerImport notifications.
  *
  * @author Zubair Asghar
  */
-public interface SideEffectHandlerService {
-  void handleSideEffect(TrackerSideEffectDataBundle sideEffectDataBundle);
+public interface NotificationHandlerService {
+  void handleNotification(TrackerNotificationDataBundle notificationDataBundle);
 
-  void handleSideEffects(List<TrackerSideEffectDataBundle> sideEffectDataBundles);
+  void handleNotifications(List<TrackerNotificationDataBundle> notificationDataBundles);
 }

@@ -25,12 +25,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.sideeffect;
+package org.hisp.dhis.tracker.imports.notification;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.tracker.imports.job.TrackerNotificationMessageManager;
-import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
+import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
+import org.hisp.dhis.tracker.imports.job.TrackerRuleEngineMessageManager;
 import org.springframework.stereotype.Service;
 
 /**
@@ -38,16 +38,16 @@ import org.springframework.stereotype.Service;
  */
 @RequiredArgsConstructor
 @Service
-public class NotificationSideEffectHandlerService implements SideEffectHandlerService {
-  private final TrackerNotificationMessageManager trackerNotificationMessageManager;
+public class RuleEngineNotificationHandlerService implements NotificationHandlerService {
+  private final TrackerRuleEngineMessageManager trackerRuleEngineMessageManager;
 
   @Override
-  public void handleSideEffect(TrackerSideEffectDataBundle sideEffectDataBundle) {
-    trackerNotificationMessageManager.sendNotifications(sideEffectDataBundle);
+  public void handleNotification(TrackerNotificationDataBundle notificationDataBundle) {
+    trackerRuleEngineMessageManager.sendRuleEngineNotifications(notificationDataBundle);
   }
 
   @Override
-  public void handleSideEffects(List<TrackerSideEffectDataBundle> sideEffectDataBundles) {
-    sideEffectDataBundles.forEach(this::handleSideEffect);
+  public void handleNotifications(List<TrackerNotificationDataBundle> notificationDataBundles) {
+    notificationDataBundles.forEach(this::handleNotification);
   }
 }

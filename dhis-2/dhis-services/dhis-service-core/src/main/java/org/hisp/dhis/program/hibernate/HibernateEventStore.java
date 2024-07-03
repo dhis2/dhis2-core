@@ -76,17 +76,6 @@ public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
   }
 
   @Override
-  public long getEventCountLastUpdatedAfter(Date time) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    return getCount(
-        builder,
-        newJpaParameters()
-            .addPredicate(root -> builder.greaterThanOrEqualTo(root.get("lastUpdated"), time))
-            .count(builder::countDistinct));
-  }
-
-  @Override
   public boolean exists(String uid) {
     if (uid == null) {
       return false;

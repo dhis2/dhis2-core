@@ -38,14 +38,6 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 public interface EventStore extends IdentifiableObjectStore<Event> {
 
   /**
-   * Get the number of events updates since the given Date.
-   *
-   * @param time the time.
-   * @return the number of events.
-   */
-  long getEventCountLastUpdatedAfter(Date time);
-
-  /**
    * Checks for the existence of an event by UID. The deleted events are not taken into account.
    *
    * @param uid event UID to check for

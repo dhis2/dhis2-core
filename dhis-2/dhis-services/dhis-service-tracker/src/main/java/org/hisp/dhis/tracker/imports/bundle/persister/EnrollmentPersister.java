@@ -29,10 +29,10 @@ package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import javax.persistence.EntityManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
@@ -41,8 +41,8 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChan
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
-import org.hisp.dhis.tracker.imports.job.SideEffectTrigger;
-import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
+import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
+import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.springframework.stereotype.Component;
 
@@ -118,27 +118,27 @@ public class EnrollmentPersister
   }
 
   @Override
-  protected TrackerSideEffectDataBundle handleSideEffects(
+  protected TrackerNotificationDataBundle handleNotifications(
       TrackerBundle bundle, Enrollment enrollment) {
     TrackerPreheat preheat = bundle.getPreheat();
-    List<SideEffectTrigger> triggers = new ArrayList<>();
+    List<NotificationTrigger> triggers = new ArrayList<>();
 
     if (isNew(preheat, enrollment.getUid())) {
-      triggers.add(SideEffectTrigger.ENROLLMENT);
+      triggers.add(NotificationTrigger.ENROLLMENT);
       if (enrollment.isCompleted()) {
-        triggers.add(SideEffectTrigger.ENROLLMENT_COMPLETION);
+        triggers.add(NotificationTrigger.ENROLLMENT_COMPLETION);
       }
     } else {
       Enrollment exitingEnrollment = preheat.getEnrollment(enrollment.getUid());
       if (exitingEnrollment.getStatus() != enrollment.getStatus() && enrollment.isCompleted()) {
-        triggers.add(SideEffectTrigger.ENROLLMENT_COMPLETION);
+        triggers.add(NotificationTrigger.ENROLLMENT_COMPLETION);
       }
     }
 
-    return TrackerSideEffectDataBundle.builder()
+    return TrackerNotificationDataBundle.builder()
         .klass(Enrollment.class)
-        .enrollmentNotificationEffects(bundle.getEnrollmentRuleEffects())
-        .eventNotificationEffects(new HashMap<>())
+        .enrollmentNotifications(
+            bundle.getEnrollmentNotifications().get(UID.of(enrollment.getUid())))
         .object(enrollment.getUid())
         .importStrategy(bundle.getImportStrategy())
         .accessedBy(bundle.getUsername())

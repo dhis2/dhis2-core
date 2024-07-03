@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.programrule.api;
 
+import static org.hisp.dhis.programrule.ProgramRuleActionType.SCHEDULEMESSAGE;
+import static org.hisp.dhis.programrule.ProgramRuleActionType.SENDMESSAGE;
 import static org.hisp.dhis.programrule.engine.RuleActionKey.NOTIFICATION;
 
 import java.util.Collection;
@@ -41,28 +43,29 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleEffects;
+import org.hisp.dhis.util.DateUtils;
 
 /**
  * This class holds the action results from rule-engine organized by effect type ({@link
- * ValidationEffect} and {@link NotificationEffect}) and by tracker entity ({@link Enrollment} and
- * {@link Event}
+ * ValidationEffect} and {@link Notification}) and by tracker entity ({@link Enrollment} and {@link
+ * Event}
  */
 @Getter
 public class RuleEngineEffects {
   private final Map<UID, List<ValidationEffect>> enrollmentValidationEffects;
   private final Map<UID, List<ValidationEffect>> eventValidationEffects;
-  private final Map<UID, List<NotificationEffect>> enrollmentNotificationEffects;
-  private final Map<UID, List<NotificationEffect>> eventNotificationEffects;
+  private final Map<UID, List<Notification>> enrollmentNotifications;
+  private final Map<UID, List<Notification>> eventNotifications;
 
   private RuleEngineEffects(
       Map<UID, List<ValidationEffect>> enrollmentValidationEffects,
       Map<UID, List<ValidationEffect>> eventValidationEffects,
-      Map<UID, List<NotificationEffect>> enrollmentNotificationEffects,
-      Map<UID, List<NotificationEffect>> eventNotificationEffects) {
+      Map<UID, List<Notification>> enrollmentNotifications,
+      Map<UID, List<Notification>> eventNotifications) {
     this.enrollmentValidationEffects = enrollmentValidationEffects;
     this.eventValidationEffects = eventValidationEffects;
-    this.enrollmentNotificationEffects = enrollmentNotificationEffects;
-    this.eventNotificationEffects = eventNotificationEffects;
+    this.enrollmentNotifications = enrollmentNotifications;
+    this.eventNotifications = eventNotifications;
   }
 
   public static RuleEngineEffects empty() {
@@ -84,14 +87,14 @@ public class RuleEngineEffects {
                 Collectors.toMap(
                     e -> UID.of(e.getTrackerObjectUid()),
                     e -> mapValidationEffect(e.getRuleEffects())));
-    Map<UID, List<NotificationEffect>> enrollmentNotificationEffects =
+    Map<UID, List<Notification>> enrollmentNotificationEffects =
         ruleEffects.stream()
             .filter(RuleEffects::isEnrollment)
             .collect(
                 Collectors.toMap(
                     e -> UID.of(e.getTrackerObjectUid()),
                     e -> mapNotificationEffect(e.getRuleEffects())));
-    Map<UID, List<NotificationEffect>> eventNotificationEffects =
+    Map<UID, List<Notification>> eventNotificationEffects =
         ruleEffects.stream()
             .filter(RuleEffects::isEvent)
             .collect(
@@ -110,10 +113,10 @@ public class RuleEngineEffects {
         merge(effects.enrollmentValidationEffects, effects2.enrollmentValidationEffects);
     Map<UID, List<ValidationEffect>> eventValidationEffects =
         merge(effects.eventValidationEffects, effects2.eventValidationEffects);
-    Map<UID, List<NotificationEffect>> enrollmentNotificationEffects =
-        merge(effects.enrollmentNotificationEffects, effects2.enrollmentNotificationEffects);
-    Map<UID, List<NotificationEffect>> eventNotificationEffects =
-        merge(effects.eventNotificationEffects, effects2.eventNotificationEffects);
+    Map<UID, List<Notification>> enrollmentNotificationEffects =
+        merge(effects.enrollmentNotifications, effects2.enrollmentNotifications);
+    Map<UID, List<Notification>> eventNotificationEffects =
+        merge(effects.eventNotifications, effects2.eventNotifications);
 
     return new RuleEngineEffects(
         enrollmentValidationEffects,
@@ -145,16 +148,25 @@ public class RuleEngineEffects {
         .toList();
   }
 
-  private static List<NotificationEffect> mapNotificationEffect(List<RuleEffect> effects) {
+  private static List<Notification> mapNotificationEffect(List<RuleEffect> effects) {
     return effects.stream()
-        .filter(e -> NotificationAction.contains(e.getRuleAction().getType()))
+        .filter(
+            e ->
+                SENDMESSAGE.name().equals(e.getRuleAction().getType())
+                    || SCHEDULEMESSAGE.name().equals(e.getRuleAction().getType()))
+        .filter(RuleEngineEffects::isValid)
         .map(
             e ->
-                new NotificationEffect(
-                    NotificationAction.fromName(e.getRuleAction().getType()),
-                    UID.of(e.getRuleId()),
+                new Notification(
                     UID.of(e.getRuleAction().getValues().get(NOTIFICATION)),
-                    e.getData()))
+                    DateUtils.parseDate(StringUtils.unwrap(e.getData(), '\''))))
         .toList();
+  }
+
+  private static boolean isValid(RuleEffect effect) {
+    if (SCHEDULEMESSAGE.name().equals(effect.getRuleAction().getType())) {
+      return DateUtils.dateIsValid(StringUtils.unwrap(effect.getData(), '\''));
+    }
+    return true;
   }
 }
