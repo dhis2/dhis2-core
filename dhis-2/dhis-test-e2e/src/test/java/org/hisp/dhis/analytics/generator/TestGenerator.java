@@ -32,6 +32,10 @@ import org.hisp.dhis.analytics.generator.impl.AnalyticsAggregatedGenerator;
 /** This class simply hold the generator implementation to be used during the code generation. */
 public class TestGenerator {
   static Generator get() {
-    return new AnalyticsAggregatedGenerator();
+    return new TeiQueryGenerator(
+        "multiOrgUnitProgramStatusFilterMultipleInBoolean", "singleOrgUnitInBooleanFilter");
+
+    // To generate all e2e tests just return the default constructor.
+    // ie.: return new TeiQueryGenerator();
   }
 }
