@@ -279,18 +279,14 @@ public class CommonRequestParams {
   public Set<String> getAllDimensions() {
     Set<String> eventStatusDims = computeEventStatus(this);
     Set<String> enrollmentStatusDims = computeEnrollmentStatus(this);
-    Set<String> allStatusDims =
-        org.hisp.dhis.common.collection.CollectionUtils.union(
-            eventStatusDims, enrollmentStatusDims);
-    Set<String> programEntityAttributesDims =
-        org.hisp.dhis.common.collection.CollectionUtils.union(
-            programAttributes, entityTypeAttributes);
 
     return new LinkedHashSet<>(
         org.hisp.dhis.common.collection.CollectionUtils.union(
             dimension,
-            org.hisp.dhis.common.collection.CollectionUtils.union(
-                allStatusDims, programEntityAttributesDims)));
+            eventStatusDims,
+            enrollmentStatusDims,
+            entityTypeAttributes,
+            programAttributes));
   }
 
   /**

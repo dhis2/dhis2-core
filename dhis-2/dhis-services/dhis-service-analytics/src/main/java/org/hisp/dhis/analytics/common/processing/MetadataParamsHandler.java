@@ -97,7 +97,6 @@ public class MetadataParamsHandler {
     CommonParsedParams commonParsed = contextParams.getCommonParsed();
 
     if (!commonRequest.isSkipMeta()) {
-
       // Dimensions.
       List<AnalyticsMetaDataKey> userOrgUnitMetaDataKeys =
           getUserOrgUnitsMetadataKeys(commonParsed);
