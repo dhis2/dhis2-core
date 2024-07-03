@@ -7,9 +7,6 @@ SET notificationtemplateid = t.programnotificationtemplateid
     FROM programnotificationtemplate t
 WHERE pra.templateuid = t.uid;
 
--- Drop the old column
-ALTER TABLE programruleaction DROP COLUMN templateuid;
-
 -- Add the foreign key constraint
 ALTER TABLE programruleaction ADD CONSTRAINT fk_notificationtemplate FOREIGN KEY (notificationtemplateid)
     REFERENCES programnotificationtemplate(programnotificationtemplateid);

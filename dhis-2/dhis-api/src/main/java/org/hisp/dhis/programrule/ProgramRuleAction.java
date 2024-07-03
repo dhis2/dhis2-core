@@ -138,6 +138,17 @@ public class ProgramRuleAction extends BaseIdentifiableObject implements Metadat
   private ProgramNotificationTemplate notificationTemplate;
 
   /**
+   * The program notification template uid that will be triggered by the rule action. Used for:
+   *
+   * <ul>
+   *   <li>sendmessage
+   * </ul>
+   */
+
+  @Deprecated(since = "2.43")
+  private String templateUid;
+
+  /**
    * Used to determine which widget to display data for the two action types:
    *
    * <p>
@@ -266,7 +277,7 @@ public class ProgramRuleAction extends BaseIdentifiableObject implements Metadat
   }
 
   public boolean hasNotification() {
-    return notificationTemplate != null;
+    return templateUid != null;
   }
 
   public boolean hasOption() {
@@ -324,7 +335,7 @@ public class ProgramRuleAction extends BaseIdentifiableObject implements Metadat
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getTemplateUid() {
-    return notificationTemplate != null ? notificationTemplate.getUid() : null;
+    return templateUid;
   }
 
   public void setTemplateUid(String templateUid) {
@@ -334,9 +345,10 @@ public class ProgramRuleAction extends BaseIdentifiableObject implements Metadat
       return;
     }
 
+    this.templateUid = templateUid;
     ProgramNotificationTemplate template = new ProgramNotificationTemplate();
     template.setUid(templateUid);
-    this.notificationTemplate = template;
+    setNotificationTemplate(template);
   }
 
   @JsonIgnore
