@@ -26,7 +26,7 @@
 #---
 name: cocs_wrong_cardinality
 description: Category option combinations with incorrect cardinality.
-section: Categories
+section: category
 section_order: 5
 summary_sql: >-
     WITH cocs_wrong_cardinality as (

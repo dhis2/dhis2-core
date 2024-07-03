@@ -27,7 +27,7 @@
 ---
 name: categories_one_default_category
 description: Only one "default" category should exist
-section: Categories
+section: category
 summary_sql: >-
   SELECT count(*) AS count FROM category
   WHERE name = 'default' AND uid != 'GLevLNI9wkl';
@@ -35,7 +35,7 @@ details_sql: >-
   SELECT uid, name FROM category
   WHERE name = 'default' AND uid != 'GLevLNI9wkl'
   ORDER BY categoryid;
-details_id_type: categories
+details_id_type: category
 severity: SEVERE
 introduction: >
   There should only exist one category with name and code "default".

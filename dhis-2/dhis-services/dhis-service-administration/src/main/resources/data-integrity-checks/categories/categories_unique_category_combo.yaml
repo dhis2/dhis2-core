@@ -33,7 +33,7 @@
 ---
 name: categories_unique_category_combo
 description: Different category combinations should not have the exact same combination of categories.
-section: Categories
+section: category
 summary_sql: >-
   with combo_sets as (
     select categorycomboid as id, array_agg(categoryid) as cats from categorycombos_categories

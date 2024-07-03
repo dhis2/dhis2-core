@@ -27,7 +27,7 @@
 ---
   name: categories_same_category_options
   description: Categories with the same category options
-  section: Categories
+  section: category
   section_order: 6
   summary_sql: >-
     WITH duplicative_categories  AS (
@@ -63,7 +63,7 @@
     provide a list of categories which have the exact same category options.
     For each duplicated category a number in parentheses such as (1) will
     indicate which categories belong to duplicated groups.
-  details_id_type: categories
+  details_id_type: category
   recommendation: |
     If category combinations have already been created with duplicative categories,
     it is recommended that you do not take any action, but rather ensure

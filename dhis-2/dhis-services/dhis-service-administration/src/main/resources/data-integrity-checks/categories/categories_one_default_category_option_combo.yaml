@@ -27,7 +27,7 @@
 ---
 name: categories_one_default_category_option_combo
 description: Only one "default" category option combo should exist
-section: Categories
+section: category
 summary_sql: >-
   SELECT count(*) AS count FROM categoryoptioncombo
   WHERE name = 'default' AND uid != 'HllvX50cXC0';

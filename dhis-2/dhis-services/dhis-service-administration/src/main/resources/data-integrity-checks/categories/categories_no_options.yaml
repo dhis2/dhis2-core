@@ -27,7 +27,7 @@
 ---
 name: categories_no_options
 description: Categories with no category options
-section: Categories
+section: category
 summary_sql: >-
     select
     COUNT(*) as value,
@@ -39,7 +39,7 @@ details_sql: >-
     where categoryid
     not in (select distinct categoryid from categories_categoryoptions)
     ORDER BY name;
-details_id_type: categories
+details_id_type: category
 severity: WARNING
 introduction: >
     Categories should always have at least one category option.

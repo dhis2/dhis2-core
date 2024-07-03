@@ -27,7 +27,7 @@
 ---
 name: category_option_group_sets_incomplete
 description: Category option group sets which which do not contain all category options.
-section: Categories
+section: category
 section_order: 10
 summary_sql: >-
   WITH cat_option_group_complete as(
