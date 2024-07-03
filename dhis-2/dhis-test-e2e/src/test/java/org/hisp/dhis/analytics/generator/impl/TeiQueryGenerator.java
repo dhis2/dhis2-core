@@ -34,6 +34,19 @@ import org.hisp.dhis.analytics.generator.Generator;
  * "/analytics/trackedEntities/query/{trackedEntityType}?" endpoint.
  */
 public class TeiQueryGenerator implements Generator {
+  private String[] scenarios = new String[] {};
+
+  public TeiQueryGenerator() {}
+
+  public TeiQueryGenerator(String... scenarios) {
+    this.scenarios = scenarios;
+  }
+
+  @Override
+  public String[] getScenarios() {
+    return scenarios;
+  }
+
   @Override
   public int getMaxTestsPerClass() {
     return 4;
@@ -47,6 +60,11 @@ public class TeiQueryGenerator implements Generator {
   @Override
   public String getClassNamePrefix() {
     return "TeiQuery";
+  }
+
+  @Override
+  public String getScenarioFile() {
+    return "te-query.json";
   }
 
   @Override
