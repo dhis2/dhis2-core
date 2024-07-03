@@ -93,11 +93,11 @@ public class CommonRequestParams {
   /** The dimensions to be returned/filtered at. */
   private Set<String> dimension = new LinkedHashSet<>();
 
-  /** The dimensions of the given entity type. */
+  /** The dimensions of the given entity type. Internal only, not exposed. */
   @Setter(NONE)
   private Set<String> entityTypeAttributes = new LinkedHashSet<>();
 
-  /** The dimensions of the given program. */
+  /** The dimensions of the given program. Internal only, not exposed. */
   @Setter(NONE)
   private Set<String> programAttributes = new LinkedHashSet<>();
 
