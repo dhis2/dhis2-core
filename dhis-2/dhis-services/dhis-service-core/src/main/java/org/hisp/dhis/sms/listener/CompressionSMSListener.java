@@ -248,7 +248,6 @@ public abstract class CompressionSMSListener extends BaseSMSListener {
       OrganisationUnit orgUnit,
       ProgramStage programStage,
       Enrollment enrollment,
-      IncomingSms sms,
       CategoryOptionCombo aoc,
       User user,
       List<SmsDataValue> values,

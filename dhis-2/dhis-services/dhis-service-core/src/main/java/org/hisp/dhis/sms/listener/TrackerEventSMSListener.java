@@ -131,7 +131,6 @@ public class TrackerEventSMSListener extends CompressionSMSListener {
             orgUnit,
             programStage,
             enrollment,
-            sms,
             aoc,
             user,
             subm.getValues(),

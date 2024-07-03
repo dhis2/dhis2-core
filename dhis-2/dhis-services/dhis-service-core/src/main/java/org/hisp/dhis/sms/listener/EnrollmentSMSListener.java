@@ -202,7 +202,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener {
     List<Object> errorUIDs = new ArrayList<>();
     if (subm.getEvents() != null) {
       for (SmsEvent event : subm.getEvents()) {
-        errorUIDs.addAll(processEvent(event, user, enrollment, sms));
+        errorUIDs.addAll(processEvent(event, user, enrollment));
       }
     }
     enrollment.setStatus(getCoreEnrollmentStatus(subm.getEnrollmentStatus()));
@@ -289,8 +289,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener {
     return trackedEntityAttributeValue;
   }
 
-  protected List<Object> processEvent(
-      SmsEvent event, User user, Enrollment enrollment, IncomingSms sms) {
+  protected List<Object> processEvent(SmsEvent event, User user, Enrollment enrollment) {
     Uid stageid = event.getProgramStage();
     Uid aocid = event.getAttributeOptionCombo();
     Uid orgunitid = event.getOrgUnit();
@@ -316,7 +315,6 @@ public class EnrollmentSMSListener extends CompressionSMSListener {
             orgUnit,
             programStage,
             enrollment,
-            sms,
             aoc,
             user,
             event.getValues(),

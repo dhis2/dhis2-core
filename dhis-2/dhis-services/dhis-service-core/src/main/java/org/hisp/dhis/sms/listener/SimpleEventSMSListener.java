@@ -155,7 +155,6 @@ public class SimpleEventSMSListener extends CompressionSMSListener {
             orgUnit,
             programStage,
             enrollment,
-            sms,
             aoc,
             user,
             subm.getValues(),
