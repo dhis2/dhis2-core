@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.ProgramStage;
@@ -60,13 +61,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
+  private static final UID RULE_UID = UID.of("TvctPPhpD8u");
+
   private static final String ACTIVE_ENROLLMENT_ID = "ActiveEnrollmentUid";
 
   private static final String COMPLETED_ENROLLMENT_ID = "CompletedEnrollmentUid";
 
   private static final String DATA_ELEMENT_ID = "DataElementId";
 
-  private static final String ATTRIBUTE_ID = "AttributeId";
+  private static final UID ATTRIBUTE_UID = UID.of("h4w96yEMlzO");
 
   private static final String ATTRIBUTE_CODE = "AttributeCode";
 
@@ -85,7 +88,7 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
   private TrackedEntityAttribute attribute;
 
   private final SetMandatoryFieldExecutor executor =
-      new SetMandatoryFieldExecutor("RULE_ATTRIBUTE", ATTRIBUTE_ID);
+      new SetMandatoryFieldExecutor(RULE_UID, ATTRIBUTE_UID);
 
   private TrackerBundle bundle;
 
@@ -108,7 +111,7 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
     secondProgramStage.setProgramStageDataElements(Set.of(programStageDataElementB));
 
     attribute = createTrackedEntityAttribute('A');
-    attribute.setUid(ATTRIBUTE_ID);
+    attribute.setUid(ATTRIBUTE_UID.getValue());
     attribute.setCode(ATTRIBUTE_CODE);
 
     bundle = TrackerBundle.builder().build();
@@ -118,7 +121,7 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
   @Test
   void shouldReturnNoErrorWhenMandatoryFieldIsPresentForEnrollment() {
     when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
-    when(preheat.getTrackedEntityAttribute(ATTRIBUTE_ID)).thenReturn(attribute);
+    when(preheat.getTrackedEntityAttribute(ATTRIBUTE_UID.getValue())).thenReturn(attribute);
     bundle.setEnrollments(List.of(getEnrollmentWithMandatoryAttributeSet()));
 
     Optional<ProgramRuleIssue> error =
@@ -132,7 +135,7 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
     TrackerIdSchemeParams idSchemes =
         TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.CODE).build();
     when(preheat.getIdSchemes()).thenReturn(idSchemes);
-    when(preheat.getTrackedEntityAttribute(ATTRIBUTE_ID)).thenReturn(attribute);
+    when(preheat.getTrackedEntityAttribute(ATTRIBUTE_UID.getValue())).thenReturn(attribute);
     bundle.setEnrollments(List.of(getEnrollmentWithMandatoryAttributeSet(idSchemes)));
 
     Optional<ProgramRuleIssue> error =
@@ -144,7 +147,7 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
   @Test
   void shouldReturnAnErrorWhenMandatoryFieldIsNotPresentForEnrollment() {
     when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
-    when(preheat.getTrackedEntityAttribute(ATTRIBUTE_ID)).thenReturn(attribute);
+    when(preheat.getTrackedEntityAttribute(ATTRIBUTE_UID.getValue())).thenReturn(attribute);
     bundle.setEnrollments(
         List.of(
             getEnrollmentWithMandatoryAttributeSet(), getEnrollmentWithMandatoryAttributeNOTSet()));
@@ -157,7 +160,7 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
     error = executor.executeRuleAction(bundle, getEnrollmentWithMandatoryAttributeNOTSet());
 
     assertTrue(error.isPresent());
-    assertEquals(error("RULE_ATTRIBUTE", E1306, ATTRIBUTE_ID), error.get());
+    assertEquals(error(RULE_UID, E1306, ATTRIBUTE_UID.getValue()), error.get());
   }
 
   private Enrollment getEnrollmentWithMandatoryAttributeSet(TrackerIdSchemeParams idSchemes) {
@@ -203,7 +206,7 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
 
   private Attribute getAttribute() {
     return Attribute.builder()
-        .attribute(MetadataIdentifier.ofUid(ATTRIBUTE_ID))
+        .attribute(MetadataIdentifier.ofUid(ATTRIBUTE_UID.getValue()))
         .value(ATTRIBUTE_VALUE)
         .build();
   }

@@ -25,53 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.tracker.imports.notification;
 
-import java.util.Map;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
+import org.hisp.dhis.tracker.imports.job.TrackerNotificationMessageManager;
+import org.springframework.stereotype.Service;
 
 /**
- * @author Abyot Asalefew
+ * @author Zubair Asghar
  */
-public interface EventService {
-  String ID = EventService.class.getName();
+@RequiredArgsConstructor
+@Service
+public class TrackerNotificationHandlerService implements NotificationHandlerService {
+  private final TrackerNotificationMessageManager trackerNotificationMessageManager;
 
-  /** Soft deletes an {@link Event}. */
-  void deleteEvent(Event event);
+  @Override
+  public void handleNotification(TrackerNotificationDataBundle notificationDataBundle) {
+    trackerNotificationMessageManager.sendNotifications(notificationDataBundle);
+  }
 
-  /**
-   * Checks whether an {@link Event} with the given identifier exists. Doesn't take into account the
-   * deleted values.
-   *
-   * @param uid the identifier.
-   */
-  boolean eventExists(String uid);
-
-  /**
-   * Checks whether an {@link Event} with the given identifier exists. Takes into accound also the
-   * deleted values.
-   *
-   * @param uid the identifier.
-   */
-  boolean eventExistsIncludingDeleted(String uid);
-
-  /**
-   * Returns the {@link Event} with the given UID.
-   *
-   * @param uid the UID.
-   * @return the Event with the given UID, or null if no match.
-   */
-  Event getEvent(String uid);
-
-  /**
-   * Validates EventDataValues, handles files for File EventDataValues and creates audit logs for
-   * the upcoming create/save changes. DOES PERSIST the changes to the Event object.
-   *
-   * @param event the Event that EventDataValues belong to
-   * @param dataElementEventDataValueMap the map of DataElements and related EventDataValues to
-   *     update
-   */
-  void saveEventDataValuesAndSaveEvent(
-      Event event, Map<DataElement, EventDataValue> dataElementEventDataValueMap);
+  @Override
+  public void handleNotifications(List<TrackerNotificationDataBundle> notificationDataBundles) {
+    notificationDataBundles.forEach(this::handleNotification);
+  }
 }

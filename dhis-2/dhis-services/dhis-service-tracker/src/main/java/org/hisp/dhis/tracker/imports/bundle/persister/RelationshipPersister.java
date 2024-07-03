@@ -34,7 +34,7 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
-import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
+import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.springframework.stereotype.Component;
 
@@ -118,9 +118,9 @@ public class RelationshipPersister
   }
 
   @Override
-  protected TrackerSideEffectDataBundle handleSideEffects(
+  protected TrackerNotificationDataBundle handleNotifications(
       TrackerBundle bundle, org.hisp.dhis.relationship.Relationship entity) {
-    return TrackerSideEffectDataBundle.builder().build();
+    return TrackerNotificationDataBundle.builder().build();
   }
 
   @Override

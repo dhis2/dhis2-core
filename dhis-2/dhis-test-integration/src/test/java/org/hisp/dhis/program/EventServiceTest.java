@@ -38,7 +38,9 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.TestCache;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -83,6 +85,10 @@ class EventServiceTest extends TransactionalIntegrationTest {
   @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
   @Autowired private NoteService noteService;
+
+  @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private CategoryService categoryService;
 
   private OrganisationUnit organisationUnitA;
 
@@ -218,25 +224,25 @@ class EventServiceTest extends TransactionalIntegrationTest {
     enrollmentService.addEnrollment(enrollmentA);
     enrollmentB = new Enrollment(enrollmentDate, incidenDate, trackedEntityB, programB);
     enrollmentService.addEnrollment(enrollmentB);
-    eventA = new Event(enrollmentA, stageA);
+    eventA = createEvent(stageA, enrollmentA, organisationUnitA);
     eventA.setScheduledDate(enrollmentDate);
     eventA.setUid("UID-A");
-    eventB = new Event(enrollmentA, stageB);
+    eventB = createEvent(stageB, enrollmentA, organisationUnitA);
     eventB.setScheduledDate(enrollmentDate);
     eventB.setUid("UID-B");
-    eventC = new Event(enrollmentB, stageC);
+    eventC = createEvent(stageC, enrollmentB, organisationUnitB);
     eventC.setScheduledDate(enrollmentDate);
     eventC.setUid("UID-C");
-    eventD1 = new Event(enrollmentB, stageD);
+    eventD1 = createEvent(stageD, enrollmentB, organisationUnitB);
     eventD1.setScheduledDate(enrollmentDate);
     eventD1.setUid("UID-D1");
-    eventD2 = new Event(enrollmentB, stageD);
+    eventD2 = createEvent(stageD, enrollmentB, organisationUnitB);
     eventD2.setScheduledDate(enrollmentDate);
     eventD2.setUid("UID-D2");
     /*
      * Prepare data for EventDataValues manipulation tests
      */
-    eventService.addEvent(eventA);
+    manager.save(eventA);
     // Check that there are no EventDataValues assigned to PSI
     Event tempPsiA = eventService.getEvent(eventA.getUid());
     assertEquals(0, tempPsiA.getEventDataValues().size());
@@ -249,48 +255,55 @@ class EventServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void testAddEvent() {
-    long idA = eventService.addEvent(eventA);
-    long idB = eventService.addEvent(eventB);
-    assertNotNull(eventService.getEvent(idA));
-    assertNotNull(eventService.getEvent(idB));
+    manager.save(eventA);
+    long idA = eventA.getId();
+    manager.save(eventB);
+    long idB = eventB.getId();
+    assertNotNull(getEvent(idA));
+    assertNotNull(getEvent(idB));
   }
 
   @Test
   void testDeleteEvent() {
-    long idA = eventService.addEvent(eventA);
-    long idB = eventService.addEvent(eventB);
-    assertNotNull(eventService.getEvent(idA));
-    assertNotNull(eventService.getEvent(idB));
+    manager.save(eventA);
+    long idA = eventA.getId();
+    manager.save(eventB);
+    long idB = eventB.getId();
+    assertNotNull(getEvent(idA));
+    assertNotNull(getEvent(idB));
     eventService.deleteEvent(eventA);
-    assertNull(eventService.getEvent(idA));
-    assertNotNull(eventService.getEvent(idB));
+    assertNull(getEvent(idA));
+    assertNotNull(getEvent(idB));
     eventService.deleteEvent(eventB);
-    assertNull(eventService.getEvent(idA));
-    assertNull(eventService.getEvent(idB));
+    assertNull(getEvent(idA));
+    assertNull(getEvent(idB));
   }
 
   @Test
   void testGetEventById() {
-    long idA = eventService.addEvent(eventA);
-    long idB = eventService.addEvent(eventB);
-    assertEquals(eventA, eventService.getEvent(idA));
-    assertEquals(eventB, eventService.getEvent(idB));
+    manager.save(eventA);
+    long idA = eventA.getId();
+    manager.save(eventB);
+    long idB = eventB.getId();
+    assertEquals(eventA, getEvent(idA));
+    assertEquals(eventB, getEvent(idB));
   }
 
   @Test
   void testGetEventByUid() {
-    long idA = eventService.addEvent(eventA);
-    long idB = eventService.addEvent(eventB);
-    assertEquals(eventA, eventService.getEvent(idA));
-    assertEquals(eventB, eventService.getEvent(idB));
+    manager.save(eventA);
+    long idA = eventA.getId();
+    manager.save(eventB);
+    long idB = eventB.getId();
+    assertEquals(eventA, getEvent(idA));
+    assertEquals(eventB, getEvent(idB));
     assertEquals(eventA, eventService.getEvent("UID-A"));
     assertEquals(eventB, eventService.getEvent("UID-B"));
   }
 
   @Test
   void shouldNoteDeleteNoteWhenDeletingEvent() {
-
-    Event event = new Event(enrollmentA, stageA);
+    Event event = createEvent(stageA, enrollmentA, organisationUnitA);
     event.setScheduledDate(enrollmentDate);
     event.setUid(CodeGenerator.generateUid());
 
@@ -301,7 +314,7 @@ class EventServiceTest extends TransactionalIntegrationTest {
 
     event.setNotes(List.of(note));
 
-    eventService.addEvent(event);
+    manager.save(event);
 
     assertNotNull(eventService.getEvent(event.getUid()));
 
@@ -309,5 +322,9 @@ class EventServiceTest extends TransactionalIntegrationTest {
 
     assertNull(eventService.getEvent(event.getUid()));
     assertTrue(noteService.noteExists(note.getUid()));
+  }
+
+  private Event getEvent(long id) {
+    return manager.get(Event.class, id);
   }
 }
