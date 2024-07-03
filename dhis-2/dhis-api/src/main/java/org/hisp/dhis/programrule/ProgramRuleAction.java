@@ -144,7 +144,6 @@ public class ProgramRuleAction extends BaseIdentifiableObject implements Metadat
    *   <li>sendmessage
    * </ul>
    */
-
   @Deprecated(since = "2.43")
   private String templateUid;
 
@@ -339,8 +338,7 @@ public class ProgramRuleAction extends BaseIdentifiableObject implements Metadat
   }
 
   public void setTemplateUid(String templateUid) {
-    if ( templateUid == null )
-    {
+    if (templateUid == null) {
       notificationTemplate = null;
       return;
     }
