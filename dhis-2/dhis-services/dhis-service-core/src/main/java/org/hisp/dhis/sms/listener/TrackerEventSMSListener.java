@@ -58,7 +58,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Component("org.hisp.dhis.sms.listener.TrackerEventSMSListener")
 @Transactional
-public class TrackerEventSMSListener extends TrackerSMSListener {
+public class TrackerEventSMSListener extends EventSavingSMSListener {
   private final ProgramStageService programStageService;
 
   private final EnrollmentService enrollmentService;
@@ -73,10 +73,10 @@ public class TrackerEventSMSListener extends TrackerSMSListener {
       OrganisationUnitService organisationUnitService,
       CategoryService categoryService,
       DataElementService dataElementService,
+      IdentifiableObjectManager identifiableObjectManager,
       EventService eventService,
       ProgramStageService programStageService,
-      EnrollmentService enrollmentService,
-      IdentifiableObjectManager identifiableObjectManager) {
+      EnrollmentService enrollmentService) {
     super(
         incomingSmsService,
         smsSender,

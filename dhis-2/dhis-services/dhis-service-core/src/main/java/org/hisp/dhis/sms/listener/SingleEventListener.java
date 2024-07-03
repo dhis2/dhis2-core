@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.sms.listener;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -54,33 +52,26 @@ import org.springframework.transaction.annotation.Transactional;
 /** Zubair <rajazubair.asghar@gmail.com> */
 @Component("org.hisp.dhis.sms.listener.SingleEventListener")
 @Transactional
-public class SingleEventListener extends CommandSMSListener {
+public class SingleEventListener extends RegisterSMSListener {
   private final SMSCommandService smsCommandService;
 
   public SingleEventListener(
-      EnrollmentService enrollmentService,
       CategoryService dataElementCategoryService,
-      EventService eventService,
       UserService userService,
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
+      EventService eventService,
+      EnrollmentService enrollmentService,
       SMSCommandService smsCommandService) {
     super(
-        enrollmentService,
         dataElementCategoryService,
-        eventService,
         userService,
         incomingSmsService,
-        smsSender);
-
-    checkNotNull(smsCommandService);
-
+        smsSender,
+        eventService,
+        enrollmentService);
     this.smsCommandService = smsCommandService;
   }
-
-  // -------------------------------------------------------------------------
-  // Implementation
-  // -------------------------------------------------------------------------
 
   @Override
   protected SMSCommand getSMSCommand(IncomingSms sms) {
@@ -95,10 +86,6 @@ public class SingleEventListener extends CommandSMSListener {
 
     registerEvent(parsedMessage, smsCommand, sms, ous);
   }
-
-  // -------------------------------------------------------------------------
-  // Supportive Methods
-  // -------------------------------------------------------------------------
 
   private void registerEvent(
       Map<String, String> commandValuePairs,

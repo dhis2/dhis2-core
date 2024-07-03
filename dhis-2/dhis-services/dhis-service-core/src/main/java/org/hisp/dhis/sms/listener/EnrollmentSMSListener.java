@@ -73,7 +73,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Component("org.hisp.dhis.sms.listener.EnrollmentSMSListener")
 @Transactional
-public class EnrollmentSMSListener extends TrackerSMSListener {
+public class EnrollmentSMSListener extends EventSavingSMSListener {
   private final TrackedEntityService teService;
 
   private final EnrollmentService enrollmentService;

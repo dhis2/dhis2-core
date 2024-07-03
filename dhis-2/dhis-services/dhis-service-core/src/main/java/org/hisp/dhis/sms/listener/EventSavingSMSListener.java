@@ -69,11 +69,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Transactional
-public abstract class TrackerSMSListener extends CompressionSMSListener {
+public abstract class EventSavingSMSListener extends CompressionSMSListener {
 
   protected final EventService eventService;
 
-  public TrackerSMSListener(
+  protected EventSavingSMSListener(
       IncomingSmsService incomingSmsService,
       MessageSender smsSender,
       UserService userService,
@@ -182,35 +182,22 @@ public abstract class TrackerSMSListener extends CompressionSMSListener {
   }
 
   private EventStatus getCoreEventStatus(SmsEventStatus eventStatus) {
-    switch (eventStatus) {
-      case ACTIVE:
-        return EventStatus.ACTIVE;
-      case COMPLETED:
-        return EventStatus.COMPLETED;
-      case VISITED:
-        return EventStatus.VISITED;
-      case SCHEDULE:
-        return EventStatus.SCHEDULE;
-      case OVERDUE:
-        return EventStatus.OVERDUE;
-      case SKIPPED:
-        return EventStatus.SKIPPED;
-      default:
-        return null;
-    }
+    return switch (eventStatus) {
+      case ACTIVE -> EventStatus.ACTIVE;
+      case COMPLETED -> EventStatus.COMPLETED;
+      case VISITED -> EventStatus.VISITED;
+      case SCHEDULE -> EventStatus.SCHEDULE;
+      case OVERDUE -> EventStatus.OVERDUE;
+      case SKIPPED -> EventStatus.SKIPPED;
+    };
   }
 
   protected EnrollmentStatus getCoreEnrollmentStatus(SmsEnrollmentStatus enrollmentStatus) {
-    switch (enrollmentStatus) {
-      case ACTIVE:
-        return EnrollmentStatus.ACTIVE;
-      case COMPLETED:
-        return EnrollmentStatus.COMPLETED;
-      case CANCELLED:
-        return EnrollmentStatus.CANCELLED;
-      default:
-        return null;
-    }
+    return switch (enrollmentStatus) {
+      case ACTIVE -> EnrollmentStatus.ACTIVE;
+      case COMPLETED -> EnrollmentStatus.COMPLETED;
+      case CANCELLED -> EnrollmentStatus.CANCELLED;
+    };
   }
 
   protected Geometry convertGeoPointToGeometry(GeoPoint coordinates) {

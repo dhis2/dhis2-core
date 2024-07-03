@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.sms.listener;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -65,7 +63,7 @@ import org.springframework.transaction.annotation.Transactional;
 /** Created by zubair@dhis2.org on 11.08.17. */
 @Component("org.hisp.dhis.sms.listener.ProgramStageDataEntrySMSListener")
 @Transactional
-public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
+public class ProgramStageDataEntrySMSListener extends RegisterSMSListener {
   private static final String MORE_THAN_ONE_TE =
       "More than one tracked entity found for given phone number";
 
@@ -80,35 +78,26 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
   private final SMSCommandService smsCommandService;
 
   public ProgramStageDataEntrySMSListener(
-      EnrollmentService enrollmentService,
       CategoryService dataElementCategoryService,
-      EventService eventService,
       UserService userService,
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
+      EventService eventService,
+      EnrollmentService enrollmentService,
       TrackedEntityService trackedEntityService,
       TrackedEntityAttributeService trackedEntityAttributeService,
       SMSCommandService smsCommandService) {
     super(
-        enrollmentService,
         dataElementCategoryService,
-        eventService,
         userService,
         incomingSmsService,
-        smsSender);
-
-    checkNotNull(trackedEntityAttributeService);
-    checkNotNull(trackedEntityService);
-    checkNotNull(smsCommandService);
-
+        smsSender,
+        eventService,
+        enrollmentService);
     this.trackedEntityService = trackedEntityService;
     this.trackedEntityAttributeService = trackedEntityAttributeService;
     this.smsCommandService = smsCommandService;
   }
-
-  // -------------------------------------------------------------------------
-  // IncomingSmsListener implementation
-  // -------------------------------------------------------------------------
 
   @Override
   public void postProcess(
