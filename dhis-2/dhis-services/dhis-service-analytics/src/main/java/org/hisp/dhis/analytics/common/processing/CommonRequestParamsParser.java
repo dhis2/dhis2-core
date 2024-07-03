@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.common.processing;
 
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptySet;
+import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.analytics.EventOutputType.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.DATE_FILTERS;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.DIMENSIONS;
@@ -120,13 +121,8 @@ public class CommonRequestParamsParser implements Parser<CommonRequestParams, Co
     List<Program> programs = getPrograms(request);
 
     // Adds all program attributes from all applicable programs as dimensions.
-    request.getProgramAttributes().clear();
-    request
-        .getProgramAttributes()
-        .addAll(
-            getProgramAttributes(programs)
-                .map(IdentifiableObject::getUid)
-                .collect(Collectors.toSet()));
+    request.withProgramAttributes(
+        getProgramAttributes(programs).map(IdentifiableObject::getUid).collect(toSet()));
 
     return CommonParsedParams.builder()
         .programs(programs)
@@ -180,7 +176,7 @@ public class CommonRequestParamsParser implements Parser<CommonRequestParams, Co
 
     return HEADERS.getUidsGetter().apply(request).stream()
         .map(header -> toDimIdentifiers(header, HEADERS, request, programs, userOrgUnits))
-        .collect(Collectors.toSet());
+        .collect(toSet());
   }
 
   /**

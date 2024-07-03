@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.analytics.common;
 
+import static java.util.Collections.unmodifiableSet;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
+import static lombok.AccessLevel.NONE;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
@@ -36,7 +38,6 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.feedback.ErrorCode.E7140;
 import static org.hisp.dhis.feedback.ErrorCode.E7141;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -93,10 +94,12 @@ public class CommonRequestParams {
   private Set<String> dimension = new LinkedHashSet<>();
 
   /** The dimensions of the given entity type. */
-  @JsonIgnore private Set<String> entityTypeAttributes = new LinkedHashSet<>();
+  @Setter(NONE)
+  private Set<String> entityTypeAttributes = new LinkedHashSet<>();
 
   /** The dimensions of the given program. */
-  @JsonIgnore private Set<String> programAttributes = new LinkedHashSet<>();
+  @Setter(NONE)
+  private Set<String> programAttributes = new LinkedHashSet<>();
 
   /** The filters to be applied at querying time. */
   private Set<String> filter = new HashSet<>();
@@ -277,16 +280,13 @@ public class CommonRequestParams {
   }
 
   public Set<String> getAllDimensions() {
-    Set<String> eventStatusDims = computeEventStatus(this);
-    Set<String> enrollmentStatusDims = computeEnrollmentStatus(this);
+    Set<String> allDimensions = new LinkedHashSet<>(dimension);
+    allDimensions.addAll(computeEventStatus(this));
+    allDimensions.addAll(computeEnrollmentStatus(this));
+    allDimensions.addAll(entityTypeAttributes);
+    allDimensions.addAll(programAttributes);
 
-    return new LinkedHashSet<>(
-        org.hisp.dhis.common.collection.CollectionUtils.union(
-            dimension,
-            eventStatusDims,
-            enrollmentStatusDims,
-            entityTypeAttributes,
-            programAttributes));
+    return unmodifiableSet(allDimensions);
   }
 
   /**

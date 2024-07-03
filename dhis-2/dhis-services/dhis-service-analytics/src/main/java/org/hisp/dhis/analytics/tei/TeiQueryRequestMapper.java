@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.tei;
 
+import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.analytics.tei.query.TeiFields.getTrackedEntityAttributes;
 import static org.hisp.dhis.feedback.ErrorCode.E7125;
@@ -35,7 +36,6 @@ import static org.hisp.dhis.feedback.ErrorCode.E7142;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.CommonRequestParams;
@@ -80,11 +80,10 @@ public class TeiQueryRequestMapper {
     }
 
     // Adding tracked entity type attributes to the list of dimensions.
-    requestParams.getEntityTypeAttributes().clear();
-    requestParams
-        .getEntityTypeAttributes()
-        .addAll(
-            getTrackedEntityAttributes(trackedEntityType).map(IdentifiableObject::getUid).toList());
+    requestParams.withEntityTypeAttributes(
+        getTrackedEntityAttributes(trackedEntityType)
+            .map(IdentifiableObject::getUid)
+            .collect(toSet()));
 
     return TeiQueryParams.builder().trackedEntityType(trackedEntityType).build();
   }
@@ -93,7 +92,7 @@ public class TeiQueryRequestMapper {
     return programService.getAllPrograms().stream()
         .filter(program -> matchesTet(program, trackedEntityType))
         .map(Program::getUid)
-        .collect(Collectors.toSet());
+        .collect(toSet());
   }
 
   /**
@@ -107,7 +106,7 @@ public class TeiQueryRequestMapper {
         programService.getPrograms(programs).stream()
             .filter(program -> !matchesTet(program, trackedEntityType))
             .map(program -> program.getName() + " (" + program.getUid() + ")")
-            .collect(Collectors.toSet());
+            .collect(toSet());
 
     if (isNotEmpty(nonMatchingProgramUids)) {
       throw new IllegalQueryException(
