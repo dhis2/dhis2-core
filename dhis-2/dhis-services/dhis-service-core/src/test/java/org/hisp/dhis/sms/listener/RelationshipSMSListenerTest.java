@@ -131,12 +131,12 @@ class RelationshipSMSListenerTest extends CompressionSMSListenerTest {
             organisationUnitService,
             categoryService,
             dataElementService,
+            identifiableObjectManager,
             eventService,
             relationshipService,
             relationshipTypeService,
             trackedEntityService,
-            enrollmentService,
-            identifiableObjectManager);
+            enrollmentService);
 
     setUpInstances();
 

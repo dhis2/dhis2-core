@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.sms.listener;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
@@ -39,7 +37,6 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentService;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.sms.command.SMSCommand;
@@ -66,10 +63,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
   private static final String SUCCESS_MESSAGE = "Tracked Entity Registered Successfully with uid. ";
 
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
-
   private final SMSCommandService smsCommandService;
 
   private final TrackedEntityTypeService trackedEntityTypeService;
@@ -78,38 +71,25 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
 
   private final ProgramService programService;
 
+  private final EnrollmentService enrollmentService;
+
   public TrackedEntityRegistrationSMSListener(
       ProgramService programService,
-      EnrollmentService enrollmentService,
       CategoryService dataElementCategoryService,
-      EventService eventService,
       UserService userService,
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
       SMSCommandService smsCommandService,
       TrackedEntityTypeService trackedEntityTypeService,
-      TrackedEntityService trackedEntityService) {
-    super(
-        enrollmentService,
-        dataElementCategoryService,
-        eventService,
-        userService,
-        incomingSmsService,
-        smsSender);
-
-    checkNotNull(smsCommandService);
-    checkNotNull(trackedEntityTypeService);
-    checkNotNull(trackedEntityService);
-
+      TrackedEntityService trackedEntityService,
+      EnrollmentService enrollmentService) {
+    super(dataElementCategoryService, userService, incomingSmsService, smsSender);
     this.smsCommandService = smsCommandService;
     this.trackedEntityTypeService = trackedEntityTypeService;
     this.trackedEntityService = trackedEntityService;
     this.programService = programService;
+    this.enrollmentService = enrollmentService;
   }
-
-  // -------------------------------------------------------------------------
-  // IncomingSmsListener implementation
-  // -------------------------------------------------------------------------
 
   @Override
   protected void postProcess(

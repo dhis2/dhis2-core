@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.sms.listener;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
@@ -54,8 +52,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.period.WeeklyPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
-import org.hisp.dhis.program.EnrollmentService;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.code.SMSCode;
@@ -75,51 +71,25 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class J2MEDataValueSMSListener extends CommandSMSListener {
 
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
-
   private final DataValueService dataValueService;
-
-  private final CategoryService dataElementCategoryService;
 
   private final SMSCommandService smsCommandService;
 
   private final CompleteDataSetRegistrationService registrationService;
 
   public J2MEDataValueSMSListener(
-      EnrollmentService enrollmentService,
       CategoryService dataElementCategoryService,
-      EventService eventService,
       UserService userService,
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
       DataValueService dataValueService,
-      CategoryService dataElementCategoryService1,
       SMSCommandService smsCommandService,
       CompleteDataSetRegistrationService registrationService) {
-    super(
-        enrollmentService,
-        dataElementCategoryService,
-        eventService,
-        userService,
-        incomingSmsService,
-        smsSender);
-
-    checkNotNull(dataValueService);
-    checkNotNull(dataElementCategoryService);
-    checkNotNull(smsCommandService);
-    checkNotNull(registrationService);
-
+    super(dataElementCategoryService, userService, incomingSmsService, smsSender);
     this.dataValueService = dataValueService;
-    this.dataElementCategoryService = dataElementCategoryService1;
     this.smsCommandService = smsCommandService;
     this.registrationService = registrationService;
   }
-
-  // -------------------------------------------------------------------------
-  // IncomingSmsListener implementation
-  // -------------------------------------------------------------------------
 
   @Transactional
   @Override
@@ -142,7 +112,7 @@ public class J2MEDataValueSMSListener extends CommandSMSListener {
     String senderPhoneNumber = StringUtils.replace(sms.getOriginator(), "+", "");
     Collection<OrganisationUnit> orgUnits = getOrganisationUnits(sms);
 
-    if (orgUnits == null || orgUnits.size() == 0) {
+    if (orgUnits == null || orgUnits.isEmpty()) {
       if (StringUtils.isEmpty(smsCommand.getNoUserMessage())) {
         throw new SMSParserException(SMSCommand.NO_USER_MESSAGE);
       } else {
@@ -172,7 +142,7 @@ public class J2MEDataValueSMSListener extends CommandSMSListener {
 
     this.registerCompleteDataSet(smsCommand.getDataset(), period, orgUnit, "mobile");
 
-    this.sendSuccessFeedback(senderPhoneNumber, smsCommand, parsedMessage, period, orgUnit);
+    this.sendSuccessFeedback(senderPhoneNumber, smsCommand, period, orgUnit);
   }
 
   @Override
@@ -240,9 +210,9 @@ public class J2MEDataValueSMSListener extends CommandSMSListener {
       }
 
       if (ValueType.BOOLEAN == dv.getDataElement().getValueType()) {
-        if ("Y".equals(value.toUpperCase()) || "YES".equals(value.toUpperCase())) {
+        if ("Y".equalsIgnoreCase(value) || "YES".equalsIgnoreCase(value)) {
           value = "true";
-        } else if ("N".equals(value.toUpperCase()) || "NO".equals(value.toUpperCase())) {
+        } else if ("N".equalsIgnoreCase(value) || "NO".equalsIgnoreCase(value)) {
           value = "false";
         }
       }
@@ -283,11 +253,7 @@ public class J2MEDataValueSMSListener extends CommandSMSListener {
   }
 
   private void sendSuccessFeedback(
-      String sender,
-      SMSCommand command,
-      Map<String, String> parsedMessage,
-      Period period,
-      OrganisationUnit orgunit) {
+      String sender, SMSCommand command, Period period, OrganisationUnit orgunit) {
     String reportBack = "Thank you! Values entered: ";
     String notInReport = "Missing values for: ";
     boolean missingElements = false;

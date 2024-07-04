@@ -31,7 +31,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -42,23 +41,13 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
-import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
-import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
-import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.system.util.SmsUtils;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.transaction.annotation.Transactional;
@@ -74,35 +63,19 @@ public abstract class CommandSMSListener extends BaseSMSListener {
 
   protected static final int ERROR = 3;
 
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
-
-  protected final EnrollmentService enrollmentService;
-
   protected final CategoryService dataElementCategoryService;
-
-  protected final EventService eventService;
 
   protected final UserService userService;
 
   public CommandSMSListener(
-      EnrollmentService enrollmentService,
       CategoryService dataElementCategoryService,
-      EventService eventService,
       UserService userService,
       IncomingSmsService incomingSmsService,
       MessageSender smsSender) {
     super(incomingSmsService, smsSender);
-
-    checkNotNull(enrollmentService);
     checkNotNull(dataElementCategoryService);
-    checkNotNull(eventService);
     checkNotNull(userService);
-
-    this.enrollmentService = enrollmentService;
     this.dataElementCategoryService = dataElementCategoryService;
-    this.eventService = eventService;
     this.userService = userService;
   }
 
@@ -208,76 +181,6 @@ public abstract class CommandSMSListener extends BaseSMSListener {
     return true;
   }
 
-  protected void register(
-      List<Enrollment> enrollments,
-      Map<String, String> commandValuePairs,
-      SMSCommand smsCommand,
-      IncomingSms sms,
-      Set<OrganisationUnit> ous) {
-    if (enrollments.isEmpty()) {
-      Enrollment enrollment = new Enrollment();
-      enrollment.setEnrollmentDate(new Date());
-      enrollment.setOccurredDate(new Date());
-      enrollment.setProgram(smsCommand.getProgram());
-      enrollment.setStatus(EnrollmentStatus.ACTIVE);
-
-      enrollmentService.addEnrollment(enrollment);
-
-      enrollments.add(enrollment);
-    } else if (enrollments.size() > 1) {
-      update(sms, SmsMessageStatus.FAILED, false);
-
-      sendFeedback(
-          "Multiple active Enrollments exists for program: " + smsCommand.getProgram().getUid(),
-          sms.getOriginator(),
-          ERROR);
-
-      return;
-    }
-
-    Enrollment enrollment = enrollments.get(0);
-
-    UserInfoSnapshot currentUserInfo =
-        UserInfoSnapshot.from(CurrentUserUtil.getCurrentUserDetails());
-
-    Event event = new Event();
-    event.setOrganisationUnit(ous.iterator().next());
-    event.setProgramStage(smsCommand.getProgramStage());
-    event.setEnrollment(enrollment);
-    event.setOccurredDate(sms.getSentDate());
-    event.setScheduledDate(sms.getSentDate());
-    event.setAttributeOptionCombo(dataElementCategoryService.getDefaultCategoryOptionCombo());
-    event.setCompletedBy("DHIS 2");
-    event.setStoredBy(currentUserInfo.getUsername());
-    event.setCreatedByUserInfo(currentUserInfo);
-    event.setLastUpdatedByUserInfo(currentUserInfo);
-
-    Map<DataElement, EventDataValue> dataElementsAndEventDataValues = new HashMap<>();
-    for (SMSCode smsCode : smsCommand.getCodes()) {
-      EventDataValue eventDataValue =
-          new EventDataValue(
-              smsCode.getDataElement().getUid(),
-              commandValuePairs.get(smsCode.getCode()),
-              currentUserInfo);
-      eventDataValue.setAutoFields();
-
-      // Filter empty values out -> this is "adding/saving/creating",
-      // therefore, empty values are ignored
-      if (!StringUtils.isEmpty(eventDataValue.getValue())) {
-        dataElementsAndEventDataValues.put(smsCode.getDataElement(), eventDataValue);
-      }
-    }
-
-    eventService.saveEventDataValuesAndSaveEvent(event, dataElementsAndEventDataValues);
-
-    update(sms, SmsMessageStatus.PROCESSED, true);
-
-    sendFeedback(
-        StringUtils.defaultIfEmpty(smsCommand.getSuccessMessage(), SMSCommand.SUCCESS_MESSAGE),
-        sms.getOriginator(),
-        INFO);
-  }
-
   protected Map<String, String> parseMessageInput(IncomingSms sms, SMSCommand smsCommand) {
     HashMap<String, String> output = new HashMap<>();
 
@@ -301,10 +204,6 @@ public abstract class CommandSMSListener extends BaseSMSListener {
 
     return output;
   }
-
-  // -------------------------------------------------------------------------
-  // Supportive Methods
-  // -------------------------------------------------------------------------
 
   private boolean hasMandatoryParameters(Set<String> keySet, Set<SMSCode> smsCodes) {
     for (SMSCode smsCode : smsCodes) {
