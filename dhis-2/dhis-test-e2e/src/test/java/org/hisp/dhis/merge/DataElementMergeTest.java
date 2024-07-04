@@ -50,6 +50,8 @@ class DataElementMergeTest extends ApiTest {
 
   private RestApiActions dataElementApiActions;
   private RestApiActions datasetApiActions;
+  private RestApiActions metadataApiActions;
+  private RestApiActions minMaxActions;
   private UserActions userActions;
   private LoginActions loginActions;
   private String sourceUid1;
@@ -62,6 +64,8 @@ class DataElementMergeTest extends ApiTest {
     loginActions = new LoginActions();
     dataElementApiActions = new RestApiActions("dataElements");
     datasetApiActions = new RestApiActions("dataSets");
+    metadataApiActions = new RestApiActions("metadata");
+    minMaxActions = new RestApiActions("minMaxDataElements");
     loginActions.loginAsSuperUser();
 
     // add user with required merge auth
@@ -82,7 +86,7 @@ class DataElementMergeTest extends ApiTest {
 
   @Test
   @DisplayName(
-      "Valid DataElement merge completes successfully with all DataElement associations updated")
+      "Valid DataElement merge completes successfully with all source DataElement refs replaced with target DataElement")
   void validDataElementMergeTest() {
     // given
     sourceUid1 = setupDataElement("A", "TEXT", "AGGREGATE");
@@ -116,8 +120,36 @@ class DataElementMergeTest extends ApiTest {
   }
 
   @Test
-  @DisplayName("DataElement merge fails when dataset db unique key constraint met")
-  void dbConstraintTest() {
+  @DisplayName("DataElement merge fails when min max DE DB unique key constraint met")
+  void dbConstraintMinMaxTest() {
+    // given
+    sourceUid1 = setupDataElement("9", "TEXT", "AGGREGATE");
+    sourceUid2 = setupDataElement("8", "TEXT", "AGGREGATE");
+    targetUid = setupDataElement("7", "TEXT", "AGGREGATE");
+    setupMinMaxDataElements(sourceUid1, sourceUid2, targetUid);
+
+    // login as user with merge auth
+    loginActions.loginAsUser("userWithMergeAuth", "Test1234!");
+
+    // when
+    ApiResponse response =
+        dataElementApiActions
+            .post("merge", getMergeBody(sourceUid1, sourceUid2, targetUid, false, "LAST_UPDATED"))
+            .validateStatus(409);
+
+    // then
+    response
+        .validate()
+        .statusCode(409)
+        .body("httpStatus", equalTo("Conflict"))
+        .body("status", equalTo("ERROR"))
+        .body("message", containsString("ERROR: duplicate key value violates unique constraint"))
+        .body("message", containsString("minmaxdataelement_unique_key"));
+  }
+
+  @Test
+  @DisplayName("DataElement merge fails when dataset DB unique key constraint met")
+  void dbConstraintDataSetTest() {
     // given
     sourceUid1 = setupDataElement("D", "TEXT", "AGGREGATE");
     sourceUid2 = setupDataElement("E", "TEXT", "AGGREGATE");
@@ -140,8 +172,35 @@ class DataElementMergeTest extends ApiTest {
         .body("httpStatus", equalTo("Conflict"))
         .body("status", equalTo("ERROR"))
         .body("message", containsString("ERROR: duplicate key value violates unique constraint"))
-        .body("message", containsString("datasetelement_unique_key"))
-        .body("message", containsString("already exists"));
+        .body("message", containsString("datasetelement_unique_key"));
+  }
+
+  @Test
+  @DisplayName("DataElement merge fails when ProgramStageDataElement DB unique key constraint met")
+  void dbConstraintPsdeTest() {
+    // given
+    sourceUid1 = setupDataElement("1", "TEXT", "AGGREGATE");
+    sourceUid2 = setupDataElement("2", "TEXT", "AGGREGATE");
+    targetUid = setupDataElement("3", "TEXT", "AGGREGATE");
+    setupProgramStageDataElements(sourceUid1, sourceUid2, targetUid);
+
+    // login as user with merge auth
+    loginActions.loginAsUser("userWithMergeAuth", "Test1234!");
+
+    // when
+    ApiResponse response =
+        dataElementApiActions
+            .post("merge", getMergeBody(sourceUid1, sourceUid2, targetUid, false, "LAST_UPDATED"))
+            .validateStatus(409);
+
+    // then
+    response
+        .validate()
+        .statusCode(409)
+        .body("httpStatus", equalTo("Conflict"))
+        .body("status", equalTo("ERROR"))
+        .body("message", containsString("ERROR: duplicate key value violates unique constraint"))
+        .body("message", containsString("programstagedataelement_unique_key"));
   }
 
   @Test
@@ -251,6 +310,174 @@ class DataElementMergeTest extends ApiTest {
     json.addProperty("deleteSources", deleteSources);
     json.addProperty("dataMergeStrategy", mergeStrategy);
     return json;
+  }
+
+  private void setupProgramStageDataElements(
+      String sourceUid1, String sourceUid2, String targetUid) {
+    metadataApiActions
+        .post(programWithStageAndDataElements(sourceUid1, sourceUid2, targetUid))
+        .validateStatus(200);
+  }
+
+  private void setupMinMaxDataElements(String sourceUid1, String sourceUid2, String targetUid) {
+    metadataApiActions.post(metadata()).validateStatus(200);
+    minMaxActions.post(minMaxDataElements("OrgUnit0001", sourceUid1, "CatOptCom01"));
+    minMaxActions.post(minMaxDataElements("OrgUnit0001", sourceUid2, "CatOptCom01"));
+    minMaxActions.post(minMaxDataElements("OrgUnit0001", targetUid, "CatOptCom01"));
+  }
+
+  private String programWithStageAndDataElements(
+      String sourceUid1, String sourceUid2, String targetUid) {
+    return """
+    {
+        "programs": [
+            {
+                "name": "test program 1",
+                "shortName": "test program 1",
+                "id": "Program0001",
+                "programType": "WITH_REGISTRATION",
+                "organisationUnits": [
+                    {
+                        "id": "Orgunit1001"
+                    }
+                ],
+                "programStages": [
+                    {
+                        "id": "ProgStage01"
+                    }
+                ]
+            }
+        ],
+        "programStages": [
+            {
+                "id": "ProgStage01",
+                "name": "test programStage 1",
+                "programStageDataElements": [
+                    {
+                        "id": "PSDE0000001",
+                        "name": "test psde 1",
+                        "dataElement": {
+                            "id": "%s"
+                        }
+                    },
+                    {
+                        "id": "PSDE0000002",
+                        "name": "test psde 2",
+                        "dataElement": {
+                            "id": "%s"
+                        }
+                    },
+                    {
+                        "id": "PSDE0000003",
+                        "name": "test psde 3",
+                        "dataElement": {
+                            "id": "%s"
+                        }
+                    }
+                ]
+            }
+        ],
+        "dataElements": [
+            {
+                "name": "DataElement 1",
+                "shortName": "DataElement 1",
+                "aggregationType": "SUM",
+                "id": "%s",
+                "valueType": "TEXT",
+                "domainType": "AGGREGATE"
+            },
+            {
+                "name": "DataElement 2",
+                "shortName": "DataElement 2",
+                "aggregationType": "SUM",
+                "id": "%s",
+                "valueType": "TEXT",
+                "domainType": "AGGREGATE"
+            },
+            {
+                "name": "DataElement 3",
+                "shortName": "DataElement 3",
+                "aggregationType": "SUM",
+                "id": "%s",
+                "valueType": "TEXT",
+                "domainType": "AGGREGATE"
+            }
+        ],
+        "organisationUnits": [
+            {
+                "shortName": "Country1",
+                "openingDate": "2023-06-16",
+                "id": "Orgunit1001",
+                "description": "descript",
+                "name": "Country1"
+            }
+        ]
+    }
+    """
+        .formatted(sourceUid1, sourceUid2, targetUid, sourceUid1, sourceUid2, targetUid);
+  }
+
+  private String metadata() {
+    return """
+    {
+          "organisationUnits": [
+             {
+                 "id": "OrgUnit0001",
+                 "name": "test org 1",
+                 "shortName": "test org 1",
+                 "openingDate": "2023-06-15T23:00:00.000Z"
+             }
+         ],
+         "categoryCombos": [
+             {
+                 "id": "CatCombo001",
+                 "name": "cat combo 1",
+                 "dataDimensionType": "DISAGGREGATION"
+             }
+         ],
+         "categoryOptions": [
+             {
+                 "id": "CatOpt00001",
+                 "name": "cat opt 1",
+                 "shortName": "cat opt 1"
+             }
+         ],
+         "categoryOptionCombos": [
+             {
+                 "id":"CatOptCom01",
+                 "name": "cat option combo 1",
+                 "categoryCombo": {
+                     "id": "CatCombo001"
+                 },
+                 "categoryOptions": [
+                     {
+                         "id": "CatOpt00001"
+                     }
+                 ]
+             }
+         ]
+     }
+    """;
+  }
+
+  private String minMaxDataElements(String orgUnit, String de, String coc) {
+    return """
+    {
+         "min": 2,
+         "max": 11,
+         "generated": false,
+         "source": {
+             "id": "%s"
+         },
+         "dataElement": {
+             "id": "%s"
+         },
+         "optionCombo": {
+             "id": "%s"
+         }
+     }
+    """
+        .formatted(orgUnit, de, coc);
   }
 
   private String createDataElement(String name, String valueType, String domainType) {

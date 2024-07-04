@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.program;
 
-import java.util.Collection;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
@@ -37,5 +36,5 @@ import org.hisp.dhis.dataelement.DataElement;
  */
 public interface ProgramStageSectionStore extends IdentifiableObjectStore<ProgramStageSection> {
 
-  List<ProgramStageSection> getAllByDataElement(Collection<DataElement> dataElements);
+  List<ProgramStageSection> getAllByDataElement(List<DataElement> dataElements);
 }

@@ -30,8 +30,6 @@ package org.hisp.dhis.merge.dataelement;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUidsNonNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
@@ -39,7 +37,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.persistence.PersistenceException;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.changelog.ChangeLogType;
@@ -108,7 +105,7 @@ import org.hisp.dhis.programrule.ProgramRuleVariableStore;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.command.hibernate.SMSCommandStore;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
@@ -130,7 +127,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * <p>- Check that source DataElements have had their references removed/replaced with the target
  * DataElement
  */
-class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
+class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
 
   @Autowired private DataElementService dataElementService;
   @Autowired private DataElementMergeProcessor mergeProcessor;
@@ -286,46 +283,6 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesDeleted(report, minMaxSources, minMaxTarget, allDataElements);
-  }
-
-  @Test
-  @DisplayName("MinMaxDataElements unique key constraint DB error when updating")
-  void testMinMaxDataElementMergeDbConstraint() {
-    // given unique key DB constraint exists (orgUnit, dataElement, catOptionCombo)
-    // create min max data elements all of which have the same org unit and cat option combo
-    MinMaxDataElement minMaxDataElement1 =
-        new MinMaxDataElement(deSource1, ou1, coc1, 0, 100, false);
-    MinMaxDataElement minMaxDataElement2 =
-        new MinMaxDataElement(deSource2, ou1, coc1, 0, 100, false);
-    MinMaxDataElement minMaxDataElement3 =
-        new MinMaxDataElement(deTarget, ou1, coc1, 0, 100, false);
-    MinMaxDataElement minMaxDataElement4 =
-        new MinMaxDataElement(deRandom, ou3, coc1, 0, 100, false);
-    minMaxDataElementStore.save(minMaxDataElement1);
-    minMaxDataElementStore.save(minMaxDataElement2);
-    minMaxDataElementStore.save(minMaxDataElement3);
-    minMaxDataElementStore.save(minMaxDataElement4);
-
-    // params
-    MergeParams mergeParams = getMergeParams();
-
-    // when merge operation encounters DB constraint
-    PersistenceException persistenceException =
-        assertThrows(PersistenceException.class, () -> mergeProcessor.processMerge(mergeParams));
-    assertNotNull(persistenceException.getMessage());
-
-    // then DB constraint is thrown
-    List<String> expectedStrings =
-        List.of(
-            "duplicate key value violates unique constraint",
-            "minmaxdataelement_unique_key",
-            "Detail: Key (sourceid, dataelementid, categoryoptioncomboid)",
-            "already exists");
-
-    assertTrue(
-        expectedStrings.stream()
-            .allMatch(
-                exp -> persistenceException.getCause().getCause().getMessage().contains(exp)));
   }
 
   // -------------------------------
@@ -873,45 +830,6 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesDeleted(report, psdeSources, psdeTarget, allDataElements);
-  }
-
-  @Test
-  @DisplayName("ProgramStageDataElement unique key constraint DB error when updating")
-  void programStageDEMergeDbConstraint() {
-    // given unique key DB constraint exists (programstageid, dataelementid)
-    // create program stage data elements, all of which have the same stage
-    ProgramStage stage1 = createProgramStage('S', program);
-    ProgramStage stage2 = createProgramStage('T', program);
-    ProgramStage stage3 = createProgramStage('U', program);
-    ProgramStage stage4 = createProgramStage('V', program);
-    identifiableObjectManager.save(List.of(stage1, stage2, stage3, stage4));
-
-    ProgramStageDataElement psde1 = createProgramStageDataElement(stage1, deSource1, 2);
-    ProgramStageDataElement psde2 = createProgramStageDataElement(stage1, deSource2, 3);
-    ProgramStageDataElement psde3 = createProgramStageDataElement(stage1, deTarget, 4);
-    ProgramStageDataElement psde4 = createProgramStageDataElement(stage4, deRandom, 5);
-    identifiableObjectManager.save(List.of(psde1, psde2, psde3, psde4));
-
-    // params
-    MergeParams mergeParams = getMergeParams();
-
-    // when merge operation encounters DB constraint
-    PersistenceException persistenceException =
-        assertThrows(PersistenceException.class, () -> mergeProcessor.processMerge(mergeParams));
-    assertNotNull(persistenceException.getMessage());
-
-    // then DB constraint is thrown
-    List<String> expectedStrings =
-        List.of(
-            "duplicate key value violates unique constraint",
-            "programstagedataelement_unique_key",
-            "Detail: Key (programstageid, dataelementid)",
-            "already exists");
-
-    assertTrue(
-        expectedStrings.stream()
-            .allMatch(
-                exp -> persistenceException.getCause().getCause().getMessage().contains(exp)));
   }
 
   // -------------------------------
@@ -1659,45 +1577,6 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
     assertFalse(allDataElements.contains(deSource1));
     assertFalse(allDataElements.contains(deSource2));
     assertEquals(3, dseTarget.size());
-  }
-
-  @Test
-  @DisplayName("DataSetElement unique key constraint DB error when updating")
-  void dataSetElementDbConstraintTest() {
-    // given
-    DataSet ds1 = createDataSet('1', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
-    DataSet ds2 = createDataSet('2', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
-
-    DataSetElement dse1 = new DataSetElement(ds1, deSource1);
-    DataSetElement dse2 = new DataSetElement(ds1, deSource2);
-    DataSetElement dse3 = new DataSetElement(ds2, deTarget);
-
-    ds1.setDataSetElements(Set.of(dse1, dse2));
-    ds2.setDataSetElements(Set.of(dse3));
-
-    identifiableObjectManager.save(ds1);
-    identifiableObjectManager.save(ds2);
-
-    // params
-    MergeParams mergeParams = getMergeParams();
-
-    // when merge operation encounters DB constraint
-    PersistenceException persistenceException =
-        assertThrows(PersistenceException.class, () -> mergeProcessor.processMerge(mergeParams));
-    assertNotNull(persistenceException.getMessage());
-
-    // then DB constraint is thrown
-    List<String> expectedStrings =
-        List.of(
-            "duplicate key value violates unique constraint",
-            "datasetelement_unique_key",
-            "Detail: Key (datasetid, dataelementid)",
-            "already exists");
-
-    assertTrue(
-        expectedStrings.stream()
-            .allMatch(
-                exp -> persistenceException.getCause().getCause().getMessage().contains(exp)));
   }
 
   // -------------------------------

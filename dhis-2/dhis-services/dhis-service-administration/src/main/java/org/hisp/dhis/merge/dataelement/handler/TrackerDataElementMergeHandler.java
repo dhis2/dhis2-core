@@ -218,7 +218,7 @@ public class TrackerDataElementMergeHandler {
     List<String> sourceDeUids = IdentifiableObjectUtils.getUids(sources);
     List<Event> events = eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(sourceDeUids);
 
-    // TODO possibly need to use last updated strategy, or else just delete source event data values
+    // possibly need to use last updated strategy, or else just delete source event data values
     // might need to check for duplicates here (if target DE uid is already present in edvs)
     events.stream()
         .flatMap(e -> e.getEventDataValues().stream())

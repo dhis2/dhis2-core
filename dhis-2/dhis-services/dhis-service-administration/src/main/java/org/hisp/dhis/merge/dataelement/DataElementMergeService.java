@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
+import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
@@ -75,6 +76,7 @@ public class DataElementMergeService implements MergeService {
   private final CommonMergeHandler commonMergeHandler;
   private final MergeValidator validator;
   private final DataElementMergeValidator dataElementMergeValidator;
+  private final EntityManager entityManager;
   private ImmutableList<org.hisp.dhis.merge.dataelement.DataElementMergeHandler>
       metadataMergeHandlers;
   private ImmutableList<MergeHandler> commonMergeHandlers;
@@ -131,6 +133,8 @@ public class DataElementMergeService implements MergeService {
     metadataMergeHandlers.forEach(h -> h.merge(sources, target));
     commonMergeHandlers.forEach(h -> h.merge(sources, target));
     auditMergeHandlers.forEach(h -> h.merge(sources, request));
+
+    entityManager.flush();
 
     // handle deletes
     if (request.isDeleteSources()) handleDeleteSources(sources, mergeReport);

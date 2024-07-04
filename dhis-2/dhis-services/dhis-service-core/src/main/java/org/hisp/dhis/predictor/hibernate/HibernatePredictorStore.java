@@ -40,7 +40,6 @@ import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.SqlUtils;
-import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -86,14 +85,13 @@ public class HibernatePredictorStore extends HibernateIdentifiableObjectStore<Pr
 
   @Override
   public List<Predictor> getAllByDataElement(Collection<DataElement> dataElements) {
-    @Language("SQL")
-    String sql =
-        """
-        select * from predictor p
-        where p.generatoroutput in :dataElements
-        """;
-
-    return nativeSynchronizedTypedQuery(sql).setParameter("dataElements", dataElements).list();
+    return getQuery(
+            """
+        from Predictor p
+        where p.output in :dataElements
+        """)
+        .setParameter("dataElements", dataElements)
+        .list();
   }
 
   @Override

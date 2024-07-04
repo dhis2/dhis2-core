@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.program.hibernate;
 
-import java.util.Collection;
 import java.util.List;
 import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -35,7 +34,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageSectionStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -56,16 +54,15 @@ public class HibernateProgramStageSectionStore
   }
 
   @Override
-  public List<ProgramStageSection> getAllByDataElement(Collection<DataElement> dataElements) {
-    @Language("SQL")
-    String sql =
-        """
-        select pss.* from programstagesection pss
-        join programstagesection_dataelements pssde on pss.programstagesectionid = pssde.programstagesectionid
-        where pssde.dataelementid in :dataElements
-        group by pss.programstagesectionid
-        """;
-
-    return nativeSynchronizedTypedQuery(sql).setParameter("dataElements", dataElements).list();
+  public List<ProgramStageSection> getAllByDataElement(List<DataElement> dataElements) {
+    return getQuery(
+            """
+            select pss from ProgramStageSection pss
+            join pss.dataElements de
+            where de in :dataElements
+            group by pss
+            """)
+        .setParameter("dataElements", dataElements)
+        .list();
   }
 }

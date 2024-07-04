@@ -37,7 +37,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -79,13 +78,12 @@ public class HibernateProgramStageDataElementStore
 
   @Override
   public List<ProgramStageDataElement> getAllByDataElement(Collection<DataElement> dataElements) {
-    @Language("SQL")
-    String sql =
-        """
-        select * from programstagedataelement psde
-        where psde.dataelementid in :dataElements
-        """;
-
-    return nativeSynchronizedTypedQuery(sql).setParameter("dataElements", dataElements).list();
+    return getQuery(
+            """
+            from ProgramStageDataElement psde
+            where psde.dataElement in :dataElements
+            """)
+        .setParameter("dataElements", dataElements)
+        .list();
   }
 }

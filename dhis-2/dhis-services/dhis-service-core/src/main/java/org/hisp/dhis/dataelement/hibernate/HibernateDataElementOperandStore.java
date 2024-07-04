@@ -36,7 +36,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementOperandStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -72,13 +71,12 @@ public class HibernateDataElementOperandStore
 
   @Override
   public List<DataElementOperand> getByDataElement(Collection<DataElement> dataElements) {
-    @Language("SQL")
-    String sql =
-        """
-        select * from dataelementoperand deo
-        where deo.dataelementid in :dataElements
-        """;
-
-    return nativeSynchronizedTypedQuery(sql).setParameter("dataElements", dataElements).list();
+    return getQuery(
+            """
+            from DataElementOperand deo
+            where deo.dataElement in :dataElements
+            """)
+        .setParameter("dataElements", dataElements)
+        .list();
   }
 }

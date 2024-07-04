@@ -101,14 +101,12 @@ public class HibernateSMSCommandStore extends HibernateIdentifiableObjectStore<S
 
   @Override
   public List<SMSCode> getCodesByDataElement(Collection<DataElement> dataElements) {
-    String sql =
-        """
-        select * from smscodes s
-        where s.dataelementid in :dataElements
-        """;
-
-    return getSession()
-        .createNativeQuery(sql, SMSCode.class)
+    return getQuery(
+            """
+            from SMSCode s
+            where s.dataElement in :dataElements
+            """,
+            SMSCode.class)
         .setParameter("dataElements", dataElements)
         .list();
   }
