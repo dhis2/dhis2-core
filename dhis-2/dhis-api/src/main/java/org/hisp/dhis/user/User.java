@@ -783,6 +783,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
     return hasTeiSearchOrganisationUnit() ? teiSearchOrganisationUnits : organisationUnits;
   }
 
+  /** Returns all search organisation units and organisation units. */
   public Set<OrganisationUnit> getEffectiveSearchOrganisationUnits() {
     return Stream.concat(teiSearchOrganisationUnits.stream(), organisationUnits.stream())
         .collect(Collectors.toSet());
