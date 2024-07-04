@@ -73,7 +73,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Component("org.hisp.dhis.sms.listener.EnrollmentSMSListener")
 @Transactional
-public class EnrollmentSMSListener extends CompressionSMSListener {
+public class EnrollmentSMSListener extends EventSavingSMSListener {
   private final TrackedEntityService teService;
 
   private final EnrollmentService enrollmentService;
@@ -110,9 +110,8 @@ public class EnrollmentSMSListener extends CompressionSMSListener {
         organisationUnitService,
         categoryService,
         dataElementService,
-        eventService,
-        identifiableObjectManager);
-
+        identifiableObjectManager,
+        eventService);
     this.teService = teService;
     this.programStageService = programStageService;
     this.enrollmentService = enrollmentService;
@@ -202,7 +201,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener {
     List<Object> errorUIDs = new ArrayList<>();
     if (subm.getEvents() != null) {
       for (SmsEvent event : subm.getEvents()) {
-        errorUIDs.addAll(processEvent(event, user, enrollment, sms));
+        errorUIDs.addAll(processEvent(event, user, enrollment));
       }
     }
     enrollment.setStatus(getCoreEnrollmentStatus(subm.getEnrollmentStatus()));
@@ -289,8 +288,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener {
     return trackedEntityAttributeValue;
   }
 
-  protected List<Object> processEvent(
-      SmsEvent event, User user, Enrollment enrollment, IncomingSms sms) {
+  protected List<Object> processEvent(SmsEvent event, User user, Enrollment enrollment) {
     Uid stageid = event.getProgramStage();
     Uid aocid = event.getAttributeOptionCombo();
     Uid orgunitid = event.getOrgUnit();
@@ -316,7 +314,6 @@ public class EnrollmentSMSListener extends CompressionSMSListener {
             orgUnit,
             programStage,
             enrollment,
-            sms,
             aoc,
             user,
             event.getValues(),

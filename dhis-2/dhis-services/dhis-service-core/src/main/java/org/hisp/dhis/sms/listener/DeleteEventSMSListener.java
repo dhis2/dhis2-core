@@ -52,6 +52,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Component("org.hisp.dhis.sms.listener.DeleteEventSMSListener")
 @Transactional
 public class DeleteEventSMSListener extends CompressionSMSListener {
+  private final EventService eventService;
+
   public DeleteEventSMSListener(
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
@@ -62,8 +64,8 @@ public class DeleteEventSMSListener extends CompressionSMSListener {
       OrganisationUnitService organisationUnitService,
       CategoryService categoryService,
       DataElementService dataElementService,
-      EventService eventService,
-      IdentifiableObjectManager identifiableObjectManager) {
+      IdentifiableObjectManager identifiableObjectManager,
+      EventService eventService) {
     super(
         incomingSmsService,
         smsSender,
@@ -74,8 +76,8 @@ public class DeleteEventSMSListener extends CompressionSMSListener {
         organisationUnitService,
         categoryService,
         dataElementService,
-        eventService,
         identifiableObjectManager);
+    this.eventService = eventService;
   }
 
   @Override

@@ -152,10 +152,10 @@ class TrackerEventSMSListenerTest extends CompressionSMSListenerTest {
             organisationUnitService,
             categoryService,
             dataElementService,
+            identifiableObjectManager,
             eventService,
             programStageService,
-            enrollmentService,
-            identifiableObjectManager);
+            enrollmentService);
 
     setUpInstances();
 

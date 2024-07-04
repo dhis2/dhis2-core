@@ -68,6 +68,8 @@ public class RelationshipSMSListener extends CompressionSMSListener {
     TO;
   }
 
+  private final EventService eventService;
+
   private final RelationshipService relationshipService;
 
   private final RelationshipTypeService relationshipTypeService;
@@ -86,12 +88,12 @@ public class RelationshipSMSListener extends CompressionSMSListener {
       OrganisationUnitService organisationUnitService,
       CategoryService categoryService,
       DataElementService dataElementService,
+      IdentifiableObjectManager identifiableObjectManager,
       EventService eventService,
       RelationshipService relationshipService,
       RelationshipTypeService relationshipTypeService,
       TrackedEntityService trackedEntityService,
-      EnrollmentService enrollmentService,
-      IdentifiableObjectManager identifiableObjectManager) {
+      EnrollmentService enrollmentService) {
     super(
         incomingSmsService,
         smsSender,
@@ -102,13 +104,12 @@ public class RelationshipSMSListener extends CompressionSMSListener {
         organisationUnitService,
         categoryService,
         dataElementService,
-        eventService,
         identifiableObjectManager);
-
     this.relationshipService = relationshipService;
     this.relationshipTypeService = relationshipTypeService;
     this.trackedEntityService = trackedEntityService;
     this.enrollmentService = enrollmentService;
+    this.eventService = eventService;
   }
 
   @Override

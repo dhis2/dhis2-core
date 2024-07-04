@@ -519,7 +519,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     List<String> errors = new ArrayList<>();
     if (program.isWithoutRegistration()) {
       OrganisationUnit ou = event.getOrganisationUnit();
-      if (ou != null && !user.isInUserDataHierarchy(ou.getPath())) {
+      if (ou != null && !user.isInUserHierarchy(ou.getPath())) {
         errors.add("User has no delete access to organisation unit: " + ou.getUid());
       }
 
@@ -747,7 +747,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       UserDetails user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck) {
     if (!skipOwnershipCheck && !ownershipAccessManager.hasAccess(user, trackedEntity, program)) {
       if (program.isProtected()) {
-        return OWNERSHIP_ACCESS_DENIED;
+        return ownershipAccessManager.isOwnerInUserSearchScope(user, trackedEntity, program)
+            ? OWNERSHIP_ACCESS_DENIED
+            : NO_READ_ACCESS_TO_ORG_UNIT;
       }
 
       if (program.isClosed()) {

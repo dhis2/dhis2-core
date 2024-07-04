@@ -143,15 +143,14 @@ class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest {
     subject =
         new TrackedEntityRegistrationSMSListener(
             programService,
-            enrollmentService,
             dataElementCategoryService,
-            eventService,
             userService,
             incomingSmsService,
             smsSender,
             smsCommandService,
             trackedEntityTypeService,
-            trackedEntityService);
+            trackedEntityService,
+            enrollmentService);
 
     setUpInstances();
 

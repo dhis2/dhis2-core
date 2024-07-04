@@ -1833,7 +1833,6 @@
       },
       "authorities": [
         "M_dhis-web-capture",
-        "M_dhis-web-tracker-capture"
       ],
       "translations": []
     },
