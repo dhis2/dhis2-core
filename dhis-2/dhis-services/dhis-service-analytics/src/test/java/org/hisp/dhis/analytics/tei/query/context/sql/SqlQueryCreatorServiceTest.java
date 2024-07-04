@@ -150,7 +150,7 @@ class SqlQueryCreatorServiceTest extends DhisConvenienceTest {
 
     CommonRequestParams requestParams = new CommonRequestParams();
     requestParams.setProgram(Set.of("program3"));
-    requestParams.withRequestPrograms(true);
+    requestParams.getInternal().setRequestPrograms(true);
 
     TeiQueryParams teiQueryParams =
         TeiQueryParams.builder().trackedEntityType(createTrackedEntityType('A')).build();

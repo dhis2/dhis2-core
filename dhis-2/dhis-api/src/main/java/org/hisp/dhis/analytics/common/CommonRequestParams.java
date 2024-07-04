@@ -49,6 +49,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -91,12 +92,6 @@ public class CommonRequestParams {
 
   /** The dimensions to be returned/filtered at. */
   private Set<String> dimension = new LinkedHashSet<>();
-
-  /** The dimensions of the given entity type. Internal only. */
-  private Set<String> entityTypeAttributes = new LinkedHashSet<>();
-
-  /** The dimensions of the given program. Internal only. */
-  private Set<String> programAttributes = new LinkedHashSet<>();
 
   /** The filters to be applied at querying time. */
   private Set<String> filter = new HashSet<>();
@@ -162,9 +157,6 @@ public class CommonRequestParams {
   /** Indicates if additional ou hierarchy data should be provided. */
   private boolean showHierarchy;
 
-  /** Indicates if this request contains one or more programs as URL params. Internal use only. */
-  private boolean requestPrograms;
-
   /** The page number. Default page is 1. */
   private Integer page = 1;
 
@@ -229,6 +221,8 @@ public class CommonRequestParams {
 
   private Set<String> created = new LinkedHashSet<>();
 
+  private Internal internal = new Internal();
+
   /** Whether the query should consider only items with lat/long coordinates. */
   private boolean coordinatesOnly;
 
@@ -280,8 +274,8 @@ public class CommonRequestParams {
     Set<String> allDimensions = new LinkedHashSet<>(dimension);
     allDimensions.addAll(computeEventStatus(this));
     allDimensions.addAll(computeEnrollmentStatus(this));
-    allDimensions.addAll(entityTypeAttributes);
-    allDimensions.addAll(programAttributes);
+    allDimensions.addAll(internal.getEntityTypeAttributes());
+    allDimensions.addAll(internal.getProgramAttributes());
 
     return unmodifiableSet(allDimensions);
   }
@@ -430,5 +424,21 @@ public class CommonRequestParams {
   @OpenApi.Ignore
   public DimensionalItemObject getValue() {
     return value;
+  }
+
+  /**
+   * Encapsulates all internal objects/flags that cannot be exposed externally, but are necessary
+   * internally. It holds states that are required by analytics flows at some point.
+   */
+  @Data
+  public static class Internal {
+    /** The dimensions of the given entity type. Internal only. */
+    private Set<String> entityTypeAttributes = new LinkedHashSet<>();
+
+    /** The dimensions of the given program. Internal only. */
+    private Set<String> programAttributes = new LinkedHashSet<>();
+
+    /** Indicates if this request contains one or more programs as URL params. Internal use only. */
+    private boolean requestPrograms;
   }
 }

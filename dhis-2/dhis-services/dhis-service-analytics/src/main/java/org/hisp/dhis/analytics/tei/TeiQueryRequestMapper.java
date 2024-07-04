@@ -73,17 +73,19 @@ public class TeiQueryRequestMapper {
 
     if (!requestParams.hasPrograms()) {
       requestParams.setProgram(getProgramUidsFromTrackedEntityType(trackedEntityType));
-      requestParams.setRequestPrograms(false);
+      requestParams.getInternal().setRequestPrograms(false);
     } else {
       checkTetForPrograms(requestParams.getProgram(), trackedEntityType);
-      requestParams.setRequestPrograms(true);
+      requestParams.getInternal().setRequestPrograms(true);
     }
 
     // Adding tracked entity type attributes to the list of dimensions.
-    requestParams.setEntityTypeAttributes(
-        getTrackedEntityAttributes(trackedEntityType)
-            .map(IdentifiableObject::getUid)
-            .collect(toSet()));
+    requestParams
+        .getInternal()
+        .setEntityTypeAttributes(
+            getTrackedEntityAttributes(trackedEntityType)
+                .map(IdentifiableObject::getUid)
+                .collect(toSet()));
 
     return TeiQueryParams.builder().trackedEntityType(trackedEntityType).build();
   }

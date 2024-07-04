@@ -121,8 +121,10 @@ public class CommonRequestParamsParser implements Parser<CommonRequestParams, Co
     List<Program> programs = getPrograms(request);
 
     // Adds all program attributes from all applicable programs as dimensions.
-    request.setProgramAttributes(
-        getProgramAttributes(programs).map(IdentifiableObject::getUid).collect(toSet()));
+    request
+        .getInternal()
+        .setProgramAttributes(
+            getProgramAttributes(programs).map(IdentifiableObject::getUid).collect(toSet()));
 
     return CommonParsedParams.builder()
         .programs(programs)
