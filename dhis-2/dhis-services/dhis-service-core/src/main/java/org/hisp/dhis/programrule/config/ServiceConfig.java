@@ -29,6 +29,10 @@ package org.hisp.dhis.programrule.config;
 
 import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableMap;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.action.validation.AlwaysValidProgramRuleActionValidator;
 import org.hisp.dhis.programrule.action.validation.AssignProgramRuleActionValidator;
@@ -41,11 +45,6 @@ import org.hisp.dhis.programrule.action.validation.ProgramRuleActionValidator;
 import org.hisp.dhis.programrule.action.validation.ShowHideOptionGroupProgramRuleActionValidator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Configuration("programRuleServiceConfig")
 public class ServiceConfig {

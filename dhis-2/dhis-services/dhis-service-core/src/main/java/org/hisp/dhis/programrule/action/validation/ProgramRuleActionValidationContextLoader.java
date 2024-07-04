@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.programrule.action.validation;
 
+import java.util.ArrayList;
+import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.option.Option;
@@ -42,10 +45,6 @@ import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Zubair Asghar

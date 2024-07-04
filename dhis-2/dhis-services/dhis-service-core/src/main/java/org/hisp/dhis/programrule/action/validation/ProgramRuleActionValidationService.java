@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.programrule.action.validation;
 
+import javax.annotation.Nonnull;
 import lombok.Builder;
 import lombok.Getter;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -38,8 +39,6 @@ import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
 
 /**
  * @author Zubair Asghar

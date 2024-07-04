@@ -37,6 +37,10 @@ import static org.hisp.dhis.programrule.ProgramRuleActionType.SHOWWARNING;
 import static org.hisp.dhis.programrule.ProgramRuleActionType.WARNINGONCOMPLETE;
 import static org.hisp.dhis.rules.models.AttributeType.DATA_ELEMENT;
 import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
+import static org.hisp.dhis.tracker.imports.programrule.engine.RuleActionKey.ATTRIBUTE_TYPE;
+import static org.hisp.dhis.tracker.imports.programrule.engine.RuleActionKey.CONTENT;
+import static org.hisp.dhis.tracker.imports.programrule.engine.RuleActionKey.FIELD;
+import static org.hisp.dhis.tracker.imports.programrule.engine.RuleActionKey.NOTIFICATION;
 
 import java.util.HashMap;
 import java.util.List;
@@ -314,70 +318,70 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
               pra.getData(),
               ASSIGN.name(),
               createValues(
-                  RuleActionKey.CONTENT,
+                  CONTENT,
                   pra.getContent(),
-                  RuleActionKey.FIELD,
+                  FIELD,
                   getAssignedParameter(pra),
-                  RuleActionKey.ATTRIBUTE_TYPE,
+                  ATTRIBUTE_TYPE,
                   getAttributeType(pra).name()));
       case SHOWWARNING ->
           new RuleAction(
               pra.getData(),
               SHOWWARNING.name(),
               createValues(
-                  RuleActionKey.CONTENT,
+                  CONTENT,
                   pra.getContent(),
-                  RuleActionKey.FIELD,
+                  FIELD,
                   getAssignedParameter(pra),
-                  RuleActionKey.ATTRIBUTE_TYPE,
+                  ATTRIBUTE_TYPE,
                   getAttributeType(pra).name()));
       case WARNINGONCOMPLETE ->
           new RuleAction(
               pra.getData(),
               WARNINGONCOMPLETE.name(),
               createValues(
-                  RuleActionKey.CONTENT,
+                  CONTENT,
                   pra.getContent(),
-                  RuleActionKey.FIELD,
+                  FIELD,
                   getAssignedParameter(pra),
-                  RuleActionKey.ATTRIBUTE_TYPE,
+                  ATTRIBUTE_TYPE,
                   getAttributeType(pra).name()));
       case SHOWERROR ->
           new RuleAction(
               pra.getData(),
               SHOWERROR.name(),
               createValues(
-                  RuleActionKey.CONTENT,
+                  CONTENT,
                   pra.getContent(),
-                  RuleActionKey.FIELD,
+                  FIELD,
                   getAssignedParameter(pra),
-                  RuleActionKey.ATTRIBUTE_TYPE,
+                  ATTRIBUTE_TYPE,
                   getAttributeType(pra).name()));
       case ERRORONCOMPLETE ->
           new RuleAction(
               pra.getData(),
               ERRORONCOMPLETE.name(),
               createValues(
-                  RuleActionKey.CONTENT,
+                  CONTENT,
                   pra.getContent(),
-                  RuleActionKey.FIELD,
+                  FIELD,
                   getAssignedParameter(pra),
-                  RuleActionKey.ATTRIBUTE_TYPE,
+                  ATTRIBUTE_TYPE,
                   getAttributeType(pra).name()));
       case SETMANDATORYFIELD ->
           new RuleAction(
               null,
               SETMANDATORYFIELD.name(),
               createValues(
-                  RuleActionKey.FIELD, getAssignedParameter(pra), RuleActionKey.ATTRIBUTE_TYPE, getAttributeType(pra).name()));
+                  FIELD, getAssignedParameter(pra), ATTRIBUTE_TYPE, getAttributeType(pra).name()));
       case SENDMESSAGE ->
           new RuleAction(
-              null, SENDMESSAGE.name(), createValues(RuleActionKey.NOTIFICATION, pra.getTemplateUid()));
+              null, SENDMESSAGE.name(), createValues(NOTIFICATION, pra.getTemplateUid()));
       case SCHEDULEMESSAGE ->
           new RuleAction(
               pra.getData(),
               SCHEDULEMESSAGE.name(),
-              createValues(RuleActionKey.NOTIFICATION, pra.getTemplateUid()));
+              createValues(NOTIFICATION, pra.getTemplateUid()));
       default -> null;
     };
   }

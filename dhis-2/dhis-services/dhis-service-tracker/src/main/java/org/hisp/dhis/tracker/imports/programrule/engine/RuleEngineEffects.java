@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.imports.programrule.engine;
 
 import static org.hisp.dhis.programrule.ProgramRuleActionType.SCHEDULEMESSAGE;
 import static org.hisp.dhis.programrule.ProgramRuleActionType.SENDMESSAGE;
+import static org.hisp.dhis.tracker.imports.programrule.engine.RuleActionKey.NOTIFICATION;
 
 import java.util.Collection;
 import java.util.List;
@@ -157,7 +158,7 @@ public class RuleEngineEffects {
         .map(
             e ->
                 new Notification(
-                    UID.of(e.getRuleAction().getValues().get(RuleActionKey.NOTIFICATION)),
+                    UID.of(e.getRuleAction().getValues().get(NOTIFICATION)),
                     DateUtils.parseDate(StringUtils.unwrap(e.getData(), '\''))))
         .toList();
   }

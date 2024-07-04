@@ -27,13 +27,12 @@
  */
 package org.hisp.dhis.programrule;
 
+import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.program.Program;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.Set;
 
 /**
  * @author markusbekken

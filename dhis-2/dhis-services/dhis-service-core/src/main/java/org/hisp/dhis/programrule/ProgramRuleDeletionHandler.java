@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.programrule;
 
+import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -36,9 +38,6 @@ import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.stereotype.Component;
-
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * @author markusbekken

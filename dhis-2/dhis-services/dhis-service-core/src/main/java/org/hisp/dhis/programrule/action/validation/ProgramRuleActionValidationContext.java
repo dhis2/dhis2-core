@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.programrule.action.validation;
 
+import java.util.List;
 import lombok.Builder;
 import lombok.Data;
 import org.hisp.dhis.dataelement.DataElement;
@@ -38,8 +39,6 @@ import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-
-import java.util.List;
 
 /**
  * @author Zubair Asghar
