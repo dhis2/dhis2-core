@@ -165,7 +165,11 @@ public class CommonRequestParams {
   /** Indicates if additional ou hierarchy data should be provided. */
   private boolean showHierarchy;
 
-  /** Indicates if this request contains one or more programs as URL params. */
+  /**
+   * Indicates if this request contains one or more programs as URL params. Internal use only, not
+   * exposed.
+   */
+  @Setter(NONE)
   private boolean requestPrograms;
 
   /** The page number. Default page is 1. */
