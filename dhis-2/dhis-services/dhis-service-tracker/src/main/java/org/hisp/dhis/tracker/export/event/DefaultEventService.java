@@ -35,6 +35,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -69,7 +70,7 @@ class DefaultEventService implements EventService {
 
   private final EventStore eventStore;
 
-  private final org.hisp.dhis.program.EventService eventService;
+  private final IdentifiableObjectManager manager;
 
   private final TrackerAccessManager trackerAccessManager;
 
@@ -80,25 +81,23 @@ class DefaultEventService implements EventService {
   private final EventOperationParamsMapper paramsMapper;
 
   @Override
-  public FileResourceStream getFileResource(UID eventUid, UID dataElementUid)
-      throws NotFoundException {
-    FileResource fileResource = getFileResourceMetadata(eventUid, dataElementUid);
+  public FileResourceStream getFileResource(UID event, UID dataElement)
+      throws NotFoundException, ForbiddenException {
+    FileResource fileResource = getFileResourceMetadata(event, dataElement);
     return FileResourceStream.of(fileResourceService, fileResource);
   }
 
   @Override
   public FileResourceStream getFileResourceImage(
-      UID eventUid, UID dataElementUid, ImageFileDimension dimension) throws NotFoundException {
-    FileResource fileResource = getFileResourceMetadata(eventUid, dataElementUid);
+      UID event, UID dataElement, ImageFileDimension dimension)
+      throws NotFoundException, ForbiddenException {
+    FileResource fileResource = getFileResourceMetadata(event, dataElement);
     return FileResourceStream.ofImage(fileResourceService, fileResource, dimension);
   }
 
   private FileResource getFileResourceMetadata(UID eventUid, UID dataElementUid)
-      throws NotFoundException {
-    Event event = eventService.getEvent(eventUid.getValue());
-    if (event == null) {
-      throw new NotFoundException(Event.class, eventUid.getValue());
-    }
+      throws NotFoundException, ForbiddenException {
+    Event event = getEvent(eventUid);
 
     DataElement dataElement = dataElementService.getDataElement(dataElementUid.getValue());
     if (dataElement == null) {
@@ -133,9 +132,14 @@ class DefaultEventService implements EventService {
   }
 
   @Override
+  public Event getEvent(UID uid) throws ForbiddenException, NotFoundException {
+    return getEvent(uid.getValue(), EventParams.FALSE);
+  }
+
+  @Override
   public Event getEvent(String uid, EventParams eventParams)
       throws NotFoundException, ForbiddenException {
-    Event event = eventService.getEvent(uid);
+    Event event = manager.get(Event.class, uid);
     if (event == null) {
       throw new NotFoundException(Event.class, uid);
     }
@@ -149,8 +153,7 @@ class DefaultEventService implements EventService {
     return getEvent(event, eventParams, currentUser);
   }
 
-  private Event getEvent(@Nonnull Event event, EventParams eventParams, UserDetails currentUser)
-      throws ForbiddenException {
+  private Event getEvent(@Nonnull Event event, EventParams eventParams, UserDetails currentUser) {
     Event result = new Event();
     result.setId(event.getId());
     result.setUid(event.getUid());
@@ -197,7 +200,7 @@ class DefaultEventService implements EventService {
 
         result.getEventDataValues().add(value);
       } else {
-        log.info("Can not find a Data Element having UID [" + dataValue.getDataElement() + "]");
+        log.info("Cannot find data element with UID {}", dataValue.getDataElement());
       }
     }
 
@@ -234,11 +237,12 @@ class DefaultEventService implements EventService {
     return eventStore.getEvents(queryParams, pageParams);
   }
 
+  @Override
   public RelationshipItem getEventInRelationshipItem(String uid, EventParams eventParams)
-      throws NotFoundException, ForbiddenException {
+      throws NotFoundException {
     RelationshipItem relationshipItem = new RelationshipItem();
 
-    Event event = eventService.getEvent(uid);
+    Event event = manager.get(Event.class, uid);
     if (event == null) {
       throw new NotFoundException(Event.class, uid);
     }
