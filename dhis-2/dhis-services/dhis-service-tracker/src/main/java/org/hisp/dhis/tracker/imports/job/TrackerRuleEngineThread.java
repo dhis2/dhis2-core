@@ -30,7 +30,7 @@ package org.hisp.dhis.tracker.imports.job;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.programrule.api.Notification;
+import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 import org.hisp.dhis.security.SecurityContextRunnable;
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.beans.factory.config.BeanDefinition;

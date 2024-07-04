@@ -40,7 +40,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.programrule.api.Notification;
+import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 

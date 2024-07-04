@@ -43,7 +43,7 @@ import lombok.Builder;
 import lombok.Data;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.UserInfoSnapshot;
-import org.hisp.dhis.programrule.api.Notification;
+import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.FlushMode;

@@ -39,7 +39,7 @@ import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.engine.ProgramRuleEngine;
+import org.hisp.dhis.tracker.imports.programrule.engine.ProgramRuleEngine;
 import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.http.HttpStatus;
