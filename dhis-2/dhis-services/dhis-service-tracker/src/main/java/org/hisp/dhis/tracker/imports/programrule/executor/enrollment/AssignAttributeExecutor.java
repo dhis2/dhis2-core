@@ -77,10 +77,14 @@ public class AssignAttributeExecutor implements RuleActionExecutor<Enrollment> {
         || Boolean.TRUE.equals(canOverwrite)
         || isEqual(value, payloadAttribute.get().getValue(), attribute.getValueType())) {
       addOrOverwriteAttribute(enrollment, bundle);
-      return Optional.of(warning(ruleUid, ValidationCode.E1310, attributeUid.getValue(), value));
+      return Optional.of(
+          warning(
+              ruleUid,
+              ValidationCode.E1310,
+              attributeUid.getValue(),
+              enrollment.getTrackedEntity()));
     }
-    return Optional.of(
-        error(ruleUid, ValidationCode.E1309, attributeUid.getValue(), enrollment.getEnrollment()));
+    return Optional.of(error(ruleUid, ValidationCode.E1309, attributeUid.getValue(), value));
   }
 
   private void addOrOverwriteAttribute(Enrollment enrollment, TrackerBundle bundle) {
