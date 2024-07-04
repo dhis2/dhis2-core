@@ -31,6 +31,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -162,7 +163,9 @@ public interface UserDetails extends org.springframework.security.core.userdetai
               : (searchOrgUnitUids.isEmpty() ? orgUnitUids : searchOrgUnitUids);
 
       Set<String> userEffectiveSearchOrgUnitIds =
-          Stream.concat(userOrgUnitIds.stream(), userSearchOrgUnitIds.stream())
+          Stream.of(userOrgUnitIds, userSearchOrgUnitIds)
+              .filter(Objects::nonNull)
+              .flatMap(Collection::stream)
               .collect(Collectors.toSet());
 
       Set<String> userDataOrgUnitIds =
