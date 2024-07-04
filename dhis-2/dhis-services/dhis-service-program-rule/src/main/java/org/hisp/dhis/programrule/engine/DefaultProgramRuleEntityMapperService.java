@@ -390,7 +390,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                 attr ->
                     new RuleAttributeValue(
                         attr.getAttribute().getUid(), getTrackedEntityAttributeValue(attr)))
-            .toList();
+            .collect(Collectors.toList());
 
     return new RuleEnrollment(
         enrollment.getUid(),
