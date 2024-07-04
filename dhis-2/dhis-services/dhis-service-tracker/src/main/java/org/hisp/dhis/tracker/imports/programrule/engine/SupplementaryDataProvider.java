@@ -81,7 +81,7 @@ public class SupplementaryDataProvider {
                               .getMembers()
                               .stream()
                               .map(OrganisationUnit::getUid)
-                              .collect(Collectors.toList())));
+                              .toList()));
     }
 
     if (CurrentUserUtil.getCurrentUsername() != null) {
