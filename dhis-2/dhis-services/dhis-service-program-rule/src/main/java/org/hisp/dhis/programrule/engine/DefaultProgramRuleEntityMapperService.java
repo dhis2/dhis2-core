@@ -388,7 +388,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
             .filter(Objects::nonNull)
             .map(
                 attr ->
-                    new RuleAttributeValue(
+                    RuleAttributeValue.create(
                         attr.getAttribute().getUid(), getTrackedEntityAttributeValue(attr)))
             .collect(Collectors.toList());
 

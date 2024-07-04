@@ -109,9 +109,10 @@ class ProgramRuleAssignActionTest extends TrackerTest {
         fromJson("tracker/programrule/te_enrollment_update_attribute_same_value.json");
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
-    ImportReport importReport = trackerImportService.importTracker(params);
+    TrackerImportReport importReport = trackerImportService.importTracker(params);
 
-    assertHasOnlyWarnings(importReport, E1310);
+    assertNoErrors(importReport);
+    assertEquals(E1310, importReport.getValidationReport().getWarnings().get(0).getWarningCode());
   }
 
   @Test
