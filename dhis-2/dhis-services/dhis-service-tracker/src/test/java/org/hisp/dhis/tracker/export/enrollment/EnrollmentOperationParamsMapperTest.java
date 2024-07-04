@@ -193,7 +193,7 @@ class EnrollmentOperationParamsMapperTest {
     EnrollmentQueryParams params = mapper.map(operationParams);
 
     assertEquals(DESCENDANTS, params.getOrganisationUnitMode());
-    assertEquals(user.getTeiSearchOrganisationUnitsWithFallback(), params.getOrganisationUnits());
+    assertEquals(user.getEffectiveSearchOrganisationUnits(), params.getOrganisationUnits());
   }
 
   @Test
@@ -212,10 +212,10 @@ class EnrollmentOperationParamsMapperTest {
   void shouldMapChildrenOrgUnitModeWhenChildrenProvided()
       throws ForbiddenException, BadRequestException {
     when(organisationUnitService.isInUserHierarchy(
-            orgUnit1.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
+            orgUnit1.getUid(), user.getEffectiveSearchOrganisationUnits()))
         .thenReturn(true);
     when(organisationUnitService.isInUserHierarchy(
-            orgUnit2.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
+            orgUnit2.getUid(), user.getEffectiveSearchOrganisationUnits()))
         .thenReturn(true);
 
     EnrollmentOperationParams operationParams =

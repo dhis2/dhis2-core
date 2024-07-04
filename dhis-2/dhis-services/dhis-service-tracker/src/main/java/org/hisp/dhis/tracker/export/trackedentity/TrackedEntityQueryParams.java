@@ -165,7 +165,7 @@ public class TrackedEntityQueryParams {
    */
   public void handleOrganisationUnits() {
     if (user != null && isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
-      setOrgUnits(user.getTeiSearchOrganisationUnitsWithFallback());
+      setOrgUnits(user.getEffectiveSearchOrganisationUnits());
       setOrgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
     } else if (user != null && isOrganisationUnitMode(OrganisationUnitSelectionMode.CAPTURE)) {
       setOrgUnits(user.getOrganisationUnits());

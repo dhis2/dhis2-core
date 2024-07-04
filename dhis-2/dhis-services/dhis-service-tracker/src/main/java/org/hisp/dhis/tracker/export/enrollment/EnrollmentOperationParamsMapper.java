@@ -105,8 +105,7 @@ class EnrollmentOperationParamsMapper {
   private void mergeOrgUnitModes(
       EnrollmentOperationParams operationParams, User user, EnrollmentQueryParams queryParams) {
     if (user != null && operationParams.getOrgUnitMode() == ACCESSIBLE) {
-      queryParams.addOrganisationUnits(
-          new HashSet<>(user.getTeiSearchOrganisationUnitsWithFallback()));
+      queryParams.addOrganisationUnits(new HashSet<>(user.getEffectiveSearchOrganisationUnits()));
       queryParams.setOrganisationUnitMode(DESCENDANTS);
     } else if (user != null && operationParams.getOrgUnitMode() == CAPTURE) {
       queryParams.addOrganisationUnits(new HashSet<>(user.getOrganisationUnits()));

@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -773,31 +774,18 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
   // Logic - tei search organisation unit
   // -------------------------------------------------------------------------
 
-  public boolean hasTeiSearchOrganisationUnit() {
+  private boolean hasTeiSearchOrganisationUnit() {
     return !CollectionUtils.isEmpty(teiSearchOrganisationUnits);
-  }
-
-  public OrganisationUnit getTeiSearchOrganisationUnit() {
-    return CollectionUtils.isEmpty(teiSearchOrganisationUnits)
-        ? null
-        : teiSearchOrganisationUnits.iterator().next();
-  }
-
-  public boolean hasTeiSearchOrganisationUnitWithFallback() {
-    return hasTeiSearchOrganisationUnit() || hasOrganisationUnit();
-  }
-
-  /**
-   * Returns the first of the tei search organisation units associated with the user. If none,
-   * returns the first of the data capture organisation units. If none, return nulls.
-   */
-  public OrganisationUnit getTeiSearchOrganisationUnitWithFallback() {
-    return hasTeiSearchOrganisationUnit() ? getTeiSearchOrganisationUnit() : getOrganisationUnit();
   }
 
   /** Returns the tei search organisation units or organisation units if not exist. */
   public Set<OrganisationUnit> getTeiSearchOrganisationUnitsWithFallback() {
     return hasTeiSearchOrganisationUnit() ? teiSearchOrganisationUnits : organisationUnits;
+  }
+
+  public Set<OrganisationUnit> getEffectiveSearchOrganisationUnits() {
+    return Stream.concat(teiSearchOrganisationUnits.stream(), organisationUnits.stream())
+        .collect(Collectors.toSet());
   }
 
   public String getOrganisationUnitsName() {
