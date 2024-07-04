@@ -79,12 +79,6 @@ public class DefaultEventService implements EventService {
 
   @Override
   @Transactional(readOnly = true)
-  public boolean eventExists(String uid) {
-    return eventStore.exists(uid);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public boolean eventExistsIncludingDeleted(String uid) {
     return eventStore.existsIncludingDeleted(uid);
   }

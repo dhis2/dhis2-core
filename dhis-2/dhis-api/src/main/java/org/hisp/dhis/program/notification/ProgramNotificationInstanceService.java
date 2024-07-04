@@ -45,6 +45,4 @@ public interface ProgramNotificationInstanceService {
       ProgramNotificationInstanceParam programNotificationInstanceParam);
 
   Long countProgramNotificationInstances(ProgramNotificationInstanceParam params);
-
-  void validateQueryParameters(ProgramNotificationInstanceParam param);
 }

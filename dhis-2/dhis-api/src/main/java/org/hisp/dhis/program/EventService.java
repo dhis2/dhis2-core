@@ -41,14 +41,6 @@ public interface EventService {
   void deleteEvent(Event event);
 
   /**
-   * Checks whether an {@link Event} with the given identifier exists. Doesn't take into account the
-   * deleted values.
-   *
-   * @param uid the identifier.
-   */
-  boolean eventExists(String uid);
-
-  /**
    * Checks whether an {@link Event} with the given identifier exists. Takes into accound also the
    * deleted values.
    *
