@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.common;
 import static java.util.Collections.unmodifiableSet;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
-import static lombok.AccessLevel.NONE;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
@@ -93,12 +92,10 @@ public class CommonRequestParams {
   /** The dimensions to be returned/filtered at. */
   private Set<String> dimension = new LinkedHashSet<>();
 
-  /** The dimensions of the given entity type. Internal only, not exposed. */
-  @Setter(NONE)
+  /** The dimensions of the given entity type. Internal only. */
   private Set<String> entityTypeAttributes = new LinkedHashSet<>();
 
-  /** The dimensions of the given program. Internal only, not exposed. */
-  @Setter(NONE)
+  /** The dimensions of the given program. Internal only. */
   private Set<String> programAttributes = new LinkedHashSet<>();
 
   /** The filters to be applied at querying time. */
@@ -165,11 +162,7 @@ public class CommonRequestParams {
   /** Indicates if additional ou hierarchy data should be provided. */
   private boolean showHierarchy;
 
-  /**
-   * Indicates if this request contains one or more programs as URL params. Internal use only, not
-   * exposed.
-   */
-  @Setter(NONE)
+  /** Indicates if this request contains one or more programs as URL params. Internal use only. */
   private boolean requestPrograms;
 
   /** The page number. Default page is 1. */
