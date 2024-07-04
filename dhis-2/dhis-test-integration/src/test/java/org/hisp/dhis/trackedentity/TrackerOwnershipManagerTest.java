@@ -291,10 +291,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     assertFalse(trackerOwnershipAccessManager.hasAccess(userB, entityInstanceA1, programA));
     assertFalse(
         trackerOwnershipAccessManager.hasAccess(
-            userB,
-            entityInstanceA1.getUid(),
-            entityInstanceA1.getOrganisationUnit(),
-            programA));
+            userB, entityInstanceA1.getUid(), entityInstanceA1.getOrganisationUnit(), programA));
 
     injectSecurityContextUser(userB);
     ForbiddenException exception =
@@ -310,7 +307,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   void shouldNotHaveAccessWhenProgramProtectedAndUserNotInCaptureScopeNorHasTemporaryAccess() {
     userB.setTeiSearchOrganisationUnits(Set.of(organisationUnitA));
     userService.updateUser(userB);
-    
+
     assertFalse(trackerOwnershipAccessManager.hasAccess(userB, entityInstanceA1, programA));
     assertFalse(
         trackerOwnershipAccessManager.hasAccess(
