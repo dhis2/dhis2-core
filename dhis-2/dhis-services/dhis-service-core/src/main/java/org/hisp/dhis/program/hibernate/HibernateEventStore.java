@@ -38,7 +38,6 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import org.apache.commons.lang3.time.DateUtils;
-import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.Event;
@@ -68,18 +67,6 @@ public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
       ApplicationEventPublisher publisher,
       AclService aclService) {
     super(entityManager, jdbcTemplate, publisher, Event.class, aclService, false);
-  }
-
-  @Override
-  public boolean existsIncludingDeleted(String uid) {
-    if (uid == null) {
-      return false;
-    }
-
-    Query<?> query = nativeSynchronizedQuery("select exists(select 1 from event where uid=:uid)");
-    query.setParameter("uid", uid);
-
-    return ((Boolean) query.getSingleResult()).booleanValue();
   }
 
   @Override

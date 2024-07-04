@@ -78,12 +78,6 @@ public class DefaultEventService implements EventService {
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public boolean eventExistsIncludingDeleted(String uid) {
-    return eventStore.existsIncludingDeleted(uid);
-  }
-
-  @Override
   @Transactional
   public void saveEventDataValuesAndSaveEvent(
       Event event, Map<DataElement, EventDataValue> dataElementEventDataValueMap) {
