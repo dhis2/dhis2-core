@@ -542,7 +542,9 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
       throws ForbiddenException, NotFoundException, BadRequestException {
     programA.setAccessLevel(AccessLevel.OPEN);
     programService.updateProgram(programA);
-    userB.setTeiSearchOrganisationUnits(Set.of(organisationUnitA));
+    userB.setOrganisationUnits(Set.of(organisationUnitA));
+    userB.setTeiSearchOrganisationUnits(Set.of(organisationUnitB));
+    userService.updateUser(userB);
     injectSecurityContext(UserDetails.fromUser(userB));
 
     assertEquals(
