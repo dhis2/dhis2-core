@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.imports.bundle.persister;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
@@ -55,6 +56,8 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
   private final EnrollmentService enrollmentService;
 
   private final TrackedEntityService teService;
+
+  private final IdentifiableObjectManager manager;
 
   private final EventService eventService;
 
@@ -116,7 +119,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
       Entity objectReport = new Entity(TrackerType.EVENT, uid);
 
-      Event event = eventService.getEvent(uid);
+      Event event = manager.get(Event.class, uid);
       event.setLastUpdatedByUserInfo(bundle.getUserInfo());
 
       eventService.deleteEvent(event);
