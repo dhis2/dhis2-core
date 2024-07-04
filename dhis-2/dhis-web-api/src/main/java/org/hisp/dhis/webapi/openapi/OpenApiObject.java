@@ -205,19 +205,18 @@ public interface OpenApiObject extends JsonObject {
   interface OperationObject extends JsonObject {
 
     default String operationId() {
-      return getString("").string();
+      return getString("operationId").string();
     }
 
     default String operationMethod() {
-      String path = path();
-      return path.substring(path.lastIndexOf('.') + 1);
+      return node().getPath().segments().get(2).substring(1);
     }
 
     default String operationPath() {
-      String path = path();
-      int from = path.indexOf(".paths.");
-      int to = path.lastIndexOf('.');
-      return path.substring(from + 7, to);
+      String path = node().getPath().segments().get(1);
+      return path.startsWith("{") && path.endsWith("}")
+          ? path.substring(1, path.length() - 1)
+          : path.substring(1);
     }
 
     default String x_package() {
@@ -258,7 +257,7 @@ public interface OpenApiObject extends JsonObject {
     }
 
     default List<ParameterObject> parameters(Api.Parameter.In in) {
-      return parameters().stream().filter(p -> p.in() == in).toList();
+      return parameters().stream().filter(p -> p.resolve().in() == in).toList();
     }
   }
 
@@ -291,7 +290,7 @@ public interface OpenApiObject extends JsonObject {
     }
 
     default SchemaObject schema() {
-      return get("schema", SchemaObject.class);
+      return get("schema", SchemaObject.class).resolve();
     }
 
     default ParameterObject resolve() {
@@ -303,7 +302,11 @@ public interface OpenApiObject extends JsonObject {
     }
 
     default boolean isShared() {
-      return node().getPath().startsWith("$.components");
+      return node().getPath().toString().startsWith(".components.parameters");
+    }
+
+    default String getSharedName() {
+      return isShared() ? node().getPath().toString().substring(24) : null;
     }
   }
 
@@ -343,8 +346,25 @@ public interface OpenApiObject extends JsonObject {
 
   interface SchemaObject extends JsonObject {
 
-    // TODO Schema resolve(); always returns the referenced schema if a $ref was used otherwise the
-    // inline defined schema
+    default SchemaObject resolve() {
+      JsonString $ref = getString("$ref");
+      if (!$ref.exists()) return this;
+      String comp = $ref.string();
+      String path = "components.schemas{" + comp.substring(21) + "}";
+      return node().getRoot().lift(getAccessStore()).asObject().get(path, SchemaObject.class);
+    }
+
+    default boolean isShared() {
+      return node().getPath().toString().startsWith(".components.schemas");
+    }
+
+    default String getSharedName() {
+      return isShared() ? node().getPath().toString().substring(20) : null;
+    }
+
+    /*
+    From JSON schema spec...
+     */
 
     @Validation(oneOfValues = {"string", "array", "integer", "number", "boolean", "object"})
     default String $type() {
