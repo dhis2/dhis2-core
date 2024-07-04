@@ -383,28 +383,16 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
       orgUnitCode = enrollment.getOrganisationUnit().getCode();
     }
 
-    List<RuleAttributeValue> ruleAttributeValues;
+    List<RuleAttributeValue> ruleAttributeValues =
+        trackedEntityAttributeValues.stream()
+            .filter(Objects::nonNull)
+            .map(
+                attr ->
+                    new RuleAttributeValue(
+                        attr.getAttribute().getUid(), getTrackedEntityAttributeValue(attr)))
+            .toList();
 
-    if (enrollment.getEntityInstance() != null) {
-      ruleAttributeValues =
-          enrollment.getEntityInstance().getTrackedEntityAttributeValues().stream()
-              .filter(Objects::nonNull)
-              .map(
-                  attr ->
-                      RuleAttributeValue.create(
-                          attr.getAttribute().getUid(), getTrackedEntityAttributeValue(attr)))
-              .collect(Collectors.toList());
-    } else {
-      ruleAttributeValues =
-          trackedEntityAttributeValues.stream()
-              .filter(Objects::nonNull)
-              .map(
-                  attr ->
-                      RuleAttributeValue.create(
-                          attr.getAttribute().getUid(), getTrackedEntityAttributeValue(attr)))
-              .collect(Collectors.toList());
-    }
-    return RuleEnrollment.create(
+    return new RuleEnrollment(
         enrollment.getUid(),
         enrollment.getIncidentDate(),
         enrollment.getEnrollmentDate(),
