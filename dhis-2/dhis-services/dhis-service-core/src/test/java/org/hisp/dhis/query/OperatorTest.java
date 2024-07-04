@@ -34,7 +34,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Map;
 import org.hisp.dhis.query.operators.BetweenOperator;
+import org.hisp.dhis.query.operators.EmptyOperator;
 import org.hisp.dhis.query.operators.EqualOperator;
 import org.hisp.dhis.query.operators.GreaterEqualOperator;
 import org.hisp.dhis.query.operators.GreaterThanOperator;
@@ -407,5 +409,47 @@ class OperatorTest {
     assertFalse(operator.test("operator"));
     assertFalse(operator.test("OPERATOR"));
     assertTrue(operator.test("abc"));
+  }
+
+  @Test
+  void testEqualMap() {
+    EqualOperator<Integer> operator = new EqualOperator<>(0);
+    assertFalse(operator.test(Map.of("key", "value")));
+    assertTrue(operator.test(Map.of()));
+  }
+
+  @Test
+  void testGteMap() {
+    GreaterEqualOperator<Integer> operator = new GreaterEqualOperator<>(1);
+    assertTrue(operator.test(Map.of("key", "value")));
+    assertFalse(operator.test(Map.of()));
+  }
+
+  @Test
+  void testGtMap() {
+    GreaterThanOperator<Integer> operator = new GreaterThanOperator<>(0);
+    assertTrue(operator.test(Map.of("key", "value")));
+    assertFalse(operator.test(Map.of()));
+  }
+
+  @Test
+  void testLtMap() {
+    LessThanOperator<Integer> operator = new LessThanOperator<>(1);
+    assertFalse(operator.test(Map.of("key", "value")));
+    assertTrue(operator.test(Map.of()));
+  }
+
+  @Test
+  void testLteMap() {
+    LessEqualOperator<Integer> operator = new LessEqualOperator<>(1);
+    assertTrue(operator.test(Map.of("key", "value")));
+    assertFalse(operator.test(Map.of("key", "value", "key2", "value2")));
+  }
+
+  @Test
+  void testEmptyMap() {
+    EmptyOperator operator = new EmptyOperator();
+    assertTrue(operator.test(Map.of()));
+    assertFalse(operator.test(Map.of("key", "value")));
   }
 }
