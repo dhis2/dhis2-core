@@ -41,14 +41,6 @@ public interface EventService {
   void deleteEvent(Event event);
 
   /**
-   * Returns the {@link Event} with the given UID.
-   *
-   * @param uid the UID.
-   * @return the Event with the given UID, or null if no match.
-   */
-  Event getEvent(String uid);
-
-  /**
    * Validates EventDataValues, handles files for File EventDataValues and creates audit logs for
    * the upcoming create/save changes. DOES PERSIST the changes to the Event object.
    *

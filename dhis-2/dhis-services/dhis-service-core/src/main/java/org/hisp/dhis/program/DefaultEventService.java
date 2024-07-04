@@ -72,12 +72,6 @@ public class DefaultEventService implements EventService {
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public Event getEvent(String uid) {
-    return eventStore.getByUid(uid);
-  }
-
-  @Override
   @Transactional
   public void saveEventDataValuesAndSaveEvent(
       Event event, Map<DataElement, EventDataValue> dataElementEventDataValueMap) {
