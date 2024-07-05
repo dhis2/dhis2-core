@@ -63,7 +63,6 @@ class EnrollmentOperationParamsMapper {
   public EnrollmentQueryParams map(EnrollmentOperationParams operationParams)
       throws BadRequestException, ForbiddenException {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    UserDetails userDetails = CurrentUserUtil.getCurrentUserDetails();
 
     Program program =
         paramsValidator.validateTrackerProgram(operationParams.getProgramUid(), currentUser);
