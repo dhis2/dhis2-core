@@ -332,7 +332,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       log.warn(ORG_UNIT_NO_USER_ASSIGNED, event.getUid());
     } else if (isCreatableInSearchScope
         ? !user.isInUserSearchHierarchy(eventOrgUnit.getPath())
-        : !user.isInUserDataHierarchy(eventOrgUnit.getPath())) {
+        : !user.isInUserHierarchy(eventOrgUnit.getPath())) {
       reporter.addError(event, ValidationCode.E1000, user, eventOrgUnit);
     }
   }

@@ -36,7 +36,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChan
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
-import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
+import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.springframework.stereotype.Component;
 
@@ -107,9 +107,9 @@ public class TrackedEntityPersister
   }
 
   @Override
-  protected TrackerSideEffectDataBundle handleSideEffects(
+  protected TrackerNotificationDataBundle handleNotifications(
       TrackerBundle bundle, TrackedEntity entity) {
-    return TrackerSideEffectDataBundle.builder().build();
+    return TrackerNotificationDataBundle.builder().build();
   }
 
   @Override

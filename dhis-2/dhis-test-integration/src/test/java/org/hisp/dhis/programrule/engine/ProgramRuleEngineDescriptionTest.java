@@ -33,11 +33,13 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.programrule.ProgramRule;
@@ -50,6 +52,7 @@ import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.tracker.imports.programrule.engine.ProgramRuleEngine;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,6 +61,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Zubair Asghar
  */
 class ProgramRuleEngineDescriptionTest extends SingleSetupIntegrationTestBase {
+  private static final UID PROGRAM_UID = UID.of("BFcipDERJnf");
 
   private String conditionTextAtt =
       "A{Program_Rule_Variable_Text_Attr} == 'text_att' || d2:hasValue(V{current_date})";
@@ -159,6 +163,7 @@ class ProgramRuleEngineDescriptionTest extends SingleSetupIntegrationTestBase {
     attributeService.addTrackedEntityAttribute(textAttribute);
     attributeService.addTrackedEntityAttribute(numericAttribute);
     program = createProgram('P');
+    program.setUid(PROGRAM_UID.getValue());
     programService.addProgram(program);
     programRuleVariableTextAtt = createProgramRuleVariableWithTEA('R', program, textAttribute);
     programRuleVariableNumericAtt =
@@ -204,7 +209,7 @@ class ProgramRuleEngineDescriptionTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testProgramRuleWithTextTrackedEntityAttribute() {
+  void testProgramRuleWithTextTrackedEntityAttribute() throws BadRequestException {
     RuleValidationResult result = validateRuleCondition(programRuleTextAtt.getCondition(), program);
     assertNotNull(result);
     assertEquals("AttributeA == 'text_att' || d2:hasValue(Current date)", result.getDescription());
@@ -212,7 +217,7 @@ class ProgramRuleEngineDescriptionTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testProgramRuleWithCalculatedValueRuleVariable() {
+  void testProgramRuleWithCalculatedValueRuleVariable() throws BadRequestException {
     RuleValidationResult result = validateRuleCondition("#{prv1}+#{prv2}>0", program);
 
     assertNotNull(result);
@@ -221,7 +226,7 @@ class ProgramRuleEngineDescriptionTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testProgramRuleWithD2HasValueTrackedEntityAttribute() {
+  void testProgramRuleWithD2HasValueTrackedEntityAttribute() throws BadRequestException {
     RuleValidationResult result =
         validateRuleCondition(programRuleWithD2HasValue.getCondition(), program);
     assertNotNull(result);
@@ -230,7 +235,7 @@ class ProgramRuleEngineDescriptionTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testProgramRuleWithD2HasValueTrackedEntityAttribute2() {
+  void testProgramRuleWithD2HasValueTrackedEntityAttribute2() throws BadRequestException {
     programRuleWithD2HasValue.setCondition(conditionWithD2HasValue2);
     RuleValidationResult result =
         validateRuleCondition(programRuleWithD2HasValue.getCondition(), program);
@@ -240,7 +245,7 @@ class ProgramRuleEngineDescriptionTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testProgramRuleWithNumericTrackedEntityAttribute() {
+  void testProgramRuleWithNumericTrackedEntityAttribute() throws BadRequestException {
     RuleValidationResult result =
         validateRuleCondition(programRuleNumericAtt.getCondition(), program);
     assertNotNull(result);
@@ -249,7 +254,7 @@ class ProgramRuleEngineDescriptionTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testProgramRuleWithNumericTrackedEntityAttributeWithOr() {
+  void testProgramRuleWithNumericTrackedEntityAttributeWithOr() throws BadRequestException {
     RuleValidationResult result = validateRuleCondition(conditionNumericAttWithOR, program);
     assertNotNull(result);
     assertEquals("AttributeB == 12 or d2:hasValue(Current date)", result.getDescription());
@@ -257,7 +262,7 @@ class ProgramRuleEngineDescriptionTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testProgramRuleWithNumericTrackedEntityAttributeWithAnd() {
+  void testProgramRuleWithNumericTrackedEntityAttributeWithAnd() throws BadRequestException {
     RuleValidationResult result = validateRuleCondition(conditionNumericAttWithAND, program);
     assertNotNull(result); // new environment variable must be added in this map
     assertEquals("AttributeB == 12 and d2:hasValue(Current date)", result.getDescription());
@@ -265,7 +270,7 @@ class ProgramRuleEngineDescriptionTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testProgramRuleWithTextDataElement() {
+  void testProgramRuleWithTextDataElement() throws BadRequestException {
     RuleValidationResult result = validateRuleCondition(programRuleTextDE.getCondition(), program);
     assertNotNull(result);
     assertEquals("DataElementD == 'text_de'", result.getDescription());
@@ -273,7 +278,7 @@ class ProgramRuleEngineDescriptionTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testProgramRuleWithNumericDataElement() {
+  void testProgramRuleWithNumericDataElement() throws BadRequestException {
     RuleValidationResult result =
         validateRuleCondition(programRuleNumericDE.getCondition(), program);
     assertNotNull(result);
@@ -282,7 +287,7 @@ class ProgramRuleEngineDescriptionTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testProgramRuleWithLiterals() {
+  void testProgramRuleWithLiterals() throws BadRequestException {
     RuleValidationResult result = validateRuleCondition(conditionLiteralString, program);
     assertNotNull(result);
     assertEquals("1 > 2", result.getDescription());
@@ -290,7 +295,7 @@ class ProgramRuleEngineDescriptionTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testProgramRuleWithD2DaysBetween() {
+  void testProgramRuleWithD2DaysBetween() throws BadRequestException {
     RuleValidationResult result = validateRuleCondition(conditionWithD2DaysBetween, program);
     assertNotNull(result);
     assertEquals("d2:daysBetween(Completed date,Current date) > 0", result.getDescription());
@@ -298,7 +303,7 @@ class ProgramRuleEngineDescriptionTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testIncorrectRuleWithLiterals() {
+  void testIncorrectRuleWithLiterals() throws BadRequestException {
     RuleValidationResult result = validateRuleCondition("1 > 2 +", program);
     assertNotNull(result);
     assertFalse(result.getValid());
@@ -306,7 +311,7 @@ class ProgramRuleEngineDescriptionTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testIncorrectRuleWithDataElement() {
+  void testIncorrectRuleWithDataElement() throws BadRequestException {
     RuleValidationResult result = validateRuleCondition(incorrectConditionTextDE, program);
     assertNotNull(result);
     assertFalse(result.getValid());
@@ -314,56 +319,58 @@ class ProgramRuleEngineDescriptionTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testExtractDataMatrixValue() {
+  void testExtractDataMatrixValue() throws BadRequestException {
     RuleValidationResult result = validateRuleCondition(extractDataMatrixValueExpression, program);
     assertNotNull(result);
     assertTrue(result.getValid());
   }
 
   @Test
-  void testDataFieldExpressionDescription() {
+  void testDataFieldExpressionDescription() throws BadRequestException {
     RuleValidationResult result =
-        programRuleEngine.getDataExpressionDescription("1 + 2 +", program);
+        programRuleEngine.getDataExpressionDescription("1 + 2 +", PROGRAM_UID);
     assertNotNull(result);
     assertFalse(result.getValid());
     assertInstanceOf(RuleEngineValidationException.class, result.getException());
     result =
         programRuleEngine.getDataExpressionDescription(
-            "d2:daysBetween(V{completed_date},V{current_date}) > 0 )", program);
+            "d2:daysBetween(V{completed_date},V{current_date}) > 0 )", PROGRAM_UID);
     assertNotNull(result);
     assertFalse(result.getValid());
     assertInstanceOf(RuleEngineValidationException.class, result.getException());
-    result = programRuleEngine.getDataExpressionDescription(conditionWithD2DaysBetween, program);
+    result =
+        programRuleEngine.getDataExpressionDescription(conditionWithD2DaysBetween, PROGRAM_UID);
     assertNotNull(result);
     assertTrue(result.getValid());
     assertEquals("d2:daysBetween(Completed date,Current date) > 0", result.getDescription());
     result =
         programRuleEngine.getDataExpressionDescription(
-            programRuleNumericDE.getCondition(), program);
+            programRuleNumericDE.getCondition(), PROGRAM_UID);
     assertNotNull(result);
     assertTrue(result.getValid());
     assertEquals("DataElementE == 14", result.getDescription());
     result =
         programRuleEngine.getDataExpressionDescription(
-            programRuleNumericAtt.getCondition(), program);
+            programRuleNumericAtt.getCondition(), PROGRAM_UID);
     assertNotNull(result);
     assertTrue(result.getValid());
     assertEquals("AttributeB == 12 || d2:hasValue(Current date)", result.getDescription());
-    result = programRuleEngine.getDataExpressionDescription("'2020-12-12'", program);
+    result = programRuleEngine.getDataExpressionDescription("'2020-12-12'", PROGRAM_UID);
     assertNotNull(result);
     assertTrue(result.getValid());
     assertEquals("'2020-12-12'", result.getDescription());
-    result = programRuleEngine.getDataExpressionDescription("1 + 1", program);
+    result = programRuleEngine.getDataExpressionDescription("1 + 1", PROGRAM_UID);
     assertNotNull(result);
     assertTrue(result.getValid());
     assertEquals("1 + 1", result.getDescription());
-    result = programRuleEngine.getDataExpressionDescription("'sample text'", program);
+    result = programRuleEngine.getDataExpressionDescription("'sample text'", PROGRAM_UID);
     assertNotNull(result);
     assertTrue(result.getValid());
     assertEquals("'sample text'", result.getDescription());
   }
 
-  private RuleValidationResult validateRuleCondition(String condition, Program program) {
-    return programRuleEngine.getDescription(condition, program);
+  private RuleValidationResult validateRuleCondition(String condition, Program program)
+      throws BadRequestException {
+    return programRuleEngine.getDescription(condition, UID.of(program.getUid()));
   }
 }

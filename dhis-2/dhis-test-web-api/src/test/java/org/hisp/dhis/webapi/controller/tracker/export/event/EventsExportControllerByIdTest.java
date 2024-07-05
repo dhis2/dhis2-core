@@ -557,7 +557,7 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
     this.switchContextToUser(user);
 
     GET("/tracker/events/{eventUid}/dataValues/{dataElementUid}/file", event.getUid(), de.getUid())
-        .error(HttpStatus.NOT_FOUND);
+        .error(HttpStatus.FORBIDDEN);
   }
 
   @Test

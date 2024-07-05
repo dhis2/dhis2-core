@@ -37,6 +37,8 @@ import java.util.Optional;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -45,7 +47,6 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
@@ -70,8 +71,6 @@ class RelationshipStoreTest extends TransactionalIntegrationTest {
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
-  @Autowired private EventService eventService;
-
   @Autowired private ProgramService programService;
 
   @Autowired private EnrollmentService enrollmentService;
@@ -80,9 +79,11 @@ class RelationshipStoreTest extends TransactionalIntegrationTest {
 
   @Autowired private AttributeService attributeService;
 
-  private TrackedEntity trackedEntityA;
+  @Autowired private IdentifiableObjectManager manager;
 
-  private TrackedEntity trackedEntityB;
+  @Autowired private CategoryService categoryService;
+
+  private TrackedEntity trackedEntityA;
 
   private RelationshipType relationshipType;
 
@@ -115,7 +116,8 @@ class RelationshipStoreTest extends TransactionalIntegrationTest {
 
     ProgramStage programStageA = addProgramStage(programA);
 
-    Event event = addEvent(enrollment, programStageA);
+    Event event = createEvent(programStageA, enrollment, organisationUnit);
+    manager.save(event);
 
     trackedEntityA = createTrackedEntity(organisationUnit);
     trackedEntityService.addTrackedEntity(trackedEntityA);
@@ -188,7 +190,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest {
 
   private Relationship addTeToTeRelationship() {
     trackedEntityA = createTrackedEntity(organisationUnit);
-    trackedEntityB = createTrackedEntity(organisationUnit);
+    TrackedEntity trackedEntityB = createTrackedEntity(organisationUnit);
 
     trackedEntityService.addTrackedEntity(trackedEntityA);
     trackedEntityService.addTrackedEntity(trackedEntityB);
@@ -243,17 +245,6 @@ class RelationshipStoreTest extends TransactionalIntegrationTest {
 
     relationshipService.addRelationship(relationshipA);
     return relationshipA;
-  }
-
-  private Event addEvent(Enrollment enrollment, ProgramStage programStageA) {
-    Event event = new Event();
-    event.setOrganisationUnit(organisationUnit);
-    event.setProgramStage(programStageA);
-    event.setEnrollment(enrollment);
-    event.setAutoFields();
-
-    eventService.addEvent(event);
-    return event;
   }
 
   private ProgramStage addProgramStage(Program programA) {

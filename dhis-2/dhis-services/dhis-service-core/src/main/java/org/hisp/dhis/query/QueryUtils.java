@@ -118,7 +118,7 @@ public final class QueryUtils {
       if (enumValue != null) {
         return enumValue;
       }
-    } else if (Collection.class.isAssignableFrom(klass)) {
+    } else if (Collection.class.isAssignableFrom(klass) || Map.class.isAssignableFrom(klass)) {
       if (!value.startsWith("[") || !value.endsWith("]")) {
         try {
           return (T) Integer.valueOf(value);

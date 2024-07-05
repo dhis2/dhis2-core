@@ -1653,10 +1653,12 @@ public abstract class DhisConvenienceTest {
       ProgramStage programStage, Enrollment enrollment, OrganisationUnit organisationUnit) {
     Event event = new Event();
     event.setAutoFields();
-
     event.setProgramStage(programStage);
     event.setEnrollment(enrollment);
     event.setOrganisationUnit(organisationUnit);
+    if (categoryService != null) {
+      event.setAttributeOptionCombo(categoryService.getDefaultCategoryOptionCombo());
+    }
     return event;
   }
 

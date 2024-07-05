@@ -39,8 +39,6 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.programrule.api.RuleEngineEffects;
-import org.hisp.dhis.programrule.engine.ProgramRuleEngine;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -48,6 +46,8 @@ import org.hisp.dhis.tracker.imports.converter.RuleEngineConverterService;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.imports.programrule.engine.ProgramRuleEngine;
+import org.hisp.dhis.tracker.imports.programrule.engine.RuleEngineEffects;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -94,8 +94,8 @@ class DefaultProgramRuleService implements ProgramRuleService {
                 calculateTrackerEventRuleEffects(bundle, preheat)),
             calculateProgramEventRuleEffects(bundle, preheat));
 
-    bundle.setEnrollmentNotificationEffects(ruleEffects.getEnrollmentNotificationEffects());
-    bundle.setEventNotificationEffects(ruleEffects.getEventNotificationEffects());
+    bundle.setEnrollmentNotifications(ruleEffects.getEnrollmentNotifications());
+    bundle.setEventNotifications(ruleEffects.getEventNotifications());
     bundle.setEnrollmentRuleActionExecutors(
         ruleActionEnrollmentMapper.mapRuleEffects(
             ruleEffects.getEnrollmentValidationEffects(), bundle));

@@ -62,7 +62,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Component("org.hisp.dhis.sms.listener.SimpleEventSMSListener")
 @Transactional
-public class SimpleEventSMSListener extends CompressionSMSListener {
+public class SimpleEventSMSListener extends EventSavingSMSListener {
   private final EnrollmentService enrollmentService;
 
   public SimpleEventSMSListener(
@@ -88,9 +88,8 @@ public class SimpleEventSMSListener extends CompressionSMSListener {
         organisationUnitService,
         categoryService,
         dataElementService,
-        eventService,
-        identifiableObjectManager);
-
+        identifiableObjectManager,
+        eventService);
     this.enrollmentService = enrollmentService;
   }
 
@@ -155,7 +154,6 @@ public class SimpleEventSMSListener extends CompressionSMSListener {
             orgUnit,
             programStage,
             enrollment,
-            sms,
             aoc,
             user,
             subm.getValues(),

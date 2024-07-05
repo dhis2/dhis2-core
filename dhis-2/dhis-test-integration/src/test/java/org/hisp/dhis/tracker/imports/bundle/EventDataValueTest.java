@@ -40,7 +40,6 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -61,7 +60,6 @@ class EventDataValueTest extends TrackerTest {
 
   @Autowired private IdentifiableObjectManager manager;
 
-  @Autowired private EventService eventService;
   @Autowired protected UserService _userService;
 
   @Override
@@ -121,10 +119,10 @@ class EventDataValueTest extends TrackerTest {
     assertNoErrors(importReport);
     List<Event> updatedEvents = manager.getAll(Event.class);
     assertEquals(1, updatedEvents.size());
-    Event updatedPsi = eventService.getEvent(updatedEvents.get(0).getUid());
-    assertEquals(3, updatedPsi.getEventDataValues().size());
+    Event updatedEvent = manager.get(Event.class, updatedEvents.get(0).getUid());
+    assertEquals(3, updatedEvent.getEventDataValues().size());
     List<String> values =
-        updatedPsi.getEventDataValues().stream()
+        updatedEvent.getEventDataValues().stream()
             .map(EventDataValue::getValue)
             .collect(Collectors.toList());
     assertThat(values, hasItem("First"));
@@ -135,7 +133,7 @@ class EventDataValueTest extends TrackerTest {
         eventDataValues.stream()
             .collect(Collectors.toMap(EventDataValue::getDataElement, ev -> ev));
     Map<String, EventDataValue> updatedDataValueMap =
-        updatedPsi.getEventDataValues().stream()
+        updatedEvent.getEventDataValues().stream()
             .collect(Collectors.toMap(EventDataValue::getDataElement, ev -> ev));
 
     String updatedDataElementId = "DATAEL00004";
