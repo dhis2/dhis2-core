@@ -431,7 +431,7 @@ public class CrudControllerAdvice {
   @ResponseBody
   public WebMessage persistenceExceptionHandler(PersistenceException ex) {
     String helpfulMessage = getHelpfulMessage(ex);
-    return helpfulMessage != null ? conflict(helpfulMessage) : conflict(ex.getMessage());
+    return conflict(helpfulMessage);
   }
 
   @ExceptionHandler(AccessDeniedException.class)
@@ -718,10 +718,10 @@ public class CrudControllerAdvice {
    * Detail: Key (sourceid, dataelementid, categoryoptioncomboid)=(x, y, z) already exists"</i></b>.
    *
    * @param ex exception to check
-   * @return detailed message or null if none available
+   * @return detailed message or original exception message
    */
   @Nullable
-  private String getHelpfulMessage(PersistenceException ex) {
+  public static String getHelpfulMessage(PersistenceException ex) {
     Throwable cause = ex.getCause();
 
     if (cause != null) {
@@ -730,6 +730,6 @@ public class CrudControllerAdvice {
         return rootCause.getMessage();
       }
     }
-    return null;
+    return ex.getMessage();
   }
 }

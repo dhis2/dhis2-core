@@ -36,7 +36,9 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.changelog.ChangeLogType;
@@ -105,7 +107,7 @@ import org.hisp.dhis.programrule.ProgramRuleVariableStore;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.command.hibernate.SMSCommandStore;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
@@ -127,7 +129,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * <p>- Check that source DataElements have had their references removed/replaced with the target
  * DataElement
  */
-class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
+class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private DataElementService dataElementService;
   @Autowired private DataElementMergeProcessor mergeProcessor;
@@ -1271,15 +1273,22 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     EventDataValue edv2 = new EventDataValue(deSource2.getUid(), "value2");
     EventDataValue edv3 = new EventDataValue(deTarget.getUid(), "value3");
     EventDataValue edv4 = new EventDataValue(deRandom.getUid(), "value4");
+    DataElement anotherDe1 = createDataElement('q');
+    DataElement anotherDe2 = createDataElement('r');
+    identifiableObjectManager.save(List.of(anotherDe1, anotherDe2));
+    EventDataValue edv5 = new EventDataValue(anotherDe1.getUid(), "value4");
+    EventDataValue edv6 = new EventDataValue(anotherDe2.getUid(), "value5");
     Set<EventDataValue> edvs1 = new HashSet<>();
     edvs1.add(edv1);
     edvs1.add(edv11);
     edvs1.add(edv2);
     edvs1.add(edv3);
+    edvs1.add(edv5);
     Set<EventDataValue> edvs2 = new HashSet<>();
     Set<EventDataValue> edvs3 = new HashSet<>();
     Set<EventDataValue> edvs4 = new HashSet<>();
     edvs2.add(edv2);
+    edvs2.add(edv6);
     edvs3.add(edv3);
     edvs4.add(edv4);
 
@@ -1299,32 +1308,34 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     List<Event> eventSources =
         eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(
             List.of(deSource1.getUid(), deSource2.getUid()));
-    List<Event> eventTarget =
+    List<Event> targetEvents =
         eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(List.of(deTarget.getUid()));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
-    List<EventDataValue> allTargetEventDataValues =
-        eventTarget.stream().flatMap(e -> e.getEventDataValues().stream()).toList();
-    assertEquals(3, allTargetEventDataValues.size());
-    eventDataValuesShouldHaveOnlyOneUniqueDataElementRef(eventTarget, deTarget.getUid());
+    Map<Boolean, List<EventDataValue>> allTargetEventDataValues =
+        targetEvents.stream()
+            .flatMap(e -> e.getEventDataValues().stream())
+            .collect(
+                Collectors.partitioningBy(edv -> edv.getDataElement().equals(deTarget.getUid())));
 
-    assertMergeSuccessfulSourcesNotDeleted(report, eventSources, eventTarget, allDataElements);
-  }
+    assertEquals(
+        3, allTargetEventDataValues.get(true).size(), "3 target EventDataValues are present");
+    assertEquals(
+        2,
+        allTargetEventDataValues.get(false).size(),
+        "2 unrelated EventDataValues are still present");
 
-  private void eventDataValuesShouldHaveOnlyOneUniqueDataElementRef(
-      List<Event> targetEvents, String targetUid) {
-    for (Event e : targetEvents) {
-      assertEquals(1, e.getEventDataValues().size());
-      assertEquals(
-          targetUid,
-          e.getEventDataValues().stream().map(EventDataValue::getDataElement).toList().get(0));
-    }
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, eventSources.size(), "Expect 0 entries with source data element refs");
+    assertEquals(3, targetEvents.size(), "Expect 3 entries with target data element refs");
+    assertEquals(6, allDataElements.size(), "Expect 6 data elements present");
+    assertTrue(allDataElements.containsAll(List.of(deTarget, deSource1, deSource2)));
   }
 
   @Test
   @DisplayName(
-      "Event eventDataValues references to source DataElements are replaced with target DataElement, source DataElements are deleted")
-  void eventMergeSourcesDeletedTest() throws ConflictException {
+      "Event eventDataValues references to source DataElements are deleted when using DISCARD merge strategy")
+  void eventMergeDiscardTest() throws ConflictException {
     // given
     TrackedEntity trackedEntity = createTrackedEntity(ou1);
     identifiableObjectManager.save(trackedEntity);
@@ -1347,15 +1358,108 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     EventDataValue edv2 = new EventDataValue(deSource2.getUid(), "value2");
     EventDataValue edv3 = new EventDataValue(deTarget.getUid(), "value3");
     EventDataValue edv4 = new EventDataValue(deRandom.getUid(), "value4");
+    DataElement anotherDe1 = createDataElement('q');
+    DataElement anotherDe2 = createDataElement('r');
+    identifiableObjectManager.save(List.of(anotherDe1, anotherDe2));
+    EventDataValue edv5 = new EventDataValue(anotherDe1.getUid(), "value4");
+    EventDataValue edv6 = new EventDataValue(anotherDe2.getUid(), "value5");
     Set<EventDataValue> edvs1 = new HashSet<>();
     edvs1.add(edv1);
     edvs1.add(edv11);
     edvs1.add(edv2);
     edvs1.add(edv3);
+    edvs1.add(edv5);
     Set<EventDataValue> edvs2 = new HashSet<>();
     Set<EventDataValue> edvs3 = new HashSet<>();
     Set<EventDataValue> edvs4 = new HashSet<>();
     edvs2.add(edv2);
+    edvs2.add(edv6);
+    edvs3.add(edv3);
+    edvs4.add(edv4);
+
+    e1.setEventDataValues(edvs1);
+    e2.setEventDataValues(edvs2);
+    e3.setEventDataValues(edvs3);
+    e4.setEventDataValues(edvs4);
+    identifiableObjectManager.save(List.of(e1, e2, e3, e4));
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDataMergeStrategy(DataMergeStrategy.DISCARD);
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<Event> eventSources =
+        eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(
+            List.of(deSource1.getUid(), deSource2.getUid()));
+    List<Event> targetEvents =
+        eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(List.of(deTarget.getUid()));
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    Map<Boolean, List<EventDataValue>> allTargetEventDataValues =
+        targetEvents.stream()
+            .flatMap(e -> e.getEventDataValues().stream())
+            .collect(
+                Collectors.partitioningBy(edv -> edv.getDataElement().equals(deTarget.getUid())));
+
+    assertEquals(
+        2, allTargetEventDataValues.get(true).size(), "2 target EventDataValues are present");
+    assertEquals(
+        1,
+        allTargetEventDataValues.get(false).size(),
+        "1 unrelated EventDataValues are still present");
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, eventSources.size(), "Expect 0 entries with source data element refs");
+    assertEquals(2, targetEvents.size(), "Expect 2 entries with target data element refs");
+    assertEquals(6, allDataElements.size(), "Expect 6 data elements present");
+    assertTrue(allDataElements.containsAll(List.of(deTarget, deSource1, deSource2)));
+  }
+
+  @Test
+  @DisplayName(
+      "Event eventDataValues references to source DataElements are replaced with target DataElement, source DataElements are deleted")
+  void eventMergeSourcesDeletedTest() throws ConflictException {
+    // given
+    TrackedEntity trackedEntity = createTrackedEntity(ou1);
+    identifiableObjectManager.save(trackedEntity);
+    Enrollment enrollment = createEnrollment(program, trackedEntity, ou1);
+    identifiableObjectManager.save(enrollment);
+    ProgramStage stage = createProgramStage('t', 2);
+    identifiableObjectManager.save(stage);
+
+    Event e1 = createEvent(stage, enrollment, ou1);
+    e1.setAttributeOptionCombo(coc1);
+    Event e2 = createEvent(stage, enrollment, ou1);
+    e2.setAttributeOptionCombo(coc1);
+    Event e3 = createEvent(stage, enrollment, ou1);
+    e3.setAttributeOptionCombo(coc1);
+    Event e4 = createEvent(stage, enrollment, ou1);
+    e4.setAttributeOptionCombo(coc1);
+
+    EventDataValue edv1 = new EventDataValue(deSource1.getUid(), "value1");
+    EventDataValue edv11 = new EventDataValue(deSource1.getUid(), "value11");
+    EventDataValue edv2 = new EventDataValue(deSource2.getUid(), "value2");
+    EventDataValue edv3 = new EventDataValue(deTarget.getUid(), "value3");
+    EventDataValue edv4 = new EventDataValue(deRandom.getUid(), "value4");
+    DataElement anotherDe1 = createDataElement('q');
+    DataElement anotherDe2 = createDataElement('r');
+    identifiableObjectManager.save(List.of(anotherDe1, anotherDe2));
+    EventDataValue edv5 = new EventDataValue(anotherDe1.getUid(), "value4");
+    EventDataValue edv6 = new EventDataValue(anotherDe2.getUid(), "value5");
+    Set<EventDataValue> edvs1 = new HashSet<>();
+    edvs1.add(edv1);
+    edvs1.add(edv11);
+    edvs1.add(edv2);
+    edvs1.add(edv3);
+    edvs1.add(edv5);
+    Set<EventDataValue> edvs2 = new HashSet<>();
+    Set<EventDataValue> edvs3 = new HashSet<>();
+    Set<EventDataValue> edvs4 = new HashSet<>();
+    edvs2.add(edv2);
+    edvs2.add(edv6);
     edvs3.add(edv3);
     edvs4.add(edv4);
 
@@ -1376,11 +1480,29 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     List<Event> eventSources =
         eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(
             List.of(deSource1.getUid(), deSource2.getUid()));
-    List<Event> eventTarget =
+    List<Event> targetEvents =
         eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(List.of(deTarget.getUid()));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
-    assertMergeSuccessfulSourcesDeleted(report, eventSources, eventTarget, allDataElements);
+    Map<Boolean, List<EventDataValue>> allTargetEventDataValues =
+        targetEvents.stream()
+            .flatMap(e -> e.getEventDataValues().stream())
+            .collect(
+                Collectors.partitioningBy(edv -> edv.getDataElement().equals(deTarget.getUid())));
+
+    assertEquals(
+        3, allTargetEventDataValues.get(true).size(), "3 target EventDataValues are present");
+    assertEquals(
+        2,
+        allTargetEventDataValues.get(false).size(),
+        "2 unrelated EventDataValues are still present");
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, eventSources.size(), "Expect 0 entries with source data element refs");
+    assertEquals(3, targetEvents.size(), "Expect 3 entries with target data element refs");
+    assertEquals(4, allDataElements.size(), "Expect 4 data elements present");
+    assertTrue(allDataElements.contains(deTarget));
+    assertFalse(allDataElements.containsAll(List.of(deSource1, deSource2)));
   }
 
   // -------------------------------

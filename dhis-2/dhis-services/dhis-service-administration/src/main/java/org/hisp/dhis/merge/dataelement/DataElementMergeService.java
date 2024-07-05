@@ -177,7 +177,7 @@ public class DataElementMergeService implements MergeService {
 
     dataMergeHandlers =
         ImmutableList.<DataElementDataMergeHandler>builder()
-            .add(trackerMergeHandler::handleEventEventDataValues)
+            .add(trackerMergeHandler::handleEventDataValues)
             .add(dataDataElementMergeHandler::handleDataValueDataElement)
             .build();
 

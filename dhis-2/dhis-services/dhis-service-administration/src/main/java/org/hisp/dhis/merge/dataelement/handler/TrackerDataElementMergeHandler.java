@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.merge.dataelement.handler;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.Nonnull;
-import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -37,6 +39,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.merge.DataMergeStrategy;
 import org.hisp.dhis.merge.MergeRequest;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventStore;
@@ -74,7 +77,6 @@ public class TrackerDataElementMergeHandler {
   private final ProgramIndicatorStore programIndicatorStore;
   private final EventStore eventStore;
   private final TrackedEntityDataValueChangeLogStore teDataValueChangeLogStore;
-  private final EntityManager entityManager;
 
   /**
    * Method retrieving {@link ProgramIndicator}s which have a source {@link DataElement} reference
@@ -213,19 +215,62 @@ public class TrackerDataElementMergeHandler {
    *     eventDataValues
    * @param request merge request
    */
-  public void handleEventEventDataValues(
+  public void handleEventDataValues(
       List<DataElement> sources, DataElement target, MergeRequest request) {
     List<String> sourceDeUids = IdentifiableObjectUtils.getUids(sources);
-    List<Event> events = eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(sourceDeUids);
+    List<Event> sourceEvents =
+        eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(sourceDeUids);
+    log.info(
+        sourceEvents.size() + " events found with source data element refs in event data values");
 
-    // possibly need to use last updated strategy, or else just delete source event data values
-    // might need to check for duplicates here (if target DE uid is already present in edvs)
-    events.stream()
-        .flatMap(e -> e.getEventDataValues().stream())
-        .filter(edv -> sourceDeUids.contains(edv.getDataElement()))
-        .forEach(edv -> edv.setDataElement(target.getUid()));
+    DataMergeStrategy mergeStrategy = request.getDataMergeStrategy();
 
-    events.forEach(entityManager::merge);
+    if (DataMergeStrategy.DISCARD == mergeStrategy) {
+      log.info(mergeStrategy + " dataMergeStrategy being used, deleting source event data values");
+      sourceEvents.forEach(
+          e -> e.getEventDataValues().removeIf(edv -> sourceDeUids.contains(edv.getDataElement())));
+    } else if (DataMergeStrategy.LAST_UPDATED == mergeStrategy) {
+      log.info(mergeStrategy + " dataMergeStrategy being used");
+      handleEventDataValueMerge(sourceDeUids, sourceEvents, target);
+    }
+  }
+
+  private void handleEventDataValueMerge(
+      List<String> sourceDeUids, List<Event> sourceEvents, DataElement target) {
+    sourceEvents.forEach(
+        event -> {
+          Set<EventDataValue> eventDataValues = event.getEventDataValues();
+
+          // only operate on EDVs with source & target refs
+          List<EventDataValue> sourceAndTargetEdvs =
+              eventDataValues.stream()
+                  .filter(
+                      edv ->
+                          edv.getDataElement().equals(target.getUid())
+                              || sourceDeUids.contains(edv.getDataElement()))
+                  .toList();
+
+          setLastUpdatedAsTargetAndRemoveRemaining(
+              sourceAndTargetEdvs, eventDataValues, target.getUid());
+        });
+  }
+
+  private void setLastUpdatedAsTargetAndRemoveRemaining(
+      List<EventDataValue> sourceAndTargetEdvs,
+      Set<EventDataValue> eventDataValues,
+      String targetUid) {
+    // use last update of all source edv & target edv that are present in event
+    EventDataValue lastUpdateEventDataValue =
+        Collections.max(sourceAndTargetEdvs, Comparator.comparing(EventDataValue::getLastUpdated));
+
+    // remove all
+    sourceAndTargetEdvs.forEach(eventDataValues::remove);
+
+    // set latest last update to target
+    lastUpdateEventDataValue.setDataElement(targetUid);
+
+    // add latest
+    eventDataValues.add(lastUpdateEventDataValue);
   }
 
   /**

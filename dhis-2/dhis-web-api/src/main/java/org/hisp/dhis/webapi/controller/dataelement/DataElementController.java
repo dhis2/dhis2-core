@@ -28,8 +28,10 @@
 package org.hisp.dhis.webapi.controller.dataelement;
 
 import static org.hisp.dhis.security.Authorities.F_DATA_ELEMENT_MERGE;
+import static org.hisp.dhis.webapi.controller.CrudControllerAdvice.getHelpfulMessage;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import javax.persistence.PersistenceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dataelement.DataElement;
@@ -71,7 +73,14 @@ public class DataElementController extends AbstractCrudController<DataElement> {
     log.info("Data element merge received");
     params.setMergeType(MergeType.DATA_ELEMENT);
 
-    MergeReport report = dataElementMergeProcessor.processMerge(params);
+    MergeReport report;
+    try {
+      report = dataElementMergeProcessor.processMerge(params);
+    } catch (PersistenceException ex) {
+      String helpfulMessage = getHelpfulMessage(ex);
+      log.error("Error while processing Data element merge: {}", helpfulMessage);
+      throw ex;
+    }
 
     log.info("Data element merge processed with report: {}", report);
     return WebMessageUtils.mergeReport(report);

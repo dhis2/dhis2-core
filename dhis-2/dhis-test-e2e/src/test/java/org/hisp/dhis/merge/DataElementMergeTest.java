@@ -93,6 +93,8 @@ class DataElementMergeTest extends ApiTest {
     sourceUid2 = setupDataElement("B", "TEXT", "AGGREGATE");
     targetUid = setupDataElement("C", "TEXT", "AGGREGATE");
 
+    // add more metadata with source De refs
+
     // login as user with merge auth
     loginActions.loginAsUser("userWithMergeAuth", "Test1234!");
 
