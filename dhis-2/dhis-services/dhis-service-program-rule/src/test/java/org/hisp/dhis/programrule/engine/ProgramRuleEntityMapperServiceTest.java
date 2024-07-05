@@ -302,7 +302,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
   @Test
   void testMappedEnrollment() {
     RuleEnrollment ruleEnrollment =
-        subject.toMappedRuleEnrollment(enrollment, List.of(trackedEntityAttributeValue));
+        subject.toMappedRuleEnrollment(programInstance, List.of(trackedEntityAttributeValue));
 
     assertEquals(ruleEnrollment.enrollment(), programInstance.getUid());
     assertEquals(ruleEnrollment.organisationUnit(), programInstance.getOrganisationUnit().getUid());
