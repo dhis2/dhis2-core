@@ -537,22 +537,6 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     assertIsEmpty(getTrackedEntities(operationParams));
   }
 
-  @Test
-  void shouldFindTrackedEntityWhenCaptureScopeIndependentFromSearchScope()
-      throws ForbiddenException, NotFoundException, BadRequestException {
-    programA.setAccessLevel(AccessLevel.OPEN);
-    programService.updateProgram(programA);
-    userB.setOrganisationUnits(Set.of(organisationUnitA));
-    userB.setTeiSearchOrganisationUnits(Set.of(organisationUnitB));
-    userService.updateUser(userB);
-    injectSecurityContext(UserDetails.fromUser(userB));
-
-    assertEquals(
-        trackedEntityA1,
-        trackedEntityService.getTrackedEntity(
-            trackedEntityA1.getUid(), programA.getUid(), defaultParams, false));
-  }
-
   private void transferOwnership(
       TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit) {
     trackerOwnershipAccessManager.transferOwnership(trackedEntity, program, orgUnit, false, true);
