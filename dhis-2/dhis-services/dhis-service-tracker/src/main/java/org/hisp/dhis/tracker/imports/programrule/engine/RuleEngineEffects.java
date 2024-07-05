@@ -25,11 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.programrule.api;
+package org.hisp.dhis.tracker.imports.programrule.engine;
 
 import static org.hisp.dhis.programrule.ProgramRuleActionType.SCHEDULEMESSAGE;
 import static org.hisp.dhis.programrule.ProgramRuleActionType.SENDMESSAGE;
-import static org.hisp.dhis.programrule.engine.RuleActionKey.NOTIFICATION;
+import static org.hisp.dhis.tracker.imports.programrule.engine.RuleActionKey.NOTIFICATION;
 
 import java.util.Collection;
 import java.util.List;

@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.programrule.engine;
+package org.hisp.dhis.tracker.imports.programrule.engine;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -237,7 +237,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
 
   @Test
   void testGetItemStore() {
-    String env_variable = "Completed date";
+    String envVariable = "Completed date";
     Constant constant = new Constant();
     constant.setValue(7.8);
     constant.setAutoFields();
@@ -246,7 +246,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
 
     when(constantService.getAllConstants()).thenReturn(constants);
     when(i18nManager.getI18n()).thenReturn(i18n);
-    when(i18n.getString(anyString())).thenReturn(env_variable);
+    when(i18n.getString(anyString())).thenReturn(envVariable);
 
     Map<String, DataItem> itemStore =
         subject.getItemStore(

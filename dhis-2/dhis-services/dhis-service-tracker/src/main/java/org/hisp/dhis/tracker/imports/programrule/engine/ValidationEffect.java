@@ -25,16 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.programrule.api;
+package org.hisp.dhis.tracker.imports.programrule.engine;
 
-import java.util.Date;
 import org.hisp.dhis.common.UID;
 
 /**
- * This effect will be used in tracker to send a notification.
+ * This effect will be used in tracker to create a validation rule.
  *
- * @param template the UID of the template of the notification
- * @param scheduledAt the date when to send the notification. The notification is sent immediately
- *     when the date is null.
+ * @param type the effect type
+ * @param rule the UID of the rule that generated this effect
+ * @param data additional data needed by the effect to be applied
+ * @param field the UID of the attribute/data value linked to the effect
+ * @param message a message shown by some types of effects
  */
-public record Notification(UID template, Date scheduledAt) {}
+public record ValidationEffect(
+    ValidationAction type, UID rule, String data, UID field, String message) {}

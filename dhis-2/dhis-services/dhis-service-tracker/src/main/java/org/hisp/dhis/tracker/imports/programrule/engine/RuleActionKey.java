@@ -25,18 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.programrule.api;
+package org.hisp.dhis.tracker.imports.programrule.engine;
 
-import org.hisp.dhis.common.UID;
+public class RuleActionKey {
 
-/**
- * This effect will be used in tracker to create a validation rule.
- *
- * @param type the effect type
- * @param rule the UID of the rule that generated this effect
- * @param data additional data needed by the effect to be applied
- * @param field the UID of the attribute/data value linked to the effect
- * @param message a message shown by some types of effects
- */
-public record ValidationEffect(
-    ValidationAction type, UID rule, String data, UID field, String message) {}
+  private RuleActionKey() {}
+
+  public static final String CONTENT = "content";
+  public static final String FIELD = "field";
+  public static final String ATTRIBUTE_TYPE = "attributeType";
+  public static final String NOTIFICATION = "notification";
+}

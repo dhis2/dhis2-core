@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.programrule.engine;
+package org.hisp.dhis.tracker.imports.programrule.engine;
 
 import static org.hisp.dhis.programrule.ProgramRuleActionType.ASSIGN;
 import static org.hisp.dhis.programrule.ProgramRuleActionType.ERRORONCOMPLETE;
@@ -35,12 +35,12 @@ import static org.hisp.dhis.programrule.ProgramRuleActionType.SETMANDATORYFIELD;
 import static org.hisp.dhis.programrule.ProgramRuleActionType.SHOWERROR;
 import static org.hisp.dhis.programrule.ProgramRuleActionType.SHOWWARNING;
 import static org.hisp.dhis.programrule.ProgramRuleActionType.WARNINGONCOMPLETE;
-import static org.hisp.dhis.programrule.engine.RuleActionKey.ATTRIBUTE_TYPE;
-import static org.hisp.dhis.programrule.engine.RuleActionKey.CONTENT;
-import static org.hisp.dhis.programrule.engine.RuleActionKey.FIELD;
-import static org.hisp.dhis.programrule.engine.RuleActionKey.NOTIFICATION;
 import static org.hisp.dhis.rules.models.AttributeType.DATA_ELEMENT;
 import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
+import static org.hisp.dhis.tracker.imports.programrule.engine.RuleActionKey.ATTRIBUTE_TYPE;
+import static org.hisp.dhis.tracker.imports.programrule.engine.RuleActionKey.CONTENT;
+import static org.hisp.dhis.tracker.imports.programrule.engine.RuleActionKey.FIELD;
+import static org.hisp.dhis.tracker.imports.programrule.engine.RuleActionKey.NOTIFICATION;
 
 import java.util.HashMap;
 import java.util.List;
@@ -64,6 +64,7 @@ import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
+import org.hisp.dhis.programrule.engine.ProgramRuleEntityMapperService;
 import org.hisp.dhis.rules.api.DataItem;
 import org.hisp.dhis.rules.api.EnvironmentVariables;
 import org.hisp.dhis.rules.api.ItemValueType;

@@ -25,28 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.programrule.api;
+package org.hisp.dhis.tracker.imports.programrule.engine;
 
-import java.util.Arrays;
+import java.util.Date;
+import org.hisp.dhis.common.UID;
 
-public enum NotificationAction {
-  SEND_MESSAGE("SENDMESSAGE"),
-  SCHEDULE_MESSAGE("SCHEDULEMESSAGE");
-
-  public static boolean contains(String ruleEngineName) {
-    return Arrays.stream(values()).anyMatch(v -> v.ruleEngineName.equalsIgnoreCase(ruleEngineName));
-  }
-
-  public static NotificationAction fromName(String ruleEngineName) {
-    return Arrays.stream(values())
-        .filter(v -> v.ruleEngineName.equalsIgnoreCase(ruleEngineName))
-        .findAny()
-        .orElseThrow();
-  }
-
-  private final String ruleEngineName;
-
-  NotificationAction(String ruleEngineName) {
-    this.ruleEngineName = ruleEngineName;
-  }
-}
+/**
+ * This effect will be used in tracker to send a notification.
+ *
+ * @param template the UID of the template of the notification
+ * @param scheduledAt the date when to send the notification. The notification is sent immediately
+ *     when the date is null.
+ */
+public record Notification(UID template, Date scheduledAt) {}

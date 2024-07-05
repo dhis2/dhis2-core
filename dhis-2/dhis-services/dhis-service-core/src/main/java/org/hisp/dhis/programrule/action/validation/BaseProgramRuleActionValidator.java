@@ -170,9 +170,7 @@ public class BaseProgramRuleActionValidator implements ProgramRuleActionValidato
     }
 
     List<String> trackedEntityAttributes =
-        program.getProgramAttributes().stream()
-            .map(att -> att.getAttribute().getUid())
-            .collect(Collectors.toList());
+        program.getProgramAttributes().stream().map(att -> att.getAttribute().getUid()).toList();
 
     if (!trackedEntityAttributes.contains(attribute.getUid())) {
       log.debug(

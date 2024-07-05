@@ -25,14 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.programrule.engine;
+package org.hisp.dhis.tracker.imports.programrule.engine;
 
-public class RuleActionKey {
+import java.util.Arrays;
 
-  private RuleActionKey() {}
+public enum NotificationAction {
+  SEND_MESSAGE("SENDMESSAGE"),
+  SCHEDULE_MESSAGE("SCHEDULEMESSAGE");
 
-  public static final String CONTENT = "content";
-  public static final String FIELD = "field";
-  public static final String ATTRIBUTE_TYPE = "attributeType";
-  public static final String NOTIFICATION = "notification";
+  public static boolean contains(String ruleEngineName) {
+    return Arrays.stream(values()).anyMatch(v -> v.ruleEngineName.equalsIgnoreCase(ruleEngineName));
+  }
+
+  public static NotificationAction fromName(String ruleEngineName) {
+    return Arrays.stream(values())
+        .filter(v -> v.ruleEngineName.equalsIgnoreCase(ruleEngineName))
+        .findAny()
+        .orElseThrow();
+  }
+
+  private final String ruleEngineName;
+
+  NotificationAction(String ruleEngineName) {
+    this.ruleEngineName = ruleEngineName;
+  }
 }
