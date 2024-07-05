@@ -38,22 +38,6 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 public interface EventStore extends IdentifiableObjectStore<Event> {
 
   /**
-   * Checks for the existence of an event by UID. The deleted events are not taken into account.
-   *
-   * @param uid event UID to check for
-   * @return true/false depending on result
-   */
-  boolean exists(String uid);
-
-  /**
-   * Checks for the existence of an event by UID. It takes into account also the deleted events.
-   *
-   * @param uid event UID to check for
-   * @return true/false depending on result
-   */
-  boolean existsIncludingDeleted(String uid);
-
-  /**
    * Get all events which have notifications with the given. ProgramNotificationTemplate scheduled
    * on the given date.
    *
