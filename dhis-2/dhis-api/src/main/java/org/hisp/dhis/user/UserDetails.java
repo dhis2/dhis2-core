@@ -276,7 +276,7 @@ public interface UserDetails extends org.springframework.security.core.userdetai
     return isInUserHierarchy(orgUnitPath, getUserSearchOrgUnitIds());
   }
 
-  default boolean isInUserEffectiveSearchOrgUnit(String orgUnitPath) {
+  default boolean isInUserEffectiveSearchOrgUnitHierarchy(String orgUnitPath) {
     return isInUserHierarchy(orgUnitPath, getUserEffectiveSearchOrgUnitIds());
   }
 

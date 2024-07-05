@@ -228,7 +228,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
     final String orgUnitPath = ou.getPath();
     return switch (program.getAccessLevel()) {
-      case OPEN, AUDITED -> user.isInUserEffectiveSearchOrgUnit(orgUnitPath);
+      case OPEN, AUDITED -> user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnitPath);
       case PROTECTED ->
           user.isInUserHierarchy(orgUnitPath) || hasTemporaryAccess(trackedEntity, program, user);
       case CLOSED -> user.isInUserHierarchy(orgUnitPath);
@@ -245,7 +245,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
     final String orgUnitPath = owningOrgUnit.getPath();
     return switch (program.getAccessLevel()) {
-      case OPEN, AUDITED -> user.isInUserEffectiveSearchOrgUnit(orgUnitPath);
+      case OPEN, AUDITED -> user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnitPath);
       case PROTECTED ->
           user.isInUserHierarchy(orgUnitPath)
               || hasTemporaryAccessWithUid(trackedEntity, program, user);

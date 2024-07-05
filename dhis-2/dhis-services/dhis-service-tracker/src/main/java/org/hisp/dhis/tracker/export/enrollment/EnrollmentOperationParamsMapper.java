@@ -32,7 +32,6 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 
-import java.util.HashSet;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -44,6 +43,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,6 +63,7 @@ class EnrollmentOperationParamsMapper {
   public EnrollmentQueryParams map(EnrollmentOperationParams operationParams)
       throws BadRequestException, ForbiddenException {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails userDetails = CurrentUserUtil.getCurrentUserDetails();
 
     Program program =
         paramsValidator.validateTrackerProgram(operationParams.getProgramUid(), currentUser);
@@ -105,10 +106,10 @@ class EnrollmentOperationParamsMapper {
   private void mergeOrgUnitModes(
       EnrollmentOperationParams operationParams, User user, EnrollmentQueryParams queryParams) {
     if (user != null && operationParams.getOrgUnitMode() == ACCESSIBLE) {
-      queryParams.addOrganisationUnits(new HashSet<>(user.getEffectiveSearchOrganisationUnits()));
+      queryParams.addOrganisationUnits(user.getEffectiveSearchOrganisationUnits());
       queryParams.setOrganisationUnitMode(DESCENDANTS);
     } else if (user != null && operationParams.getOrgUnitMode() == CAPTURE) {
-      queryParams.addOrganisationUnits(new HashSet<>(user.getOrganisationUnits()));
+      queryParams.addOrganisationUnits(user.getOrganisationUnits());
       queryParams.setOrganisationUnitMode(DESCENDANTS);
     }
   }
