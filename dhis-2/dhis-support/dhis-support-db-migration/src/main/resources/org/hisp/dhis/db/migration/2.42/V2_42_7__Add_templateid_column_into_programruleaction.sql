@@ -1,5 +1,5 @@
 -- Add the new column
-ALTER TABLE programruleaction ADD COLUMN notificationtemplateid INTEGER NULL;
+ALTER TABLE programruleaction ADD COLUMN IF NOT EXISTS notificationtemplateid INTEGER NULL;
 
 -- Update the new column with values from the old column
 UPDATE programruleaction pra
