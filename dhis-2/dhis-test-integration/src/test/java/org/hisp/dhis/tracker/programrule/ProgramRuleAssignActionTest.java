@@ -32,6 +32,7 @@ import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1307;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1308;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1310;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
@@ -49,6 +50,7 @@ import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
@@ -72,6 +74,8 @@ class ProgramRuleAssignActionTest extends TrackerTest {
 
   private DataElement dataElement1;
 
+  private TrackedEntityAttribute attribute1;
+
   @Override
   public void initTest() throws IOException {
     ObjectBundle bundle = setUpMetadata("tracker/simple_metadata.json");
@@ -79,15 +83,36 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     dataElement1 = bundle.getPreheat().get(PreheatIdentifier.UID, DataElement.class, "DATAEL00001");
     DataElement dataElement2 =
         bundle.getPreheat().get(PreheatIdentifier.UID, DataElement.class, "DATAEL00002");
+    attribute1 =
+        bundle.getPreheat().get(PreheatIdentifier.UID, TrackedEntityAttribute.class, "dIVt4l5vIOa");
+    TrackedEntityAttribute attribute2 =
+        bundle.getPreheat().get(PreheatIdentifier.UID, TrackedEntityAttribute.class, "fRGt4l6yIRb");
     ProgramRuleVariable programRuleVariable =
         createProgramRuleVariableWithDataElement('A', program, dataElement2);
+    ProgramRuleVariable programRuleVariableAttribute =
+        createProgramRuleVariableWithTEA('B', program, attribute2);
     programRuleVariableService.addProgramRuleVariable(programRuleVariable);
+    programRuleVariableService.addProgramRuleVariable(programRuleVariableAttribute);
 
     injectAdminUser();
 
     assignProgramRule();
     trackerImportService.importTracker(
         fromJson("tracker/programrule/tei_enrollment_completed_event.json"));
+  }
+
+  @Test
+  void shouldNotImportWithWarningWhenAttributeWithSameValueIsAssignedByAssignRule()
+      throws IOException {
+
+    TrackerImportParams params =
+        fromJson("tracker/programrule/te_enrollment_update_attribute_same_value.json");
+    params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
+
+    TrackerImportReport importReport = trackerImportService.importTracker(params);
+
+    assertNoErrors(importReport);
+    assertEquals(E1310, importReport.getValidationReport().getWarnings().get(0).getWarningCode());
   }
 
   @Test
@@ -149,8 +174,12 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     programRuleService.addProgramRule(programRule);
     ProgramRuleAction programRuleAction =
         createProgramRuleAction(programRule, ASSIGN, dataElement1, "#{ProgramRuleVariableA}");
+    ProgramRuleAction programRuleActionAttribute =
+        createProgramRuleAction(programRule, ASSIGN, attribute1, "#{ProgramRuleVariableB}");
     programRuleActionService.addProgramRuleAction(programRuleAction);
+    programRuleActionService.addProgramRuleAction(programRuleActionAttribute);
     programRule.getProgramRuleActions().add(programRuleAction);
+    programRule.getProgramRuleActions().add(programRuleActionAttribute);
     programRuleService.updateProgramRule(programRule);
   }
 
@@ -172,6 +201,20 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     programRuleAction.setProgramRuleActionType(actionType);
     programRuleAction.setContent("CONTENT");
     programRuleAction.setDataElement(dataElement);
+    programRuleAction.setData(data);
+
+    return programRuleAction;
+  }
+
+  private ProgramRuleAction createProgramRuleAction(
+      ProgramRule programRule,
+      ProgramRuleActionType actionType,
+      TrackedEntityAttribute attribute,
+      String data) {
+    ProgramRuleAction programRuleAction = createProgramRuleAction('A', programRule);
+    programRuleAction.setProgramRuleActionType(actionType);
+    programRuleAction.setContent("CONTENT");
+    programRuleAction.setAttribute(attribute);
     programRuleAction.setData(data);
 
     return programRuleAction;

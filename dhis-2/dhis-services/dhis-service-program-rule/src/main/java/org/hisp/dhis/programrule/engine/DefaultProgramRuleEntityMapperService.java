@@ -385,7 +385,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
     List<RuleAttributeValue> ruleAttributeValues;
 
-    if (enrollment.getEntityInstance() != null) {
+    if (trackedEntityAttributeValues.isEmpty() && enrollment.getEntityInstance() != null) {
       ruleAttributeValues =
           enrollment.getEntityInstance().getTrackedEntityAttributeValues().stream()
               .filter(Objects::nonNull)
@@ -404,6 +404,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                           attr.getAttribute().getUid(), getTrackedEntityAttributeValue(attr)))
               .collect(Collectors.toList());
     }
+
     return RuleEnrollment.create(
         enrollment.getUid(),
         enrollment.getIncidentDate(),

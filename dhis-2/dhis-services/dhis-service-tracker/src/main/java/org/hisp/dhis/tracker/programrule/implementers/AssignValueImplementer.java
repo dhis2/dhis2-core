@@ -146,14 +146,14 @@ public class AssignValueImplementer extends AbstractRuleActionImplementer<RuleAc
             new ProgramRuleIssue(
                 actionRule.getRuleUid(),
                 TrackerErrorCode.E1310,
-                Lists.newArrayList(actionRule.getField(), actionRule.getData()),
+                Lists.newArrayList(actionRule.getField(), enrollment.getTrackedEntity()),
                 IssueType.WARNING));
       } else {
         issues.add(
             new ProgramRuleIssue(
                 actionRule.getRuleUid(),
                 TrackerErrorCode.E1309,
-                Lists.newArrayList(actionRule.getField(), enrollment.getEnrollment()),
+                Lists.newArrayList(actionRule.getField(), actionRule.getData()),
                 IssueType.ERROR));
       }
     }
