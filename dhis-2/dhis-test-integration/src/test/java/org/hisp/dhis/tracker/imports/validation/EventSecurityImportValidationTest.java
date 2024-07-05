@@ -46,7 +46,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
@@ -78,8 +77,6 @@ class EventSecurityImportValidationTest extends TrackerTest {
   @Autowired protected TrackedEntityService trackedEntityService;
 
   @Autowired private TrackerImportService trackerImportService;
-
-  @Autowired private EventService programStageServiceInstance;
 
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
@@ -242,7 +239,7 @@ class EventSecurityImportValidationTest extends TrackerTest {
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
     // Change just inserted Event to status COMPLETED...
-    Event zwwuwNp6gVd = programStageServiceInstance.getEvent("ZwwuwNp6gVd");
+    Event zwwuwNp6gVd = manager.get(Event.class, "ZwwuwNp6gVd");
     zwwuwNp6gVd.setStatus(EventStatus.COMPLETED);
     manager.update(zwwuwNp6gVd);
     programA.setPublicAccess(AccessStringHelper.FULL);

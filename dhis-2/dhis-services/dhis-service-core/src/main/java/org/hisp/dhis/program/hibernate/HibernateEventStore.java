@@ -30,7 +30,6 @@ package org.hisp.dhis.program.hibernate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.vladmihalcea.hibernate.type.array.StringArrayType;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -60,7 +59,6 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.program.EventStore")
 public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
     implements EventStore {
-  private static final String EVENT_HQL_BY_UIDS = "from Event as ev where ev.uid in (:uids)";
 
   private static final Set<NotificationTrigger> SCHEDULED_EVENT_TRIGGERS =
       Sets.intersection(
@@ -99,24 +97,6 @@ public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
     query.setParameter("uid", uid);
 
     return ((Boolean) query.getSingleResult()).booleanValue();
-  }
-
-  @Override
-  public List<Event> getIncludingDeleted(List<String> uids) {
-    List<Event> events = new ArrayList<>();
-    List<List<String>> uidsPartitions = Lists.partition(Lists.newArrayList(uids), 20000);
-
-    for (List<String> uidsPartition : uidsPartitions) {
-      if (!uidsPartition.isEmpty()) {
-        events.addAll(
-            getSession()
-                .createQuery(EVENT_HQL_BY_UIDS, Event.class)
-                .setParameter("uids", uidsPartition)
-                .list());
-      }
-    }
-
-    return events;
   }
 
   @Override

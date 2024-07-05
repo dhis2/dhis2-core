@@ -54,14 +54,6 @@ public interface EventStore extends IdentifiableObjectStore<Event> {
   boolean existsIncludingDeleted(String uid);
 
   /**
-   * Fetches Event matching the given list of UIDs
-   *
-   * @param uids a List of UID
-   * @return a List containing the Event matching the given parameters list
-   */
-  List<Event> getIncludingDeleted(List<String> uids);
-
-  /**
    * Get all events which have notifications with the given. ProgramNotificationTemplate scheduled
    * on the given date.
    *

@@ -33,10 +33,10 @@ import static org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue.warning
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.programrule.api.ValidationEffect;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.programrule.IssueType;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
+import org.hisp.dhis.tracker.imports.programrule.engine.ValidationEffect;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 
 /**

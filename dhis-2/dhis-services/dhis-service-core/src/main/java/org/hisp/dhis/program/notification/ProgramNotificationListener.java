@@ -28,11 +28,7 @@
 package org.hisp.dhis.program.notification;
 
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.program.notification.event.ProgramEnrollmentCompletionNotificationEvent;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
-import org.hisp.dhis.program.notification.event.ProgramStageCompletionNotificationEvent;
-import org.hisp.dhis.programrule.engine.TrackerEnrollmentWebHookEvent;
-import org.hisp.dhis.programrule.engine.TrackerEventWebHookEvent;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -44,30 +40,8 @@ import org.springframework.transaction.event.TransactionalEventListener;
 public class ProgramNotificationListener {
   private final ProgramNotificationService programNotificationService;
 
-  private final TrackerNotificationWebHookService trackerNotificationWebHookService;
-
   @TransactionalEventListener(fallbackExecution = true)
   public void onEnrollment(ProgramEnrollmentNotificationEvent event) {
     programNotificationService.sendEnrollmentNotifications(event.getEnrollment());
-  }
-
-  @TransactionalEventListener(fallbackExecution = true)
-  public void onCompletion(ProgramEnrollmentCompletionNotificationEvent event) {
-    programNotificationService.sendEnrollmentCompletionNotifications(event.getEnrollmentId());
-  }
-
-  @TransactionalEventListener(fallbackExecution = true)
-  public void onEvent(ProgramStageCompletionNotificationEvent event) {
-    programNotificationService.sendEventCompletionNotifications(event.getEvent());
-  }
-
-  @TransactionalEventListener(fallbackExecution = true)
-  public void onTrackerEventWebHook(TrackerEventWebHookEvent event) {
-    trackerNotificationWebHookService.handleEvent(event.getEvent());
-  }
-
-  @TransactionalEventListener(fallbackExecution = true)
-  public void onTrackerEnrollmentWebHook(TrackerEnrollmentWebHookEvent event) {
-    trackerNotificationWebHookService.handleEnrollment(event.getEnrollment());
   }
 }

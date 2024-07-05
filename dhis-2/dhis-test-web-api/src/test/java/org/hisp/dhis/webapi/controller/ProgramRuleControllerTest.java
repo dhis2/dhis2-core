@@ -65,12 +65,11 @@ class ProgramRuleControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void testValidateCondition_NoSuchProgram() {
-    assertWebMessage(
-        "OK",
-        200,
-        "ERROR",
-        "Expression is not valid",
-        POST("/programRules/condition/description?programId=xyz", "1 != 1").content(HttpStatus.OK));
+    assertEquals(
+        "Program is specified but does not exist: abcdefghijk",
+        POST("/programRules/condition/description?programId=abcdefghijk", "1 != 1")
+            .error(HttpStatus.BAD_REQUEST)
+            .getMessage());
   }
 
   @Test

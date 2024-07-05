@@ -38,6 +38,7 @@ import java.util.List;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.TrackerTest;
@@ -95,7 +96,7 @@ class EventChangeLogServiceTest extends TrackerTest {
     testAsUser("o1HMTIzBGo7");
 
     assertThrows(
-        NotFoundException.class,
+        ForbiddenException.class,
         () -> eventChangeLogService.getEventChangeLog(UID.of("D9PbzJY8bJM"), null, null));
   }
 
@@ -104,7 +105,7 @@ class EventChangeLogServiceTest extends TrackerTest {
     testAsUser("o1HMTIzBGo7");
 
     assertThrows(
-        NotFoundException.class,
+        ForbiddenException.class,
         () -> eventChangeLogService.getEventChangeLog(UID.of("G9PbzJY8bJG"), null, null));
   }
 
@@ -113,7 +114,7 @@ class EventChangeLogServiceTest extends TrackerTest {
     testAsUser("FIgVWzUCkpw");
 
     assertThrows(
-        NotFoundException.class,
+        ForbiddenException.class,
         () -> eventChangeLogService.getEventChangeLog(UID.of("H0PbzJY8bJG"), null, null));
   }
 
@@ -122,12 +123,12 @@ class EventChangeLogServiceTest extends TrackerTest {
     testAsUser("o1HMTIzBGo7");
 
     assertThrows(
-        NotFoundException.class,
+        ForbiddenException.class,
         () -> eventChangeLogService.getEventChangeLog(UID.of("G9PbzJY8bJG"), null, null));
   }
 
   @Test
-  void shouldReturnChangeLogsWhenDataValueIsCreated() throws NotFoundException {
+  void shouldReturnChangeLogsWhenDataValueIsCreated() throws NotFoundException, ForbiddenException {
     testAsUser("M5zQapPyTZI");
     Event event = getEvent("QRYjLTiJTrA");
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
@@ -141,7 +142,8 @@ class EventChangeLogServiceTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnChangeLogsWhenDataValueIsDeleted() throws NotFoundException, IOException {
+  void shouldReturnChangeLogsWhenDataValueIsDeleted()
+      throws NotFoundException, IOException, ForbiddenException {
     testAsUser("M5zQapPyTZI");
 
     Event event = getEvent("QRYjLTiJTrA");
@@ -163,7 +165,7 @@ class EventChangeLogServiceTest extends TrackerTest {
 
   @Test
   void shouldNotUpdateChangeLogsWhenDataValueIsDeletedTwiceInARow()
-      throws NotFoundException, IOException {
+      throws NotFoundException, IOException, ForbiddenException {
     testAsUser("M5zQapPyTZI");
 
     Event event = getEvent("QRYjLTiJTrA");
@@ -186,7 +188,8 @@ class EventChangeLogServiceTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnChangeLogsWhenDataValueIsUpdated() throws NotFoundException, IOException {
+  void shouldReturnChangeLogsWhenDataValueIsUpdated()
+      throws NotFoundException, IOException, ForbiddenException {
     testAsUser("M5zQapPyTZI");
 
     Event event = getEvent("QRYjLTiJTrA");
@@ -208,7 +211,7 @@ class EventChangeLogServiceTest extends TrackerTest {
 
   @Test
   void shouldReturnChangeLogsWhenDataValueIsUpdatedTwiceInARow()
-      throws NotFoundException, IOException {
+      throws NotFoundException, IOException, ForbiddenException {
     testAsUser("M5zQapPyTZI");
 
     Event event = getEvent("QRYjLTiJTrA");
@@ -233,7 +236,7 @@ class EventChangeLogServiceTest extends TrackerTest {
 
   @Test
   void shouldReturnChangeLogsWhenDataValueIsCreatedUpdatedAndDeleted()
-      throws IOException, NotFoundException {
+      throws IOException, NotFoundException, ForbiddenException {
     testAsUser("M5zQapPyTZI");
 
     Event event = getEvent("QRYjLTiJTrA");

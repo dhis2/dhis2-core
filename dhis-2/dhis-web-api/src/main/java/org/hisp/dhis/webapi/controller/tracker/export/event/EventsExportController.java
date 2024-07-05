@@ -291,7 +291,7 @@ class EventsExportController {
       throws NotFoundException, ForbiddenException {
     EventParams eventParams = eventsMapper.map(fields);
     org.hisp.dhis.webapi.controller.tracker.view.Event event =
-        EVENTS_MAPPER.from(eventService.getEvent(uid.getValue(), eventParams));
+        EVENTS_MAPPER.from(eventService.getEvent(uid, eventParams));
 
     return ResponseEntity.ok(fieldFilterService.toObjectNode(event, fields));
   }
@@ -301,7 +301,7 @@ class EventsExportController {
       @OpenApi.Param({UID.class, Event.class}) @PathVariable UID event,
       @OpenApi.Param({UID.class, DataElement.class}) @PathVariable UID dataElement,
       HttpServletRequest request)
-      throws NotFoundException, ConflictException, BadRequestException {
+      throws NotFoundException, ConflictException, BadRequestException, ForbiddenException {
     validateUnsupportedParameter(
         request,
         "dimension",
@@ -317,7 +317,7 @@ class EventsExportController {
       @OpenApi.Param({UID.class, DataElement.class}) @PathVariable UID dataElement,
       @RequestParam(required = false) ImageFileDimension dimension,
       HttpServletRequest request)
-      throws NotFoundException, ConflictException, BadRequestException {
+      throws NotFoundException, ConflictException, BadRequestException, ForbiddenException {
     return fileResourceRequestHandler.handle(
         request, eventService.getFileResourceImage(event, dataElement, dimension));
   }
@@ -327,7 +327,7 @@ class EventsExportController {
       @OpenApi.Param({UID.class, Event.class}) @PathVariable UID event,
       ChangeLogRequestParams requestParams,
       HttpServletRequest request)
-      throws NotFoundException, BadRequestException {
+      throws NotFoundException, BadRequestException, ForbiddenException {
     EventChangeLogOperationParams operationParams =
         ChangeLogRequestParamsMapper.map(eventChangeLogService.getOrderableFields(), requestParams);
     PageParams pageParams =
