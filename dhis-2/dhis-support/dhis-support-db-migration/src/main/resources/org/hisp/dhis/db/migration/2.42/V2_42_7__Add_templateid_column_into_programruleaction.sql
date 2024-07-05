@@ -7,6 +7,16 @@ SET notificationtemplateid = t.programnotificationtemplateid
     FROM programnotificationtemplate t
 WHERE pra.templateuid = t.uid;
 
--- Add the foreign key constraint
-ALTER TABLE programruleaction ADD CONSTRAINT fk_notificationtemplate FOREIGN KEY (notificationtemplateid)
-    REFERENCES programnotificationtemplate(programnotificationtemplateid);
+-- Conditionally add the foreign key constraint if it doesn't exist
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'fk_notificationtemplate'
+    ) THEN
+ALTER TABLE programruleaction
+    ADD CONSTRAINT fk_notificationtemplate
+        FOREIGN KEY (notificationtemplateid) REFERENCES programnotificationtemplate(programnotificationtemplateid);
+END IF;
+END $$;
