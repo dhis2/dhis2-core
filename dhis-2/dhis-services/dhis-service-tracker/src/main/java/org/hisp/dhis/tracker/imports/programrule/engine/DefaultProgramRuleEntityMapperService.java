@@ -64,7 +64,6 @@ import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
-import org.hisp.dhis.programrule.engine.ProgramRuleEntityMapperService;
 import org.hisp.dhis.rules.api.DataItem;
 import org.hisp.dhis.rules.api.EnvironmentVariables;
 import org.hisp.dhis.rules.api.ItemValueType;
@@ -95,7 +94,7 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @RequiredArgsConstructor
-@Service("org.hisp.dhis.programrule.engine.ProgramRuleEntityMapperService")
+@Service("org.hisp.dhis.tracker.imports.programrule.engine.ProgramRuleEntityMapperService")
 public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityMapperService {
   private final ProgramRuleVariableService programRuleVariableService;
 
