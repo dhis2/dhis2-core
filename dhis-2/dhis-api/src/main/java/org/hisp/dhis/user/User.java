@@ -779,17 +779,17 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
   }
 
   /**
-   * Returns the tei search organisation units or organisation units if not exist. Use {@link
-   * #getEffectiveSearchOrganisationUnits} instead, if a union of both org unit scopes is needed
+   * Returns the tei search organisation units or organisation units if not exist. If you need both
+   * org unit scopes, use {@link #getEffectiveSearchOrganisationUnits} instead.
    */
   public Set<OrganisationUnit> getTeiSearchOrganisationUnitsWithFallback() {
     return hasTeiSearchOrganisationUnit() ? teiSearchOrganisationUnits : organisationUnits;
   }
 
   /**
-   * Users' capture scope org units can extend beyond the search scope org units. The effective
-   * search org units are the union of both. This method is intended for use during data
-   * import/export operations in tracker.
+   * Users' capture scope and search scope org units can be entirely independent. The effective
+   * search org units are the union of both scopes. This method is intended for use during data
+   * import/export operations in the tracker.
    */
   public Set<OrganisationUnit> getEffectiveSearchOrganisationUnits() {
     return Stream.concat(teiSearchOrganisationUnits.stream(), organisationUnits.stream())
