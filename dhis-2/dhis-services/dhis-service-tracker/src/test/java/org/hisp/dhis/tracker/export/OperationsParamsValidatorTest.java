@@ -351,7 +351,7 @@ class OperationsParamsValidatorTest {
     User user = new User();
     when(organisationUnitService.getOrganisationUnit(ORG_UNIT_UID)).thenReturn(orgUnit);
     when(organisationUnitService.isInUserHierarchy(
-            orgUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
+            orgUnit.getUid(), user.getEffectiveSearchOrganisationUnits()))
         .thenReturn(true);
 
     assertEquals(Set.of(orgUnit), paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_UID), user));
@@ -362,7 +362,7 @@ class OperationsParamsValidatorTest {
     User user = new User();
     when(organisationUnitService.getOrganisationUnit(ORG_UNIT_UID)).thenReturn(orgUnit);
     when(organisationUnitService.isInUserHierarchy(
-            orgUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
+            orgUnit.getUid(), user.getEffectiveSearchOrganisationUnits()))
         .thenReturn(false);
 
     Exception exception =
