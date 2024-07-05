@@ -286,6 +286,12 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     return user == null || user.isSuper() || ProgramType.WITHOUT_REGISTRATION == programType;
   }
 
+  @Override
+  public boolean isOwnerInUserSearchScope(User user, TrackedEntity trackedEntity, Program program) {
+    return organisationUnitService.isInUserSearchHierarchyCached(
+        user, getOwner(trackedEntity.getId(), program, trackedEntity::getOrganisationUnit));
+  }
+
   // -------------------------------------------------------------------------
   // Private Helper Methods
   // -------------------------------------------------------------------------

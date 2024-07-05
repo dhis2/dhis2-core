@@ -772,7 +772,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       User user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck) {
     if (!skipOwnershipCheck && !ownershipAccessManager.hasAccess(user, trackedEntity, program)) {
       if (program.isProtected()) {
-        return OWNERSHIP_ACCESS_DENIED;
+        return ownershipAccessManager.isOwnerInUserSearchScope(user, trackedEntity, program)
+            ? OWNERSHIP_ACCESS_DENIED
+            : NO_READ_ACCESS_TO_ORG_UNIT;
       }
 
       if (program.isClosed()) {
