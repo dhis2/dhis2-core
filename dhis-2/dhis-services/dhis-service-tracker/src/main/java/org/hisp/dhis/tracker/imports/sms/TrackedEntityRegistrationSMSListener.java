@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.listener;
+package org.hisp.dhis.tracker.imports.sms;
 
 import java.util.Collection;
 import java.util.Date;
@@ -45,6 +45,7 @@ import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
+import org.hisp.dhis.sms.listener.CommandSMSListener;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.system.util.SmsUtils;
@@ -58,7 +59,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-@Component("org.hisp.dhis.sms.listener.TrackedEntityRegistrationSMSListener")
+@Component("org.hisp.dhis.tracker.sms.TrackedEntityRegistrationSMSListener")
 @Transactional
 public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
   private static final String SUCCESS_MESSAGE = "Tracked Entity Registered Successfully with uid. ";
@@ -127,7 +128,7 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
             });
 
     long trackedEntityId = 0;
-    if (patientAttributeValues.size() > 0) {
+    if (!patientAttributeValues.isEmpty()) {
       trackedEntityId =
           trackedEntityService.createTrackedEntity(trackedEntity, patientAttributeValues);
     } else {

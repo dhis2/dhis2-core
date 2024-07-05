@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.listener;
+package org.hisp.dhis.tracker.imports.sms;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -42,13 +42,13 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
+import org.hisp.dhis.sms.listener.SMSProcessingException;
 import org.hisp.dhis.smscompression.SmsConsts.SubmissionType;
 import org.hisp.dhis.smscompression.SmsResponse;
 import org.hisp.dhis.smscompression.models.EnrollmentSmsSubmission;
@@ -64,6 +64,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -71,7 +72,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
-@Component("org.hisp.dhis.sms.listener.EnrollmentSMSListener")
+@Component("org.hisp.dhis.tracker.sms.EnrollmentSMSListener")
 @Transactional
 public class EnrollmentSMSListener extends EventSavingSMSListener {
   private final TrackedEntityService teService;
@@ -81,8 +82,6 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
   private final TrackedEntityAttributeValueService attributeValueService;
 
   private final ProgramStageService programStageService;
-
-  private final UserService userService;
 
   public EnrollmentSMSListener(
       IncomingSmsService incomingSmsService,
@@ -95,6 +94,7 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
       CategoryService categoryService,
       DataElementService dataElementService,
       ProgramStageService programStageService,
+      org.hisp.dhis.program.EventService apiEventService,
       EventService eventService,
       TrackedEntityAttributeValueService attributeValueService,
       TrackedEntityService teService,
@@ -111,16 +111,16 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
         categoryService,
         dataElementService,
         identifiableObjectManager,
+        apiEventService,
         eventService);
     this.teService = teService;
     this.programStageService = programStageService;
     this.enrollmentService = enrollmentService;
     this.attributeValueService = attributeValueService;
-    this.userService = userService;
   }
 
   @Override
-  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission)
+  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission, User user)
       throws SMSProcessingException {
     EnrollmentSmsSubmission subm = (EnrollmentSmsSubmission) submission;
 
@@ -197,7 +197,6 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
     enrollmentService.updateEnrollment(enrollment);
 
     // We now check if the enrollment has events to process
-    User user = userService.getUser(subm.getUserId().getUid());
     List<Object> errorUIDs = new ArrayList<>();
     if (subm.getEvents() != null) {
       for (SmsEvent event : subm.getEvents()) {
@@ -308,20 +307,17 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
       throw new SMSProcessingException(SmsResponse.INVALID_AOC.set(aocid));
     }
 
-    List<Object> errorUIDs =
-        saveNewEvent(
-            event.getEvent().getUid(),
-            orgUnit,
-            programStage,
-            enrollment,
-            aoc,
-            user,
-            event.getValues(),
-            event.getEventStatus(),
-            event.getEventDate(),
-            event.getDueDate(),
-            event.getCoordinates());
-
-    return errorUIDs;
+    return saveEvent(
+        event.getEvent().getUid(),
+        orgUnit,
+        programStage,
+        enrollment,
+        aoc,
+        user,
+        event.getValues(),
+        event.getEventStatus(),
+        event.getEventDate(),
+        event.getDueDate(),
+        event.getCoordinates());
   }
 }

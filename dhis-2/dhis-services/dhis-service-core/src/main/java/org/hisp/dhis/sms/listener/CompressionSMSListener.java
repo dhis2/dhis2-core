@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.sms.listener;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.util.Date;
@@ -55,6 +53,7 @@ import org.hisp.dhis.smscompression.SmsConsts.SubmissionType;
 import org.hisp.dhis.smscompression.SmsResponse;
 import org.hisp.dhis.smscompression.SmsSubmissionReader;
 import org.hisp.dhis.smscompression.models.SmsMetadata;
+import org.hisp.dhis.smscompression.models.SmsMetadata.Id;
 import org.hisp.dhis.smscompression.models.SmsSubmission;
 import org.hisp.dhis.smscompression.models.SmsSubmissionHeader;
 import org.hisp.dhis.smscompression.models.Uid;
@@ -70,7 +69,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Transactional
 public abstract class CompressionSMSListener extends BaseSMSListener {
-  protected abstract SmsResponse postProcess(IncomingSms sms, SmsSubmission submission)
+  protected abstract SmsResponse postProcess(IncomingSms sms, SmsSubmission submission, User user)
       throws SMSProcessingException;
 
   protected abstract boolean handlesType(SubmissionType type);
@@ -103,13 +102,6 @@ public abstract class CompressionSMSListener extends BaseSMSListener {
       DataElementService dataElementService,
       IdentifiableObjectManager identifiableObjectManager) {
     super(incomingSmsService, smsSender);
-    checkNotNull(userService);
-    checkNotNull(trackedEntityTypeService);
-    checkNotNull(trackedEntityAttributeService);
-    checkNotNull(programService);
-    checkNotNull(organisationUnitService);
-    checkNotNull(categoryService);
-    checkNotNull(dataElementService);
     this.userService = userService;
     this.trackedEntityTypeService = trackedEntityTypeService;
     this.trackedEntityAttributeService = trackedEntityAttributeService;
@@ -146,7 +138,7 @@ public abstract class CompressionSMSListener extends BaseSMSListener {
     }
 
     SmsMetadata meta = getMetadata(header.getLastSyncDate());
-    SmsSubmission subm = null;
+    SmsSubmission subm;
     try {
       subm = reader.readSubmission(SmsUtils.getBytes(sms), meta);
     } catch (Exception e) {
@@ -159,27 +151,29 @@ public abstract class CompressionSMSListener extends BaseSMSListener {
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
     log.info(String.format("New received Sms submission decoded as: %s", gson.toJson(subm)));
 
-    SmsResponse resp = null;
+    SmsResponse resp;
     try {
-      checkUser(subm);
-      resp = postProcess(sms, subm);
+      User user = checkUser(subm);
+      resp = postProcess(sms, subm, user);
     } catch (SMSProcessingException e) {
       log.error(e.getMessage());
       sendSMSResponse(e.getResp(), sms, header.getSubmissionId());
       return;
     }
 
-    log.info(String.format("Sms Response: ", resp.toString()));
+    log.info("Sms Response: {}", resp.toString());
     sendSMSResponse(resp, sms, header.getSubmissionId());
   }
 
-  private void checkUser(SmsSubmission subm) {
+  private User checkUser(SmsSubmission subm) {
     Uid userid = subm.getUserId();
     User user = userService.getUser(userid.getUid());
 
     if (user == null) {
       throw new SMSProcessingException(SmsResponse.INVALID_USER.set(userid));
     }
+
+    return user;
   }
 
   private SmsSubmissionHeader getHeader(IncomingSms sms) {
@@ -188,8 +182,7 @@ public abstract class CompressionSMSListener extends BaseSMSListener {
     try {
       return reader.readHeader(smsBytes);
     } catch (Exception e) {
-      e.printStackTrace();
-      log.error(e.getMessage());
+      log.error(e.getMessage(), e);
       return null;
     }
   }
@@ -213,7 +206,7 @@ public abstract class CompressionSMSListener extends BaseSMSListener {
   private List<SmsMetadata.Id> getTypeUidsBefore(
       Class<? extends IdentifiableObject> klass, Date lastSyncDate) {
     return identifiableObjectManager.getUidsCreatedBefore(klass, lastSyncDate).stream()
-        .map(o -> new SmsMetadata.Id(o))
+        .map(Id::new)
         .collect(Collectors.toList());
   }
 }

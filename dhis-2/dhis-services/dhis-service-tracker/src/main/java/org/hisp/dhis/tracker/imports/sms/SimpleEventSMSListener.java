@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.listener;
+package org.hisp.dhis.tracker.imports.sms;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -41,12 +41,12 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
+import org.hisp.dhis.sms.listener.SMSProcessingException;
 import org.hisp.dhis.smscompression.SmsConsts.SubmissionType;
 import org.hisp.dhis.smscompression.SmsResponse;
 import org.hisp.dhis.smscompression.models.SimpleEventSmsSubmission;
@@ -54,13 +54,14 @@ import org.hisp.dhis.smscompression.models.SmsSubmission;
 import org.hisp.dhis.smscompression.models.Uid;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-@Component("org.hisp.dhis.sms.listener.SimpleEventSMSListener")
+@Component("org.hisp.dhis.tracker.sms.SimpleEventSMSListener")
 @Transactional
 public class SimpleEventSMSListener extends EventSavingSMSListener {
   private final EnrollmentService enrollmentService;
@@ -75,6 +76,7 @@ public class SimpleEventSMSListener extends EventSavingSMSListener {
       OrganisationUnitService organisationUnitService,
       CategoryService categoryService,
       DataElementService dataElementService,
+      org.hisp.dhis.program.EventService apiEventService,
       EventService eventService,
       EnrollmentService enrollmentService,
       IdentifiableObjectManager identifiableObjectManager) {
@@ -89,12 +91,13 @@ public class SimpleEventSMSListener extends EventSavingSMSListener {
         categoryService,
         dataElementService,
         identifiableObjectManager,
+        apiEventService,
         eventService);
     this.enrollmentService = enrollmentService;
   }
 
   @Override
-  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission)
+  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission, User user)
       throws SMSProcessingException {
     SimpleEventSmsSubmission subm = (SimpleEventSmsSubmission) submission;
 
@@ -103,7 +106,6 @@ public class SimpleEventSMSListener extends EventSavingSMSListener {
     Uid progid = subm.getEventProgram();
 
     OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(ouid.getUid());
-    User user = userService.getUser(subm.getUserId().getUid());
 
     Program program = programService.getProgram(subm.getEventProgram().getUid());
 
@@ -149,7 +151,7 @@ public class SimpleEventSMSListener extends EventSavingSMSListener {
     ProgramStage programStage = programStages.iterator().next();
 
     List<Object> errorUIDs =
-        saveNewEvent(
+        saveEvent(
             subm.getEvent().getUid(),
             orgUnit,
             programStage,

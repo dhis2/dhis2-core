@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.listener;
+package org.hisp.dhis.tracker.imports.sms;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -37,40 +37,45 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
+import org.hisp.dhis.sms.listener.CompressionSMSListener;
+import org.hisp.dhis.sms.listener.SMSProcessingException;
 import org.hisp.dhis.smscompression.SmsConsts.SmsEnrollmentStatus;
 import org.hisp.dhis.smscompression.SmsConsts.SmsEventStatus;
+import org.hisp.dhis.smscompression.SmsResponse;
 import org.hisp.dhis.smscompression.models.GeoPoint;
 import org.hisp.dhis.smscompression.models.SmsDataValue;
 import org.hisp.dhis.smscompression.models.Uid;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
-import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
-@Transactional
 public abstract class EventSavingSMSListener extends CompressionSMSListener {
 
+  protected final org.hisp.dhis.program.EventService apiEventService;
   protected final EventService eventService;
 
   protected EventSavingSMSListener(
@@ -84,6 +89,7 @@ public abstract class EventSavingSMSListener extends CompressionSMSListener {
       CategoryService categoryService,
       DataElementService dataElementService,
       IdentifiableObjectManager identifiableObjectManager,
+      org.hisp.dhis.program.EventService apiEventService,
       EventService eventService) {
     super(
         incomingSmsService,
@@ -96,10 +102,11 @@ public abstract class EventSavingSMSListener extends CompressionSMSListener {
         categoryService,
         dataElementService,
         identifiableObjectManager);
+    this.apiEventService = apiEventService;
     this.eventService = eventService;
   }
 
-  protected List<Object> saveNewEvent(
+  protected List<Object> saveEvent(
       String eventUid,
       OrganisationUnit orgUnit,
       ProgramStage programStage,
@@ -112,12 +119,22 @@ public abstract class EventSavingSMSListener extends CompressionSMSListener {
       Date dueDate,
       GeoPoint coordinates) {
     ArrayList<Object> errorUids = new ArrayList<>();
-    Event event;
-    // If we aren't given a Uid for the event, it will be auto-generated
 
-    if (eventService.eventExists(eventUid)) {
-      event = eventService.getEvent(eventUid);
-    } else {
+    Event event = null;
+    // try to find an event with given UID else create a new event with given UID or let tracker
+    // auto-generate one if no UID was given
+    eventUid = StringUtils.trimToNull(eventUid);
+    if (eventUid != null) {
+      try {
+        event = eventService.getEvent(UID.of(eventUid), UserDetails.fromUser(user));
+      } catch (ForbiddenException e) {
+        throw new SMSProcessingException(SmsResponse.INVALID_EVENT.set(eventUid));
+      } catch (NotFoundException e) {
+        // we'll create a new event if none was found
+      }
+    }
+
+    if (event == null) {
       event = new Event();
       event.setUid(eventUid);
     }
@@ -176,7 +193,7 @@ public abstract class EventSavingSMSListener extends CompressionSMSListener {
       }
     }
 
-    eventService.saveEventDataValuesAndSaveEvent(event, dataElementsAndEventDataValues);
+    apiEventService.saveEventDataValuesAndSaveEvent(event, dataElementsAndEventDataValues);
 
     return errorUids;
   }

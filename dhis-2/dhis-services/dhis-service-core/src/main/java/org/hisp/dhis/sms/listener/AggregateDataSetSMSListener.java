@@ -106,7 +106,7 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
   }
 
   @Override
-  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission)
+  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission, User user)
       throws SMSProcessingException {
     AggregateDatasetSmsSubmission subm = (AggregateDatasetSmsSubmission) submission;
 
@@ -116,10 +116,8 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
     Uid aocid = subm.getAttributeOptionCombo();
 
     OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(ouid.getUid());
-    User user = userService.getUser(subm.getUserId().getUid());
 
     DataSet dataSet = dataSetService.getDataSet(dsid.getUid());
-
     if (dataSet == null) {
       throw new SMSProcessingException(SmsResponse.INVALID_DATASET.set(dsid));
     }

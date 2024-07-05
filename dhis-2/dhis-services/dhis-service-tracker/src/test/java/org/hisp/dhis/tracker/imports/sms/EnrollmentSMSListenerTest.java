@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.listener;
+package org.hisp.dhis.tracker.imports.sms;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -54,7 +54,6 @@ import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
@@ -78,6 +77,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -109,6 +109,7 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
 
   @Mock private ProgramStageService programStageService;
 
+  @Mock private org.hisp.dhis.program.EventService apiEventService;
   @Mock private EventService eventService;
 
   // Needed for this test
@@ -127,7 +128,7 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
 
   private User user;
 
-  private OutboundMessageResponse response = new OutboundMessageResponse();
+  private final OutboundMessageResponse response = new OutboundMessageResponse();
 
   private IncomingSms updatedIncomingSms;
 
@@ -183,6 +184,7 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
             categoryService,
             dataElementService,
             programStageService,
+            apiEventService,
             eventService,
             attributeValueService,
             trackedEntityService,
