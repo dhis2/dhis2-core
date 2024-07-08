@@ -84,7 +84,6 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -120,8 +119,6 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private EnrollmentService enrollmentService;
-
-  @Autowired private EventService eventService;
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -1185,7 +1182,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     assertIsEmpty(deletedEvents);
 
     enrollmentService.deleteEnrollment(enrollmentA);
-    eventService.deleteEvent(eventA);
+    manager.delete(eventA);
 
     trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 

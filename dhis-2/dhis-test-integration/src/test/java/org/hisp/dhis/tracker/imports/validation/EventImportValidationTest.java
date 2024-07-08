@@ -379,7 +379,7 @@ class EventImportValidationTest extends TrackerTest {
     Event event = manager.get(Event.class, "uLxFbxfYDQE");
     assertNotNull(event);
     // When -> Soft-delete the event
-    programStageServiceInstance.deleteEvent(event);
+    manager.delete(event);
     TrackerObjects trackerObjects = fromJson("tracker/validations/events-with-notes-data.json");
     TrackerImportParams params = new TrackerImportParams();
     params.setImportStrategy(importStrategy);

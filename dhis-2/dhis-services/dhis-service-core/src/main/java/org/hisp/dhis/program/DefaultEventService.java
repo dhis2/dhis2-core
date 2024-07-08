@@ -67,12 +67,6 @@ public class DefaultEventService implements EventService {
 
   @Override
   @Transactional
-  public void deleteEvent(Event event) {
-    eventStore.delete(event);
-  }
-
-  @Override
-  @Transactional
   public void saveEventDataValuesAndSaveEvent(
       Event event, Map<DataElement, EventDataValue> dataElementEventDataValueMap) {
     validateEventDataValues(dataElementEventDataValueMap);
