@@ -253,9 +253,9 @@ class MaintenanceServiceTest extends IntegrationTestBase {
             .build();
     long idA = enrollmentService.addEnrollment(enrollment);
     programMessageService.saveProgramMessage(message);
-    assertNotNull(enrollmentService.getEnrollment(idA));
+    assertNotNull(manager.get(Enrollment.class, idA));
     enrollmentService.deleteEnrollment(enrollment);
-    assertNull(enrollmentService.getEnrollment(idA));
+    assertNull(manager.get(Enrollment.class, idA));
     assertTrue(enrollmentService.enrollmentExistsIncludingDeleted(enrollment.getUid()));
 
     maintenanceService.deleteSoftDeletedEnrollments();
@@ -331,9 +331,9 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     trackedEntityDataValueAuditService.addTrackedEntityDataValueChangeLog(
         trackedEntityDataValueChangeLog);
     long idA = enrollmentService.addEnrollment(enrollment);
-    assertNotNull(enrollmentService.getEnrollment(idA));
+    assertNotNull(manager.get(Enrollment.class, idA));
     enrollmentService.deleteEnrollment(enrollment);
-    assertNull(enrollmentService.getEnrollment(idA));
+    assertNull(manager.get(Enrollment.class, idA));
     assertTrue(enrollmentService.enrollmentExistsIncludingDeleted(enrollment.getUid()));
 
     maintenanceService.deleteSoftDeletedEnrollments();
@@ -400,10 +400,10 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     r.setKey(RelationshipUtils.generateRelationshipKey(r));
     r.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(r));
     relationshipService.addRelationship(r);
-    assertNotNull(enrollmentService.getEnrollment(enrollment.getId()));
+    assertNotNull(manager.get(Enrollment.class, enrollment.getId()));
     assertNotNull(relationshipService.getRelationship(r.getId()));
     enrollmentService.deleteEnrollment(enrollment);
-    assertNull(enrollmentService.getEnrollment(enrollment.getId()));
+    assertNull(manager.get(Enrollment.class, enrollment.getId()));
     assertNull(relationshipService.getRelationship(r.getId()));
     assertTrue(enrollmentService.enrollmentExistsIncludingDeleted(enrollment.getUid()));
     assertTrue(relationshipService.relationshipExistsIncludingDeleted(r.getUid()));

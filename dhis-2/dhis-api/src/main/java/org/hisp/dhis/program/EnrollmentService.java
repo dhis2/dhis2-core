@@ -67,14 +67,6 @@ public interface EnrollmentService {
   void updateEnrollment(Enrollment enrollment);
 
   /**
-   * Returns a {@link Enrollment}.
-   *
-   * @param id the id of the Enrollment to return.
-   * @return the Enrollment with the given id
-   */
-  Enrollment getEnrollment(long id);
-
-  /**
    * Returns the {@link Enrollment} with the given UID.
    *
    * @param uid the UID.
