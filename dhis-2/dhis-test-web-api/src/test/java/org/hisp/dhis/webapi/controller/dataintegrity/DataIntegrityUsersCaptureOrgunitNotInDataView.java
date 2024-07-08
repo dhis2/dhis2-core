@@ -48,9 +48,9 @@ import org.junit.jupiter.api.Test;
  */
 class DataIntegrityUsersCaptureOrgunitNotInDataView extends AbstractDataIntegrityIntegrationTest {
 
-  private static final String check = "users_capture_ou_not_in_data_view_ou";
+  private static final String CHECK_NAME = "users_capture_ou_not_in_data_view_ou";
 
-  private static final String detailsIdType = "users";
+  private static final String DETAILS_ID_TYPE = "users";
 
   private String orgunitAUid;
   private String orgunitBUid;
@@ -118,9 +118,9 @@ class DataIntegrityUsersCaptureOrgunitNotInDataView extends AbstractDataIntegrit
 
     // Note that there are already two users which exist due to the overall test setup, thus, five
     // users in total. Only userB should be flagged.
-    assertHasDataIntegrityIssues(detailsIdType, check, 20, userBUid, "janedoe", null, true);
+    assertHasDataIntegrityIssues( DETAILS_ID_TYPE, CHECK_NAME, 20, userBUid, "janedoe", null, true);
 
-    JsonDataIntegrityDetails details = getDetails(check);
+    JsonDataIntegrityDetails details = getDetails( CHECK_NAME );
     JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
     assertEquals(1, issues.size());
 
