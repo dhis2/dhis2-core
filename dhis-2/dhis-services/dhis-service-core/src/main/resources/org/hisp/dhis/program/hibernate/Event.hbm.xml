@@ -38,7 +38,7 @@
       column="programstageid" not-null="true" foreign-key="fk_programstageinstance_programstageid" />
 
     <many-to-one name="attributeOptionCombo" class="org.hisp.dhis.category.CategoryOptionCombo"
-      column="attributeoptioncomboid" foreign-key="fk_programstageinstance_attributeoptioncomboid" />
+      column="attributeoptioncomboid" not-null="true" foreign-key="fk_programstageinstance_attributeoptioncomboid" />
 
     <property name="deleted" column="deleted" />
 

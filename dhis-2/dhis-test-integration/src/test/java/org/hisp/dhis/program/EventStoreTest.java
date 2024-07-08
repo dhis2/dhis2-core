@@ -29,8 +29,6 @@ package org.hisp.dhis.program;
 
 import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_DUE_DATE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
 import java.util.Calendar;
@@ -38,6 +36,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
@@ -78,9 +78,13 @@ class EventStoreTest extends TransactionalIntegrationTest {
 
   @Autowired private IdentifiableObjectManager idObjectManager;
 
+  @Autowired private CategoryService categoryService;
+
   @Autowired
   @Qualifier("org.hisp.dhis.program.notification.ProgramNotificationStore")
   private IdentifiableObjectStore<ProgramNotificationTemplate> programNotificationStore;
+
+  private CategoryOptionCombo coA;
 
   private OrganisationUnit organisationUnitA;
 
@@ -132,6 +136,7 @@ class EventStoreTest extends TransactionalIntegrationTest {
 
   @Override
   public void setUpTest() {
+    coA = categoryService.getDefaultCategoryOptionCombo();
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitB = createOrganisationUnit('B');
     idObjectManager.save(organisationUnitA);
@@ -194,29 +199,23 @@ class EventStoreTest extends TransactionalIntegrationTest {
     eventA = new Event(enrollmentA, stageA);
     eventA.setScheduledDate(enrollmentDate);
     eventA.setUid("UID-A");
+    eventA.setAttributeOptionCombo(coA);
     eventB = new Event(enrollmentA, stageB);
     eventB.setScheduledDate(enrollmentDate);
     eventB.setUid("UID-B");
+    eventB.setAttributeOptionCombo(coA);
     eventC = new Event(enrollmentB, stageC);
     eventC.setScheduledDate(enrollmentDate);
     eventC.setUid("UID-C");
+    eventC.setAttributeOptionCombo(coA);
     eventD1 = new Event(enrollmentB, stageD);
     eventD1.setScheduledDate(enrollmentDate);
     eventD1.setUid("UID-D1");
+    eventD1.setAttributeOptionCombo(coA);
     eventD2 = new Event(enrollmentB, stageD);
     eventD2.setScheduledDate(enrollmentDate);
     eventD2.setUid("UID-D2");
-  }
-
-  @Test
-  void testEventExists() {
-    eventStore.save(eventA);
-    eventStore.save(eventB);
-    dbmsManager.flushSession();
-    assertTrue(eventStore.exists(eventA.getUid()));
-    assertTrue(eventStore.exists(eventB.getUid()));
-    assertFalse(eventStore.exists("aaaabbbbccc"));
-    assertFalse(eventStore.exists(null));
+    eventD2.setAttributeOptionCombo(coA);
   }
 
   @Test
@@ -306,12 +305,15 @@ class EventStoreTest extends TransactionalIntegrationTest {
     // Events
     Event eventA = new Event(enrollmentA, stageA);
     eventA.setScheduledDate(tomorrow);
+    eventA.setAttributeOptionCombo(coA);
     eventStore.save(eventA);
     Event eventB = new Event(enrollmentB, stageB);
     eventB.setScheduledDate(today);
+    eventB.setAttributeOptionCombo(coA);
     eventStore.save(eventB);
     Event eventC = new Event(enrollmentB, stageC);
     eventC.setScheduledDate(yesterday);
+    eventC.setAttributeOptionCombo(coA);
     eventStore.save(eventC);
     // Queries
     List<Event> results;

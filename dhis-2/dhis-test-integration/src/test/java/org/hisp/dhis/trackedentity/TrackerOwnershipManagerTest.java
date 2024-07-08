@@ -28,6 +28,7 @@
 package org.hisp.dhis.trackedentity;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.tracker.TrackerTestUtils.uids;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -39,7 +40,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.AccessLevel;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -87,8 +87,6 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   @Autowired private EnrollmentService enrollmentService;
 
   @Autowired private TrackedEntityTypeService trackedEntityTypeService;
-
-  private Enrollment trackedEntityA1Enrollment;
 
   private TrackedEntity trackedEntityA1;
 
@@ -163,7 +161,8 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     userDetailsA = UserDetails.fromUser(userA);
     userDetailsB = UserDetails.fromUser(userB);
 
-    trackedEntityA1Enrollment = createEnrollment(programA, trackedEntityA1, organisationUnitA);
+    Enrollment trackedEntityA1Enrollment =
+        createEnrollment(programA, trackedEntityA1, organisationUnitA);
     enrollmentService.addEnrollment(trackedEntityA1Enrollment);
 
     defaultParams =
@@ -194,6 +193,8 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
 
   @Test
   void shouldNotHaveAccessToEnrollmentWithUserAWhenTransferredToAnotherOrgUnit() {
+    userA.setTeiSearchOrganisationUnits(Set.of(organisationUnitB));
+    userService.updateUser(userA);
     trackerOwnershipAccessManager.assignOwnership(
         trackedEntityA1, programA, organisationUnitA, false, true);
     trackerOwnershipAccessManager.transferOwnership(
@@ -218,6 +219,23 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
         trackedEntityA1, programA, organisationUnitB, false, true);
 
     injectSecurityContextUser(userB);
+    assertEquals(
+        trackedEntityA1,
+        trackedEntityService.getTrackedEntity(
+            trackedEntityA1.getUid(), programA.getUid(), defaultParams, false));
+  }
+
+  @Test
+  void shouldHaveAccessToEnrollmentWithSuperUserWhenTransferredToOwnOrgUnit()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    trackerOwnershipAccessManager.assignOwnership(
+        trackedEntityA1, programA, organisationUnitA, false, true);
+    trackerOwnershipAccessManager.transferOwnership(
+        trackedEntityA1, programA, organisationUnitB, false, true);
+    superUser.setOrganisationUnits(Set.of(organisationUnitB));
+    userService.updateUser(superUser);
+
+    injectSecurityContextUser(superUser);
     assertEquals(
         trackedEntityA1,
         trackedEntityService.getTrackedEntity(
@@ -278,7 +296,30 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   }
 
   @Test
+  void shouldNotHaveAccessWhenProgramProtectedAndUserNotInSearchScopeNorHasTemporaryAccess() {
+    assertFalse(trackerOwnershipAccessManager.hasAccess(userDetailsB, trackedEntityA1, programA));
+    assertFalse(
+        trackerOwnershipAccessManager.hasAccess(
+            UserDetails.fromUser(userB),
+            trackedEntityA1.getUid(),
+            trackedEntityA1.getOrganisationUnit(),
+            programA));
+
+    injectSecurityContextUser(userB);
+    ForbiddenException exception =
+        assertThrows(
+            ForbiddenException.class,
+            () ->
+                trackedEntityService.getTrackedEntity(
+                    trackedEntityA1.getUid(), programA.getUid(), defaultParams, false));
+    assertEquals(TrackerOwnershipManager.NO_READ_ACCESS_TO_ORG_UNIT, exception.getMessage());
+  }
+
+  @Test
   void shouldNotHaveAccessWhenProgramProtectedAndUserNotInCaptureScopeNorHasTemporaryAccess() {
+    userB.setTeiSearchOrganisationUnits(Set.of(organisationUnitA));
+    userService.updateUser(userB);
+
     assertFalse(trackerOwnershipAccessManager.hasAccess(userDetailsB, trackedEntityA1, programA));
     assertFalse(
         trackerOwnershipAccessManager.hasAccess(
@@ -419,11 +460,24 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     transferOwnership(trackedEntityA1, programA, organisationUnitB);
     TrackedEntityOperationParams operationParams = createOperationParams(userB, null);
 
-    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+    List<String> trackedEntities = getTrackedEntities(operationParams);
 
     assertContainsOnly(
-        List.of(trackedEntityA1.getUid(), trackedEntityB1.getUid()),
-        trackedEntities.stream().map(BaseIdentifiableObject::getUid).toList());
+        List.of(trackedEntityA1.getUid(), trackedEntityB1.getUid()), trackedEntities);
+  }
+
+  @Test
+  void shouldFindTrackedEntityWhenTransferredToAccessibleOrgUnitAndSuperUser()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    transferOwnership(trackedEntityA1, programA, organisationUnitB);
+    superUser.setOrganisationUnits(Set.of(organisationUnitB));
+    userService.updateUser(superUser);
+    TrackedEntityOperationParams operationParams = createOperationParams(superUser, null);
+
+    List<String> trackedEntities = getTrackedEntities(operationParams);
+
+    assertContainsOnly(
+        List.of(trackedEntityA1.getUid(), trackedEntityB1.getUid()), trackedEntities);
   }
 
   @Test
@@ -432,7 +486,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     transferOwnership(trackedEntityA1, programA, organisationUnitB);
 
     TrackedEntityOperationParams operationParams = createOperationParams(userA, null);
-    Assertions.assertIsEmpty(trackedEntityService.getTrackedEntities(operationParams));
+    Assertions.assertIsEmpty(getTrackedEntities(operationParams));
   }
 
   @Test
@@ -445,11 +499,9 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
 
     trackerAccessManager.canRead(UserDetails.fromUser(userA), trackedEntityA1);
 
-    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+    List<String> trackedEntities = getTrackedEntities(operationParams);
 
-    assertContainsOnly(
-        List.of(trackedEntityA1.getUid()),
-        trackedEntities.stream().map(BaseIdentifiableObject::getUid).toList());
+    assertContainsOnly(List.of(trackedEntityA1.getUid()), trackedEntities);
   }
 
   @Test
@@ -458,11 +510,9 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     transferOwnership(trackedEntityA1, programA, organisationUnitB);
     TrackedEntityOperationParams operationParams = createOperationParams(superUser, null);
 
-    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+    List<String> trackedEntities = getTrackedEntities(operationParams);
 
-    assertContainsOnly(
-        List.of(trackedEntityA1.getUid()),
-        trackedEntities.stream().map(BaseIdentifiableObject::getUid).toList());
+    assertContainsOnly(List.of(trackedEntityA1.getUid()), trackedEntities);
   }
 
   @Test
@@ -472,11 +522,9 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     TrackedEntityOperationParams operationParams = createOperationParams(userA, programA.getUid());
     injectSecurityContext(userDetailsA);
 
-    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+    List<String> trackedEntities = getTrackedEntities(operationParams);
 
-    assertContainsOnly(
-        List.of(trackedEntityA1.getUid()),
-        trackedEntities.stream().map(BaseIdentifiableObject::getUid).toList());
+    assertContainsOnly(List.of(trackedEntityA1.getUid()), trackedEntities);
   }
 
   @Test
@@ -486,7 +534,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     TrackedEntityOperationParams operationParams = createOperationParams(userB, programA.getUid());
     injectSecurityContext(userDetailsA);
 
-    assertIsEmpty(trackedEntityService.getTrackedEntities(operationParams));
+    assertIsEmpty(getTrackedEntities(operationParams));
   }
 
   private void transferOwnership(
@@ -506,5 +554,10 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
         .user(user)
         .programUid(programUid)
         .build();
+  }
+
+  private List<String> getTrackedEntities(TrackedEntityOperationParams params)
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    return uids(trackedEntityService.getTrackedEntities(params));
   }
 }

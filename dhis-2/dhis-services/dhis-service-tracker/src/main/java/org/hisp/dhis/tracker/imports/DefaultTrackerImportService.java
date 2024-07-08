@@ -41,7 +41,7 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
+import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preprocess.TrackerPreprocessService;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
@@ -83,17 +83,21 @@ public class DefaultTrackerImportService implements TrackerImportService {
 
     jobProgress.startingStage("Running PreHeat");
     TrackerBundle trackerBundle =
-        jobProgress.runStage(() -> trackerBundleService.create(params, trackerObjects, user));
+        jobProgress.nonNullStagePostCondition(
+            jobProgress.runStage(() -> trackerBundleService.create(params, trackerObjects, user)));
 
     jobProgress.startingStage("Calculating Payload Size");
     Map<TrackerType, Integer> bundleSize =
-        jobProgress.runStage(() -> calculatePayloadSize(trackerBundle));
+        jobProgress.nonNullStagePostCondition(
+            jobProgress.runStage(() -> calculatePayloadSize(trackerBundle)));
 
     jobProgress.startingStage("Running PreProcess");
     jobProgress.runStage(() -> trackerPreprocessService.preprocess(trackerBundle));
 
     jobProgress.startingStage("Running Validation");
-    ValidationResult validationResult = jobProgress.runStage(() -> validateBundle(trackerBundle));
+    ValidationResult validationResult =
+        jobProgress.nonNullStagePostCondition(
+            jobProgress.runStage(() -> validateBundle(trackerBundle)));
 
     ValidationReport validationReport = ValidationReport.fromResult(validationResult);
 
@@ -103,7 +107,8 @@ public class DefaultTrackerImportService implements TrackerImportService {
 
       jobProgress.startingStage("Running Rule Engine Validation");
       ValidationResult result =
-          jobProgress.runStage(() -> validationService.validateRuleEngine(trackerBundle));
+          jobProgress.nonNullStagePostCondition(
+              jobProgress.runStage(() -> validationService.validateRuleEngine(trackerBundle)));
       trackerBundle.setTrackedEntities(result.getTrackedEntities());
       trackerBundle.setEnrollments(result.getEnrollments());
       trackerBundle.setEvents(result.getEvents());
@@ -118,7 +123,9 @@ public class DefaultTrackerImportService implements TrackerImportService {
     }
 
     jobProgress.startingStage("Commit Transaction");
-    PersistenceReport persistenceReport = jobProgress.runStage(() -> commit(params, trackerBundle));
+    PersistenceReport persistenceReport =
+        jobProgress.nonNullStagePostCondition(
+            jobProgress.runStage(() -> commit(params, trackerBundle)));
 
     jobProgress.startingStage("PostCommit");
     jobProgress.runStage(() -> trackerBundleService.postCommit(trackerBundle));
@@ -153,24 +160,24 @@ public class DefaultTrackerImportService implements TrackerImportService {
     PersistenceReport persistenceReport = trackerBundleService.commit(trackerBundle);
 
     if (!trackerBundle.isSkipSideEffects()) {
-      List<TrackerSideEffectDataBundle> sideEffectDataBundles =
+      List<TrackerNotificationDataBundle> notificationDataBundles =
           Stream.of(TrackerType.ENROLLMENT, TrackerType.EVENT)
-              .map(trackerType -> safelyGetSideEffectsDataBundles(persistenceReport, trackerType))
+              .map(trackerType -> safelyGetNotificationDataBundles(persistenceReport, trackerType))
               .flatMap(Collection::stream)
               .toList();
 
-      trackerBundleService.handleTrackerSideEffects(sideEffectDataBundles);
+      trackerBundleService.sendNotifications(notificationDataBundles);
     }
 
     return persistenceReport;
   }
 
-  private List<TrackerSideEffectDataBundle> safelyGetSideEffectsDataBundles(
+  private List<TrackerNotificationDataBundle> safelyGetNotificationDataBundles(
       PersistenceReport persistenceReport, TrackerType trackerType) {
     return Optional.ofNullable(persistenceReport)
         .map(PersistenceReport::getTypeReportMap)
         .map(reportMap -> reportMap.get(trackerType))
-        .map(TrackerTypeReport::getSideEffectDataBundles)
+        .map(TrackerTypeReport::getNotificationDataBundles)
         .orElse(Collections.emptyList());
   }
 

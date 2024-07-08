@@ -39,7 +39,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.system.util.HttpHeadersBuilder;
-import org.hisp.dhis.web.jetty.JettyEmbeddedCoreWeb;
+import org.hisp.dhis.web.jetty.Main;
 import org.hisp.dhis.webapi.controller.security.LoginRequest;
 import org.hisp.dhis.webapi.controller.security.LoginResponse;
 import org.junit.jupiter.api.BeforeAll;
@@ -98,7 +98,7 @@ class AuthTest {
         new Thread(
             () -> {
               try {
-                JettyEmbeddedCoreWeb.main(null);
+                Main.main(null);
               } catch (InterruptedException ignored) {
               } catch (Exception e) {
                 throw new RuntimeException(e);

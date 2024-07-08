@@ -103,6 +103,7 @@ import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.junit.jupiter.api.Disabled;
@@ -2028,6 +2029,26 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     assertContainsOnly(
         Set.of(trackedEntityAttributeValueA, trackedEntityAttributeValueB),
         trackedEntity.getTrackedEntityAttributeValues());
+  }
+
+  @Test
+  void
+      shouldFindTrackedEntityWhenCaptureScopeIndependentFromSearchScopeAndCaptureScopeOrgUnitRequested()
+          throws ForbiddenException, NotFoundException, BadRequestException {
+    injectSecurityContextUser(getAdminUser());
+    programA.setAccessLevel(AccessLevel.OPEN);
+    manager.update(programA);
+
+    User testUser = createAndAddUser(false, "testUser", emptySet(), emptySet(), "F_EXPORT_DATA");
+    testUser.setOrganisationUnits(Set.of(orgUnitA));
+    testUser.setTeiSearchOrganisationUnits(Set.of(orgUnitB));
+    manager.update(testUser);
+    injectSecurityContext(UserDetails.fromUser(testUser));
+
+    assertEquals(
+        trackedEntityA,
+        trackedEntityService.getTrackedEntity(
+            trackedEntityA.getUid(), programA.getUid(), TrackedEntityParams.TRUE, false));
   }
 
   private Set<String> attributeNames(final Collection<TrackedEntityAttributeValue> attributes) {

@@ -107,4 +107,11 @@ public interface TrackerOwnershipManager {
    * @return true if ownership check can be skipped.
    */
   boolean canSkipOwnershipCheck(UserDetails user, ProgramType programType);
+
+  /**
+   * Checks whether the owner of the TE/program pair resides within the user search scope.
+   *
+   * @return true if the owner is in the search scope, false otherwise
+   */
+  boolean isOwnerInUserSearchScope(UserDetails user, TrackedEntity trackedEntity, Program program);
 }

@@ -103,7 +103,7 @@ public class OperationsParamsValidator {
         throw new BadRequestException("User needs to be assigned data capture org units");
       }
 
-    } else if (user.getTeiSearchOrganisationUnitsWithFallback().isEmpty()) {
+    } else if (user.getEffectiveSearchOrganisationUnits().isEmpty()) {
       throw new BadRequestException(
           "User needs to be assigned either search or data capture org units");
     }
@@ -247,7 +247,7 @@ public class OperationsParamsValidator {
 
       if (!user.isSuper()
           && !organisationUnitService.isInUserHierarchy(
-              orgUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback())) {
+              orgUnit.getUid(), user.getEffectiveSearchOrganisationUnits())) {
         throw new ForbiddenException(
             "Organisation unit is not part of the search scope: " + orgUnit.getUid());
       }

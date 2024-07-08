@@ -37,7 +37,10 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.note.NoteService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -66,15 +69,19 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private ProgramStageService programStageService;
 
-  @Autowired private EventService eventService;
-
   @Autowired protected UserService _userService;
 
-  @Autowired NoteService noteService;
+  @Autowired private NoteService noteService;
+
+  @Autowired private CategoryService categoryService;
+
+  @Autowired private IdentifiableObjectManager manager;
 
   private Date incidentDate;
 
   private Date enrollmentDate;
+
+  private CategoryOptionCombo coA;
 
   private Program programA;
 
@@ -103,6 +110,8 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   @Override
   public void setUpTest() {
     userService = _userService;
+
+    coA = categoryService.getDefaultCategoryOptionCombo();
 
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnitA);
@@ -146,9 +155,6 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     enrollmentA = new Enrollment(enrollmentDate, incidentDate, trackedEntityA, programA);
     enrollmentA.setUid("UID-A");
     enrollmentA.setOrganisationUnit(organisationUnitA);
-    eventA = new Event(enrollmentA, stageA);
-    eventA.setUid("UID-PSI-A");
-    eventA.setOrganisationUnit(organisationUnitA);
     enrollmentB = new Enrollment(enrollmentDate, incidentDate, trackedEntityA, programB);
     enrollmentB.setUid("UID-B");
     enrollmentB.setStatus(EnrollmentStatus.CANCELLED);
@@ -160,6 +166,10 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     enrollmentD = new Enrollment(enrollmentDate, incidentDate, trackedEntityB, programA);
     enrollmentD.setUid("UID-D");
     enrollmentD.setOrganisationUnit(organisationUnitB);
+    eventA = new Event(enrollmentA, stageA);
+    eventA.setUid("UID-PSI-A");
+    eventA.setOrganisationUnit(organisationUnitA);
+    eventA.setAttributeOptionCombo(coA);
 
     injectSecurityContextUser(user);
   }
@@ -189,14 +199,17 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   @Test
   void testSoftDeleteEnrollmentAndLinkedEvent() {
     long idA = enrollmentService.addEnrollment(enrollmentA);
-    long eventIdA = eventService.addEvent(eventA);
+    manager.save(eventA);
+    long eventIdA = eventA.getId();
     enrollmentA.setEvents(Sets.newHashSet(eventA));
     enrollmentService.updateEnrollment(enrollmentA);
     assertNotNull(enrollmentService.getEnrollment(idA));
-    assertNotNull(eventService.getEvent(eventIdA));
+    assertNotNull(manager.get(Event.class, eventIdA));
+
     enrollmentService.deleteEnrollment(enrollmentA);
+
     assertNull(enrollmentService.getEnrollment(idA));
-    assertNull(eventService.getEvent(eventIdA));
+    assertNull(manager.get(Event.class, eventIdA));
   }
 
   @Test

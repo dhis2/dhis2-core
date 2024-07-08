@@ -44,8 +44,11 @@ import org.hisp.dhis.audit.AuditQuery;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditService;
 import org.hisp.dhis.audit.AuditType;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -79,6 +82,7 @@ import org.joda.time.DateTime;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * @author Enrico Colasante
@@ -112,27 +116,23 @@ class MaintenanceServiceTest extends IntegrationTestBase {
 
   @Autowired private AuditService auditService;
 
-  private Date incidenDate;
+  @Autowired private CategoryService categoryService;
+
+  @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private JdbcTemplate jdbcTemplate;
 
   private Date enrollmentDate;
 
+  private CategoryOptionCombo coA;
+
   private Program program;
-
-  private ProgramStage stageA;
-
-  private ProgramStage stageB;
 
   private OrganisationUnit organisationUnit;
 
   private Enrollment enrollment;
 
-  private Enrollment enrollmentWithTeAssociation;
-
   private Event event;
-
-  private Event eventWithTeAssociation;
-
-  private TrackedEntityType trackedEntityType;
 
   private TrackedEntity trackedEntity;
 
@@ -144,14 +144,15 @@ class MaintenanceServiceTest extends IntegrationTestBase {
 
   @Override
   public void setUpTest() {
+    coA = categoryService.getDefaultCategoryOptionCombo();
     organisationUnit = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnit);
     program = createProgram('A', new HashSet<>(), organisationUnit);
     programService.addProgram(program);
-    stageA = createProgramStage('A', program);
+    ProgramStage stageA = createProgramStage('A', program);
     stageA.setSortOrder(1);
     programStageService.saveProgramStage(stageA);
-    stageB = createProgramStage('B', program);
+    ProgramStage stageB = createProgramStage('B', program);
     stageB.setSortOrder(2);
     programStageService.saveProgramStage(stageB);
     Set<ProgramStage> programStages = new HashSet<>();
@@ -159,7 +160,7 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     programStages.add(stageB);
     program.setProgramStages(programStages);
     programService.updateProgram(program);
-    trackedEntityType = createTrackedEntityType('A');
+    TrackedEntityType trackedEntityType = createTrackedEntityType('A');
     trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
     trackedEntity = createTrackedEntity(organisationUnit);
     trackedEntity.setTrackedEntityType(trackedEntityType);
@@ -171,15 +172,15 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     DateTime testDate1 = DateTime.now();
     testDate1.withTimeAtStartOfDay();
     testDate1 = testDate1.minusDays(70);
-    incidenDate = testDate1.toDate();
+    Date occurredDate = testDate1.toDate();
     DateTime testDate2 = DateTime.now();
     testDate2.withTimeAtStartOfDay();
     enrollmentDate = testDate2.toDate();
-    enrollment = new Enrollment(enrollmentDate, incidenDate, trackedEntity, program);
+    enrollment = new Enrollment(enrollmentDate, occurredDate, trackedEntity, program);
     enrollment.setUid("UID-A");
     enrollment.setOrganisationUnit(organisationUnit);
-    enrollmentWithTeAssociation =
-        new Enrollment(enrollmentDate, incidenDate, trackedEntityWithAssociations, program);
+    Enrollment enrollmentWithTeAssociation =
+        new Enrollment(enrollmentDate, occurredDate, trackedEntityWithAssociations, program);
     enrollmentWithTeAssociation.setUid("UID-B");
     enrollmentWithTeAssociation.setOrganisationUnit(organisationUnit);
     trackedEntityService.addTrackedEntity(trackedEntityWithAssociations);
@@ -190,12 +191,14 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     event.setOrganisationUnit(organisationUnit);
     event.setEnrollment(enrollment);
     event.setOccurredDate(new Date());
-    eventWithTeAssociation = new Event(enrollmentWithTeAssociation, stageA);
+    event.setAttributeOptionCombo(coA);
+    Event eventWithTeAssociation = new Event(enrollmentWithTeAssociation, stageA);
     eventWithTeAssociation.setUid("PSUID-C");
     eventWithTeAssociation.setOrganisationUnit(organisationUnit);
     eventWithTeAssociation.setEnrollment(enrollmentWithTeAssociation);
     eventWithTeAssociation.setOccurredDate(new Date());
-    eventService.addEvent(eventWithTeAssociation);
+    eventWithTeAssociation.setAttributeOptionCombo(coA);
+    manager.save(eventWithTeAssociation);
     relationshipType = createPersonToPersonRelationshipType('A', program, trackedEntityType, false);
     relationshipTypeService.addRelationshipType(relationshipType);
   }
@@ -226,7 +229,9 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     assertNull(relationshipService.getRelationship(r.getId()));
     assertTrue(trackedEntityService.trackedEntityExistsIncludingDeleted(trackedEntity.getUid()));
     assertTrue(relationshipService.relationshipExistsIncludingDeleted(r.getUid()));
+
     maintenanceService.deleteSoftDeletedTrackedEntities();
+
     assertFalse(trackedEntityService.trackedEntityExistsIncludingDeleted(trackedEntity.getUid()));
     assertFalse(relationshipService.relationshipExistsIncludingDeleted(r.getUid()));
   }
@@ -252,7 +257,9 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     enrollmentService.deleteEnrollment(enrollment);
     assertNull(enrollmentService.getEnrollment(idA));
     assertTrue(enrollmentService.enrollmentExistsIncludingDeleted(enrollment.getUid()));
+
     maintenanceService.deleteSoftDeletedEnrollments();
+
     assertFalse(enrollmentService.enrollmentExistsIncludingDeleted(enrollment.getUid()));
   }
 
@@ -270,14 +277,17 @@ class MaintenanceServiceTest extends IntegrationTestBase {
             .deliveryChannels(Sets.newHashSet(DeliveryChannel.EMAIL))
             .event(event)
             .build();
-    long idA = eventService.addEvent(event);
+    manager.save(event);
+    long idA = event.getId();
     programMessageService.saveProgramMessage(message);
-    assertNotNull(eventService.getEvent(idA));
+    assertNotNull(getEvent(idA));
     eventService.deleteEvent(event);
-    assertNull(eventService.getEvent(idA));
-    assertTrue(eventService.eventExistsIncludingDeleted(event.getUid()));
+    assertNull(getEvent(idA));
+    assertTrue(eventExistsIncludingDeleted(event.getUid()));
+
     maintenanceService.deleteSoftDeletedEvents();
-    assertFalse(eventService.eventExistsIncludingDeleted(event.getUid()));
+
+    assertFalse(eventExistsIncludingDeleted(event.getUid()));
   }
 
   @Test
@@ -300,7 +310,9 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     trackedEntityService.deleteTrackedEntity(trackedEntityB);
     assertNull(trackedEntityService.getTrackedEntity(idA));
     assertTrue(trackedEntityService.trackedEntityExistsIncludingDeleted(trackedEntityB.getUid()));
+
     maintenanceService.deleteSoftDeletedTrackedEntities();
+
     assertFalse(trackedEntityService.trackedEntityExistsIncludingDeleted(trackedEntityB.getUid()));
   }
 
@@ -311,7 +323,8 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     Event eventA = new Event(enrollment, program.getProgramStageByStage(1));
     eventA.setScheduledDate(enrollmentDate);
     eventA.setUid("UID-A");
-    eventService.addEvent(eventA);
+    eventA.setAttributeOptionCombo(coA);
+    manager.save(eventA);
     TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog =
         new TrackedEntityDataValueChangeLog(
             dataElement, eventA, "value", "modifiedBy", false, ChangeLogType.UPDATE);
@@ -322,7 +335,9 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     enrollmentService.deleteEnrollment(enrollment);
     assertNull(enrollmentService.getEnrollment(idA));
     assertTrue(enrollmentService.enrollmentExistsIncludingDeleted(enrollment.getUid()));
+
     maintenanceService.deleteSoftDeletedEnrollments();
+
     assertFalse(enrollmentService.enrollmentExistsIncludingDeleted(enrollment.getUid()));
   }
 
@@ -338,7 +353,9 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     Event eventA = new Event(enrollment, program.getProgramStageByStage(1));
     eventA.setScheduledDate(enrollmentDate);
     eventA.setUid("UID-A");
-    long idA = eventService.addEvent(eventA);
+    eventA.setAttributeOptionCombo(coA);
+    manager.save(eventA);
+    long idA = eventA.getId();
     Relationship r = new Relationship();
     RelationshipItem rItem1 = new RelationshipItem();
     rItem1.setEvent(eventA);
@@ -350,15 +367,17 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     r.setKey(RelationshipUtils.generateRelationshipKey(r));
     r.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(r));
     relationshipService.addRelationship(r);
-    assertNotNull(eventService.getEvent(idA));
+    assertNotNull(getEvent(idA));
     assertNotNull(relationshipService.getRelationship(r.getId()));
     eventService.deleteEvent(eventA);
-    assertNull(eventService.getEvent(idA));
+    assertNull(getEvent(idA));
     assertNull(relationshipService.getRelationship(r.getId()));
-    assertTrue(eventService.eventExistsIncludingDeleted(eventA.getUid()));
+    assertTrue(eventExistsIncludingDeleted(eventA.getUid()));
     assertTrue(relationshipService.relationshipExistsIncludingDeleted(r.getUid()));
+
     maintenanceService.deleteSoftDeletedEvents();
-    assertFalse(eventService.eventExistsIncludingDeleted(eventA.getUid()));
+
+    assertFalse(eventExistsIncludingDeleted(eventA.getUid()));
     assertFalse(relationshipService.relationshipExistsIncludingDeleted(r.getUid()));
   }
 
@@ -388,7 +407,9 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     assertNull(relationshipService.getRelationship(r.getId()));
     assertTrue(enrollmentService.enrollmentExistsIncludingDeleted(enrollment.getUid()));
     assertTrue(relationshipService.relationshipExistsIncludingDeleted(r.getUid()));
+
     maintenanceService.deleteSoftDeletedEnrollments();
+
     assertFalse(enrollmentService.enrollmentExistsIncludingDeleted(enrollment.getUid()));
     assertFalse(relationshipService.relationshipExistsIncludingDeleted(r.getUid()));
   }
@@ -437,5 +458,15 @@ class MaintenanceServiceTest extends IntegrationTestBase {
 
     maintenanceService.deleteSoftDeletedRelationships();
     assertNull(relationshipService.getRelationshipIncludeDeleted(relationship.getUid()));
+  }
+
+  private Event getEvent(long id) {
+    return manager.get(Event.class, id);
+  }
+
+  private boolean eventExistsIncludingDeleted(String uid) {
+    return Boolean.TRUE.equals(
+        jdbcTemplate.queryForObject(
+            "select exists(select 1 from event where uid=?)", Boolean.class, uid));
   }
 }

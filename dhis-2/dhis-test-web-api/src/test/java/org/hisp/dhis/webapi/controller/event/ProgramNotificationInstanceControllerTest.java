@@ -66,10 +66,15 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
   @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private IdentifiableObjectManager idObjectManager;
+
   private Enrollment enrollment;
+
   private Event event;
+
   private ProgramNotificationInstance enrollmentNotification1;
+
   private ProgramNotificationInstance enrollmentNotification2;
+
   private ProgramNotificationInstance eventNotification;
 
   @BeforeEach
@@ -97,7 +102,7 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
     programNotificationInstanceService.save(enrollmentNotification2);
 
     event = createEvent(psA, enrollment, ouA);
-    eventService.addEvent(event);
+    manager.save(event);
     eventNotification = new ProgramNotificationInstance();
     eventNotification.setName("event A notification");
     eventNotification.setEvent(event);

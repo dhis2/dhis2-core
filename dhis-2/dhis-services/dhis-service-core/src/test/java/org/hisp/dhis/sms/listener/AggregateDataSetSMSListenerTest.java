@@ -53,7 +53,6 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
@@ -93,8 +92,6 @@ class AggregateDataSetSMSListenerTest extends CompressionSMSListenerTest {
   @Mock private OrganisationUnitService organisationUnitService;
 
   @Mock private CategoryService categoryService;
-
-  @Mock private EventService eventService;
 
   // Needed for this test
 
@@ -145,7 +142,6 @@ class AggregateDataSetSMSListenerTest extends CompressionSMSListenerTest {
             organisationUnitService,
             categoryService,
             dataElementService,
-            eventService,
             dataSetService,
             dataValueService,
             registrationService,

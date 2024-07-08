@@ -27,11 +27,9 @@
  */
 package org.hisp.dhis.program;
 
-import java.util.Date;
 import java.util.Map;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
  * @author Abyot Asalefew
@@ -39,73 +37,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 public interface EventService {
   String ID = EventService.class.getName();
 
-  /**
-   * Adds an {@link Event}
-   *
-   * @param event The Event to add.
-   * @return A generated unique id of the added {@link Event}.
-   */
-  long addEvent(Event event);
-
   /** Soft deletes an {@link Event}. */
   void deleteEvent(Event event);
-
-  /**
-   * Checks whether an {@link Event} with the given identifier exists. Doesn't take into account the
-   * deleted values.
-   *
-   * @param uid the identifier.
-   */
-  boolean eventExists(String uid);
-
-  /**
-   * Checks whether an {@link Event} with the given identifier exists. Takes into accound also the
-   * deleted values.
-   *
-   * @param uid the identifier.
-   */
-  boolean eventExistsIncludingDeleted(String uid);
-
-  /**
-   * Returns an {@link Event}.
-   *
-   * @param id the id of the Event to return.
-   * @return the Event with the given id.
-   */
-  Event getEvent(long id);
-
-  /**
-   * Returns the {@link Event} with the given UID.
-   *
-   * @param uid the UID.
-   * @return the Event with the given UID, or null if no match.
-   */
-  Event getEvent(String uid);
-
-  /**
-   * Gets the number of events added since the given number of days.
-   *
-   * @param days number of days.
-   * @return the number of events.
-   */
-  long getEventCount(int days);
-
-  /**
-   * Creates an event.
-   *
-   * @param enrollment the Enrollment.
-   * @param programStage the ProgramStage.
-   * @param enrollmentDate the enrollment date.
-   * @param incidentDate date of the incident.
-   * @param organisationUnit the OrganisationUnit where the event took place.
-   * @return Event the Event which was created.
-   */
-  Event createEvent(
-      Enrollment enrollment,
-      ProgramStage programStage,
-      Date enrollmentDate,
-      Date incidentDate,
-      OrganisationUnit organisationUnit);
 
   /**
    * Validates EventDataValues, handles files for File EventDataValues and creates audit logs for

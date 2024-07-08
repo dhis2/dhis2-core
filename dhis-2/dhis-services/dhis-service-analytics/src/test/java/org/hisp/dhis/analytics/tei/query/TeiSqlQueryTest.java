@@ -61,6 +61,7 @@ import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -111,10 +112,14 @@ class TeiSqlQueryTest extends DhisConvenienceTest {
     // when
     DimensionalObject dimensionalObject = new BaseDimensionalObject("abc");
 
+    TrackedEntityType trackedEntityType = createTrackedEntityType('A');
+    Program program = createProgram('A');
+    program.setTrackedEntityType(trackedEntityType);
+
     TeiQueryParams teiQueryParams =
         TeiQueryParams.builder()
-            .trackedEntityType(createTrackedEntityType('A'))
-            .commonParams(stubSortingCommonParams(createProgram('A'), 1, dimensionalObject))
+            .trackedEntityType(trackedEntityType)
+            .commonParams(stubSortingCommonParams(program, 1, dimensionalObject))
             .build();
 
     // when
@@ -122,10 +127,7 @@ class TeiSqlQueryTest extends DhisConvenienceTest {
         sqlQueryCreatorService.getSqlQueryCreator(teiQueryParams).createForSelect().getStatement();
 
     // then
-    assertTrue(sql.contains(" order by \"prabcdefghA[1].pgabcdefghS[1].abc\" desc nulls last"));
-    assertTrue(
-        sql.contains(
-            "(\"prabcdefghA[1].pgabcdefghS[1]\".\"eventdatavalues\" -> 'abc' ->> 'value')::TEXT as \"prabcdefghA[1].pgabcdefghS[1].abc\""));
+    assertTrue(sql.contains(" order by (select (\"eventdatavalues\" -> 'abc' ->> 'value')::TEXT"));
   }
 
   @Test
