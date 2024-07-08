@@ -52,32 +52,31 @@ class DataIntegrityUsersCaptureOrgunitNotInDataView extends AbstractDataIntegrit
 
   private static final String detailsIdType = "users";
 
-  private String orgunitA_uid;
-  private String orgunitB_uid;
+  private String orgunitAUid;
+  private String orgunitBUid;
 
-  private String userA_uid;
-  private String userB_uid;
+  private String userBUid;
 
-  private String userRole_uid;
+  private String userRoleUid;
 
   @Test
-  void testDataCatpureInDataViewHierarchy() {
+  void testDataCaptureUnitInDataViewHierarchy() {
 
-    orgunitA_uid =
+    orgunitAUid =
         assertStatus(
             HttpStatus.CREATED,
             POST(
                 "/organisationUnits",
                 "{ 'name': 'Fish District', 'shortName': 'Fish District', 'openingDate' : '2022-01-01'}"));
 
-    orgunitB_uid =
+    orgunitBUid =
         assertStatus(
             HttpStatus.CREATED,
             POST(
                 "/organisationUnits",
                 "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01'}"));
 
-    userRole_uid =
+    userRoleUid =
         assertStatus(
             HttpStatus.CREATED,
             POST("/userRoles", "{ 'name': 'Test role', 'authorities': ['F_DATAVALUE_ADD'] }"));
@@ -87,24 +86,24 @@ class DataIntegrityUsersCaptureOrgunitNotInDataView extends AbstractDataIntegrit
         POST(
             "/users",
             "{ 'username': 'bobbytables' , 'password': 'District123+', 'firstName': 'Bobby', 'surname': 'Tables', 'organisationUnits' : [{'id' : '"
-                + orgunitA_uid
+                + orgunitAUid
                 + "'}], 'dataViewOrganisationUnits' : [{'id' : '"
-                + orgunitA_uid
+                + orgunitAUid
                 + "'}], 'userRoles' : [{'id' : '"
-                + userRole_uid
+                + userRoleUid
                 + "'}]}"));
 
-    userB_uid =
+    userBUid =
         assertStatus(
             HttpStatus.CREATED,
             POST(
                 "/users",
                 "{ 'username': 'janedoe' , 'password': 'District123+', 'firstName': 'Jane', 'surname': 'Doe', 'organisationUnits' : [{'id' : '"
-                    + orgunitA_uid
+                    + orgunitAUid
                     + "'}], 'dataViewOrganisationUnits' : [{'id' : '"
-                    + orgunitB_uid
+                    + orgunitBUid
                     + "'}], 'userRoles' : [{'id' : '"
-                    + userRole_uid
+                    + userRoleUid
                     + "'}]}"));
 
     assertStatus(
@@ -112,14 +111,14 @@ class DataIntegrityUsersCaptureOrgunitNotInDataView extends AbstractDataIntegrit
         POST(
             "/users",
             "{ 'username': 'tommytables' , 'password': 'District123+', 'firstName': 'Tommy', 'surname': 'Tables', 'organisationUnits' : [{'id' : '"
-                + orgunitA_uid
+                + orgunitAUid
                 + "'}],  'userRoles' : [{'id' : '"
-                + userRole_uid
+                + userRoleUid
                 + "'}]}"));
 
     // Note that there are already two users which exist due to the overall test setup, thus, five
     // users in total. Only userB should be flagged.
-    assertHasDataIntegrityIssues(detailsIdType, check, 20, userB_uid, "janedoe", null, true);
+    assertHasDataIntegrityIssues(detailsIdType, check, 20, userBUid, "janedoe", null, true);
 
     JsonDataIntegrityDetails details = getDetails(check);
     JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
