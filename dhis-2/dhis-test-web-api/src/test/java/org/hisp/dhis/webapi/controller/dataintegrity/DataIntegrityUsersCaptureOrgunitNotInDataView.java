@@ -118,9 +118,9 @@ class DataIntegrityUsersCaptureOrgunitNotInDataView extends AbstractDataIntegrit
 
     // Note that there are already two users which exist due to the overall test setup, thus, five
     // users in total. Only userB should be flagged.
-    assertHasDataIntegrityIssues( DETAILS_ID_TYPE, CHECK_NAME, 20, userBUid, "janedoe", null, true);
+    assertHasDataIntegrityIssues(DETAILS_ID_TYPE, CHECK_NAME, 20, userBUid, "janedoe", null, true);
 
-    JsonDataIntegrityDetails details = getDetails( CHECK_NAME );
+    JsonDataIntegrityDetails details = getDetails(CHECK_NAME);
     JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
     assertEquals(1, issues.size());
 
