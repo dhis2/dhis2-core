@@ -55,7 +55,7 @@ import org.hisp.dhis.translation.Translatable;
 @JacksonXmlRootElement(localName = "programRuleAction", namespace = DxfNamespaces.DXF_2_0)
 public class ProgramRuleAction extends BaseIdentifiableObject implements MetadataObject {
 
-  private static final List ACTIONS_WITH_TEMPLATE =
+  private static final List<ProgramRuleActionType> ACTIONS_WITH_TEMPLATE =
       List.of(ProgramRuleActionType.SENDMESSAGE, ProgramRuleActionType.SCHEDULEMESSAGE);
 
   /** The programRule that the action belongs to */
