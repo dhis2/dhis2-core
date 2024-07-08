@@ -32,7 +32,6 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 
-import java.util.HashSet;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -105,11 +104,10 @@ class EnrollmentOperationParamsMapper {
   private void mergeOrgUnitModes(
       EnrollmentOperationParams operationParams, User user, EnrollmentQueryParams queryParams) {
     if (user != null && operationParams.getOrgUnitMode() == ACCESSIBLE) {
-      queryParams.addOrganisationUnits(
-          new HashSet<>(user.getTeiSearchOrganisationUnitsWithFallback()));
+      queryParams.addOrganisationUnits(user.getEffectiveSearchOrganisationUnits());
       queryParams.setOrganisationUnitMode(DESCENDANTS);
     } else if (user != null && operationParams.getOrgUnitMode() == CAPTURE) {
-      queryParams.addOrganisationUnits(new HashSet<>(user.getOrganisationUnits()));
+      queryParams.addOrganisationUnits(user.getOrganisationUnits());
       queryParams.setOrganisationUnitMode(DESCENDANTS);
     }
   }

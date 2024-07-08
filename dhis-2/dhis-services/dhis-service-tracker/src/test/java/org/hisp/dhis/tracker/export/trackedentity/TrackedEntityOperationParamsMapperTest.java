@@ -143,11 +143,11 @@ class TrackedEntityOperationParamsMapperTest {
 
     when(organisationUnitService.getOrganisationUnit(orgUnit1.getUid())).thenReturn(orgUnit1);
     when(organisationUnitService.isInUserHierarchy(
-            orgUnit1.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
+            orgUnit1.getUid(), user.getEffectiveSearchOrganisationUnits()))
         .thenReturn(true);
     when(organisationUnitService.getOrganisationUnit(orgUnit2.getUid())).thenReturn(orgUnit2);
     when(organisationUnitService.isInUserHierarchy(
-            orgUnit2.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
+            orgUnit2.getUid(), user.getEffectiveSearchOrganisationUnits()))
         .thenReturn(true);
 
     trackedEntityType = new TrackedEntityType();

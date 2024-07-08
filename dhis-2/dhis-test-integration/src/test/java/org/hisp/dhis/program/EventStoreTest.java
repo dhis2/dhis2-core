@@ -29,8 +29,6 @@ package org.hisp.dhis.program;
 
 import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_DUE_DATE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
 import java.util.Calendar;
@@ -218,17 +216,6 @@ class EventStoreTest extends TransactionalIntegrationTest {
     eventD2.setScheduledDate(enrollmentDate);
     eventD2.setUid("UID-D2");
     eventD2.setAttributeOptionCombo(coA);
-  }
-
-  @Test
-  void testEventExists() {
-    eventStore.save(eventA);
-    eventStore.save(eventB);
-    dbmsManager.flushSession();
-    assertTrue(eventStore.exists(eventA.getUid()));
-    assertTrue(eventStore.exists(eventB.getUid()));
-    assertFalse(eventStore.exists("aaaabbbbccc"));
-    assertFalse(eventStore.exists(null));
   }
 
   @Test

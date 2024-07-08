@@ -63,7 +63,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.EnrollmentService;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.SMSSpecialCharacter;
@@ -118,8 +117,6 @@ class DataValueListenerTest extends DhisConvenienceTest {
   @Mock private EnrollmentService enrollmentService;
 
   @Mock private CategoryService dataElementCategoryService;
-
-  @Mock private EventService eventService;
 
   @Mock private UserService userService;
 
@@ -201,9 +198,7 @@ class DataValueListenerTest extends DhisConvenienceTest {
   public void initTest() {
     subject =
         new DataValueSMSListener(
-            enrollmentService,
             dataElementCategoryService,
-            eventService,
             userService,
             incomingSmsService,
             smsSender,

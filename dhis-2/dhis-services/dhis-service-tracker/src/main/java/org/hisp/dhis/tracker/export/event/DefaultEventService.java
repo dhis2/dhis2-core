@@ -132,25 +132,35 @@ class DefaultEventService implements EventService {
   }
 
   @Override
-  public Event getEvent(UID uid) throws ForbiddenException, NotFoundException {
-    return getEvent(uid.getValue(), EventParams.FALSE);
+  public Event getEvent(@Nonnull UID event) throws ForbiddenException, NotFoundException {
+    return getEvent(event, EventParams.FALSE, CurrentUserUtil.getCurrentUserDetails());
   }
 
   @Override
-  public Event getEvent(String uid, EventParams eventParams)
+  public Event getEvent(@Nonnull UID event, UserDetails user)
+      throws ForbiddenException, NotFoundException {
+    return getEvent(event, EventParams.FALSE, user);
+  }
+
+  @Override
+  public Event getEvent(@Nonnull UID event, EventParams eventParams)
+      throws ForbiddenException, NotFoundException {
+    return getEvent(event, eventParams, CurrentUserUtil.getCurrentUserDetails());
+  }
+
+  public Event getEvent(@Nonnull UID eventUid, EventParams eventParams, UserDetails user)
       throws NotFoundException, ForbiddenException {
-    Event event = manager.get(Event.class, uid);
+    Event event = manager.get(Event.class, eventUid.getValue());
     if (event == null) {
-      throw new NotFoundException(Event.class, uid);
+      throw new NotFoundException(Event.class, eventUid.getValue());
     }
 
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    List<String> errors = trackerAccessManager.canRead(currentUser, event, false);
+    List<String> errors = trackerAccessManager.canRead(user, event, false);
     if (!errors.isEmpty()) {
       throw new ForbiddenException(errors.toString());
     }
 
-    return getEvent(event, eventParams, currentUser);
+    return getEvent(event, eventParams, user);
   }
 
   private Event getEvent(@Nonnull Event event, EventParams eventParams, UserDetails currentUser) {

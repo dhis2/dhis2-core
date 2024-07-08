@@ -2858,8 +2858,7 @@
         "id": "M5zQapPyTZI"
       },
       "authorities": [
-        "M_dhis-web-capture",
-        "M_dhis-web-tracker-capture"
+        "M_dhis-web-capture"
       ],
       "translations": []
     }

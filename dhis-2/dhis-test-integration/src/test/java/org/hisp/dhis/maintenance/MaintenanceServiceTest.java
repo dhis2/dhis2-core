@@ -82,6 +82,7 @@ import org.joda.time.DateTime;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * @author Enrico Colasante
@@ -119,7 +120,7 @@ class MaintenanceServiceTest extends IntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
 
-  private Date occurredDate;
+  @Autowired private JdbcTemplate jdbcTemplate;
 
   private Date enrollmentDate;
 
@@ -127,21 +128,11 @@ class MaintenanceServiceTest extends IntegrationTestBase {
 
   private Program program;
 
-  private ProgramStage stageA;
-
-  private ProgramStage stageB;
-
   private OrganisationUnit organisationUnit;
 
   private Enrollment enrollment;
 
-  private Enrollment enrollmentWithTeAssociation;
-
   private Event event;
-
-  private Event eventWithTeAssociation;
-
-  private TrackedEntityType trackedEntityType;
 
   private TrackedEntity trackedEntity;
 
@@ -158,10 +149,10 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     organisationUnitService.addOrganisationUnit(organisationUnit);
     program = createProgram('A', new HashSet<>(), organisationUnit);
     programService.addProgram(program);
-    stageA = createProgramStage('A', program);
+    ProgramStage stageA = createProgramStage('A', program);
     stageA.setSortOrder(1);
     programStageService.saveProgramStage(stageA);
-    stageB = createProgramStage('B', program);
+    ProgramStage stageB = createProgramStage('B', program);
     stageB.setSortOrder(2);
     programStageService.saveProgramStage(stageB);
     Set<ProgramStage> programStages = new HashSet<>();
@@ -169,7 +160,7 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     programStages.add(stageB);
     program.setProgramStages(programStages);
     programService.updateProgram(program);
-    trackedEntityType = createTrackedEntityType('A');
+    TrackedEntityType trackedEntityType = createTrackedEntityType('A');
     trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
     trackedEntity = createTrackedEntity(organisationUnit);
     trackedEntity.setTrackedEntityType(trackedEntityType);
@@ -181,14 +172,14 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     DateTime testDate1 = DateTime.now();
     testDate1.withTimeAtStartOfDay();
     testDate1 = testDate1.minusDays(70);
-    occurredDate = testDate1.toDate();
+    Date occurredDate = testDate1.toDate();
     DateTime testDate2 = DateTime.now();
     testDate2.withTimeAtStartOfDay();
     enrollmentDate = testDate2.toDate();
     enrollment = new Enrollment(enrollmentDate, occurredDate, trackedEntity, program);
     enrollment.setUid("UID-A");
     enrollment.setOrganisationUnit(organisationUnit);
-    enrollmentWithTeAssociation =
+    Enrollment enrollmentWithTeAssociation =
         new Enrollment(enrollmentDate, occurredDate, trackedEntityWithAssociations, program);
     enrollmentWithTeAssociation.setUid("UID-B");
     enrollmentWithTeAssociation.setOrganisationUnit(organisationUnit);
@@ -201,7 +192,7 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     event.setEnrollment(enrollment);
     event.setOccurredDate(new Date());
     event.setAttributeOptionCombo(coA);
-    eventWithTeAssociation = new Event(enrollmentWithTeAssociation, stageA);
+    Event eventWithTeAssociation = new Event(enrollmentWithTeAssociation, stageA);
     eventWithTeAssociation.setUid("PSUID-C");
     eventWithTeAssociation.setOrganisationUnit(organisationUnit);
     eventWithTeAssociation.setEnrollment(enrollmentWithTeAssociation);
@@ -292,11 +283,11 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     assertNotNull(getEvent(idA));
     eventService.deleteEvent(event);
     assertNull(getEvent(idA));
-    assertTrue(eventService.eventExistsIncludingDeleted(event.getUid()));
+    assertTrue(eventExistsIncludingDeleted(event.getUid()));
 
     maintenanceService.deleteSoftDeletedEvents();
 
-    assertFalse(eventService.eventExistsIncludingDeleted(event.getUid()));
+    assertFalse(eventExistsIncludingDeleted(event.getUid()));
   }
 
   @Test
@@ -381,12 +372,12 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     eventService.deleteEvent(eventA);
     assertNull(getEvent(idA));
     assertNull(relationshipService.getRelationship(r.getId()));
-    assertTrue(eventService.eventExistsIncludingDeleted(eventA.getUid()));
+    assertTrue(eventExistsIncludingDeleted(eventA.getUid()));
     assertTrue(relationshipService.relationshipExistsIncludingDeleted(r.getUid()));
 
     maintenanceService.deleteSoftDeletedEvents();
 
-    assertFalse(eventService.eventExistsIncludingDeleted(eventA.getUid()));
+    assertFalse(eventExistsIncludingDeleted(eventA.getUid()));
     assertFalse(relationshipService.relationshipExistsIncludingDeleted(r.getUid()));
   }
 
@@ -471,5 +462,11 @@ class MaintenanceServiceTest extends IntegrationTestBase {
 
   private Event getEvent(long id) {
     return manager.get(Event.class, id);
+  }
+
+  private boolean eventExistsIncludingDeleted(String uid) {
+    return Boolean.TRUE.equals(
+        jdbcTemplate.queryForObject(
+            "select exists(select 1 from event where uid=?)", Boolean.class, uid));
   }
 }

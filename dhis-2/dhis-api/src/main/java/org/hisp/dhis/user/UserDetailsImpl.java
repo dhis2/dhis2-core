@@ -67,6 +67,7 @@ public class UserDetailsImpl implements UserDetails {
   @Nonnull private final Set<String> userOrgUnitIds;
   @Nonnull private final Set<String> userDataOrgUnitIds;
   @Nonnull private final Set<String> userSearchOrgUnitIds;
+  @Nonnull private final Set<String> userEffectiveSearchOrgUnitIds;
   private final boolean isSuper;
   @Nonnull private final Set<String> userRoleIds;
 

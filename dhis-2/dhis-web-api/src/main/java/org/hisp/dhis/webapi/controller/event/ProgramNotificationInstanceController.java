@@ -38,13 +38,15 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceParam;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.schema.descriptors.ProgramNotificationInstanceSchemaDescriptor;
 import org.hisp.dhis.security.RequiresAuthority;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -109,18 +111,20 @@ public class ProgramNotificationInstanceController {
     if (eventUid != null) {
       storedEvent = eventService.getEvent(eventUid);
     }
+    Enrollment storedEnrollment = null;
+    if (enrollmentUid != null) {
+      storedEnrollment =
+          enrollmentService.getEnrollment(enrollmentUid.getValue(), EnrollmentParams.FALSE, false);
+    }
     ProgramNotificationInstanceParam params =
         ProgramNotificationInstanceParam.builder()
-            .enrollment(
-                enrollmentService.getEnrollment(
-                    enrollmentUid == null ? null : enrollmentUid.getValue()))
+            .enrollment(storedEnrollment)
             .event(storedEvent)
             .skipPaging(!isPaged)
             .page(page)
             .pageSize(pageSize)
             .scheduledAt(scheduledAt)
             .build();
-    programNotificationInstanceService.validateQueryParameters(params);
 
     List<ProgramNotificationInstance> instances =
         programNotificationInstanceService.getProgramNotificationInstances(params);
