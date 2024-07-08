@@ -27,16 +27,22 @@
  */
 package org.hisp.dhis.tracker.imports.sms;
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -44,6 +50,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -62,8 +69,10 @@ import org.hisp.dhis.smscompression.SmsResponse;
 import org.hisp.dhis.smscompression.models.GeoPoint;
 import org.hisp.dhis.smscompression.models.SmsDataValue;
 import org.hisp.dhis.smscompression.models.Uid;
+import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -226,5 +235,105 @@ public abstract class EventSavingSMSListener extends CompressionSMSListener {
     Coordinate co = new Coordinate(coordinates.getLongitude(), coordinates.getLatitude());
 
     return gf.createPoint(co);
+  }
+
+  public void saveEventDataValuesAndSaveEvent(
+      Event event, Map<DataElement, EventDataValue> dataElementEventDataValueMap) {
+    validateEventDataValues(dataElementEventDataValueMap);
+    Set<EventDataValue> eventDataValues = new HashSet<>(dataElementEventDataValueMap.values());
+    event.setEventDataValues(eventDataValues);
+
+    event.setAutoFields();
+    if (!event.hasAttributeOptionCombo()) {
+      CategoryOptionCombo aoc = categoryService.getDefaultCategoryOptionCombo();
+      event.setAttributeOptionCombo(aoc);
+    }
+    manager.save(event);
+
+    for (Map.Entry<DataElement, EventDataValue> entry : dataElementEventDataValueMap.entrySet()) {
+      entry.getValue().setAutoFields();
+      createAndAddAudit(entry.getValue(), entry.getKey(), event);
+      handleFileDataValueSave(entry.getValue(), entry.getKey());
+    }
+  }
+
+  private String validateEventDataValue(DataElement dataElement, EventDataValue eventDataValue) {
+
+    if (StringUtils.isEmpty(eventDataValue.getStoredBy())) {
+      return "Stored by is null or empty";
+    }
+
+    if (StringUtils.isEmpty(eventDataValue.getDataElement())) {
+      return "Data element is null or empty";
+    }
+
+    if (!dataElement.getUid().equals(eventDataValue.getDataElement())) {
+      throw new IllegalQueryException(
+          "DataElement "
+              + dataElement.getUid()
+              + " assigned to EventDataValues does not match with one EventDataValue: "
+              + eventDataValue.getDataElement());
+    }
+
+    String result =
+        ValidationUtils.valueIsValid(eventDataValue.getValue(), dataElement.getValueType());
+
+    return result == null ? null : "Value is not valid:  " + result;
+  }
+
+  private void validateEventDataValues(
+      Map<DataElement, EventDataValue> dataElementEventDataValueMap) {
+    String result;
+    for (Map.Entry<DataElement, EventDataValue> entry : dataElementEventDataValueMap.entrySet()) {
+      result = validateEventDataValue(entry.getKey(), entry.getValue());
+      if (result != null) {
+        throw new IllegalQueryException(result);
+      }
+    }
+  }
+
+  private void createAndAddAudit(EventDataValue dataValue, DataElement dataElement, Event event) {
+    if (!config.isEnabled(CHANGELOG_TRACKER) || dataElement == null) {
+      return;
+    }
+
+    TrackedEntityDataValueChangeLog dataValueAudit =
+        new TrackedEntityDataValueChangeLog(
+            dataElement,
+            event,
+            dataValue.getValue(),
+            dataValue.getStoredBy(),
+            dataValue.getProvidedElsewhere(),
+            ChangeLogType.CREATE);
+
+    dataValueAuditService.addTrackedEntityDataValueChangeLog(dataValueAudit);
+  }
+
+  /** Update FileResource with 'assigned' status. */
+  private void handleFileDataValueSave(EventDataValue dataValue, DataElement dataElement) {
+    if (dataElement == null) {
+      return;
+    }
+
+    FileResource fileResource = fetchFileResource(dataValue, dataElement);
+
+    if (fileResource == null) {
+      return;
+    }
+
+    setAssigned(fileResource);
+  }
+
+  private FileResource fetchFileResource(EventDataValue dataValue, DataElement dataElement) {
+    if (!dataElement.isFileType()) {
+      return null;
+    }
+
+    return fileResourceService.getFileResource(dataValue.getValue());
+  }
+
+  private void setAssigned(FileResource fileResource) {
+    fileResource.setAssigned(true);
+    fileResourceService.updateFileResource(fileResource);
   }
 }

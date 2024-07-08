@@ -83,7 +83,7 @@ public class DefaultEventService implements EventService {
 
     for (Map.Entry<DataElement, EventDataValue> entry : dataElementEventDataValueMap.entrySet()) {
       entry.getValue().setAutoFields();
-      createAndAddAudit(entry.getValue(), entry.getKey(), event, ChangeLogType.CREATE);
+      createAndAddAudit(entry.getValue(), entry.getKey(), event);
       handleFileDataValueSave(entry.getValue(), entry.getKey());
     }
   }
@@ -123,8 +123,7 @@ public class DefaultEventService implements EventService {
     }
   }
 
-  private void createAndAddAudit(
-      EventDataValue dataValue, DataElement dataElement, Event event, ChangeLogType changeLogType) {
+  private void createAndAddAudit(EventDataValue dataValue, DataElement dataElement, Event event) {
     if (!config.isEnabled(CHANGELOG_TRACKER) || dataElement == null) {
       return;
     }
@@ -136,7 +135,7 @@ public class DefaultEventService implements EventService {
             dataValue.getValue(),
             dataValue.getStoredBy(),
             dataValue.getProvidedElsewhere(),
-            changeLogType);
+            ChangeLogType.CREATE);
 
     dataValueAuditService.addTrackedEntityDataValueChangeLog(dataValueAudit);
   }
