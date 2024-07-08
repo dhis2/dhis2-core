@@ -1,3 +1,3 @@
-drop table legendsetindicators cascade;
-drop table legend cascade;
-drop table legendset cascade;
+drop table if exists legendsetindicators cascade;
+drop table if exists legend cascade;
+drop table if exists legendset cascade;
