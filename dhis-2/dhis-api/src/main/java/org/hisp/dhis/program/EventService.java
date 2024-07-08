@@ -37,9 +37,6 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 public interface EventService {
   String ID = EventService.class.getName();
 
-  /** Soft deletes an {@link Event}. */
-  void deleteEvent(Event event);
-
   /**
    * Validates EventDataValues, handles files for File EventDataValues and creates audit logs for
    * the upcoming create/save changes. DOES PERSIST the changes to the Event object.

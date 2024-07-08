@@ -281,7 +281,7 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     long idA = event.getId();
     programMessageService.saveProgramMessage(message);
     assertNotNull(getEvent(idA));
-    eventService.deleteEvent(event);
+    manager.delete(event);
     assertNull(getEvent(idA));
     assertTrue(eventExistsIncludingDeleted(event.getUid()));
 
@@ -369,7 +369,7 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     relationshipService.addRelationship(r);
     assertNotNull(getEvent(idA));
     assertNotNull(relationshipService.getRelationship(r.getId()));
-    eventService.deleteEvent(eventA);
+    manager.delete(eventA);
     assertNull(getEvent(idA));
     assertNull(relationshipService.getRelationship(r.getId()));
     assertTrue(eventExistsIncludingDeleted(eventA.getUid()));

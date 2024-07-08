@@ -122,7 +122,6 @@ class DeleteEventSMSListenerTest extends CompressionSMSListenerTest {
             categoryService,
             dataElementService,
             identifiableObjectManager,
-            apiEventService,
             eventService);
 
     setUpInstances();

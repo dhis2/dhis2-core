@@ -34,7 +34,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
@@ -58,8 +57,6 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
   private final TrackedEntityService teService;
 
   private final IdentifiableObjectManager manager;
-
-  private final EventService eventService;
 
   private final RelationshipService relationshipService;
 
@@ -122,7 +119,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
       Event event = manager.get(Event.class, uid);
       event.setLastUpdatedByUserInfo(bundle.getUserInfo());
 
-      eventService.deleteEvent(event);
+      manager.delete(event);
 
       if (event.getProgramStage().getProgram().isRegistration()) {
         TrackedEntity entity = event.getEnrollment().getTrackedEntity();
