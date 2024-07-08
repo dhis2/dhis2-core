@@ -33,7 +33,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -54,10 +53,6 @@ import org.hisp.dhis.translation.Translatable;
  */
 @JacksonXmlRootElement(localName = "programRuleAction", namespace = DxfNamespaces.DXF_2_0)
 public class ProgramRuleAction extends BaseIdentifiableObject implements MetadataObject {
-
-  private static final List ACTIONS_WITH_TEMPLATE =
-      List.of(ProgramRuleActionType.SENDMESSAGE, ProgramRuleActionType.SCHEDULEMESSAGE);
-
   /** The programRule that the action belongs to */
   private ProgramRule programRule;
 
@@ -342,9 +337,7 @@ public class ProgramRuleAction extends BaseIdentifiableObject implements Metadat
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getTemplateUid() {
-    return ACTIONS_WITH_TEMPLATE.contains(programRuleActionType)
-        ? notificationTemplate.getUid()
-        : null;
+    return templateUid;
   }
 
   public void setTemplateUid(String templateUid) {
