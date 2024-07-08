@@ -442,7 +442,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     OrganisationUnit ou = event.getOrganisationUnit();
     if (ou != null) {
       if (event.isCreatableInSearchScope()
-          ? !user.isInUserSearchHierarchy(ou.getPath())
+          ? !user.isInUserEffectiveSearchOrgUnitHierarchy(ou.getPath())
           : !user.isInUserHierarchy(ou.getPath())) {
         errors.add("User has no create access to organisation unit: " + ou.getUid());
       }
@@ -485,7 +485,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       canManageWithRegistration(errors, user, programStage, program);
 
       OrganisationUnit ou = event.getOrganisationUnit();
-      if (ou != null && !user.isInUserSearchHierarchy(ou.getPath())) {
+      if (ou != null && !user.isInUserEffectiveSearchOrgUnitHierarchy(ou.getPath())) {
         errors.add("User has no update access to organisation unit: " + ou.getUid());
       }
 
@@ -739,7 +739,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       return user.isInUserHierarchy(orgUnit.getPath());
     }
 
-    return user.isInUserSearchHierarchy(orgUnit.getPath());
+    return user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getPath());
   }
 
   @Override

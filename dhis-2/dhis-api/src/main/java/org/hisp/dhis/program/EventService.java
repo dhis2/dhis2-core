@@ -37,33 +37,6 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 public interface EventService {
   String ID = EventService.class.getName();
 
-  /** Soft deletes an {@link Event}. */
-  void deleteEvent(Event event);
-
-  /**
-   * Checks whether an {@link Event} with the given identifier exists. Doesn't take into account the
-   * deleted values.
-   *
-   * @param uid the identifier.
-   */
-  boolean eventExists(String uid);
-
-  /**
-   * Checks whether an {@link Event} with the given identifier exists. Takes into accound also the
-   * deleted values.
-   *
-   * @param uid the identifier.
-   */
-  boolean eventExistsIncludingDeleted(String uid);
-
-  /**
-   * Returns the {@link Event} with the given UID.
-   *
-   * @param uid the UID.
-   * @return the Event with the given UID, or null if no match.
-   */
-  Event getEvent(String uid);
-
   /**
    * Validates EventDataValues, handles files for File EventDataValues and creates audit logs for
    * the upcoming create/save changes. DOES PERSIST the changes to the Event object.

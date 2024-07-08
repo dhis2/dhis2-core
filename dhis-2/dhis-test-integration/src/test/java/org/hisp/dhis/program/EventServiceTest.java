@@ -29,22 +29,17 @@ package org.hisp.dhis.program;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.TestCache;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.note.Note;
 import org.hisp.dhis.note.NoteService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -264,22 +259,6 @@ class EventServiceTest extends TransactionalIntegrationTest {
   }
 
   @Test
-  void testDeleteEvent() {
-    manager.save(eventA);
-    long idA = eventA.getId();
-    manager.save(eventB);
-    long idB = eventB.getId();
-    assertNotNull(getEvent(idA));
-    assertNotNull(getEvent(idB));
-    eventService.deleteEvent(eventA);
-    assertNull(getEvent(idA));
-    assertNotNull(getEvent(idB));
-    eventService.deleteEvent(eventB);
-    assertNull(getEvent(idA));
-    assertNull(getEvent(idB));
-  }
-
-  @Test
   void testGetEventById() {
     manager.save(eventA);
     long idA = eventA.getId();
@@ -299,29 +278,6 @@ class EventServiceTest extends TransactionalIntegrationTest {
     assertEquals(eventB, getEvent(idB));
     assertEquals(eventA, manager.get(Event.class, "UID-A"));
     assertEquals(eventB, manager.get(Event.class, "UID-B"));
-  }
-
-  @Test
-  void shouldNoteDeleteNoteWhenDeletingEvent() {
-    Event event = createEvent(stageA, enrollmentA, organisationUnitA);
-    event.setScheduledDate(enrollmentDate);
-    event.setUid(CodeGenerator.generateUid());
-
-    Note note = new Note();
-    note.setCreator(CodeGenerator.generateUid());
-    note.setNoteText("text");
-    noteService.addNote(note);
-
-    event.setNotes(List.of(note));
-
-    manager.save(event);
-
-    assertNotNull(manager.get(Event.class, event.getUid()));
-
-    eventService.deleteEvent(event);
-
-    assertNull(manager.get(Event.class, event.getUid()));
-    assertTrue(noteService.noteExists(note.getUid()));
   }
 
   private Event getEvent(long id) {
