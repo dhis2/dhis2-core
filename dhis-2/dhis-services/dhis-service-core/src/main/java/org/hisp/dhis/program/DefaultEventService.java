@@ -67,30 +67,6 @@ public class DefaultEventService implements EventService {
 
   @Override
   @Transactional
-  public void deleteEvent(Event event) {
-    eventStore.delete(event);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Event getEvent(String uid) {
-    return eventStore.getByUid(uid);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean eventExists(String uid) {
-    return eventStore.exists(uid);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean eventExistsIncludingDeleted(String uid) {
-    return eventStore.existsIncludingDeleted(uid);
-  }
-
-  @Override
-  @Transactional
   public void saveEventDataValuesAndSaveEvent(
       Event event, Map<DataElement, EventDataValue> dataElementEventDataValueMap) {
     validateEventDataValues(dataElementEventDataValueMap);
