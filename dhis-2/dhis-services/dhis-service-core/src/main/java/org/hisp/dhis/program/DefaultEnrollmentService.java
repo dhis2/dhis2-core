@@ -81,12 +81,6 @@ public class DefaultEnrollmentService implements EnrollmentService {
 
   @Override
   @Transactional(readOnly = true)
-  public Enrollment getEnrollment(long id) {
-    return enrollmentStore.get(id);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public Enrollment getEnrollment(String uid) {
     return enrollmentStore.getByUid(uid);
   }

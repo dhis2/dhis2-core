@@ -178,22 +178,22 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   void testAddEnrollment() {
     long idA = enrollmentService.addEnrollment(enrollmentA);
     long idB = enrollmentService.addEnrollment(enrollmentB);
-    assertNotNull(enrollmentService.getEnrollment(idA));
-    assertNotNull(enrollmentService.getEnrollment(idB));
+    assertNotNull(manager.get(Enrollment.class, idA));
+    assertNotNull(manager.get(Enrollment.class, idB));
   }
 
   @Test
   void testDeleteEnrollment() {
     long idA = enrollmentService.addEnrollment(enrollmentA);
     long idB = enrollmentService.addEnrollment(enrollmentB);
-    assertNotNull(enrollmentService.getEnrollment(idA));
-    assertNotNull(enrollmentService.getEnrollment(idB));
+    assertNotNull(manager.get(Enrollment.class, idA));
+    assertNotNull(manager.get(Enrollment.class, idB));
     enrollmentService.deleteEnrollment(enrollmentA);
-    assertNull(enrollmentService.getEnrollment(idA));
-    assertNotNull(enrollmentService.getEnrollment(idB));
+    assertNull(manager.get(Enrollment.class, idA));
+    assertNotNull(manager.get(Enrollment.class, idB));
     enrollmentService.deleteEnrollment(enrollmentB);
-    assertNull(enrollmentService.getEnrollment(idA));
-    assertNull(enrollmentService.getEnrollment(idB));
+    assertNull(manager.get(Enrollment.class, idA));
+    assertNull(manager.get(Enrollment.class, idB));
   }
 
   @Test
@@ -203,38 +203,38 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     long eventIdA = eventA.getId();
     enrollmentA.setEvents(Sets.newHashSet(eventA));
     enrollmentService.updateEnrollment(enrollmentA);
-    assertNotNull(enrollmentService.getEnrollment(idA));
+    assertNotNull(manager.get(Enrollment.class, idA));
     assertNotNull(manager.get(Event.class, eventIdA));
 
     enrollmentService.deleteEnrollment(enrollmentA);
 
-    assertNull(enrollmentService.getEnrollment(idA));
+    assertNull(manager.get(Enrollment.class, idA));
     assertNull(manager.get(Event.class, eventIdA));
   }
 
   @Test
   void testUpdateEnrollment() {
     long idA = enrollmentService.addEnrollment(enrollmentA);
-    assertNotNull(enrollmentService.getEnrollment(idA));
+    assertNotNull(manager.get(Enrollment.class, idA));
     enrollmentA.setOccurredDate(enrollmentDate);
     enrollmentService.updateEnrollment(enrollmentA);
-    assertEquals(enrollmentDate, enrollmentService.getEnrollment(idA).getOccurredDate());
+    assertEquals(enrollmentDate, manager.get(Enrollment.class, idA).getOccurredDate());
   }
 
   @Test
   void testGetEnrollmentById() {
     long idA = enrollmentService.addEnrollment(enrollmentA);
     long idB = enrollmentService.addEnrollment(enrollmentB);
-    assertEquals(enrollmentA, enrollmentService.getEnrollment(idA));
-    assertEquals(enrollmentB, enrollmentService.getEnrollment(idB));
+    assertEquals(enrollmentA, manager.get(Enrollment.class, idA));
+    assertEquals(enrollmentB, manager.get(Enrollment.class, idB));
   }
 
   @Test
   void testGetEnrollmentByUid() {
     enrollmentService.addEnrollment(enrollmentA);
     enrollmentService.addEnrollment(enrollmentB);
-    assertEquals("UID-A", enrollmentService.getEnrollment("UID-A").getUid());
-    assertEquals("UID-B", enrollmentService.getEnrollment("UID-B").getUid());
+    assertEquals("UID-A", manager.get(Enrollment.class, "UID-A").getUid());
+    assertEquals("UID-B", manager.get(Enrollment.class, "UID-B").getUid());
   }
 
   @Test
@@ -280,7 +280,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     Enrollment enrollment =
         enrollmentService.enrollTrackedEntity(
             trackedEntityA, programB, enrollmentDate, incidentDate, organisationUnitA);
-    assertNotNull(enrollmentService.getEnrollment(enrollment.getId()));
+    assertNotNull(manager.get(Enrollment.class, enrollment.getId()));
   }
 
   @Test
