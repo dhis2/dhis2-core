@@ -32,18 +32,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.system.util.SmsUtils;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -60,16 +63,22 @@ public class SingleEventListener extends RegisterSMSListener {
       UserService userService,
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
-      EventService eventService,
       EnrollmentService enrollmentService,
+      TrackedEntityDataValueChangeLogService dataValueAuditService,
+      FileResourceService fileResourceService,
+      DhisConfigurationProvider config,
+      IdentifiableObjectManager identifiableObjectManager,
       SMSCommandService smsCommandService) {
     super(
         dataElementCategoryService,
         userService,
         incomingSmsService,
         smsSender,
-        eventService,
-        enrollmentService);
+        enrollmentService,
+        dataValueAuditService,
+        fileResourceService,
+        config,
+        identifiableObjectManager);
     this.smsCommandService = smsCommandService;
   }
 

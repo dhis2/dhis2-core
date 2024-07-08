@@ -27,24 +27,9 @@
  */
 package org.hisp.dhis.program;
 
-import java.util.Map;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
-
 /**
  * @author Abyot Asalefew
  */
 public interface EventService {
   String ID = EventService.class.getName();
-
-  /**
-   * Validates EventDataValues, handles files for File EventDataValues and creates audit logs for
-   * the upcoming create/save changes. DOES PERSIST the changes to the Event object.
-   *
-   * @param event the Event that EventDataValues belong to
-   * @param dataElementEventDataValueMap the map of DataElements and related EventDataValues to
-   *     update
-   */
-  void saveEventDataValuesAndSaveEvent(
-      Event event, Map<DataElement, EventDataValue> dataElementEventDataValueMap);
 }

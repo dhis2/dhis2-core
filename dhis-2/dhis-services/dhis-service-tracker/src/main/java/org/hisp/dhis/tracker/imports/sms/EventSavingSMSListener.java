@@ -48,9 +48,11 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -73,6 +75,7 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -84,8 +87,13 @@ import org.locationtech.jts.geom.GeometryFactory;
 @Slf4j
 public abstract class EventSavingSMSListener extends CompressionSMSListener {
 
-  protected final org.hisp.dhis.program.EventService apiEventService;
   protected final EventService eventService;
+
+  protected final TrackedEntityDataValueChangeLogService dataValueAuditService;
+
+  protected final FileResourceService fileResourceService;
+
+  protected final DhisConfigurationProvider config;
 
   protected EventSavingSMSListener(
       IncomingSmsService incomingSmsService,
@@ -98,8 +106,10 @@ public abstract class EventSavingSMSListener extends CompressionSMSListener {
       CategoryService categoryService,
       DataElementService dataElementService,
       IdentifiableObjectManager identifiableObjectManager,
-      org.hisp.dhis.program.EventService apiEventService,
-      EventService eventService) {
+      EventService eventService,
+      TrackedEntityDataValueChangeLogService dataValueAuditService,
+      FileResourceService fileResourceService,
+      DhisConfigurationProvider config) {
     super(
         incomingSmsService,
         smsSender,
@@ -111,8 +121,10 @@ public abstract class EventSavingSMSListener extends CompressionSMSListener {
         categoryService,
         dataElementService,
         identifiableObjectManager);
-    this.apiEventService = apiEventService;
     this.eventService = eventService;
+    this.dataValueAuditService = dataValueAuditService;
+    this.fileResourceService = fileResourceService;
+    this.config = config;
   }
 
   protected List<Object> saveEvent(
@@ -202,7 +214,7 @@ public abstract class EventSavingSMSListener extends CompressionSMSListener {
       }
     }
 
-    apiEventService.saveEventDataValuesAndSaveEvent(event, dataElementsAndEventDataValues);
+    saveEventDataValuesAndSaveEvent(event, dataElementsAndEventDataValues);
 
     return errorUids;
   }
@@ -248,7 +260,7 @@ public abstract class EventSavingSMSListener extends CompressionSMSListener {
       CategoryOptionCombo aoc = categoryService.getDefaultCategoryOptionCombo();
       event.setAttributeOptionCombo(aoc);
     }
-    manager.save(event);
+    identifiableObjectManager.save(event);
 
     for (Map.Entry<DataElement, EventDataValue> entry : dataElementEventDataValueMap.entrySet()) {
       entry.getValue().setAutoFields();
