@@ -175,7 +175,7 @@ pipeline {
                         sh """
                             ./tools/update-stable-json/update_stable_json.py \
                             --version $imageTag \
-                            --war-path ${WORKSPACE}/dhis-2/dhis-web-server/target/dhis.war \
+                            --war-path ${WORKSPACE}/dhis-2/dhis-web/dhis-web-portal/target/dhis.war \
                             --war-url https://releases.dhis2.org/${majorVersion}/dhis2-stable-${imageTag}.war \
                             --release-date \$(date +%F) \
                             --json-file ./downloads/v1/versions/stable.json
