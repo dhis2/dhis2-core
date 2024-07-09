@@ -65,7 +65,7 @@ public interface OpenApiObject extends JsonObject {
     return getList("servers", ServerObject.class);
   }
 
-  default JsonMap<PathItemObject> paths() {
+  default JsonMap<PathItemObject> $paths() {
     return getMap("paths", PathItemObject.class);
   }
 
@@ -78,7 +78,7 @@ public interface OpenApiObject extends JsonObject {
   }
 
   default Stream<OperationObject> operations() {
-    return paths()
+    return $paths()
         .values()
         .flatMap(
             item ->
@@ -308,6 +308,18 @@ public interface OpenApiObject extends JsonObject {
     default String getSharedName() {
       return isShared() ? node().getPath().toString().substring(24) : null;
     }
+
+    /**
+     * For a parameter the default might be defined in the schema directly or by the referenced
+     * schema.
+     *
+     * @return the parameters default if there is any defined
+     */
+    default JsonValue $default() {
+      JsonValue directlyDefinedDefault = get("schema.default");
+      if (directlyDefinedDefault.exists()) return directlyDefinedDefault;
+      return schema().$default();
+    }
   }
 
   interface RequestBodyObject extends JsonObject {
@@ -394,6 +406,10 @@ public interface OpenApiObject extends JsonObject {
 
     default String pattern() {
       return getString("pattern").string();
+    }
+
+    default JsonValue $default() {
+      return get("default");
     }
 
     default List<String> $enum() {

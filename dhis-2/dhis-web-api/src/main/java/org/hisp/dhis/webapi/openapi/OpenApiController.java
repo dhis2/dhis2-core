@@ -67,6 +67,7 @@ public class OpenApiController {
 
   @GetMapping(value = "/openapi.html", produces = TEXT_HTML_VALUE)
   public void getFullOpenApiHtml(
+      OpenApiRenderer.OpenApiRenderingParams params,
       @RequestParam(required = false, defaultValue = "false") boolean failOnNameClash,
       @RequestParam(required = false, defaultValue = "false") boolean failOnInconsistency,
       HttpServletRequest request,
@@ -82,11 +83,14 @@ public class OpenApiController {
         () -> new PrintWriter(json),
         OpenApiGenerator::generateJson);
 
-    getWriter(response, TEXT_HTML_VALUE).get().write(OpenApiRenderer.render(json.toString()));
+    getWriter(response, TEXT_HTML_VALUE)
+        .get()
+        .write(OpenApiRenderer.render(json.toString(), params));
   }
 
   @GetMapping(value = "/openapi/openapi.html", produces = TEXT_HTML_VALUE)
   public void getOpenApiHtml(
+      OpenApiRenderer.OpenApiRenderingParams params,
       @RequestParam(required = false) Set<String> path,
       @RequestParam(required = false) Set<String> domain,
       @RequestParam(required = false, defaultValue = "false") boolean failOnNameClash,
@@ -104,12 +108,15 @@ public class OpenApiController {
         () -> new PrintWriter(json),
         OpenApiGenerator::generateJson);
 
-    getWriter(response, TEXT_HTML_VALUE).get().write(OpenApiRenderer.render(json.toString()));
+    getWriter(response, TEXT_HTML_VALUE)
+        .get()
+        .write(OpenApiRenderer.render(json.toString(), params));
   }
 
   @GetMapping(value = "/{path}/openapi.html", produces = TEXT_HTML_VALUE)
   public void getPathOpenApiHtml(
       @PathVariable String path,
+      OpenApiRenderer.OpenApiRenderingParams params,
       @RequestParam(required = false, defaultValue = "false") boolean failOnNameClash,
       @RequestParam(required = false, defaultValue = "false") boolean failOnInconsistency,
       HttpServletRequest request,
@@ -125,7 +132,9 @@ public class OpenApiController {
         () -> new PrintWriter(json),
         OpenApiGenerator::generateJson);
 
-    getWriter(response, TEXT_HTML_VALUE).get().write(OpenApiRenderer.render(json.toString()));
+    getWriter(response, TEXT_HTML_VALUE)
+        .get()
+        .write(OpenApiRenderer.render(json.toString(), params));
   }
 
   /*

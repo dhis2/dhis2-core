@@ -499,17 +499,16 @@ public class OpenApiGenerator extends JsonGenerator {
   }
 
   private void addDefaultMember(Class<?> source, String defaultValue, String type) {
-    if (defaultValue != null) {
-      switch (type) {
-        case "string" -> addStringMember("default", defaultValue);
-        case "integer" -> addNumberMember("default", parseInt(defaultValue));
-        case "number" -> addNumberMember("default", parseDouble(defaultValue));
-        case "boolean" -> addBooleanMember("default", parseBoolean(defaultValue));
-        default ->
-            log.warn(
-                "Unsupported default value provided for type %s of %s: %s"
-                    .formatted(type, source.getSimpleName(), defaultValue));
-      }
+    if (defaultValue == null) return;
+    switch (type) {
+      case "string" -> addStringMember("default", defaultValue);
+      case "integer" -> addNumberMember("default", parseInt(defaultValue));
+      case "number" -> addNumberMember("default", parseDouble(defaultValue));
+      case "boolean" -> addBooleanMember("default", parseBoolean(defaultValue));
+      default ->
+          log.warn(
+              "Unsupported default value provided for type %s of %s: %s"
+                  .formatted(type, source.getSimpleName(), defaultValue));
     }
   }
 

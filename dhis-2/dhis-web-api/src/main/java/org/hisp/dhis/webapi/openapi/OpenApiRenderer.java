@@ -27,14 +27,17 @@
  */
 package org.hisp.dhis.webapi.openapi;
 
+import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Consumer;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonValue;
@@ -52,14 +55,18 @@ import org.intellij.lang.annotations.Language;
 @RequiredArgsConstructor
 public class OpenApiRenderer {
 
+  @Data
+  public static class OpenApiRenderingParams {
+    boolean sortEndpointsByMethod = true; // make this a sortEndpointsBy=method,path,id thing?
+    // TODO inline enum types
+  }
+
   @Language("css")
   private static final String CSS =
       """
   @import url('https://fonts.cdnfonts.com/css/futura-std-4');
   :root {
        --bg-page: white;
-       --bg-open: white;
-       --bg-menu: #2A5298;
        --p-op-bg-header: 30%;
        --p-op-bg: 12%;
        --color-delete: tomato;
@@ -70,13 +77,13 @@ public class OpenApiRenderer {
        --color-get: lightsteelblue;
        --color-trace: palevioletred;
        --color-head: thistle;
-       --color-dep: khaki;
+       --color-dep: lemonchiffon;
        --color-tooltip: #444;
        --color-tooltiptext: #eee;
        --color-tooltipborder: lightgray;
    }
   html {
-    background-color: var(--bg-open);
+    background-color: var(--bg-page);
     height: 100%;
   }
   body {
@@ -87,9 +94,6 @@ public class OpenApiRenderer {
     font-family: 'Futura Std', Inter, sans-serif;
     font-size: 16px;
     text-rendering: optimizespeed;
-  }
-  body[desc-] dd.desc {
-    white-space: nowrap;
   }
   h1 {
        margin: 0.5rem;
@@ -156,7 +160,7 @@ public class OpenApiRenderer {
         text-align: left;
         display: inline-block;
         background-color: var(--bg-page);
-        padding: 0.5rem;
+        padding: 0.5rem 1rem;
   }
   .domains {
     margin-left: 250px;
@@ -195,9 +199,8 @@ public class OpenApiRenderer {
       list-style-type: none;
       cursor: pointer;
   }
-  details.op > summary {
-      padding: 0.5rem 0.5rem;
-  }
+  details.op > summary { padding: 0.5rem; }
+  details.op > header { padding: 1rem; font-size: 95%; }
 
   /* colors and emphasis effects */
   code.http { display: inline-block; padding: 0 0.5em; font-weight: bold; }
@@ -288,7 +291,7 @@ public class OpenApiRenderer {
   dl {
     margin: 0.5em 0;
     display: grid;
-    grid-template-columns: 1fr 1fr 3fr;
+    grid-template-columns: 1fr 1fr 1fr 3fr;
   }
   dt, dd {
       margin: 0.5rem 0;
@@ -296,20 +299,12 @@ public class OpenApiRenderer {
   dd {
     margin-left: 1rem;
   }
-  dd.desc {
-    text-overflow: ellipsis;
-    overflow: hidden;
-    margin-right: 2rem;
-    font-size: 90%;
-  }
   dd p {
     margin: 0;
   }
-  header, p {
-    line-height: 1.5em;
-    color: #333;
-    font-size: 95%;
-  }
+  dd.desc { margin-right: 2rem; font-size: 0.8rem; }
+  body[desc-] dd.desc:not(:hover) { font-size: 0.5rem; color: dimgray; }
+  body[desc-] dd.desc:not(:hover):first-line { font-size: 0.8rem; color: black; line-height: 1.8rem; }
   """;
 
   @Language("js")
@@ -322,6 +317,11 @@ public class OpenApiRenderer {
   record PackageItem(String domain, Map<String, GroupItem> groups) {}
 
   record GroupItem(String group, List<OperationObject> operations) {}
+
+  private static final Comparator<OperationObject> SORT_BY_METHOD =
+      comparing(OperationObject::operationMethod)
+          .thenComparing(OperationObject::operationPath)
+          .thenComparing(OperationObject::operationId);
 
   private List<PackageItem> getPackages() {
     Map<String, PackageItem> domains = new TreeMap<>();
@@ -337,6 +337,10 @@ public class OpenApiRenderer {
               .add(op);
         };
     api.operations().forEach(add);
+    if (params.sortEndpointsByMethod)
+      domains
+          .values()
+          .forEach(p -> p.groups().values().forEach(g -> g.operations().sort(SORT_BY_METHOD)));
     return List.copyOf(domains.values());
   }
 
@@ -344,12 +348,13 @@ public class OpenApiRenderer {
   Rendering...
    */
 
-  public static String render(String json) {
-    OpenApiRenderer html = new OpenApiRenderer(JsonValue.of(json).as(OpenApiObject.class));
+  public static String render(String json, OpenApiRenderingParams params) {
+    OpenApiRenderer html = new OpenApiRenderer(JsonValue.of(json).as(OpenApiObject.class), params);
     return html.render();
   }
 
   private final OpenApiObject api;
+  private final OpenApiRenderingParams params;
   private final StringBuilder out = new StringBuilder();
 
   @Override
@@ -390,7 +395,7 @@ public class OpenApiRenderer {
     appendTag(
         "aside",
         Map.of("class", "nav"),
-        () -> appendTag("h1", "DHIS2 API Documentation " + api.info().version()));
+        () -> appendTag("h1", api.info().title() + " " + api.info().version()));
     appendTag(
         "aside",
         Map.of("class", "filters"),
@@ -520,7 +525,7 @@ public class OpenApiRenderer {
     appendTag("code", Map.of("class", "http status" + successCode.charAt(0) + "xx"), successCode);
     appendTag("code", Map.of("class", "http method"), method);
     String url =
-        path.replaceAll("(\\{[a-zA-Z0-9]+})", "<em>$1</em>")
+        path.replaceAll("/(\\{[^/]+)(?<=})(?=/|$)", "/<em>$1</em>")
             .replaceAll("#([a-zA-Z0-9_]+)", "<small>#<span>$1</span></small>");
     appendTag("code", Map.of("class", "url path"), url);
     List<ParameterObject> queryParams = op.parameters(Api.Parameter.In.QUERY);
@@ -576,6 +581,8 @@ public class OpenApiRenderer {
     appendTag(
         "dt", Map.of("class", css), () -> appendTag("code", Map.of("class", "url"), p.name()));
     appendTag("dd", () -> appendTag("code", type));
+    JsonValue defaultValue = p.$default();
+    appendTag("dd", () -> appendTag("code", defaultValue.exists() ? defaultValue.toJson() : ""));
     appendTag("dd", Map.of("class", "desc"), () -> appendTag("p", p.description()));
   }
 
