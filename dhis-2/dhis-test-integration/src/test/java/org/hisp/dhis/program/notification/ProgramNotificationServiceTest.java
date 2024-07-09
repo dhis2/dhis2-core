@@ -25,12 +25,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.program.notification;
 
 import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_DUE_DATE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
 import java.util.Calendar;
@@ -48,8 +46,15 @@ import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.ProgramStageDataElementStore;
+import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
@@ -62,9 +67,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 /**
  * @author Chau Thu Tran
  */
-class EventStoreTest extends TransactionalIntegrationTest {
+class ProgramNotificationServiceTest extends TransactionalIntegrationTest {
 
-  @Autowired private EventStore eventStore;
+  @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private ProgramStageDataElementStore programStageDataElementStore;
 
@@ -76,11 +81,7 @@ class EventStoreTest extends TransactionalIntegrationTest {
 
   @Autowired private TrackedEntityService trackedEntityService;
 
-  @Autowired private DbmsManager dbmsManager;
-
   @Autowired private EnrollmentService enrollmentService;
-
-  @Autowired private IdentifiableObjectManager idObjectManager;
 
   @Autowired private CategoryService categoryService;
 
@@ -88,11 +89,9 @@ class EventStoreTest extends TransactionalIntegrationTest {
   @Qualifier("org.hisp.dhis.program.notification.ProgramNotificationStore")
   private IdentifiableObjectStore<ProgramNotificationTemplate> programNotificationStore;
 
+  @Autowired private ProgramNotificationService programNotificationService;
+
   private CategoryOptionCombo coA;
-
-  private OrganisationUnit organisationUnitA;
-
-  private OrganisationUnit organisationUnitB;
 
   private ProgramStage stageA;
 
@@ -100,56 +99,22 @@ class EventStoreTest extends TransactionalIntegrationTest {
 
   private ProgramStage stageC;
 
-  private ProgramStage stageD;
-
-  private DataElement dataElementA;
-
-  private DataElement dataElementB;
-
-  private ProgramStageDataElement stageDataElementA;
-
-  private ProgramStageDataElement stageDataElementB;
-
-  private ProgramStageDataElement stageDataElementC;
-
-  private ProgramStageDataElement stageDataElementD;
-
-  private Date incidenDate;
-
-  private Date enrollmentDate;
-
   private Enrollment enrollmentA;
 
   private Enrollment enrollmentB;
 
-  private Event eventA;
-
-  private Event eventB;
-
-  private Event eventC;
-
-  private Event eventD1;
-
-  private Event eventD2;
-
-  private TrackedEntity trackedEntityA;
-
-  private TrackedEntity trackedEntityB;
-
-  private Program programA;
-
   @Override
   public void setUpTest() {
     coA = categoryService.getDefaultCategoryOptionCombo();
-    organisationUnitA = createOrganisationUnit('A');
-    organisationUnitB = createOrganisationUnit('B');
-    idObjectManager.save(organisationUnitA);
-    idObjectManager.save(organisationUnitB);
-    trackedEntityA = createTrackedEntity(organisationUnitA);
+    OrganisationUnit organisationUnitA = createOrganisationUnit('A');
+    OrganisationUnit organisationUnitB = createOrganisationUnit('B');
+    manager.save(organisationUnitA);
+    manager.save(organisationUnitB);
+    TrackedEntity trackedEntityA = createTrackedEntity(organisationUnitA);
     trackedEntityService.addTrackedEntity(trackedEntityA);
-    trackedEntityB = createTrackedEntity(organisationUnitB);
+    TrackedEntity trackedEntityB = createTrackedEntity(organisationUnitB);
     trackedEntityService.addTrackedEntity(trackedEntityB);
-    programA = createProgram('A', new HashSet<>(), organisationUnitA);
+    Program programA = createProgram('A', new HashSet<>(), organisationUnitA);
     programService.addProgram(programA);
     stageA = new ProgramStage("A", programA);
     programStageService.saveProgramStage(stageA);
@@ -160,25 +125,28 @@ class EventStoreTest extends TransactionalIntegrationTest {
     programStages.add(stageB);
     programA.getProgramStages().addAll(programStages);
     programService.updateProgram(programA);
-    dataElementA = createDataElement('A');
-    dataElementB = createDataElement('B');
+    DataElement dataElementA = createDataElement('A');
+    DataElement dataElementB = createDataElement('B');
     dataElementService.addDataElement(dataElementA);
     dataElementService.addDataElement(dataElementB);
-    stageDataElementA = createProgramStageDataElement(stageA, dataElementA, 1);
-    stageDataElementB = createProgramStageDataElement(stageA, dataElementB, 2);
-    stageDataElementC = createProgramStageDataElement(stageB, dataElementA, 1);
-    stageDataElementD = createProgramStageDataElement(stageB, dataElementB, 2);
+    ProgramStageDataElement stageDataElementA =
+        createProgramStageDataElement(stageA, dataElementA, 1);
+    ProgramStageDataElement stageDataElementB =
+        createProgramStageDataElement(stageA, dataElementB, 2);
+    ProgramStageDataElement stageDataElementC =
+        createProgramStageDataElement(stageB, dataElementA, 1);
+    ProgramStageDataElement stageDataElementD =
+        createProgramStageDataElement(stageB, dataElementB, 2);
     programStageDataElementStore.save(stageDataElementA);
     programStageDataElementStore.save(stageDataElementB);
     programStageDataElementStore.save(stageDataElementC);
     programStageDataElementStore.save(stageDataElementD);
-    /** Program B */
     Program programB = createProgram('B', new HashSet<>(), organisationUnitB);
     programService.addProgram(programB);
     stageC = createProgramStage('C', 0);
     stageC.setProgram(programB);
     programStageService.saveProgramStage(stageC);
-    stageD = createProgramStage('D', 0);
+    ProgramStage stageD = createProgramStage('D', 0);
     stageD.setProgram(programB);
     stageC.setRepeatable(true);
     programStageService.saveProgramStage(stageD);
@@ -187,50 +155,38 @@ class EventStoreTest extends TransactionalIntegrationTest {
     programStages.add(stageD);
     programB.getProgramStages().addAll(programStages);
     programService.updateProgram(programB);
-    /** Enrollment and event */
     DateTime testDate1 = DateTime.now();
     testDate1.withTimeAtStartOfDay();
     testDate1 = testDate1.minusDays(70);
-    incidenDate = testDate1.toDate();
+    Date incidenDate = testDate1.toDate();
     DateTime testDate2 = DateTime.now();
     testDate2.withTimeAtStartOfDay();
-    enrollmentDate = testDate2.toDate();
+    Date enrollmentDate = testDate2.toDate();
     enrollmentA = new Enrollment(enrollmentDate, incidenDate, trackedEntityA, programA);
     enrollmentA.setUid("UID-PIA");
     enrollmentService.addEnrollment(enrollmentA);
     enrollmentB = new Enrollment(enrollmentDate, incidenDate, trackedEntityB, programB);
     enrollmentService.addEnrollment(enrollmentB);
-    eventA = new Event(enrollmentA, stageA);
+    Event eventA = new Event(enrollmentA, stageA);
     eventA.setScheduledDate(enrollmentDate);
     eventA.setUid("UID-A");
     eventA.setAttributeOptionCombo(coA);
-    eventB = new Event(enrollmentA, stageB);
+    Event eventB = new Event(enrollmentA, stageB);
     eventB.setScheduledDate(enrollmentDate);
     eventB.setUid("UID-B");
     eventB.setAttributeOptionCombo(coA);
-    eventC = new Event(enrollmentB, stageC);
+    Event eventC = new Event(enrollmentB, stageC);
     eventC.setScheduledDate(enrollmentDate);
     eventC.setUid("UID-C");
     eventC.setAttributeOptionCombo(coA);
-    eventD1 = new Event(enrollmentB, stageD);
+    Event eventD1 = new Event(enrollmentB, stageD);
     eventD1.setScheduledDate(enrollmentDate);
     eventD1.setUid("UID-D1");
     eventD1.setAttributeOptionCombo(coA);
-    eventD2 = new Event(enrollmentB, stageD);
+    Event eventD2 = new Event(enrollmentB, stageD);
     eventD2.setScheduledDate(enrollmentDate);
     eventD2.setUid("UID-D2");
     eventD2.setAttributeOptionCombo(coA);
-  }
-
-  @Test
-  void testEventExists() {
-    eventStore.save(eventA);
-    eventStore.save(eventB);
-    dbmsManager.flushSession();
-    assertTrue(eventStore.exists(eventA.getUid()));
-    assertTrue(eventStore.exists(eventB.getUid()));
-    assertFalse(eventStore.exists("aaaabbbbccc"));
-    assertFalse(eventStore.exists(null));
   }
 
   @Test
@@ -321,38 +277,38 @@ class EventStoreTest extends TransactionalIntegrationTest {
     Event eventA = new Event(enrollmentA, stageA);
     eventA.setScheduledDate(tomorrow);
     eventA.setAttributeOptionCombo(coA);
-    eventStore.save(eventA);
+    manager.save(eventA);
     Event eventB = new Event(enrollmentB, stageB);
     eventB.setScheduledDate(today);
     eventB.setAttributeOptionCombo(coA);
-    eventStore.save(eventB);
+    manager.save(eventB);
     Event eventC = new Event(enrollmentB, stageC);
     eventC.setScheduledDate(yesterday);
     eventC.setAttributeOptionCombo(coA);
-    eventStore.save(eventC);
+    manager.save(eventC);
     // Queries
     List<Event> results;
     // A
-    results = eventStore.getWithScheduledNotifications(a1, today);
+    results = programNotificationService.getWithScheduledNotifications(a1, today);
     assertEquals(1, results.size());
     assertEquals(eventA, results.get(0));
-    results = eventStore.getWithScheduledNotifications(a2, today);
+    results = programNotificationService.getWithScheduledNotifications(a2, today);
     assertEquals(0, results.size());
-    results = eventStore.getWithScheduledNotifications(a3, today);
+    results = programNotificationService.getWithScheduledNotifications(a3, today);
     assertEquals(0, results.size());
     // B
-    results = eventStore.getWithScheduledNotifications(b1, today);
+    results = programNotificationService.getWithScheduledNotifications(b1, today);
     assertEquals(0, results.size());
-    results = eventStore.getWithScheduledNotifications(b2, today);
+    results = programNotificationService.getWithScheduledNotifications(b2, today);
     assertEquals(0, results.size());
-    results = eventStore.getWithScheduledNotifications(b3, today);
+    results = programNotificationService.getWithScheduledNotifications(b3, today);
     assertEquals(0, results.size());
     // C
-    results = eventStore.getWithScheduledNotifications(c1, today);
+    results = programNotificationService.getWithScheduledNotifications(c1, today);
     assertEquals(0, results.size());
-    results = eventStore.getWithScheduledNotifications(c2, today);
+    results = programNotificationService.getWithScheduledNotifications(c2, today);
     assertEquals(0, results.size());
-    results = eventStore.getWithScheduledNotifications(c3, today);
+    results = programNotificationService.getWithScheduledNotifications(c3, today);
     assertEquals(1, results.size());
     assertEquals(eventC, results.get(0));
   }

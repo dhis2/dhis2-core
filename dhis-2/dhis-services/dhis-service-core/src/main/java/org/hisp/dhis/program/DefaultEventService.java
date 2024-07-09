@@ -37,6 +37,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.changelog.ChangeLogType;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -55,7 +56,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.program.EventService")
 public class DefaultEventService implements EventService {
-  private final EventStore eventStore;
+  private final IdentifiableObjectManager manager;
 
   private final CategoryService categoryService;
 
@@ -64,30 +65,6 @@ public class DefaultEventService implements EventService {
   private final FileResourceService fileResourceService;
 
   private final DhisConfigurationProvider config;
-
-  @Override
-  @Transactional
-  public void deleteEvent(Event event) {
-    eventStore.delete(event);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Event getEvent(String uid) {
-    return eventStore.getByUid(uid);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean eventExists(String uid) {
-    return eventStore.exists(uid);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean eventExistsIncludingDeleted(String uid) {
-    return eventStore.existsIncludingDeleted(uid);
-  }
 
   @Override
   @Transactional
@@ -102,7 +79,7 @@ public class DefaultEventService implements EventService {
       CategoryOptionCombo aoc = categoryService.getDefaultCategoryOptionCombo();
       event.setAttributeOptionCombo(aoc);
     }
-    eventStore.save(event);
+    manager.save(event);
 
     for (Map.Entry<DataElement, EventDataValue> entry : dataElementEventDataValueMap.entrySet()) {
       entry.getValue().setAutoFields();
