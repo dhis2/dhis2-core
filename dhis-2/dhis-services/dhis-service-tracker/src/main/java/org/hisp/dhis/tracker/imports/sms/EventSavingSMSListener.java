@@ -249,7 +249,7 @@ public abstract class EventSavingSMSListener extends CompressionSMSListener {
     return gf.createPoint(co);
   }
 
-  public void saveEventDataValuesAndSaveEvent(
+  private void saveEventDataValuesAndSaveEvent(
       Event event, Map<DataElement, EventDataValue> dataElementEventDataValueMap) {
     validateEventDataValues(dataElementEventDataValueMap);
     Set<EventDataValue> eventDataValues = new HashSet<>(dataElementEventDataValueMap.values());

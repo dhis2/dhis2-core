@@ -167,7 +167,7 @@ public abstract class RegisterSMSListener extends CommandSMSListener {
         INFO);
   }
 
-  public void saveEventDataValuesAndSaveEvent(
+  private void saveEventDataValuesAndSaveEvent(
       Event event, Map<DataElement, EventDataValue> dataElementEventDataValueMap) {
     validateEventDataValues(dataElementEventDataValueMap);
     Set<EventDataValue> eventDataValues = new HashSet<>(dataElementEventDataValueMap.values());
