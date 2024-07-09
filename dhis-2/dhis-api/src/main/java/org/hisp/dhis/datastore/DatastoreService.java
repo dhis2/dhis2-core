@@ -53,13 +53,11 @@ public interface DatastoreService {
    * @param namespace to check
    * @return the protection used or {@null} when unprotected
    */
-  @CheckForNull
-  DatastoreNamespaceProtection getProtection(@Nonnull String namespace);
+  DatastoreNamespaceProtection getProtection(String namespace);
 
   /**
    * @return a list of the active namespace protections sorted by namespace name
    */
-  @Nonnull
   List<DatastoreNamespaceProtection> getProtections();
 
   /**

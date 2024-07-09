@@ -41,7 +41,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
@@ -73,14 +72,11 @@ public class DefaultDatastoreService implements DatastoreService {
   private final RenderService renderService;
 
   @Override
-  @NonTransactional
-  public DatastoreNamespaceProtection getProtection(@Nonnull String namespace) {
+  public DatastoreNamespaceProtection getProtection(String namespace) {
     return protectionByNamespace.get(namespace);
   }
 
-  @Nonnull
   @Override
-  @NonTransactional
   public List<DatastoreNamespaceProtection> getProtections() {
     return protectionByNamespace.values().stream()
         .sorted(comparing(DatastoreNamespaceProtection::getNamespace))
@@ -88,13 +84,11 @@ public class DefaultDatastoreService implements DatastoreService {
   }
 
   @Override
-  @NonTransactional
   public void addProtection(DatastoreNamespaceProtection protection) {
     protectionByNamespace.put(protection.getNamespace(), protection);
   }
 
   @Override
-  @NonTransactional
   public void removeProtection(String namespace) {
     protectionByNamespace.remove(namespace);
   }
