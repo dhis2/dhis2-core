@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.IOException;
 import java.util.List;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventStore;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -50,7 +49,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 class TrackerEventBundleServiceTest extends TrackerTest {
   @Autowired private TrackerImportService trackerImportService;
 
-  @Autowired private EventStore eventStore;
   @Autowired protected UserService _userService;
 
   @Override
@@ -68,7 +66,7 @@ class TrackerEventBundleServiceTest extends TrackerTest {
         trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
     assertNoErrors(importReport);
 
-    List<Event> events = eventStore.getAll();
+    List<Event> events = manager.getAll(Event.class);
     assertEquals(8, events.size());
   }
 
@@ -80,11 +78,11 @@ class TrackerEventBundleServiceTest extends TrackerTest {
     ImportReport importReport =
         trackerImportService.importTracker(trackerImportParams, trackerObjects);
     assertNoErrors(importReport);
-    assertEquals(8, eventStore.getAll().size());
+    assertEquals(8, manager.getAll(Event.class).size());
 
     importReport = trackerImportService.importTracker(trackerImportParams, trackerObjects);
     assertNoErrors(importReport);
 
-    assertEquals(8, eventStore.getAll().size());
+    assertEquals(8, manager.getAll(Event.class).size());
   }
 }
