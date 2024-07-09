@@ -30,16 +30,22 @@ package org.hisp.dhis.tracker.imports.programrule.executor.enrollment;
 import static org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue.error;
 
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
+import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
+import org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils;
 
 /**
  * This executor checks if a field is not empty in the {@link TrackerBundle} @Author Enrico
@@ -56,16 +62,39 @@ public class SetMandatoryFieldExecutor implements RuleActionExecutor<Enrollment>
     TrackerIdSchemeParams idSchemes = bundle.getPreheat().getIdSchemes();
     TrackedEntityAttribute ruleAttribute =
         bundle.getPreheat().getTrackedEntityAttribute(attributeUid);
-    Optional<Attribute> any =
+
+    Set<MetadataIdentifier> enrollmentAttributes =
         enrollment.getAttributes().stream()
-            .filter(attribute -> attribute.getAttribute().isEqualTo(ruleAttribute))
+            .map(Attribute::getAttribute)
+            .collect(Collectors.toSet());
+
+    Set<MetadataIdentifier> teAttributes =
+        ValidationUtils.buildTeAttributes(bundle, enrollment.getTrackedEntity());
+
+    Optional<MetadataIdentifier> any =
+        Stream.concat(enrollmentAttributes.stream(), teAttributes.stream())
+            .filter(a -> a.isEqualTo(ruleAttribute))
             .findAny();
 
-    if (any.isEmpty() || StringUtils.isEmpty(any.get().getValue())) {
+    if (any.isEmpty() && bundle.getStrategy(enrollment) == TrackerImportStrategy.CREATE) {
       return Optional.of(
           error(
               ruleUid,
               ValidationCode.E1306,
+              idSchemes.toMetadataIdentifier(ruleAttribute).getIdentifierOrAttributeValue()));
+    }
+
+    Optional<Attribute> enrollmentAttribute =
+        enrollment.getAttributes().stream()
+            .filter(attribute -> attribute.getAttribute().isEqualTo(ruleAttribute))
+            .findAny();
+
+    if (enrollmentAttribute.isPresent()
+        && StringUtils.isEmpty(enrollmentAttribute.get().getValue())) {
+      return Optional.of(
+          error(
+              ruleUid,
+              ValidationCode.E1317,
               idSchemes.toMetadataIdentifier(ruleAttribute).getIdentifierOrAttributeValue()));
     }
     return Optional.empty();
