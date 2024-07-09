@@ -48,6 +48,18 @@ import org.springframework.security.access.AccessDeniedException;
  * @author Jan Bernitt (advanced namespace protection)
  */
 public interface DatastoreService {
+
+  /**
+   * @param namespace to check
+   * @return the protection used or {@null} when unprotected
+   */
+  DatastoreNamespaceProtection getProtection(String namespace);
+
+  /**
+   * @return a list of the active namespace protections sorted by namespace name
+   */
+  List<DatastoreNamespaceProtection> getProtections();
+
   /**
    * Applies the configuration for the provided protection so it is considered by this service in
    * future requests.
