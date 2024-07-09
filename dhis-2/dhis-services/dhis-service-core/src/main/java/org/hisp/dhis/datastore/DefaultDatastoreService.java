@@ -29,6 +29,7 @@ package org.hisp.dhis.datastore;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 
 import java.io.IOException;
@@ -68,6 +69,18 @@ public class DefaultDatastoreService implements DatastoreService {
   private final AclService aclService;
 
   private final RenderService renderService;
+
+  @Override
+  public DatastoreNamespaceProtection getProtection(String namespace) {
+    return protectionByNamespace.get(namespace);
+  }
+
+  @Override
+  public List<DatastoreNamespaceProtection> getProtections() {
+    return protectionByNamespace.values().stream()
+        .sorted(comparing(DatastoreNamespaceProtection::getNamespace))
+        .collect(toList());
+  }
 
   @Override
   public void addProtection(DatastoreNamespaceProtection protection) {
@@ -210,13 +223,13 @@ public class DefaultDatastoreService implements DatastoreService {
   private boolean userHasNamespaceReadAccess(DatastoreNamespaceProtection protection) {
     return protection == null
         || protection.getReads() == ProtectionType.NONE
-        || currentUserHasAuthority(protection.getAuthorities());
+        || currentUserHasAuthority(protection.getReadAuthorities());
   }
 
   private boolean userHasNamespaceWriteAccess(DatastoreNamespaceProtection protection) {
     return protection == null
         || protection.getWrites() == ProtectionType.NONE
-        || currentUserHasAuthority(protection.getAuthorities());
+        || currentUserHasAuthority(protection.getWriteAuthorities());
   }
 
   /**
@@ -270,7 +283,7 @@ public class DefaultDatastoreService implements DatastoreService {
     DatastoreNamespaceProtection protection = protectionByNamespace.get(namespace);
     return protection == null
         || protection.getReads() != ProtectionType.HIDDEN
-        || currentUserHasAuthority(protection.getAuthorities());
+        || currentUserHasAuthority(protection.getReadAuthorities());
   }
 
   private boolean currentUserHasAuthority(Set<String> authorities) {
