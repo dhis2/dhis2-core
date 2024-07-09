@@ -44,7 +44,6 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
@@ -58,6 +57,7 @@ import org.hisp.dhis.smscompression.models.RelationshipSmsSubmission;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -150,7 +150,6 @@ class RelationshipSMSListenerTest extends CompressionSMSListenerTest {
             });
 
     when(relationshipTypeService.getRelationshipType(anyString())).thenReturn(relationshipType);
-    when(enrollmentService.getEnrollment(anyString())).thenReturn(enrollment);
 
     doAnswer(
             invocation -> {

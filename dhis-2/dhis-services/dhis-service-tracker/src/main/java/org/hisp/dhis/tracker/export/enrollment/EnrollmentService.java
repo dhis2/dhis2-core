@@ -39,6 +39,14 @@ import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.UserDetails;
 
 public interface EnrollmentService {
+  /**
+   * Returns the {@link Enrollment} with the given UID.
+   *
+   * @param uid the UID.
+   * @return the Enrollment with the given UID, or null if no match.
+   */
+  Enrollment getEnrollment(String uid) throws ForbiddenException, NotFoundException;
+
   Enrollment getEnrollment(String uid, EnrollmentParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException;
 

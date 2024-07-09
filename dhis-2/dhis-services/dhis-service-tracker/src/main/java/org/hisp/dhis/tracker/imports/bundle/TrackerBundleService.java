@@ -28,6 +28,8 @@
 package org.hisp.dhis.tracker.imports.bundle;
 
 import java.util.List;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
@@ -72,7 +74,7 @@ public interface TrackerBundleService {
    *
    * @param bundle TrackerBundle to delete.
    */
-  PersistenceReport delete(TrackerBundle bundle);
+  PersistenceReport delete(TrackerBundle bundle) throws ForbiddenException, NotFoundException;
 
   /**
    * Finalize bundle objects

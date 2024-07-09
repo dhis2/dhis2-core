@@ -31,10 +31,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.hisp.dhis.deduplication.PotentialDuplicateStore;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.relationship.Relationship;
@@ -47,6 +48,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -65,6 +67,8 @@ class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegration
   @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
 
   @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
+
+  @Autowired private org.hisp.dhis.program.EnrollmentService apiEnrollmentService;
 
   @Autowired private EnrollmentService enrollmentService;
 
@@ -134,7 +138,7 @@ class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegration
   }
 
   @Test
-  void shouldDeleteEnrollments() {
+  void shouldDeleteEnrollments() throws ForbiddenException, NotFoundException {
     OrganisationUnit ou = createOrganisationUnit("OU_A");
     organisationUnitService.addOrganisationUnit(ou);
     TrackedEntity original = createTrackedEntity(ou);
@@ -151,10 +155,10 @@ class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegration
     Enrollment enrollment2 = createEnrollment(program, duplicate, ou);
     Enrollment enrollment3 = createEnrollment(program, control1, ou);
     Enrollment enrollment4 = createEnrollment(program, control2, ou);
-    enrollmentService.addEnrollment(enrollment1);
-    enrollmentService.addEnrollment(enrollment2);
-    enrollmentService.addEnrollment(enrollment3);
-    enrollmentService.addEnrollment(enrollment4);
+    apiEnrollmentService.addEnrollment(enrollment1);
+    apiEnrollmentService.addEnrollment(enrollment2);
+    apiEnrollmentService.addEnrollment(enrollment3);
+    apiEnrollmentService.addEnrollment(enrollment4);
     original.getEnrollments().add(enrollment1);
     duplicate.getEnrollments().add(enrollment2);
     control1.getEnrollments().add(enrollment3);

@@ -59,19 +59,18 @@
         -->
 
         <!-- JDBC template queries (SQL) -->
-        <!--
         <Logger name="org.springframework.jdbc.core" level="debug" additivity="false">
             <AppenderRef ref="console"/>
-        </Logger>-->
+        </Logger>
 
-        <!-- Hibernate queries (SQL) -->
-        <!--<Logger name="org.hibernate.SQL" level="TRACE">
+<!--         Hibernate queries (SQL) -->
+        <Logger name="org.hibernate.SQL" level="TRACE">
                <AppenderRef ref="console"/>
-        </Logger>-->
+        </Logger>
 
-        <!-- Hibernate binding parameters -->
-        <!--<Logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE">
+<!--         Hibernate binding parameters -->
+        <Logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE">
                <AppenderRef ref="console"/>
-        </Logger>-->
+        </Logger>
     </Loggers>
 </Configuration>

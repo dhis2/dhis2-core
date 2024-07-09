@@ -58,7 +58,6 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -81,11 +80,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
-  @Autowired private org.hisp.dhis.tracker.export.enrollment.EnrollmentService enrollmentService;
+  @Autowired private EnrollmentService enrollmentService;
 
   @Autowired protected UserService _userService;
 
-  @Autowired private EnrollmentService apiEnrollmentService;
+  @Autowired private org.hisp.dhis.program.EnrollmentService apiEnrollmentService;
 
   @Autowired private IdentifiableObjectManager manager;
 

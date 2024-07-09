@@ -32,11 +32,12 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
@@ -50,6 +51,7 @@ import org.hisp.dhis.smscompression.models.TrackerEventSmsSubmission;
 import org.hisp.dhis.smscompression.models.Uid;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -61,6 +63,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class TrackerEventSMSListener extends EventSavingSMSListener {
   private final ProgramStageService programStageService;
+
+  private final org.hisp.dhis.program.EnrollmentService apiEnrollmentService;
 
   private final EnrollmentService enrollmentService;
 
@@ -78,6 +82,7 @@ public class TrackerEventSMSListener extends EventSavingSMSListener {
       org.hisp.dhis.program.EventService apiEventService,
       EventService eventService,
       ProgramStageService programStageService,
+      org.hisp.dhis.program.EnrollmentService apiEnrollmentService,
       EnrollmentService enrollmentService) {
     super(
         incomingSmsService,
@@ -93,6 +98,7 @@ public class TrackerEventSMSListener extends EventSavingSMSListener {
         apiEventService,
         eventService);
     this.programStageService = programStageService;
+    this.apiEnrollmentService = apiEnrollmentService;
     this.enrollmentService = enrollmentService;
   }
 
@@ -108,8 +114,10 @@ public class TrackerEventSMSListener extends EventSavingSMSListener {
 
     OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(ouid.getUid());
 
-    Enrollment enrollment = enrollmentService.getEnrollment(enrolmentid.getUid());
-    if (enrollment == null) {
+    Enrollment enrollment;
+    try {
+      enrollment = enrollmentService.getEnrollment(enrolmentid.getUid());
+    } catch (ForbiddenException | NotFoundException e) {
       throw new SMSProcessingException(SmsResponse.INVALID_ENROLL.set(enrolmentid));
     }
 

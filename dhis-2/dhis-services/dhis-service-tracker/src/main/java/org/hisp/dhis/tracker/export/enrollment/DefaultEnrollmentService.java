@@ -59,8 +59,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.tracker.export.enrollment.EnrollmentService")
-class DefaultEnrollmentService
-    implements org.hisp.dhis.tracker.export.enrollment.EnrollmentService {
+class DefaultEnrollmentService implements EnrollmentService {
   private final EnrollmentStore enrollmentStore;
 
   private final TrackerOwnershipManager trackerOwnershipAccessManager;
@@ -70,6 +69,11 @@ class DefaultEnrollmentService
   private final TrackerAccessManager trackerAccessManager;
 
   private final EnrollmentOperationParamsMapper paramsMapper;
+
+  @Override
+  public Enrollment getEnrollment(String uid) throws ForbiddenException, NotFoundException {
+    return getEnrollment(uid, EnrollmentParams.FALSE, false);
+  }
 
   @Override
   public Enrollment getEnrollment(String uid, EnrollmentParams params, boolean includeDeleted)
