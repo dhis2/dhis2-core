@@ -29,6 +29,7 @@ package org.hisp.dhis.deduplication.hibernate;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.hisp.dhis.deduplication.PotentialDuplicateStore;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -172,7 +173,8 @@ class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegration
     assertNotNull(trackedEntityService.getTrackedEntity(control1.getUid()));
     assertNotNull(trackedEntityService.getTrackedEntity(control2.getUid()));
     removeTrackedEntity(duplicate);
-    assertNull(enrollmentService.getEnrollment(enrollment2.getUid()));
+    assertThrows(
+        NotFoundException.class, () -> enrollmentService.getEnrollment(enrollment2.getUid()));
     assertNotNull(enrollmentService.getEnrollment(enrollment1.getUid()));
     assertNotNull(enrollmentService.getEnrollment(enrollment3.getUid()));
     assertNotNull(enrollmentService.getEnrollment(enrollment4.getUid()));

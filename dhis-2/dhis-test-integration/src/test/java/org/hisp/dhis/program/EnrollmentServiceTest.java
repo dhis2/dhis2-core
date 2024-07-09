@@ -52,7 +52,9 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.Sharing;
 import org.joda.time.DateTime;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -130,6 +132,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
     programA = createProgram('A', new HashSet<>(), organisationUnitA);
     programService.addProgram(programA);
+    programA.setSharing(Sharing.builder().publicAccess("rwrw----").build());
     ProgramStage stageA = createProgramStage('A', programA);
     stageA.setSortOrder(1);
     programStageService.saveProgramStage(stageA);
@@ -303,7 +306,8 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
     apiEnrollmentService.deleteEnrollment(enrollmentA);
 
-    assertNull(enrollmentService.getEnrollment(enrollmentA.getUid()));
+    Assertions.assertThrows(
+        NotFoundException.class, () -> enrollmentService.getEnrollment(enrollmentA.getUid()));
     assertTrue(noteService.noteExists(note.getUid()));
   }
 }
