@@ -29,8 +29,8 @@ package org.hisp.dhis.datastore;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
 import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.toList;
 
 import java.util.Date;
 import java.util.List;
