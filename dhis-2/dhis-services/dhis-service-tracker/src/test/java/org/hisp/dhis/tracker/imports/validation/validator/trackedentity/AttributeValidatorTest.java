@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.imports.validation.validator.trackedentity;
 
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
+import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertNoErrors;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -81,8 +82,6 @@ class AttributeValidatorTest {
 
   @Mock private TrackedAttributeValidationService teAttrService;
 
-  @Mock private TrackedEntityAttribute trackedEntityAttribute;
-
   private TrackerBundle bundle;
 
   private Reporter reporter;
@@ -126,7 +125,7 @@ class AttributeValidatorTest {
   }
 
   @Test
-  void shouldFailValidationMandatoryFields() {
+  void shouldFailValidationWhenCreatingTEAndThereAreMissingMandatoryFields() {
     String tet = "tet";
 
     TrackedEntityType trackedEntityType = new TrackedEntityType();
@@ -164,10 +163,57 @@ class AttributeValidatorTest {
 
     when(preheat.getTrackedEntityAttribute((MetadataIdentifier) any()))
         .thenReturn(contextAttribute);
+    bundle.setStrategy(trackedEntity, TrackerImportStrategy.CREATE);
 
     validator.validate(reporter, bundle, trackedEntity);
 
     assertHasError(reporter, trackedEntity, ValidationCode.E1090);
+  }
+
+  @Test
+  void shouldPassValidationWhenUpdatingTEAndThereAreMissingMandatoryFields() {
+    String tet = "tet";
+
+    TrackedEntityType trackedEntityType = new TrackedEntityType();
+    TrackedEntityTypeAttribute trackedEntityTypeAttribute = new TrackedEntityTypeAttribute();
+    trackedEntityTypeAttribute.setMandatory(true);
+
+    TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
+    trackedEntityAttribute.setUid("c");
+    trackedEntityTypeAttribute.setTrackedEntityAttribute(trackedEntityAttribute);
+
+    trackedEntityType.setTrackedEntityTypeAttributes(
+        Collections.singletonList(trackedEntityTypeAttribute));
+
+    when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(tet))).thenReturn(trackedEntityType);
+
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(CodeGenerator.generateUid())
+            .trackedEntityType(MetadataIdentifier.ofUid(tet))
+            .attributes(
+                Arrays.asList(
+                    Attribute.builder()
+                        .attribute(MetadataIdentifier.ofUid("a"))
+                        .value("value")
+                        .build(),
+                    Attribute.builder()
+                        .attribute(MetadataIdentifier.ofUid("b"))
+                        .value("value")
+                        .build()))
+            .build();
+
+    TrackedEntityAttribute contextAttribute = new TrackedEntityAttribute();
+    contextAttribute.setUid("uid");
+    contextAttribute.setValueType(ValueType.TEXT);
+
+    when(preheat.getTrackedEntityAttribute((MetadataIdentifier) any()))
+        .thenReturn(contextAttribute);
+    bundle.setStrategy(trackedEntity, TrackerImportStrategy.UPDATE);
+
+    validator.validate(reporter, bundle, trackedEntity);
+
+    assertNoErrors(reporter);
   }
 
   @Test
@@ -197,7 +243,42 @@ class AttributeValidatorTest {
   }
 
   @Test
-  void shouldFailMissingAttributeValue() {
+  void shouldFailWhenCreatingTEAndMandatoryAttributeIsSetToDeleted() {
+    String tea = "tea";
+    String tet = "tet";
+
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(CodeGenerator.generateUid())
+            .attributes(
+                Collections.singletonList(
+                    Attribute.builder().attribute(MetadataIdentifier.ofUid(tea)).build()))
+            .trackedEntityType(MetadataIdentifier.ofUid(tet))
+            .build();
+
+    TrackedEntityType trackedEntityType = new TrackedEntityType();
+    TrackedEntityTypeAttribute trackedEntityTypeAttribute = new TrackedEntityTypeAttribute();
+    trackedEntityTypeAttribute.setMandatory(true);
+
+    TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
+    trackedEntityAttribute.setUid(tea);
+    trackedEntityTypeAttribute.setTrackedEntityAttribute(trackedEntityAttribute);
+
+    trackedEntityType.setTrackedEntityTypeAttributes(
+        Collections.singletonList(trackedEntityTypeAttribute));
+
+    when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(tet))).thenReturn(trackedEntityType);
+    when(preheat.getTrackedEntityAttribute(MetadataIdentifier.ofUid(tea)))
+        .thenReturn(trackedEntityAttribute);
+    bundle.setStrategy(trackedEntity, TrackerImportStrategy.CREATE);
+
+    validator.validate(reporter, bundle, trackedEntity);
+
+    assertHasError(reporter, trackedEntity, ValidationCode.E1076);
+  }
+
+  @Test
+  void shouldFailWhenUpdatingTEAndMandatoryAttributeIsSetToDeleted() {
     String tea = "tea";
     String tet = "tet";
 
@@ -225,6 +306,7 @@ class AttributeValidatorTest {
     when(preheat.getTrackedEntityAttribute(MetadataIdentifier.ofUid(tea)))
         .thenReturn(trackedEntityAttribute);
 
+    bundle.setStrategy(trackedEntity, TrackerImportStrategy.UPDATE);
     validator.validate(reporter, bundle, trackedEntity);
 
     assertHasError(reporter, trackedEntity, ValidationCode.E1076);
@@ -232,8 +314,8 @@ class AttributeValidatorTest {
 
   @Test
   void shouldFailValueTooLong() {
-
-    when(trackedEntityAttribute.getValueType()).thenReturn(ValueType.TEXT);
+    TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
+    trackedEntityAttribute.setValueType(ValueType.TEXT);
 
     TrackedEntity te = TrackedEntity.builder().trackedEntity(CodeGenerator.generateUid()).build();
     validator.validateAttributeValue(
@@ -244,8 +326,8 @@ class AttributeValidatorTest {
 
   @Test
   void shouldFailDataValueIsValid() {
-
-    when(trackedEntityAttribute.getValueType()).thenReturn(ValueType.NUMBER);
+    TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
+    trackedEntityAttribute.setValueType(ValueType.NUMBER);
 
     TrackedEntity te = TrackedEntity.builder().trackedEntity(CodeGenerator.generateUid()).build();
     validator.validateAttributeValue(reporter, te, trackedEntityAttribute, "value");
@@ -255,13 +337,13 @@ class AttributeValidatorTest {
 
   @Test
   void shouldFailEncryptionStatus() {
-    when(trackedEntityAttribute.isConfidentialBool()).thenReturn(true);
-    when(trackedEntityAttribute.getValueType()).thenReturn(ValueType.AGE);
+    TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
+    trackedEntityAttribute.setValueType(ValueType.AGE);
+    trackedEntityAttribute.setConfidential(true);
 
     when(dhisConfigurationProvider.getEncryptionStatus())
         .thenReturn(EncryptionStatus.ENCRYPTION_PASSWORD_TOO_SHORT);
     when(dhisConfigurationProvider.getProperty(any())).thenReturn("property");
-    when(trackedEntityAttribute.getValueType()).thenReturn(ValueType.TEXT);
 
     when(preheat.getTrackedEntityAttribute((MetadataIdentifier) any()))
         .thenReturn(trackedEntityAttribute);
@@ -445,10 +527,9 @@ class AttributeValidatorTest {
   void validateFileResourceOwner() {
     TrackedEntityType trackedEntityType = new TrackedEntityType();
     trackedEntityType.setUid("tet");
-
+    TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
+    trackedEntityAttribute.setValueType(ValueType.FILE_RESOURCE);
     trackedEntityAttribute.setUid("tea");
-
-    when(trackedEntityAttribute.getValueType()).thenReturn(ValueType.FILE_RESOURCE);
 
     String fileResourceUid = CodeGenerator.generateUid();
 
