@@ -48,7 +48,6 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.program.EnrollmentService;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -91,8 +90,6 @@ class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest {
   @Mock private EnrollmentService enrollmentService;
 
   @Mock private CategoryService dataElementCategoryService;
-
-  @Mock private EventService eventService;
 
   @Mock private UserService userService;
 
