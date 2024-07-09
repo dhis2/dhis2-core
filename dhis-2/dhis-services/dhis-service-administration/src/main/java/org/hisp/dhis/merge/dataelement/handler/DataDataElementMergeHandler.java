@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.merge.dataelement.handler;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
@@ -78,9 +78,10 @@ public class DataDataElementMergeHandler {
     List<DataValue> sourceDataValues = dataValueStore.getAllDataValuesByDataElement(sources);
     log.info(sourceDataValues.size() + " source data values retrieved");
 
-    // get DVs from target
-    List<DataValue> targetDataValues =
-        dataValueStore.getAllDataValuesByDataElement(List.of(target));
+    // get map of target data values, using the duplicate key constraints as the key
+    Map<String, DataValue> targetDataValues =
+        dataValueStore.getAllDataValuesByDataElement(List.of(target)).stream()
+            .collect(Collectors.toMap(DataDataElementMergeHandler::getDataValueKey, dv -> dv));
     log.info(targetDataValues.size() + " target data values retrieved");
 
     // merge based on chosen strategy
@@ -127,7 +128,7 @@ public class DataDataElementMergeHandler {
    * due to the composite key constraint). The filtered-out {@link DataValue} will be compared with
    * the target {@link DataValue} lastUpdated date.
    *
-   * <p>If the target date is later, the source {@link DataValue} is deleted.
+   * <p>If the target date is later, no action is required.
    *
    * <p>If the source date is later, then A new {@link DataValue} will be created from the old
    * {@link DataValue} values and it will use the target {@link DataElement} ref. This new {@link
@@ -137,43 +138,44 @@ public class DataDataElementMergeHandler {
    * then be deleted.
    *
    * @param sourceDataValuesDuplicates {@link DataValue}s to merge
-   * @param targetDataValues target {@link DataValue}s
+   * @param targetDataValueMap target {@link DataValue}s
    * @param sources source {@link DataElement}s
    * @param target target {@link DataElement}
    */
   private void handleDuplicates(
-      @Nonnull List<DataValue> sourceDataValuesDuplicates,
-      @Nonnull List<DataValue> targetDataValues,
+      @Nonnull Collection<DataValue> sourceDataValuesDuplicates,
+      @Nonnull Map<String, DataValue> targetDataValueMap,
       @Nonnull List<DataElement> sources,
       @Nonnull DataElement target) {
     log.info(
-        "Updating "
+        "Handling "
             + sourceDataValuesDuplicates.size()
             + " duplicate data values, keeping later lastUpdated value");
 
-    // get duplicate with latest last updated value
-    DataValue lastUpdateDataValue =
-        Collections.max(
-            sourceDataValuesDuplicates, Comparator.comparing(DataValue::getLastUpdated));
+    // group Data values by key so we can deal with each duplicate correctly
+    Map<String, List<DataValue>> sourceDataValuesGroupedByKey =
+        sourceDataValuesDuplicates.stream()
+            .collect(Collectors.groupingBy(DataDataElementMergeHandler::getDataValueKey));
 
-    DataValue matchingTargetDataValue =
-        matchingDataValueUniqueKey.apply(targetDataValues, lastUpdateDataValue);
+    // filter groups down to single DV with latest date
+    List<DataValue> filtered =
+        sourceDataValuesGroupedByKey.values().stream()
+            .map(ls -> Collections.max(ls, Comparator.comparing(DataValue::getLastUpdated)))
+            .toList();
 
-    if (matchingTargetDataValue.getLastUpdated().after(lastUpdateDataValue.getLastUpdated())) {
-      log.info("target duplicate has later lastUpdated date, delete source data value");
-      dataValueStore.deleteDataValue(lastUpdateDataValue);
-    } else {
-      log.info(
-          "target duplicate has earlier lastUpdated date, assign source data value with target and delete target data value");
-      dataValueStore.deleteDataValue(matchingTargetDataValue);
+    for (DataValue source : filtered) {
+      DataValue matchingTargetDataValue = targetDataValueMap.get(getDataValueKey(source));
 
-      // detaching is required here as it's not possible to add a new DataValue with essentially the
-      // same composite primary key - Throws `NonUniqueObjectException: A different object with the
-      // same identifier value was already associated with the session`
-      entityManager.detach(matchingTargetDataValue);
-      DataValue copyWithNewDataElementRef =
-          DataValue.dataValueWithNewDataElement(lastUpdateDataValue, target);
-      dataValueStore.addDataValue(copyWithNewDataElementRef);
+      if (matchingTargetDataValue.getLastUpdated().before(source.getLastUpdated())) {
+        dataValueStore.deleteDataValue(matchingTargetDataValue);
+
+        // detaching is required here as it's not possible to add a new DataValue with essentially
+        // the same composite primary key - Throws `NonUniqueObjectException: A different object
+        // with the same identifier value was already associated with the session`
+        entityManager.detach(matchingTargetDataValue);
+        DataValue copyWithNewDataElementRef = DataValue.dataValueWithNewDataElement(source, target);
+        dataValueStore.addDataValue(copyWithNewDataElementRef);
+      }
     }
 
     // delete the rest of the source data values after handling the last update duplicate
@@ -214,21 +216,13 @@ public class DataDataElementMergeHandler {
     sources.forEach(dataValueStore::deleteDataValues);
   }
 
-  public static final BiPredicate<DataValue, DataValue> matchingUniqueKey =
-      (dv1, dv2) ->
-          ((dv1.getPeriod().getId() == dv2.getPeriod().getId())
-              && (dv1.getSource().getId() == dv2.getSource().getId())
-              && (dv1.getCategoryOptionCombo().getId() == dv2.getCategoryOptionCombo().getId())
-              && (dv1.getAttributeOptionCombo().getId() == dv2.getAttributeOptionCombo().getId()));
+  public static final BiPredicate<DataValue, Map<String, DataValue>> dataValueDuplicates =
+      (sourceDv, targetDvs) -> targetDvs.containsKey(getDataValueKey(sourceDv));
 
-  public static final BiFunction<List<DataValue>, DataValue, DataValue> matchingDataValueUniqueKey =
-      (targetDataValues, sourceDataValue) ->
-          targetDataValues.stream()
-              .filter(dv -> matchingUniqueKey.test(dv, sourceDataValue))
-              .findFirst()
-              .orElseThrow();
-
-  public static final BiPredicate<DataValue, List<DataValue>> dataValueDuplicates =
-      (sourceDv, targetDvs) ->
-          targetDvs.stream().anyMatch(tdv -> matchingUniqueKey.test(sourceDv, tdv));
+  private static String getDataValueKey(DataValue dv) {
+    return String.valueOf(dv.getPeriod().getId())
+        + dv.getSource().getId()
+        + dv.getCategoryOptionCombo().getId()
+        + dv.getAttributeOptionCombo().getId();
+  }
 }
