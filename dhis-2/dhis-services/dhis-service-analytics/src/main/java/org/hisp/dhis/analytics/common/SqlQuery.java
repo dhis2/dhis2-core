@@ -71,7 +71,7 @@ public class SqlQuery implements Query {
         render,
         new SqlQueryContext(
             queryContext.getParametersPlaceHolder(),
-            queryContext.getTeiQueryParams().getCommonParams().streamDimensions().toList()));
+            queryContext.getContextParams().getCommonParsed().streamDimensions().toList()));
   }
 
   @Nonnull

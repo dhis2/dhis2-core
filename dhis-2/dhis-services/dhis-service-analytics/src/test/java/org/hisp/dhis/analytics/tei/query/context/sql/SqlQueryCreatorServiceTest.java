@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.tei.query.context.sql;
 
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.utils.Assertions.assertContains;
@@ -34,16 +34,20 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.analytics.common.CommonRequestParams;
+import org.hisp.dhis.analytics.common.ContextParams;
 import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
-import org.hisp.dhis.analytics.common.params.CommonParams;
+import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamType;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
+import org.hisp.dhis.analytics.tei.TeiRequestParams;
 import org.hisp.dhis.analytics.tei.query.context.querybuilder.DataElementQueryBuilder;
 import org.hisp.dhis.analytics.tei.query.context.querybuilder.EnrolledInProgramQueryBuilder;
 import org.hisp.dhis.analytics.tei.query.context.querybuilder.LimitOffsetQueryBuilder;
@@ -52,8 +56,6 @@ import org.hisp.dhis.analytics.tei.query.context.querybuilder.OrgUnitQueryBuilde
 import org.hisp.dhis.analytics.tei.query.context.querybuilder.PeriodQueryBuilder;
 import org.hisp.dhis.analytics.tei.query.context.querybuilder.ProgramIndicatorQueryBuilder;
 import org.hisp.dhis.analytics.tei.query.context.querybuilder.TeiQueryBuilder;
-import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilder;
-import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryCreatorService;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -66,11 +68,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * TeiFullQuery unit tests.
+ * Unit tests for {@link SqlQueryCreatorService}.
  *
  * @author Dusan Bernat
  */
-class TeiSqlQueryTest extends DhisConvenienceTest {
+class SqlQueryCreatorServiceTest extends DhisConvenienceTest {
   private SqlQueryCreatorService sqlQueryCreatorService;
 
   @BeforeEach
@@ -93,14 +95,18 @@ class TeiSqlQueryTest extends DhisConvenienceTest {
   void testSqlQueryRenderingWithOrgUnitNameObject() {
     // given
     TeiQueryParams teiQueryParams =
-        TeiQueryParams.builder()
-            .trackedEntityType(createTrackedEntityType('A'))
-            .commonParams(stubSortingCommonParams(null, 1, "ouname"))
+        TeiQueryParams.builder().trackedEntityType(createTrackedEntityType('A')).build();
+
+    ContextParams<TeiRequestParams, TeiQueryParams> contextParams =
+        ContextParams.<TeiRequestParams, TeiQueryParams>builder()
+            .typedParsed(teiQueryParams)
+            .commonRaw(new CommonRequestParams())
+            .commonParsed(stubSortingCommonParams(null, 1, "ouname"))
             .build();
 
     // when
     String sql =
-        sqlQueryCreatorService.getSqlQueryCreator(teiQueryParams).createForSelect().getStatement();
+        sqlQueryCreatorService.getSqlQueryCreator(contextParams).createForSelect().getStatement();
 
     // then
     assertTrue(sql.contains("ouname"));
@@ -117,14 +123,18 @@ class TeiSqlQueryTest extends DhisConvenienceTest {
     program.setTrackedEntityType(trackedEntityType);
 
     TeiQueryParams teiQueryParams =
-        TeiQueryParams.builder()
-            .trackedEntityType(trackedEntityType)
-            .commonParams(stubSortingCommonParams(program, 1, dimensionalObject))
+        TeiQueryParams.builder().trackedEntityType(trackedEntityType).build();
+
+    ContextParams<TeiRequestParams, TeiQueryParams> contextParams =
+        ContextParams.<TeiRequestParams, TeiQueryParams>builder()
+            .typedParsed(teiQueryParams)
+            .commonRaw(new CommonRequestParams())
+            .commonParsed(stubSortingCommonParams(program, 1, dimensionalObject))
             .build();
 
     // when
     String sql =
-        sqlQueryCreatorService.getSqlQueryCreator(teiQueryParams).createForSelect().getStatement();
+        sqlQueryCreatorService.getSqlQueryCreator(contextParams).createForSelect().getStatement();
 
     // then
     assertTrue(sql.contains(" order by (select (\"eventdatavalues\" -> 'abc' ->> 'value')::TEXT"));
@@ -133,21 +143,28 @@ class TeiSqlQueryTest extends DhisConvenienceTest {
   @Test
   void testEnrolledInProgramWhenSpecifiedInRequest() {
     // given
-    CommonParams commonParams =
-        CommonParams.builder()
+    CommonParsedParams commonParsed =
+        CommonParsedParams.builder()
             .programs(List.of(mockProgram("program1"), mockProgram("program2")))
-            .build()
-            .withProgramsFromRequest(true);
+            .build();
+
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setProgram(Set.of("program3"));
+    requestParams.getInternal().setRequestPrograms(true);
 
     TeiQueryParams teiQueryParams =
-        TeiQueryParams.builder()
-            .trackedEntityType(createTrackedEntityType('A'))
-            .commonParams(commonParams)
+        TeiQueryParams.builder().trackedEntityType(createTrackedEntityType('A')).build();
+
+    ContextParams<TeiRequestParams, TeiQueryParams> contextParams =
+        ContextParams.<TeiRequestParams, TeiQueryParams>builder()
+            .typedParsed(teiQueryParams)
+            .commonRaw(requestParams)
+            .commonParsed(commonParsed)
             .build();
 
     // when
     String sql =
-        sqlQueryCreatorService.getSqlQueryCreator(teiQueryParams).createForSelect().getStatement();
+        sqlQueryCreatorService.getSqlQueryCreator(contextParams).createForSelect().getStatement();
 
     // then
     assertTrue(sql.contains("ouname"));
@@ -157,21 +174,26 @@ class TeiSqlQueryTest extends DhisConvenienceTest {
   @Test
   void testEnrolledInProgramWhenNotSpecifiedInRequest() {
     // given
-    CommonParams commonParams =
-        CommonParams.builder()
+    CommonParsedParams commonParsed =
+        CommonParsedParams.builder()
             .programs(List.of(mockProgram("program1"), mockProgram("program2")))
-            .build()
-            .withProgramsFromRequest(false);
+            .build();
+
+    CommonRequestParams requestParams = new CommonRequestParams();
 
     TeiQueryParams teiQueryParams =
-        TeiQueryParams.builder()
-            .trackedEntityType(createTrackedEntityType('A'))
-            .commonParams(commonParams)
+        TeiQueryParams.builder().trackedEntityType(createTrackedEntityType('A')).build();
+
+    ContextParams<TeiRequestParams, TeiQueryParams> contextParams =
+        ContextParams.<TeiRequestParams, TeiQueryParams>builder()
+            .typedParsed(teiQueryParams)
+            .commonParsed(commonParsed)
+            .commonRaw(requestParams)
             .build();
 
     // when
     String sql =
-        sqlQueryCreatorService.getSqlQueryCreator(teiQueryParams).createForSelect().getStatement();
+        sqlQueryCreatorService.getSqlQueryCreator(contextParams).createForSelect().getStatement();
 
     // then
     assertTrue(sql.contains("ouname"));
@@ -184,7 +206,7 @@ class TeiSqlQueryTest extends DhisConvenienceTest {
     return program;
   }
 
-  private CommonParams stubSortingCommonParams(
+  private CommonParsedParams stubSortingCommonParams(
       Program program, int offset, Object dimensionalObject) {
     ElementWithOffset<Program> prg =
         program == null
@@ -212,7 +234,7 @@ class TeiSqlQueryTest extends DhisConvenienceTest {
     AnalyticsPagingParams analyticsPagingParams =
         AnalyticsPagingParams.builder().pageSize(10).page(1).build();
 
-    return CommonParams.builder()
+    return CommonParsedParams.builder()
         .orderParams(List.of(analyticsSortingParams))
         .pagingParams(analyticsPagingParams)
         .build();

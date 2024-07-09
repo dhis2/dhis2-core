@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,28 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei;
+package org.hisp.dhis.analytics.common;
 
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.analytics.common.processing.Processor;
-import org.springframework.stereotype.Component;
+import lombok.Builder;
+import lombok.Data;
+import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 
 /**
- * This component is a hook to allow for post-processing of the {@link TeiQueryParams} before it is
- * used to build the query context.
+ * This object holds common objects required by most analytics flows as well as specialized objects
+ * related to a specific flow.
+ *
+ * @param <R> the raw specialize request object for the respective flow.
+ * @param <P> the parsed version of the specialized raw object.
  */
-@Component
-@RequiredArgsConstructor
-public class TeiQueryParamPostProcessor implements Processor<TeiQueryParams> {
+@Data
+@Builder(toBuilder = true)
+public class ContextParams<R, P> {
+  private final R typedRaw;
+  private final P typedParsed;
 
-  /**
-   * Processes the given {@link TeiQueryParams} and returns the processed version.
-   *
-   * @param params to be processed.
-   * @return the processed {@link TeiQueryParams}.
-   */
-  public TeiQueryParams process(TeiQueryParams params) {
-    // do nothing for now - implement required TeiQueryParams processing here.
-    return params;
-  }
+  private final CommonRequestParams commonRaw;
+  private final CommonParsedParams commonParsed;
 }
