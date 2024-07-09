@@ -27,24 +27,9 @@
  */
 package org.hisp.dhis.program;
 
-import java.util.Date;
-import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 
 /**
  * @author Abyot Asalefew
  */
-public interface EventStore extends IdentifiableObjectStore<Event> {
-
-  /**
-   * Get all events which have notifications with the given. ProgramNotificationTemplate scheduled
-   * on the given date.
-   *
-   * @param template the template.
-   * @param notificationDate the Date for which the notification is scheduled.
-   * @return a list of Event.
-   */
-  List<Event> getWithScheduledNotifications(
-      ProgramNotificationTemplate template, Date notificationDate);
-}
+public interface EventStore extends IdentifiableObjectStore<Event> {}
