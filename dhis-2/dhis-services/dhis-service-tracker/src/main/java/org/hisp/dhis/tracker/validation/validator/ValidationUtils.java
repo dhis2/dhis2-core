@@ -41,6 +41,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.event.EventStatus;
@@ -102,24 +103,52 @@ public class ValidationUtils {
     return notes;
   }
 
-  public static List<MetadataIdentifier> validateMandatoryDataValue(
-      ProgramStage programStage, Event event, List<MetadataIdentifier> mandatoryDataElements) {
-    List<MetadataIdentifier> notPresentMandatoryDataElements = Lists.newArrayList();
-
+  public static List<MetadataIdentifier> validateDeletionMandatoryDataValue(
+      Event event, ProgramStage programStage, List<MetadataIdentifier> mandatoryDataElements) {
     if (!needsToValidateDataValues(event, programStage)) {
-      return notPresentMandatoryDataElements;
+      return List.of();
+    }
+    Set<MetadataIdentifier> eventDataElements =
+        event.getDataValues().stream()
+            .filter(dv -> dv.getValue() == null)
+            .map(DataValue::getDataElement)
+            .collect(Collectors.toSet());
+
+    return mandatoryDataElements.stream()
+        .filter(eventDataElements::contains)
+        .collect(Collectors.toList());
+  }
+
+  public static List<MetadataIdentifier> validateMandatoryDataValue(
+      TrackerBundle bundle,
+      Event event,
+      ProgramStage programStage,
+      List<MetadataIdentifier> mandatoryDataElements) {
+    if (!areDataValuesBeingCreated(bundle, event, programStage)) {
+      return List.of();
     }
 
     Set<MetadataIdentifier> eventDataElements =
         event.getDataValues().stream().map(DataValue::getDataElement).collect(Collectors.toSet());
 
-    for (MetadataIdentifier mandatoryDataElement : mandatoryDataElements) {
-      if (!eventDataElements.contains(mandatoryDataElement)) {
-        notPresentMandatoryDataElements.add(mandatoryDataElement);
-      }
+    return mandatoryDataElements.stream()
+        .filter(de -> !eventDataElements.contains(de))
+        .collect(Collectors.toList());
+  }
+
+  public static boolean areDataValuesBeingCreated(
+      TrackerBundle bundle, Event event, ProgramStage programStage) {
+    if (!needsToValidateDataValues(event, programStage)) {
+      return false;
     }
 
-    return notPresentMandatoryDataElements;
+    if (bundle.getStrategy(event).isCreate()) {
+      return true;
+    }
+
+    EventStatus savedStatus = bundle.getPreheat().getEvent(event.getUid()).getStatus();
+    return EventStatus.STATUSES_WITHOUT_DATA_VALUES.contains(savedStatus)
+        && EventStatus.STATUSES_WITH_DATA_VALUES.contains(event.getStatus());
   }
 
   public static boolean needsToValidateDataValues(Event event, ProgramStage programStage) {
@@ -171,8 +200,8 @@ public class ValidationUtils {
   }
 
   public static <T extends ValueTypedDimensionalItemObject> void validateOptionSet(
-      Reporter reporter, TrackerDto dto, T optionalObject, String value) {
-    if (value == null) {
+      Reporter reporter, TrackerDto dto, T optionalObject, @Nonnull String value) {
+    if (!optionalObject.hasOptionSet()) {
       return;
     }
 

@@ -25,47 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.event;
+package org.hisp.dhis.tracker.validation.validator.event;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.util.Set;
-import org.hisp.dhis.common.DxfNamespaces;
+import static org.hisp.dhis.tracker.TrackerImportStrategy.UPDATE;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1316;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@JacksonXmlRootElement(localName = "eventStatus", namespace = DxfNamespaces.DXF_2_0)
-public enum EventStatus {
-  ACTIVE(0),
-  COMPLETED(1),
-  VISITED(2),
-  SCHEDULE(3),
-  OVERDUE(4),
-  SKIPPED(5);
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.validation.Reporter;
+import org.hisp.dhis.tracker.validation.Validator;
 
-  private final int value;
+class StatusUpdateValidator implements Validator<Event> {
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
+    org.hisp.dhis.program.ProgramStageInstance savedEvent =
+        bundle.getPreheat().getEvent(event.getUid());
 
-  EventStatus(int value) {
-    this.value = value;
-  }
-
-  public int getValue() {
-    return value;
-  }
-
-  public static EventStatus fromInt(int status) {
-    for (EventStatus eventStatus : EventStatus.values()) {
-      if (eventStatus.getValue() == status) {
-        return eventStatus;
-      }
+    if (checkInvalidStatusTransition(savedEvent.getStatus(), event.getStatus())) {
+      reporter.addError(event, E1316, savedEvent.getStatus(), event.getStatus());
     }
-
-    throw new IllegalArgumentException();
   }
 
-  public static final Set<EventStatus> STATUSES_WITH_DATA_VALUES =
-      Set.of(ACTIVE, VISITED, COMPLETED);
+  private boolean checkInvalidStatusTransition(EventStatus fromStatus, EventStatus toStatus) {
+    switch (fromStatus) {
+      case VISITED:
+      case ACTIVE:
+      case COMPLETED:
+        return EventStatus.STATUSES_WITHOUT_DATA_VALUES.contains(toStatus);
+      case OVERDUE:
+      case SKIPPED:
+      case SCHEDULE:
+        return false;
+    }
+    return false;
+  }
 
-  public static final Set<EventStatus> STATUSES_WITHOUT_DATA_VALUES =
-      Set.of(SCHEDULE, SKIPPED, OVERDUE);
+  @Override
+  public boolean needsToRun(TrackerImportStrategy strategy) {
+    return strategy == UPDATE;
+  }
 }
