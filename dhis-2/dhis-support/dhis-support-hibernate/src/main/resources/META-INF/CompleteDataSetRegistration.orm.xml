@@ -22,22 +22,18 @@
             <many-to-one name="dataSet" target-entity="org.hisp.dhis.dataset.DataSet" fetch="LAZY" id="true">
                 <join-column name="datasetid"/>
                 <foreign-key name="fk_datasetcompleteregistration_datasetid"/>
-                <on-delete>no-action</on-delete>
             </many-to-one>
             <many-to-one name="period" target-entity="org.hisp.dhis.period.Period" fetch="LAZY" id="true">
                 <join-column name="periodid"/>
                 <foreign-key name="fk_datasetcompleteregistration_periodid"/>
-                <on-delete>no-action</on-delete>
             </many-to-one>
             <many-to-one name="source" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit" fetch="LAZY" id="true">
                 <join-column name="sourceid"/>
                 <foreign-key name="fk_completedatasetregistration_organisationunitid"/>
-                <on-delete>no-action</on-delete>
             </many-to-one>
             <many-to-one name="attributeOptionCombo" target-entity="org.hisp.dhis.category.CategoryOptionCombo" fetch="LAZY" id="true">
                 <join-column name="attributeoptioncomboid"/>
                 <foreign-key name="fk_completedatasetregistration_attributeoptioncomboid"/>
-                <on-delete>no-action</on-delete>
             </many-to-one>
         </attributes>
     </entity>

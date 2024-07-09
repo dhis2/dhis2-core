@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
+    <description>
+        Represents a key-value pair in the datastore.
+    </description>
  <entity class="org.hisp.dhis.datastore.DatastoreEntry" metadata-complete="true" cacheable="true">
         <table name="keyjsonvalue"/>
-     <description>
-          Represents a key-value pair in the datastore.
-     </description>
-     
      <convert converter="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryTypeConverter" attribute-name="jbPlainValue"/>
         <convert converter="org.hisp.dhis.hibernate.encryption.type.EncryptedStringUserType"  attribute-name="encryptedValue"/>
         <attributes>

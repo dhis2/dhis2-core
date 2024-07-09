@@ -42,7 +42,7 @@
                 <foreign-key name="fk_programmessage_programstageinstanceid"/>
                 <cascade/>
             </many-to-one>
-            <element-collection name="deliveryChannels" fetch-mode="SELECT">
+            <element-collection name="deliveryChannels">
               
                 <column name="deliverychannel" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <collection-table name="programmessage_deliverychannels"/>
@@ -62,13 +62,12 @@
                 <foreign-key name="fk_programmessage_organisationunitid"/>
                 <cascade/>
             </many-to-one>
-            <element-collection name="phoneNumbers" fetch-mode="JOIN">
+            <element-collection name="phoneNumbers">
               
                 <column name="phoneNumber" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <collection-table name="programmessage_phonenumbers"/>
             </element-collection>
-            <element-collection name="emailAddresses" fetch-mode="JOIN">
-              
+            <element-collection name="emailAddresses">
                 <column name="email" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <collection-table name="programmessage_emailAddresses"/>
             </element-collection>

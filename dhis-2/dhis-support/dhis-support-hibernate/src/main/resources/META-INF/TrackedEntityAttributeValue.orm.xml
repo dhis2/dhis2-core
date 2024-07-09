@@ -18,12 +18,10 @@
             <many-to-one name="trackedEntity" target-entity="org.hisp.dhis.trackedentity.TrackedEntity" fetch="LAZY" id="true">
                 <join-column name="trackedentityid"/>
                 <foreign-key name="fk_attributevalue_trackedentityinstanceid"/>
-                <on-delete>no-action</on-delete>
             </many-to-one>
             <many-to-one name="attribute" target-entity="org.hisp.dhis.trackedentity.TrackedEntityAttribute" fetch="LAZY" id="true">
                 <join-column name="trackedentityattributeid"/>
                 <foreign-key name="fk_attributevalue_trackedentityattributeid"/>
-                <on-delete>no-action</on-delete>
             </many-to-one>
         </attributes>
     </entity>

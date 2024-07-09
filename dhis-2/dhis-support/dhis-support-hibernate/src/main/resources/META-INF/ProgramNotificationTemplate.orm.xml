@@ -63,7 +63,7 @@
                 <foreign-key name="fk_programstagenotification_dataelementid"/>
                 <cascade/>
             </many-to-one>
-            <element-collection name="deliveryChannels" fetch-mode="SELECT">
+            <element-collection name="deliveryChannels">
               
                 <column name="deliverychannel" unique="false" nullable="true" insertable="true" updatable="true"/>
                 <collection-table name="programnotificationtemplate_deliverychannel"/>

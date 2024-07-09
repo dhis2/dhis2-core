@@ -22,27 +22,22 @@
             <many-to-one name="dataElement" target-entity="org.hisp.dhis.dataelement.DataElement" fetch="LAZY" id="true">
                 <join-column name="dataelementid"/>
                 <foreign-key name="fk_datavalue_dataelementid"/>
-                <on-delete>no-action</on-delete>
             </many-to-one>
             <many-to-one name="period" target-entity="org.hisp.dhis.period.Period" fetch="LAZY" id="true">
                 <join-column name="periodid"/>
                 <foreign-key name="fk_datavalue_periodid"/>
-                <on-delete>no-action</on-delete>
             </many-to-one>
             <many-to-one name="source" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit" fetch="LAZY" id="true">
                 <join-column name="sourceid"/>
                 <foreign-key name="fk_datavalue_organisationunitid"/>
-                <on-delete>no-action</on-delete>
             </many-to-one>
             <many-to-one name="categoryOptionCombo" target-entity="org.hisp.dhis.category.CategoryOptionCombo" fetch="LAZY" id="true">
                 <join-column name="categoryoptioncomboid"/>
                 <foreign-key name="fk_datavalue_categoryoptioncomboid"/>
-                <on-delete>no-action</on-delete>
             </many-to-one>
             <many-to-one name="attributeOptionCombo" target-entity="org.hisp.dhis.category.CategoryOptionCombo" fetch="LAZY" id="true">
                 <join-column name="attributeoptioncomboid"/>
                 <foreign-key name="fk_datavalue_attributeoptioncomboid"/>
-                <on-delete>no-action</on-delete>
             </many-to-one>
         </attributes>
     </entity>

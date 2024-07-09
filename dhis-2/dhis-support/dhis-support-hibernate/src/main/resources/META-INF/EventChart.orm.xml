@@ -69,14 +69,14 @@
             <basic name="subscribers" fetch="EAGER" optional="true"/>
             <basic name="userOrgUnitType" fetch="EAGER" optional="true"/>
             <basic name="attributeValues" fetch="EAGER" optional="true"/>
-            <basic name="rowTotals" fetch="EAGER" optional="true" attribute-accessor="field"/>
-            <basic name="colTotals" fetch="EAGER" optional="true" attribute-accessor="field"/>
-            <basic name="rowSubTotals" fetch="EAGER" optional="true" attribute-accessor="field"/>
-            <basic name="colSubTotals" fetch="EAGER" optional="true" attribute-accessor="field"/>
-            <basic name="hideEmptyRows" fetch="EAGER" optional="true" attribute-accessor="field"/>
-            <basic name="showHierarchy" fetch="EAGER" optional="true" attribute-accessor="field"/>
-            <basic name="showDimensionLabels" fetch="EAGER" optional="true" attribute-accessor="field"/>
-            <basic name="topLimit" fetch="EAGER" optional="true" attribute-accessor="field"/>
+            <basic name="rowTotals" fetch="EAGER" optional="true" access="FIELD"/>
+            <basic name="colTotals" fetch="EAGER" optional="true" access="FIELD"/>
+            <basic name="rowSubTotals" fetch="EAGER" optional="true" access="FIELD"/>
+            <basic name="colSubTotals" fetch="EAGER" optional="true" access="FIELD"/>
+            <basic name="hideEmptyRows" fetch="EAGER" optional="true" access="FIELD"/>
+            <basic name="showHierarchy" fetch="EAGER" optional="true" access="FIELD"/>
+            <basic name="showDimensionLabels" fetch="EAGER" optional="true" access="FIELD"/>
+            <basic name="topLimit" fetch="EAGER" optional="true" access="FIELD"/>
             <basic name="legacy" fetch="EAGER" optional="true"/>
             <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
                 <join-column name="lastupdatedby" unique="false" nullable="true" insertable="true" updatable="true"/>

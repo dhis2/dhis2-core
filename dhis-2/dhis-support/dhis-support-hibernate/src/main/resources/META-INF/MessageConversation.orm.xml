@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
-    
-    
-    
-    <filter-def name="userMessageUser">
-        <filter-param name="userid" type="long"/>
-    </filter-def>
+    <named-query name="userMessageUser">
+        <query></query>
+    </named-query>
     <entity class="org.hisp.dhis.message.MessageConversation" metadata-complete="true">
         <table name="messageconversation"/>
         
@@ -55,7 +52,12 @@
                 <cascade/>
             </many-to-one>
             <many-to-many name="userMessages" target-entity="org.hisp.dhis.message.UserMessage">
-              
+                <join-table name="messageconversation_usermessages">
+                    <join-column name="messageconversationid"/>
+                    <foreign-key name="fk_messageconversation_usermessages_messageconversationid"/> 
+                    <inverse-join-column name="usermessageid"/>
+                </join-table>
+                <cascade><cascade-all/></cascade>
             </many-to-many>
             <many-to-many name="messages" target-entity="org.hisp.dhis.message.Message">
                 <order-column name="sort_order"/>

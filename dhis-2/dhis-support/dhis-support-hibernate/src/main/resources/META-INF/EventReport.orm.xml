@@ -64,11 +64,11 @@
             <basic name="subscribers" fetch="EAGER" optional="true"/>
             <basic name="userOrgUnitType" fetch="EAGER" optional="true"/>
             <basic name="attributeValues" fetch="EAGER" optional="true"/>
-            <basic name="hideLegend" fetch="EAGER" optional="true" attribute-accessor="field"/>
-            <basic name="noSpaceBetweenColumns" fetch="EAGER" optional="true" attribute-accessor="field"/>
-            <basic name="showData" fetch="EAGER" optional="true" attribute-accessor="field"/>
-            <basic name="percentStackedValues" fetch="EAGER" optional="true" attribute-accessor="field"/>
-            <basic name="cumulativeValues" fetch="EAGER" optional="true" attribute-accessor="field"/>
+            <basic name="hideLegend" fetch="EAGER" optional="true" access="FIELD"/>
+            <basic name="noSpaceBetweenColumns" fetch="EAGER" optional="true" access="FIELD"/>
+            <basic name="showData" fetch="EAGER" optional="true" access="FIELD"/>
+            <basic name="percentStackedValues" fetch="EAGER" optional="true" access="FIELD"/>
+            <basic name="cumulativeValues" fetch="EAGER" optional="true" access="FIELD"/>
             <basic name="legacy" fetch="EAGER" optional="true"/>
             <basic name="type" fetch="EAGER" optional="false"/>
             <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">

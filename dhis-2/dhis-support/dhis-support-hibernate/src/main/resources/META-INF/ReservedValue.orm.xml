@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
-    
-    
-    
     <named-native-query name="getRandomGeneratedValuesNotAvailableNamedQuery">
         <query>SELECT value
         FROM
@@ -17,10 +14,8 @@
         and rs.ownerUid = :ownerUid
         and rs.key = :key
         and LOWER(rs.value) in (:values)</query>
-        <cacheable>false</cacheable>
-        <read-only>false</read-only>
     </named-native-query>
-    <entity class="org.hisp.dhis.reservedvalue.ReservedValue" metadata-complete="true">
+    <entity class="org.hisp.dhis.reservedvalue.ReservedValue" metadata-complete="true" cacheable="true">
         <table name="reservedvalue"/>
         
         <attributes>

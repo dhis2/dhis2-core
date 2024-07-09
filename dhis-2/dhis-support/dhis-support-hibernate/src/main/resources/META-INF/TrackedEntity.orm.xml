@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
-    
-    
-    
     <named-native-query name="updateTrackedEntitiesLastUpdated">
         <query>update trackedentity set lastUpdated = :lastUpdated, lastupdatedbyuserinfo = CAST(:lastupdatedbyuserinfo as jsonb) WHERE uid in :trackedEntities</query>
-        <cacheable>false</cacheable>
-        <read-only>false</read-only>
     </named-native-query>
-    <entity class="org.hisp.dhis.trackedentity.TrackedEntity" metadata-complete="true">
+    <entity class="org.hisp.dhis.trackedentity.TrackedEntity" metadata-complete="true" cacheable="true">
         <table name="trackedentity"/>
         
         <attributes>

@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<entity-mappings version="2.1.0" xmlns="http://www.hibernate.org/xsd/orm/mapping">
-    
-    
-    
+<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
     <entity class="org.hisp.dhis.dataelement.DataElement" metadata-complete="true">
         <table name="dataelement"/>
-        
         <attributes>
             <id name="id">
                 <column name="dataelementid"/>
