@@ -92,7 +92,10 @@ public class SetMandatoryFieldValidator
                     Function.identity()));
 
     return ValidationUtils.validateMandatoryDataValue(
-            programStage, event, Lists.newArrayList(mandatoryDataElementsByActionRule.keySet()))
+            bundle,
+            event,
+            programStage,
+            Lists.newArrayList(mandatoryDataElementsByActionRule.keySet()))
         .stream()
         .map(
             e ->
