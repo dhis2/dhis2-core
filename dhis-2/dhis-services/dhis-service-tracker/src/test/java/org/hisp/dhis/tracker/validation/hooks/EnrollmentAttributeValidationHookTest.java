@@ -46,6 +46,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
@@ -144,7 +145,105 @@ class EnrollmentAttributeValidationHookTest {
   }
 
   @Test
-  void shouldFailValidationWhenValueIsNullAndAttributeIsMandatory() {
+  void
+      shouldPassValidationWhenCreatingEnrollmentAndAttributeIsMandatoryAndValueIsNotPresentInPayloadButPresentInTE() {
+    // given 1 attribute has null value
+    Attribute attribute =
+        Attribute.builder()
+            .attribute(MetadataIdentifier.ofUid(trackedAttribute))
+            .valueType(ValueType.TEXT)
+            .value("value")
+            .build();
+
+    // when both tracked attributes are mandatory
+    when(program.getProgramAttributes())
+        .thenReturn(
+            Arrays.asList(
+                new ProgramTrackedEntityAttribute(program, trackedEntityAttribute, false, true),
+                new ProgramTrackedEntityAttribute(program, trackedEntityAttribute1, false, true)));
+
+    when(enrollment.getAttributes()).thenReturn(Collections.singletonList(attribute));
+    when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntityInstance);
+    when(trackedEntityInstance.getTrackedEntityAttributeValues())
+        .thenReturn(
+            new HashSet<>(
+                Arrays.asList(
+                    new TrackedEntityAttributeValue(trackedEntityAttribute, trackedEntityInstance),
+                    new TrackedEntityAttributeValue(
+                        trackedEntityAttribute1, trackedEntityInstance))));
+    bundle.setStrategy(enrollment, TrackerImportStrategy.CREATE);
+
+    hookToTest.validateEnrollment(reporter, bundle, enrollment);
+
+    assertThat(reporter.getErrors(), hasSize(0));
+  }
+
+  @Test
+  void shouldPassValidationWhenUpdatingEnrollmentAndValueIsNotPresentAndAttributeIsMandatory() {
+    // given 1 attribute has null value
+    Attribute attribute =
+        Attribute.builder()
+            .attribute(MetadataIdentifier.ofUid(trackedAttribute))
+            .valueType(ValueType.TEXT)
+            .value("value")
+            .build();
+
+    // when both tracked attributes are mandatory
+    when(program.getProgramAttributes())
+        .thenReturn(
+            Arrays.asList(
+                new ProgramTrackedEntityAttribute(program, trackedEntityAttribute, false, true),
+                new ProgramTrackedEntityAttribute(program, trackedEntityAttribute1, false, true)));
+
+    when(enrollment.getAttributes()).thenReturn(Collections.singletonList(attribute));
+    when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntityInstance);
+    when(trackedEntityInstance.getTrackedEntityAttributeValues())
+        .thenReturn(
+            new HashSet<>(
+                Collections.singletonList(
+                    new TrackedEntityAttributeValue(
+                        trackedEntityAttribute, trackedEntityInstance))));
+    bundle.setStrategy(enrollment, TrackerImportStrategy.UPDATE);
+
+    hookToTest.validateEnrollment(reporter, bundle, enrollment);
+
+    assertThat(reporter.getErrors(), hasSize(0));
+  }
+
+  @Test
+  void shouldFailValidationWhenCreatingEnrollmentAndValueIsNotPresentAndAttributeIsMandatory() {
+    // given 1 attribute has null value
+    Attribute attribute =
+        Attribute.builder()
+            .attribute(MetadataIdentifier.ofUid(trackedAttribute))
+            .valueType(ValueType.TEXT)
+            .value("value")
+            .build();
+
+    // when both tracked attributes are mandatory
+    when(program.getProgramAttributes())
+        .thenReturn(
+            Arrays.asList(
+                new ProgramTrackedEntityAttribute(program, trackedEntityAttribute, false, true),
+                new ProgramTrackedEntityAttribute(program, trackedEntityAttribute1, false, true)));
+
+    when(enrollment.getAttributes()).thenReturn(Collections.singletonList(attribute));
+    when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntityInstance);
+    when(trackedEntityInstance.getTrackedEntityAttributeValues())
+        .thenReturn(
+            new HashSet<>(
+                Collections.singletonList(
+                    new TrackedEntityAttributeValue(
+                        trackedEntityAttribute, trackedEntityInstance))));
+    bundle.setStrategy(enrollment, TrackerImportStrategy.CREATE);
+
+    hookToTest.validateEnrollment(reporter, bundle, enrollment);
+
+    hasTrackerError(reporter, TrackerErrorCode.E1018, TrackerType.ENROLLMENT, enrollment.getUid());
+  }
+
+  @Test
+  void shouldFailValidationWhenCreatingEnrollmentAndValueIsNullAndAttributeIsMandatory() {
     // given 1 attribute has null value
     Attribute attribute =
         Attribute.builder()
@@ -166,6 +265,7 @@ class EnrollmentAttributeValidationHookTest {
                 new ProgramTrackedEntityAttribute(program, trackedEntityAttribute1, false, true)));
 
     when(enrollment.getAttributes()).thenReturn(Arrays.asList(attribute, attribute1));
+    when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntityInstance);
     when(trackedEntityInstance.getTrackedEntityAttributeValues())
         .thenReturn(
             new HashSet<>(
@@ -173,7 +273,45 @@ class EnrollmentAttributeValidationHookTest {
                     new TrackedEntityAttributeValue(trackedEntityAttribute, trackedEntityInstance),
                     new TrackedEntityAttributeValue(
                         trackedEntityAttribute1, trackedEntityInstance))));
+    bundle.setStrategy(enrollment, TrackerImportStrategy.CREATE);
+
+    hookToTest.validateEnrollment(reporter, bundle, enrollment);
+
+    hasTrackerError(reporter, TrackerErrorCode.E1076, TrackerType.ENROLLMENT, enrollment.getUid());
+  }
+
+  @Test
+  void shouldFailValidationWhenUpdatingEnrollmentAndValueIsNullAndAttributeIsMandatory() {
+    // given 1 attribute has null value
+    Attribute attribute =
+        Attribute.builder()
+            .attribute(MetadataIdentifier.ofUid(trackedAttribute))
+            .valueType(ValueType.TEXT)
+            .value("value")
+            .build();
+    Attribute attribute1 =
+        Attribute.builder()
+            .attribute(MetadataIdentifier.ofUid(trackedAttribute1))
+            .valueType(ValueType.TEXT)
+            .build();
+
+    // when both tracked attributes are mandatory
+    when(program.getProgramAttributes())
+        .thenReturn(
+            Arrays.asList(
+                new ProgramTrackedEntityAttribute(program, trackedEntityAttribute, false, true),
+                new ProgramTrackedEntityAttribute(program, trackedEntityAttribute1, false, true)));
+
+    when(enrollment.getAttributes()).thenReturn(Arrays.asList(attribute, attribute1));
     when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntityInstance);
+    when(trackedEntityInstance.getTrackedEntityAttributeValues())
+        .thenReturn(
+            new HashSet<>(
+                Arrays.asList(
+                    new TrackedEntityAttributeValue(trackedEntityAttribute, trackedEntityInstance),
+                    new TrackedEntityAttributeValue(
+                        trackedEntityAttribute1, trackedEntityInstance))));
+    bundle.setStrategy(enrollment, TrackerImportStrategy.UPDATE);
 
     hookToTest.validateEnrollment(reporter, bundle, enrollment);
 
@@ -257,8 +395,9 @@ class EnrollmentAttributeValidationHookTest {
   }
 
   @Test
-  void shouldFailValidationWhenValueIsNullAndAttributeIsNotMandatoryAndAttributeNotExistsInTei() {
-    // given 1 attribute has null value and do not exists in Tei
+  void
+      shouldFailValidationWhenCreatingEnrollmentAndValueIsNullAndAttributeIsMandatoryAndAttributeNotExistsInTei() {
+    // given 1 attribute has null value and does not exists in Te
     Attribute attribute =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid(trackedAttribute))
@@ -279,19 +418,58 @@ class EnrollmentAttributeValidationHookTest {
                 new ProgramTrackedEntityAttribute(program, trackedEntityAttribute1, false, true)));
 
     when(enrollment.getAttributes()).thenReturn(Arrays.asList(attribute, attribute1));
+    when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntityInstance);
     when(trackedEntityInstance.getTrackedEntityAttributeValues())
         .thenReturn(
             new HashSet<>(
                 Collections.singletonList(
                     new TrackedEntityAttributeValue(
                         trackedEntityAttribute, trackedEntityInstance))));
-    when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntityInstance);
+    bundle.setStrategy(enrollment, TrackerImportStrategy.CREATE);
 
     hookToTest.validateEnrollment(reporter, bundle, enrollment);
 
     hasTrackerError(reporter, TrackerErrorCode.E1076, TrackerType.ENROLLMENT, enrollment.getUid());
     hasTrackerError(reporter, TrackerErrorCode.E1018, TrackerType.ENROLLMENT, enrollment.getUid());
     assertThat(reporter.getErrors(), hasSize(2));
+  }
+
+  @Test
+  void
+      shouldFailValidationWhenUpdatingEnrollmentAndValueIsNullAndAttributeIsMandatoryAndAttributeNotExistsInTei() {
+    // given 1 attribute has null value and does not exists in Te
+    Attribute attribute =
+        Attribute.builder()
+            .attribute(MetadataIdentifier.ofUid(trackedAttribute))
+            .valueType(ValueType.TEXT)
+            .value("value")
+            .build();
+    Attribute attribute1 =
+        Attribute.builder()
+            .attribute(MetadataIdentifier.ofUid(trackedAttribute1))
+            .valueType(ValueType.TEXT)
+            .build();
+
+    // when 2 tracked attributes are mandatory
+    when(program.getProgramAttributes())
+        .thenReturn(
+            Arrays.asList(
+                new ProgramTrackedEntityAttribute(program, trackedEntityAttribute, false, true),
+                new ProgramTrackedEntityAttribute(program, trackedEntityAttribute1, false, true)));
+
+    when(enrollment.getAttributes()).thenReturn(Arrays.asList(attribute, attribute1));
+    when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntityInstance);
+    when(trackedEntityInstance.getTrackedEntityAttributeValues())
+        .thenReturn(
+            new HashSet<>(
+                Collections.singletonList(
+                    new TrackedEntityAttributeValue(
+                        trackedEntityAttribute, trackedEntityInstance))));
+    bundle.setStrategy(enrollment, TrackerImportStrategy.UPDATE);
+
+    hookToTest.validateEnrollment(reporter, bundle, enrollment);
+
+    hasTrackerError(reporter, TrackerErrorCode.E1076, TrackerType.ENROLLMENT, enrollment.getUid());
   }
 
   @Test
