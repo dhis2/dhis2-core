@@ -29,6 +29,7 @@ package org.hisp.dhis.program;
 
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
@@ -40,7 +41,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class EventDeletionHandler extends IdObjectDeletionHandler<Event> {
-  private final EventService eventService;
+  private final IdentifiableObjectManager manager;
 
   @Override
   protected void registerHandler() {
@@ -59,7 +60,7 @@ public class EventDeletionHandler extends IdObjectDeletionHandler<Event> {
 
   private void deleteEnrollment(Enrollment enrollment) {
     for (Event event : enrollment.getEvents()) {
-      eventService.deleteEvent(event);
+      manager.delete(event);
     }
   }
 

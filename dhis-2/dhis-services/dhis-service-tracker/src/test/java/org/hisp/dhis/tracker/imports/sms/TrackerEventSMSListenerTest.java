@@ -46,6 +46,8 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -66,6 +68,7 @@ import org.hisp.dhis.smscompression.models.SmsDataValue;
 import org.hisp.dhis.smscompression.models.TrackerEventSmsSubmission;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -99,7 +102,6 @@ class TrackerEventSMSListenerTest extends CompressionSMSListenerTest {
 
   @Mock private CategoryService categoryService;
 
-  @Mock private org.hisp.dhis.program.EventService apiEventService;
   @Mock private EventService eventService;
 
   @Mock private IdentifiableObjectManager identifiableObjectManager;
@@ -112,11 +114,15 @@ class TrackerEventSMSListenerTest extends CompressionSMSListenerTest {
 
   private String message = "";
 
-  // Needed for this test
-
   @Mock private EnrollmentService enrollmentService;
 
   @Mock private ProgramStageService programStageService;
+
+  @Mock private TrackedEntityDataValueChangeLogService dataValueAuditService;
+
+  @Mock private FileResourceService fileResourceService;
+
+  @Mock private DhisConfigurationProvider config;
 
   TrackerEventSMSListener subject;
 
@@ -152,8 +158,10 @@ class TrackerEventSMSListenerTest extends CompressionSMSListenerTest {
             categoryService,
             dataElementService,
             identifiableObjectManager,
-            apiEventService,
             eventService,
+            dataValueAuditService,
+            fileResourceService,
+            config,
             programStageService,
             enrollmentService);
 
