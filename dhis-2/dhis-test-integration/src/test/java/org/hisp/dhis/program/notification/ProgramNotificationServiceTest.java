@@ -29,6 +29,8 @@ package org.hisp.dhis.program.notification;
 
 import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_DUE_DATE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
 import java.util.Calendar;
@@ -42,13 +44,13 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
@@ -84,6 +86,8 @@ class ProgramNotificationServiceTest extends TransactionalIntegrationTest {
   @Autowired private EnrollmentService enrollmentService;
 
   @Autowired private CategoryService categoryService;
+
+  @Autowired private EventStore eventStore;
 
   @Autowired
   @Qualifier("org.hisp.dhis.program.notification.ProgramNotificationStore")
@@ -318,6 +322,9 @@ class ProgramNotificationServiceTest extends TransactionalIntegrationTest {
       "Retrieving Events whose eventdatavalues contain search strings has expected results")
   void eventDataValuesSearchStringTest() {
     // given
+    OrganisationUnit organisationUnitA = createOrganisationUnit('A');
+    OrganisationUnit organisationUnitB = createOrganisationUnit('B');
+    manager.save(List.of(organisationUnitA, organisationUnitB));
     Event e1 = createEvent(stageA, enrollmentA, organisationUnitA);
     e1.setAttributeOptionCombo(coA);
     Event e2 = createEvent(stageB, enrollmentB, organisationUnitB);

@@ -27,22 +27,16 @@
  */
 package org.hisp.dhis.program.hibernate;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.vladmihalcea.hibernate.type.array.StringArrayType;
-import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import org.apache.commons.lang3.time.DateUtils;
-import org.hibernate.query.Query;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventStore;
 import org.hisp.dhis.security.acl.AclService;
