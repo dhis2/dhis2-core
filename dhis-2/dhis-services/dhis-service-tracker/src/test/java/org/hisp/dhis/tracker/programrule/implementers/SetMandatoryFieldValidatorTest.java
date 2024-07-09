@@ -211,11 +211,11 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest {
     when(preheat.getDataElement(DATA_ELEMENT_ID)).thenReturn(dataElementA);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(firstProgramStage)))
         .thenReturn(firstProgramStage);
-    bundle.setEvents(Lists.newArrayList(getEventWithMandatoryValueSet()));
-
+    Event event = getEventWithMandatoryValueSet();
+    bundle.setEvents(Lists.newArrayList(event));
+    bundle.setStrategy(event, TrackerImportStrategy.CREATE);
     List<ProgramRuleIssue> errors =
-        implementerToTest.validateEvent(
-            bundle, getRuleEventEffects(), getEventWithMandatoryValueSet());
+        implementerToTest.validateEvent(bundle, getRuleEventEffects(), event);
 
     assertTrue(errors.isEmpty());
   }
@@ -228,11 +228,12 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest {
     when(preheat.getDataElement(DATA_ELEMENT_ID)).thenReturn(dataElementA);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(firstProgramStage)))
         .thenReturn(firstProgramStage);
-    bundle.setEvents(Lists.newArrayList(getEventWithMandatoryValueSet(idSchemes)));
+    Event event = getEventWithMandatoryValueSet(idSchemes);
+    bundle.setEvents(Lists.newArrayList(event));
+    bundle.setStrategy(event, TrackerImportStrategy.CREATE);
 
     List<ProgramRuleIssue> errors =
-        implementerToTest.validateEvent(
-            bundle, getRuleEventEffects(), getEventWithMandatoryValueSet(idSchemes));
+        implementerToTest.validateEvent(bundle, getRuleEventEffects(), event);
 
     assertTrue(errors.isEmpty());
   }
@@ -243,17 +244,17 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest {
     when(preheat.getDataElement(DATA_ELEMENT_ID)).thenReturn(dataElementA);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(firstProgramStage)))
         .thenReturn(firstProgramStage);
-    bundle.setEvents(
-        Lists.newArrayList(getEventWithMandatoryValueSet(), getEventWithMandatoryValueNOTSet()));
+    Event event = getEventWithMandatoryValueSet();
+    Event event2 = getEventWithMandatoryValueNOTSet();
+    bundle.setEvents(Lists.newArrayList(event, event2));
+    bundle.setStrategy(event, TrackerImportStrategy.CREATE);
+    bundle.setStrategy(event2, TrackerImportStrategy.CREATE);
 
     List<ProgramRuleIssue> errors =
-        implementerToTest.validateEvent(
-            bundle, getRuleEventEffects(), getEventWithMandatoryValueSet());
+        implementerToTest.validateEvent(bundle, getRuleEventEffects(), event);
     assertTrue(errors.isEmpty());
 
-    errors =
-        implementerToTest.validateEvent(
-            bundle, getRuleEventEffects(), getEventWithMandatoryValueNOTSet());
+    errors = implementerToTest.validateEvent(bundle, getRuleEventEffects(), event2);
 
     assertFalse(errors.isEmpty());
     errors.forEach(
@@ -273,22 +274,18 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest {
         .thenReturn(firstProgramStage);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(secondProgramStage)))
         .thenReturn(secondProgramStage);
-    bundle.setEvents(
-        Lists.newArrayList(
-            getEventWithMandatoryValueSet(),
-            getEventWithMandatoryValueNOTSetInDifferentProgramStage()));
+    Event event = getEventWithMandatoryValueNOTSetInDifferentProgramStage();
+    Event event2 = getEventWithMandatoryValueSet();
+    bundle.setEvents(Lists.newArrayList(event2, event));
+    bundle.setStrategy(event, TrackerImportStrategy.CREATE);
+    bundle.setStrategy(event2, TrackerImportStrategy.CREATE);
 
     List<ProgramRuleIssue> errors =
-        implementerToTest.validateEvent(
-            bundle, getRuleEventEffects(), getEventWithMandatoryValueSet());
+        implementerToTest.validateEvent(bundle, getRuleEventEffects(), event2);
 
     assertTrue(errors.isEmpty());
 
-    errors =
-        implementerToTest.validateEvent(
-            bundle,
-            getRuleEventEffects(),
-            getEventWithMandatoryValueNOTSetInDifferentProgramStage());
+    errors = implementerToTest.validateEvent(bundle, getRuleEventEffects(), event);
 
     assertTrue(errors.isEmpty());
   }
