@@ -38,8 +38,5 @@ public enum AppType {
   RESOURCE,
 
   /** Dashboard widget, can be placed on the main system dashboard as 'widgets' (portlets). */
-  DASHBOARD_WIDGET,
-
-  /** Tracker dashboard widget, used for tracker capture dashboard. */
-  TRACKER_DASHBOARD_WIDGET
+  DASHBOARD_WIDGET
 }
