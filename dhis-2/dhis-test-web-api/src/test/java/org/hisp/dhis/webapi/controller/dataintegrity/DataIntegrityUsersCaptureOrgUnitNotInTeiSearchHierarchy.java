@@ -27,18 +27,17 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
+import static java.util.stream.Collectors.toUnmodifiableSet;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.Set;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
 import org.junit.jupiter.api.Test;
-
-import java.util.Set;
-
-import static java.util.stream.Collectors.toUnmodifiableSet;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Integrity check to identify users who have a data view organisation unit, but who cannot access
@@ -47,7 +46,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityUsersCaptureOrgUnitNotInTeiSearchHierarchy extends AbstractDataIntegrityIntegrationTest {
+class DataIntegrityUsersCaptureOrgUnitNotInTeiSearchHierarchy
+    extends AbstractDataIntegrityIntegrationTest {
 
   private static final String CHECK_NAME = "users_capture_ou_not_in_tei_search_ou";
 
