@@ -322,14 +322,14 @@ class ProgramNotificationServiceTest extends TransactionalIntegrationTest {
       "Retrieving Events whose eventdatavalues contain search strings has expected results")
   void eventDataValuesSearchStringTest() {
     // given
-    OrganisationUnit organisationUnitA = createOrganisationUnit('A');
-    OrganisationUnit organisationUnitB = createOrganisationUnit('B');
-    manager.save(List.of(organisationUnitA, organisationUnitB));
-    Event e1 = createEvent(stageA, enrollmentA, organisationUnitA);
+    OrganisationUnit orgUnit1 = createOrganisationUnit('1');
+    OrganisationUnit orgUnit2 = createOrganisationUnit('2');
+    manager.save(List.of(orgUnit1, orgUnit2));
+    Event e1 = createEvent(stageA, enrollmentA, orgUnit1);
     e1.setAttributeOptionCombo(coA);
-    Event e2 = createEvent(stageB, enrollmentB, organisationUnitB);
+    Event e2 = createEvent(stageB, enrollmentB, orgUnit2);
     e2.setAttributeOptionCombo(coA);
-    Event e3 = createEvent(stageC, enrollmentB, organisationUnitB);
+    Event e3 = createEvent(stageC, enrollmentB, orgUnit2);
     e3.setAttributeOptionCombo(coA);
     EventDataValue edv1 = new EventDataValue("dataEl1", "value1");
     EventDataValue edv11 = new EventDataValue("dataEl1", "value11");
