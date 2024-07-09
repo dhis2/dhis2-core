@@ -111,6 +111,20 @@
       "version": {
         "min": 41
       }
+    },
+    {
+      "name": "multiProgramStatusMultiDatesMultiDimensionsFilter",
+      "query": "/api/analytics/trackedEntities/query/Zy2SEgA61ys.json?dimension=ou:O6uvpzGd5pu,TfdH5KvFmMy:ILIKE:la,B6TnnFMgmCk,CklPZdOd6H1,qDkgAbB5Jlk.ou:USER_ORGUNIT,qDkgAbB5Jlk.hYyB7FUS5eR.fazCI2ygYkq:IN:PASSIVE,qDkgAbB5Jlk.hYyB7FUS5eR.SzVk2KvkSSd,qDkgAbB5Jlk.hYyB7FUS5eR.GyJHQUWZ9Rl,qDkgAbB5Jlk.C0aLZo75dgJ.lezQpdvvGjY:EQ:5:NE:NV&headers=ouname,TfdH5KvFmMy,B6TnnFMgmCk,created,lastupdated,createdbydisplayname,lastupdatedbydisplayname,CklPZdOd6H1,qDkgAbB5Jlk.programstatus,qDkgAbB5Jlk.enrollmentdate,qDkgAbB5Jlk.ouname,qDkgAbB5Jlk.hYyB7FUS5eR.fazCI2ygYkq,qDkgAbB5Jlk.hYyB7FUS5eR.SzVk2KvkSSd,qDkgAbB5Jlk.hYyB7FUS5eR.GyJHQUWZ9Rl,qDkgAbB5Jlk.C0aLZo75dgJ.lezQpdvvGjY&totalPages=false&rowContext=true&lastUpdated=LAST_5_YEARS&programStatus=qDkgAbB5Jlk.ACTIVE,qDkgAbB5Jlk.COMPLETED&enrollmentDate=qDkgAbB5Jlk.THIS_YEAR&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&relativePeriodDate=2024-07-01",
+      "version": {
+        "min": 41
+      }
+    },
+    {
+      "name": "orgUnitGroupsOrgUnitLevelMultiCreatedPeriodWithDimsFilterOffsets",
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?dimension=ou:USER_ORGUNIT,iESIqZ0R0R0,NDXw0cluzSw,lw1SqmMlnfh,OvY4VVhSDeJ,ZcBPrXKahq2:IEQ:9999,WSGAb5XwJ3Y.PFDfvmGpsR3.z8m3llJYuh9,WSGAb5XwJ3Y.edqlbukwRfQ[1].rHgrmXfa57b:IN:0;NV,WSGAb5XwJ3Y.edqlbukwRfQ[0].rHgrmXfa57b:IN:0;NV,WSGAb5XwJ3Y.PFDfvmGpsR3.V5PR8Kw8ZnC,WSGAb5XwJ3Y.edqlbukwRfQ.yTDoF5b1OhI:IN:notchecked;remaining,WSGAb5XwJ3Y.PFDfvmGpsR3.MH33VLmOOqm,WSGAb5XwJ3Y.bbKtnxRZKEP.B3bDhNpCcEM,WSGAb5XwJ3Y.ou:O6uvpzGd5pu;LEVEL-H1KlN4QIauv;OU_GROUP-CXw2yu5fodb;OU_GROUP-w1Atoz18PCL&headers=ouname,iESIqZ0R0R0,NDXw0cluzSw,lw1SqmMlnfh,OvY4VVhSDeJ,ZcBPrXKahq2,WSGAb5XwJ3Y.PFDfvmGpsR3.z8m3llJYuh9,WSGAb5XwJ3Y.edqlbukwRfQ[1].rHgrmXfa57b,WSGAb5XwJ3Y.edqlbukwRfQ[0].rHgrmXfa57b,WSGAb5XwJ3Y.PFDfvmGpsR3.V5PR8Kw8ZnC,WSGAb5XwJ3Y.edqlbukwRfQ.yTDoF5b1OhI,WSGAb5XwJ3Y.PFDfvmGpsR3.MH33VLmOOqm,WSGAb5XwJ3Y.bbKtnxRZKEP.B3bDhNpCcEM,createdbydisplayname,created,WSGAb5XwJ3Y.programstatus,WSGAb5XwJ3Y.ouname&totalPages=false&rowContext=true&created=MONTHS_THIS_YEAR,LAST_5_YEARS,THIS_YEAR,LAST_10_YEARS&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&relativePeriodDate=2022-07-01",
+      "version": {
+        "min": 41
+      }
     }
   ]
 }
