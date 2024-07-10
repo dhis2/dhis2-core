@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.webapi.openapi;
 
+import static java.util.stream.Collectors.toUnmodifiableSet;
+
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMap;
@@ -258,6 +261,13 @@ public interface OpenApiObject extends JsonObject {
 
     default List<ParameterObject> parameters(Api.Parameter.In in) {
       return parameters().stream().filter(p -> p.resolve().in() == in).toList();
+    }
+
+    default Set<String> parameterNames() {
+      return parameters().stream()
+          .map(ParameterObject::resolve)
+          .map(ParameterObject::name)
+          .collect(toUnmodifiableSet());
     }
   }
 

@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.openapi;
 
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toUnmodifiableSet;
+import static org.hisp.dhis.webapi.openapi.OpenApiMarkdown.markdownToHTML;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -113,15 +114,13 @@ public class OpenApiRenderer {
       text-transform: capitalize;
       font-weight: normal;
   }
-  details h4 { font-weight: normal; }
+  .op h4 { font-weight: normal; padding: 0 1em; }
   h5 {
       margin: 1em 0 0.5em 0;
       font-weight: normal;
   }
-  a[target="_blank"] {
-       float: right;
-       text-decoration: none;
-  }
+  a[target="_blank"] { float: right; text-decoration: none; }
+  a[href^="#"] { text-decoration: none; }
   a.permalink {
        float: right;
        visibility: hidden;
@@ -207,12 +206,17 @@ public class OpenApiRenderer {
   code.http.content { color: #aaa; display: inline-grid; grid-template-columns: 1fr 1fr; vertical-align: top; }
   code.http.content > span { font-size: 70%; font-weight: normal; padding-right: 1em; }
   code.http.content .on { color: black; }
-  code.http.method { width: 4rem; text-align: right; }
+  code.http.method { width: 4rem; text-align: right; color: dimgray; }
   code.http.status2xx { color: seagreen;  }
   code.http.status2xx:after { content: '⮠'; color: #666; font-weight: normal; padding-right: 0.5rem; }
+  code.md { background-color: #eee; }
   code.url { padding: 0.25em 0.5em; background-color: snow; }
-  code.url em, code.url.secondary { color: dimgray; font-style: normal; background: color-mix(in srgb, snow 70%, transparent); }
+  code.url.path { font-weight: bold; }
+  code.url em, code.url.secondary { color: lightslategrey; font-style: normal; font-weight: normal; background: color-mix(in srgb, snow 70%, transparent); }
   code.url small { color: gray; }
+  code.value { color: darkslateblue; }
+  code.type { color: dimgray; }
+
   .op:not([open]) code.url small > span { font-size: 2px; }
   .op:not([open]) code.url small:hover > span { font-size: inherit; }
   .dep code.url { background-color: var(--color-dep); color: #666; }
@@ -273,6 +277,7 @@ public class OpenApiRenderer {
       content: '⚠️';
       font-family: sans-serif; /* reset font */
       display: inline-block; /* reset text-decorations */
+      padding-right: 0.25rem;
   }
   .param.dep > code:hover:after {
     content: 'This parameter is deprecated';
@@ -289,7 +294,7 @@ public class OpenApiRenderer {
     padding: 0.25rem 0.5rem;
   }
   dl {
-    margin: 0.5em 0;
+    margin: 0.5em 1em 0.5em 3em;
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 3fr;
   }
@@ -302,9 +307,9 @@ public class OpenApiRenderer {
   dd p {
     margin: 0;
   }
-  dd.desc { margin-right: 2rem; font-size: 0.8rem; }
-  body[desc-] dd.desc:not(:hover) { font-size: 0.5rem; color: dimgray; }
-  body[desc-] dd.desc:not(:hover):first-line { font-size: 0.8rem; color: black; line-height: 1.8rem; }
+  dd.desc { margin-right: 2rem; }
+  body[desc-] dd.desc:not(:hover) { font-size: 0.1rem; }
+  body[desc-] dd.desc:not(:hover):first-line { font-size: 1rem; }
   """;
 
   @Language("js")
@@ -490,8 +495,12 @@ public class OpenApiRenderer {
             "class",
             op.operationMethod().toUpperCase() + " op " + (op.deprecated() ? "dep" : "")),
         () -> {
-          appendTag("summary", () -> renderOperationSummary(op));
-          appendTag("header", op.description());
+          String summary = op.summary();
+          appendTag(
+              "summary",
+              Map.of("title", summary == null ? "" : summary),
+              () -> renderOperationSummary(op));
+          appendTag("header", markdownToHTML(op.description(), op.parameterNames()));
           renderParameters(op);
         });
   }
@@ -544,29 +553,33 @@ public class OpenApiRenderer {
   private void renderParameters(OperationObject op) {
     JsonList<ParameterObject> params = op.parameters();
     if (params.isUndefined() || params.isEmpty()) return;
-    appendTag(
-        "details",
-        Map.of("open", ""),
-        () -> {
-          appendTag(
-              "summary",
-              Map.of("title", "Parameters"),
-              () -> appendTag("code", Map.of("class", "url"), "?…"));
-          renderParameters(op, Api.Parameter.In.PATH);
-          renderParameters(op, Api.Parameter.In.QUERY);
-          renderParameters(op, Api.Parameter.In.BODY);
-        });
+
+    renderParameters(op, Api.Parameter.In.PATH, "/.../");
+    renderParameters(op, Api.Parameter.In.QUERY, "?...");
+    renderParameters(op, Api.Parameter.In.BODY, "{...}");
   }
 
-  private void renderParameters(OperationObject op, Api.Parameter.In in) {
+  private void renderParameters(OperationObject op, Api.Parameter.In in, String text) {
     List<ParameterObject> params = op.parameters(in);
     if (params.isEmpty()) return;
-    appendTag("h4", "in " + in.name().toLowerCase());
     appendTag(
-        "dl", () -> params.stream().map(ParameterObject::resolve).forEach(this::renderParameter));
+        "h4",
+        () ->
+            appendTag(
+                "code",
+                Map.of(
+                    "class", "url secondary", "title", "Parameters in " + in.name().toLowerCase()),
+                text));
+    Set<String> parameterNames = op.parameterNames();
+    appendTag(
+        "dl",
+        () ->
+            params.stream()
+                .map(ParameterObject::resolve)
+                .forEach(p -> renderParameter(p, parameterNames)));
   }
 
-  private void renderParameter(ParameterObject p) {
+  private void renderParameter(ParameterObject p, Set<String> parameterNames) {
     String css = "param";
     if (p.deprecated()) css += " dep";
     if (p.required()) css += " required";
@@ -575,15 +588,22 @@ public class OpenApiRenderer {
         schema.isShared()
             ? () -> {
               appendTag("a", Map.of("href", "#" + schema.getSharedName()), schema.getSharedName());
-              appendPlain(" (" + schema.$type() + ")");
             }
             : () -> appendPlain(schema.$type());
     appendTag(
         "dt", Map.of("class", css), () -> appendTag("code", Map.of("class", "url"), p.name()));
-    appendTag("dd", () -> appendTag("code", type));
+    appendTag("dd", () -> appendTag("code", Map.of("class", "type"), type));
     JsonValue defaultValue = p.$default();
-    appendTag("dd", () -> appendTag("code", defaultValue.exists() ? defaultValue.toJson() : ""));
-    appendTag("dd", Map.of("class", "desc"), () -> appendTag("p", p.description()));
+    appendTag(
+        "dd",
+        () ->
+            appendTag(
+                "code",
+                Map.of("class", "value"),
+                defaultValue.exists() ? defaultValue.toJson() : ""));
+    String description = markdownToHTML(p.description(), parameterNames);
+    if (description == null || description.isEmpty()) description = " "; // force the dd tag
+    appendTag("dd", Map.of("class", "desc"), description);
   }
 
   private void appendTag(String name, String text) {
@@ -617,10 +637,12 @@ public class OpenApiRenderer {
     // attributes
   }
 
+  private static final Set<String> ATTR_NAMES_IGNORE_WHEN_EMPTY = Set.of("class", "title");
+
   private void appendAttr(String name, String value) {
     if (name == null || name.isEmpty()) return;
     boolean emptyValue = value == null || value.isEmpty();
-    if ("class".equals(name) && emptyValue)
+    if (emptyValue && ATTR_NAMES_IGNORE_WHEN_EMPTY.contains(name))
       return; // optimisation to prevent rendering `class` without a value
     out.append(' ').append(name);
     if (!emptyValue) out.append('=').append('"').append(value).append('"');
