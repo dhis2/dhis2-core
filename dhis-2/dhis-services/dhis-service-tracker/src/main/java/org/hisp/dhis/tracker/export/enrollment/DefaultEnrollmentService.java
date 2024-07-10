@@ -59,8 +59,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.tracker.export.enrollment.EnrollmentService")
-class DefaultEnrollmentService
-    implements org.hisp.dhis.tracker.export.enrollment.EnrollmentService {
+class DefaultEnrollmentService implements EnrollmentService {
   private final EnrollmentStore enrollmentStore;
 
   private final TrackerOwnershipManager trackerOwnershipAccessManager;
@@ -72,7 +71,24 @@ class DefaultEnrollmentService
   private final EnrollmentOperationParamsMapper paramsMapper;
 
   @Override
+  public Enrollment getEnrollment(String uid) throws ForbiddenException, NotFoundException {
+    return getEnrollment(uid, EnrollmentParams.FALSE, false);
+  }
+
+  @Override
+  public Enrollment getEnrollment(String uid, UserDetails currentUser)
+      throws ForbiddenException, NotFoundException {
+    return getEnrollment(uid, EnrollmentParams.FALSE, false, currentUser);
+  }
+
+  @Override
   public Enrollment getEnrollment(String uid, EnrollmentParams params, boolean includeDeleted)
+      throws NotFoundException, ForbiddenException {
+    return getEnrollment(uid, params, includeDeleted, CurrentUserUtil.getCurrentUserDetails());
+  }
+
+  private Enrollment getEnrollment(
+      String uid, EnrollmentParams params, boolean includeDeleted, UserDetails currentUser)
       throws NotFoundException, ForbiddenException {
     Enrollment enrollment = enrollmentStore.getByUid(uid);
 
@@ -80,7 +96,6 @@ class DefaultEnrollmentService
       throw new NotFoundException(Enrollment.class, uid);
     }
 
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     List<String> errors = trackerAccessManager.canRead(currentUser, enrollment, false);
 
     if (!errors.isEmpty()) {

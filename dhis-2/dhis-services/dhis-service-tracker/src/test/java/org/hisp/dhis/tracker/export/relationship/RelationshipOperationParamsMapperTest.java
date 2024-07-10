@@ -44,7 +44,6 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -52,6 +51,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -148,7 +148,6 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
   @Test
   void shouldMapEnrollmentWhenAEnrollmentIsPassed() throws NotFoundException, ForbiddenException {
     when(enrollmentService.getEnrollment(EN_UID)).thenReturn(enrollment);
-    when(accessManager.canRead(user, enrollment, false)).thenReturn(List.of());
     RelationshipOperationParams params =
         RelationshipOperationParams.builder().type(ENROLLMENT).identifier(EN_UID).build();
 
@@ -156,25 +155,6 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
 
     assertInstanceOf(Enrollment.class, queryParams.getEntity());
     assertEquals(EN_UID, queryParams.getEntity().getUid());
-  }
-
-  @Test
-  void shouldThrowWhenEnrollmentIsNotFound() {
-    when(enrollmentService.getEnrollment(EN_UID)).thenReturn(null);
-    RelationshipOperationParams params =
-        RelationshipOperationParams.builder().type(ENROLLMENT).identifier(EN_UID).build();
-
-    assertThrows(NotFoundException.class, () -> mapper.map(params));
-  }
-
-  @Test
-  void shouldThrowWhenUserHasNoAccessToEnrollment() {
-    when(enrollmentService.getEnrollment(EN_UID)).thenReturn(enrollment);
-    when(accessManager.canRead(user, enrollment, false)).thenReturn(List.of("error"));
-    RelationshipOperationParams params =
-        RelationshipOperationParams.builder().type(ENROLLMENT).identifier(EN_UID).build();
-
-    assertThrows(ForbiddenException.class, () -> mapper.map(params));
   }
 
   @Test
