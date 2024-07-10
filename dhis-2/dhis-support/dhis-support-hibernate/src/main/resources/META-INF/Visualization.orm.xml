@@ -151,37 +151,24 @@
                 <collection-table name="visualization_orgunitlevels"/>
             </element-collection>
             <embedded name="reportingParams"/>
-            <embedded name="legendDefinitions"/>
+            <embedded name="legendDefinitions">
+            </embedded>
         </attributes>
     </entity>
-    <embeddable class="reportingParams_1" metadata-complete="true">
+    <embeddable class="org.hisp.dhis.visualization.ReportingParams" metadata-complete="true">
         <attributes>
-            <basic name="reportingPeriod" fetch="EAGER" optional="true">
+            <basic access="FIELD" name="reportingPeriod" fetch="EAGER" optional="true">
                 <column name="paramreportingperiod" unique="false"/>
             </basic>
-            <basic name="organisationUnit" fetch="EAGER" optional="true">
+            <basic access="FIELD" name="organisationUnit" fetch="EAGER" optional="true">
                 <column name="paramorganisationunit" unique="false"/>
             </basic>
-            <basic name="parentOrganisationUnit" fetch="EAGER" optional="true">
+            <basic access="FIELD" name="parentOrganisationUnit" fetch="EAGER" optional="true">
                 <column name="paramparentorganisationunit" unique="false"/>
             </basic>
-            <basic name="grandParentOrganisationUnit" fetch="EAGER" optional="true">
+            <basic access="FIELD" name="grandParentOrganisationUnit" fetch="EAGER" optional="true">
                 <column name="paramgrandparentorganisationunit" unique="false"/>
             </basic>
-        </attributes>
-    </embeddable>
-    <embeddable class="org.hisp.dhis.visualization.LegendDefinitions" metadata-complete="true">
-        <attributes>
-            <basic name="legendDisplayStyle" fetch="EAGER" optional="true"/>
-            <basic name="legendDisplayStrategy" fetch="EAGER" optional="true"/>
-            <basic name="showKey" fetch="EAGER" optional="true">
-                <column name="legendshowkey" unique="false"/>
-            </basic>
-            <many-to-one name="legendSet" target-entity="org.hisp.dhis.legend.LegendSet" fetch="LAZY" optional="true">
-                <join-column name="legendsetid" unique="false" nullable="true" insertable="true" updatable="true"/>
-                <foreign-key name="fk_visualization_legendsetid"/>
-                <cascade/>
-            </many-to-one>
         </attributes>
     </embeddable>
 </entity-mappings>

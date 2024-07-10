@@ -182,18 +182,4 @@
             <embedded name="legendDefinitions"/>
         </attributes>
     </entity>
-    <embeddable class="org.hisp.dhis.visualization.LegendDefinitions" metadata-complete="true">
-        <attributes>
-            <basic name="legendDisplayStyle" fetch="EAGER" optional="true"/>
-            <basic name="legendDisplayStrategy" fetch="EAGER" optional="true"/>
-            <basic name="showKey" fetch="EAGER" optional="true">
-                <column name="legendshowkey" unique="false"/>
-            </basic>
-            <many-to-one name="legendSet" target-entity="org.hisp.dhis.legend.LegendSet" fetch="LAZY" optional="true">
-                <join-column name="legendsetid" unique="false" nullable="true" insertable="true" updatable="true"/>
-                <foreign-key name="fk_evisualization_legendsetid"/>
-                <cascade/>
-            </many-to-one>
-        </attributes>
-    </embeddable>
 </entity-mappings>

@@ -46,10 +46,14 @@
                 <foreign-key name="fk_report_userid"/>
                 <cascade/>
             </many-to-one>
-            <embedded name="reportParams"/>
+            <embedded name="reportParams">
+                <attribute-override name="">
+                    <column/>
+                </attribute-override>
+            </embedded>
         </attributes>
     </entity>
-    <embeddable class="reportParams_1" metadata-complete="true">
+    <embeddable class="org.hisp.dhis.report.ReportingParams" metadata-complete="true">
         <attributes>
             <basic name="reportingPeriod" fetch="EAGER" optional="true">
                 <column name="paramreportingmonth" unique="false"/>
