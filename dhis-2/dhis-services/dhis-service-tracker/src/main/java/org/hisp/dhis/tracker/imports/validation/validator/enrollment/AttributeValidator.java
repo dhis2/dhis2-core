@@ -33,7 +33,7 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1018;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1019;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1075;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1076;
-import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.buildTeAttributes;
+import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.getTrackedEntityAttributes;
 import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateOptionSet;
 
 import com.google.common.collect.Maps;
@@ -151,7 +151,8 @@ class AttributeValidator
     // 1 - attributes from enrollment whose value is non-empty
 
     // 2 - attributes from existing TE (if any) from preheat
-    Set<MetadataIdentifier> teAttributes = buildTeAttributes(bundle, enrollment.getTrackedEntity());
+    Set<MetadataIdentifier> teAttributes =
+        getTrackedEntityAttributes(bundle, enrollment.getTrackedEntity());
 
     // merged ids of eligible attributes to validate
     Set<MetadataIdentifier> mergedAttributes =

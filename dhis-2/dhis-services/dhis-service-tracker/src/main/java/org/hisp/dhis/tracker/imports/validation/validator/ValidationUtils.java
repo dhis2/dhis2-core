@@ -160,7 +160,7 @@ public class ValidationUtils {
     }
   }
 
-  public static Set<MetadataIdentifier> buildTeAttributes(
+  public static Set<MetadataIdentifier> getTrackedEntityAttributes(
       TrackerBundle bundle, String trackedEntityUid) {
     TrackerIdSchemeParams idSchemes = bundle.getPreheat().getIdSchemes();
     return Optional.of(bundle)

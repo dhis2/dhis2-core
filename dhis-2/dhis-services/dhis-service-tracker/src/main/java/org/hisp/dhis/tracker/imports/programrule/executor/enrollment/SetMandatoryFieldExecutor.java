@@ -70,14 +70,13 @@ public class SetMandatoryFieldExecutor implements RuleActionExecutor<Enrollment>
             .collect(Collectors.toSet());
 
     Set<MetadataIdentifier> tetAttributes =
-        ValidationUtils.buildTeAttributes(bundle, enrollment.getTrackedEntity());
+        ValidationUtils.getTrackedEntityAttributes(bundle, enrollment.getTrackedEntity());
 
-    Optional<MetadataIdentifier> mandatoryAttribute =
+    boolean missesMandatoryAttribute =
         Stream.concat(programAttributes.stream(), tetAttributes.stream())
-            .filter(a -> a.isEqualTo(ruleAttribute))
-            .findAny();
+            .noneMatch(a -> a.isEqualTo(ruleAttribute));
 
-    if (mandatoryAttribute.isEmpty()
+    if (missesMandatoryAttribute
         && bundle.getStrategy(enrollment) == TrackerImportStrategy.CREATE) {
       return Optional.of(
           error(

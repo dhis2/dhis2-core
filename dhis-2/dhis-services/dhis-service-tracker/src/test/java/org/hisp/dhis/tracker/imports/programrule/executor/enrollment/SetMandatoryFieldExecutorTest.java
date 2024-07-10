@@ -153,41 +153,27 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
     when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
     when(preheat.getTrackedEntityAttribute(ATTRIBUTE_UID.getValue())).thenReturn(attribute);
     Enrollment enrollmentWithMandatoryAttributeNOTSet = getEnrollmentWithMandatoryAttributeNOTSet();
-    Enrollment enrollmentWithMandatoryAttributeSet = getEnrollmentWithMandatoryAttributeSet();
-    bundle.setEnrollments(
-        List.of(enrollmentWithMandatoryAttributeSet, enrollmentWithMandatoryAttributeNOTSet));
+    bundle.setEnrollments(List.of(enrollmentWithMandatoryAttributeNOTSet));
     bundle.setStrategy(enrollmentWithMandatoryAttributeNOTSet, TrackerImportStrategy.CREATE);
-    bundle.setStrategy(enrollmentWithMandatoryAttributeSet, TrackerImportStrategy.CREATE);
 
     Optional<ProgramRuleIssue> error =
-        executor.executeRuleAction(bundle, enrollmentWithMandatoryAttributeSet);
-
-    assertFalse(error.isPresent());
-
-    error = executor.executeRuleAction(bundle, enrollmentWithMandatoryAttributeNOTSet);
+        executor.executeRuleAction(bundle, enrollmentWithMandatoryAttributeNOTSet);
 
     assertTrue(error.isPresent());
     assertEquals(error(RULE_UID, E1306, ATTRIBUTE_UID.getValue()), error.get());
   }
 
   @Test
-  void shouldReturnNoErrorWhenCreatingEnrollmentAndMandatoryFieldIsNotPresentButPresentInTE() {
+  void shouldReturnNoErrorWhenCreatingEnrollmentAndMandatoryAttributeIsPresentOnlyInTE() {
     when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
     when(preheat.getTrackedEntityAttribute(ATTRIBUTE_UID.getValue())).thenReturn(attribute);
     when(preheat.getTrackedEntity(TE_ID)).thenReturn(trackedEntity());
     Enrollment enrollmentWithMandatoryAttributeNOTSet = getEnrollmentWithMandatoryAttributeNOTSet();
-    Enrollment enrollmentWithMandatoryAttributeSet = getEnrollmentWithMandatoryAttributeSet();
-    bundle.setEnrollments(
-        List.of(enrollmentWithMandatoryAttributeSet, enrollmentWithMandatoryAttributeNOTSet));
+    bundle.setEnrollments(List.of(enrollmentWithMandatoryAttributeNOTSet));
     bundle.setStrategy(enrollmentWithMandatoryAttributeNOTSet, TrackerImportStrategy.CREATE);
-    bundle.setStrategy(enrollmentWithMandatoryAttributeSet, TrackerImportStrategy.CREATE);
 
     Optional<ProgramRuleIssue> error =
-        executor.executeRuleAction(bundle, enrollmentWithMandatoryAttributeSet);
-
-    assertFalse(error.isPresent());
-
-    error = executor.executeRuleAction(bundle, enrollmentWithMandatoryAttributeNOTSet);
+        executor.executeRuleAction(bundle, enrollmentWithMandatoryAttributeNOTSet);
 
     assertFalse(error.isPresent());
   }
@@ -197,18 +183,11 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
     when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
     when(preheat.getTrackedEntityAttribute(ATTRIBUTE_UID.getValue())).thenReturn(attribute);
     Enrollment enrollmentWithMandatoryAttributeNOTSet = getEnrollmentWithMandatoryAttributeNOTSet();
-    Enrollment enrollmentWithMandatoryAttributeSet = getEnrollmentWithMandatoryAttributeSet();
-    bundle.setEnrollments(
-        List.of(enrollmentWithMandatoryAttributeSet, enrollmentWithMandatoryAttributeNOTSet));
+    bundle.setEnrollments(List.of(enrollmentWithMandatoryAttributeNOTSet));
     bundle.setStrategy(enrollmentWithMandatoryAttributeNOTSet, TrackerImportStrategy.UPDATE);
-    bundle.setStrategy(enrollmentWithMandatoryAttributeSet, TrackerImportStrategy.UPDATE);
 
     Optional<ProgramRuleIssue> error =
-        executor.executeRuleAction(bundle, enrollmentWithMandatoryAttributeSet);
-
-    assertFalse(error.isPresent());
-
-    error = executor.executeRuleAction(bundle, enrollmentWithMandatoryAttributeNOTSet);
+        executor.executeRuleAction(bundle, enrollmentWithMandatoryAttributeNOTSet);
 
     assertFalse(error.isPresent());
   }

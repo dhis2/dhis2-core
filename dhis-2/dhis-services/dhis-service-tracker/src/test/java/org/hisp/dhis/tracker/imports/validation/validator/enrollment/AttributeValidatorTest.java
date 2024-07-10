@@ -143,9 +143,7 @@ class AttributeValidatorTest {
   }
 
   @Test
-  void
-      shouldPassValidationWhenCreatingEnrollmentAndAttributeIsMandatoryAndValueIsNotPresentInPayloadButPresentInTE() {
-    // given 1 attribute has null value
+  void shouldPassValidationWhenCreatingEnrollmentAndMandatoryAttributeIsPresentOnlyInTE() {
     Attribute attribute =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid(trackedAttribute))
@@ -153,7 +151,6 @@ class AttributeValidatorTest {
             .value("value")
             .build();
 
-    // when both tracked attributes are mandatory
     when(program.getProgramAttributes())
         .thenReturn(
             Arrays.asList(
@@ -177,7 +174,6 @@ class AttributeValidatorTest {
 
   @Test
   void shouldPassValidationWhenUpdatingEnrollmentAndValueIsNotPresentAndAttributeIsMandatory() {
-    // given 1 attribute has null value
     Attribute attribute =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid(trackedAttribute))
@@ -185,7 +181,6 @@ class AttributeValidatorTest {
             .value("value")
             .build();
 
-    // when both tracked attributes are mandatory
     when(program.getProgramAttributes())
         .thenReturn(
             Arrays.asList(
@@ -208,7 +203,6 @@ class AttributeValidatorTest {
 
   @Test
   void shouldFailValidationWhenCreatingEnrollmentAndValueIsNotPresentAndAttributeIsMandatory() {
-    // given 1 attribute has null value
     Attribute attribute =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid(trackedAttribute))
@@ -216,7 +210,6 @@ class AttributeValidatorTest {
             .value("value")
             .build();
 
-    // when both tracked attributes are mandatory
     when(program.getProgramAttributes())
         .thenReturn(
             Arrays.asList(
@@ -239,7 +232,6 @@ class AttributeValidatorTest {
 
   @Test
   void shouldFailValidationWhenCreatingEnrollmentAndValueIsNullAndAttributeIsMandatory() {
-    // given 1 attribute has null value
     Attribute attribute =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid(trackedAttribute))
@@ -252,7 +244,6 @@ class AttributeValidatorTest {
             .valueType(ValueType.TEXT)
             .build();
 
-    // when both tracked attributes are mandatory
     when(program.getProgramAttributes())
         .thenReturn(
             Arrays.asList(
@@ -276,7 +267,6 @@ class AttributeValidatorTest {
 
   @Test
   void shouldFailValidationWhenUpdatingEnrollmentAndValueIsNullAndAttributeIsMandatory() {
-    // given 1 attribute has null value
     Attribute attribute =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid(trackedAttribute))
@@ -289,7 +279,6 @@ class AttributeValidatorTest {
             .valueType(ValueType.TEXT)
             .build();
 
-    // when both tracked attributes are mandatory
     when(program.getProgramAttributes())
         .thenReturn(
             Arrays.asList(
@@ -313,7 +302,6 @@ class AttributeValidatorTest {
 
   @Test
   void shouldPassValidationWhenValueIsNullAndAttributeIsNotMandatory() {
-    // given 1 attribute has null value
     Attribute attribute =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid(trackedAttribute))
@@ -326,7 +314,6 @@ class AttributeValidatorTest {
             .valueType(ValueType.TEXT)
             .build();
 
-    // when only 1 tracked attributes is mandatory
     when(program.getProgramAttributes())
         .thenReturn(
             Arrays.asList(
@@ -349,7 +336,6 @@ class AttributeValidatorTest {
 
   @Test
   void shouldFailValidationWhenValueIsInvalidPercentage() {
-    // given 1 percentage attribute has invalid value
     Attribute attribute =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid(trackedAttribute))
@@ -386,7 +372,6 @@ class AttributeValidatorTest {
   @Test
   void
       shouldFailValidationWhenCreatingEnrollmentAndValueIsNullAndAttributeIsMandatoryAndAttributeNotExistsInTei() {
-    // given 1 attribute has null value and does not exists in Te
     Attribute attribute =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid(trackedAttribute))
@@ -399,7 +384,6 @@ class AttributeValidatorTest {
             .valueType(ValueType.TEXT)
             .build();
 
-    // when 2 tracked attributes are mandatory
     when(program.getProgramAttributes())
         .thenReturn(
             Arrays.asList(
@@ -425,7 +409,6 @@ class AttributeValidatorTest {
   @Test
   void
       shouldFailValidationWhenUpdatingEnrollmentAndValueIsNullAndAttributeIsMandatoryAndAttributeNotExistsInTei() {
-    // given 1 attribute has null value and does not exists in Te
     Attribute attribute =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid(trackedAttribute))
@@ -438,7 +421,6 @@ class AttributeValidatorTest {
             .valueType(ValueType.TEXT)
             .build();
 
-    // when 2 tracked attributes are mandatory
     when(program.getProgramAttributes())
         .thenReturn(
             Arrays.asList(
