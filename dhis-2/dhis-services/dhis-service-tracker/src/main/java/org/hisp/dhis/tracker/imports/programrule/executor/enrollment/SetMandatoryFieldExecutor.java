@@ -38,7 +38,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
@@ -76,8 +75,7 @@ public class SetMandatoryFieldExecutor implements RuleActionExecutor<Enrollment>
         Stream.concat(programAttributes.stream(), tetAttributes.stream())
             .noneMatch(a -> a.isEqualTo(ruleAttribute));
 
-    if (missesMandatoryAttribute
-        && bundle.getStrategy(enrollment) == TrackerImportStrategy.CREATE) {
+    if (missesMandatoryAttribute) {
       return Optional.of(
           error(
               ruleUid,

@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
@@ -52,6 +53,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
@@ -163,14 +165,26 @@ public class ValidationUtils {
   public static Set<MetadataIdentifier> getTrackedEntityAttributes(
       TrackerBundle bundle, String trackedEntityUid) {
     TrackerIdSchemeParams idSchemes = bundle.getPreheat().getIdSchemes();
-    return Optional.of(bundle)
-        .map(TrackerBundle::getPreheat)
-        .map(trackerPreheat -> trackerPreheat.getTrackedEntity(trackedEntityUid))
-        .map(TrackedEntity::getTrackedEntityAttributeValues)
-        .orElse(Collections.emptySet())
-        .stream()
-        .map(TrackedEntityAttributeValue::getAttribute)
-        .map(idSchemes::toMetadataIdentifier)
+    Set<MetadataIdentifier> savedTrackedEntityAttributes =
+        Optional.of(bundle)
+            .map(TrackerBundle::getPreheat)
+            .map(trackerPreheat -> trackerPreheat.getTrackedEntity(trackedEntityUid))
+            .map(TrackedEntity::getTrackedEntityAttributeValues)
+            .orElse(Collections.emptySet())
+            .stream()
+            .map(TrackedEntityAttributeValue::getAttribute)
+            .map(idSchemes::toMetadataIdentifier)
+            .collect(Collectors.toSet());
+    Set<MetadataIdentifier> payloadTrackedEntityAttributes =
+        bundle
+            .findTrackedEntityByUid(trackedEntityUid)
+            .map(org.hisp.dhis.tracker.imports.domain.TrackedEntity::getAttributes)
+            .orElse(List.of())
+            .stream()
+            .map(Attribute::getAttribute)
+            .collect(Collectors.toSet());
+    return Stream.concat(
+            savedTrackedEntityAttributes.stream(), payloadTrackedEntityAttributes.stream())
         .collect(Collectors.toSet());
   }
 
