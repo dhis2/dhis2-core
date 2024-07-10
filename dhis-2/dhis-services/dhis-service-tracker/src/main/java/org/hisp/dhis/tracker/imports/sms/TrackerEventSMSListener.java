@@ -64,8 +64,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class TrackerEventSMSListener extends EventSavingSMSListener {
   private final ProgramStageService programStageService;
 
-  private final org.hisp.dhis.program.EnrollmentService apiEnrollmentService;
-
   private final EnrollmentService enrollmentService;
 
   public TrackerEventSMSListener(
@@ -98,7 +96,6 @@ public class TrackerEventSMSListener extends EventSavingSMSListener {
         apiEventService,
         eventService);
     this.programStageService = programStageService;
-    this.apiEnrollmentService = apiEnrollmentService;
     this.enrollmentService = enrollmentService;
   }
 

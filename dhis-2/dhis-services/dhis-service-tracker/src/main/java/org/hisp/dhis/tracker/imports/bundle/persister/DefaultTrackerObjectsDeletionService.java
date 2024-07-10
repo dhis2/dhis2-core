@@ -39,7 +39,6 @@ import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.EnrollmentTrackerConverterService;
 import org.hisp.dhis.tracker.imports.converter.EventTrackerConverterService;
@@ -55,7 +54,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeletionService {
   private final org.hisp.dhis.program.EnrollmentService apiEnrollmentService;
-  private final EnrollmentService enrollmentService;
 
   private final TrackedEntityService teService;
 
@@ -79,7 +77,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
       Entity objectReport = new Entity(TrackerType.ENROLLMENT, uid);
 
-      Enrollment enrollment = enrollmentService.getEnrollment(uid);
+      Enrollment enrollment = manager.get(Enrollment.class, uid);
       enrollment.setLastUpdatedByUserInfo(bundle.getUserInfo());
 
       List<org.hisp.dhis.tracker.imports.domain.Event> events =

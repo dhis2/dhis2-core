@@ -66,7 +66,7 @@ class RelationshipOperationParamsMapper {
     IdentifiableObject entity =
         switch (params.getType()) {
           case TRACKED_ENTITY -> validateTrackedEntity(currentUser, params.getIdentifier());
-          case ENROLLMENT -> validateEnrollment(currentUser, params.getIdentifier());
+          case ENROLLMENT -> enrollmentService.getEnrollment(params.getIdentifier());
           case EVENT -> eventService.getEvent(UID.of(params.getIdentifier()));
           case RELATIONSHIP -> throw new IllegalArgumentException("Unsupported type");
         };
@@ -91,20 +91,5 @@ class RelationshipOperationParamsMapper {
     }
 
     return trackedEntity;
-  }
-
-  private Enrollment validateEnrollment(UserDetails user, String uid)
-      throws NotFoundException, ForbiddenException {
-    Enrollment enrollment = enrollmentService.getEnrollment(uid);
-    if (enrollment == null) {
-      throw new NotFoundException(Enrollment.class, uid);
-    }
-
-    List<String> errors = accessManager.canRead(user, enrollment, false);
-    if (!errors.isEmpty()) {
-      throw new ForbiddenException(Enrollment.class, uid);
-    }
-
-    return enrollment;
   }
 }
