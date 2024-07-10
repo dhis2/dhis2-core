@@ -47,6 +47,8 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -76,7 +78,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -109,7 +111,6 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
 
   @Mock private ProgramStageService programStageService;
 
-  @Mock private org.hisp.dhis.program.EventService apiEventService;
   @Mock private EventService eventService;
 
   // Needed for this test
@@ -123,6 +124,12 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
   @Mock private TrackedEntityAttributeValueService attributeValueService;
 
   @Mock private IdentifiableObjectManager identifiableObjectManager;
+
+  @Mock private TrackedEntityDataValueChangeLogService dataValueAuditService;
+
+  @Mock private FileResourceService fileResourceService;
+
+  @Mock private DhisConfigurationProvider config;
 
   EnrollmentSMSListener subject;
 
@@ -186,8 +193,10 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
             categoryService,
             dataElementService,
             programStageService,
-            apiEventService,
             eventService,
+            dataValueAuditService,
+            fileResourceService,
+            config,
             attributeValueService,
             trackedEntityService,
             apiEnrollmentService,

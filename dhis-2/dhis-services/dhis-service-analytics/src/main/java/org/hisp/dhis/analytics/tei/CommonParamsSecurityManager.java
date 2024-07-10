@@ -52,6 +52,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.common.params.CommonParams;
+import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType;
@@ -102,11 +103,12 @@ public class CommonParamsSecurityManager {
    * the user has access to the given org units, programs, programStages and all dimensionalObjects
    * in the query.
    *
-   * @param commonParams the {@link CommonParams} where to extract objects to check.
+   * @param commonParams the {@link CommonParsedParams} where to extract objects to check.
    * @param extraObjects the collection of additional objects that need to be checked.
    */
   void decideAccess(
-      @Nonnull CommonParams commonParams, @Nonnull Collection<IdentifiableObject> extraObjects) {
+      @Nonnull CommonParsedParams commonParams,
+      @Nonnull Collection<IdentifiableObject> extraObjects) {
     List<OrganisationUnit> queryOrgUnits =
         commonParams.getDimensionIdentifiers().stream()
             .filter(OrgUnitQueryBuilder::isOu)
@@ -171,10 +173,9 @@ public class CommonParamsSecurityManager {
    * Transforms the given {@link CommonParams}, checking that all OrgUnits specified in the query
    * are accessible to the current user, based on user's DataViewOrganisationUnits.
    *
-   * @param commonParams the {@link CommonParams}.
+   * @param commonParams the {@link CommonParsedParams}.
    */
-  void applyOrganisationUnitConstraint(@Nonnull CommonParams commonParams) {
-
+  void applyOrganisationUnitConstraint(@Nonnull CommonParsedParams commonParams) {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     // ---------------------------------------------------------------------
@@ -228,7 +229,7 @@ public class CommonParamsSecurityManager {
    *
    * @param commonParams the {@link CommonParams}.
    */
-  void applyDimensionConstraints(@Nonnull CommonParams commonParams) {
+  void applyDimensionConstraints(@Nonnull CommonParsedParams commonParams) {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     // ---------------------------------------------------------------------
@@ -301,7 +302,8 @@ public class CommonParamsSecurityManager {
    * @param dimensionUid the dimension uid.
    * @return true if the given dimensionUid in the {@link CommonParams} has a dimension or filter.
    */
-  private boolean hasDimensionOrFilterWithItems(CommonParams commonParams, String dimensionUid) {
+  private boolean hasDimensionOrFilterWithItems(
+      CommonParsedParams commonParams, String dimensionUid) {
     return commonParams.getDimensionIdentifiers().stream()
         .map(DimensionIdentifier::getDimension)
         .map(DimensionParam::getDimensionalObject)

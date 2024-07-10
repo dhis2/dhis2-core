@@ -48,12 +48,16 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.analytics.common.CommonRequestParams;
+import org.hisp.dhis.analytics.common.ContextParams;
 import org.hisp.dhis.analytics.common.params.CommonParams;
+import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
+import org.hisp.dhis.analytics.tei.TeiRequestParams;
 import org.hisp.dhis.analytics.tei.query.context.TeiStaticField;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.GridHeader;
@@ -76,12 +80,16 @@ public class TeiFields {
    * Retrieves all TEAs attributes from the given param encapsulating them into a stream of {@link
    * Field}.
    *
-   * @param teiQueryParams the {@link TeiQueryParams}.
+   * @param contextParams the {@link TeiQueryParams}.
    * @return a {@link Stream} of {@link Field}.
    */
-  public static Stream<Field> getDimensionFields(TeiQueryParams teiQueryParams) {
+  public static Stream<Field> getDimensionFields(
+      ContextParams<TeiRequestParams, TeiQueryParams> contextParams) {
+    TeiQueryParams teiQueryParams = contextParams.getTypedParsed();
+    CommonParsedParams parsedParams = contextParams.getCommonParsed();
+
     return Stream.concat(
-            teiQueryParams.getCommonParams().getPrograms().stream()
+            parsedParams.getPrograms().stream()
                 .map(Program::getProgramAttributes)
                 .flatMap(List::stream)
                 .map(ProgramTrackedEntityAttribute::getAttribute)
@@ -140,11 +148,14 @@ public class TeiFields {
    * <p>The static headers are also delivered on the top of the collection. The dynamic comes after
    * the static ones.
    *
-   * @param teiQueryParams the {@link TeiQueryParams}.
-   * @param fields the list of {@link Field}.
+   * @param contextParams the {@link ContextParams}.
+   * @param fields list of {@link Field}.
    * @return a {@link Set} of {@link GridHeader}.
    */
-  public static Set<GridHeader> getGridHeaders(TeiQueryParams teiQueryParams, List<Field> fields) {
+  public static Set<GridHeader> getGridHeaders(
+      ContextParams<TeiRequestParams, TeiQueryParams> contextParams, List<Field> fields) {
+    CommonParsedParams commonParsed = contextParams.getCommonParsed();
+
     Map<String, GridHeader> headersMap = new HashMap<>();
 
     // Adding static and dynamic headers.
@@ -173,14 +184,12 @@ public class TeiFields {
                 findDimensionParamForField(
                     field,
                     Stream.concat(
-                        teiQueryParams.getCommonParams().getDimensionIdentifiers().stream(),
-                        getEligibleParsedHeaders(teiQueryParams))))
+                        commonParsed.getDimensionIdentifiers().stream(),
+                        getEligibleParsedHeaders(commonParsed))))
         .filter(Objects::nonNull)
         .map(
             dimIdentifier ->
-                Pair.of(
-                    dimIdentifier,
-                    getHeaderForDimensionParam(dimIdentifier, teiQueryParams.getCommonParams())))
+                Pair.of(dimIdentifier, getHeaderForDimensionParam(dimIdentifier, contextParams)))
         .map(pair -> withStageOffsetIfNecessary(pair.getLeft(), pair.getRight()))
         .filter(Objects::nonNull)
         .forEach(g -> headersMap.put(g.getName(), g));
@@ -211,13 +220,12 @@ public class TeiFields {
    * Since TeiStaticFields are already added to the grid headers, we need to filter them out from
    * the list of parsed headers.
    *
-   * @param teiQueryParams the {@link TeiQueryParams}.
+   * @param commonParams the {@link CommonParsedParams}.
    * @return a {@link Stream} of {@link DimensionIdentifier}.
    */
   private static Stream<DimensionIdentifier<DimensionParam>> getEligibleParsedHeaders(
-      TeiQueryParams teiQueryParams) {
-    return teiQueryParams.getCommonParams().getParsedHeaders().stream()
-        .filter(TeiFields::isEligible);
+      CommonParsedParams commonParams) {
+    return commonParams.getParsedHeaders().stream().filter(TeiFields::isEligible);
   }
 
   /**
@@ -264,17 +272,18 @@ public class TeiFields {
    * the header.
    *
    * @param dimIdentifier the {@link DimensionIdentifier}.
-   * @param commonParams the {@link CommonParams}.
+   * @param contextParams the {@link ContextParams}.
    * @return the respective {@link GridHeader}.
    */
   private static GridHeader getHeaderForDimensionParam(
-      DimensionIdentifier<DimensionParam> dimIdentifier, CommonParams commonParams) {
+      DimensionIdentifier<DimensionParam> dimIdentifier,
+      ContextParams<TeiRequestParams, TeiQueryParams> contextParams) {
     DimensionParam dimensionParam = dimIdentifier.getDimension();
     QueryItem queryItem = dimensionParam.getQueryItem();
     DimensionalObject dimensionalObject = dimensionParam.getDimensionalObject();
 
     if (queryItem != null) {
-      return getCustomGridHeaderForQueryItem(queryItem, commonParams, dimIdentifier);
+      return getCustomGridHeaderForQueryItem(queryItem, contextParams, dimIdentifier);
     } else if (dimensionalObject != null) {
       return getCustomGridHeaderForDimensionalObject(
           dimIdentifier, d -> d.getDimensionalObject().getDimensionDisplayName());
@@ -333,26 +342,28 @@ public class TeiFields {
    * {@link GridHeader} for the respective {@link QueryItem}.
    *
    * @param queryItem the {@link QueryItem}.
-   * @param commonParams the {@link CommonParams}.
+   * @param contextParams the {@link ContextParams}.
    * @return the correct {@link GridHeader} version.
    */
   private static GridHeader getCustomGridHeaderForQueryItem(
       QueryItem queryItem,
-      CommonParams commonParams,
+      ContextParams<TeiRequestParams, TeiQueryParams> contextParams,
       DimensionIdentifier<DimensionParam> dimIdentifier) {
+    CommonRequestParams requestParams = contextParams.getCommonRaw();
+    CommonParsedParams commonParsed = contextParams.getCommonParsed();
     /*
      * If the request contains a query item of value type ORGANISATION_UNIT
      * and the item UID is linked to coordinates (coordinateField), then
      * create a header of ValueType COORDINATE.
      */
     if (queryItem.getValueType() == ORGANISATION_UNIT
-        && commonParams.getCoordinateFields().stream()
+        && commonParsed.getCoordinateFields().stream()
             .anyMatch(f -> f.equals(queryItem.getItem().getUid()))) {
       return new GridHeader(
           queryItem.getItem().getUid(),
           joinedWithPrefixesIfNeeded(
               dimIdentifier,
-              queryItem.getItem().getDisplayProperty(commonParams.getDisplayProperty()),
+              queryItem.getItem().getDisplayProperty(requestParams.getDisplayProperty()),
               true),
           COORDINATE,
           false,
@@ -360,7 +371,7 @@ public class TeiFields {
           queryItem.getOptionSet(),
           queryItem.getLegendSet());
     } else if (queryItem.hasNonDefaultRepeatableProgramStageOffset()) {
-      String column = queryItem.getItem().getDisplayProperty(commonParams.getDisplayProperty());
+      String column = queryItem.getItem().getDisplayProperty(requestParams.getDisplayProperty());
       RepeatableStageParams repeatableStageParams = queryItem.getRepeatableStageParams();
       String dimName = repeatableStageParams.getDimension();
       ValueType valueType =
@@ -378,7 +389,7 @@ public class TeiFields {
           repeatableStageParams);
     } else {
       String itemUid = dimIdentifier.toString();
-      String column = queryItem.getItem().getDisplayProperty(commonParams.getDisplayProperty());
+      String column = queryItem.getItem().getDisplayProperty(requestParams.getDisplayProperty());
 
       return new GridHeader(
           itemUid,

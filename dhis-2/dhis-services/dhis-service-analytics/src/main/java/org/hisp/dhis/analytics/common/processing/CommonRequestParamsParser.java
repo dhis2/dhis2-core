@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.common.processing;
 
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptySet;
+import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.analytics.EventOutputType.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.DATE_FILTERS;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.DIMENSIONS;
@@ -43,13 +44,13 @@ import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.feedback.ErrorCode.E7129;
 import static org.hisp.dhis.feedback.ErrorCode.E7250;
 import static org.hisp.dhis.feedback.ErrorCode.E7251;
+import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_LIMIT;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Streams;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -58,14 +59,15 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.DataQueryService;
-import org.hisp.dhis.analytics.common.CommonQueryRequest;
+import org.hisp.dhis.analytics.common.CommonRequestParams;
 import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
-import org.hisp.dhis.analytics.common.params.CommonParams;
+import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension;
@@ -84,100 +86,99 @@ import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Component;
 
-/**
- * Component responsible for mapping the input request parameters into the actual queryable objects.
- * This component requires a few different services so the queryable objects can be built as needed
- * for further usage at DB query time.
- */
+/** Parser class for the common objects. */
 @Component
 @RequiredArgsConstructor
-public class CommonQueryRequestMapper {
-  private final DataQueryService dataQueryService;
+public class CommonRequestParamsParser implements Parser<CommonRequestParams, CommonParsedParams> {
+  @Nonnull private final SystemSettingManager systemSettingManager;
 
-  private final EventDataQueryService eventDataQueryService;
+  @Nonnull private final DataQueryService dataQueryService;
 
-  private final ProgramService programService;
+  @Nonnull private final EventDataQueryService eventDataQueryService;
 
-  private final DimensionIdentifierConverter dimensionIdentifierConverter;
+  @Nonnull private final ProgramService programService;
+
+  @Nonnull private final DimensionIdentifierConverter dimensionIdentifierConverter;
 
   /**
-   * Maps the input request into the respective queryable objects.
+   * Based on the given query request object {@link CommonRequestParams}, this method will
+   * process/parse existing values in the request object, and populated all necessary attributes in
+   * the return object {@link CommonParsedParams}. It appends program attributes to the dimension
+   * list.
    *
-   * @param request the input {@link CommonQueryRequest}.
-   * @return the {@link CommonParams}.
+   * @param request the {@link CommonRequestParams} to process.
+   * @return the parsed {@link CommonParsedParams}.
    */
-  public CommonParams map(CommonQueryRequest request, CommonQueryRequest originalRequest) {
+  @Nonnull
+  @Override
+  public CommonParsedParams parse(@Nonnull CommonRequestParams request) {
     List<OrganisationUnit> userOrgUnits =
         dataQueryService.getUserOrgUnits(null, request.getUserOrgUnit());
     List<Program> programs = getPrograms(request);
 
-    // Adds all program attributes from all applicable programs as dimensions
+    // Adds all program attributes from all applicable programs as dimensions.
     request
-        .getDimension()
-        .addAll(
-            getProgramAttributes(programs)
-                .map(IdentifiableObject::getUid)
-                .collect(Collectors.toSet()));
+        .getInternal()
+        .setProgramAttributes(
+            getProgramAttributes(programs).map(IdentifiableObject::getUid).collect(toSet()));
 
-    return CommonParams.builder()
+    return CommonParsedParams.builder()
         .programs(programs)
-        .pagingParams(
-            AnalyticsPagingParams.builder()
-                .totalPages(request.isTotalPages())
-                .paging(request.isPaging())
-                .page(request.getPage())
-                .pageSize(request.getPageSize())
-                .unlimited(request.isIgnoreLimit())
-                .build())
-        .displayProperty(request.getDisplayProperty())
-        .dataIdScheme(request.getDataIdScheme())
-        .outputIdScheme(request.getOutputIdScheme())
-        .outputDataElementIdScheme(request.getOutputDataElementIdScheme())
-        .outputOrgUnitIdScheme(request.getOutputOrgUnitIdScheme())
-        .ouMode(request.getOuMode())
-        .value(request.getValue())
-        .hierarchyMeta(request.isHierarchyMeta())
-        .showHierarchy(request.isShowHierarchy())
-        .relativePeriodDate(request.getRelativePeriodDate())
-        .skipHeaders(request.isSkipHeaders())
-        .skipMeta(request.isSkipMeta())
-        .skipRounding(request.isSkipRounding())
-        .skipData(request.isSkipData())
-        .includeMetadataDetails(request.isIncludeMetadataDetails())
+        .pagingParams(computePagingParams(request))
         .orderParams(getSortingParams(request, programs, userOrgUnits))
-        .headers(getHeaders(request))
         .dimensionIdentifiers(retrieveDimensionParams(request, programs, userOrgUnits))
         .parsedHeaders(parseHeaders(request, programs, userOrgUnits))
-        .skipMeta(request.isSkipMeta())
-        .includeMetadataDetails(request.isIncludeMetadataDetails())
-        .hierarchyMeta(request.isHierarchyMeta())
-        .showHierarchy(request.isShowHierarchy())
         .userOrgUnit(userOrgUnits)
-        .coordinatesOnly(request.isCoordinatesOnly())
-        .geometryOnly(request.isGeometryOnly())
-        .originalRequest(originalRequest)
+        .build();
+  }
+
+  /**
+   * Apply paging parameters to the given {@link CommonRequestParams} object, taking into account
+   * the system setting for the maximum limit and the ignoreLimit flag.
+   *
+   * @param commonRequestParams the {@link CommonRequestParams} used to compute the paging.
+   * @return the computed {@link CommonRequestParams}.
+   */
+  private AnalyticsPagingParams computePagingParams(CommonRequestParams commonRequestParams) {
+    int maxLimit = systemSettingManager.getIntSetting(ANALYTICS_MAX_LIMIT);
+    boolean unlimited = maxLimit == 0;
+    boolean ignoreLimit = commonRequestParams.isIgnoreLimit();
+    boolean hasMaxLimit = !unlimited && !ignoreLimit;
+    int pageSize = commonRequestParams.getPageSize();
+
+    if (commonRequestParams.isPaging()) {
+      boolean pageSizeOverMaxLimit = commonRequestParams.getPageSize() > maxLimit;
+
+      if (hasMaxLimit && pageSizeOverMaxLimit) {
+        pageSize = maxLimit;
+      }
+    } else {
+      if (unlimited) {
+        ignoreLimit = true;
+      } else {
+        pageSize = maxLimit;
+      }
+    }
+
+    return AnalyticsPagingParams.builder()
+        .totalPages(commonRequestParams.isTotalPages())
+        .paging(commonRequestParams.isPaging())
+        .page(commonRequestParams.getPage())
+        .pageSize(pageSize)
+        .unlimited(ignoreLimit)
         .build();
   }
 
   private Set<DimensionIdentifier<DimensionParam>> parseHeaders(
-      CommonQueryRequest request, List<Program> programs, List<OrganisationUnit> userOrgUnits) {
+      CommonRequestParams request, List<Program> programs, List<OrganisationUnit> userOrgUnits) {
 
     return HEADERS.getUidsGetter().apply(request).stream()
         .map(header -> toDimIdentifiers(header, HEADERS, request, programs, userOrgUnits))
-        .collect(Collectors.toSet());
-  }
-
-  /**
-   * Returns the headers specified in the given request.
-   *
-   * @param request the {@link CommonQueryRequest}.
-   * @return the set of headers.
-   */
-  private Set<String> getHeaders(CommonQueryRequest request) {
-    return new LinkedHashSet<>(HEADERS.getUidsGetter().apply(request));
+        .collect(toSet());
   }
 
   /**
@@ -185,13 +186,13 @@ public class CommonQueryRequestMapper {
    * return a list of {@link AnalyticsSortingParams}, where index of each element is the index of
    * the sorting param in the request.
    *
-   * @param request the {@link CommonQueryRequest}.
+   * @param request the {@link CommonRequestParams}.
    * @param programs the list of {@link Program}.
    * @param userOrgUnits the list of {@link OrganisationUnit}.
    * @return the {@link List} of sorting {@link AnalyticsSortingParams}.
    */
   private List<AnalyticsSortingParams> getSortingParams(
-      CommonQueryRequest request, List<Program> programs, List<OrganisationUnit> userOrgUnits) {
+      CommonRequestParams request, List<Program> programs, List<OrganisationUnit> userOrgUnits) {
     return Streams.mapWithIndex(
             SORTING.getUidsGetter().apply(request).stream(),
             (sortRequest, index) ->
@@ -204,7 +205,7 @@ public class CommonQueryRequestMapper {
    *
    * @param index the index of the sorting param in the request.
    * @param sortParam the representation in the format. uid1.uid2.uid3OrAttribute:ASC.
-   * @param request the {@link CommonQueryRequest}.
+   * @param request the {@link CommonRequestParams}.
    * @param programs the list of {@link Program}.
    * @param userOrgUnits the list of {@link OrganisationUnit}.
    * @return the built {@link AnalyticsSortingParams}.
@@ -212,7 +213,7 @@ public class CommonQueryRequestMapper {
   private AnalyticsSortingParams toSortParam(
       long index,
       String sortParam,
-      CommonQueryRequest request,
+      CommonRequestParams request,
       List<Program> programs,
       List<OrganisationUnit> userOrgUnits) {
     String[] parts = sortParam.split(":");
@@ -225,13 +226,13 @@ public class CommonQueryRequestMapper {
 
   /**
    * Returns a {@link List} of {@link Program} objects based on the given {@link
-   * CommonQueryRequest}.
+   * CommonRequestParams}.
    *
-   * @param queryRequest the {@link CommonQueryRequest}.
+   * @param queryRequest the {@link CommonRequestParams}.
    * @return the {@link List} of {@link Program} found.
    * @throws IllegalQueryException if the program(s) cannot be found.
    */
-  private List<Program> getPrograms(CommonQueryRequest queryRequest) {
+  private List<Program> getPrograms(CommonRequestParams queryRequest) {
     List<Program> programs =
         ImmutableList.copyOf(programService.getPrograms(queryRequest.getProgram()));
     boolean programsCouldNotBeRetrieved = programs.size() != queryRequest.getProgram().size();
@@ -240,7 +241,7 @@ public class CommonQueryRequestMapper {
       List<String> foundProgramUids = programs.stream().map(Program::getUid).toList();
 
       List<String> missingProgramUids =
-          Optional.of(queryRequest).map(CommonQueryRequest::getProgram).orElse(emptySet()).stream()
+          Optional.of(queryRequest).map(CommonRequestParams::getProgram).orElse(emptySet()).stream()
               .filter(uidFromRequest -> !foundProgramUids.contains(uidFromRequest))
               .toList();
 
@@ -254,13 +255,13 @@ public class CommonQueryRequestMapper {
    * Returns a {@link List} of {@link DimensionIdentifier} built from given arguments, params and
    * filter.
    *
-   * @param queryRequest the {@link CommonQueryRequest}.
+   * @param queryRequest the {@link CommonRequestParams}.
    * @param programs the list of {@link Program}.
    * @param userOrgUnits the list of {@link OrganisationUnit}.
    * @return a {@link List} of {@link DimensionIdentifier}.
    */
   private List<DimensionIdentifier<DimensionParam>> retrieveDimensionParams(
-      CommonQueryRequest queryRequest,
+      CommonRequestParams queryRequest,
       List<Program> programs,
       List<OrganisationUnit> userOrgUnits) {
 
@@ -274,21 +275,21 @@ public class CommonQueryRequestMapper {
    * DimensionIdentifier} objects.
    *
    * @param dimensionParamType the {@link DimensionParamType}.
-   * @param queryRequest the {@link CommonQueryRequest}.
+   * @param queryRequest the {@link CommonRequestParams}.
    * @param programs the list of {@link Program}.
    * @param userOrgUnits the list of {@link OrganisationUnit}.
    * @return the {@link Stream} of {@link DimensionIdentifier}.
    */
   private Stream<DimensionIdentifier<DimensionParam>> streamByType(
       DimensionParamType dimensionParamType,
-      CommonQueryRequest queryRequest,
+      CommonRequestParams queryRequest,
       List<Program> programs,
       List<OrganisationUnit> userOrgUnits) {
     // A Collection of dimensions or filters coming from the request.
     Collection<String> dimensionString = dimensionParamType.getUidsGetter().apply(queryRequest);
 
     return dimensionString.stream()
-        .map(CommonQueryRequestMapper::splitOnOr)
+        .map(CommonRequestParamsParser::splitOnOr)
         .map(dim -> toDimIdentifiers(dim, dimensionParamType, queryRequest, programs, userOrgUnits))
         .flatMap(Collection::stream);
   }
@@ -299,7 +300,7 @@ public class CommonQueryRequestMapper {
    *
    * @param dimensions the {@link List} of dimensions.
    * @param dimensionParamType the {@link DimensionParamType}.
-   * @param queryRequest the {@link CommonQueryRequest}.
+   * @param queryRequest the {@link CommonRequestParams}.
    * @param programs the list of {@link Program}.
    * @param userOrgUnits the list of {@link OrganisationUnit}.
    * @return a {@link List} of {@link DimensionIdentifier}.
@@ -308,7 +309,7 @@ public class CommonQueryRequestMapper {
   private List<DimensionIdentifier<DimensionParam>> toDimIdentifiers(
       List<String> dimensions,
       DimensionParamType dimensionParamType,
-      CommonQueryRequest queryRequest,
+      CommonRequestParams queryRequest,
       List<Program> programs,
       List<OrganisationUnit> userOrgUnits) {
     return dimensions.stream()
@@ -352,7 +353,7 @@ public class CommonQueryRequestMapper {
    *
    * @param dimensionOrFilter the uid of a dimension or filter.
    * @param dimensionParamType the {@link DimensionParamType}.
-   * @param queryRequest the {@link CommonQueryRequest}.
+   * @param queryRequest the {@link CommonRequestParams}.
    * @param programs the list of {@link Program}.
    * @param userOrgUnits the list of {@link OrganisationUnit}.
    * @return the {@link DimensionIdentifier}.
@@ -361,7 +362,7 @@ public class CommonQueryRequestMapper {
   private DimensionIdentifier<DimensionParam> toDimIdentifiers(
       String dimensionOrFilter,
       DimensionParamType dimensionParamType,
-      CommonQueryRequest queryRequest,
+      CommonRequestParams queryRequest,
       List<Program> programs,
       List<OrganisationUnit> userOrgUnits) {
     return toDimIdentifiers(
@@ -447,14 +448,14 @@ public class CommonQueryRequestMapper {
     } else {
       // If we reach here, it should be a queryItem. In this case it can be either
       // a program indicator (with programUid prefix) or a Data Element
-      // (both program and program stage prefixes)
+      // (both program and program stage prefixes).
       queryItem =
           eventDataQueryService.getQueryItem(
               stringDimensionIdentifier.getDimension().getUid(),
               stringDimensionIdentifier.getProgram().getElement(),
               TRACKED_ENTITY_INSTANCE);
 
-      // TEA should only be specified without program prefix
+      // TEA should only be specified without program prefix.
       if (queryItem.getItem() instanceof TrackedEntityAttribute) {
         throw new IllegalQueryException(E7250, dimensionId);
       }
@@ -472,7 +473,7 @@ public class CommonQueryRequestMapper {
                 outputIdScheme,
                 parseDimensionItems(dimensionOrFilter)));
 
-    /* DHIS2-16732 missing support for ProgramIndicators*/
+    /* DHIS2-16732 missing support for ProgramIndicators */
     if (SqlQueryBuilders.isOfType(
         dimensionIdentifier, DimensionParamObjectType.PROGRAM_INDICATOR)) {
       throw new IllegalQueryException(E7251, stringDimensionIdentifier.toString());
@@ -491,15 +492,17 @@ public class CommonQueryRequestMapper {
    * @return the {@link List} of parsed dimension items.
    */
   private List<String> parseDimensionItems(String dimensionOrFilter) {
+    final byte dimensionUid = 1;
     if (Objects.isNull(dimensionOrFilter) || !dimensionOrFilter.contains(":")) {
       return Collections.emptyList();
     }
+
     return toPairs(
             stream(dimensionOrFilter.split(":"))
-                .skip(1) // Skip the dimensionId
+                .skip(dimensionUid)
                 .map(String::trim)
                 .filter(StringUtils::isNotBlank))
-        .map(CommonQueryRequestMapper::toItem)
+        .map(CommonRequestParamsParser::toItem)
         .toList();
   }
 

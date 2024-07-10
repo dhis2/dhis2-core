@@ -49,11 +49,15 @@ import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraph
 
 import com.google.common.collect.Sets;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.analytics.common.scheme.SchemeInfo;
+import org.hisp.dhis.analytics.common.scheme.SchemeInfo.Data;
+import org.hisp.dhis.analytics.common.scheme.SchemeInfo.Settings;
 import org.hisp.dhis.analytics.orgunit.OrgUnitHelper;
 import org.hisp.dhis.analytics.util.AnalyticsOrganisationUnitUtils;
 import org.hisp.dhis.common.DimensionalObject;
@@ -166,15 +170,39 @@ public class MetadataHandler {
   }
 
   /**
-   * Substitutes the meta data of the grid with the identifier scheme meta data property indicated
-   * in the query.
+   * Substitutes the metadata of the grid with the identifier scheme meta data property indicated in
+   * the query.
    *
    * @param params the {@link DataQueryParams}.
    * @param grid the {@link Grid}.
    */
   void applyIdScheme(DataQueryParams params, Grid grid) {
     if (!params.isSkipMeta() && params.hasCustomIdSchemeSet()) {
-      grid.substituteMetaData(schemeIdResponseMapper.getSchemeIdResponseMap(params));
+      SchemeInfo schemeInfo = new SchemeInfo(schemeSettings(params), schemeData(params));
+      grid.substituteMetaData(schemeIdResponseMapper.getSchemeIdResponseMap(schemeInfo));
     }
+  }
+
+  private Data schemeData(DataQueryParams params) {
+    return Data.builder()
+        .dataElements(params.getAllDataElements())
+        .dimensionalItemObjects(new LinkedHashSet<>(params.getAllDimensionItems()))
+        .dataElementOperands(params.getDataElementOperands())
+        .organizationUnits(params.getOrganisationUnits())
+        .program(params.getProgram())
+        .programStage(params.getProgramStage())
+        .indicators(params.getIndicators())
+        .programIndicators(params.getProgramIndicators())
+        .build();
+  }
+
+  private Settings schemeSettings(DataQueryParams params) {
+    return Settings.builder()
+        .outputDataElementIdScheme(params.getOutputDataElementIdScheme())
+        .outputDataItemIdScheme(params.getOutputDataItemIdScheme())
+        .outputIdScheme(params.getOutputIdScheme())
+        .outputOrgUnitIdScheme(params.getOutputOrgUnitIdScheme())
+        .outputFormat(params.getOutputFormat())
+        .build();
   }
 }

@@ -47,6 +47,8 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -65,6 +67,7 @@ import org.hisp.dhis.smscompression.models.SimpleEventSmsSubmission;
 import org.hisp.dhis.smscompression.models.SmsDataValue;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -95,8 +98,6 @@ class SimpleEventSMSListenerTest extends CompressionSMSListenerTest {
 
   @Mock private CategoryService categoryService;
 
-  @Mock private org.hisp.dhis.program.EventService apiEventService;
-
   @Mock private EventService eventService;
 
   @Mock private IdentifiableObjectManager identifiableObjectManager;
@@ -109,9 +110,13 @@ class SimpleEventSMSListenerTest extends CompressionSMSListenerTest {
 
   private String message = "";
 
-  // Needed for this test
-
   @Mock private EnrollmentService enrollmentService;
+
+  @Mock private TrackedEntityDataValueChangeLogService dataValueAuditService;
+
+  @Mock private FileResourceService fileResourceService;
+
+  @Mock private DhisConfigurationProvider config;
 
   private SimpleEventSMSListener subject;
 
@@ -144,8 +149,10 @@ class SimpleEventSMSListenerTest extends CompressionSMSListenerTest {
             organisationUnitService,
             categoryService,
             dataElementService,
-            apiEventService,
             eventService,
+            dataValueAuditService,
+            fileResourceService,
+            config,
             enrollmentService,
             identifiableObjectManager);
 
@@ -262,7 +269,7 @@ class SimpleEventSMSListenerTest extends CompressionSMSListenerTest {
     subm.setCoordinates(new GeoPoint(59.9399586f, 10.7195609f));
 
     ArrayList<SmsDataValue> values = new ArrayList<>();
-    values.add(new SmsDataValue(categoryOptionCombo.getUid(), dataElement.getUid(), "true"));
+    values.add(new SmsDataValue(categoryOptionCombo.getUid(), dataElement.getUid(), "10"));
     subm.setValues(values);
     subm.setSubmissionId(1);
 
