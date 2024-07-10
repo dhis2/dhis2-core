@@ -64,20 +64,21 @@ public class SetMandatoryFieldExecutor implements RuleActionExecutor<Enrollment>
     TrackedEntityAttribute ruleAttribute =
         bundle.getPreheat().getTrackedEntityAttribute(attributeUid.getValue());
 
-    Set<MetadataIdentifier> enrollmentAttributes =
+    Set<MetadataIdentifier> programAttributes =
         enrollment.getAttributes().stream()
             .map(Attribute::getAttribute)
             .collect(Collectors.toSet());
 
-    Set<MetadataIdentifier> teAttributes =
+    Set<MetadataIdentifier> tetAttributes =
         ValidationUtils.buildTeAttributes(bundle, enrollment.getTrackedEntity());
 
-    Optional<MetadataIdentifier> any =
-        Stream.concat(enrollmentAttributes.stream(), teAttributes.stream())
+    Optional<MetadataIdentifier> mandatoryAttribute =
+        Stream.concat(programAttributes.stream(), tetAttributes.stream())
             .filter(a -> a.isEqualTo(ruleAttribute))
             .findAny();
 
-    if (any.isEmpty() && bundle.getStrategy(enrollment) == TrackerImportStrategy.CREATE) {
+    if (mandatoryAttribute.isEmpty()
+        && bundle.getStrategy(enrollment) == TrackerImportStrategy.CREATE) {
       return Optional.of(
           error(
               ruleUid,
@@ -85,13 +86,12 @@ public class SetMandatoryFieldExecutor implements RuleActionExecutor<Enrollment>
               idSchemes.toMetadataIdentifier(ruleAttribute).getIdentifierOrAttributeValue()));
     }
 
-    Optional<Attribute> enrollmentAttribute =
+    Optional<Attribute> programAttribute =
         enrollment.getAttributes().stream()
             .filter(attribute -> attribute.getAttribute().isEqualTo(ruleAttribute))
             .findAny();
 
-    if (enrollmentAttribute.isPresent()
-        && StringUtils.isEmpty(enrollmentAttribute.get().getValue())) {
+    if (programAttribute.isPresent() && StringUtils.isEmpty(programAttribute.get().getValue())) {
       return Optional.of(
           error(
               ruleUid,
