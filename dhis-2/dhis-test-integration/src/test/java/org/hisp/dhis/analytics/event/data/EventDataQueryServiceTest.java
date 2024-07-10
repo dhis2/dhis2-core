@@ -198,10 +198,8 @@ class EventDataQueryServiceTest extends SingleSetupIntegrationTestBase {
     DimensionalObject pe = params.getDimension("pe");
     assertEquals(3, pe.getItems().size());
     assertTrue(streamOfPeriods(pe).anyMatch(Period::isDefault));
-    assertTrue(
-        streamOfPeriods(pe).map(Period::getDateField).anyMatch(s -> s.equals("LAST_UPDATED")));
-    assertTrue(
-        streamOfPeriods(pe).map(Period::getDateField).anyMatch(s -> s.equals("INCIDENT_DATE")));
+    assertTrue(streamOfPeriods(pe).map(Period::getDateField).anyMatch("LAST_UPDATED"::equals));
+    assertTrue(streamOfPeriods(pe).map(Period::getDateField).anyMatch("INCIDENT_DATE"::equals));
     assertTrue(
         streamOfPeriods(pe)
             .filter(period -> "INCIDENT_DATE".equals(period.getDateField()))
