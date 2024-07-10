@@ -55,10 +55,6 @@ import org.hisp.dhis.translation.Translatable;
  */
 @JacksonXmlRootElement(localName = "programRuleAction", namespace = DxfNamespaces.DXF_2_0)
 public class ProgramRuleAction extends BaseIdentifiableObject implements MetadataObject {
-
-  private static final List<ProgramRuleActionType> TYPES_WITH_TEMPLATE =
-      List.of(ProgramRuleActionType.SENDMESSAGE, ProgramRuleActionType.SCHEDULEMESSAGE);
-
   /** The programRule that the action belongs to */
   private ProgramRule programRule;
 
@@ -344,9 +340,7 @@ public class ProgramRuleAction extends BaseIdentifiableObject implements Metadat
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @Property(required = Property.Value.FALSE, owner = Property.Value.TRUE)
   public String getTemplateUid() {
-    return TYPES_WITH_TEMPLATE.contains(programRuleActionType)
-        ? notificationTemplate.getUid()
-        : null;
+    return notificationTemplate != null ? notificationTemplate.getUid() : null;
   }
 
   public void setTemplateUid(String templateUid) {
