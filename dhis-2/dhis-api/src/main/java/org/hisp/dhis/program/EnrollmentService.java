@@ -67,14 +67,6 @@ public interface EnrollmentService {
   void updateEnrollment(Enrollment enrollment);
 
   /**
-   * Returns the {@link Enrollment} with the given UID.
-   *
-   * @param uid the UID.
-   * @return the Enrollment with the given UID, or null if no match.
-   */
-  Enrollment getEnrollment(String uid);
-
-  /**
    * Returns a list of existing Enrollments from the provided UIDs
    *
    * @param uids Event UIDs to check

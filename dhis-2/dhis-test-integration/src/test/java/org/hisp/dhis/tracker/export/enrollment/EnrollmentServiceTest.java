@@ -58,7 +58,6 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -81,11 +80,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
-  @Autowired private org.hisp.dhis.tracker.export.enrollment.EnrollmentService enrollmentService;
+  @Autowired private EnrollmentService enrollmentService;
 
   @Autowired protected UserService _userService;
 
-  @Autowired private EnrollmentService apiEnrollmentService;
+  @Autowired private org.hisp.dhis.program.EnrollmentService apiEnrollmentService;
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -384,6 +383,21 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
                 enrollmentService.getEnrollment(
                     enrollmentA.getUid(), EnrollmentParams.FALSE, false));
     assertContains("access to tracked entity type", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailGettingEnrollmentWhenDoesNotExist() {
+    trackedEntityTypeA.getSharing().setOwner(admin);
+    trackedEntityTypeA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    manager.updateNoAcl(trackedEntityTypeA);
+
+    NotFoundException exception =
+        assertThrows(
+            NotFoundException.class,
+            () ->
+                enrollmentService.getEnrollment("non existent UID", EnrollmentParams.FALSE, false));
+    assertContains(
+        "Enrollment with id non existent UID could not be found.", exception.getMessage());
   }
 
   @Test
