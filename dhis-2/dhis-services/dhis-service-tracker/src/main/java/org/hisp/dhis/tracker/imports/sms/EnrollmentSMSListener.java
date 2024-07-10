@@ -71,6 +71,7 @@ import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogServi
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -193,7 +194,8 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
     boolean enrollmentExists = apiEnrollmentService.enrollmentExists(enrollmentid.getUid());
     if (enrollmentExists) {
       try {
-        enrollment = enrollmentService.getEnrollment(enrollmentid.getUid());
+        enrollment =
+            enrollmentService.getEnrollment(enrollmentid.getUid(), UserDetails.fromUser(user));
       } catch (ForbiddenException | NotFoundException e) {
         throw new SMSProcessingException(SmsResponse.INVALID_ENROLL.set(enrollmentid.getUid()));
       }

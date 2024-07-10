@@ -76,7 +76,19 @@ class DefaultEnrollmentService implements EnrollmentService {
   }
 
   @Override
+  public Enrollment getEnrollment(String uid, UserDetails currentUser)
+      throws ForbiddenException, NotFoundException {
+    return getEnrollment(uid, EnrollmentParams.FALSE, false, currentUser);
+  }
+
+  @Override
   public Enrollment getEnrollment(String uid, EnrollmentParams params, boolean includeDeleted)
+      throws NotFoundException, ForbiddenException {
+    return getEnrollment(uid, params, includeDeleted, CurrentUserUtil.getCurrentUserDetails());
+  }
+
+  private Enrollment getEnrollment(
+      String uid, EnrollmentParams params, boolean includeDeleted, UserDetails currentUser)
       throws NotFoundException, ForbiddenException {
     Enrollment enrollment = enrollmentStore.getByUid(uid);
 
@@ -84,7 +96,6 @@ class DefaultEnrollmentService implements EnrollmentService {
       throw new NotFoundException(Enrollment.class, uid);
     }
 
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     List<String> errors = trackerAccessManager.canRead(currentUser, enrollment, false);
 
     if (!errors.isEmpty()) {

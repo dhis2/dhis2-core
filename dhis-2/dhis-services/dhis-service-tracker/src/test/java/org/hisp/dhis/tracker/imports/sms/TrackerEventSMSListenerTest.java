@@ -73,6 +73,7 @@ import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogServi
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -180,7 +181,8 @@ class TrackerEventSMSListenerTest extends CompressionSMSListenerTest {
 
     when(organisationUnitService.getOrganisationUnit(anyString())).thenReturn(organisationUnit);
     when(programStageService.getProgramStage(anyString())).thenReturn(programStage);
-    when(enrollmentService.getEnrollment(anyString())).thenReturn(enrollment);
+    when(enrollmentService.getEnrollment(anyString(), any(UserDetails.class)))
+        .thenReturn(enrollment);
     when(dataElementService.getDataElement(anyString())).thenReturn(dataElement);
     when(categoryService.getCategoryOptionCombo(anyString())).thenReturn(categoryOptionCombo);
 

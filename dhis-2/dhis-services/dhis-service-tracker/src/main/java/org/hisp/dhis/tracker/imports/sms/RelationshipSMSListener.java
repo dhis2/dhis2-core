@@ -177,12 +177,12 @@ public class RelationshipSMSListener extends CompressionSMSListener {
       case PROGRAM_INSTANCE:
         Enrollment enrollment;
         try {
-          progInst = enrollmentService.getEnrollment(objId.getUid());
+          enrollment = enrollmentService.getEnrollment(objId.getUid(), UserDetails.fromUser(user));
         } catch (ForbiddenException | NotFoundException e) {
           throw new SMSProcessingException(SmsResponse.INVALID_ENROLL.set(objId));
         }
 
-        relItem.setEnrollment(progInst);
+        relItem.setEnrollment(enrollment);
         break;
 
       case PROGRAM_STAGE_INSTANCE:
