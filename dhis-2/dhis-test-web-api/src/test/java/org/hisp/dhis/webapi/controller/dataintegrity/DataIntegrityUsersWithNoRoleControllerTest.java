@@ -37,9 +37,8 @@ import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
 import org.junit.jupiter.api.Test;
 
 /**
- * Integrity check to identify users who have a data view organisation unit, but who cannot access
- * data which they have possibly entered at a higher level of the hierarchy. {@see
- * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/users/users_capture_ou_not_in_data_view_ou.yaml}
+ * Integrity check to identify users who have no user role associated with their user. {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/users/users_with_no_user_role.yaml}
  *
  * @author Jason P. Pickering
  */
