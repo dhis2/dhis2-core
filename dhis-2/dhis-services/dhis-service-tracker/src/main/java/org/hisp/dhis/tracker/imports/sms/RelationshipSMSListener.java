@@ -175,7 +175,7 @@ public class RelationshipSMSListener extends CompressionSMSListener {
         break;
 
       case PROGRAM_INSTANCE:
-        Enrollment progInst;
+        Enrollment enrollment;
         try {
           progInst = enrollmentService.getEnrollment(objId.getUid());
         } catch (ForbiddenException | NotFoundException e) {
