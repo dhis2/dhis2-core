@@ -111,7 +111,7 @@ details_id_type: users
 severity: SEVERE
 introduction: >
   Users who can enter data should be able to view their own data. This situation occurs when a user has 
-  a data capture organisation unit unit which is not within the data view organisation unit hierarchy.
+  a data capture organisation unit which is not within the data view organisation unit hierarchy.
   This can lead to a situation where a user can enter data, but cannot view the data that they have entered.
 recommendation: >
   Users should at least have access to view the data that they have entered. Using the results

@@ -48,7 +48,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
@@ -71,8 +70,6 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
   @Autowired protected UserService _userService;
 
   @Autowired private EnrollmentService enrollmentService;
-
-  @Autowired private EventService eventService;
 
   @Autowired private RelationshipService relationshipService;
 

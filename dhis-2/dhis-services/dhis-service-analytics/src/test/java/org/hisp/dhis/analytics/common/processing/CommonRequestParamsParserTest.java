@@ -37,69 +37,87 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.analytics.common.CommonQueryRequest;
+import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.analytics.common.CommonRequestParams;
+import org.hisp.dhis.analytics.common.params.CommonParsedParams;
+import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.junit.jupiter.api.Test;
 
-class CommonQueryRequestProcessorTest {
+class CommonRequestParamsParserTest {
   private SystemSettingManager systemSettingManager = mock(SystemSettingManager.class);
 
-  private final CommonQueryRequestProcessor commonQueryRequestProcessor =
-      new CommonQueryRequestProcessor(systemSettingManager);
+  private DataQueryService dataQueryService = mock(DataQueryService.class);
+
+  private EventDataQueryService eventDataQueryService = mock(EventDataQueryService.class);
+
+  private ProgramService programService = mock(ProgramService.class);
+
+  private DimensionIdentifierConverter dimensionIdentifierConverter =
+      mock(DimensionIdentifierConverter.class);
+
+  private final CommonRequestParamsParser commonRequestParamsParser =
+      new CommonRequestParamsParser(
+          systemSettingManager,
+          dataQueryService,
+          eventDataQueryService,
+          programService,
+          dimensionIdentifierConverter);
 
   @Test
   void testPaginationPagingTruePageSizeHigherThanMaxLimit() {
     when(systemSettingManager.getIntSetting(ANALYTICS_MAX_LIMIT)).thenReturn(1000);
-    CommonQueryRequest request = new CommonQueryRequest().withPaging(true).withPageSize(10000);
-    CommonQueryRequest processed = commonQueryRequestProcessor.process(request);
-    assertEquals(1000, processed.getPageSize());
-    assertTrue(processed.isPaging());
+    CommonRequestParams request = new CommonRequestParams().withPaging(true).withPageSize(10000);
+    CommonParsedParams parsed = commonRequestParamsParser.parse(request);
+    assertEquals(1000, parsed.getPagingParams().getPageSize());
+    assertTrue(parsed.getPagingParams().getPaging());
   }
 
   @Test
   void testPaginationPagingTruePageSizeLowerThanMaxLimit() {
     when(systemSettingManager.getIntSetting(ANALYTICS_MAX_LIMIT)).thenReturn(1000);
-    CommonQueryRequest request = new CommonQueryRequest().withPaging(true).withPageSize(100);
-    CommonQueryRequest processed = commonQueryRequestProcessor.process(request);
-    assertEquals(100, processed.getPageSize());
-    assertTrue(processed.isPaging());
+    CommonRequestParams request = new CommonRequestParams().withPaging(true).withPageSize(100);
+    CommonParsedParams parsed = commonRequestParamsParser.parse(request);
+    assertEquals(100, parsed.getPagingParams().getPageSize());
+    assertTrue(parsed.getPagingParams().getPaging());
   }
 
   @Test
   void testUnlimitedMaxLimit0() {
     when(systemSettingManager.getIntSetting(ANALYTICS_MAX_LIMIT)).thenReturn(0);
-    CommonQueryRequest request = new CommonQueryRequest().withPaging(false);
-    CommonQueryRequest processed = commonQueryRequestProcessor.process(request);
-    assertFalse(processed.isPaging());
+    CommonRequestParams request = new CommonRequestParams().withPaging(false);
+    CommonParsedParams parsed = commonRequestParamsParser.parse(request);
+    assertFalse(parsed.getPagingParams().isPaging());
   }
 
   @Test
   void testUnlimitedIgnoreLimit() {
     when(systemSettingManager.getIntSetting(ANALYTICS_MAX_LIMIT)).thenReturn(100);
-    CommonQueryRequest request = new CommonQueryRequest().withIgnoreLimit(true).withPaging(false);
-    CommonQueryRequest processed = commonQueryRequestProcessor.process(request);
-    assertFalse(processed.isPaging());
+    CommonRequestParams request = new CommonRequestParams().withIgnoreLimit(true).withPaging(false);
+    CommonParsedParams parsed = commonRequestParamsParser.parse(request);
+    assertFalse(parsed.getPagingParams().isPaging());
   }
 
   @Test
   void testPagingFalseAndPageSizeGreaterThanMaxLimit() {
     when(systemSettingManager.getIntSetting(ANALYTICS_MAX_LIMIT)).thenReturn(100);
-    CommonQueryRequest request = new CommonQueryRequest().withPageSize(150).withPaging(false);
-    CommonQueryRequest processed = commonQueryRequestProcessor.process(request);
-    assertFalse(processed.isPaging());
-    assertFalse(processed.isIgnoreLimit());
-    assertEquals(100, processed.getPageSize());
+    CommonRequestParams request = new CommonRequestParams().withPageSize(150).withPaging(false);
+    CommonParsedParams parsed = commonRequestParamsParser.parse(request);
+    assertFalse(parsed.getPagingParams().isPaging());
+    assertFalse(parsed.getPagingParams().isUnlimited());
+    assertEquals(100, parsed.getPagingParams().getPageSize());
   }
 
   @Test
   void testPagingFalseAndPageSizeLowerThanMaxLimit() {
     when(systemSettingManager.getIntSetting(ANALYTICS_MAX_LIMIT)).thenReturn(100);
-    CommonQueryRequest request = new CommonQueryRequest().withPageSize(50).withPaging(false);
-    CommonQueryRequest processed = commonQueryRequestProcessor.process(request);
-    assertFalse(processed.isPaging());
-    assertFalse(processed.isIgnoreLimit());
-    assertEquals(100, processed.getPageSize());
+    CommonRequestParams request = new CommonRequestParams().withPageSize(50).withPaging(false);
+    CommonParsedParams parsed = commonRequestParamsParser.parse(request);
+    assertFalse(parsed.getPagingParams().isPaging());
+    assertFalse(parsed.getPagingParams().isUnlimited());
+    assertEquals(100, parsed.getPagingParams().getPageSize());
   }
 
   @Test
@@ -107,11 +125,11 @@ class CommonQueryRequestProcessorTest {
     int unlimited = 0;
 
     when(systemSettingManager.getIntSetting(ANALYTICS_MAX_LIMIT)).thenReturn(unlimited);
-    CommonQueryRequest request = new CommonQueryRequest().withPageSize(50).withPaging(false);
-    CommonQueryRequest processed = commonQueryRequestProcessor.process(request);
-    assertFalse(processed.isPaging());
-    assertTrue(processed.isIgnoreLimit());
-    assertEquals(50, processed.getPageSize());
+    CommonRequestParams request = new CommonRequestParams().withPageSize(50).withPaging(false);
+    CommonParsedParams parsed = commonRequestParamsParser.parse(request);
+    assertFalse(parsed.getPagingParams().isPaging());
+    assertTrue(parsed.getPagingParams().isUnlimited());
+    assertEquals(50, parsed.getPagingParams().getPageSize());
   }
 
   @Test
@@ -119,19 +137,18 @@ class CommonQueryRequestProcessorTest {
     int unlimited = 0;
 
     when(systemSettingManager.getIntSetting(ANALYTICS_MAX_LIMIT)).thenReturn(unlimited);
-    CommonQueryRequest request = new CommonQueryRequest().withPageSize(50).withPaging(true);
-    CommonQueryRequest processed = commonQueryRequestProcessor.process(request);
-    assertTrue(processed.isPaging());
-    assertFalse(processed.isIgnoreLimit());
-    assertEquals(50, processed.getPageSize());
+    CommonRequestParams request = new CommonRequestParams().withPageSize(50).withPaging(true);
+    CommonParsedParams parsed = commonRequestParamsParser.parse(request);
+    assertTrue(parsed.getPagingParams().isPaging());
+    assertFalse(parsed.getPagingParams().isUnlimited());
+    assertEquals(50, parsed.getPagingParams().getPageSize());
   }
 
   @Test
   void testProgramStatusWrongFormat() {
-    CommonQueryRequest request = new CommonQueryRequest().withProgramStatus(Set.of("COMPLETED"));
+    CommonRequestParams request = new CommonRequestParams().withProgramStatus(Set.of("COMPLETED"));
     IllegalQueryException exception =
-        assertThrows(
-            IllegalQueryException.class, () -> commonQueryRequestProcessor.process(request));
+        assertThrows(IllegalQueryException.class, () -> commonRequestParamsParser.parse(request));
 
     assertEquals(
         "Parameters programStatus/enrollmentStatus must be of the form: [programUid].[ENROLLMENT_STATUS]",
@@ -140,10 +157,10 @@ class CommonQueryRequestProcessorTest {
 
   @Test
   void testEnrollmentStatusWrongFormat() {
-    CommonQueryRequest request = new CommonQueryRequest().withEnrollmentStatus(Set.of("COMPLETED"));
+    CommonRequestParams request =
+        new CommonRequestParams().withEnrollmentStatus(Set.of("COMPLETED"));
     IllegalQueryException exception =
-        assertThrows(
-            IllegalQueryException.class, () -> commonQueryRequestProcessor.process(request));
+        assertThrows(IllegalQueryException.class, () -> commonRequestParamsParser.parse(request));
 
     assertEquals(
         "Parameters programStatus/enrollmentStatus must be of the form: [programUid].[ENROLLMENT_STATUS]",
@@ -153,10 +170,9 @@ class CommonQueryRequestProcessorTest {
   @Test
   void testEventStatusWrongFormat() {
     for (String eventStatus : List.of("programUid.ACTIVE", "COMPLETED")) {
-      CommonQueryRequest request = new CommonQueryRequest().withEventStatus(Set.of(eventStatus));
+      CommonRequestParams request = new CommonRequestParams().withEventStatus(Set.of(eventStatus));
       IllegalQueryException exception =
-          assertThrows(
-              IllegalQueryException.class, () -> commonQueryRequestProcessor.process(request));
+          assertThrows(IllegalQueryException.class, () -> commonRequestParamsParser.parse(request));
       assertEquals(
           "Parameter eventStatus must be of the form: [programUid].[programStageUid].[EVENT_STATUS]",
           exception.getMessage());
@@ -165,11 +181,10 @@ class CommonQueryRequestProcessorTest {
 
   @Test
   void testProgramStatusWrongEnum() {
-    CommonQueryRequest request =
-        new CommonQueryRequest().withProgramStatus(Set.of("programUid.WRONG_PROGRAM_STATUS"));
+    CommonRequestParams request =
+        new CommonRequestParams().withProgramStatus(Set.of("programUid.WRONG_PROGRAM_STATUS"));
     IllegalQueryException exception =
-        assertThrows(
-            IllegalQueryException.class, () -> commonQueryRequestProcessor.process(request));
+        assertThrows(IllegalQueryException.class, () -> commonRequestParamsParser.parse(request));
 
     assertEquals(
         "Parameters programStatus/enrollmentStatus must be of the form: [programUid].[ENROLLMENT_STATUS]",
@@ -178,11 +193,10 @@ class CommonQueryRequestProcessorTest {
 
   @Test
   void testEnrollmentStatusStatusWrongEnum() {
-    CommonQueryRequest request =
-        new CommonQueryRequest().withEnrollmentStatus(Set.of("programUid.WRONG_PROGRAM_STATUS"));
+    CommonRequestParams request =
+        new CommonRequestParams().withEnrollmentStatus(Set.of("programUid.WRONG_PROGRAM_STATUS"));
     IllegalQueryException exception =
-        assertThrows(
-            IllegalQueryException.class, () -> commonQueryRequestProcessor.process(request));
+        assertThrows(IllegalQueryException.class, () -> commonRequestParamsParser.parse(request));
 
     assertEquals(
         "Parameters programStatus/enrollmentStatus must be of the form: [programUid].[ENROLLMENT_STATUS]",
@@ -191,12 +205,11 @@ class CommonQueryRequestProcessorTest {
 
   @Test
   void testEventStatusWrongEnum() {
-    CommonQueryRequest request =
-        new CommonQueryRequest()
+    CommonRequestParams request =
+        new CommonRequestParams()
             .withEventStatus(Set.of("programUid.programStageUid.WRONG_EVENT_STATUS"));
     IllegalQueryException exception =
-        assertThrows(
-            IllegalQueryException.class, () -> commonQueryRequestProcessor.process(request));
+        assertThrows(IllegalQueryException.class, () -> commonRequestParamsParser.parse(request));
 
     assertEquals(
         "Parameter eventStatus must be of the form: [programUid].[programStageUid].[EVENT_STATUS]",
@@ -205,33 +218,30 @@ class CommonQueryRequestProcessorTest {
 
   @Test
   void testProgramStatusOK() {
-    CommonQueryRequest request =
-        new CommonQueryRequest().withProgramStatus(Set.of("programUid.COMPLETED"));
-    CommonQueryRequest processed = commonQueryRequestProcessor.process(request);
+    CommonRequestParams request =
+        new CommonRequestParams().withProgramStatus(Set.of("programUid.COMPLETED"));
 
-    String parsedDimension = processed.getDimension().iterator().next();
+    String parsedDimension = request.getAllDimensions().iterator().next();
 
     assertEquals("programUid.ENROLLMENT_STATUS:COMPLETED", parsedDimension);
   }
 
   @Test
   void testEnrollmentStatusOK() {
-    CommonQueryRequest request =
-        new CommonQueryRequest().withEnrollmentStatus(Set.of("programUid.COMPLETED"));
-    CommonQueryRequest processed = commonQueryRequestProcessor.process(request);
+    CommonRequestParams request =
+        new CommonRequestParams().withEnrollmentStatus(Set.of("programUid.COMPLETED"));
 
-    String parsedDimension = processed.getDimension().iterator().next();
+    String parsedDimension = request.getAllDimensions().iterator().next();
 
     assertEquals("programUid.ENROLLMENT_STATUS:COMPLETED", parsedDimension);
   }
 
   @Test
   void testEventStatusOK() {
-    CommonQueryRequest request =
-        new CommonQueryRequest().withEventStatus((Set.of("programUid.programStageUid.COMPLETED")));
-    CommonQueryRequest processed = commonQueryRequestProcessor.process(request);
+    CommonRequestParams request =
+        new CommonRequestParams().withEventStatus((Set.of("programUid.programStageUid.COMPLETED")));
 
-    String parsedDimension = processed.getDimension().iterator().next();
+    String parsedDimension = request.getAllDimensions().iterator().next();
 
     assertEquals("programUid.programStageUid.EVENT_STATUS:COMPLETED", parsedDimension);
   }

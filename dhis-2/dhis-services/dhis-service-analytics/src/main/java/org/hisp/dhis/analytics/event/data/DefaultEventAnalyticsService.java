@@ -91,6 +91,7 @@ import org.hisp.dhis.analytics.EventAnalyticsDimensionalItem;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
 import org.hisp.dhis.analytics.common.ColumnHeader;
+import org.hisp.dhis.analytics.common.scheme.SchemeInfo;
 import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
@@ -594,7 +595,10 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
       }
     }
 
-    schemeIdResponseMapper.applyCustomIdScheme(params, grid);
+    if (!params.isSkipMeta()) {
+      SchemeInfo schemeInfo = new SchemeInfo(schemeSettings(params), schemeData(params));
+      schemeIdResponseMapper.applyCustomIdScheme(schemeInfo, grid);
+    }
 
     // ---------------------------------------------------------------------
     // Meta-ata

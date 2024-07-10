@@ -43,11 +43,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
-import org.hisp.dhis.analytics.common.params.CommonParams;
+import org.hisp.dhis.analytics.common.CommonRequestParams;
+import org.hisp.dhis.analytics.common.ContextParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
+import org.hisp.dhis.analytics.tei.TeiRequestParams;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlParameterManager;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -66,15 +68,14 @@ class OrganisationUnitConditionTest {
     List<String> ous = List.of("ou1", "ou2");
     DimensionIdentifier<DimensionParam> dimensionIdentifier =
         stubDimensionIdentifier(ous, null, null);
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setOuMode(OrganisationUnitSelectionMode.SELECTED);
+
+    ContextParams<TeiRequestParams, TeiQueryParams> contextParams =
+        ContextParams.<TeiRequestParams, TeiQueryParams>builder().commonRaw(requestParams).build();
 
     SqlParameterManager sqlParameterManager = new SqlParameterManager();
-    QueryContext queryContext =
-        QueryContext.of(
-            TeiQueryParams.builder()
-                .commonParams(
-                    CommonParams.builder().ouMode(OrganisationUnitSelectionMode.SELECTED).build())
-                .build(),
-            sqlParameterManager);
+    QueryContext queryContext = QueryContext.of(contextParams, sqlParameterManager);
 
     OrganisationUnitCondition organisationUnitCondition =
         OrganisationUnitCondition.of(dimensionIdentifier, queryContext);
@@ -108,14 +109,14 @@ class OrganisationUnitConditionTest {
               return organisationUnit;
             });
 
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setOuMode(OrganisationUnitSelectionMode.CHILDREN);
+
+    ContextParams<TeiRequestParams, TeiQueryParams> contextParams =
+        ContextParams.<TeiRequestParams, TeiQueryParams>builder().commonRaw(requestParams).build();
+
     SqlParameterManager sqlParameterManager = new SqlParameterManager();
-    QueryContext queryContext =
-        QueryContext.of(
-            TeiQueryParams.builder()
-                .commonParams(
-                    CommonParams.builder().ouMode(OrganisationUnitSelectionMode.CHILDREN).build())
-                .build(),
-            sqlParameterManager);
+    QueryContext queryContext = QueryContext.of(contextParams, sqlParameterManager);
 
     OrganisationUnitCondition organisationUnitCondition =
         OrganisationUnitCondition.of(dimensionIdentifier, queryContext);
@@ -134,7 +135,7 @@ class OrganisationUnitConditionTest {
   }
 
   @Test
-  void testDescendandOuModeProduceCorrectSql() {
+  void testDescendantOuModeProduceCorrectSql() {
     // Given
     List<String> ous = List.of("ou1", "ou2");
 
@@ -150,13 +151,14 @@ class OrganisationUnitConditionTest {
               return organisationUnit;
             });
 
+    // Descendant is the default ouMode.
+    CommonRequestParams requestParams = new CommonRequestParams();
+
+    ContextParams<TeiRequestParams, TeiQueryParams> contextParams =
+        ContextParams.<TeiRequestParams, TeiQueryParams>builder().commonRaw(requestParams).build();
+
     SqlParameterManager sqlParameterManager = new SqlParameterManager();
-    QueryContext queryContext =
-        QueryContext.of(
-            TeiQueryParams.builder()
-                // Descendant is default ouMode
-                .build(),
-            sqlParameterManager);
+    QueryContext queryContext = QueryContext.of(contextParams, sqlParameterManager);
 
     OrganisationUnitCondition organisationUnitCondition =
         OrganisationUnitCondition.of(dimensionIdentifier, queryContext);
@@ -175,14 +177,14 @@ class OrganisationUnitConditionTest {
     DimensionIdentifier<DimensionParam> dimensionIdentifier =
         stubDimensionIdentifier(ous, null, null);
 
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setOuMode(OrganisationUnitSelectionMode.SELECTED);
+
+    ContextParams<TeiRequestParams, TeiQueryParams> contextParams =
+        ContextParams.<TeiRequestParams, TeiQueryParams>builder().commonRaw(requestParams).build();
+
     SqlParameterManager sqlParameterManager = new SqlParameterManager();
-    QueryContext queryContext =
-        QueryContext.of(
-            TeiQueryParams.builder()
-                .commonParams(
-                    CommonParams.builder().ouMode(OrganisationUnitSelectionMode.SELECTED).build())
-                .build(),
-            sqlParameterManager);
+    QueryContext queryContext = QueryContext.of(contextParams, sqlParameterManager);
 
     OrganisationUnitCondition organisationUnitCondition =
         OrganisationUnitCondition.of(dimensionIdentifier, queryContext);
@@ -203,14 +205,14 @@ class OrganisationUnitConditionTest {
     DimensionIdentifier<DimensionParam> dimensionIdentifier =
         stubDimensionIdentifier(ous, null, null);
 
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setOuMode(OrganisationUnitSelectionMode.SELECTED);
+
+    ContextParams<TeiRequestParams, TeiQueryParams> contextParams =
+        ContextParams.<TeiRequestParams, TeiQueryParams>builder().commonRaw(requestParams).build();
+
     SqlParameterManager sqlParameterManager = new SqlParameterManager();
-    QueryContext queryContext =
-        QueryContext.of(
-            TeiQueryParams.builder()
-                .commonParams(
-                    CommonParams.builder().ouMode(OrganisationUnitSelectionMode.SELECTED).build())
-                .build(),
-            sqlParameterManager);
+    QueryContext queryContext = QueryContext.of(contextParams, sqlParameterManager);
 
     OrganisationUnitCondition organisationUnitCondition =
         OrganisationUnitCondition.of(dimensionIdentifier, queryContext);
@@ -231,15 +233,15 @@ class OrganisationUnitConditionTest {
     DimensionIdentifier<DimensionParam> dimensionIdentifier =
         stubDimensionIdentifier(ous, "Z8z5uu61HAb", "tO8L1aBitDm");
 
-    TeiQueryParams teiQueryParams =
-        TeiQueryParams.builder()
-            .commonParams(
-                CommonParams.builder().ouMode(OrganisationUnitSelectionMode.SELECTED).build())
-            .trackedEntityType(stubTrackedEntityType("T2d3uj69RAb"))
-            .build();
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setOuMode(OrganisationUnitSelectionMode.SELECTED);
+
+    ContextParams<TeiRequestParams, TeiQueryParams> contextParams =
+        ContextParams.<TeiRequestParams, TeiQueryParams>builder().commonRaw(requestParams).build();
 
     SqlParameterManager sqlParameterManager = new SqlParameterManager();
-    QueryContext queryContext = QueryContext.of(teiQueryParams, sqlParameterManager);
+
+    QueryContext queryContext = QueryContext.of(contextParams, sqlParameterManager);
     OrganisationUnitCondition organisationUnitCondition =
         OrganisationUnitCondition.of(dimensionIdentifier, queryContext);
 
@@ -259,15 +261,21 @@ class OrganisationUnitConditionTest {
     DimensionIdentifier<DimensionParam> dimensionIdentifier =
         stubDimensionIdentifier(ous, "Z8z5uu61HAb", "tO8L1aBitDm");
 
-    TeiQueryParams teiQueryParams =
-        TeiQueryParams.builder()
-            .commonParams(
-                CommonParams.builder().ouMode(OrganisationUnitSelectionMode.SELECTED).build())
-            .trackedEntityType(stubTrackedEntityType("T2d3uj69RAb"))
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setOuMode(OrganisationUnitSelectionMode.SELECTED);
+
+    ContextParams<TeiRequestParams, TeiQueryParams> contextParams =
+        ContextParams.<TeiRequestParams, TeiQueryParams>builder()
+            .commonRaw(requestParams)
+            .typedParsed(
+                TeiQueryParams.builder()
+                    .trackedEntityType(stubTrackedEntityType("T2d3uj69RAb"))
+                    .build())
             .build();
 
     SqlParameterManager sqlParameterManager = new SqlParameterManager();
-    QueryContext queryContext = QueryContext.of(teiQueryParams, sqlParameterManager);
+    QueryContext queryContext = QueryContext.of(contextParams, sqlParameterManager);
+
     OrganisationUnitCondition organisationUnitCondition =
         OrganisationUnitCondition.of(dimensionIdentifier, queryContext);
 
@@ -287,15 +295,20 @@ class OrganisationUnitConditionTest {
     DimensionIdentifier<DimensionParam> dimensionIdentifier =
         stubDimensionIdentifier(ous, "Z8z5uu61HAb", null);
 
-    TeiQueryParams teiQueryParams =
-        TeiQueryParams.builder()
-            .commonParams(
-                CommonParams.builder().ouMode(OrganisationUnitSelectionMode.SELECTED).build())
-            .trackedEntityType(stubTrackedEntityType("T2d3uj69RAb"))
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setOuMode(OrganisationUnitSelectionMode.SELECTED);
+
+    ContextParams<TeiRequestParams, TeiQueryParams> contextParams =
+        ContextParams.<TeiRequestParams, TeiQueryParams>builder()
+            .commonRaw(requestParams)
+            .typedParsed(
+                TeiQueryParams.builder()
+                    .trackedEntityType(stubTrackedEntityType("T2d3uj69RAb"))
+                    .build())
             .build();
 
     SqlParameterManager sqlParameterManager = new SqlParameterManager();
-    QueryContext queryContext = QueryContext.of(teiQueryParams, sqlParameterManager);
+    QueryContext queryContext = QueryContext.of(contextParams, sqlParameterManager);
 
     OrganisationUnitCondition organisationUnitCondition =
         OrganisationUnitCondition.of(dimensionIdentifier, queryContext);
@@ -316,16 +329,20 @@ class OrganisationUnitConditionTest {
     DimensionIdentifier<DimensionParam> dimensionIdentifier =
         stubDimensionIdentifier(ous, "Z8z5uu61HAb", null);
 
-    TeiQueryParams teiQueryParams =
-        TeiQueryParams.builder()
-            .commonParams(
-                CommonParams.builder().ouMode(OrganisationUnitSelectionMode.SELECTED).build())
-            .trackedEntityType(stubTrackedEntityType("T2d3uj69RAb"))
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setOuMode(OrganisationUnitSelectionMode.SELECTED);
+
+    ContextParams<TeiRequestParams, TeiQueryParams> contextParams =
+        ContextParams.<TeiRequestParams, TeiQueryParams>builder()
+            .commonRaw(requestParams)
+            .typedParsed(
+                TeiQueryParams.builder()
+                    .trackedEntityType(stubTrackedEntityType("T2d3uj69RAb"))
+                    .build())
             .build();
 
     SqlParameterManager sqlParameterManager = new SqlParameterManager();
-    QueryContext queryContext = QueryContext.of(teiQueryParams, sqlParameterManager);
-
+    QueryContext queryContext = QueryContext.of(contextParams, sqlParameterManager);
     OrganisationUnitCondition organisationUnitCondition =
         OrganisationUnitCondition.of(dimensionIdentifier, queryContext);
 

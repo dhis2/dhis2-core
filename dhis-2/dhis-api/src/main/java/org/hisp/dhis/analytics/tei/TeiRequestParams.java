@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,23 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common.processing;
+package org.hisp.dhis.analytics.tei;
 
-import javax.annotation.Nonnull;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.With;
 
-/**
- * Interface responsible for processing and/or transforming the internals of objects of the given
- * type.
- *
- * @param <T>
- */
-public interface Processor<T> {
-  /**
-   * Processes the given object based on the implementation logic/rules.
-   *
-   * @param object to be processed.
-   * @return the processed object T.
-   */
-  @Nonnull
-  T process(@Nonnull T object);
+/** Groups all request attributes specifically related to tracked entity types. */
+@Getter
+@Setter
+@With
+@AllArgsConstructor
+public class TeiRequestParams {
+  private String trackedEntityType;
 }
