@@ -36,6 +36,8 @@ import static org.mockito.Mockito.when;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.encryption.EncryptionStatus;
@@ -145,9 +147,7 @@ class EnrollmentAttributeValidationHookTest {
   }
 
   @Test
-  void
-      shouldPassValidationWhenCreatingEnrollmentAndAttributeIsMandatoryAndValueIsNotPresentInPayloadButPresentInTE() {
-    // given 1 attribute has null value
+  void shouldPassValidationWhenCreatingEnrollmentAndMandatoryAttributeIsPresentOnlyInTE() {
     Attribute attribute =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid(trackedAttribute))
@@ -155,7 +155,6 @@ class EnrollmentAttributeValidationHookTest {
             .value("value")
             .build();
 
-    // when both tracked attributes are mandatory
     when(program.getProgramAttributes())
         .thenReturn(
             Arrays.asList(
@@ -179,8 +178,8 @@ class EnrollmentAttributeValidationHookTest {
   }
 
   @Test
-  void shouldPassValidationWhenUpdatingEnrollmentAndValueIsNotPresentAndAttributeIsMandatory() {
-    // given 1 attribute has null value
+  void
+      shouldReturnErrorWhenUpdatingEnrollmentAndMandatoryFieldIsNotPresentInEnrollmentOrInTrackedEntityOrInDB() {
     Attribute attribute =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid(trackedAttribute))
@@ -188,7 +187,71 @@ class EnrollmentAttributeValidationHookTest {
             .value("value")
             .build();
 
-    // when both tracked attributes are mandatory
+    when(program.getProgramAttributes())
+        .thenReturn(
+            Arrays.asList(
+                new ProgramTrackedEntityAttribute(program, trackedEntityAttribute, false, true),
+                new ProgramTrackedEntityAttribute(program, trackedEntityAttribute1, false, true)));
+
+    when(enrollment.getAttributes()).thenReturn(Collections.singletonList(attribute));
+    when(trackedEntityInstance.getTrackedEntityAttributeValues()).thenReturn(Set.of());
+    when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntityInstance);
+    bundle.setStrategy(enrollment, TrackerImportStrategy.UPDATE);
+
+    hookToTest.validateEnrollment(reporter, bundle, enrollment);
+
+    hasTrackerError(reporter, TrackerErrorCode.E1018, TrackerType.ENROLLMENT, enrollment.getUid());
+  }
+
+  @Test
+  void
+      shouldReturnNoErrorWhenUpdatingEnrollmentAndMandatoryFieldIsNotPresentInEnrollmentButPresentInTrackedEntity() {
+    Attribute attribute =
+        Attribute.builder()
+            .attribute(MetadataIdentifier.ofUid(trackedAttribute))
+            .valueType(ValueType.TEXT)
+            .value("value")
+            .build();
+
+    Attribute attribute1 =
+        Attribute.builder()
+            .attribute(MetadataIdentifier.ofUid(trackedAttribute1))
+            .valueType(ValueType.TEXT)
+            .value("value")
+            .build();
+
+    when(program.getProgramAttributes())
+        .thenReturn(
+            Arrays.asList(
+                new ProgramTrackedEntityAttribute(program, trackedEntityAttribute, false, true),
+                new ProgramTrackedEntityAttribute(program, trackedEntityAttribute1, false, true)));
+
+    when(enrollment.getAttributes()).thenReturn(Collections.singletonList(attribute));
+    when(trackedEntityInstance.getTrackedEntityAttributeValues()).thenReturn(Set.of());
+    when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntityInstance);
+    bundle.setStrategy(enrollment, TrackerImportStrategy.UPDATE);
+    bundle.setTrackedEntities(
+        List.of(
+            org.hisp.dhis.tracker.domain.TrackedEntity.builder()
+                .trackedEntity(enrollment.getTrackedEntity())
+                .attributes(List.of(attribute, attribute1))
+                .build()));
+
+    hookToTest.validateEnrollment(reporter, bundle, enrollment);
+
+    assertThat(reporter.getErrors(), hasSize(0));
+  }
+
+  @Test
+  void
+      shouldReturnNoErrorWhenUpdatingEnrollmentAndMandatoryFieldIsNotPresentInEnrollmentButPresentInDB() {
+    Attribute attribute =
+        Attribute.builder()
+            .attribute(MetadataIdentifier.ofUid(trackedAttribute))
+            .valueType(ValueType.TEXT)
+            .value("value")
+            .build();
+
     when(program.getProgramAttributes())
         .thenReturn(
             Arrays.asList(
@@ -200,9 +263,11 @@ class EnrollmentAttributeValidationHookTest {
     when(trackedEntityInstance.getTrackedEntityAttributeValues())
         .thenReturn(
             new HashSet<>(
-                Collections.singletonList(
+                List.of(
+                    new TrackedEntityAttributeValue(trackedEntityAttribute, trackedEntityInstance),
                     new TrackedEntityAttributeValue(
-                        trackedEntityAttribute, trackedEntityInstance))));
+                        trackedEntityAttribute1, trackedEntityInstance))));
+    when(preheat.getTrackedEntity(enrollment.getTrackedEntity())).thenReturn(trackedEntityInstance);
     bundle.setStrategy(enrollment, TrackerImportStrategy.UPDATE);
 
     hookToTest.validateEnrollment(reporter, bundle, enrollment);
@@ -212,7 +277,6 @@ class EnrollmentAttributeValidationHookTest {
 
   @Test
   void shouldFailValidationWhenCreatingEnrollmentAndValueIsNotPresentAndAttributeIsMandatory() {
-    // given 1 attribute has null value
     Attribute attribute =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid(trackedAttribute))
@@ -220,7 +284,6 @@ class EnrollmentAttributeValidationHookTest {
             .value("value")
             .build();
 
-    // when both tracked attributes are mandatory
     when(program.getProgramAttributes())
         .thenReturn(
             Arrays.asList(
@@ -244,7 +307,6 @@ class EnrollmentAttributeValidationHookTest {
 
   @Test
   void shouldFailValidationWhenCreatingEnrollmentAndValueIsNullAndAttributeIsMandatory() {
-    // given 1 attribute has null value
     Attribute attribute =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid(trackedAttribute))
@@ -257,7 +319,6 @@ class EnrollmentAttributeValidationHookTest {
             .valueType(ValueType.TEXT)
             .build();
 
-    // when both tracked attributes are mandatory
     when(program.getProgramAttributes())
         .thenReturn(
             Arrays.asList(
@@ -282,7 +343,6 @@ class EnrollmentAttributeValidationHookTest {
 
   @Test
   void shouldFailValidationWhenUpdatingEnrollmentAndValueIsNullAndAttributeIsMandatory() {
-    // given 1 attribute has null value
     Attribute attribute =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid(trackedAttribute))
@@ -295,7 +355,6 @@ class EnrollmentAttributeValidationHookTest {
             .valueType(ValueType.TEXT)
             .build();
 
-    // when both tracked attributes are mandatory
     when(program.getProgramAttributes())
         .thenReturn(
             Arrays.asList(
@@ -321,7 +380,6 @@ class EnrollmentAttributeValidationHookTest {
 
   @Test
   void shouldPassValidationWhenValueIsNullAndAttributeIsNotMandatory() {
-    // given 1 attribute has null value
     Attribute attribute =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid(trackedAttribute))
@@ -334,7 +392,6 @@ class EnrollmentAttributeValidationHookTest {
             .valueType(ValueType.TEXT)
             .build();
 
-    // when only 1 tracked attributes is mandatory
     when(program.getProgramAttributes())
         .thenReturn(
             Arrays.asList(
@@ -358,7 +415,6 @@ class EnrollmentAttributeValidationHookTest {
 
   @Test
   void shouldFailValidationWhenValueIsInvalidPercentage() {
-    // given 1 percentage attribute has invalid value
     Attribute attribute =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid(trackedAttribute))
@@ -397,7 +453,6 @@ class EnrollmentAttributeValidationHookTest {
   @Test
   void
       shouldFailValidationWhenCreatingEnrollmentAndValueIsNullAndAttributeIsMandatoryAndAttributeNotExistsInTei() {
-    // given 1 attribute has null value and does not exists in Te
     Attribute attribute =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid(trackedAttribute))
@@ -410,7 +465,6 @@ class EnrollmentAttributeValidationHookTest {
             .valueType(ValueType.TEXT)
             .build();
 
-    // when 2 tracked attributes are mandatory
     when(program.getProgramAttributes())
         .thenReturn(
             Arrays.asList(
@@ -437,7 +491,6 @@ class EnrollmentAttributeValidationHookTest {
   @Test
   void
       shouldFailValidationWhenUpdatingEnrollmentAndValueIsNullAndAttributeIsMandatoryAndAttributeNotExistsInTei() {
-    // given 1 attribute has null value and does not exists in Te
     Attribute attribute =
         Attribute.builder()
             .attribute(MetadataIdentifier.ofUid(trackedAttribute))
@@ -450,7 +503,6 @@ class EnrollmentAttributeValidationHookTest {
             .valueType(ValueType.TEXT)
             .build();
 
-    // when 2 tracked attributes are mandatory
     when(program.getProgramAttributes())
         .thenReturn(
             Arrays.asList(

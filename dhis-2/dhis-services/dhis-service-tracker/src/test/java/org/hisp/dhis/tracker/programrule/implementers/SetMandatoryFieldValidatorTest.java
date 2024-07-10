@@ -314,11 +314,11 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest {
     when(preheat.getTrackedEntityAttribute(ATTRIBUTE_ID)).thenReturn(attribute);
     bundle.setEnrollments(List.of(getEnrollmentWithMandatoryAttributeSet(idSchemes)));
 
-    List<ProgramRuleIssue> error =
+    List<ProgramRuleIssue> errors =
         implementerToTest.validateEnrollment(
             bundle, getRuleEnrollmentEffects(), getEnrollmentWithMandatoryAttributeSet(idSchemes));
 
-    assertTrue(error.isEmpty());
+    assertTrue(errors.isEmpty());
   }
 
   @Test
@@ -334,12 +334,6 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest {
 
     List<ProgramRuleIssue> errors =
         implementerToTest.validateEnrollment(
-            bundle, getRuleEnrollmentEffects(), enrollmentWithMandatoryAttributeSet);
-
-    assertTrue(errors.isEmpty());
-
-    errors =
-        implementerToTest.validateEnrollment(
             bundle, getRuleEnrollmentEffects(), enrollmentWithMandatoryAttributeNOTSet);
 
     assertFalse(errors.isEmpty());
@@ -348,7 +342,7 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest {
           assertEquals("RULE_ATTRIBUTE", e.getRuleUid());
           assertEquals(E1306, e.getIssueCode());
           assertEquals(IssueType.ERROR, e.getIssueType());
-          assertEquals(Lists.newArrayList(ATTRIBUTE_ID), e.getArgs());
+          assertEquals(Lists.newArrayList(attribute.getUid()), e.getArgs());
         });
   }
 
@@ -366,11 +360,22 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest {
 
     List<ProgramRuleIssue> errors =
         implementerToTest.validateEnrollment(
-            bundle, getRuleEnrollmentEffects(), enrollmentWithMandatoryAttributeSet);
+            bundle, getRuleEnrollmentEffects(), enrollmentWithMandatoryAttributeNOTSet);
 
     assertTrue(errors.isEmpty());
+  }
 
-    errors =
+  @Test
+  void
+      shouldReturnNoErrorWhenUpdatingEnrollmentAndMandatoryFieldIsNotPresentInEnrollmentButPresentInDB() {
+    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
+    when(preheat.getTrackedEntityAttribute(ATTRIBUTE_ID)).thenReturn(attribute);
+    when(preheat.getTrackedEntity(TEI_ID)).thenReturn(trackedEntity());
+    Enrollment enrollmentWithMandatoryAttributeNOTSet = getEnrollmentWithMandatoryAttributeNOTSet();
+    bundle.setEnrollments(List.of(enrollmentWithMandatoryAttributeNOTSet));
+    bundle.setStrategy(enrollmentWithMandatoryAttributeNOTSet, TrackerImportStrategy.UPDATE);
+
+    List<ProgramRuleIssue> errors =
         implementerToTest.validateEnrollment(
             bundle, getRuleEnrollmentEffects(), enrollmentWithMandatoryAttributeNOTSet);
 
@@ -378,7 +383,25 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldReturnNoErrorWhenUpdatingEnrollmentAndMandatoryFieldIsNotPresent() {
+  void
+      shouldReturnNoErrorWhenUpdatingEnrollmentAndMandatoryFieldIsNotPresentInEnrollmentButPresentInTrackedEntity() {
+    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
+    when(preheat.getTrackedEntityAttribute(ATTRIBUTE_ID)).thenReturn(attribute);
+    bundle.setTrackedEntities(List.of(payloadTrackedEntity()));
+    Enrollment enrollmentWithMandatoryAttributeNOTSet = getEnrollmentWithMandatoryAttributeNOTSet();
+    bundle.setEnrollments(List.of(enrollmentWithMandatoryAttributeNOTSet));
+    bundle.setStrategy(enrollmentWithMandatoryAttributeNOTSet, TrackerImportStrategy.UPDATE);
+
+    List<ProgramRuleIssue> errors =
+        implementerToTest.validateEnrollment(
+            bundle, getRuleEnrollmentEffects(), enrollmentWithMandatoryAttributeNOTSet);
+
+    assertTrue(errors.isEmpty());
+  }
+
+  @Test
+  void
+      shouldReturnErrorWhenUpdatingEnrollmentAndMandatoryFieldIsNotPresentInEnrollmentOrInTrackedEntityOrInDB() {
     when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
     when(preheat.getTrackedEntityAttribute(ATTRIBUTE_ID)).thenReturn(attribute);
     Enrollment enrollmentWithMandatoryAttributeNOTSet = getEnrollmentWithMandatoryAttributeNOTSet();
@@ -390,15 +413,16 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest {
 
     List<ProgramRuleIssue> errors =
         implementerToTest.validateEnrollment(
-            bundle, getRuleEnrollmentEffects(), enrollmentWithMandatoryAttributeSet);
-
-    assertTrue(errors.isEmpty());
-
-    errors =
-        implementerToTest.validateEnrollment(
             bundle, getRuleEnrollmentEffects(), enrollmentWithMandatoryAttributeNOTSet);
 
-    assertTrue(errors.isEmpty());
+    assertFalse(errors.isEmpty());
+    errors.forEach(
+        e -> {
+          assertEquals("RULE_ATTRIBUTE", e.getRuleUid());
+          assertEquals(E1306, e.getIssueCode());
+          assertEquals(IssueType.ERROR, e.getIssueType());
+          assertEquals(Lists.newArrayList(attribute.getUid()), e.getArgs());
+        });
   }
 
   @Test
@@ -419,7 +443,7 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest {
           assertEquals("RULE_ATTRIBUTE", e.getRuleUid());
           assertEquals(E1317, e.getIssueCode());
           assertEquals(IssueType.ERROR, e.getIssueType());
-          assertEquals(Lists.newArrayList(ATTRIBUTE_ID), e.getArgs());
+          assertEquals(Lists.newArrayList(attribute.getUid()), e.getArgs());
         });
   }
 
@@ -441,7 +465,7 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest {
           assertEquals("RULE_ATTRIBUTE", e.getRuleUid());
           assertEquals(E1317, e.getIssueCode());
           assertEquals(IssueType.ERROR, e.getIssueType());
-          assertEquals(Lists.newArrayList(ATTRIBUTE_ID), e.getArgs());
+          assertEquals(Lists.newArrayList(attribute.getUid()), e.getArgs());
         });
   }
 
@@ -574,15 +598,13 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest {
     return Lists.newArrayList(RuleEffect.create("RULE_ATTRIBUTE", ruleActionSetMandatoryAttribute));
   }
 
-  private TrackedEntityInstance trackedEntity() {
-    TrackedEntityInstance trackedEntity = new TrackedEntityInstance();
-    trackedEntity.setUid(TEI_ID);
-    TrackedEntityAttributeValue attributeValue =
-        createTrackedEntityAttributeValue('A', trackedEntity, attribute);
-    attributeValue.setValue(ATTRIBUTE_VALUE);
-    Set<TrackedEntityAttributeValue> attributes = Set.of(attributeValue);
-    trackedEntity.setTrackedEntityAttributeValues(attributes);
-    return trackedEntity;
+  private Enrollment getEnrollmentWithMandatoryAttributeDeleted() {
+    return Enrollment.builder()
+        .enrollment(ACTIVE_ENROLLMENT_ID)
+        .trackedEntity(TEI_ID)
+        .status(EnrollmentStatus.ACTIVE)
+        .attributes(List.of(getDeletedAttribute()))
+        .build();
   }
 
   private Attribute getDeletedAttribute() {
@@ -592,12 +614,26 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest {
         .build();
   }
 
-  private Enrollment getEnrollmentWithMandatoryAttributeDeleted() {
-    return Enrollment.builder()
-        .enrollment(ACTIVE_ENROLLMENT_ID)
+  private org.hisp.dhis.tracker.domain.TrackedEntity payloadTrackedEntity() {
+    Attribute payloadAttribute =
+        Attribute.builder()
+            .attribute(MetadataIdentifier.ofUid(attribute))
+            .value(ATTRIBUTE_VALUE)
+            .build();
+    return org.hisp.dhis.tracker.domain.TrackedEntity.builder()
         .trackedEntity(TEI_ID)
-        .status(EnrollmentStatus.ACTIVE)
-        .attributes(List.of(getDeletedAttribute()))
+        .attributes(List.of(payloadAttribute))
         .build();
+  }
+
+  private TrackedEntityInstance trackedEntity() {
+    TrackedEntityInstance trackedEntity = new TrackedEntityInstance();
+    trackedEntity.setUid(TEI_ID);
+    TrackedEntityAttributeValue attributeValue =
+        createTrackedEntityAttributeValue('A', trackedEntity, attribute);
+    attributeValue.setValue(ATTRIBUTE_VALUE);
+    Set<TrackedEntityAttributeValue> attributes = Set.of(attributeValue);
+    trackedEntity.setTrackedEntityAttributeValues(attributes);
+    return trackedEntity;
   }
 }
