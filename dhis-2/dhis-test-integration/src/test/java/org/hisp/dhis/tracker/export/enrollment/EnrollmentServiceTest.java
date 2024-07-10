@@ -386,6 +386,21 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   }
 
   @Test
+  void shouldFailGettingEnrollmentWhenDoesNotExist() {
+    trackedEntityTypeA.getSharing().setOwner(admin);
+    trackedEntityTypeA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    manager.updateNoAcl(trackedEntityTypeA);
+
+    NotFoundException exception =
+        assertThrows(
+            NotFoundException.class,
+            () ->
+                enrollmentService.getEnrollment("non existent UID", EnrollmentParams.FALSE, false));
+    assertContains(
+        "Enrollment with id non existent UID could not be found.", exception.getMessage());
+  }
+
+  @Test
   void shouldFailGettingEnrollmentWhenUserHasReadAccessToProgramButNoAccessToOrgUnit() {
     programA.getSharing().setPublicAccess(AccessStringHelper.DATA_READ);
     manager.updateNoAcl(programA);

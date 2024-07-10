@@ -148,7 +148,6 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
   @Test
   void shouldMapEnrollmentWhenAEnrollmentIsPassed() throws NotFoundException, ForbiddenException {
     when(enrollmentService.getEnrollment(EN_UID)).thenReturn(enrollment);
-    when(accessManager.canRead(user, enrollment, false)).thenReturn(List.of());
     RelationshipOperationParams params =
         RelationshipOperationParams.builder().type(ENROLLMENT).identifier(EN_UID).build();
 
@@ -156,25 +155,6 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
 
     assertInstanceOf(Enrollment.class, queryParams.getEntity());
     assertEquals(EN_UID, queryParams.getEntity().getUid());
-  }
-
-  @Test
-  void shouldThrowWhenEnrollmentIsNotFound() throws ForbiddenException, NotFoundException {
-    when(enrollmentService.getEnrollment(EN_UID)).thenReturn(null);
-    RelationshipOperationParams params =
-        RelationshipOperationParams.builder().type(ENROLLMENT).identifier(EN_UID).build();
-
-    assertThrows(NotFoundException.class, () -> mapper.map(params));
-  }
-
-  @Test
-  void shouldThrowWhenUserHasNoAccessToEnrollment() throws ForbiddenException, NotFoundException {
-    when(enrollmentService.getEnrollment(EN_UID)).thenReturn(enrollment);
-    when(accessManager.canRead(user, enrollment, false)).thenReturn(List.of("error"));
-    RelationshipOperationParams params =
-        RelationshipOperationParams.builder().type(ENROLLMENT).identifier(EN_UID).build();
-
-    assertThrows(ForbiddenException.class, () -> mapper.map(params));
   }
 
   @Test

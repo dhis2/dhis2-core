@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -66,8 +65,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
   private final EventTrackerConverterService eventTrackerConverterService;
 
   @Override
-  public TrackerTypeReport deleteEnrollments(TrackerBundle bundle)
-      throws ForbiddenException, NotFoundException {
+  public TrackerTypeReport deleteEnrollments(TrackerBundle bundle) throws NotFoundException {
     TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.ENROLLMENT);
 
     List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments = bundle.getEnrollments();
@@ -78,6 +76,9 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
       Entity objectReport = new Entity(TrackerType.ENROLLMENT, uid);
 
       Enrollment enrollment = manager.get(Enrollment.class, uid);
+      if (enrollment == null) {
+        throw new NotFoundException(Enrollment.class, uid);
+      }
       enrollment.setLastUpdatedByUserInfo(bundle.getUserInfo());
 
       List<org.hisp.dhis.tracker.imports.domain.Event> events =
@@ -144,8 +145,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
   }
 
   @Override
-  public TrackerTypeReport deleteTrackedEntity(TrackerBundle bundle)
-      throws ForbiddenException, NotFoundException {
+  public TrackerTypeReport deleteTrackedEntity(TrackerBundle bundle) throws NotFoundException {
     TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.TRACKED_ENTITY);
 
     List<org.hisp.dhis.tracker.imports.domain.TrackedEntity> trackedEntities =

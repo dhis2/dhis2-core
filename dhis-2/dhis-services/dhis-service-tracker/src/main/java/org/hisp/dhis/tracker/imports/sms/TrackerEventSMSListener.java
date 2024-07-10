@@ -85,7 +85,6 @@ public class TrackerEventSMSListener extends EventSavingSMSListener {
       FileResourceService fileResourceService,
       DhisConfigurationProvider config,
       ProgramStageService programStageService,
-      org.hisp.dhis.program.EnrollmentService apiEnrollmentService,
       EnrollmentService enrollmentService) {
     super(
         incomingSmsService,

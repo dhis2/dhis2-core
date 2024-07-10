@@ -116,10 +116,6 @@ class TrackerEventSMSListenerTest extends CompressionSMSListenerTest {
 
   private String message = "";
 
-  // Needed for this test
-
-  @Mock private org.hisp.dhis.program.EnrollmentService apiEnrollmentService;
-
   @Mock private EnrollmentService enrollmentService;
 
   @Mock private ProgramStageService programStageService;
@@ -169,7 +165,6 @@ class TrackerEventSMSListenerTest extends CompressionSMSListenerTest {
             fileResourceService,
             config,
             programStageService,
-            apiEnrollmentService,
             enrollmentService);
 
     setUpInstances();
