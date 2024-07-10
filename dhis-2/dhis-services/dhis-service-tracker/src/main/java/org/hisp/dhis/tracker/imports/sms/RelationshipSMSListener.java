@@ -37,7 +37,6 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.relationship.Relationship;
@@ -59,6 +58,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -175,11 +175,14 @@ public class RelationshipSMSListener extends CompressionSMSListener {
         break;
 
       case PROGRAM_INSTANCE:
-        Enrollment progInst = enrollmentService.getEnrollment(objId.getUid());
-        if (progInst == null) {
+        Enrollment enrollment;
+        try {
+          enrollment = enrollmentService.getEnrollment(objId.getUid(), UserDetails.fromUser(user));
+        } catch (ForbiddenException | NotFoundException e) {
           throw new SMSProcessingException(SmsResponse.INVALID_ENROLL.set(objId));
         }
-        relItem.setEnrollment(progInst);
+
+        relItem.setEnrollment(enrollment);
         break;
 
       case PROGRAM_STAGE_INSTANCE:

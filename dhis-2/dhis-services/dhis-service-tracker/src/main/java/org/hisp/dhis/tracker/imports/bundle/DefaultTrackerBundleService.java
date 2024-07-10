@@ -35,6 +35,8 @@ import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.TrackerType;
@@ -153,7 +155,8 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
 
   @Override
   @Transactional
-  public PersistenceReport delete(TrackerBundle bundle) {
+  public PersistenceReport delete(TrackerBundle bundle)
+      throws ForbiddenException, NotFoundException {
     if (TrackerBundleMode.VALIDATE == bundle.getImportMode()) {
       return PersistenceReport.emptyReport();
     }

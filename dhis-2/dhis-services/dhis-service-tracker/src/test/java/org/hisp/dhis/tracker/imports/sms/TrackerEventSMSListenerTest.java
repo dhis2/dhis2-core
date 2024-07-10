@@ -47,13 +47,14 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -69,8 +70,10 @@ import org.hisp.dhis.smscompression.models.TrackerEventSmsSubmission;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -145,7 +148,7 @@ class TrackerEventSMSListenerTest extends CompressionSMSListenerTest {
   private Event event;
 
   @BeforeEach
-  public void initTest() throws SmsCompressionException {
+  public void initTest() throws SmsCompressionException, ForbiddenException, NotFoundException {
     subject =
         new TrackerEventSMSListener(
             incomingSmsService,
@@ -178,7 +181,8 @@ class TrackerEventSMSListenerTest extends CompressionSMSListenerTest {
 
     when(organisationUnitService.getOrganisationUnit(anyString())).thenReturn(organisationUnit);
     when(programStageService.getProgramStage(anyString())).thenReturn(programStage);
-    when(enrollmentService.getEnrollment(anyString())).thenReturn(enrollment);
+    when(enrollmentService.getEnrollment(anyString(), any(UserDetails.class)))
+        .thenReturn(enrollment);
     when(dataElementService.getDataElement(anyString())).thenReturn(dataElement);
     when(categoryService.getCategoryOptionCombo(anyString())).thenReturn(categoryOptionCombo);
 
