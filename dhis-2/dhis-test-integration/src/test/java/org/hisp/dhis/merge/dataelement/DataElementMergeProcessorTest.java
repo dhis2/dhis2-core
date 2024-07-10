@@ -1135,8 +1135,15 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
             List.of(deSource1.getUid(), deSource2.getUid()));
     List<ProgramIndicator> piTarget =
         programIndicatorStore.getAllWithExpressionContainingStrings(List.of(deTarget.getUid()));
+    List<ProgramIndicator> piRandom =
+        programIndicatorStore.getAllWithExpressionContainingStrings(List.of(deRandom.getUid()));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
+    assertEquals(1, piRandom.size());
+    assertEquals(
+        "#{12345.deabcdefghD}",
+        piRandom.get(0).getExpression(),
+        "unrelated program indicator is unchanged");
     assertMergeSuccessfulSourcesNotDeleted(report, piSources, piTarget, allDataElements);
   }
 
@@ -1334,7 +1341,7 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "Event eventDataValues references to source DataElements are deleted when using DISCARD merge strategy")
+      "Event eventDataValues references with source DataElements are deleted when using DISCARD merge strategy")
   void eventMergeDiscardTest() throws ConflictException {
     // given
     TrackedEntity trackedEntity = createTrackedEntity(ou1);
@@ -1396,6 +1403,8 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
             List.of(deSource1.getUid(), deSource2.getUid()));
     List<Event> targetEvents =
         eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(List.of(deTarget.getUid()));
+    List<Event> randomEvents =
+        eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(List.of(deRandom.getUid()));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     Map<Boolean, List<EventDataValue>> allTargetEventDataValues =
@@ -1414,6 +1423,11 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
     assertFalse(report.hasErrorMessages());
     assertEquals(0, eventSources.size(), "Expect 0 entries with source data element refs");
     assertEquals(2, targetEvents.size(), "Expect 2 entries with target data element refs");
+    assertEquals(1, randomEvents.size(), "Expect 1 entry with random data element ref");
+    assertEquals(
+        1,
+        randomEvents.get(0).getEventDataValues().size(),
+        "Expect 1 event data value with random data element ref");
     assertEquals(6, allDataElements.size(), "Expect 6 data elements present");
     assertTrue(allDataElements.containsAll(List.of(deTarget, deSource1, deSource2)));
   }
