@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,22 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common;
+package org.hisp.dhis.i18n;
 
-import lombok.Builder;
-import lombok.Data;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * Represent a query request object used by analytics endpoints. It encapsulates common request
- * objects and is bound to a specific request object represented by T. T depends on the type of
- * analytics endpoint and its related query params.
- *
- * @param <T> the specific query request object
- */
-@Data
-@Builder(toBuilder = true)
-public class QueryRequest<T> {
-  private final T request;
+import java.util.stream.Stream;
+import org.hisp.dhis.period.PeriodType;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-  private final CommonQueryRequest commonQueryRequest;
+class I18nFormatTest {
+
+  @ParameterizedTest
+  @MethodSource("providePeriodData")
+  void testFormatPeriod(String period, String expected) {
+    I18nFormat i18nFormat = new I18nFormat();
+    assertEquals(expected, i18nFormat.formatPeriod(PeriodType.getPeriodFromIsoString(period)));
+  }
+
+  private static Stream<Arguments> providePeriodData() {
+    return Stream.of(
+        Arguments.of("2024W1", "Week 1 2024-01-01 - 2024-01-07"),
+        Arguments.of("2024W2", "Week 2 2024-01-08 - 2024-01-14"),
+        Arguments.of("2024W3", "Week 3 2024-01-15 - 2024-01-21"),
+        Arguments.of("2021W1", "Week 1 2021-01-04 - 2021-01-10"),
+        Arguments.of("2021W2", "Week 2 2021-01-11 - 2021-01-17"),
+        Arguments.of("2024SunW1", "Week 1 2023-12-31 - 2024-01-06"),
+        Arguments.of("2024ThuW1", "Week 1 2024-01-04 - 2024-01-10"),
+        Arguments.of("2024SatW1", "Week 1 2023-12-30 - 2024-01-05"),
+        Arguments.of("2024WedW2", "Week 2 2024-01-10 - 2024-01-16"),
+        Arguments.of("2024ThuW2", "Week 2 2024-01-11 - 2024-01-17"),
+        Arguments.of("2024SatW2", "Week 2 2024-01-06 - 2024-01-12"));
+  }
 }

@@ -137,7 +137,7 @@ public class TeiQueryBuilder extends SqlQueryBuilderAdaptor {
             // Static fields column.
             TeiFields.getStaticFields(),
             // Tei/Program attributes.
-            TeiFields.getDimensionFields(queryContext.getTeiQueryParams()),
+            TeiFields.getDimensionFields(queryContext.getContextParams()),
             // Enrollments
             Stream.of(aggregatedEnrollments))
         .flatMap(Function.identity());

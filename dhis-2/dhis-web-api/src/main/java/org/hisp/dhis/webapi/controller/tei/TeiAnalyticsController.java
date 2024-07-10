@@ -44,7 +44,6 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.ImmutableSet;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
@@ -52,16 +51,18 @@ import java.util.function.Function;
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.analytics.common.CommonQueryRequest;
-import org.hisp.dhis.analytics.common.QueryRequest;
-import org.hisp.dhis.analytics.common.processing.Processor;
+import org.hisp.dhis.analytics.common.CommonRequestParams;
+import org.hisp.dhis.analytics.common.ContextParams;
+import org.hisp.dhis.analytics.common.params.CommonParsedParams;
+import org.hisp.dhis.analytics.common.processing.CommonQueryRequestValidator;
+import org.hisp.dhis.analytics.common.processing.Parser;
 import org.hisp.dhis.analytics.common.processing.Validator;
 import org.hisp.dhis.analytics.dimensions.AnalyticsDimensionsPagingWrapper;
 import org.hisp.dhis.analytics.tei.TeiAnalyticsDimensionsService;
 import org.hisp.dhis.analytics.tei.TeiAnalyticsQueryService;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
-import org.hisp.dhis.analytics.tei.TeiQueryRequest;
 import org.hisp.dhis.analytics.tei.TeiQueryRequestMapper;
+import org.hisp.dhis.analytics.tei.TeiRequestParams;
 import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OpenApi;
@@ -90,9 +91,11 @@ import org.springframework.web.bind.annotation.RestController;
 class TeiAnalyticsController {
   @Nonnull private final TeiAnalyticsQueryService teiAnalyticsQueryService;
 
-  @Nonnull private final Processor<CommonQueryRequest> commonQueryRequestProcessor;
+  @Nonnull private final Parser<CommonRequestParams, CommonParsedParams> commonRequestParamsParser;
 
-  @Nonnull private final Validator<QueryRequest<TeiQueryRequest>> teiQueryRequestValidator;
+  @Nonnull private final CommonQueryRequestValidator commonQueryRequestValidator;
+
+  @Nonnull private final Validator<TeiRequestParams> teiQueryRequestValidator;
 
   @Nonnull private final DimensionFilteringAndPagingService dimensionFilteringAndPagingService;
 
@@ -109,10 +112,12 @@ class TeiAnalyticsController {
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})
   Grid query(
       @PathVariable String trackedEntityType,
-      TeiQueryRequest teiQueryRequest,
-      CommonQueryRequest commonQueryRequest) {
+      TeiRequestParams teiRequestParams,
+      CommonRequestParams commonRequestParams) {
     return getGrid(
-        trackedEntityType, teiQueryRequest, commonQueryRequest, teiAnalyticsQueryService::getGrid);
+        teiRequestParams.withTrackedEntityType(trackedEntityType),
+        commonRequestParams,
+        teiAnalyticsQueryService::getGrid);
   }
 
   @RequiresAuthority(anyOf = F_PERFORM_ANALYTICS_EXPLAIN)
@@ -121,28 +126,26 @@ class TeiAnalyticsController {
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})
   Grid queryExplain(
       @PathVariable String trackedEntityType,
-      TeiQueryRequest teiQueryRequest,
-      CommonQueryRequest commonQueryRequest) {
+      TeiRequestParams teiRequestParams,
+      CommonRequestParams commonRequestParams) {
     return getGrid(
-        trackedEntityType,
-        teiQueryRequest,
-        commonQueryRequest,
+        teiRequestParams.withTrackedEntityType(trackedEntityType),
+        commonRequestParams,
         teiAnalyticsQueryService::getGridExplain);
   }
 
   @GetMapping(value = "/query/{trackedEntityType}.xml")
   public void queryXml(
       @PathVariable String trackedEntityType,
-      TeiQueryRequest teiQueryRequest,
-      CommonQueryRequest commonQueryRequest,
+      TeiRequestParams teiRequestParams,
+      CommonRequestParams commonRequestParams,
       HttpServletResponse response)
       throws IOException {
     prepareForDownload(response, CONTENT_TYPE_XML, "tei.xml");
     toXml(
         getGrid(
-            trackedEntityType,
-            teiQueryRequest,
-            commonQueryRequest,
+            teiRequestParams.withTrackedEntityType(trackedEntityType),
+            commonRequestParams,
             teiAnalyticsQueryService::getGrid),
         response.getOutputStream());
   }
@@ -150,16 +153,15 @@ class TeiAnalyticsController {
   @GetMapping(value = "/query/{trackedEntityType}.xls")
   public void queryXls(
       @PathVariable String trackedEntityType,
-      TeiQueryRequest teiQueryRequest,
-      CommonQueryRequest commonQueryRequest,
+      TeiRequestParams teiRequestParams,
+      CommonRequestParams commonRequestParams,
       HttpServletResponse response)
       throws IOException {
     prepareForDownload(response, CONTENT_TYPE_EXCEL, "tei.xls");
     toXls(
         getGrid(
-            trackedEntityType,
-            teiQueryRequest,
-            commonQueryRequest,
+            teiRequestParams.withTrackedEntityType(trackedEntityType),
+            commonRequestParams,
             teiAnalyticsQueryService::getGrid),
         response.getOutputStream());
   }
@@ -167,16 +169,15 @@ class TeiAnalyticsController {
   @GetMapping(value = "/query/{trackedEntityType}.csv")
   public void queryCsv(
       @PathVariable String trackedEntityType,
-      TeiQueryRequest teiQueryRequest,
-      CommonQueryRequest commonQueryRequest,
+      TeiRequestParams teiRequestParams,
+      CommonRequestParams commonRequestParams,
       HttpServletResponse response)
       throws IOException {
     prepareForDownload(response, CONTENT_TYPE_CSV, "tei.csv");
     toCsv(
         getGrid(
-            trackedEntityType,
-            teiQueryRequest,
-            commonQueryRequest,
+            teiRequestParams.withTrackedEntityType(trackedEntityType),
+            commonRequestParams,
             teiAnalyticsQueryService::getGrid),
         response.getWriter());
   }
@@ -184,16 +185,15 @@ class TeiAnalyticsController {
   @GetMapping(value = "/query/{trackedEntityType}.html")
   public void queryHtml(
       @PathVariable String trackedEntityType,
-      TeiQueryRequest teiQueryRequest,
-      CommonQueryRequest commonQueryRequest,
+      TeiRequestParams teiRequestParams,
+      CommonRequestParams commonRequestParams,
       HttpServletResponse response)
       throws IOException {
     prepareForDownload(response, CONTENT_TYPE_HTML, "tei.html");
     toHtml(
         getGrid(
-            trackedEntityType,
-            teiQueryRequest,
-            commonQueryRequest,
+            teiRequestParams.withTrackedEntityType(trackedEntityType),
+            commonRequestParams,
             teiAnalyticsQueryService::getGrid),
         response.getWriter());
   }
@@ -201,43 +201,43 @@ class TeiAnalyticsController {
   @GetMapping(value = "/query/{trackedEntityType}.html+css")
   public void queryHtmlCss(
       @PathVariable String trackedEntityType,
-      TeiQueryRequest teiQueryRequest,
-      CommonQueryRequest commonQueryRequest,
+      TeiRequestParams teiRequestParams,
+      CommonRequestParams commonRequestParams,
       HttpServletResponse response)
       throws IOException {
     prepareForDownload(response, CONTENT_TYPE_HTML, "tei.html");
     toHtmlCss(
         getGrid(
-            trackedEntityType,
-            teiQueryRequest,
-            commonQueryRequest,
+            teiRequestParams.withTrackedEntityType(trackedEntityType),
+            commonRequestParams,
             teiAnalyticsQueryService::getGrid),
         response.getWriter());
   }
 
   private Grid getGrid(
-      String trackedEntityType,
-      TeiQueryRequest teiQueryRequest,
-      CommonQueryRequest commonQueryRequest,
-      Function<TeiQueryParams, Grid> executor) {
-    CommonQueryRequest originalRequest =
-        commonQueryRequest
-            .withDimension(ImmutableSet.copyOf(commonQueryRequest.getDimension()))
-            .withFilter(ImmutableSet.copyOf(commonQueryRequest.getFilter()))
-            .withHeaders(ImmutableSet.copyOf(commonQueryRequest.getHeaders()))
-            .withAsc(ImmutableSet.copyOf(commonQueryRequest.getAsc()))
-            .withDesc(ImmutableSet.copyOf(commonQueryRequest.getDesc()))
-            .withProgram(ImmutableSet.copyOf(commonQueryRequest.getProgram()));
+      TeiRequestParams teiRequestParams,
+      CommonRequestParams commonRequestParams,
+      Function<ContextParams<TeiRequestParams, TeiQueryParams>, Grid> executor) {
 
-    QueryRequest<TeiQueryRequest> queryRequest =
-        QueryRequest.<TeiQueryRequest>builder()
-            .request(teiQueryRequest.withTrackedEntityType(trackedEntityType))
-            .commonQueryRequest(commonQueryRequestProcessor.process(commonQueryRequest))
+    // This happens first because of the particularity of TE, where the programs be loaded come from
+    // the TE and not from the request param.
+    TeiQueryParams teiQueryParams =
+        mapper.map(teiRequestParams.getTrackedEntityType(), commonRequestParams);
+
+    commonQueryRequestValidator.validate(commonRequestParams);
+    teiQueryRequestValidator.validate(teiRequestParams);
+
+    CommonParsedParams commonParsedParams = commonRequestParamsParser.parse(commonRequestParams);
+
+    ContextParams<TeiRequestParams, TeiQueryParams> contextParams =
+        ContextParams.<TeiRequestParams, TeiQueryParams>builder()
+            .typedRaw(teiRequestParams)
+            .typedParsed(teiQueryParams)
+            .commonRaw(commonRequestParams)
+            .commonParsed(commonParsedParams)
             .build();
 
-    teiQueryRequestValidator.validate(queryRequest);
-
-    return executor.apply(mapper.map(queryRequest, originalRequest));
+    return executor.apply(contextParams);
   }
 
   /**

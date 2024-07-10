@@ -27,26 +27,51 @@
  */
 package org.hisp.dhis.analytics.tei;
 
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.analytics.common.processing.Processor;
-import org.springframework.stereotype.Component;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.junit.jupiter.api.Test;
 
 /**
- * This component is a hook to allow for post-processing of the {@link TeiQueryParams} before it is
- * used to build the query context.
+ * Unit tests for {@link TeiQueryRequestValidator}.
+ *
+ * @author maikel arabori
  */
-@Component
-@RequiredArgsConstructor
-public class TeiQueryParamPostProcessor implements Processor<TeiQueryParams> {
+class TeiRequestParamsValidatorTest {
 
-  /**
-   * Processes the given {@link TeiQueryParams} and returns the processed version.
-   *
-   * @param params to be processed.
-   * @return the processed {@link TeiQueryParams}.
-   */
-  public TeiQueryParams process(TeiQueryParams params) {
-    // do nothing for now - implement required TeiQueryParams processing here.
-    return params;
+  @Test
+  void testValidateWhenTrackedEntityTypeIsInvalid() {
+    String teiUid = CodeGenerator.generateUid() + "invalid";
+    // Given
+    TeiRequestParams teiRequestParams = new TeiRequestParams(teiUid);
+
+    TeiQueryRequestValidator teiQueryRequestValidator = new TeiQueryRequestValidator();
+
+    // When
+    IllegalQueryException exception =
+        assertThrows(
+            IllegalQueryException.class, () -> teiQueryRequestValidator.validate(teiRequestParams));
+
+    // Then
+    assertEquals(
+        "Invalid UID `" + teiUid + "` for property `trackedEntityType`", exception.getMessage());
+  }
+
+  @Test
+  void testValidateWhenNoTrackedEntityType() {
+    // Given
+    TeiRequestParams teiRequestParams = new TeiRequestParams(null);
+
+    TeiQueryRequestValidator teiQueryRequestValidator = new TeiQueryRequestValidator();
+
+    // When
+    IllegalQueryException exception =
+        assertThrows(
+            IllegalQueryException.class, () -> teiQueryRequestValidator.validate(teiRequestParams));
+
+    // Then
+    assertEquals("Invalid UID `null` for property `trackedEntityType`", exception.getMessage());
   }
 }

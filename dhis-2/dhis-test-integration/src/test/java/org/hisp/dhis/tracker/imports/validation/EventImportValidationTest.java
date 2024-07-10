@@ -52,7 +52,6 @@ import lombok.SneakyThrows;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.TrackerType;
@@ -72,8 +71,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class EventImportValidationTest extends TrackerTest {
   @Autowired protected TrackedEntityService trackedEntityService;
-
-  @Autowired private EventService programStageServiceInstance;
 
   @Autowired private TrackerImportService trackerImportService;
 

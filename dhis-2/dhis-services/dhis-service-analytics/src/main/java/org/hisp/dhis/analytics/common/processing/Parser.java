@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,26 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.analytics.common.processing;
 
-import java.util.Map;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
+import javax.annotation.Nonnull;
 
 /**
- * @author Abyot Asalefew
+ * Interface responsible for mapping and/or transforming a given input object into its parsed
+ * version. type.
+ *
+ * @param <I> the input object.
+ * @param <P> the parsed version.
  */
-public interface EventService {
-  String ID = EventService.class.getName();
-
+public interface Parser<I, P> {
   /**
-   * Validates EventDataValues, handles files for File EventDataValues and creates audit logs for
-   * the upcoming create/save changes. DOES PERSIST the changes to the Event object.
+   * Parses the given object based on the implementation logic/rules.
    *
-   * @param event the Event that EventDataValues belong to
-   * @param dataElementEventDataValueMap the map of DataElements and related EventDataValues to
-   *     update
+   * @param object the input object to be parsed.
+   * @return the parsed object P.
    */
-  void saveEventDataValuesAndSaveEvent(
-      Event event, Map<DataElement, EventDataValue> dataElementEventDataValueMap);
+  @Nonnull
+  P parse(@Nonnull I object);
 }

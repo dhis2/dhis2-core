@@ -86,8 +86,6 @@ class DeleteEventSMSListenerTest extends CompressionSMSListenerTest {
 
   @Mock private CategoryService categoryService;
 
-  @Mock private org.hisp.dhis.program.EventService apiEventService;
-
   @Mock private EventService eventService;
 
   @Mock private IdentifiableObjectManager identifiableObjectManager;
