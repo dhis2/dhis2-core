@@ -40,7 +40,7 @@
     <module>dhis-test-web-api</module>
     <module>dhis-test-coverage</module>
     <module>dhis-test-integration</module>
-<!--    <module>dhis-web-apps</module>-->
+    <module>dhis-web-apps</module>
     <module>dhis-web-server</module>
   </modules>
 
