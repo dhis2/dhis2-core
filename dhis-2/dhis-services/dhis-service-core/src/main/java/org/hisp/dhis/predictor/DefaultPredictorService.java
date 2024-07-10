@@ -89,12 +89,6 @@ public class DefaultPredictorService implements PredictorService {
     return predictorStore.getAll();
   }
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<Predictor> getAllByDataElement(Collection<DataElement> dataElements) {
-    return predictorStore.getAllByDataElement(dataElements);
-  }
-
   // -------------------------------------------------------------------------
   // Predictor group
   // -------------------------------------------------------------------------

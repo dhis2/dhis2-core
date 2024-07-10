@@ -87,9 +87,9 @@ public class HibernatePredictorStore extends HibernateIdentifiableObjectStore<Pr
   public List<Predictor> getAllByDataElement(Collection<DataElement> dataElements) {
     return getQuery(
             """
-        from Predictor p
-        where p.output in :dataElements
-        """)
+            from Predictor p
+            where p.output in :dataElements
+            """)
         .setParameter("dataElements", dataElements)
         .list();
   }
@@ -117,11 +117,11 @@ public class HibernatePredictorStore extends HibernateIdentifiableObjectStore<Pr
 
     return getQuery(
             """
-        select p from Predictor p
-        join p.sampleSkipTest as e
-        where %s
-        group by p
-        """
+            select p from Predictor p
+            join p.sampleSkipTest as e
+            where %s
+            group by p
+            """
                 .formatted(multiLike))
         .getResultList();
   }

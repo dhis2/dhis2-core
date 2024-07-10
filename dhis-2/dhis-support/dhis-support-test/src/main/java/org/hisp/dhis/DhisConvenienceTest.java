@@ -114,7 +114,6 @@ import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTrigger;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationType;
@@ -1480,16 +1479,6 @@ public abstract class DhisConvenienceTest {
     eventVisualization.setType(EventVisualizationType.LINE_LIST);
 
     return eventVisualization;
-  }
-
-  public static EventChart createEventChart(char uniqueCharacter, Program program) {
-    EventChart eventChart = new EventChart("name-" + uniqueCharacter);
-    eventChart.setAutoFields();
-    eventChart.setProgram(program);
-    eventChart.setName("EventChart" + uniqueCharacter);
-    eventChart.setType(EventVisualizationType.LINE_LIST);
-
-    return eventChart;
   }
 
   public static User makeUser(String uniqueCharacter) {

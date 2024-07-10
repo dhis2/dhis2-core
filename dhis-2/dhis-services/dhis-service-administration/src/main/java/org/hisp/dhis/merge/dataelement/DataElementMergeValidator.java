@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.merge.dataelement;
 
+import static org.hisp.dhis.feedback.ErrorCode.E1554;
+import static org.hisp.dhis.feedback.ErrorCode.E1555;
+
 import java.util.List;
 import java.util.function.BiPredicate;
 import javax.annotation.Nonnull;
@@ -36,86 +39,48 @@ import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.MergeReport;
 import org.springframework.stereotype.Component;
 
+/**
+ * Class that performs property validations between source {@link DataElement} property values and
+ * target {@link DataElement} property values. If there are any validation failures then an error is
+ * added to the {@link MergeReport}. Any error will provide the specific details of the validation
+ * failure.
+ */
 @Component
 public class DataElementMergeValidator {
 
-  /**
-   * Method that performs property validations between source {@link DataElement} property values
-   * and target {@link DataElement} property values, using {@link DataElementPropertyValidation}. If
-   * there are any validation failures then an error is added to the {@link MergeReport}. Any error
-   * will provide the details of the validation failures.
-   *
-   * @param target target {@link DataElement}
-   * @param sources source {@link DataElement}s
-   * @param propertyValidation {@link DataElementPropertyValidation} to check against
-   * @param report {@link MergeReport}
-   * @return report
-   */
-  public MergeReport validateProperties(
+  public MergeReport validateValueType(
       @Nonnull DataElement target,
       @Nonnull List<DataElement> sources,
-      DataElementPropertyValidation propertyValidation,
+      @Nonnull MergeReport report) {
+    List<DataElement> mismatches =
+        sources.stream().filter(source -> target.getValueType() != source.getValueType()).toList();
+
+    if (!mismatches.isEmpty()) {
+      report.addErrorMessage(
+          new ErrorMessage(
+              E1554,
+              target.getValueType(),
+              mismatches.stream().map(DataElement::getValueType).distinct().toList()));
+    }
+    return report;
+  }
+
+  public MergeReport validateDomainType(
+      @Nonnull DataElement target,
+      @Nonnull List<DataElement> sources,
       @Nonnull MergeReport report) {
     List<DataElement> mismatches =
         sources.stream()
-            .filter(source -> propertyValidation.predicate.test(target, source))
+            .filter(source -> target.getDomainType() != source.getDomainType())
             .toList();
 
     if (!mismatches.isEmpty()) {
       report.addErrorMessage(
           new ErrorMessage(
-              propertyValidation.errorCode,
-              propertyValidation.getProperty(target),
-              mismatches.stream().map(propertyValidation::getProperty).distinct().toList()));
+              E1555,
+              target.getDomainType(),
+              mismatches.stream().map(DataElement::getDomainType).distinct().toList()));
     }
     return report;
-  }
-
-  /**
-   * Enum encapsulating DataElement property validations. Each has a {@link DataElementPredicate}
-   * and an {@link ErrorCode} and can also return the {@link DataElement} property being checked.
-   */
-  enum DataElementPropertyValidation implements DataElementProperty {
-    VALUE_TYPE_VALIDATION(DataElementPredicate.VALUE_TYPE_MISMATCH, ErrorCode.E1554) {
-      @Override
-      public Object getProperty(@Nonnull DataElement de) {
-        return de.getValueType();
-      }
-    },
-    DOMAIN_TYPE_VALIDATION(DataElementPredicate.DOMAIN_TYPE_MISMATCH, ErrorCode.E1555) {
-      @Override
-      public Object getProperty(@Nonnull DataElement de) {
-        return de.getDomainType();
-      }
-    };
-
-    public final DataElementPredicate predicate;
-    public final ErrorCode errorCode;
-
-    DataElementPropertyValidation(DataElementPredicate predicate, ErrorCode errorCode) {
-      this.predicate = predicate;
-      this.errorCode = errorCode;
-    }
-  }
-
-  @FunctionalInterface
-  public interface DataElementProperty {
-    Object getProperty(@Nonnull DataElement de);
-  }
-
-  /** Enum of {@link DataElement} {@link BiPredicate}s */
-  enum DataElementPredicate implements BiPredicate<DataElement, DataElement> {
-    VALUE_TYPE_MISMATCH {
-      @Override
-      public boolean test(@Nonnull DataElement target, @Nonnull DataElement source) {
-        return target.getValueType() != source.getValueType();
-      }
-    },
-    DOMAIN_TYPE_MISMATCH {
-      @Override
-      public boolean test(@Nonnull DataElement target, @Nonnull DataElement source) {
-        return target.getDomainType() != source.getDomainType();
-      }
-    }
   }
 }

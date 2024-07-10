@@ -61,5 +61,5 @@ public interface DataSetStore
    */
   List<DataSet> getDataSetsByDataEntryForm(DataEntryForm dataEntryForm);
 
-  List<DataSetElement> getDataSetElementsByDataElement(Collection<DataElement> deSource1);
+  List<DataSetElement> getDataSetElementsByDataElement(Collection<DataElement> dataElements);
 }

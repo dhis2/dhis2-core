@@ -27,10 +27,6 @@
  */
 package org.hisp.dhis.merge.dataelement;
 
-import static org.hisp.dhis.merge.dataelement.DataElementMergeValidator.DataElementPredicate.DOMAIN_TYPE_MISMATCH;
-import static org.hisp.dhis.merge.dataelement.DataElementMergeValidator.DataElementPredicate.VALUE_TYPE_MISMATCH;
-import static org.hisp.dhis.merge.dataelement.DataElementMergeValidator.DataElementPropertyValidation.DOMAIN_TYPE_VALIDATION;
-import static org.hisp.dhis.merge.dataelement.DataElementMergeValidator.DataElementPropertyValidation.VALUE_TYPE_VALIDATION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -50,55 +46,6 @@ import org.junit.jupiter.api.Test;
 class DataElementMergeValidatorTest extends DhisConvenienceTest {
 
   @Test
-  @DisplayName("When ValueTypes match, there is no mismatch")
-  void valueTypesMatchTest() {
-    // given
-    DataElement target = createDataElement('a', ValueType.TEXT, AggregationType.NONE);
-    DataElement source = createDataElement('b', ValueType.TEXT, AggregationType.NONE);
-
-    // then
-    assertFalse(VALUE_TYPE_MISMATCH.test(target, source));
-  }
-
-  @Test
-  @DisplayName("When ValueTypes do not match, there is a mismatch")
-  void valueTypesDoNotMatchTest() {
-    // given
-    DataElement target = createDataElement('a', ValueType.TEXT, AggregationType.NONE);
-    DataElement source = createDataElement('b', ValueType.INTEGER, AggregationType.NONE);
-
-    // then
-    assertTrue(VALUE_TYPE_MISMATCH.test(target, source));
-  }
-
-  @Test
-  @DisplayName("When DomainTypes match, there is no mismatch")
-  void domainTypesMatchTest() {
-    // given
-    DataElement target =
-        createDataElement('a', ValueType.TEXT, AggregationType.NONE, DataElementDomain.AGGREGATE);
-    DataElement source =
-        createDataElement('b', ValueType.TEXT, AggregationType.NONE, DataElementDomain.AGGREGATE);
-
-    // then
-    assertFalse(VALUE_TYPE_MISMATCH.test(target, source));
-  }
-
-  @Test
-  @DisplayName("When DomainTypes do not match, there is a mismatch")
-  void domainTypesDoNotMatchTest() {
-    // given
-    DataElement target =
-        createDataElement('a', ValueType.TEXT, AggregationType.NONE, DataElementDomain.TRACKER);
-    DataElement source =
-        createDataElement(
-            'b', ValueType.INTEGER, AggregationType.NONE, DataElementDomain.AGGREGATE);
-
-    // then
-    assertTrue(DOMAIN_TYPE_MISMATCH.test(target, source));
-  }
-
-  @Test
   @DisplayName("when all value types match then there are no report errors")
   void whenAllValueTypesMatchThenNoError() {
     // given
@@ -111,11 +58,8 @@ class DataElementMergeValidatorTest extends DhisConvenienceTest {
     // when
     DataElementMergeValidator validator = new DataElementMergeValidator();
     MergeReport report =
-        validator.validateProperties(
-            target,
-            List.of(source1, source2, source3),
-            VALUE_TYPE_VALIDATION,
-            new MergeReport(MergeType.DATA_ELEMENT));
+        validator.validateValueType(
+            target, List.of(source1, source2, source3), new MergeReport(MergeType.DATA_ELEMENT));
 
     // then
     assertFalse(report.hasErrorMessages());
@@ -134,11 +78,8 @@ class DataElementMergeValidatorTest extends DhisConvenienceTest {
     // when
     DataElementMergeValidator validator = new DataElementMergeValidator();
     MergeReport report =
-        validator.validateProperties(
-            target,
-            List.of(source1, source2, source3),
-            VALUE_TYPE_VALIDATION,
-            new MergeReport(MergeType.DATA_ELEMENT));
+        validator.validateValueType(
+            target, List.of(source1, source2, source3), new MergeReport(MergeType.DATA_ELEMENT));
 
     // then
     assertTrue(report.hasErrorMessages());
@@ -161,11 +102,8 @@ class DataElementMergeValidatorTest extends DhisConvenienceTest {
     // when
     DataElementMergeValidator validator = new DataElementMergeValidator();
     MergeReport report =
-        validator.validateProperties(
-            target,
-            List.of(source1, source2, source3),
-            VALUE_TYPE_VALIDATION,
-            new MergeReport(MergeType.DATA_ELEMENT));
+        validator.validateValueType(
+            target, List.of(source1, source2, source3), new MergeReport(MergeType.DATA_ELEMENT));
 
     // then
     assertTrue(report.hasErrorMessages());
@@ -192,11 +130,8 @@ class DataElementMergeValidatorTest extends DhisConvenienceTest {
     // when
     DataElementMergeValidator validator = new DataElementMergeValidator();
     MergeReport report =
-        validator.validateProperties(
-            target,
-            List.of(source1, source2, source3),
-            DOMAIN_TYPE_VALIDATION,
-            new MergeReport(MergeType.DATA_ELEMENT));
+        validator.validateDomainType(
+            target, List.of(source1, source2, source3), new MergeReport(MergeType.DATA_ELEMENT));
 
     // then
     assertFalse(report.hasErrorMessages());
@@ -219,11 +154,8 @@ class DataElementMergeValidatorTest extends DhisConvenienceTest {
     // when
     DataElementMergeValidator validator = new DataElementMergeValidator();
     MergeReport report =
-        validator.validateProperties(
-            target,
-            List.of(source1, source2, source3),
-            DOMAIN_TYPE_VALIDATION,
-            new MergeReport(MergeType.DATA_ELEMENT));
+        validator.validateDomainType(
+            target, List.of(source1, source2, source3), new MergeReport(MergeType.DATA_ELEMENT));
 
     // then
     assertTrue(report.hasErrorMessages());

@@ -27,9 +27,7 @@
  */
 package org.hisp.dhis.dataset;
 
-import java.util.Collection;
 import java.util.List;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.indicator.Indicator;
 
 public interface SectionService {
@@ -98,6 +96,4 @@ public interface SectionService {
   void removeIndicator(Section s, Indicator i);
 
   void addIndicator(Section s, Indicator i);
-
-  List<Section> getByDataElement(Collection<DataElement> dataElements);
 }

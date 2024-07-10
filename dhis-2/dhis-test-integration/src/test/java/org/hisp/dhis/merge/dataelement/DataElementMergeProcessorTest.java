@@ -49,7 +49,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.datadimensionitem.DataDimensionItemStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
-import org.hisp.dhis.dataelement.DataElementGroupService;
+import org.hisp.dhis.dataelement.DataElementGroupStore;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementOperandStore;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -59,7 +59,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.DataSetStore;
 import org.hisp.dhis.dataset.Section;
-import org.hisp.dhis.dataset.SectionService;
+import org.hisp.dhis.dataset.SectionStore;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
@@ -149,8 +149,8 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
   @Autowired private IdentifiableObjectManager identifiableObjectManager;
   @Autowired private DataElementOperandStore dataElementOperandStore;
   @Autowired private DataSetStore dataSetStore;
-  @Autowired private SectionService sectionService;
-  @Autowired private DataElementGroupService dataElementGroupService;
+  @Autowired private SectionStore sectionStore;
+  @Autowired private DataElementGroupStore dataElementGroupStore;
   @Autowired private IndicatorStore indicatorStore;
   @Autowired private DataEntryFormStore dataEntryFormStore;
   @Autowired private ProgramIndicatorStore programIndicatorStore;
@@ -1739,8 +1739,8 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
     MergeReport report = mergeProcessor.processMerge(mergeParams);
 
     // then
-    List<Section> sectionSources = sectionService.getByDataElement(List.of(deSource1, deSource2));
-    List<Section> sectionTarget = sectionService.getByDataElement(List.of(deTarget));
+    List<Section> sectionSources = sectionStore.getByDataElement(List.of(deSource1, deSource2));
+    List<Section> sectionTarget = sectionStore.getByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesNotDeleted(report, sectionSources, sectionTarget, allDataElements);
@@ -1768,8 +1768,8 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
     MergeReport report = mergeProcessor.processMerge(mergeParams);
 
     // then
-    List<Section> sectionSources = sectionService.getByDataElement(List.of(deSource1, deSource2));
-    List<Section> sectionTarget = sectionService.getByDataElement(List.of(deTarget));
+    List<Section> sectionSources = sectionStore.getByDataElement(List.of(deSource1, deSource2));
+    List<Section> sectionTarget = sectionStore.getByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesDeleted(report, sectionSources, sectionTarget, allDataElements);
@@ -1801,8 +1801,8 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
     // then
     List<DataElementGroup> degSources =
-        dataElementGroupService.getByDataElement(List.of(deSource1, deSource2));
-    List<DataElementGroup> degTarget = dataElementGroupService.getByDataElement(List.of(deTarget));
+        dataElementGroupStore.getByDataElement(List.of(deSource1, deSource2));
+    List<DataElementGroup> degTarget = dataElementGroupStore.getByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesNotDeleted(report, degSources, degTarget, allDataElements);
@@ -1832,8 +1832,8 @@ class DataElementMergeProcessorTest extends SingleSetupIntegrationTestBase {
 
     // then
     List<DataElementGroup> degSources =
-        dataElementGroupService.getByDataElement(List.of(deSource1, deSource2));
-    List<DataElementGroup> degTarget = dataElementGroupService.getByDataElement(List.of(deTarget));
+        dataElementGroupStore.getByDataElement(List.of(deSource1, deSource2));
+    List<DataElementGroup> degTarget = dataElementGroupStore.getByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesDeleted(report, degSources, degTarget, allDataElements);

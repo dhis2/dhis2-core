@@ -175,8 +175,8 @@ public interface DataElementService {
   /**
    * Get all {@link DataElement}s by string value of {@link org.hisp.dhis.common.UID}
    *
-   * @param dataElements
-   * @return
+   * @param dataElements data element {@link org.hisp.dhis.common.UID}s
+   * @return {@link DataElement}s found
    */
   List<DataElement> getDataElementsByUid(List<String> dataElements);
 

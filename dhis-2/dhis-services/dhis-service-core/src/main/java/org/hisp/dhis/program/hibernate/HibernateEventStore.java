@@ -81,9 +81,9 @@ public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
   public List<Event> getAllWithEventDataValuesRootKeysContainingAnyOf(List<String> searchStrings) {
     return nativeSynchronizedTypedQuery(
             """
-               select * from event e
-               where jsonb_exists_any(e.eventdatavalues, :searchStrings)
-                """)
+             select * from event e
+             where jsonb_exists_any(e.eventdatavalues, :searchStrings)
+              """)
         .setParameter(
             "searchStrings", searchStrings.toArray(String[]::new), StringArrayType.INSTANCE)
         .getResultList();

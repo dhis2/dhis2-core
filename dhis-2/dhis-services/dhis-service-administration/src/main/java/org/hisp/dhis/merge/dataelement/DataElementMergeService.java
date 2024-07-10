@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.merge.dataelement;
 
-import static org.hisp.dhis.merge.dataelement.DataElementMergeValidator.DataElementPropertyValidation.DOMAIN_TYPE_VALIDATION;
-import static org.hisp.dhis.merge.dataelement.DataElementMergeValidator.DataElementPropertyValidation.VALUE_TYPE_VALIDATION;
-
 import com.google.common.collect.ImmutableList;
 import java.util.HashSet;
 import java.util.List;
@@ -108,13 +105,11 @@ public class DataElementMergeService implements MergeService {
             request.getSources().stream().map(UID::getValue).toList());
 
     MergeReport report =
-        dataElementMergeValidator.validateProperties(
-            deTarget, deSources, VALUE_TYPE_VALIDATION, mergeReport);
+        dataElementMergeValidator.validateValueType(deTarget, deSources, mergeReport);
 
     if (report.hasErrorMessages()) return request;
 
-    dataElementMergeValidator.validateProperties(
-        deTarget, deSources, DOMAIN_TYPE_VALIDATION, mergeReport);
+    dataElementMergeValidator.validateDomainType(deTarget, deSources, mergeReport);
     return request;
   }
 
@@ -134,6 +129,9 @@ public class DataElementMergeService implements MergeService {
     commonMergeHandlers.forEach(h -> h.merge(sources, target));
     auditMergeHandlers.forEach(h -> h.merge(sources, request));
 
+    // a flush is required here to bring Hibernate into a consistent state, due to some of the
+    // above merge operations involving required native queries (queries involving JSONB). This
+    // eliminates possible stale state issues.
     entityManager.flush();
 
     // handle deletes

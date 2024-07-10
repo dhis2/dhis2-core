@@ -151,6 +151,14 @@ public class SqlUtils {
     return "lower(" + value + ")";
   }
 
+  /**
+   * Method which will return a valid like predicate when there are 1 or many like targets. See
+   * {@link SqlUtilsTest#multiLikeMultiTest()} for example.
+   *
+   * @param column column to search
+   * @param likeTargets like targets, can be 1 or many
+   * @return like predicate
+   */
   public static String multiLike(String column, List<String> likeTargets) {
     if (StringUtils.isBlank(column) || CollectionUtils.isEmpty(likeTargets))
       throw new IllegalArgumentException("SQL multi like must have at least one target and column");

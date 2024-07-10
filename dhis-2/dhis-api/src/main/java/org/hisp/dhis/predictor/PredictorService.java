@@ -84,8 +84,6 @@ public interface PredictorService {
    */
   List<Predictor> getAllPredictors();
 
-  List<Predictor> getAllByDataElement(Collection<DataElement> dataElements);
-
   // -------------------------------------------------------------------------
   // Predictor Group
   // -------------------------------------------------------------------------

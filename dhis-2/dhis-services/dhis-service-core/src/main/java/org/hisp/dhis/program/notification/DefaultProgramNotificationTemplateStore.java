@@ -155,8 +155,8 @@ public class DefaultProgramNotificationTemplateStore
     // language=hql
     String hql =
         """
-          from ProgramNotificationTemplate pnt
-          where pnt.recipientDataElement in :dataElements
+        from ProgramNotificationTemplate pnt
+        where pnt.recipientDataElement in :dataElements
         """;
 
     return getQuery(hql).setParameter("dataElements", dataElements).list();

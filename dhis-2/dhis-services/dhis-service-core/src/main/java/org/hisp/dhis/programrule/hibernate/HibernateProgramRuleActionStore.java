@@ -95,8 +95,8 @@ public class HibernateProgramRuleActionStore
   public List<ProgramRuleAction> getByDataElement(Collection<DataElement> dataElements) {
     return getQuery(
             """
-              from ProgramRuleAction pra
-              where pra.dataElement in :dataElements
+            from ProgramRuleAction pra
+            where pra.dataElement in :dataElements
             """)
         .setParameter("dataElements", dataElements)
         .list();
