@@ -28,13 +28,13 @@
 package org.hisp.dhis.tracker.validation.validator.trackedentity;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.TrackerImportStrategy.UPDATE;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1006;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1009;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1076;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1084;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1090;
 import static org.hisp.dhis.tracker.validation.validator.TrackerImporterAssertErrors.ATTRIBUTE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.validator.ValidationUtils.getTrackedEntityAttributes;
 import static org.hisp.dhis.tracker.validation.validator.ValidationUtils.validateOptionSet;
 
 import java.util.HashMap;
@@ -93,14 +93,9 @@ class AttributeValidator extends org.hisp.dhis.tracker.validation.validator.Attr
       TrackerBundle bundle,
       TrackedEntity trackedEntity,
       TrackedEntityType trackedEntityType) {
-    if (bundle.getStrategy(trackedEntity) == UPDATE) {
-      return;
-    }
 
     Set<MetadataIdentifier> trackedEntityAttributes =
-        trackedEntity.getAttributes().stream()
-            .map(Attribute::getAttribute)
-            .collect(Collectors.toSet());
+        getTrackedEntityAttributes(bundle, trackedEntity.getTrackedEntity());
 
     TrackerIdSchemeParams idSchemes = bundle.getPreheat().getIdSchemes();
     trackedEntityType.getTrackedEntityTypeAttributes().stream()

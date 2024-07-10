@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.validation.validator.trackedentity;
 
+import static org.hisp.dhis.DhisConvenienceTest.createTrackedEntityAttributeValue;
 import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertNoErrors;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
@@ -37,6 +38,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.encryption.EncryptionStatus;
@@ -47,6 +49,7 @@ import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -73,6 +76,9 @@ import org.mockito.quality.Strictness;
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 class AttributeValidatorTest {
+  private static final String TE_UID = "fdsf9e90rei";
+
+  private static final String MANDATORY_ATTRIBUTE_UID = "cFr94jf03AA";
 
   @InjectMocks private AttributeValidator validator;
 
@@ -171,7 +177,7 @@ class AttributeValidatorTest {
   }
 
   @Test
-  void shouldPassValidationWhenUpdatingTEAndThereAreMissingMandatoryFields() {
+  void shouldPassValidationWhenUpdatingTEAndPayloadIsMissingMandatoryFieldButItIsPresentInDB() {
     String tet = "tet";
 
     TrackedEntityType trackedEntityType = new TrackedEntityType();
@@ -179,17 +185,18 @@ class AttributeValidatorTest {
     trackedEntityTypeAttribute.setMandatory(true);
 
     TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
-    trackedEntityAttribute.setUid("c");
+    trackedEntityAttribute.setUid(MANDATORY_ATTRIBUTE_UID);
     trackedEntityTypeAttribute.setTrackedEntityAttribute(trackedEntityAttribute);
 
     trackedEntityType.setTrackedEntityTypeAttributes(
         Collections.singletonList(trackedEntityTypeAttribute));
 
     when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(tet))).thenReturn(trackedEntityType);
+    when(preheat.getTrackedEntity(TE_UID)).thenReturn(trackedEntity(trackedEntityAttribute));
 
     TrackedEntity trackedEntity =
         TrackedEntity.builder()
-            .trackedEntity(CodeGenerator.generateUid())
+            .trackedEntity(TE_UID)
             .trackedEntityType(MetadataIdentifier.ofUid(tet))
             .attributes(
                 Arrays.asList(
@@ -214,6 +221,53 @@ class AttributeValidatorTest {
     validator.validate(reporter, bundle, trackedEntity);
 
     assertNoErrors(reporter);
+  }
+
+  @Test
+  void shouldFailValidationWhenUpdatingTEAndPayloadIsMissingMandatoryFieldAndItIsNotPresentInDB() {
+    String tet = "tet";
+
+    TrackedEntityType trackedEntityType = new TrackedEntityType();
+    TrackedEntityTypeAttribute trackedEntityTypeAttribute = new TrackedEntityTypeAttribute();
+    trackedEntityTypeAttribute.setMandatory(true);
+
+    TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
+    trackedEntityAttribute.setUid(MANDATORY_ATTRIBUTE_UID);
+    trackedEntityTypeAttribute.setTrackedEntityAttribute(trackedEntityAttribute);
+
+    trackedEntityType.setTrackedEntityTypeAttributes(
+        Collections.singletonList(trackedEntityTypeAttribute));
+
+    when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(tet))).thenReturn(trackedEntityType);
+    when(preheat.getTrackedEntity(TE_UID)).thenReturn(trackedEntity());
+
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(TE_UID)
+            .trackedEntityType(MetadataIdentifier.ofUid(tet))
+            .attributes(
+                Arrays.asList(
+                    Attribute.builder()
+                        .attribute(MetadataIdentifier.ofUid("a"))
+                        .value("value")
+                        .build(),
+                    Attribute.builder()
+                        .attribute(MetadataIdentifier.ofUid("b"))
+                        .value("value")
+                        .build()))
+            .build();
+
+    TrackedEntityAttribute contextAttribute = new TrackedEntityAttribute();
+    contextAttribute.setUid("uid");
+    contextAttribute.setValueType(ValueType.TEXT);
+
+    when(preheat.getTrackedEntityAttribute((MetadataIdentifier) any()))
+        .thenReturn(contextAttribute);
+    bundle.setStrategy(trackedEntity, TrackerImportStrategy.UPDATE);
+
+    validator.validate(reporter, bundle, trackedEntity);
+
+    assertHasError(reporter, trackedEntity, ValidationCode.E1090);
   }
 
   @Test
@@ -400,7 +454,7 @@ class AttributeValidatorTest {
                 Collections.singletonList(
                     Attribute.builder()
                         .attribute(MetadataIdentifier.ofUid("trackedEntity"))
-                        .value("code")
+                        .value("CODE")
                         .build()))
             .trackedEntityType(MetadataIdentifier.ofUid("trackedEntityType"))
             .build();
@@ -554,5 +608,25 @@ class AttributeValidatorTest {
 
     trackedEntityAttribute.setOptionSet(optionSet);
     return trackedEntityAttribute;
+  }
+
+  private org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntity() {
+    org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntity =
+        new org.hisp.dhis.trackedentity.TrackedEntityInstance();
+    trackedEntity.setUid(TE_UID);
+    return trackedEntity;
+  }
+
+  private org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntity(
+      TrackedEntityAttribute attribute) {
+    org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntity =
+        new org.hisp.dhis.trackedentity.TrackedEntityInstance();
+    trackedEntity.setUid(TE_UID);
+    TrackedEntityAttributeValue attributeValue =
+        createTrackedEntityAttributeValue('c', trackedEntity, attribute);
+    attributeValue.setValue("value");
+    Set<TrackedEntityAttributeValue> attributes = Set.of(attributeValue);
+    trackedEntity.setTrackedEntityAttributeValues(attributes);
+    return trackedEntity;
   }
 }

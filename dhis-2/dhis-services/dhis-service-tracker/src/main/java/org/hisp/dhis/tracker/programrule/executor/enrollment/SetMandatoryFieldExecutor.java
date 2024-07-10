@@ -37,7 +37,6 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -63,20 +62,19 @@ public class SetMandatoryFieldExecutor implements RuleActionExecutor<Enrollment>
     TrackedEntityAttribute ruleAttribute =
         bundle.getPreheat().getTrackedEntityAttribute(attributeUid);
 
-    Set<MetadataIdentifier> enrollmentAttributes =
+    Set<MetadataIdentifier> programAttributes =
         enrollment.getAttributes().stream()
             .map(Attribute::getAttribute)
             .collect(Collectors.toSet());
 
-    Set<MetadataIdentifier> teAttributes =
-        ValidationUtils.buildTeAttributes(bundle, enrollment.getTrackedEntity());
+    Set<MetadataIdentifier> tetAttributes =
+        ValidationUtils.getTrackedEntityAttributes(bundle, enrollment.getTrackedEntity());
 
-    Optional<MetadataIdentifier> any =
-        Stream.concat(enrollmentAttributes.stream(), teAttributes.stream())
-            .filter(a -> a.isEqualTo(ruleAttribute))
-            .findAny();
+    boolean missesMandatoryAttribute =
+        Stream.concat(programAttributes.stream(), tetAttributes.stream())
+            .noneMatch(a -> a.isEqualTo(ruleAttribute));
 
-    if (any.isEmpty() && bundle.getStrategy(enrollment) == TrackerImportStrategy.CREATE) {
+    if (missesMandatoryAttribute) {
       return Optional.of(
           error(
               ruleUid,
@@ -84,13 +82,12 @@ public class SetMandatoryFieldExecutor implements RuleActionExecutor<Enrollment>
               idSchemes.toMetadataIdentifier(ruleAttribute).getIdentifierOrAttributeValue()));
     }
 
-    Optional<Attribute> enrollmentAttribute =
+    Optional<Attribute> programAttribute =
         enrollment.getAttributes().stream()
             .filter(attribute -> attribute.getAttribute().isEqualTo(ruleAttribute))
             .findAny();
 
-    if (enrollmentAttribute.isPresent()
-        && StringUtils.isEmpty(enrollmentAttribute.get().getValue())) {
+    if (programAttribute.isPresent() && StringUtils.isEmpty(programAttribute.get().getValue())) {
       return Optional.of(
           error(
               ruleUid,
