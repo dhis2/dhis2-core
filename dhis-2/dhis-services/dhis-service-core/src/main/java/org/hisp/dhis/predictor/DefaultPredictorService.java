@@ -27,11 +27,9 @@
  */
 package org.hisp.dhis.predictor;
 
-import java.util.Collection;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.dataelement.DataElement;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

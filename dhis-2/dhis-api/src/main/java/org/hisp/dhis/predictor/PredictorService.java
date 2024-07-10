@@ -27,9 +27,7 @@
  */
 package org.hisp.dhis.predictor;
 
-import java.util.Collection;
 import java.util.List;
-import org.hisp.dhis.dataelement.DataElement;
 
 /** Created by haase on 6/12/16. */
 public interface PredictorService {

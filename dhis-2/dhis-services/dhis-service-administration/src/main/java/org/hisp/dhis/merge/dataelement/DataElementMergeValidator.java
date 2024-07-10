@@ -31,10 +31,8 @@ import static org.hisp.dhis.feedback.ErrorCode.E1554;
 import static org.hisp.dhis.feedback.ErrorCode.E1555;
 
 import java.util.List;
-import java.util.function.BiPredicate;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.MergeReport;
 import org.springframework.stereotype.Component;
