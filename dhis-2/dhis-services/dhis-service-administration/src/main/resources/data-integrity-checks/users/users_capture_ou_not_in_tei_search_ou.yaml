@@ -1,0 +1,120 @@
+# Copyright (c) 2004-2022, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+name: users_capture_ou_not_in_tei_search_ou
+description: Users who have a data capture organisation unit which is not within their tracked entity search organisation unit hierarchy.
+section: Users
+section_order: 2
+summary_sql: >-
+  WITH user_data_orgunits AS (
+      SELECT userinfoid, array_agg(path) AS data_orgunits_paths
+      FROM organisationunit
+      JOIN usermembership ON organisationunit.organisationunitid = usermembership.organisationunitid
+      WHERE path IS NOT NULL
+      GROUP BY userinfoid
+  ),
+  user_view_orgunits AS (
+      SELECT userinfoid, array_agg(path) AS view_orgunit_paths
+      FROM organisationunit
+      JOIN userteisearchorgunits ON organisationunit.organisationunitid = userteisearchorgunits.organisationunitid
+      WHERE path IS NOT NULL
+      GROUP BY userinfoid
+  ),
+  usercount as (
+      SELECT COUNT(*) as usercount FROM userinfo
+  )
+  SELECT COUNT(ui.uid) as value, 
+  100.0 * COUNT(ui.uid) / NULLIF(usercount.usercount, 0) as percent
+  FROM userinfo ui
+  INNER JOIN (
+  SELECT u.userinfoid, ARRAY_AGG(dop) FILTER (WHERE dop IS NOT NULL) AS invalid_data_orgunits
+  FROM user_data_orgunits u
+  INNER JOIN user_view_orgunits v ON u.userinfoid = v.userinfoid
+  LEFT JOIN LATERAL (
+      SELECT path AS dop
+      FROM unnest(u.data_orgunits_paths) AS path
+      WHERE NOT EXISTS (
+          SELECT 1
+          FROM unnest(COALESCE(v.view_orgunit_paths, '{}')) AS view_path
+          WHERE path LIKE view_path || '%'
+      )
+  ) invalid_paths ON true
+  GROUP BY u.userinfoid
+  HAVING array_length(ARRAY_AGG(dop) FILTER (WHERE dop IS NOT NULL), 1) > 0
+  ) x on x.userinfoid = ui.userinfoid
+  INNER JOIN organisationunit ou on ou.path = any(x.invalid_data_orgunits)
+  JOIN usercount on true
+  GROUP BY usercount.usercount;
+details_sql: >-
+  WITH user_data_orgunits AS (
+      SELECT userinfoid, array_agg(path) AS data_orgunits_paths
+      FROM organisationunit 
+      JOIN usermembership ON organisationunit.organisationunitid = usermembership.organisationunitid
+      WHERE organisationunit.path IS NOT NULL
+      GROUP BY userinfoid
+  ),
+  user_view_orgunits AS (
+      SELECT userinfoid, array_agg(path) AS view_orgunit_paths
+      FROM organisationunit
+      JOIN userteisearchorgunits ON organisationunit.organisationunitid = userteisearchorgunits.organisationunitid
+      WHERE path IS NOT NULL
+      GROUP BY userinfoid
+  )
+  SELECT ui.uid, 
+  ui.username as name,
+  NULL as comment,
+  array_agg(ou.name) as refs
+  FROM userinfo ui
+  INNER JOIN (
+  SELECT u.userinfoid, ARRAY_AGG(dop) FILTER (WHERE dop IS NOT NULL) AS invalid_data_orgunits
+  FROM user_data_orgunits u
+  INNER JOIN user_view_orgunits v ON u.userinfoid = v.userinfoid
+  LEFT JOIN LATERAL (
+      SELECT path AS dop
+      FROM unnest(u.data_orgunits_paths) AS path
+      WHERE NOT EXISTS (
+          SELECT 1
+          FROM unnest(COALESCE(v.view_orgunit_paths, '{}')) AS view_path
+          WHERE path LIKE view_path || '%'
+      )
+  ) invalid_paths ON true
+  GROUP BY u.userinfoid
+  HAVING array_length(ARRAY_AGG(dop) FILTER (WHERE dop IS NOT NULL), 1) > 0
+  ) x on x.userinfoid = ui.userinfoid
+  INNER JOIN organisationunit ou on ou.path = any(x.invalid_data_orgunits)
+  GROUP BY ui.uid, ui.username;
+details_id_type: users
+severity: WARNING
+introduction: >
+  Users who can enter tracker data should also be able to search for tracked entities. If a users 
+  data capture organisation unit is not within their tracked entity search organisation unit hierarchy,
+  they may not be able to search for all tracked entities that they have entered data for.
+recommendation: >
+  Users should be able to search for all tracked entities that they have entered data for. Using the results
+  of the details query, adjust either the users capture organisation unit so that it is within the tracked entity
+    search organisation unit hierarchy. Alternatively, you can consider to adjust the tracked entity search organisation
+    unit hierarchy so that it includes the data capture organisation unit.
