@@ -7,6 +7,10 @@ SET notificationtemplateid = t.programnotificationtemplateid
     FROM programnotificationtemplate t
 WHERE pra.templateuid = t.uid;
 
+-- Remove templateUid
+
+ALTER TABLE programruleaction DROP COLUMN IF EXISTS templateuid;
+
 -- Conditionally add the foreign key constraint if it doesn't exist
 DO $$
 BEGIN

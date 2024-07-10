@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -45,6 +46,7 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.translation.Translatable;
 
@@ -53,6 +55,10 @@ import org.hisp.dhis.translation.Translatable;
  */
 @JacksonXmlRootElement(localName = "programRuleAction", namespace = DxfNamespaces.DXF_2_0)
 public class ProgramRuleAction extends BaseIdentifiableObject implements MetadataObject {
+
+  private static final List<ProgramRuleActionType> TYPES_WITH_TEMPLATE =
+      List.of(ProgramRuleActionType.SENDMESSAGE, ProgramRuleActionType.SCHEDULEMESSAGE);
+
   /** The programRule that the action belongs to */
   private ProgramRule programRule;
 
@@ -336,8 +342,11 @@ public class ProgramRuleAction extends BaseIdentifiableObject implements Metadat
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Property(required = Property.Value.FALSE, owner = Property.Value.TRUE)
   public String getTemplateUid() {
-    return templateUid;
+    return TYPES_WITH_TEMPLATE.contains(programRuleActionType)
+        ? notificationTemplate.getUid()
+        : null;
   }
 
   public void setTemplateUid(String templateUid) {
