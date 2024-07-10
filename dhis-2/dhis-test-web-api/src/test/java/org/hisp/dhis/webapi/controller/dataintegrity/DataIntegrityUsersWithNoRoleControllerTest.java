@@ -48,8 +48,6 @@ class DataIntegrityUsersWithNoRoleControllerTest extends AbstractDataIntegrityIn
 
   private static final String DETAILS_ID_TYPE = "users";
 
-  private String userRoleUid;
-
   @Test
   void testCanFlagUserWithNoRoles() {
 
