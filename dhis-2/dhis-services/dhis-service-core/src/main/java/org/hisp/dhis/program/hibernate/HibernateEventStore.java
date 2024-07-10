@@ -27,24 +27,15 @@
  */
 package org.hisp.dhis.program.hibernate;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import java.util.Date;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import org.apache.commons.lang3.time.DateUtils;
-import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventStore;
-import org.hisp.dhis.program.notification.NotificationTrigger;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -57,74 +48,12 @@ import org.springframework.stereotype.Repository;
 public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
     implements EventStore {
 
-  private static final Set<NotificationTrigger> SCHEDULED_EVENT_TRIGGERS =
-      Sets.intersection(
-          NotificationTrigger.getAllApplicableToEvent(),
-          NotificationTrigger.getAllScheduledTriggers());
-
   public HibernateEventStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService) {
     super(entityManager, jdbcTemplate, publisher, Event.class, aclService, false);
-  }
-
-  @Override
-  public boolean exists(String uid) {
-    if (uid == null) {
-      return false;
-    }
-
-    Query<?> query =
-        nativeSynchronizedQuery(
-            "select exists(select 1 from event where uid=:uid and deleted is false)");
-    query.setParameter("uid", uid);
-
-    return ((Boolean) query.getSingleResult()).booleanValue();
-  }
-
-  @Override
-  public boolean existsIncludingDeleted(String uid) {
-    if (uid == null) {
-      return false;
-    }
-
-    Query<?> query = nativeSynchronizedQuery("select exists(select 1 from event where uid=:uid)");
-    query.setParameter("uid", uid);
-
-    return ((Boolean) query.getSingleResult()).booleanValue();
-  }
-
-  @Override
-  public List<Event> getWithScheduledNotifications(
-      ProgramNotificationTemplate template, Date notificationDate) {
-    if (notificationDate == null
-        || !SCHEDULED_EVENT_TRIGGERS.contains(template.getNotificationTrigger())) {
-      return Lists.newArrayList();
-    }
-
-    if (template.getRelativeScheduledDays() == null) {
-      return Lists.newArrayList();
-    }
-
-    Date targetDate = DateUtils.addDays(notificationDate, template.getRelativeScheduledDays() * -1);
-
-    String hql =
-        "select distinct ev from Event as ev "
-            + "inner join ev.programStage as ps "
-            + "where :notificationTemplate in elements(ps.notificationTemplates) "
-            + "and ev.scheduledDate is not null "
-            + "and ev.occurredDate is null "
-            + "and ev.status != :skippedEventStatus "
-            + "and cast(:targetDate as date) = ev.scheduledDate "
-            + "and ev.deleted is false";
-
-    return getQuery(hql)
-        .setParameter("notificationTemplate", template)
-        .setParameter("skippedEventStatus", EventStatus.SKIPPED)
-        .setParameter("targetDate", targetDate)
-        .list();
   }
 
   @Override

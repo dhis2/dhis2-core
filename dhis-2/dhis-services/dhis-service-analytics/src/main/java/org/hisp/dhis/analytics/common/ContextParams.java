@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,18 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei;
+package org.hisp.dhis.analytics.common;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.With;
+import lombok.Builder;
+import lombok.Data;
+import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 
-/** Groups all request attributes specifically related to tracked entity types. */
-@Getter
-@Setter
-@With
-@AllArgsConstructor
-public class TeiQueryRequest {
-  private String trackedEntityType;
+/**
+ * This object holds common objects required by most analytics flows as well as specialized objects
+ * related to a specific flow.
+ *
+ * @param <R> the raw specialize request object for the respective flow.
+ * @param <P> the parsed version of the specialized raw object.
+ */
+@Data
+@Builder(toBuilder = true)
+public class ContextParams<R, P> {
+  private final R typedRaw;
+  private final P typedParsed;
+
+  private final CommonRequestParams commonRaw;
+  private final CommonParsedParams commonParsed;
 }

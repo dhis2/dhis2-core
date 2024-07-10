@@ -30,16 +30,11 @@ package org.hisp.dhis.analytics.tei;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Set;
-import org.hisp.dhis.analytics.common.CommonQueryRequest;
-import org.hisp.dhis.analytics.common.QueryRequest;
-import org.hisp.dhis.analytics.common.params.CommonParams;
-import org.hisp.dhis.analytics.common.processing.CommonQueryRequestMapper;
-import org.hisp.dhis.analytics.common.processing.Processor;
+import org.hisp.dhis.analytics.common.CommonRequestParams;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -48,7 +43,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class TeiQueryRequestMapperTest {
+class TeiRequestParamsMapperTest {
   private final TrackedEntityTypeService trackedEntityTypeService =
       mock(TrackedEntityTypeService.class);
 
@@ -56,18 +51,10 @@ class TeiQueryRequestMapperTest {
 
   private TeiQueryRequestMapper teiQueryRequestMapper;
 
-  private CommonQueryRequestMapper commonQueryRequestMapper;
-
   @BeforeEach
   @SuppressWarnings("unchecked")
   public void setUp() {
-    commonQueryRequestMapper = mock(CommonQueryRequestMapper.class);
-    teiQueryRequestMapper =
-        new TeiQueryRequestMapper(
-            commonQueryRequestMapper,
-            trackedEntityTypeService,
-            mock(Processor.class),
-            programService);
+    teiQueryRequestMapper = new TeiQueryRequestMapper(trackedEntityTypeService, programService);
   }
 
   @Test
@@ -89,23 +76,18 @@ class TeiQueryRequestMapperTest {
 
     TrackedEntityType trackedEntityType = stubTrackedEntityType(trackedEntityTypeUid);
 
-    QueryRequest<TeiQueryRequest> queryRequest =
-        QueryRequest.<TeiQueryRequest>builder()
-            .request(new TeiQueryRequest(trackedEntityTypeUid))
-            .commonQueryRequest(new CommonQueryRequest().withProgram(Set.of("A", "B")))
-            .build();
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setProgram(Set.of("A", "B"));
 
     when(trackedEntityTypeService.getTrackedEntityType(trackedEntityTypeUid))
         .thenReturn(trackedEntityType);
 
     when(programService.getPrograms(Set.of("A", "B"))).thenReturn(Set.of(programA, programB));
 
-    CommonQueryRequest commonQueryRequest = new CommonQueryRequest();
-
     final IllegalQueryException thrown =
         assertThrows(
             IllegalQueryException.class,
-            () -> teiQueryRequestMapper.map(queryRequest, commonQueryRequest));
+            () -> teiQueryRequestMapper.map(trackedEntityTypeUid, requestParams));
 
     assertEquals(expectedMessage, thrown.getMessage());
   }
@@ -119,20 +101,15 @@ class TeiQueryRequestMapperTest {
 
     TrackedEntityType trackedEntityType = stubTrackedEntityType(trackedEntityTypeUid);
 
-    QueryRequest<TeiQueryRequest> queryRequest =
-        QueryRequest.<TeiQueryRequest>builder()
-            .request(new TeiQueryRequest(trackedEntityTypeUid))
-            .commonQueryRequest(new CommonQueryRequest().withProgram(Set.of("A", "B")))
-            .build();
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setProgram(Set.of("A", "B"));
 
     when(trackedEntityTypeService.getTrackedEntityType(trackedEntityTypeUid))
         .thenReturn(trackedEntityType);
 
     when(programService.getPrograms(Set.of("A", "B"))).thenReturn(Set.of(programA, programB));
 
-    when(commonQueryRequestMapper.map(any(), any())).thenReturn(CommonParams.builder().build());
-
-    assertDoesNotThrow(() -> teiQueryRequestMapper.map(queryRequest, new CommonQueryRequest()));
+    assertDoesNotThrow(() -> teiQueryRequestMapper.map(trackedEntityTypeUid, requestParams));
   }
 
   @Test
@@ -141,20 +118,14 @@ class TeiQueryRequestMapperTest {
 
     TrackedEntityType trackedEntityType = stubTrackedEntityType(trackedEntityTypeUid);
 
-    QueryRequest<TeiQueryRequest> queryRequest =
-        QueryRequest.<TeiQueryRequest>builder()
-            .request(new TeiQueryRequest(trackedEntityTypeUid))
-            .commonQueryRequest(new CommonQueryRequest())
-            .build();
+    CommonRequestParams requestParams = new CommonRequestParams();
 
     when(trackedEntityTypeService.getTrackedEntityType(trackedEntityTypeUid))
         .thenReturn(trackedEntityType);
 
     when(programService.getPrograms(Set.of("A", "B"))).thenReturn(Set.of());
 
-    when(commonQueryRequestMapper.map(any(), any())).thenReturn(CommonParams.builder().build());
-
-    assertDoesNotThrow(() -> teiQueryRequestMapper.map(queryRequest, new CommonQueryRequest()));
+    assertDoesNotThrow(() -> teiQueryRequestMapper.map(trackedEntityTypeUid, requestParams));
   }
 
   private Program stubProgram(String uid, String tetUid) {

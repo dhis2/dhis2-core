@@ -207,14 +207,14 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     enrollmentService.updateEnrollment(enrollment);
     trackedEntityService.updateTrackedEntity(trackedEntityA1);
     TrackedEntity trackedEntityA = trackedEntityService.getTrackedEntity(idA);
-    Enrollment psA = enrollmentService.getEnrollment(psIdA);
+    Enrollment psA = manager.get(Enrollment.class, psIdA);
     Event eventA = manager.get(Event.class, eventIdA);
     assertNotNull(trackedEntityA);
     assertNotNull(psA);
     assertNotNull(eventA);
     trackedEntityService.deleteTrackedEntity(trackedEntityA1);
     assertNull(trackedEntityService.getTrackedEntity(trackedEntityA.getUid()));
-    assertNull(enrollmentService.getEnrollment(psIdA));
+    assertNull(manager.get(Enrollment.class, psIdA));
     assertNull(manager.get(Event.class, eventIdA));
   }
 

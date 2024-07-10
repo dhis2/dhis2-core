@@ -30,63 +30,31 @@ package org.hisp.dhis.analytics.tei;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.feedback.ErrorCode.E4014;
-import static org.hisp.dhis.feedback.ErrorCode.E7222;
 
-import java.util.Set;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.analytics.common.QueryRequest;
-import org.hisp.dhis.analytics.common.processing.CommonQueryRequestValidator;
 import org.hisp.dhis.analytics.common.processing.Validator;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.springframework.stereotype.Component;
 
 /**
- * Component responsible for validation rules on top of analytics tracker entity request queries.
+ * Component responsible for validation rules on top of a {@link TeiRequestParams} object. It must
+ * act only on top of raw incoming requests params.
  */
 @Component
-@RequiredArgsConstructor
-public class TeiQueryRequestValidator implements Validator<QueryRequest<TeiQueryRequest>> {
-  private final CommonQueryRequestValidator commonQueryRequestValidator;
+public class TeiQueryRequestValidator implements Validator<TeiRequestParams> {
 
   /**
-   * Runs a validation on the given query request object {@link QueryRequest}, preventing basic
-   * syntax and consistency issues.
+   * Runs a validation on the given query request object {@link TeiRequestParams}, preventing basic
+   * syntax errors and inconsistencies.
    *
-   * @param queryRequest the {@link QueryRequest} of type {@link TeiQueryRequest}.
+   * @param queryRequest the {@link TeiRequestParams}.
    * @throws IllegalQueryException if some invalid state is found.
    */
   @Override
-  public void validate(QueryRequest<TeiQueryRequest> queryRequest) {
-    String trackedEntityType = queryRequest.getRequest().getTrackedEntityType();
+  public void validate(TeiRequestParams queryRequest) {
+    String trackedEntityType = queryRequest.getTrackedEntityType();
 
     if (!isValidUid(trackedEntityType)) {
       throwIllegalQueryEx(E4014, trackedEntityType, "trackedEntityType");
     }
-
-    commonQueryRequestValidator.validate(queryRequest.getCommonQueryRequest());
-
-    checkAllowedDimensions(queryRequest);
-  }
-
-  /**
-   * Looks for invalid or unsupported queries/filters/dimensions.
-   *
-   * @param queryRequest the {@link QueryRequest} of type{@link TeiQueryRequest}.
-   * @throws IllegalQueryException if some invalid state is found.
-   */
-  private void checkAllowedDimensions(QueryRequest<TeiQueryRequest> queryRequest) {
-    Set<String> dimensions = queryRequest.getCommonQueryRequest().getDimension();
-
-    dimensions.forEach(
-        dim -> {
-          // The "pe" dimension is not supported for TEI queries.
-          if (containsPe(dim)) {
-            throwIllegalQueryEx(E7222, dim);
-          }
-        });
-  }
-
-  private boolean containsPe(String dimension) {
-    return dimension.contains("pe:");
   }
 }

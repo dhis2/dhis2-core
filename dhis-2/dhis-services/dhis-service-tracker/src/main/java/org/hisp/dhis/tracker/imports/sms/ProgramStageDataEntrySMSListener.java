@@ -32,16 +32,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
@@ -54,6 +56,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -81,8 +84,11 @@ public class ProgramStageDataEntrySMSListener extends RegisterSMSListener {
       UserService userService,
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
-      EventService eventService,
       EnrollmentService enrollmentService,
+      TrackedEntityDataValueChangeLogService dataValueAuditService,
+      FileResourceService fileResourceService,
+      DhisConfigurationProvider config,
+      IdentifiableObjectManager identifiableObjectManager,
       TrackedEntityService trackedEntityService,
       TrackedEntityAttributeService trackedEntityAttributeService,
       SMSCommandService smsCommandService) {
@@ -91,8 +97,11 @@ public class ProgramStageDataEntrySMSListener extends RegisterSMSListener {
         userService,
         incomingSmsService,
         smsSender,
-        eventService,
-        enrollmentService);
+        enrollmentService,
+        dataValueAuditService,
+        fileResourceService,
+        config,
+        identifiableObjectManager);
     this.trackedEntityService = trackedEntityService;
     this.trackedEntityAttributeService = trackedEntityAttributeService;
     this.smsCommandService = smsCommandService;

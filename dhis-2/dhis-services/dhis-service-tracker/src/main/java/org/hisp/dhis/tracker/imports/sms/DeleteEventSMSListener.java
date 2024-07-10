@@ -58,7 +58,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Component("org.hisp.dhis.tracker.sms.DeleteEventSMSListener")
 @Transactional
 public class DeleteEventSMSListener extends CompressionSMSListener {
-  private final org.hisp.dhis.program.EventService apiEventService;
   private final EventService eventService;
 
   public DeleteEventSMSListener(
@@ -72,7 +71,6 @@ public class DeleteEventSMSListener extends CompressionSMSListener {
       CategoryService categoryService,
       DataElementService dataElementService,
       IdentifiableObjectManager identifiableObjectManager,
-      org.hisp.dhis.program.EventService apiEventService,
       EventService eventService) {
     super(
         incomingSmsService,
@@ -85,7 +83,6 @@ public class DeleteEventSMSListener extends CompressionSMSListener {
         categoryService,
         dataElementService,
         identifiableObjectManager);
-    this.apiEventService = apiEventService;
     this.eventService = eventService;
   }
 
@@ -101,7 +98,7 @@ public class DeleteEventSMSListener extends CompressionSMSListener {
       throw new SMSProcessingException(SmsResponse.INVALID_EVENT.set(subm.getEvent()));
     }
 
-    apiEventService.deleteEvent(event);
+    identifiableObjectManager.delete(event);
 
     return SmsResponse.SUCCESS;
   }

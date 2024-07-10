@@ -33,10 +33,13 @@ import java.util.List;
 import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.common.ContextParams;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
+import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
+import org.hisp.dhis.analytics.tei.TeiRequestParams;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.springframework.stereotype.Service;
 
@@ -48,29 +51,31 @@ public class SqlQueryCreatorService {
   /**
    * Builds a SqlQueryCreator from the given TeiQueryParams.
    *
-   * @param teiQueryParams the TeiQueryParams to build the SqlQueryCreator from.
+   * @param contextParams the {@link ContextParams} to build the SqlQueryCreator from.
    * @return a SqlQueryCreator
    */
-  public SqlQueryCreator getSqlQueryCreator(TeiQueryParams teiQueryParams) {
+  public SqlQueryCreator getSqlQueryCreator(
+      ContextParams<TeiRequestParams, TeiQueryParams> contextParams) {
     SqlParameterManager sqlParameterManager = new SqlParameterManager();
-    QueryContext queryContext = QueryContext.of(teiQueryParams, sqlParameterManager);
+    QueryContext queryContext = QueryContext.of(contextParams, sqlParameterManager);
+    CommonParsedParams parsedParams = contextParams.getCommonParsed();
 
     RenderableSqlQuery renderableSqlQuery =
         RenderableSqlQuery.builder().countRequested(false).build();
 
     for (SqlQueryBuilder provider : providers) {
       List<DimensionIdentifier<DimensionParam>> acceptedDimensions =
-          teiQueryParams.getCommonParams().getDimensionIdentifiers().stream()
+          parsedParams.getDimensionIdentifiers().stream()
               .filter(provider.getDimensionFilters().stream().reduce(x -> true, Predicate::and))
               .toList();
 
       List<AnalyticsSortingParams> acceptedSortingParams =
-          teiQueryParams.getCommonParams().getOrderParams().stream()
+          parsedParams.getOrderParams().stream()
               .filter(provider.getSortingFilters().stream().reduce(x -> true, Predicate::and))
               .toList();
 
       List<DimensionIdentifier<DimensionParam>> acceptedHeaders =
-          teiQueryParams.getCommonParams().getParsedHeaders().stream()
+          parsedParams.getParsedHeaders().stream()
               .filter(provider.getHeaderFilters().stream().reduce(x -> true, Predicate::and))
               .filter(parsedHeader -> notContains(acceptedDimensions, parsedHeader))
               .toList();
