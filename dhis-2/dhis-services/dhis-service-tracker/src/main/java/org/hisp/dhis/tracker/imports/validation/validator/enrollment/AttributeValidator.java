@@ -27,13 +27,12 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.enrollment;
 
-import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.CREATE;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1006;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1018;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1019;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1075;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1076;
-import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.buildTeAttributes;
+import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.getTrackedEntityAttributes;
 import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateOptionSet;
 
 import com.google.common.collect.Maps;
@@ -151,7 +150,8 @@ class AttributeValidator
     // 1 - attributes from enrollment whose value is non-empty
 
     // 2 - attributes from existing TE (if any) from preheat
-    Set<MetadataIdentifier> teAttributes = buildTeAttributes(bundle, enrollment.getTrackedEntity());
+    Set<MetadataIdentifier> teAttributes =
+        getTrackedEntityAttributes(bundle, enrollment.getTrackedEntity());
 
     // merged ids of eligible attributes to validate
     Set<MetadataIdentifier> mergedAttributes =
@@ -179,21 +179,19 @@ class AttributeValidator
                 E1019,
                 attrId.getIdentifierOrAttributeValue() + "=" + attrVal));
 
-    if (bundle.getStrategy(enrollment) == CREATE) {
-      // Merged attributes must contain each mandatory program attribute.
-      programAttributesMap.entrySet().stream()
-          .filter(Map.Entry::getValue) // <--- filter on mandatory flag
-          .map(Map.Entry::getKey)
-          .forEach(
-              mandatoryProgramAttribute ->
-                  reporter.addErrorIf(
-                      () -> !mergedAttributes.contains(mandatoryProgramAttribute),
-                      enrollment,
-                      E1018,
-                      mandatoryProgramAttribute,
-                      program.getUid(),
-                      enrollment.getEnrollment()));
-    }
+    // Merged attributes must contain each mandatory program attribute.
+    programAttributesMap.entrySet().stream()
+        .filter(Map.Entry::getValue) // <--- filter on mandatory flag
+        .map(Map.Entry::getKey)
+        .forEach(
+            mandatoryProgramAttribute ->
+                reporter.addErrorIf(
+                    () -> !mergedAttributes.contains(mandatoryProgramAttribute),
+                    enrollment,
+                    E1018,
+                    mandatoryProgramAttribute,
+                    program.getUid(),
+                    enrollment.getEnrollment()));
   }
 
   private MetadataIdentifier getOrgUnitUidFromTei(TrackerBundle bundle, String teUid) {
