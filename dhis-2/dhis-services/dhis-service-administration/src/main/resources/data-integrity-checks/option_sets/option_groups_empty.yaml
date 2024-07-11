@@ -33,7 +33,8 @@ summary_sql: >-
   WITH option_groups_empty as (
   SELECT uid,name from
   optiongroup where 
-  optionsetid IS NULL
+  optionsetid IS NULL OR optiongroupid NOT IN (
+  SELECT DISTINCT optiongroupid from optiongroupmembers)
   )
   SELECT 
   COUNT(*) as value,
