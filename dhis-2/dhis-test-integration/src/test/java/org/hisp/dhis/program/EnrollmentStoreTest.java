@@ -30,7 +30,8 @@ package org.hisp.dhis.program;
 import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_ENROLLMENT_DATE;
 import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_INCIDENT_DATE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
@@ -156,10 +157,9 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest {
     enrollmentStore.save(enrollmentA);
     enrollmentStore.save(enrollmentB);
     dbmsManager.flushSession();
-    assertTrue(enrollmentStore.exists(enrollmentA.getUid()));
-    assertTrue(enrollmentStore.exists(enrollmentB.getUid()));
-    assertFalse(enrollmentStore.exists("aaaabbbbccc"));
-    assertFalse(enrollmentStore.exists(null));
+    assertNotNull(enrollmentStore.get(enrollmentA.getId()));
+    assertNotNull(enrollmentStore.get(enrollmentB.getId()));
+    assertNull(enrollmentStore.get(99999));
   }
 
   @Test
