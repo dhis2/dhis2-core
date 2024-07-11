@@ -42,6 +42,7 @@ import java.util.stream.Stream;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ValidationStrategy;
@@ -183,13 +184,14 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
 
   @ParameterizedTest
   @MethodSource("transactionsNotCreatingDataValues")
-  void shouldPassValidationWhenMandatoryFieldIsNotPresentAndStrategyIsUpdate(
+  void shouldPassValidationWhenMandatoryFieldIsNotPresentInPayloadButPresentInDB(
       EventStatus savedStatus, EventStatus newStatus) {
     when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
     when(preheat.getDataElement(DATA_ELEMENT_ID)).thenReturn(dataElement);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
     Event event = getEventWithMandatoryValueNOTSet(savedStatus);
-    when(preheat.getEvent(event.getUid())).thenReturn(event(event.getUid(), newStatus));
+    when(preheat.getEvent(event.getUid()))
+        .thenReturn(eventWithMandatoryValue(event.getUid(), newStatus));
     bundle.setEvents(List.of(event));
     bundle.setStrategy(event, TrackerImportStrategy.UPDATE);
     Optional<ProgramRuleIssue> error = executor.executeRuleAction(bundle, event);
@@ -246,6 +248,14 @@ class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
 
     assertFalse(error.isEmpty());
     assertEquals(error(RULE_UID, E1301, dataElement.getUid()), error.get());
+  }
+
+  private org.hisp.dhis.program.Event eventWithMandatoryValue(String uid, EventStatus status) {
+    org.hisp.dhis.program.Event event = new org.hisp.dhis.program.Event();
+    event.setUid(uid);
+    event.setStatus(status);
+    event.setEventDataValues(Set.of(new EventDataValue(DATA_ELEMENT_ID, DATA_ELEMENT_VALUE)));
+    return event;
   }
 
   private org.hisp.dhis.program.Event event(String uid, EventStatus status) {
