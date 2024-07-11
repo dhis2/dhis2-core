@@ -259,7 +259,7 @@ public interface OpenApiObject extends JsonObject {
       return getBoolean("deprecated").booleanValue(false);
     }
 
-    default List<ParameterObject> parameters(Api.Parameter.In in) {
+    default List<ParameterObject> parameters(ParameterObject.In in) {
       return parameters().stream().filter(p -> p.resolve().in() == in).toList();
     }
 
@@ -272,14 +272,22 @@ public interface OpenApiObject extends JsonObject {
   }
 
   interface ParameterObject extends JsonObject {
+
+    enum In {
+      query,
+      path,
+      header,
+      cookie
+    }
+
     @Required
     default String name() {
       return getString("name").string();
     }
 
     @Required
-    default Api.Parameter.In in() {
-      return getString("in").parsed(str -> Api.Parameter.In.valueOf(str.toUpperCase()));
+    default In in() {
+      return getString("in").parsed(In::valueOf);
     }
 
     @Language("markdown")
@@ -293,10 +301,6 @@ public interface OpenApiObject extends JsonObject {
 
     default boolean deprecated() {
       return getBoolean("deprecated").booleanValue(false);
-    }
-
-    default boolean allowEmptyValue() {
-      return getBoolean("allowEmptyValue").booleanValue(false);
     }
 
     default SchemaObject schema() {

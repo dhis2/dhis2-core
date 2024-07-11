@@ -32,6 +32,7 @@ import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.webapi.openapi.OpenApiMarkdown.markdownToHTML;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -41,9 +42,12 @@ import java.util.function.Consumer;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonNodeType;
+import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.webapi.openapi.OpenApiObject.OperationObject;
 import org.hisp.dhis.webapi.openapi.OpenApiObject.ParameterObject;
+import org.hisp.dhis.webapi.openapi.OpenApiObject.RequestBodyObject;
 import org.hisp.dhis.webapi.openapi.OpenApiObject.SchemaObject;
 import org.intellij.lang.annotations.Language;
 
@@ -181,12 +185,12 @@ public class OpenApiRenderer {
   details {
     margin-left: 2rem;
   }
-  details > summary:after {
+  details > summary:before {
       content: '⊕';
       float: left;
       margin-left: calc(-1rem - 10px);
   }
-  details[open] > summary:after {
+  details[open] > summary:before {
     content: '⊝';
   }
   .domains > details[open] > summary {
@@ -218,9 +222,13 @@ public class OpenApiRenderer {
   code.url.path { font-weight: bold; }
   code.url em, code.url.secondary { color: lightslategrey; font-style: normal; font-weight: normal; background: color-mix(in srgb, snow 70%, transparent); }
   code.url small { color: gray; }
-  code.value { color: darkslateblue; }
+  code.tag { color: dimgray; margin-left: 2em; }
+  code.tag > span + span { color: darkmagenta; }
   code.url.secondary.type { color: dimgray; font-style: italic; }
   code.url.secondary + code.url.secondary { padding-left: 0; }
+  code.mime { background-color: ivory; font-style: italic; padding: 0.25em 0.5em; margin-bottom: 0.25em; display: inline-block; }
+  code.mime.secondary { background: color-mix(in srgb, ivory 70%, transparent); }
+
   .deprecated summary > code.url { background-color: var(--color-dep); color: #666; }
   .deprecated summary > code.url.secondary { background: color-mix(in srgb, var(--color-dep) 70%, transparent); }
 
@@ -272,7 +280,7 @@ public class OpenApiRenderer {
   }
   nav button.deprecated { background-color: var(--color-dep); }
 
-  details.op button { background: none; border: none; cursor: pointer; }
+  details.op button { background-color: #444; color: white; border: none; cursor: pointer; }
 
   #body[get-] button.GET:before,
   #body[post-] button.POST:before,
@@ -283,24 +291,24 @@ public class OpenApiRenderer {
   #body[desc-] button.desc:before { content: '🞏'; color: dimgray; }
 
 
-  .param.required > code.url:first-child:after {
+  .param.required code.url:first-child:after {
     content: '*';
     color: tomato;
   }
-  .param.deprecated > code.url:first-child:before {
+  .param.deprecated > summary > code.url:first-child:before {
       content: '⚠️';
       font-family: sans-serif; /* reset font */
       display: inline-block; /* reset text-decorations */
       padding-right: 0.25rem;
   }
-  .param.deprecated > code:hover:after {
+  .param.deprecated > summary > code.url:first-child:hover:after {
     content: 'This parameter is deprecated';
     position: absolute;
     background: var(--color-tooltip);
     color: var(--color-tooltiptext);
     padding: 0.25rem 0.5rem;
   }
-  .op.deprecated > summary code.url:hover:after {
+  .op.deprecated > summary > code.url:hover:after {
     content: 'This operation is deprecated';
     position: absolute;
     background: var(--color-tooltip);
@@ -514,6 +522,7 @@ public class OpenApiRenderer {
           renderOperationToolbar(op);
           appendTag("header", markdownToHTML(op.description(), op.parameterNames()));
           renderParameters(op);
+          renderRequestBody(op);
         });
   }
 
@@ -571,7 +580,7 @@ public class OpenApiRenderer {
         path.replaceAll("/(\\{[^/]+)(?<=})(?=/|$)", "/<em>$1</em>")
             .replaceAll("#([a-zA-Z0-9_]+)", "<small>#<span>$1</span></small>");
     appendTag("code", Map.of("class", "url path"), url);
-    List<ParameterObject> queryParams = op.parameters(Api.Parameter.In.QUERY);
+    List<ParameterObject> queryParams = op.parameters(ParameterObject.In.query);
     if (!queryParams.isEmpty()) {
       String query = "?";
       List<String> requiredParams =
@@ -583,21 +592,24 @@ public class OpenApiRenderer {
     appendTag("a", Map.of("href", "#" + op.operationId(), "class", "permalink"), "permalink");
   }
 
+  private void renderOperationSectionHeader(String text, String title) {
+    Map<String, String> attrs = Map.of("class", "url secondary", "title", title);
+    appendTag("h4", () -> appendTag("code", attrs, text));
+  }
+
   private void renderParameters(OperationObject op) {
     JsonList<ParameterObject> params = op.parameters();
     if (params.isUndefined() || params.isEmpty()) return;
 
-    renderParameters(op, Api.Parameter.In.PATH, "/.../");
-    renderParameters(op, Api.Parameter.In.QUERY, "?...");
-    renderParameters(op, Api.Parameter.In.BODY, "{...}");
+    // TODO header and cookie (if we need it)
+    renderParameters(op, ParameterObject.In.path, "/.../");
+    renderParameters(op, ParameterObject.In.query, "?...");
   }
 
-  private void renderParameters(OperationObject op, Api.Parameter.In in, String text) {
+  private void renderParameters(OperationObject op, ParameterObject.In in, String text) {
     List<ParameterObject> params = op.parameters(in);
     if (params.isEmpty()) return;
-    Map<String, String> attributes =
-        Map.of("class", "url secondary", "title", "Parameters in " + in.name().toLowerCase());
-    appendTag("h4", () -> appendTag("code", attributes, text));
+    renderOperationSectionHeader(text, "Parameters in " + in.name().toLowerCase());
     Set<String> parameterNames = op.parameterNames();
     params.stream().map(ParameterObject::resolve).forEach(p -> renderParameter(p, parameterNames));
   }
@@ -612,26 +624,87 @@ public class OpenApiRenderer {
         () -> {
           appendTag("summary", () -> renderParameterSummary(p));
           String description = markdownToHTML(p.description(), parameterNames);
-          if (description == null || description.isEmpty())
-            description = " "; // force the aside tag
           appendTag("article", Map.of("class", "desc"), description);
         });
   }
 
   private void renderParameterSummary(ParameterObject p) {
     SchemaObject schema = p.schema();
+    appendTag("code", Map.of("class", "url"), p.name());
+    appendTag("code", Map.of("class", "url secondary"), "=");
+    renderSchemaType(schema, "url");
+
+    JsonValue defaultValue = p.$default();
+    if (defaultValue.exists()) {
+      String value =
+          defaultValue.type() == JsonNodeType.STRING
+              ? defaultValue.as(JsonString.class).string()
+              : defaultValue.toJson();
+      renderParameterSummaryTag("default", value);
+    }
+    if (!schema.isShared()) {
+      renderParameterSummaryTag("format", schema.format());
+      renderParameterSummaryTag("minLength", schema.minLength());
+      renderParameterSummaryTag("maxLength", schema.maxLength());
+      renderParameterSummaryTag("pattern", schema.pattern());
+      renderParameterSummaryTag("enum", schema.$enum());
+    }
+  }
+
+  private void renderParameterSummaryTag(String name, Object value) {
+    if (value == null) return;
+    if (value instanceof Collection<?> l && l.isEmpty()) return;
+    String str = value.toString();
+    appendTag(
+        "code",
+        Map.of("class", "tag"),
+        () -> {
+          appendTag("span", name + ":");
+          appendTag("span", str);
+        });
+  }
+
+  private void renderRequestBody(OperationObject op) {
+    RequestBodyObject requestBody = op.requestBody();
+    if (!requestBody.exists()) return;
+    renderOperationSectionHeader("{...}", "Request Body");
+    String css = "body";
+    if (requestBody.required()) css += " required";
+    Set<String> parameterNames = op.parameterNames();
+    appendTag(
+        "details",
+        Map.of("open", "", "class", css),
+        () -> {
+          appendTag(
+              "summary",
+              () -> {
+                requestBody
+                    .content()
+                    .entries()
+                    .forEach(
+                        mediaType -> {
+                          appendTag("code", Map.of("class", "mime"), mediaType.getKey());
+                          appendTag("code", Map.of("class", "mime secondary"), "=");
+                          renderSchemaType(mediaType.getValue().schema().resolve(), "mime");
+                          appendPlain("<br/>");
+                        });
+              });
+          String description = markdownToHTML(requestBody.description(), parameterNames);
+          appendTag("article", Map.of("class", "desc"), description);
+        });
+  }
+
+  private void renderSchemaType(SchemaObject schema, String style) {
     Runnable type =
         schema.isShared()
             ? () -> {
+              appendPlain("&lt;");
               appendTag("a", Map.of("href", "#" + schema.getSharedName()), schema.getSharedName());
+              appendPlain("&gt;");
             }
-            : () -> appendPlain(schema.$type());
-    appendTag("code", Map.of("class", "url"), p.name());
-    appendTag("code", Map.of("class", "url secondary"), "=");
-    appendTag("code", Map.of("class", "url secondary type"), type);
+            : () -> appendPlain("&lt;" + schema.$type() + "&gt;");
 
-    JsonValue defaultValue = p.$default();
-    appendTag("code", Map.of("class", "value"), defaultValue.exists() ? defaultValue.toJson() : "");
+    appendTag("code", Map.of("class", style + " secondary type"), type);
   }
 
   private void appendTag(String name, String text) {
