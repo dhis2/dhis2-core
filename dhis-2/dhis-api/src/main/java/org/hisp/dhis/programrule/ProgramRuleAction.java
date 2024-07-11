@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.programrule;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
@@ -43,6 +44,8 @@ import org.hisp.dhis.option.OptionGroup;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.translation.Translatable;
 
@@ -134,6 +137,18 @@ public class ProgramRuleAction extends BaseIdentifiableObject implements Metadat
    *   <li>sendmessage
    * </ul>
    */
+  @JsonIgnore private ProgramNotificationTemplate notificationTemplate;
+
+  /**
+   * The program notification template uid that will be triggered by the rule action. Used for:
+   *
+   * <ul>
+   *   <li>sendmessage
+   * </ul>
+   *
+   * @deprecated use {@link #notificationTemplate} instead
+   */
+  @Deprecated(since = "2.43")
   private String templateUid;
 
   /**
@@ -322,12 +337,29 @@ public class ProgramRuleAction extends BaseIdentifiableObject implements Metadat
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Property(required = Property.Value.FALSE, owner = Property.Value.TRUE)
   public String getTemplateUid() {
-    return templateUid;
+    return notificationTemplate != null ? notificationTemplate.getUid() : null;
   }
 
-  public void setTemplateUid(String programNotificationTemplate) {
-    this.templateUid = programNotificationTemplate;
+  public void setTemplateUid(String templateUid) {
+    if (templateUid == null) {
+      notificationTemplate = null;
+      return;
+    }
+
+    this.templateUid = templateUid;
+    ProgramNotificationTemplate template = new ProgramNotificationTemplate();
+    template.setUid(templateUid);
+    setNotificationTemplate(template);
+  }
+
+  public ProgramNotificationTemplate getNotificationTemplate() {
+    return notificationTemplate;
+  }
+
+  public void setNotificationTemplate(ProgramNotificationTemplate notificationTemplate) {
+    this.notificationTemplate = notificationTemplate;
   }
 
   @JsonProperty("trackedEntityAttribute")

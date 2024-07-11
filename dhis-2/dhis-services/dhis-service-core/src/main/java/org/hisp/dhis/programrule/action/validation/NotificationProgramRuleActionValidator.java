@@ -50,7 +50,8 @@ public class NotificationProgramRuleActionValidator implements ProgramRuleAction
     if (!programRuleAction.hasNotification()) {
       log.debug(
           String.format(
-              "ProgramNotificationTemplate cannot be null for program rule: %s ", rule.getName()));
+              "templateUid cannot be null for program rule: %s. templateUid has been deprecated use notificationTemplate instead ",
+              rule.getName()));
 
       return ProgramRuleActionValidationResult.builder()
           .valid(false)
@@ -74,7 +75,7 @@ public class NotificationProgramRuleActionValidator implements ProgramRuleAction
     if (pnt == null) {
       log.debug(
           String.format(
-              "ProgramNotificationTemplate id: %s for program rule: %s does not exist",
+              "ProgramNotificationTemplate id: %s for program rule: %s does not exist. templateUid has been deprecated use notificationTemplate instead ",
               programRuleAction.getTemplateUid(), rule.getName()));
 
       return ProgramRuleActionValidationResult.builder()
