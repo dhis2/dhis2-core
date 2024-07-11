@@ -67,28 +67,12 @@ public interface EnrollmentService {
   void updateEnrollment(Enrollment enrollment);
 
   /**
-   * Returns the {@link Enrollment} with the given UID.
-   *
-   * @param uid the UID.
-   * @return the Enrollment with the given UID, or null if no match.
-   */
-  Enrollment getEnrollment(String uid);
-
-  /**
    * Returns a list of existing Enrollments from the provided UIDs
    *
    * @param uids Event UIDs to check
    * @return Enrollment list
    */
   List<Enrollment> getEnrollments(@Nonnull List<String> uids);
-
-  /**
-   * Checks for the existence of an enrollment by UID. Deleted values are not taken into account.
-   *
-   * @param uid Event UID to check for
-   * @return true/false depending on result
-   */
-  boolean enrollmentExists(String uid);
 
   /**
    * Checks for the existence of an enrollment by UID. Takes into account also the deleted values.

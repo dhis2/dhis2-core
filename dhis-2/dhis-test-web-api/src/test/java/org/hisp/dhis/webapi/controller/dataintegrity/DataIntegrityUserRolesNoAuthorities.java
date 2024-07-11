@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,21 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.bundle.persister;
+package org.hisp.dhis.webapi.controller.dataintegrity;
 
-import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
-/**
- * @author Zubair Asghar
- */
-public interface TrackerObjectDeletionService {
-  TrackerTypeReport deleteEnrollments(TrackerBundle bundle) throws NotFoundException;
+import org.hisp.dhis.web.HttpStatus;
+import org.junit.jupiter.api.Test;
 
-  TrackerTypeReport deleteEvents(TrackerBundle bundle);
+class DataIntegrityUserRolesNoAuthorities extends AbstractDataIntegrityIntegrationTest {
 
-  TrackerTypeReport deleteTrackedEntity(TrackerBundle bundle) throws NotFoundException;
+  private static final String CHECK_NAME = "user_roles_no_authorities";
 
-  TrackerTypeReport deleteRelationships(TrackerBundle bundle);
+  private static final String DETAILS_ID_TYPE = "userRoles";
+
+  private String userRoleUid;
+
+  @Test
+  void testUserRolesNoAuthorities() {
+    userRoleUid =
+        assertStatus(
+            HttpStatus.CREATED, POST("/userRoles", "{ 'name': 'Empty role', 'authorities': [] }"));
+    assertStatus(
+        HttpStatus.CREATED,
+        POST("/userRoles", "{ 'name': 'Good role', 'authorities': ['F_DATAVALUE_ADD'] }"));
+    // Note that two user roles already exist due to the setup in the
+    // AbstractDataIntegrityIntegrationTest class
+    // Thus there should be 4 roles total. Only the Empty role should be flagged.
+    assertHasDataIntegrityIssues(
+        DETAILS_ID_TYPE, CHECK_NAME, 25, userRoleUid, "Empty role", null, true);
+  }
 }

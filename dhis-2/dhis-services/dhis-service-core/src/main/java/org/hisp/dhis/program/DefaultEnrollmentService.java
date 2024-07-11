@@ -81,20 +81,8 @@ public class DefaultEnrollmentService implements EnrollmentService {
 
   @Override
   @Transactional(readOnly = true)
-  public Enrollment getEnrollment(String uid) {
-    return enrollmentStore.getByUid(uid);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public List<Enrollment> getEnrollments(@Nonnull List<String> uids) {
     return enrollmentStore.getByUid(uids);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean enrollmentExists(String uid) {
-    return enrollmentStore.exists(uid);
   }
 
   @Override

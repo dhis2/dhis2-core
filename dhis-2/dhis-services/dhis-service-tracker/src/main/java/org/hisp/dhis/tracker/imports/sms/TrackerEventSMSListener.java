@@ -33,12 +33,13 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
@@ -53,8 +54,10 @@ import org.hisp.dhis.smscompression.models.Uid;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -115,8 +118,11 @@ public class TrackerEventSMSListener extends EventSavingSMSListener {
 
     OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(ouid.getUid());
 
-    Enrollment enrollment = enrollmentService.getEnrollment(enrolmentid.getUid());
-    if (enrollment == null) {
+    Enrollment enrollment;
+    try {
+      enrollment =
+          enrollmentService.getEnrollment(enrolmentid.getUid(), UserDetails.fromUser(user));
+    } catch (ForbiddenException | NotFoundException e) {
       throw new SMSProcessingException(SmsResponse.INVALID_ENROLL.set(enrolmentid));
     }
 

@@ -112,20 +112,6 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
   }
 
   @Override
-  public boolean exists(String uid) {
-    if (uid == null) {
-      return false;
-    }
-
-    Query<?> query =
-        nativeSynchronizedQuery(
-            "select exists(select 1 from enrollment where uid=:uid and deleted is false)");
-    query.setParameter("uid", uid);
-
-    return ((Boolean) query.getSingleResult()).booleanValue();
-  }
-
-  @Override
   public boolean existsIncludingDeleted(String uid) {
     if (uid == null) {
       return false;

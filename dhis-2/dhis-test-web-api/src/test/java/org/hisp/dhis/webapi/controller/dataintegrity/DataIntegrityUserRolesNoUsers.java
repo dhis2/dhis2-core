@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,21 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.bundle.persister;
+package org.hisp.dhis.webapi.controller.dataintegrity;
 
-import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * @author Zubair Asghar
- */
-public interface TrackerObjectDeletionService {
-  TrackerTypeReport deleteEnrollments(TrackerBundle bundle) throws NotFoundException;
+import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
+import org.junit.jupiter.api.Test;
 
-  TrackerTypeReport deleteEvents(TrackerBundle bundle);
+class DataIntegrityUserRolesNoUsers extends AbstractDataIntegrityIntegrationTest {
+  private static final String CHECK_NAME = "user_roles_with_no_users";
 
-  TrackerTypeReport deleteTrackedEntity(TrackerBundle bundle) throws NotFoundException;
+  private static final String DETAILS_ID_TYPE = "userRoles";
 
-  TrackerTypeReport deleteRelationships(TrackerBundle bundle);
+  private String userRoleUid;
+
+  @Test
+  void testUserRolesNoUsers() {
+    userRoleUid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/userRoles", "{ 'name': 'Test role', 'authorities': ['F_DATAVALUE_ADD'] }"));
+    // Note that two user roles already exist as part of the setup in the
+    // AbstractDataIntegrityIntegrationTest class
+    // Thus, there should be three roles in total, two of which are valid since they already have
+    // users associated with them.
+    postSummary(CHECK_NAME);
+
+    JsonDataIntegritySummary summary = getSummary(CHECK_NAME);
+    assertEquals(1, summary.getCount());
+    assertHasDataIntegrityIssues(
+        DETAILS_ID_TYPE, CHECK_NAME, 33, userRoleUid, "Test role", null, true);
+  }
 }

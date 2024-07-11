@@ -31,8 +31,8 @@ import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -52,7 +52,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeletionService {
-  private final EnrollmentService enrollmentService;
+  private final org.hisp.dhis.program.EnrollmentService apiEnrollmentService;
 
   private final TrackedEntityService teService;
 
@@ -65,7 +65,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
   private final EventTrackerConverterService eventTrackerConverterService;
 
   @Override
-  public TrackerTypeReport deleteEnrollments(TrackerBundle bundle) {
+  public TrackerTypeReport deleteEnrollments(TrackerBundle bundle) throws NotFoundException {
     TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.ENROLLMENT);
 
     List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments = bundle.getEnrollments();
@@ -75,7 +75,10 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
       Entity objectReport = new Entity(TrackerType.ENROLLMENT, uid);
 
-      Enrollment enrollment = enrollmentService.getEnrollment(uid);
+      Enrollment enrollment = manager.get(Enrollment.class, uid);
+      if (enrollment == null) {
+        throw new NotFoundException(Enrollment.class, uid);
+      }
       enrollment.setLastUpdatedByUserInfo(bundle.getUserInfo());
 
       List<org.hisp.dhis.tracker.imports.domain.Event> events =
@@ -95,7 +98,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
       te.setLastUpdatedByUserInfo(bundle.getUserInfo());
       te.getEnrollments().remove(enrollment);
 
-      enrollmentService.deleteEnrollment(enrollment);
+      apiEnrollmentService.deleteEnrollment(enrollment);
       teService.updateTrackedEntity(te);
 
       typeReport.getStats().incDeleted();
@@ -131,7 +134,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
         enrollment.setLastUpdatedByUserInfo(bundle.getUserInfo());
 
         enrollment.getEvents().remove(event);
-        enrollmentService.updateEnrollment(enrollment);
+        apiEnrollmentService.updateEnrollment(enrollment);
       }
 
       typeReport.getStats().incDeleted();
@@ -142,7 +145,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
   }
 
   @Override
-  public TrackerTypeReport deleteTrackedEntity(TrackerBundle bundle) {
+  public TrackerTypeReport deleteTrackedEntity(TrackerBundle bundle) throws NotFoundException {
     TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.TRACKED_ENTITY);
 
     List<org.hisp.dhis.tracker.imports.domain.TrackedEntity> trackedEntities =

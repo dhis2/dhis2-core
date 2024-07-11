@@ -34,6 +34,7 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1076;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1084;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1090;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.ATTRIBUTE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.getTrackedEntityAttributes;
 import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateOptionSet;
 
 import java.util.HashMap;
@@ -94,29 +95,26 @@ class AttributeValidator
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity,
       TrackedEntityType trackedEntityType) {
-    if (trackedEntityType != null) {
-      Set<MetadataIdentifier> trackedEntityAttributes =
-          trackedEntity.getAttributes().stream()
-              .map(Attribute::getAttribute)
-              .collect(Collectors.toSet());
 
-      TrackerIdSchemeParams idSchemes = bundle.getPreheat().getIdSchemes();
-      trackedEntityType.getTrackedEntityTypeAttributes().stream()
-          .filter(
-              trackedEntityTypeAttribute ->
-                  Boolean.TRUE.equals(trackedEntityTypeAttribute.isMandatory()))
-          .map(TrackedEntityTypeAttribute::getTrackedEntityAttribute)
-          .map(idSchemes::toMetadataIdentifier)
-          .filter(mandatoryAttribute -> !trackedEntityAttributes.contains(mandatoryAttribute))
-          .forEach(
-              attribute ->
-                  reporter.addError(
-                      trackedEntity,
-                      E1090,
-                      attribute,
-                      trackedEntityType.getUid(),
-                      trackedEntity.getTrackedEntity()));
-    }
+    Set<MetadataIdentifier> trackedEntityAttributes =
+        getTrackedEntityAttributes(bundle, trackedEntity.getTrackedEntity());
+
+    TrackerIdSchemeParams idSchemes = bundle.getPreheat().getIdSchemes();
+    trackedEntityType.getTrackedEntityTypeAttributes().stream()
+        .filter(
+            trackedEntityTypeAttribute ->
+                Boolean.TRUE.equals(trackedEntityTypeAttribute.isMandatory()))
+        .map(TrackedEntityTypeAttribute::getTrackedEntityAttribute)
+        .map(idSchemes::toMetadataIdentifier)
+        .filter(mandatoryAttribute -> !trackedEntityAttributes.contains(mandatoryAttribute))
+        .forEach(
+            attribute ->
+                reporter.addError(
+                    trackedEntity,
+                    E1090,
+                    attribute,
+                    trackedEntityType.getUid(),
+                    trackedEntity.getTrackedEntity()));
   }
 
   protected void validateAttributes(
