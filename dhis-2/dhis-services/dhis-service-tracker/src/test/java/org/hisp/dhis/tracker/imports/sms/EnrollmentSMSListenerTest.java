@@ -48,6 +48,8 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -82,6 +84,7 @@ import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogServi
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -181,7 +184,7 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
   private DataElement dataElement;
 
   @BeforeEach
-  public void initTest() throws SmsCompressionException {
+  public void initTest() throws SmsCompressionException, ForbiddenException, NotFoundException {
     subject =
         new EnrollmentSMSListener(
             incomingSmsService,
@@ -222,6 +225,8 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
         .thenReturn(enrollment);
     when(programService.hasOrgUnit(any(Program.class), any(OrganisationUnit.class)))
         .thenReturn(true);
+    when(enrollmentService.getEnrollment(anyString(), any(UserDetails.class)))
+        .thenThrow(NotFoundException.class);
 
     doAnswer(
             invocation -> {
@@ -296,7 +301,7 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
   }
 
   @Test
-  void testEnrollmentNoAttribs() {
+  void testEnrollmentNoAttribs() throws ForbiddenException, NotFoundException {
     subject.receive(incomingSmsEnrollmentNoAttribs);
 
     assertNotNull(updatedIncomingSms);
