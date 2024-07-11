@@ -204,7 +204,6 @@ class DataValueListenerTest extends DhisConvenienceTest {
             smsSender,
             registrationService,
             dataValueService,
-            dataElementCategoryService,
             smsCommandService,
             dataSetService,
             dataElementService);
