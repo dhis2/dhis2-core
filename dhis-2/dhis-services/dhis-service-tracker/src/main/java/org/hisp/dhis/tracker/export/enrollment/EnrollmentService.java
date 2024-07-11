@@ -47,10 +47,6 @@ public interface EnrollmentService {
   Enrollment getEnrollment(String uid, EnrollmentParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException;
 
-  Enrollment getEnrollment(
-      Enrollment enrollment, EnrollmentParams params, boolean includeDeleted, UserDetails user)
-      throws ForbiddenException;
-
   RelationshipItem getEnrollmentInRelationshipItem(
       String uid, EnrollmentParams params, boolean includeDeleted) throws NotFoundException;
 
