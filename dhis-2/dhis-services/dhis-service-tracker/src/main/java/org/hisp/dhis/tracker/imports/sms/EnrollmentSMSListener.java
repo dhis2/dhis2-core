@@ -188,28 +188,30 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
 
     TrackedEntity te = teService.getTrackedEntity(teUid.getUid());
 
-    // TODO: Unsure about this handling for enrollments, this needs to be
-    // checked closely
-    Enrollment enrollment;
-    boolean enrollmentExists = apiEnrollmentService.enrollmentExists(enrollmentid.getUid());
-    if (enrollmentExists) {
-      try {
-        enrollment =
-            enrollmentService.getEnrollment(enrollmentid.getUid(), UserDetails.fromUser(user));
-      } catch (ForbiddenException | NotFoundException e) {
-        throw new SMSProcessingException(SmsResponse.INVALID_ENROLL.set(enrollmentid.getUid()));
-      }
-      // Update these dates in case they've changed
+    Enrollment enrollment = null;
+    try {
+      enrollment =
+          enrollmentService.getEnrollment(enrollmentid.getUid(), UserDetails.fromUser(user));
       enrollment.setEnrollmentDate(enrollmentDate);
       enrollment.setOccurredDate(incidentDate);
-    } else {
+    } catch (ForbiddenException e) {
+      throw new SMSProcessingException(SmsResponse.INVALID_ENROLL.set(enrollmentid.getUid()));
+    } catch (NotFoundException e) {
+      // we'll create a new enrollment if none was found
+      // TODO(tracker) a NFE might be thrown if the user has no metadata access, we shouldn't create
+      // a new enrollment in that case
+    }
+
+    if (enrollment == null) {
       enrollment =
           apiEnrollmentService.enrollTrackedEntity(
               te, program, enrollmentDate, incidentDate, orgUnit, enrollmentid.getUid());
+
+      if (enrollment == null) {
+        throw new SMSProcessingException(SmsResponse.ENROLL_FAILED.set(teUid, progid));
+      }
     }
-    if (enrollment == null) {
-      throw new SMSProcessingException(SmsResponse.ENROLL_FAILED.set(teUid, progid));
-    }
+
     enrollment.setStatus(getCoreEnrollmentStatus(subm.getEnrollmentStatus()));
     enrollment.setGeometry(convertGeoPointToGeometry(subm.getCoordinates()));
     apiEnrollmentService.updateEnrollment(enrollment);

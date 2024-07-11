@@ -105,8 +105,7 @@ class DefaultEnrollmentService implements EnrollmentService {
     return getEnrollment(enrollment, params, includeDeleted, currentUser);
   }
 
-  @Override
-  public Enrollment getEnrollment(
+  private Enrollment getEnrollment(
       @Nonnull Enrollment enrollment,
       EnrollmentParams params,
       boolean includeDeleted,
