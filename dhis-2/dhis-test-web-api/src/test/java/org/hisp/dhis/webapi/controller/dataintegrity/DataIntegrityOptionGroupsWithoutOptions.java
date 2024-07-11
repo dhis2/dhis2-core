@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
 import org.junit.jupiter.api.Test;
 
 class DataIntegrityOptionGroupsWithoutOptions extends AbstractDataIntegrityIntegrationTest {
@@ -44,10 +43,6 @@ class DataIntegrityOptionGroupsWithoutOptions extends AbstractDataIntegrityInteg
     String goodOptionGroup =
         assertStatus(
             HttpStatus.CREATED, POST("/optionGroups", "{ 'name': 'Taste', 'shortName': 'Taste' }"));
-
-    postSummary(CHECK_NAME);
-
-    JsonDataIntegritySummary summary = getSummary(CHECK_NAME);
 
     assertHasDataIntegrityIssues(
         DETAILS_ID_TYPE, CHECK_NAME, 100, goodOptionGroup, "Taste", null, true);
