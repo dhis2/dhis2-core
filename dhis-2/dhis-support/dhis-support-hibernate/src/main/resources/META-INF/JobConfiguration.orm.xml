@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
-    
-    
-    <entity class="org.hisp.dhis.scheduling.JobConfiguration" metadata-complete="true">
+    <entity class="org.hisp.dhis.scheduling.JobConfiguration" metadata-complete="true" cacheable="true">
         <table name="jobconfiguration"/>
+        <attribute-override name="id">
+            <column name="jobconfigurationid"/>
+        </attribute-override>
         <attributes>
-            <id name="id">
-                <column name="jobconfigurationid"/>
-            </id>
             <basic name="uid" fetch="EAGER" optional="false" >
                 <column name="uid" unique="true" nullable="false" length="11"/>
             </basic>

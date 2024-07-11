@@ -2,6 +2,7 @@
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
     <entity class="org.hisp.dhis.dataelement.DataElement" metadata-complete="true">
         <table name="dataelement"/>
+        <convert converter="org.hisp.dhis.hibernate.jsonb.type.JsonAttributeValueBinaryType" attribute-name="attributeValues"/>
         <attributes>
             <id name="id">
                 <column name="dataelementid"/>

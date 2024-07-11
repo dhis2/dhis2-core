@@ -155,7 +155,7 @@
             </embedded>
         </attributes>
     </entity>
-    <embeddable class="org.hisp.dhis.visualization.ReportingParams" metadata-complete="true">
+    <embeddable class="org.hisp.dhis.visualization.ReportingParams" metadata-complete="true" access="FIELD">
         <attributes>
             <basic access="FIELD" name="reportingPeriod" fetch="EAGER" optional="true">
                 <column name="paramreportingperiod" unique="false"/>

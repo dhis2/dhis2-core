@@ -5,7 +5,7 @@
     </description>
  <entity class="org.hisp.dhis.datastore.DatastoreEntry" metadata-complete="true" cacheable="true">
         <table name="keyjsonvalue"/>
-     <convert converter="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryTypeConverter" attribute-name="jbPlainValue"/>
+        <convert converter="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" attribute-name="jbPlainValue"/>
         <convert converter="org.hisp.dhis.hibernate.encryption.type.EncryptedStringUserType"  attribute-name="encryptedValue"/>
         <attributes>
             <id name="id">

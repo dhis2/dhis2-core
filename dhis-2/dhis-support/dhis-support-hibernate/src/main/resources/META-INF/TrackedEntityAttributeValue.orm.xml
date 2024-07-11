@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
- <entity class="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue" metadata-complete="true">
+ <entity class="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue" access="FIELD">
         <table name="trackedentityattributevalue"/>
 
         <attributes>

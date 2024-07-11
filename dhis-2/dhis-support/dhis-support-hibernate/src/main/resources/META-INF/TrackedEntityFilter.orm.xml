@@ -2,7 +2,7 @@
 <entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
  <entity class="org.hisp.dhis.trackedentityfilter.TrackedEntityFilter" metadata-complete="true" cacheable="true">
         <table name="trackedentityfilter"/>
-        
+     <convert converter="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" attribute-name="eventFilters"/>
         <attributes>
             <id name="id">
                 <column name="trackedentityfilterid"/>
@@ -42,6 +42,7 @@
                 <foreign-key name="fk_trackedentityinstancefilter_userid"/>
                 <cascade/>
             </many-to-one>
+            <transient name="attributeValues"/>
         </attributes>
     </entity>
 </entity-mappings>

@@ -50,10 +50,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
-import javax.persistence.MappedSuperclass;
+import javax.persistence.Transient;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.annotations.Immutable;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.audit.AuditAttribute;
@@ -80,7 +79,6 @@ import org.hisp.dhis.user.sharing.UserGroupAccess;
 /**
  * @author Bob Jolliffe
  */
-@MappedSuperclass
 @JacksonXmlRootElement(localName = "identifiableObject", namespace = DxfNamespaces.DXF_2_0)
 public class BaseIdentifiableObject extends BaseLinkableObject implements IdentifiableObject {
   /** The database internal identifier for this Object. */
@@ -105,7 +103,7 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   @AuditAttribute protected Set<AttributeValue> attributeValues = new HashSet<>();
 
   /** Cache of attribute values which allows for lookup by attribute identifier. */
-  protected Map<String, AttributeValue> cacheAttributeValues = new HashMap<>();
+  @Transient protected Map<String, AttributeValue> cacheAttributeValues = new HashMap<>();
 
   /** Set of available object translation, normally filtered by locale. */
   protected Set<Translation> translations = new HashSet<>();
@@ -114,13 +112,13 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
    * Cache for object translations, where the cache key is a combination of locale and translation
    * property, and value is the translated value.
    */
-  private Map<String, String> translationCache = new ConcurrentHashMap<>();
+  @Transient private Map<String, String> translationCache = new ConcurrentHashMap<>();
 
   /** User who created this object. This field is immutable and must not be updated. */
-  @Immutable protected User createdBy;
+  protected User createdBy;
 
   /** Access information for this object. Applies to current user. */
-  protected transient Access access;
+  @Transient protected transient Access access;
 
   /** Users who have marked this object as a favorite. */
   protected Set<String> favorites = new HashSet<>();

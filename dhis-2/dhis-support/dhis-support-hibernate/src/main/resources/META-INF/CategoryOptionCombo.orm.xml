@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
+ <entity class="org.hisp.dhis.category.CategoryOptionCombo" metadata-complete="true" cacheable="true">
+        <table name="categoryoptioncombo">
+            <index column-list="name" name="in_categoryoptioncombo_name"/>
+        </table>
+        
+        <attributes>
+            <id name="id">
+                <column name="categoryoptioncomboid"/>
+                <generated-value strategy="AUTO"/>
+            </id>
+            <basic name="uid" fetch="EAGER" optional="false">
+                <column name="uid" unique="true" nullable="false" length="11"/>
+            </basic>
+            <basic name="code" fetch="EAGER" optional="true">
+                <column name="code" unique="true" nullable="true" length="50"/>
+            </basic>
+            <basic name="created" fetch="EAGER" optional="false"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="false"/>
+            <basic name="name" fetch="EAGER" optional="false" access="PROPERTY">
+                <column name="name" unique="true" nullable="true"/>
+            </basic>
+            <basic name="shortName" fetch="EAGER" optional="false">
+                <column name="shortname" unique="true" nullable="false" length="50"/>
+            </basic>
+            <basic name="description" fetch="EAGER" optional="true"/>
+            <basic name="formName" fetch="EAGER" optional="true"/>
+            <basic name="translations" fetch="EAGER" optional="true"/>
+            <basic name="attributeValues" fetch="EAGER" optional="true"/>
+            <basic name="sharing" fetch="EAGER" optional="true"/>
+            <basic name="ignoreApproval">
+                <column name="ignoreapproval"/>
+            </basic>
+            <many-to-one name="lastUpdatedBy" target-entity="org.hisp.dhis.user.User" fetch="LAZY" optional="true">
+                <join-column name="lastupdatedby" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_lastupdateby_userid"/>
+                <cascade/>
+            </many-to-one>
+
+            <many-to-one name="categoryCombo" target-entity="org.hisp.dhis.category.CategoryCombo" fetch="LAZY">
+                <join-table name="categorycombos_optioncombos">
+                    <join-column name="categoryoptioncomboid" nullable="false"/>
+                </join-table>
+            </many-to-one>
+        </attributes>
+    </entity>
+</entity-mappings>

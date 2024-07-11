@@ -53,7 +53,7 @@
             </embedded>
         </attributes>
     </entity>
-    <embeddable class="org.hisp.dhis.report.ReportingParams" metadata-complete="true">
+    <embeddable class="org.hisp.dhis.report.ReportingParams" metadata-complete="true" access="FIELD">
         <attributes>
             <basic name="reportingPeriod" fetch="EAGER" optional="true">
                 <column name="paramreportingmonth" unique="false"/>
