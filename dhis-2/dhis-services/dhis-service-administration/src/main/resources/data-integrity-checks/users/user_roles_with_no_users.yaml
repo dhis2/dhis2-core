@@ -25,18 +25,18 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-name: user_roles_no_authorities
-description: User roles which have no authorities assigned.
+name: user_roles_with_no_users
+description: User roles which have no users assigned.
 section: Users
-section_order: 4
+section_order: 5
 summary_sql: >-
     SELECT COUNT(*) as value, 
     100.0 * COUNT(*) / NULLIF((SELECT COUNT(*) FROM userrole), 0) as percent
     FROM userrole
-    WHERE userroleid NOT IN (SELECT userroleid FROM userroleauthorities);
+    WHERE userroleid NOT IN (SELECT userroleid FROM userrolemembers);
 details_sql: >-
-    SELECT uid, name FROM userrole
-    WHERE userroleid NOT IN (SELECT userroleid FROM userroleauthorities);
+  SELECT uid, name FROM userrole
+  WHERE userroleid NOT IN (SELECT userroleid FROM userrolemembers);
 details_id_type: userRoles
 severity: WARNING
 introduction: >
