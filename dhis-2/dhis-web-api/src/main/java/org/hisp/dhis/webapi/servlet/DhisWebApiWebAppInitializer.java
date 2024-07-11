@@ -137,5 +137,7 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
     context
         .addFilter("GlobalShellFilter", new DelegatingFilterProxy("globalShellFilter"))
         .addMappingForUrlPatterns(null, true, "/*");
+
+    context.addServlet("RootPageServlet", LoginFallbackServlet.class).addMapping("/login.html");
   }
 }
