@@ -65,7 +65,7 @@ public class HibernateProgramIndicatorStore
   @Override
   public List<ProgramIndicator> getAllWithExpressionContainingStrings(
       @Nonnull List<String> searchStrings) {
-    String multiLike = SqlUtils.multiLike("pi.expression", searchStrings);
+    String multiLike = SqlUtils.likeAny("pi.expression", searchStrings);
 
     return getQuery(
             """
@@ -80,7 +80,7 @@ public class HibernateProgramIndicatorStore
   @Override
   public List<ProgramIndicator> getAllWithFilterContainingStrings(
       @Nonnull List<String> searchStrings) {
-    String multiLike = SqlUtils.multiLike("pi.filter", searchStrings);
+    String multiLike = SqlUtils.likeAny("pi.filter", searchStrings);
 
     return getQuery(
             """

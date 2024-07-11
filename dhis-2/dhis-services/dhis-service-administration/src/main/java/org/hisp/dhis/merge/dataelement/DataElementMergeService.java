@@ -74,8 +74,7 @@ public class DataElementMergeService implements MergeService {
   private final MergeValidator validator;
   private final DataElementMergeValidator dataElementMergeValidator;
   private final EntityManager entityManager;
-  private ImmutableList<org.hisp.dhis.merge.dataelement.DataElementMergeHandler>
-      metadataMergeHandlers;
+  private ImmutableList<DataElementMergeHandler> metadataMergeHandlers;
   private ImmutableList<MergeHandler> commonMergeHandlers;
   private ImmutableList<DataElementDataMergeHandler> dataMergeHandlers;
   private ImmutableList<DataElementAuditMergeHandler> auditMergeHandlers;
@@ -151,7 +150,7 @@ public class DataElementMergeService implements MergeService {
   @PostConstruct
   private void initMergeHandlers() {
     metadataMergeHandlers =
-        ImmutableList.<org.hisp.dhis.merge.dataelement.DataElementMergeHandler>builder()
+        ImmutableList.<DataElementMergeHandler>builder()
             .add(analyticalMergeHandler::handleDataDimensionItems)
             .add(analyticalMergeHandler::handleEventVisualization)
             .add(analyticalMergeHandler::handleTrackedEntityDataElementDimension)
@@ -190,5 +189,38 @@ public class DataElementMergeService implements MergeService {
             .add(commonMergeHandler::handleRefsInIndicatorExpression)
             .add(commonMergeHandler::handleRefsInCustomForms)
             .build();
+  }
+
+  /**
+   * Functional interface representing a {@link DataElement} audit merge operation.
+   *
+   * @author david mackessy
+   */
+  @FunctionalInterface
+  public static interface DataElementAuditMergeHandler {
+    void merge(@Nonnull List<DataElement> sources, @Nonnull MergeRequest mergeRequest);
+  }
+
+  /**
+   * Functional interface representing a {@link DataElement} data merge operation.
+   *
+   * @author david mackessy
+   */
+  @FunctionalInterface
+  public static interface DataElementDataMergeHandler {
+    void merge(
+        @Nonnull List<DataElement> sources,
+        @Nonnull DataElement target,
+        @Nonnull MergeRequest mergeRequest);
+  }
+
+  /**
+   * Functional interface representing a {@link DataElement} merge operation.
+   *
+   * @author david mackessy
+   */
+  @FunctionalInterface
+  public static interface DataElementMergeHandler {
+    void merge(List<DataElement> sources, DataElement target);
   }
 }

@@ -41,6 +41,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -119,7 +120,8 @@ public class IdentifiableObjectUtils {
    * @return a list of UIDs. Never returning null.
    */
   @Nonnull
-  public static <T extends IdentifiableObject> List<String> getUidsNonNull(Collection<T> objects) {
+  public static <T extends IdentifiableObject> List<String> getUidsNonNull(
+      @CheckForNull Collection<T> objects) {
     return objects != null
         ? objects.stream().filter(Objects::nonNull).map(UidObject::getUid).toList()
         : List.of();

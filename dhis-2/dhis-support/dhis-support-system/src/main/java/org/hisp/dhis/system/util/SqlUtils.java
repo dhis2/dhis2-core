@@ -159,7 +159,7 @@ public class SqlUtils {
    * @param likeTargets like targets, can be 1 or many
    * @return like predicate
    */
-  public static String multiLike(String column, List<String> likeTargets) {
+  public static String likeAny(String column, List<String> likeTargets) {
     if (StringUtils.isBlank(column) || CollectionUtils.isEmpty(likeTargets))
       throw new IllegalArgumentException("SQL multi like must have at least one target and column");
 

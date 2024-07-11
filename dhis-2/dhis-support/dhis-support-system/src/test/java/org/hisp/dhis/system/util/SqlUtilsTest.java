@@ -85,7 +85,7 @@ class SqlUtilsTest {
   @DisplayName("should throw an exception with incorrect args")
   @MethodSource("multiLIkeParams")
   void multiLikeTest(String column, List<String> targets) {
-    assertThrows(IllegalArgumentException.class, () -> SqlUtils.multiLike(column, targets));
+    assertThrows(IllegalArgumentException.class, () -> SqlUtils.likeAny(column, targets));
   }
 
   @Test
@@ -95,7 +95,7 @@ class SqlUtilsTest {
     List<String> searches = List.of("search1");
 
     // when
-    String multiLike = SqlUtils.multiLike("col", searches);
+    String multiLike = SqlUtils.likeAny("col", searches);
 
     // then
     assertEquals("col like '%search1%'", multiLike);
@@ -108,7 +108,7 @@ class SqlUtilsTest {
     List<String> searches = List.of("search1", "search2", "search3");
 
     // when
-    String multiLike = SqlUtils.multiLike("col", searches);
+    String multiLike = SqlUtils.likeAny("col", searches);
 
     // then
     assertEquals("col like '%search1%' or col like '%search2%' or col like '%search3%'", multiLike);
