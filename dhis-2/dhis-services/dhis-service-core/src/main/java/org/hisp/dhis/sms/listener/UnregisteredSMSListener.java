@@ -28,6 +28,7 @@
 package org.hisp.dhis.sms.listener;
 
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageSender;
@@ -47,13 +48,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Component("org.hisp.dhis.sms.listener.UnregisteredSMSListener")
 @Transactional
 public class UnregisteredSMSListener extends CommandSMSListener {
+
   private final SMSCommandService smsCommandService;
-
-  private final UserService userService;
-
   private final MessageService messageService;
 
   public UnregisteredSMSListener(
@@ -62,11 +62,9 @@ public class UnregisteredSMSListener extends CommandSMSListener {
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
       SMSCommandService smsCommandService,
-      UserService userService1,
       MessageService messageService) {
     super(dataElementCategoryService, userService, incomingSmsService, smsSender);
     this.smsCommandService = smsCommandService;
-    this.userService = userService1;
     this.messageService = messageService;
   }
 
@@ -86,20 +84,8 @@ public class UnregisteredSMSListener extends CommandSMSListener {
       IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage) {
     UserGroup userGroup = smsCommand.getUserGroup();
 
-    String userName = sms.getOriginator();
-
     if (userGroup != null) {
-      User anonymousUser = userService.getUserByUsername(userName);
-      if (anonymousUser == null) {
-        User user = new User();
-        user.setSurname(userName);
-        user.setFirstName("");
-        user.setAutoFields();
-
-        userService.addUser(user);
-
-        anonymousUser = userService.getUserByUsername(userName);
-      }
+      User anonymousUser = getOrCreateAnonymousUser(sms.getOriginator());
 
       messageService.sendMessage(
           new MessageConversationParams.Builder(
@@ -112,8 +98,21 @@ public class UnregisteredSMSListener extends CommandSMSListener {
               .build());
 
       sendFeedback(smsCommand.getReceivedMessage(), sms.getOriginator(), INFO);
-
       update(sms, SmsMessageStatus.PROCESSED, true);
     }
+  }
+
+  private User getOrCreateAnonymousUser(String userName) {
+    User anonymousUser = userService.getUserByUsername(userName);
+    if (anonymousUser == null) {
+      User user = new User();
+      user.setSurname(userName);
+      user.setFirstName("");
+      user.setAutoFields();
+
+      userService.addUser(user);
+      anonymousUser = userService.getUserByUsername(userName);
+    }
+    return anonymousUser;
   }
 }

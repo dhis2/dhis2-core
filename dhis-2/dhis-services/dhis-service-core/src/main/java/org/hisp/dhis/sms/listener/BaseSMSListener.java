@@ -27,9 +27,8 @@
  */
 package org.hisp.dhis.sms.listener;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.message.MessageSender;
@@ -43,30 +42,25 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Transactional
 public abstract class BaseSMSListener implements IncomingSmsListener {
-  private static final String NO_SMS_CONFIG = "No sms configuration found";
+  private static final String NO_SMS_CONFIG = "No SMS configuration found";
 
   protected static final int INFO = 1;
-
   protected static final int WARNING = 2;
-
   protected static final int ERROR = 3;
 
   private static final Map<Integer, Consumer<String>> LOGGER =
       Map.of(
-          1, log::info,
-          2, log::warn,
-          3, log::error);
+          INFO, log::info,
+          WARNING, log::warn,
+          ERROR, log::error);
 
   protected final IncomingSmsService incomingSmsService;
-
   protected final MessageSender smsSender;
 
   protected BaseSMSListener(IncomingSmsService incomingSmsService, MessageSender smsSender) {
-    checkNotNull(incomingSmsService);
-    checkNotNull(smsSender);
-
-    this.incomingSmsService = incomingSmsService;
-    this.smsSender = smsSender;
+    this.incomingSmsService =
+        Objects.requireNonNull(incomingSmsService, "IncomingSmsService must not be null");
+    this.smsSender = Objects.requireNonNull(smsSender, "MessageSender must not be null");
   }
 
   protected void sendFeedback(String message, String sender, int logType) {
@@ -74,14 +68,12 @@ public abstract class BaseSMSListener implements IncomingSmsListener {
 
     if (smsSender.isConfigured()) {
       smsSender.sendMessage(null, message, sender);
-      return;
+    } else {
+      log.warn(NO_SMS_CONFIG);
     }
-
-    LOGGER.getOrDefault(WARNING, log::info).accept(NO_SMS_CONFIG);
   }
 
   protected void sendSMSResponse(SmsResponse resp, IncomingSms sms, int messageID) {
-    // A response code < 100 is either success or just a warning
     SmsMessageStatus status =
         resp.getCode() < 100 ? SmsMessageStatus.PROCESSED : SmsMessageStatus.FAILED;
     update(sms, status, true);
@@ -89,16 +81,14 @@ public abstract class BaseSMSListener implements IncomingSmsListener {
     if (smsSender.isConfigured()) {
       String msg = String.format("%d:%s", messageID, resp.toString());
       smsSender.sendMessage(null, msg, sms.getOriginator());
-      return;
+    } else {
+      log.warn(NO_SMS_CONFIG);
     }
-
-    LOGGER.getOrDefault(WARNING, log::info).accept(NO_SMS_CONFIG);
   }
 
   protected void update(IncomingSms sms, SmsMessageStatus status, boolean parsed) {
     sms.setStatus(status);
     sms.setParsed(parsed);
-
     incomingSmsService.update(sms);
   }
 }
