@@ -36,6 +36,7 @@
     <fluent-hc.version>4.5.14</fluent-hc.version>
     <httpclient5.version>5.3.1</httpclient5.version>
     <commons-io.version>2.16.1</commons-io.version>
+    <sms-compression.version>0.2.1.1</sms-compression.version>
   </properties>
 
   <dependencies>
@@ -186,7 +187,19 @@
       <artifactId>commons-io</artifactId>
       <version>${commons-io.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.github.dhis2</groupId>
+      <artifactId>sms-compression</artifactId>
+      <version>${sms-compression.version}</version>
+    </dependency>
   </dependencies>
+
+  <repositories>
+    <repository>
+      <id>jitpack.io</id>
+      <url>https://jitpack.io</url>
+    </repository>
+  </repositories>
 
   <build>
     <pluginManagement>
