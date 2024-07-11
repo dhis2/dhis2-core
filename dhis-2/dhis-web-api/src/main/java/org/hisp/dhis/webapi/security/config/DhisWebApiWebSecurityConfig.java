@@ -294,7 +294,6 @@ public class DhisWebApiWebSecurityConfig {
 
                   .requestMatchers(new AntPathRequestMatcher("/dhis-web-login/**"))
                   .permitAll()
-
                   .requestMatchers(new AntPathRequestMatcher("/login.html"))
                   .permitAll()
 

@@ -95,8 +95,6 @@ public class Main extends EmbeddedJettyBase {
 
     setupServlets(context, webApplicationContext);
 
-    context.addServlet("RootPageServlet", RootPageServlet.class).addMapping("/index.html");
-
     return contextHandler;
   }
 
