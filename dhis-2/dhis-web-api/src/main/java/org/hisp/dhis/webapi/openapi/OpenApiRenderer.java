@@ -68,7 +68,8 @@ public class OpenApiRenderer {
   @import url('https://fonts.cdnfonts.com/css/futura-std-4');
   :root {
        --bg-page: white;
-       --p-op-bg-header: 30%;
+       --percent-op-bg-summary: 30%;
+       --percent-op-bg-aside: 15%;
        --p-op-bg: 20%;
        --color-delete: tomato;
        --color-patch: plum;
@@ -200,16 +201,18 @@ public class OpenApiRenderer {
   }
   details.op[open] { padding-bottom: 1rem; }
   details.op > summary { padding: 0.5rem; }
-  details.op > header { padding: 1rem; font-size: 95%; }
+  details.op > header { padding: 0.5rem 1rem; font-size: 95%; }
+  details.op > aside { padding: 0.5rem 1rem; }
 
   /* colors and emphasis effects */
   code.http { display: inline-block; padding: 0 0.5em; font-weight: bold; }
   code.http.content { color: #aaa; display: inline-grid; grid-template-columns: 1fr 1fr; vertical-align: top; }
   code.http.content > span { font-size: 70%; font-weight: normal; padding-right: 1em; }
+  code.http.content.error > span { color: tomato; min-width: 1.8em;}
   code.http.content .on { color: black; }
   code.http.method { width: 4rem; text-align: right; color: dimgray; }
   code.http.status2xx { color: seagreen;  }
-  code.http.status2xx:after { content: '⮠'; color: #666; font-weight: normal; padding-right: 0.5rem; }
+  code.http.status2xx:after { content: '⮠'; color: #666; font-weight: normal; padding-left: 0.5rem; }
   code.md { background-color: #eee; }
   code.url { padding: 0.25em 0.5em; background-color: snow; }
   code.url.path { font-weight: bold; }
@@ -224,20 +227,27 @@ public class OpenApiRenderer {
   .op:not([open]) code.url small > span { font-size: 2px; }
   .op:not([open]) code.url small:hover > span { font-size: inherit; }
 
-  .GET > summary, button.GET { background: color-mix(in srgb, var(--color-get) var(--p-op-bg-header), transparent); }
-  .POST > summary, button.POST { background: color-mix(in srgb, var(--color-post) var(--p-op-bg-header), transparent); }
-  .PUT > summary, button.PUT { background: color-mix(in srgb, var(--color-put) var(--p-op-bg-header), transparent); }
-  .PATCH > summary, button.PATCH { background: color-mix(in srgb, var(--color-patch) var(--p-op-bg-header), transparent); }
-  .DELETE > summary, button.DELETE { background: color-mix(in srgb, var(--color-delete) var(--p-op-bg-header), transparent); }
-  .OPTIONS > summary { background: color-mix(in srgb, var(--color-options) var(--p-op-bg-header), transparent); }
-  .HEAD > summary { background: color-mix(in srgb, var(--color-head) var(--p-op-bg-header), transparent); }
-  .TRACE > summary { background: color-mix(in srgb, var(--color-trace) var(--p-op-bg-header), transparent); }
+  .GET > summary, button.GET { background: color-mix(in srgb, var(--color-get) var(--percent-op-bg-summary), transparent); }
+  .POST > summary, button.POST { background: color-mix(in srgb, var(--color-post) var(--percent-op-bg-summary), transparent); }
+  .PUT > summary, button.PUT { background: color-mix(in srgb, var(--color-put) var(--percent-op-bg-summary), transparent); }
+  .PATCH > summary, button.PATCH { background: color-mix(in srgb, var(--color-patch) var(--percent-op-bg-summary), transparent); }
+  .DELETE > summary, button.DELETE { background: color-mix(in srgb, var(--color-delete) var(--percent-op-bg-summary), transparent); }
+  .OPTIONS > summary { background: color-mix(in srgb, var(--color-options) var(--percent-op-bg-summary), transparent); }
+  .HEAD > summary { background: color-mix(in srgb, var(--color-head) var(--percent-op-bg-summary), transparent); }
+  .TRACE > summary { background: color-mix(in srgb, var(--color-trace) var(--percent-op-bg-summary), transparent); }
+  details.op:target > summary { border-bottom: 5px solid gold; }
 
   details[open].GET { background: color-mix(in srgb, var(--color-get) var(--p-op-bg), transparent); }
   details[open].POST { background: color-mix(in srgb, var(--color-post) var(--p-op-bg), transparent); }
   details[open].PUT { background: color-mix(in srgb, var(--color-put) var(--p-op-bg), transparent); }
   details[open].PATCH { background: color-mix(in srgb, var(--color-patch) var(--p-op-bg), transparent); }
   details[open].DELETE { background: color-mix(in srgb, var(--color-delete) var(--p-op-bg), transparent); }
+
+  details[open].GET > aside { background: color-mix(in srgb, var(--color-get) var(--percent-op-bg-aside), transparent); }
+  details[open].POST > aside { background: color-mix(in srgb, var(--color-post) var(--percent-op-bg-aside), transparent); }
+  details[open].PUT > aside { background: color-mix(in srgb, var(--color-put) var(--percent-op-bg-aside), transparent); }
+  details[open].PATCH > aside { background: color-mix(in srgb, var(--color-patch) var(--percent-op-bg-aside), transparent); }
+  details[open].DELETE > aside { background: color-mix(in srgb, var(--color-delete) var(--percent-op-bg-aside), transparent); }
 
   #body[get-] details.GET,
   #body[post-] details.POST,
@@ -261,6 +271,8 @@ public class OpenApiRenderer {
       font-weight: normal;
   }
   nav button.deprecated { background-color: var(--color-dep); }
+
+  details.op button { background: none; border: none; cursor: pointer; }
 
   #body[get-] button.GET:before,
   #body[post-] button.POST:before,
@@ -295,6 +307,9 @@ public class OpenApiRenderer {
     color: var(--color-tooltiptext);
     padding: 0.25rem 0.5rem;
   }
+  .op aside > button.toggle:after { content: '⇱'; padding-left: 0.5rem; }
+  .op:has(details[data-open]) aside > button.toggle:after { content: '⇲'; }
+
   article.desc { margin-right: 2rem; margin-left: 300px; }
   article.desc > p { margin: 0 0 10px 0; }
   article.desc > *:first-child { margin-top: 10px; }
@@ -304,7 +319,20 @@ public class OpenApiRenderer {
   """;
 
   @Language("js")
-  private static final String GLOBAL_JS = """
+  private static final String GLOBAL_JS =
+      """
+  function toggleDescriptions(element) {
+    let allDetails = element.closest('details.op').querySelectorAll('details');
+    const isRestore = Array.from(allDetails.values()).some(e => e.hasAttribute('data-open'));
+    const set = isRestore ? 'open' : 'data-open';
+    const remove = isRestore ? 'data-open' : 'open';
+    allDetails.forEach(details => {
+        if (details.hasAttribute(remove)) {
+            details.setAttribute(set, '');
+            details.removeAttribute(remove);
+        }
+    });
+  }
   """;
 
   /*
@@ -412,7 +440,7 @@ public class OpenApiRenderer {
           renderToggleButton("Other", "other", "other-");
 
           appendTag("h5", "Content");
-          renderToggleButton("&#127481; full texts", "desc", "desc-");
+          renderToggleButton("&#127299; full texts", "desc", "desc-");
           renderToggleButton("deprecated", "deprecated", "deprecated-");
         });
   }
@@ -429,6 +457,9 @@ public class OpenApiRenderer {
         Map.of("class", "domains"),
         () -> {
           for (PackageItem pkg : packages) {
+            Map<String, String> permalinkAttrs =
+                Map.of(
+                    "target", "_blank", "href", "/api/openapi/openapi.html?domain=" + pkg.domain);
             appendTag(
                 "details",
                 () -> {
@@ -439,14 +470,7 @@ public class OpenApiRenderer {
                               "h2",
                               () -> {
                                 appendPlain(toWords(pkg.domain()));
-                                appendTag(
-                                    "a",
-                                    Map.of(
-                                        "target",
-                                        "_blank",
-                                        "href",
-                                        "/api/openapi/openapi.html?domain=" + pkg.domain),
-                                    "&#x1F5D7;");
+                                appendTag("a", permalinkAttrs, "&#x1F5D7;");
                               }));
                   for (GroupItem group : pkg.groups().values()) {
                     appendTag(
@@ -487,9 +511,22 @@ public class OpenApiRenderer {
               "summary",
               Map.of("title", summary == null ? "" : summary),
               () -> renderOperationSummary(op));
+          renderOperationToolbar(op);
           appendTag("header", markdownToHTML(op.description(), op.parameterNames()));
           renderParameters(op);
         });
+  }
+
+  private void renderOperationToolbar(OperationObject op) {
+    Map<String, String> attrs =
+        Map.of(
+            "onclick",
+            "toggleDescriptions(this)",
+            "title",
+            "show/hide description text",
+            "class",
+            "toggle");
+    appendTag("aside", () -> appendTag("button", attrs, "&#127299;"));
   }
 
   private void renderOperationSummary(OperationObject op) {
@@ -498,6 +535,8 @@ public class OpenApiRenderer {
     List<String> responseCodes = op.responses().keys().toList();
     String successCode =
         responseCodes.stream().filter(code -> code.startsWith("2")).findFirst().orElse("?");
+    List<String> errorCodes =
+        responseCodes.stream().filter(code -> code.startsWith("4")).sorted().toList();
     Set<String> mediaTypes =
         op.responses().values().flatMap(r -> r.content().keys()).collect(toUnmodifiableSet());
     Set<String> subTypes =
@@ -519,6 +558,14 @@ public class OpenApiRenderer {
               "*");
         });
     appendTag("code", Map.of("class", "http status" + successCode.charAt(0) + "xx"), successCode);
+    appendTag(
+        "code",
+        Map.of("class", "http error content"),
+        () -> {
+          for (String errorCode : errorCodes)
+            appendTag("span", Map.of("class", "http status" + errorCode), errorCode);
+          if (errorCodes.isEmpty()) appendTag("span", " ");
+        });
     appendTag("code", Map.of("class", "http method"), method);
     String url =
         path.replaceAll("/(\\{[^/]+)(?<=})(?=/|$)", "/<em>$1</em>")
@@ -533,7 +580,6 @@ public class OpenApiRenderer {
       if (queryParams.size() > requiredParams.size()) query += "…";
       appendTag("code", Map.of("class", "url query secondary"), query);
     }
-    // TODO render nicely: appendTag("code", responseCodes.toString());
     appendTag("a", Map.of("href", "#" + op.operationId(), "class", "permalink"), "permalink");
   }
 
@@ -549,14 +595,9 @@ public class OpenApiRenderer {
   private void renderParameters(OperationObject op, Api.Parameter.In in, String text) {
     List<ParameterObject> params = op.parameters(in);
     if (params.isEmpty()) return;
-    appendTag(
-        "h4",
-        () ->
-            appendTag(
-                "code",
-                Map.of(
-                    "class", "url secondary", "title", "Parameters in " + in.name().toLowerCase()),
-                text));
+    Map<String, String> attributes =
+        Map.of("class", "url secondary", "title", "Parameters in " + in.name().toLowerCase());
+    appendTag("h4", () -> appendTag("code", attributes, text));
     Set<String> parameterNames = op.parameterNames();
     params.stream().map(ParameterObject::resolve).forEach(p -> renderParameter(p, parameterNames));
   }
