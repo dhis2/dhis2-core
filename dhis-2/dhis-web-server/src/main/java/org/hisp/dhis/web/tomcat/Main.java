@@ -82,9 +82,7 @@ public class Main {
 
   private static int getPort() {
     return Integer.parseInt(
-        firstNonNull(
-            System.getenv("DHIS2_HTTP_PORT"),
-            Integer.toString(DEFAULT_HTTP_PORT)));
+        firstNonNull(System.getenv("DHIS2_HTTP_PORT"), Integer.toString(DEFAULT_HTTP_PORT)));
   }
 
   public static void main(String[] args) throws Exception {
