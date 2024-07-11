@@ -69,7 +69,7 @@ public class OpenApiRenderer {
   :root {
        --bg-page: white;
        --p-op-bg-header: 30%;
-       --p-op-bg: 12%;
+       --p-op-bg: 20%;
        --color-delete: tomato;
        --color-patch: plum;
        --color-post: darkseagreen;
@@ -119,7 +119,7 @@ public class OpenApiRenderer {
       margin: 1em 0 0.5em 0;
       font-weight: normal;
   }
-  a[target="_blank"] { float: right; text-decoration: none; }
+  h2 a[target="_blank"] { float: right; text-decoration: none; }
   a[href^="#"] { text-decoration: none; }
   a.permalink {
        float: right;
@@ -138,7 +138,7 @@ public class OpenApiRenderer {
       padding: 2px;
       margin-top: 0.5em;
   }
-  .nav {
+  body > header:first-child {
       position: fixed;
       width: 100%;
       height: 60px;
@@ -152,7 +152,7 @@ public class OpenApiRenderer {
       padding-left: 100px;
       background-position: 5px 5px;
   }
-  .filters {
+  nav {
         position: fixed;
         top: 65px;
         width: 220px;
@@ -198,6 +198,7 @@ public class OpenApiRenderer {
       list-style-type: none;
       cursor: pointer;
   }
+  details.op[open] { padding-bottom: 1rem; }
   details.op > summary { padding: 0.5rem; }
   details.op > header { padding: 1rem; font-size: 95%; }
 
@@ -215,11 +216,13 @@ public class OpenApiRenderer {
   code.url em, code.url.secondary { color: lightslategrey; font-style: normal; font-weight: normal; background: color-mix(in srgb, snow 70%, transparent); }
   code.url small { color: gray; }
   code.value { color: darkslateblue; }
-  code.type { color: dimgray; }
+  code.url.secondary.type { color: dimgray; font-style: italic; }
+  code.url.secondary + code.url.secondary { padding-left: 0; }
+  .deprecated summary > code.url { background-color: var(--color-dep); color: #666; }
+  .deprecated summary > code.url.secondary { background: color-mix(in srgb, var(--color-dep) 70%, transparent); }
 
   .op:not([open]) code.url small > span { font-size: 2px; }
   .op:not([open]) code.url small:hover > span { font-size: inherit; }
-  .dep code.url { background-color: var(--color-dep); color: #666; }
 
   .GET > summary, button.GET { background: color-mix(in srgb, var(--color-get) var(--p-op-bg-header), transparent); }
   .POST > summary, button.POST { background: color-mix(in srgb, var(--color-post) var(--p-op-bg-header), transparent); }
@@ -241,10 +244,9 @@ public class OpenApiRenderer {
   #body[put-] details.PUT,
   #body[patch-] details.PATCH,
   #body[delete-] details.DELETE,
-  #body[dep-] details.dep,
-  #body[dep-] dt.dep, #body[dep-] dt.dep + dd { display: none; }
+  #body[deprecated-] details.deprecated { display: none; }
 
-  aside button {
+  nav button {
       border: none;
       background-color: transparent;
       font-weight: bold;
@@ -253,63 +255,52 @@ public class OpenApiRenderer {
       display: inline;
       margin: 2px;
   }
-  aside button:before {
+  nav button:before {
       content: '🞕';
       margin-right: 0.5rem;
       font-weight: normal;
   }
-  aside button.dep { background-color: var(--color-dep); }
+  nav button.deprecated { background-color: var(--color-dep); }
 
   #body[get-] button.GET:before,
   #body[post-] button.POST:before,
   #body[put-] button.PUT:before,
   #body[patch-] button.PATCH:before,
   #body[delete-] button.DELETE:before,
-  #body[dep-] button.dep:before,
+  #body[deprecated-] button.deprecated:before,
   #body[desc-] button.desc:before { content: '🞏'; color: dimgray; }
 
 
-  .param.required > code:after {
+  .param.required > code.url:first-child:after {
     content: '*';
     color: tomato;
   }
-  .param.dep > code:before {
+  .param.deprecated > code.url:first-child:before {
       content: '⚠️';
       font-family: sans-serif; /* reset font */
       display: inline-block; /* reset text-decorations */
       padding-right: 0.25rem;
   }
-  .param.dep > code:hover:after {
+  .param.deprecated > code:hover:after {
     content: 'This parameter is deprecated';
     position: absolute;
     background: var(--color-tooltip);
     color: var(--color-tooltiptext);
     padding: 0.25rem 0.5rem;
   }
-  .op.dep > summary code.url:hover:after {
+  .op.deprecated > summary code.url:hover:after {
     content: 'This operation is deprecated';
     position: absolute;
     background: var(--color-tooltip);
     color: var(--color-tooltiptext);
     padding: 0.25rem 0.5rem;
   }
-  dl {
-    margin: 0.5em 1em 0.5em 3em;
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr 3fr;
-  }
-  dt, dd {
-      margin: 0.5rem 0;
-  }
-  dd {
-    margin-left: 1rem;
-  }
-  dd p {
-    margin: 0;
-  }
-  dd.desc { margin-right: 2rem; }
-  body[desc-] dd.desc:not(:hover) { font-size: 0.1rem; }
-  body[desc-] dd.desc:not(:hover):first-line { font-size: 1rem; }
+  article.desc { margin-right: 2rem; margin-left: 300px; }
+  article.desc > p { margin: 0 0 10px 0; }
+  article.desc > *:first-child { margin-top: 10px; }
+  article.desc a[target="_blank"]:after { content: '🗗'; }
+  body[desc-] article.desc:not(:hover) { font-size: 0.1rem; }
+  body[desc-] article.desc:not(:hover):first-line { font-size: 1rem; }
   """;
 
   @Language("js")
@@ -397,13 +388,9 @@ public class OpenApiRenderer {
   }
 
   private void renderMenu() {
+    appendTag("header", () -> appendTag("h1", api.info().title() + " " + api.info().version()));
     appendTag(
-        "aside",
-        Map.of("class", "nav"),
-        () -> appendTag("h1", api.info().title() + " " + api.info().version()));
-    appendTag(
-        "aside",
-        Map.of("class", "filters"),
+        "nav",
         () -> {
           appendTag("h5", "HTTP Methods");
           renderToggleButton("GET", "GET", "get-");
@@ -426,7 +413,7 @@ public class OpenApiRenderer {
 
           appendTag("h5", "Content");
           renderToggleButton("&#127481; full texts", "desc", "desc-");
-          renderToggleButton("deprecated", "dep", "dep-");
+          renderToggleButton("deprecated", "deprecated", "deprecated-");
         });
   }
 
@@ -493,7 +480,7 @@ public class OpenApiRenderer {
             "id",
             op.operationId(),
             "class",
-            op.operationMethod().toUpperCase() + " op " + (op.deprecated() ? "dep" : "")),
+            op.operationMethod().toUpperCase() + " op " + (op.deprecated() ? "deprecated" : "")),
         () -> {
           String summary = op.summary();
           appendTag(
@@ -571,18 +558,26 @@ public class OpenApiRenderer {
                     "class", "url secondary", "title", "Parameters in " + in.name().toLowerCase()),
                 text));
     Set<String> parameterNames = op.parameterNames();
-    appendTag(
-        "dl",
-        () ->
-            params.stream()
-                .map(ParameterObject::resolve)
-                .forEach(p -> renderParameter(p, parameterNames)));
+    params.stream().map(ParameterObject::resolve).forEach(p -> renderParameter(p, parameterNames));
   }
 
   private void renderParameter(ParameterObject p, Set<String> parameterNames) {
     String css = "param";
-    if (p.deprecated()) css += " dep";
+    if (p.deprecated()) css += " deprecated";
     if (p.required()) css += " required";
+    appendTag(
+        "details",
+        Map.of("open", "", "class", css),
+        () -> {
+          appendTag("summary", () -> renderParameterSummary(p));
+          String description = markdownToHTML(p.description(), parameterNames);
+          if (description == null || description.isEmpty())
+            description = " "; // force the aside tag
+          appendTag("article", Map.of("class", "desc"), description);
+        });
+  }
+
+  private void renderParameterSummary(ParameterObject p) {
     SchemaObject schema = p.schema();
     Runnable type =
         schema.isShared()
@@ -590,20 +585,12 @@ public class OpenApiRenderer {
               appendTag("a", Map.of("href", "#" + schema.getSharedName()), schema.getSharedName());
             }
             : () -> appendPlain(schema.$type());
-    appendTag(
-        "dt", Map.of("class", css), () -> appendTag("code", Map.of("class", "url"), p.name()));
-    appendTag("dd", () -> appendTag("code", Map.of("class", "type"), type));
+    appendTag("code", Map.of("class", "url"), p.name());
+    appendTag("code", Map.of("class", "url secondary"), "=");
+    appendTag("code", Map.of("class", "url secondary type"), type);
+
     JsonValue defaultValue = p.$default();
-    appendTag(
-        "dd",
-        () ->
-            appendTag(
-                "code",
-                Map.of("class", "value"),
-                defaultValue.exists() ? defaultValue.toJson() : ""));
-    String description = markdownToHTML(p.description(), parameterNames);
-    if (description == null || description.isEmpty()) description = " "; // force the dd tag
-    appendTag("dd", Map.of("class", "desc"), description);
+    appendTag("code", Map.of("class", "value"), defaultValue.exists() ? defaultValue.toJson() : "");
   }
 
   private void appendTag(String name, String text) {

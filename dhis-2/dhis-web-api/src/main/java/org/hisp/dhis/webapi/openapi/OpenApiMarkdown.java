@@ -199,7 +199,7 @@ final class OpenApiMarkdown {
               .append(escapeHtml(span.inner.get(0).value))
               .append(" />");
       case LINK -> {
-        html.append("<a href=\"").append(span.value).append("\">");
+        html.append("<a target=\"_blank\" href=\"").append(span.value).append("\">");
         span.inner.forEach(this::renderSpan);
         html.append("</a>");
       }
