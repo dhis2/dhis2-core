@@ -43,6 +43,7 @@ import java.util.stream.Stream;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ValidationStrategy;
@@ -164,7 +165,7 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest {
 
   @ParameterizedTest
   @MethodSource("transactionsCreatingDataValues")
-  void shouldFailValidationWhenMandatoryFieldIsNotPresentAndDataValuesAreCreated(
+  void shouldFailValidationWhenMandatoryFieldIsNotPresent(
       EventStatus savedStatus, EventStatus newStatus) {
     when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
     when(preheat.getDataElement(DATA_ELEMENT_ID)).thenReturn(dataElementA);
@@ -189,14 +190,15 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest {
 
   @ParameterizedTest
   @MethodSource("transactionsNotCreatingDataValues")
-  void shouldPassValidationWhenMandatoryFieldIsNotPresentAndStrategyIsUpdate(
+  void shouldPassValidationWhenMandatoryFieldIsNotPresentInPayloadButPresentInDB(
       EventStatus savedStatus, EventStatus newStatus) {
     when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
     when(preheat.getDataElement(DATA_ELEMENT_ID)).thenReturn(dataElementA);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(firstProgramStage.getUid())))
         .thenReturn(firstProgramStage);
     Event event = getEventWithMandatoryValueNOTSet(savedStatus);
-    when(preheat.getEvent(event.getUid())).thenReturn(event(event.getUid(), newStatus));
+    when(preheat.getEvent(event.getUid()))
+        .thenReturn(eventWithMandatoryValue(event.getUid(), newStatus));
     bundle.setEvents(List.of(event));
     bundle.setStrategy(event, TrackerImportStrategy.UPDATE);
     List<ProgramRuleIssue> programRuleIssues =
@@ -350,6 +352,16 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest {
         new org.hisp.dhis.program.ProgramStageInstance();
     event.setUid(uid);
     event.setStatus(status);
+    return event;
+  }
+
+  private org.hisp.dhis.program.ProgramStageInstance eventWithMandatoryValue(
+      String uid, EventStatus status) {
+    org.hisp.dhis.program.ProgramStageInstance event =
+        new org.hisp.dhis.program.ProgramStageInstance();
+    event.setUid(uid);
+    event.setStatus(status);
+    event.setEventDataValues(Set.of(new EventDataValue(DATA_ELEMENT_ID, DATA_ELEMENT_VALUE)));
     return event;
   }
 
