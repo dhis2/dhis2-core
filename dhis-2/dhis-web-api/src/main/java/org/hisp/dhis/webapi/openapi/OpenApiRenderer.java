@@ -323,7 +323,7 @@ public class OpenApiRenderer {
    */
   record PackageItem(String domain, Map<String, GroupItem> groups) {}
 
-  record GroupItem(String group, List<OperationObject> operations) {}
+  record GroupItem(String domain, String group, List<OperationObject> operations) {}
 
   private static final Comparator<OperationObject> SORT_BY_METHOD =
       comparing(OperationObject::operationMethod)
@@ -337,9 +337,9 @@ public class OpenApiRenderer {
           String domain = op.x_package();
           String group = op.x_group();
           packages
-              .computeIfAbsent(domain, d -> new PackageItem(d, new TreeMap<>()))
+              .computeIfAbsent(domain, pkg -> new PackageItem(pkg, new TreeMap<>()))
               .groups()
-              .computeIfAbsent(group, g -> new GroupItem(g, new ArrayList<>()))
+              .computeIfAbsent(group, g -> new GroupItem(domain, g, new ArrayList<>()))
               .operations()
               .add(op);
         };
@@ -444,7 +444,7 @@ public class OpenApiRenderer {
 
   private void renderPathPackage(PackageItem pkg) {
     appendDetails(
-        null,
+        "-" + pkg.domain(),
         false,
         "",
         () -> {
@@ -467,7 +467,7 @@ public class OpenApiRenderer {
 
   private void renderPathGroup(GroupItem group) {
     appendDetails(
-        null,
+        "-" + group.domain() + "-" + group.group(),
         true,
         "paths",
         () -> {
@@ -526,28 +526,20 @@ public class OpenApiRenderer {
     appendCode(
         "http content",
         () -> {
-          appendTag("span", Map.of("class", subTypes.contains("json") ? "on" : ""), "JSON");
-          appendTag("span", Map.of("class", subTypes.contains("xml") ? "on" : ""), "XML");
-          appendTag("span", Map.of("class", subTypes.contains("csv") ? "on" : ""), "CSV");
-          appendTag(
-              "span",
-              Map.of(
-                  "class", subTypes.stream().anyMatch(t -> !t.matches("xml|json|csv")) ? "on" : ""),
-              "*");
+          appendSpan(subTypes.contains("json") ? "on" : "", "JSON");
+          appendSpan(subTypes.contains("xml") ? "on" : "", "XML");
+          appendSpan(subTypes.contains("csv") ? "on" : "", "CSV");
+          appendSpan(subTypes.stream().anyMatch(t -> !t.matches("xml|json|csv")) ? "on" : "", "*");
         });
     appendCode("http status" + successCode.charAt(0) + "xx", successCode);
     appendCode(
         "http error content",
         () -> {
-          for (String errorCode : errorCodes)
-            appendTag("span", Map.of("class", "http status" + errorCode), errorCode);
-          if (errorCodes.isEmpty()) appendTag("span", " ");
+          for (String errorCode : errorCodes) appendSpan("http status" + errorCode, errorCode);
+          if (errorCodes.isEmpty()) appendSpan(" ");
         });
     appendCode("http method", method);
-    String url =
-        path.replaceAll("/(\\{[^/]+)(?<=})(?=/|$)", "/<em>$1</em>")
-            .replaceAll("#([a-zA-Z0-9_]+)", "<small>#<span>$1</span></small>");
-    appendCode("url path", url);
+    appendCode("url path", getUrlPathInSections(path));
     List<ParameterObject> queryParams = op.parameters(ParameterObject.In.query);
     if (!queryParams.isEmpty()) {
       String query = "?";
@@ -558,6 +550,11 @@ public class OpenApiRenderer {
       appendCode("url query secondary", query);
     }
     appendA("#" + op.operationId(), false, "permalink");
+  }
+
+  private static String getUrlPathInSections(String path) {
+    return path.replaceAll("/(\\{[^/]+)(?<=})(?=/|$)", "/<em>$1</em>")
+        .replaceAll("#([a-zA-Z0-9_]+)", "<small>#<span>$1</span></small>");
   }
 
   private void renderOperationSectionHeader(String text, String title) {
@@ -580,15 +577,17 @@ public class OpenApiRenderer {
     if (params.isEmpty()) return;
     renderOperationSectionHeader(text, "Parameters in " + in.name().toLowerCase());
     Set<String> parameterNames = op.parameterNames();
-    params.stream().map(ParameterObject::resolve).forEach(p -> renderParameter(p, parameterNames));
+    params.stream()
+        .map(ParameterObject::resolve)
+        .forEach(p -> renderParameter(op, p, parameterNames));
   }
 
-  private void renderParameter(ParameterObject p, Set<String> parameterNames) {
+  private void renderParameter(OperationObject op, ParameterObject p, Set<String> parameterNames) {
     String style = "param";
     if (p.deprecated()) style += " deprecated";
     if (p.required()) style += " required";
     appendDetails(
-        null,
+        op.operationId() + "-" + p.name(),
         true,
         style,
         () -> {
@@ -628,8 +627,8 @@ public class OpenApiRenderer {
     appendCode(
         "property",
         () -> {
-          appendTag("span", name + ":");
-          appendTag("span", str);
+          appendSpan(name + ":");
+          appendSpan(str);
         });
   }
 
@@ -641,7 +640,7 @@ public class OpenApiRenderer {
     if (requestBody.required()) style += " required";
     Set<String> parameterNames = op.parameterNames();
     appendDetails(
-        null,
+        op.operationId() + "-",
         true,
         style,
         () -> {
@@ -686,6 +685,14 @@ public class OpenApiRenderer {
 
   private void appendA(String href, boolean blank, String text) {
     appendTag("a", Map.of("href", href, "target", blank ? "_blank" : ""), text);
+  }
+
+  private void appendSpan(String text) {
+    appendSpan("", text);
+  }
+
+  private void appendSpan(String style, String text) {
+    appendTag("span", Map.of("class", style), text);
   }
 
   private void appendCode(String style, String text) {
