@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.openapi;
 
 import static java.util.Comparator.comparing;
+import static java.util.Map.entry;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.webapi.openapi.OpenApiMarkdown.markdownToHTML;
 
@@ -45,6 +46,7 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonNodeType;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.jsontree.JsonValue;
+import org.hisp.dhis.webapi.openapi.OpenApiObject.MediaTypeObject;
 import org.hisp.dhis.webapi.openapi.OpenApiObject.OperationObject;
 import org.hisp.dhis.webapi.openapi.OpenApiObject.ParameterObject;
 import org.hisp.dhis.webapi.openapi.OpenApiObject.RequestBodyObject;
@@ -109,12 +111,12 @@ public class OpenApiRenderer {
 
   h2 a[target="_blank"] { float: right; text-decoration: none; }
   a[href^="#"] { text-decoration: none; }
-  a.permalink {
+  .op > summary > a {
        float: right;
        visibility: hidden;
        text-decoration: none;
   }
-  a.permalink:after {
+  .op > summary > a:after {
       content: '🔗';
       visibility: visible;
       font-size: 80%;
@@ -146,7 +148,7 @@ public class OpenApiRenderer {
         width: 220px;
         text-align: left;
         display: inline-block;
-        background-color: #f3f3f9;
+        background-color: aliceblue;
         padding: 1rem;
         box-sizing: border-box;
   }
@@ -195,8 +197,8 @@ public class OpenApiRenderer {
   code.url.path { font-weight: bold; }
   code.url em, code.url.secondary { color: lightslategrey; font-style: normal; font-weight: normal; background: color-mix(in srgb, snow 70%, transparent); }
   code.url small { color: gray; }
-  code.tag { color: dimgray; margin-left: 2em; }
-  code.tag > span + span { color: darkmagenta; background-color: ivory; padding: 0.25em; }
+  code.property { color: dimgray; margin-left: 2em; }
+  code.property > span + span { color: darkmagenta; padding: 0.25em; background: color-mix(in srgb, ivory 65%, transparent); }
   code.url.secondary.type { color: dimgray; font-style: italic; }
   code.url.secondary + code.url.secondary { padding-left: 0; }
   code.mime { background-color: ivory; font-style: italic; padding: 0.25em 0.5em; margin-bottom: 0.25em; display: inline-block; }
@@ -328,7 +330,7 @@ public class OpenApiRenderer {
           .thenComparing(OperationObject::operationPath)
           .thenComparing(OperationObject::operationId);
 
-  private List<PackageItem> getPackages() {
+  private List<PackageItem> groupPackages() {
     Map<String, PackageItem> packages = new TreeMap<>();
     Consumer<OperationObject> add =
         op -> {
@@ -373,7 +375,7 @@ public class OpenApiRenderer {
   }
 
   private void renderDocument() {
-    appendPlain("<!doctype html>");
+    appendRaw("<!doctype html>");
     appendTag(
         "html",
         Map.of("lang", "en"),
@@ -390,14 +392,18 @@ public class OpenApiRenderer {
               "body",
               Map.of("id", "body", "desc-", ""),
               () -> {
-                renderMenu();
+                renderPageHeader();
+                renderPageMenu();
                 renderPaths();
               });
         });
   }
 
-  private void renderMenu() {
+  private void renderPageHeader() {
     appendTag("header", () -> appendTag("h1", api.info().title() + " " + api.info().version()));
+  }
+
+  private void renderPageMenu() {
     appendTag(
         "nav",
         () -> {
@@ -428,50 +434,45 @@ public class OpenApiRenderer {
 
   private void renderToggleButton(String text, String className, String toggle) {
     String js = "document.getElementById('body').toggleAttribute('" + toggle + "')";
-    appendTag("button", Map.of("onclick", js, "class", className), () -> appendPlain(text));
+    appendTag("button", Map.of("onclick", js, "class", className), () -> appendRaw(text));
   }
 
   private void renderPaths() {
-    List<PackageItem> packages = getPackages();
-    appendTag(
-        "section",
+    List<PackageItem> packages = groupPackages();
+    appendTag("section", () -> packages.forEach(this::renderPathPackage));
+  }
+
+  private void renderPathPackage(PackageItem pkg) {
+    appendDetails(
+        null,
+        false,
+        "",
         () -> {
-          for (PackageItem pkg : packages) {
-            Map<String, String> permalinkAttrs =
-                Map.of(
-                    "target", "_blank", "href", "/api/openapi/openapi.html?domain=" + pkg.domain);
+          renderPathGroupSummary(pkg);
+          pkg.groups().values().forEach(this::renderPathGroup);
+        });
+  }
+
+  private void renderPathGroupSummary(PackageItem pkg) {
+    appendSummary(
+        null,
+        () ->
             appendTag(
-                "details",
+                "h2",
                 () -> {
-                  appendTag(
-                      "summary",
-                      () ->
-                          appendTag(
-                              "h2",
-                              () -> {
-                                appendPlain(toWords(pkg.domain()));
-                                appendTag("a", permalinkAttrs, "&#x1F5D7;");
-                              }));
-                  for (GroupItem group : pkg.groups().values()) {
-                    appendTag(
-                        "section",
-                        Map.of("class", "paths"),
-                        () -> {
-                          appendTag(
-                              "details",
-                              Map.of("open", ""),
-                              () -> {
-                                appendTag(
-                                    "summary",
-                                    () ->
-                                        appendTag(
-                                            "h3", Map.of("class", group.group()), group.group()));
-                                group.operations().forEach(this::renderOperation);
-                              });
-                        });
-                  }
-                });
-          }
+                  appendRaw(toWords(pkg.domain()));
+                  appendA("/api/openapi/openapi.html?domain=" + pkg.domain, true, "&#x1F5D7;");
+                }));
+  }
+
+  private void renderPathGroup(GroupItem group) {
+    appendDetails(
+        null,
+        true,
+        "paths",
+        () -> {
+          appendSummary(null, () -> appendTag("h3", Map.of("class", group.group()), group.group()));
+          group.operations().forEach(this::renderOperation);
         });
   }
 
@@ -482,19 +483,15 @@ public class OpenApiRenderer {
 
   private void renderOperation(OperationObject op) {
     if (!op.exists()) return;
-    appendTag(
-        "details",
-        Map.of(
-            "id",
-            op.operationId(),
-            "class",
-            op.operationMethod().toUpperCase() + " op " + (op.deprecated() ? "deprecated" : "")),
+    String style = op.operationMethod().toUpperCase() + " op";
+    if (op.deprecated()) style += " deprecated";
+    appendDetails(
+        op.operationId(),
+        false,
+        style,
         () -> {
           String summary = op.summary();
-          appendTag(
-              "summary",
-              Map.of("title", summary == null ? "" : summary),
-              () -> renderOperationSummary(op));
+          appendSummary(summary, () -> renderOperationSummary(op));
           renderOperationToolbar(op);
           appendTag("header", markdownToHTML(op.description(), op.parameterNames()));
           renderParameters(op);
@@ -504,13 +501,10 @@ public class OpenApiRenderer {
 
   private void renderOperationToolbar(OperationObject op) {
     Map<String, String> attrs =
-        Map.of(
-            "onclick",
-            "toggleDescriptions(this)",
-            "title",
-            "show/hide description text",
-            "class",
-            "toggle");
+        Map.ofEntries(
+            entry("onclick", "toggleDescriptions(this)"),
+            entry("title", "show/hide description text"),
+            entry("class", "toggle"));
     appendTag("aside", () -> appendTag("button", attrs, "&#127299;"));
   }
 
@@ -529,9 +523,8 @@ public class OpenApiRenderer {
             .map(type -> type.substring(type.indexOf('/') + 1))
             .collect(toUnmodifiableSet());
 
-    appendTag(
-        "code",
-        Map.of("class", "http content"),
+    appendCode(
+        "http content",
         () -> {
           appendTag("span", Map.of("class", subTypes.contains("json") ? "on" : ""), "JSON");
           appendTag("span", Map.of("class", subTypes.contains("xml") ? "on" : ""), "XML");
@@ -542,20 +535,19 @@ public class OpenApiRenderer {
                   "class", subTypes.stream().anyMatch(t -> !t.matches("xml|json|csv")) ? "on" : ""),
               "*");
         });
-    appendTag("code", Map.of("class", "http status" + successCode.charAt(0) + "xx"), successCode);
-    appendTag(
-        "code",
-        Map.of("class", "http error content"),
+    appendCode("http status" + successCode.charAt(0) + "xx", successCode);
+    appendCode(
+        "http error content",
         () -> {
           for (String errorCode : errorCodes)
             appendTag("span", Map.of("class", "http status" + errorCode), errorCode);
           if (errorCodes.isEmpty()) appendTag("span", " ");
         });
-    appendTag("code", Map.of("class", "http method"), method);
+    appendCode("http method", method);
     String url =
         path.replaceAll("/(\\{[^/]+)(?<=})(?=/|$)", "/<em>$1</em>")
             .replaceAll("#([a-zA-Z0-9_]+)", "<small>#<span>$1</span></small>");
-    appendTag("code", Map.of("class", "url path"), url);
+    appendCode("url path", url);
     List<ParameterObject> queryParams = op.parameters(ParameterObject.In.query);
     if (!queryParams.isEmpty()) {
       String query = "?";
@@ -563,13 +555,14 @@ public class OpenApiRenderer {
           queryParams.stream().filter(ParameterObject::required).map(p -> p.name() + "=").toList();
       query += String.join("&", requiredParams);
       if (queryParams.size() > requiredParams.size()) query += "…";
-      appendTag("code", Map.of("class", "url query secondary"), query);
+      appendCode("url query secondary", query);
     }
-    appendTag("a", Map.of("href", "#" + op.operationId(), "class", "permalink"), "permalink");
+    appendA("#" + op.operationId(), false, "permalink");
   }
 
   private void renderOperationSectionHeader(String text, String title) {
-    Map<String, String> attrs = Map.of("class", "url secondary", "title", title);
+    Map<String, String> attrs =
+        Map.ofEntries(entry("class", "url secondary"), entry("title", title));
     appendTag("h4", () -> appendTag("code", attrs, text));
   }
 
@@ -591,14 +584,15 @@ public class OpenApiRenderer {
   }
 
   private void renderParameter(ParameterObject p, Set<String> parameterNames) {
-    String css = "param";
-    if (p.deprecated()) css += " deprecated";
-    if (p.required()) css += " required";
-    appendTag(
-        "details",
-        Map.of("open", "", "class", css),
+    String style = "param";
+    if (p.deprecated()) style += " deprecated";
+    if (p.required()) style += " required";
+    appendDetails(
+        null,
+        true,
+        style,
         () -> {
-          appendTag("summary", () -> renderParameterSummary(p));
+          appendSummary(null, () -> renderParameterSummary(p));
           String description = markdownToHTML(p.description(), parameterNames);
           appendTag("article", Map.of("class", "desc"), description);
         });
@@ -606,8 +600,8 @@ public class OpenApiRenderer {
 
   private void renderParameterSummary(ParameterObject p) {
     SchemaObject schema = p.schema();
-    appendTag("code", Map.of("class", "url"), p.name());
-    appendTag("code", Map.of("class", "url secondary"), "=");
+    appendCode("url", p.name());
+    appendCode("url secondary", "=");
     renderSchemaType(schema, "url");
 
     JsonValue defaultValue = p.$default();
@@ -616,24 +610,23 @@ public class OpenApiRenderer {
           defaultValue.type() == JsonNodeType.STRING
               ? defaultValue.as(JsonString.class).string()
               : defaultValue.toJson();
-      renderParameterSummaryTag("default", value);
+      renderProperty("default", value);
     }
     if (!schema.isShared()) {
-      renderParameterSummaryTag("format", schema.format());
-      renderParameterSummaryTag("minLength", schema.minLength());
-      renderParameterSummaryTag("maxLength", schema.maxLength());
-      renderParameterSummaryTag("pattern", schema.pattern());
-      renderParameterSummaryTag("enum", schema.$enum());
+      renderProperty("format", schema.format());
+      renderProperty("minLength", schema.minLength());
+      renderProperty("maxLength", schema.maxLength());
+      renderProperty("pattern", schema.pattern());
+      renderProperty("enum", schema.$enum());
     }
   }
 
-  private void renderParameterSummaryTag(String name, Object value) {
+  private void renderProperty(String name, Object value) {
     if (value == null) return;
     if (value instanceof Collection<?> l && l.isEmpty()) return;
     String str = value.toString();
-    appendTag(
-        "code",
-        Map.of("class", "tag"),
+    appendCode(
+        "property",
         () -> {
           appendTag("span", name + ":");
           appendTag("span", str);
@@ -644,43 +637,63 @@ public class OpenApiRenderer {
     RequestBodyObject requestBody = op.requestBody();
     if (!requestBody.exists()) return;
     renderOperationSectionHeader("{...}", "Request Body");
-    String css = "body";
-    if (requestBody.required()) css += " required";
+    String style = "body";
+    if (requestBody.required()) style += " required";
     Set<String> parameterNames = op.parameterNames();
-    appendTag(
-        "details",
-        Map.of("open", "", "class", css),
+    appendDetails(
+        null,
+        true,
+        style,
         () -> {
-          appendTag(
-              "summary",
-              () -> {
-                requestBody
-                    .content()
-                    .entries()
-                    .forEach(
-                        mediaType -> {
-                          appendTag("code", Map.of("class", "mime"), mediaType.getKey());
-                          appendTag("code", Map.of("class", "mime secondary"), "=");
-                          renderSchemaType(mediaType.getValue().schema().resolve(), "mime");
-                          appendPlain("<br/>");
-                        });
-              });
+          appendSummary(
+              null,
+              () -> requestBody.content().entries().forEach(this::renderRequestBodyMediaType));
           String description = markdownToHTML(requestBody.description(), parameterNames);
           appendTag("article", Map.of("class", "desc"), description);
         });
+  }
+
+  private void renderRequestBodyMediaType(Map.Entry<String, MediaTypeObject> mediaType) {
+    appendCode("mime", mediaType.getKey());
+    appendCode("mime secondary", "=");
+    renderSchemaType(mediaType.getValue().schema().resolve(), "mime");
+    appendRaw("<br/>");
   }
 
   private void renderSchemaType(SchemaObject schema, String style) {
     Runnable type =
         schema.isShared()
             ? () -> {
-              appendPlain("&lt;");
-              appendTag("a", Map.of("href", "#" + schema.getSharedName()), schema.getSharedName());
-              appendPlain("&gt;");
+              appendRaw("&lt;");
+              appendA("#" + schema.getSharedName(), false, schema.getSharedName());
+              appendRaw("&gt;");
             }
-            : () -> appendPlain("&lt;" + schema.$type() + "&gt;");
+            : () -> appendRaw("&lt;" + schema.$type() + "&gt;");
 
-    appendTag("code", Map.of("class", style + " secondary type"), type);
+    appendCode(style + " secondary type", type);
+  }
+
+  private void appendDetails(String id, boolean open, String style, Runnable body) {
+    Map<String, String> attrs =
+        Map.of("class", style, "id", id == null ? "" : id, open ? "open" : "", "");
+    appendTag("details", attrs, body);
+  }
+
+  private void appendSummary(String title, Runnable body) {
+    Map<String, String> attrs = Map.of("title", title == null ? "" : title);
+    appendTag("summary", attrs, body);
+  }
+
+  private void appendA(String href, boolean blank, String text) {
+    appendTag("a", Map.of("href", href, "target", blank ? "_blank" : ""), text);
+  }
+
+  private void appendCode(String style, String text) {
+    appendTag("code", Map.of("class", style), text);
+  }
+
+  private void appendCode(String style, Runnable body) {
+    appendTag("code", Map.of("class", style), body);
   }
 
   private void appendTag(String name, String text) {
@@ -688,7 +701,7 @@ public class OpenApiRenderer {
   }
 
   private void appendTag(String name, Map<String, String> attributes, String text) {
-    if (text != null && !text.isEmpty()) appendTag(name, attributes, () -> appendPlain(text));
+    if (text != null && !text.isEmpty()) appendTag(name, attributes, () -> appendRaw(text));
   }
 
   private void appendTag(String name, Runnable body) {
@@ -707,14 +720,13 @@ public class OpenApiRenderer {
     out.append("</").append(name).append('>');
   }
 
-  private void appendNonemptyTag(String name, Runnable body) {
-    // TODO write the tag
-    // render body
-    // check if that appended anything, if so complete, otherwise undo the opening tag and
-    // attributes
-  }
-
-  private static final Set<String> ATTR_NAMES_IGNORE_WHEN_EMPTY = Set.of("class", "title");
+  /**
+   * To avoid lots of conditions when constructing attribute maps this allows to put an empty string
+   * for certain attributes to have them ignored since it is known that they only make sense with a
+   * value.
+   */
+  private static final Set<String> ATTR_NAMES_IGNORE_WHEN_EMPTY =
+      Set.of("class", "title", "target", "id");
 
   private void appendAttr(String name, String value) {
     if (name == null || name.isEmpty()) return;
@@ -725,7 +737,7 @@ public class OpenApiRenderer {
     if (!emptyValue) out.append('=').append('"').append(value).append('"');
   }
 
-  private void appendPlain(String text) {
+  private void appendRaw(String text) {
     out.append(text);
   }
 }
