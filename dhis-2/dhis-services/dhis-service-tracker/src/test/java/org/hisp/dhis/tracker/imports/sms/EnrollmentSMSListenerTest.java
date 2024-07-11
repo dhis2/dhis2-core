@@ -301,7 +301,7 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
   }
 
   @Test
-  void testEnrollmentNoAttribs() throws ForbiddenException, NotFoundException {
+  void testEnrollmentNoAttribs() {
     subject.receive(incomingSmsEnrollmentNoAttribs);
 
     assertNotNull(updatedIncomingSms);
