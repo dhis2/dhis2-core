@@ -40,9 +40,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonNodeType;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.jsontree.JsonValue;
@@ -50,6 +52,7 @@ import org.hisp.dhis.webapi.openapi.OpenApiObject.MediaTypeObject;
 import org.hisp.dhis.webapi.openapi.OpenApiObject.OperationObject;
 import org.hisp.dhis.webapi.openapi.OpenApiObject.ParameterObject;
 import org.hisp.dhis.webapi.openapi.OpenApiObject.RequestBodyObject;
+import org.hisp.dhis.webapi.openapi.OpenApiObject.ResponseObject;
 import org.hisp.dhis.webapi.openapi.OpenApiObject.SchemaObject;
 import org.intellij.lang.annotations.Language;
 
@@ -203,6 +206,10 @@ public class OpenApiRenderer {
   code.url.secondary + code.url.secondary { padding-left: 0; }
   code.mime { background-color: ivory; font-style: italic; padding: 0.25em 0.5em; margin-bottom: 0.25em; display: inline-block; }
   code.mime.secondary { background: color-mix(in srgb, ivory 70%, transparent); }
+
+  .response code.status { padding: 0.125em 0.25em; font-weight: bold; }
+  .response.status2xx code.status { background: color-mix(in srgb, seagreen 70%, transparent); color: snow; }
+  .response.status4xx code.status { background: color-mix(in srgb, tomato 70%, transparent); color: snow; }
 
   .deprecated summary > code.url { background-color: var(--color-dep); color: #666; }
   .deprecated summary > code.url.secondary { background: color-mix(in srgb, var(--color-dep) 70%, transparent); }
@@ -496,6 +503,7 @@ public class OpenApiRenderer {
           appendTag("header", markdownToHTML(op.description(), op.parameterNames()));
           renderParameters(op);
           renderRequestBody(op);
+          renderResponses(op);
         });
   }
 
@@ -516,21 +524,10 @@ public class OpenApiRenderer {
         responseCodes.stream().filter(code -> code.startsWith("2")).findFirst().orElse("?");
     List<String> errorCodes =
         responseCodes.stream().filter(code -> code.startsWith("4")).sorted().toList();
-    Set<String> mediaTypes =
-        op.responses().values().flatMap(r -> r.content().keys()).collect(toUnmodifiableSet());
     Set<String> subTypes =
-        mediaTypes.stream()
-            .map(type -> type.substring(type.indexOf('/') + 1))
-            .collect(toUnmodifiableSet());
+        getMediaSubTypes(op.responses().values().flatMap(r -> r.content().keys()));
 
-    appendCode(
-        "http content",
-        () -> {
-          appendSpan(subTypes.contains("json") ? "on" : "", "JSON");
-          appendSpan(subTypes.contains("xml") ? "on" : "", "XML");
-          appendSpan(subTypes.contains("csv") ? "on" : "", "CSV");
-          appendSpan(subTypes.stream().anyMatch(t -> !t.matches("xml|json|csv")) ? "on" : "", "*");
-        });
+    renderMediaSubTypesIndicator(subTypes);
     appendCode("http status" + successCode.charAt(0) + "xx", successCode);
     appendCode(
         "http error content",
@@ -550,6 +547,23 @@ public class OpenApiRenderer {
       appendCode("url query secondary", query);
     }
     appendA("#" + op.operationId(), false, "permalink");
+  }
+
+  private static Set<String> getMediaSubTypes(Stream<String> mediaTypes) {
+    return mediaTypes
+        .map(type -> type.substring(type.indexOf('/') + 1))
+        .collect(toUnmodifiableSet());
+  }
+
+  private void renderMediaSubTypesIndicator(Set<String> subTypes) {
+    appendCode(
+        "http content",
+        () -> {
+          appendSpan(subTypes.contains("json") ? "on" : "", "JSON");
+          appendSpan(subTypes.contains("xml") ? "on" : "", "XML");
+          appendSpan(subTypes.contains("csv") ? "on" : "", "CSV");
+          appendSpan(subTypes.stream().anyMatch(t -> !t.matches("xml|json|csv")) ? "on" : "", "*");
+        });
   }
 
   private static String getUrlPathInSections(String path) {
@@ -634,9 +648,9 @@ public class OpenApiRenderer {
 
   private void renderRequestBody(OperationObject op) {
     RequestBodyObject requestBody = op.requestBody();
-    if (!requestBody.exists()) return;
+    if (requestBody.isUndefined()) return;
     renderOperationSectionHeader("{...}", "Request Body");
-    String style = "body";
+    String style = "requests";
     if (requestBody.required()) style += " required";
     Set<String> parameterNames = op.parameterNames();
     appendDetails(
@@ -644,19 +658,44 @@ public class OpenApiRenderer {
         true,
         style,
         () -> {
-          appendSummary(
-              null,
-              () -> requestBody.content().entries().forEach(this::renderRequestBodyMediaType));
+          appendSummary(null, () -> requestBody.content().entries().forEach(this::renderMediaType));
           String description = markdownToHTML(requestBody.description(), parameterNames);
           appendTag("article", Map.of("class", "desc"), description);
         });
   }
 
-  private void renderRequestBodyMediaType(Map.Entry<String, MediaTypeObject> mediaType) {
+  private void renderMediaType(Map.Entry<String, MediaTypeObject> mediaType) {
     appendCode("mime", mediaType.getKey());
     appendCode("mime secondary", "=");
     renderSchemaType(mediaType.getValue().schema().resolve(), "mime");
     appendRaw("<br/>");
+  }
+
+  private void renderResponses(OperationObject op) {
+    JsonMap<ResponseObject> responses = op.responses();
+    if (responses.isUndefined() || responses.isEmpty()) return;
+
+    renderOperationSectionHeader("&#11168;...", "Responses");
+    responses.entries().forEach(e -> renderResponse(op, e.getKey(), e.getValue()));
+  }
+
+  private void renderResponse(OperationObject op, String code, ResponseObject response) {
+    String style = "response status" + code.charAt(0) + "xx status" + code;
+    appendDetails(
+        op.operationId() + "!",
+        code.charAt(0) == '2',
+        style,
+        () -> {
+          appendSummary(null, () -> renderResponseSummary(code, response));
+          response.content().entries().forEach(this::renderMediaType);
+          String description = markdownToHTML(response.description(), op.parameterNames());
+          appendTag("article", Map.of("class", "desc"), description);
+        });
+  }
+
+  private void renderResponseSummary(String code, ResponseObject response) {
+    appendCode("status", code);
+    renderMediaSubTypesIndicator(getMediaSubTypes(response.content().keys()));
   }
 
   private void renderSchemaType(SchemaObject schema, String style) {
