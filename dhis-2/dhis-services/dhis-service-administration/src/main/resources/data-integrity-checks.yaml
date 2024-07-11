@@ -74,3 +74,4 @@ checks:
   - users/users_capture_ou_not_in_tei_search_ou.yaml
   - users/users_with_no_user_role.yaml
   - users/user_roles_no_authorities.yaml
+  - users/user_roles_with_no_users.yaml
