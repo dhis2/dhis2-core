@@ -58,7 +58,6 @@ class DataIntegrityYamlReaderTest {
     readYaml(checks, "data-integrity-checks.yaml", "data-integrity-checks", CLASS_PATH);
     assertEquals(77, checks.size());
 
-
     // Names should be unique
     List<String> allNames = checks.stream().map(DataIntegrityCheck::getName).toList();
     assertEquals(allNames.size(), Set.copyOf(allNames).size());

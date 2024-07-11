@@ -41,7 +41,8 @@ summary_sql: >-
   from option_groups_empty;
 details_sql: >-
   SELECT uid,name from optiongroup
-  where optionsetid IS NULL;
+  where optionsetid IS NULL OR optiongroupid NOT IN (
+  SELECT DISTINCT optiongroupid from optiongroupmembers)
 details_id_type: optionGroups
 severity: WARNING
 introduction: >
