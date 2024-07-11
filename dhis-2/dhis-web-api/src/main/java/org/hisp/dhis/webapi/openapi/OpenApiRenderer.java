@@ -101,29 +101,12 @@ public class OpenApiRenderer {
     font-size: 16px;
     text-rendering: optimizespeed;
   }
-  h1 {
-       margin: 0.5rem;
-       color: rgb(33, 41, 52);
-       font-size: 110%;
-       font-weight: normal;
-       text-align: left;
-   }
-  h2 {
-      display: inline;
-      font-size: 110%;
-      font-weight: normal;
-  }
-  h3 {
-      font-size: 105%;
-      display: inline;
-      text-transform: capitalize;
-      font-weight: normal;
-  }
-  .op h4 { font-weight: normal; padding: 0 1em; }
-  h5 {
-      margin: 1em 0 0.5em 0;
-      font-weight: normal;
-  }
+  h1 { margin: 0.5rem; color: rgb(33, 41, 52); font-size: 110%; font-weight: normal; text-align: left; }
+  h2 { display: inline; font-size: 110%; font-weight: normal; }
+  h3 { font-size: 105%; display: inline; text-transform: capitalize; font-weight: normal; }
+  h4 { font-weight: normal; padding: 0 1em; }
+  h5 { margin: 1em 0 0.5em 0; font-weight: normal; }
+
   h2 a[target="_blank"] { float: right; text-decoration: none; }
   a[href^="#"] { text-decoration: none; }
   a.permalink {
@@ -159,29 +142,19 @@ public class OpenApiRenderer {
   }
   nav {
         position: fixed;
-        top: 65px;
+        top: 60px;
         width: 220px;
         text-align: left;
         display: inline-block;
-        background-color: var(--bg-page);
-        padding: 0.5rem 1rem;
+        background-color: #f3f3f9;
+        padding: 1rem;
+        box-sizing: border-box;
   }
-  .domains {
-    margin-left: 250px;
-    padding-top: 65px;
-    max-width: 100rem;
-  }
-  .domains > details {
-    margin-top: 10px;
-  }
-  .domains > details > summary {
-       padding: 0.5em 1em;
-  }
-  .domains > details > summary:before {
-      content: '⛁';
-      margin-right: 0.5rem;
-      color: #888;
-  }
+  body > section { margin-left: 250px; padding-top: 65px; padding-bottom: 1em; }
+  body > section > details { margin-top: 10px; }
+  body > section > details > summary { padding: 0.5em 1em; }
+  body > section h2:before { content: '⛁'; margin-right: 0.5rem; color: dimgray; }
+
   details {
     margin-left: 2rem;
   }
@@ -193,10 +166,10 @@ public class OpenApiRenderer {
   details[open] > summary:before {
     content: '⊝';
   }
-  .domains > details[open] > summary {
+  body > section > details[open] > summary {
        margin-top: 0;
   }
-  .domains > details[open] > summary h2 {
+  body > section > details[open] > summary h2 {
         font-weight: bold;
   }
   details > summary {
@@ -223,7 +196,7 @@ public class OpenApiRenderer {
   code.url em, code.url.secondary { color: lightslategrey; font-style: normal; font-weight: normal; background: color-mix(in srgb, snow 70%, transparent); }
   code.url small { color: gray; }
   code.tag { color: dimgray; margin-left: 2em; }
-  code.tag > span + span { color: darkmagenta; }
+  code.tag > span + span { color: darkmagenta; background-color: ivory; padding: 0.25em; }
   code.url.secondary.type { color: dimgray; font-style: italic; }
   code.url.secondary + code.url.secondary { padding-left: 0; }
   code.mime { background-color: ivory; font-style: italic; padding: 0.25em 0.5em; margin-bottom: 0.25em; display: inline-block; }
@@ -318,7 +291,7 @@ public class OpenApiRenderer {
   .op aside > button.toggle:after { content: '⇱'; padding-left: 0.5rem; }
   .op:has(details[data-open]) aside > button.toggle:after { content: '⇲'; }
 
-  article.desc { margin-right: 2rem; margin-left: 300px; }
+  article.desc { margin: 10px 30px 0 30px; color: #333; } /* note: margin is in pixels as the font-size changes */
   article.desc > p { margin: 0 0 10px 0; }
   article.desc > *:first-child { margin-top: 10px; }
   article.desc a[target="_blank"]:after { content: '🗗'; }
@@ -356,12 +329,12 @@ public class OpenApiRenderer {
           .thenComparing(OperationObject::operationId);
 
   private List<PackageItem> getPackages() {
-    Map<String, PackageItem> domains = new TreeMap<>();
+    Map<String, PackageItem> packages = new TreeMap<>();
     Consumer<OperationObject> add =
         op -> {
           String domain = op.x_package();
           String group = op.x_group();
-          domains
+          packages
               .computeIfAbsent(domain, d -> new PackageItem(d, new TreeMap<>()))
               .groups()
               .computeIfAbsent(group, g -> new GroupItem(g, new ArrayList<>()))
@@ -370,10 +343,10 @@ public class OpenApiRenderer {
         };
     api.operations().forEach(add);
     if (params.sortEndpointsByMethod)
-      domains
+      packages
           .values()
           .forEach(p -> p.groups().values().forEach(g -> g.operations().sort(SORT_BY_METHOD)));
-    return List.copyOf(domains.values());
+    return List.copyOf(packages.values());
   }
 
   /*
@@ -462,7 +435,6 @@ public class OpenApiRenderer {
     List<PackageItem> packages = getPackages();
     appendTag(
         "section",
-        Map.of("class", "domains"),
         () -> {
           for (PackageItem pkg : packages) {
             Map<String, String> permalinkAttrs =
@@ -489,7 +461,11 @@ public class OpenApiRenderer {
                               "details",
                               Map.of("open", ""),
                               () -> {
-                                appendTag("summary", () -> appendTag("h3", group.group()));
+                                appendTag(
+                                    "summary",
+                                    () ->
+                                        appendTag(
+                                            "h3", Map.of("class", group.group()), group.group()));
                                 group.operations().forEach(this::renderOperation);
                               });
                         });
