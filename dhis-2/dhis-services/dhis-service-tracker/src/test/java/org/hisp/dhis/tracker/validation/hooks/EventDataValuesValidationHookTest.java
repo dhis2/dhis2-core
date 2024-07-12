@@ -37,11 +37,13 @@ import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
@@ -245,7 +247,6 @@ class EventDataValuesValidationHookTest {
             .dataValues(Set.of(dataValue()))
             .build();
 
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     hook.validateEvent(reporter, bundle, event);
 
     assertThat(reporter.getErrors(), hasSize(1));
@@ -288,7 +289,7 @@ class EventDataValuesValidationHookTest {
 
   @ParameterizedTest
   @MethodSource("transactionsNotCreatingDataValues")
-  void shouldPassValidationWhenAMandatoryDataElementIsMissingAndDataValuesAreNotCreated(
+  void shouldPassValidationWhenAMandatoryDataElementIsMissingAndDataValueIsAlreadyPresentInDB(
       EventStatus savedStatus, EventStatus newStatus) {
     DataElement dataElement = dataElement();
     String eventUid = CodeGenerator.generateUid();
@@ -310,7 +311,8 @@ class EventDataValuesValidationHookTest {
     programStage.setProgramStageDataElements(
         Set.of(mandatoryStageElement1, mandatoryStageElement2));
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
-    when(preheat.getEvent(eventUid)).thenReturn(event(eventUid, savedStatus));
+    when(preheat.getEvent(eventUid))
+        .thenReturn(event(eventUid, savedStatus, Set.of("MANDATORY_DE", dataElementUid)));
 
     Event event =
         Event.builder()
@@ -320,7 +322,6 @@ class EventDataValuesValidationHookTest {
             .dataValues(Set.of(dataValue()))
             .build();
 
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
     hook.validateEvent(reporter, bundle, event);
 
     assertFalse(reporter.hasErrors());
@@ -360,7 +361,6 @@ class EventDataValuesValidationHookTest {
             .dataValues(Set.of(dataValue()))
             .build();
 
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
     hook.validateEvent(reporter, bundle, event);
 
     assertEquals(TrackerErrorCode.E1303, reporter.getErrors().get(0).getErrorCode());
@@ -395,7 +395,6 @@ class EventDataValuesValidationHookTest {
             .dataValues(Set.of(dataValue))
             .build();
 
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     hook.validateEvent(reporter, bundle, event);
 
     assertFalse(reporter.hasErrors());
@@ -518,7 +517,6 @@ class EventDataValuesValidationHookTest {
             .dataValues(Set.of(validDataValue))
             .build();
 
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     hook.validateEvent(reporter, bundle, event);
 
     assertFalse(reporter.hasErrors());
@@ -543,7 +541,6 @@ class EventDataValuesValidationHookTest {
             .dataValues(Set.of(validDataValue))
             .build();
 
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     hook.validateEvent(reporter, bundle, event);
 
     assertThat(reporter.getErrors(), hasSize(1));
@@ -570,7 +567,6 @@ class EventDataValuesValidationHookTest {
             .dataValues(Set.of(validDataValue))
             .build();
 
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     hook.validateEvent(reporter, bundle, event);
 
     assertEquals(TrackerErrorCode.E1076, reporter.getErrors().get(0).getErrorCode());
@@ -599,7 +595,6 @@ class EventDataValuesValidationHookTest {
             .dataValues(Set.of(validDataValue))
             .build();
 
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
     hook.validateEvent(reporter, bundle, event);
 
     assertThat(reporter.getErrors(), hasSize(1));
@@ -626,7 +621,6 @@ class EventDataValuesValidationHookTest {
             .dataValues(Set.of(validDataValue))
             .build();
 
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     hook.validateEvent(reporter, bundle, event);
 
     assertThat(reporter.getErrors(), hasSize(1));
@@ -678,7 +672,6 @@ class EventDataValuesValidationHookTest {
             .dataValues(Set.of(validDataValue))
             .build();
 
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     hook.validateEvent(reporter, bundle, event);
 
     assertThat(reporter.getErrors(), hasSize(1));
@@ -754,7 +747,6 @@ class EventDataValuesValidationHookTest {
             .dataValues(Set.of(validDataValue))
             .build();
 
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     hook.validateEvent(reporter, bundle, event);
 
     assertFalse(reporter.hasErrors());
@@ -1017,6 +1009,19 @@ class EventDataValuesValidationHookTest {
 
     assertThat(reporter.getErrors(), hasSize(1));
     assertEquals(TrackerErrorCode.E1302, reporter.getErrors().get(0).getErrorCode());
+  }
+
+  private org.hisp.dhis.program.ProgramStageInstance event(
+      String uid, EventStatus status, Set<String> dataElements) {
+    org.hisp.dhis.program.ProgramStageInstance event =
+        new org.hisp.dhis.program.ProgramStageInstance();
+    event.setUid(uid);
+    event.setStatus(status);
+    event.setEventDataValues(
+        dataElements.stream()
+            .map(de -> new EventDataValue(de, "value"))
+            .collect(Collectors.toSet()));
+    return event;
   }
 
   private org.hisp.dhis.program.ProgramStageInstance event(String uid, EventStatus status) {
