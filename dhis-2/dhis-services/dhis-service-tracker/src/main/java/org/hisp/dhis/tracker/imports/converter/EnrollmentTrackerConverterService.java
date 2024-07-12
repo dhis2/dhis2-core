@@ -76,8 +76,11 @@ public class EnrollmentTrackerConverterService
     List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments = new ArrayList<>();
 
     preheatEnrollments.forEach(
-        te -> {
-          // TODO: Add implementation
+        e -> {
+          org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
+              new org.hisp.dhis.tracker.imports.domain.Enrollment();
+          enrollment.setEnrollment(e.getUid());
+          enrollments.add(enrollment);
         });
 
     return enrollments;

@@ -40,7 +40,6 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import org.apache.commons.lang3.time.DateUtils;
 import org.hibernate.query.Query;
-import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
@@ -187,7 +186,6 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
 
   @Override
   public void hardDelete(Enrollment enrollment) {
-    publisher.publishEvent(new ObjectDeletionRequestedEvent(enrollment));
     getSession().delete(enrollment);
   }
 
