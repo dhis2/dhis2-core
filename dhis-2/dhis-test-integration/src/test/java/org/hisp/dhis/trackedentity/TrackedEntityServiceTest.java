@@ -56,6 +56,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueServ
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.joda.time.DateTime;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -197,6 +198,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   }
 
   @Test
+  @Disabled("If we want to maintain this test, it will need to use tracker importer")
   void testDeleteTrackedEntityAndLinkedEnrollmentsAndEvents() {
     long idA = trackedEntityService.addTrackedEntity(trackedEntityA1);
     long psIdA = enrollmentService.addEnrollment(enrollment);

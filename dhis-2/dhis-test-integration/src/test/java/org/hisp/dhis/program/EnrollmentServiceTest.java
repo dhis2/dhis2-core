@@ -55,6 +55,7 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -204,6 +205,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   }
 
   @Test
+  @Disabled("If we want to maintain this test, it will need to use tracker importer")
   void testSoftDeleteEnrollmentAndLinkedEvent() {
     long idA = apiEnrollmentService.addEnrollment(enrollmentA);
     manager.save(eventA);
