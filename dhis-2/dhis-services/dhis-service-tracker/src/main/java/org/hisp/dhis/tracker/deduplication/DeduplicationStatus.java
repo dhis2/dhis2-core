@@ -25,20 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.deduplication;
+package org.hisp.dhis.tracker.deduplication;
 
-import lombok.Builder;
-import lombok.Data;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import lombok.Getter;
 
-@Data
-@Builder
-public class DeduplicationMergeParams {
-  private TrackedEntity original;
-
-  private TrackedEntity duplicate;
-
-  private MergeObject mergeObject;
-
-  private PotentialDuplicate potentialDuplicate;
+@Getter
+public enum DeduplicationStatus {
+  ALL,
+  OPEN,
+  INVALID,
+  MERGED
 }

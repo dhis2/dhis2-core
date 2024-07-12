@@ -5,7 +5,7 @@
         >
 
 <hibernate-mapping>
-    <class name="org.hisp.dhis.deduplication.PotentialDuplicate" table="potentialduplicate">
+    <class name="org.hisp.dhis.tracker.deduplication.PotentialDuplicate" table="potentialduplicate">
 
         <cache usage="read-write" />
 
@@ -35,7 +35,7 @@
 
         <property name="status" column="status">
             <type name="org.hibernate.type.EnumType">
-                <param name="enumClass">org.hisp.dhis.deduplication.DeduplicationStatus</param>
+                <param name="enumClass">org.hisp.dhis.tracker.deduplication.DeduplicationStatus</param>
                 <param name="userNamed">true</param>
                 <param name="type">12</param>
             </type>
