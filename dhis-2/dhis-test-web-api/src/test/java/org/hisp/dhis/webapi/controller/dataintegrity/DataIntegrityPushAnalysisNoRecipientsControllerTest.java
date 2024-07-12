@@ -55,6 +55,6 @@ class DataIntegrityPushAnalysisNoRecipientsControllerTest
                     + testDashboard
                     + "'}, 'recipientUserGroups' : []}"));
 
-    assertHasDataIntegrityIssues( DETAILS_ID_TYPE, CHECK, 100, testPushAnalysis, "Foo", null, true);
+    assertHasDataIntegrityIssues(DETAILS_ID_TYPE, CHECK, 100, testPushAnalysis, "Foo", null, true);
   }
 }
