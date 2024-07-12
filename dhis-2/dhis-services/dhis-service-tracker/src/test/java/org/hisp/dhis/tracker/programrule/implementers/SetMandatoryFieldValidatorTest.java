@@ -30,6 +30,8 @@ package org.hisp.dhis.tracker.programrule.implementers;
 import static org.hisp.dhis.rules.models.AttributeType.DATA_ELEMENT;
 import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1301;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1306;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1317;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -51,6 +53,8 @@ import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
@@ -64,7 +68,6 @@ import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.programrule.IssueType;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -293,25 +296,25 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest {
   }
 
   @Test
-  void testValidateOkMandatoryFieldsForEnrollment() {
+  void shouldReturnNoErrorWhenMandatoryFieldIsPresent() {
     when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
     when(preheat.getTrackedEntityAttribute(ATTRIBUTE_ID)).thenReturn(attribute);
-    bundle.setEnrollments(Lists.newArrayList(getEnrollmentWithMandatoryAttributeSet()));
+    bundle.setEnrollments(List.of(getEnrollmentWithMandatoryAttributeSet()));
 
-    List<ProgramRuleIssue> errors =
+    List<ProgramRuleIssue> error =
         implementerToTest.validateEnrollment(
             bundle, getRuleEnrollmentEffects(), getEnrollmentWithMandatoryAttributeSet());
 
-    assertTrue(errors.isEmpty());
+    assertTrue(error.isEmpty());
   }
 
   @Test
-  void testValidateOkMandatoryFieldsForEnrollmentUsingIdSchemeCode() {
+  void shouldReturnNoErrorWhenMandatoryFieldIsPresentForEnrollmentUsingIdSchemeCode() {
     TrackerIdSchemeParams idSchemes =
         TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.CODE).build();
     when(preheat.getIdSchemes()).thenReturn(idSchemes);
     when(preheat.getTrackedEntityAttribute(ATTRIBUTE_ID)).thenReturn(attribute);
-    bundle.setEnrollments(Lists.newArrayList(getEnrollmentWithMandatoryAttributeSet(idSchemes)));
+    bundle.setEnrollments(List.of(getEnrollmentWithMandatoryAttributeSet(idSchemes)));
 
     List<ProgramRuleIssue> errors =
         implementerToTest.validateEnrollment(
@@ -321,29 +324,150 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest {
   }
 
   @Test
-  void testValidateWithErrorMandatoryFieldsForEnrollments() {
+  void shouldReturnAnErrorWhenCreatingEnrollmentAndMandatoryFieldIsNotPresent() {
     when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
     when(preheat.getTrackedEntityAttribute(ATTRIBUTE_ID)).thenReturn(attribute);
+    Enrollment enrollmentWithMandatoryAttributeNOTSet = getEnrollmentWithMandatoryAttributeNOTSet();
+    Enrollment enrollmentWithMandatoryAttributeSet = getEnrollmentWithMandatoryAttributeSet();
     bundle.setEnrollments(
-        Lists.newArrayList(
-            getEnrollmentWithMandatoryAttributeSet(), getEnrollmentWithMandatoryAttributeNOTSet()));
+        List.of(enrollmentWithMandatoryAttributeSet, enrollmentWithMandatoryAttributeNOTSet));
+    bundle.setStrategy(enrollmentWithMandatoryAttributeNOTSet, TrackerImportStrategy.CREATE);
+    bundle.setStrategy(enrollmentWithMandatoryAttributeSet, TrackerImportStrategy.CREATE);
 
     List<ProgramRuleIssue> errors =
         implementerToTest.validateEnrollment(
-            bundle, getRuleEnrollmentEffects(), getEnrollmentWithMandatoryAttributeSet());
+            bundle, getRuleEnrollmentEffects(), enrollmentWithMandatoryAttributeNOTSet);
 
-    assertTrue(errors.isEmpty());
-
-    errors =
-        implementerToTest.validateEnrollment(
-            bundle, getRuleEnrollmentEffects(), getEnrollmentWithMandatoryAttributeNOTSet());
-
+    assertFalse(errors.isEmpty());
     errors.forEach(
         e -> {
           assertEquals("RULE_ATTRIBUTE", e.getRuleUid());
-          assertEquals(TrackerErrorCode.E1306, e.getIssueCode());
+          assertEquals(E1306, e.getIssueCode());
           assertEquals(IssueType.ERROR, e.getIssueType());
-          assertEquals(Lists.newArrayList(ATTRIBUTE_ID), e.getArgs());
+          assertEquals(Lists.newArrayList(attribute.getUid()), e.getArgs());
+        });
+  }
+
+  @Test
+  void shouldReturnNoErrorWhenCreatingEnrollmentAndMandatoryFieldIsNotPresentButPresentInTE() {
+    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
+    when(preheat.getTrackedEntityAttribute(ATTRIBUTE_ID)).thenReturn(attribute);
+    when(preheat.getTrackedEntity(TEI_ID)).thenReturn(trackedEntity());
+    Enrollment enrollmentWithMandatoryAttributeNOTSet = getEnrollmentWithMandatoryAttributeNOTSet();
+    Enrollment enrollmentWithMandatoryAttributeSet = getEnrollmentWithMandatoryAttributeSet();
+    bundle.setEnrollments(
+        List.of(enrollmentWithMandatoryAttributeSet, enrollmentWithMandatoryAttributeNOTSet));
+    bundle.setStrategy(enrollmentWithMandatoryAttributeNOTSet, TrackerImportStrategy.CREATE);
+    bundle.setStrategy(enrollmentWithMandatoryAttributeSet, TrackerImportStrategy.CREATE);
+
+    List<ProgramRuleIssue> errors =
+        implementerToTest.validateEnrollment(
+            bundle, getRuleEnrollmentEffects(), enrollmentWithMandatoryAttributeNOTSet);
+
+    assertTrue(errors.isEmpty());
+  }
+
+  @Test
+  void
+      shouldReturnNoErrorWhenUpdatingEnrollmentAndMandatoryFieldIsNotPresentInEnrollmentButPresentInDB() {
+    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
+    when(preheat.getTrackedEntityAttribute(ATTRIBUTE_ID)).thenReturn(attribute);
+    when(preheat.getTrackedEntity(TEI_ID)).thenReturn(trackedEntity());
+    Enrollment enrollmentWithMandatoryAttributeNOTSet = getEnrollmentWithMandatoryAttributeNOTSet();
+    bundle.setEnrollments(List.of(enrollmentWithMandatoryAttributeNOTSet));
+    bundle.setStrategy(enrollmentWithMandatoryAttributeNOTSet, TrackerImportStrategy.UPDATE);
+
+    List<ProgramRuleIssue> errors =
+        implementerToTest.validateEnrollment(
+            bundle, getRuleEnrollmentEffects(), enrollmentWithMandatoryAttributeNOTSet);
+
+    assertTrue(errors.isEmpty());
+  }
+
+  @Test
+  void
+      shouldReturnNoErrorWhenUpdatingEnrollmentAndMandatoryFieldIsNotPresentInEnrollmentButPresentInTrackedEntity() {
+    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
+    when(preheat.getTrackedEntityAttribute(ATTRIBUTE_ID)).thenReturn(attribute);
+    bundle.setTrackedEntities(List.of(payloadTrackedEntity()));
+    Enrollment enrollmentWithMandatoryAttributeNOTSet = getEnrollmentWithMandatoryAttributeNOTSet();
+    bundle.setEnrollments(List.of(enrollmentWithMandatoryAttributeNOTSet));
+    bundle.setStrategy(enrollmentWithMandatoryAttributeNOTSet, TrackerImportStrategy.UPDATE);
+
+    List<ProgramRuleIssue> errors =
+        implementerToTest.validateEnrollment(
+            bundle, getRuleEnrollmentEffects(), enrollmentWithMandatoryAttributeNOTSet);
+
+    assertTrue(errors.isEmpty());
+  }
+
+  @Test
+  void
+      shouldReturnErrorWhenUpdatingEnrollmentAndMandatoryFieldIsNotPresentInEnrollmentOrInTrackedEntityOrInDB() {
+    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
+    when(preheat.getTrackedEntityAttribute(ATTRIBUTE_ID)).thenReturn(attribute);
+    Enrollment enrollmentWithMandatoryAttributeNOTSet = getEnrollmentWithMandatoryAttributeNOTSet();
+    Enrollment enrollmentWithMandatoryAttributeSet = getEnrollmentWithMandatoryAttributeSet();
+    bundle.setEnrollments(
+        List.of(enrollmentWithMandatoryAttributeSet, enrollmentWithMandatoryAttributeNOTSet));
+    bundle.setStrategy(enrollmentWithMandatoryAttributeNOTSet, TrackerImportStrategy.UPDATE);
+    bundle.setStrategy(enrollmentWithMandatoryAttributeSet, TrackerImportStrategy.UPDATE);
+
+    List<ProgramRuleIssue> errors =
+        implementerToTest.validateEnrollment(
+            bundle, getRuleEnrollmentEffects(), enrollmentWithMandatoryAttributeNOTSet);
+
+    assertFalse(errors.isEmpty());
+    errors.forEach(
+        e -> {
+          assertEquals("RULE_ATTRIBUTE", e.getRuleUid());
+          assertEquals(E1306, e.getIssueCode());
+          assertEquals(IssueType.ERROR, e.getIssueType());
+          assertEquals(Lists.newArrayList(attribute.getUid()), e.getArgs());
+        });
+  }
+
+  @Test
+  void shouldReturnErrorWhenCreatingEnrollmentAndMandatoryFieldIsDeleted() {
+    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
+    when(preheat.getTrackedEntityAttribute(ATTRIBUTE_ID)).thenReturn(attribute);
+    Enrollment enrollmentWithMandatoryDeleted = getEnrollmentWithMandatoryAttributeDeleted();
+    bundle.setEnrollments(List.of(enrollmentWithMandatoryDeleted));
+    bundle.setStrategy(enrollmentWithMandatoryDeleted, TrackerImportStrategy.CREATE);
+
+    List<ProgramRuleIssue> errors =
+        implementerToTest.validateEnrollment(
+            bundle, getRuleEnrollmentEffects(), enrollmentWithMandatoryDeleted);
+
+    assertFalse(errors.isEmpty());
+    errors.forEach(
+        e -> {
+          assertEquals("RULE_ATTRIBUTE", e.getRuleUid());
+          assertEquals(E1317, e.getIssueCode());
+          assertEquals(IssueType.ERROR, e.getIssueType());
+          assertEquals(Lists.newArrayList(attribute.getUid()), e.getArgs());
+        });
+  }
+
+  @Test
+  void shouldReturnErrorWhenUpdatingEnrollmentAndMandatoryFieldIsDeleted() {
+    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
+    when(preheat.getTrackedEntityAttribute(ATTRIBUTE_ID)).thenReturn(attribute);
+    Enrollment enrollmentWithMandatoryDeleted = getEnrollmentWithMandatoryAttributeDeleted();
+    bundle.setEnrollments(List.of(enrollmentWithMandatoryDeleted));
+    bundle.setStrategy(enrollmentWithMandatoryDeleted, TrackerImportStrategy.UPDATE);
+
+    List<ProgramRuleIssue> errors =
+        implementerToTest.validateEnrollment(
+            bundle, getRuleEnrollmentEffects(), enrollmentWithMandatoryDeleted);
+
+    assertFalse(errors.isEmpty());
+    errors.forEach(
+        e -> {
+          assertEquals("RULE_ATTRIBUTE", e.getRuleUid());
+          assertEquals(E1317, e.getIssueCode());
+          assertEquals(IssueType.ERROR, e.getIssueType());
+          assertEquals(Lists.newArrayList(attribute.getUid()), e.getArgs());
         });
   }
 
@@ -484,5 +608,44 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest {
     RuleAction ruleActionSetMandatoryAttribute =
         RuleActionSetMandatoryField.create(ATTRIBUTE_ID, TRACKED_ENTITY_ATTRIBUTE);
     return Lists.newArrayList(RuleEffect.create("RULE_ATTRIBUTE", ruleActionSetMandatoryAttribute));
+  }
+
+  private Enrollment getEnrollmentWithMandatoryAttributeDeleted() {
+    return Enrollment.builder()
+        .enrollment(ACTIVE_ENROLLMENT_ID)
+        .trackedEntity(TEI_ID)
+        .status(EnrollmentStatus.ACTIVE)
+        .attributes(List.of(getDeletedAttribute()))
+        .build();
+  }
+
+  private Attribute getDeletedAttribute() {
+    return Attribute.builder()
+        .attribute(MetadataIdentifier.ofUid(ATTRIBUTE_ID))
+        .value(null)
+        .build();
+  }
+
+  private org.hisp.dhis.tracker.domain.TrackedEntity payloadTrackedEntity() {
+    Attribute payloadAttribute =
+        Attribute.builder()
+            .attribute(MetadataIdentifier.ofUid(attribute))
+            .value(ATTRIBUTE_VALUE)
+            .build();
+    return org.hisp.dhis.tracker.domain.TrackedEntity.builder()
+        .trackedEntity(TEI_ID)
+        .attributes(List.of(payloadAttribute))
+        .build();
+  }
+
+  private TrackedEntityInstance trackedEntity() {
+    TrackedEntityInstance trackedEntity = new TrackedEntityInstance();
+    trackedEntity.setUid(TEI_ID);
+    TrackedEntityAttributeValue attributeValue =
+        createTrackedEntityAttributeValue('A', trackedEntity, attribute);
+    attributeValue.setValue(ATTRIBUTE_VALUE);
+    Set<TrackedEntityAttributeValue> attributes = Set.of(attributeValue);
+    trackedEntity.setTrackedEntityAttributeValues(attributes);
+    return trackedEntity;
   }
 }
