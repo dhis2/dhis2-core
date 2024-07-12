@@ -34,9 +34,9 @@ import org.junit.jupiter.api.Test;
 
 class DataIntegrityPushAnalysisNoRecipientsControllerTest
     extends AbstractDataIntegrityIntegrationTest {
-  private static final String check = "push_analysis_no_recipients";
+  private static final String CHECK = "push_analysis_no_recipients";
 
-  private static final String detailsIdType = "pushAnalysis";
+  private static final String DETAILS_ID_TYPE = "pushAnalysis";
 
   @Test
   void testPushAnalysisNoRecipients() {
@@ -55,6 +55,6 @@ class DataIntegrityPushAnalysisNoRecipientsControllerTest
                     + testDashboard
                     + "'}, 'recipientUserGroups' : []}"));
 
-    assertHasDataIntegrityIssues(detailsIdType, check, 100, testPushAnalysis, "Foo", null, true);
+    assertHasDataIntegrityIssues( DETAILS_ID_TYPE, CHECK, 100, testPushAnalysis, "Foo", null, true);
   }
 }
