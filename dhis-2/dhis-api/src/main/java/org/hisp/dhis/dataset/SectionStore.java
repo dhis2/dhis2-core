@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.dataset;
 
+import java.util.Collection;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.indicator.Indicator;
 
 public interface SectionStore extends IdentifiableObjectStore<Section> {
@@ -50,4 +52,6 @@ public interface SectionStore extends IdentifiableObjectStore<Section> {
    * @return a Collection of {@link Section}s.
    */
   List<Section> getSectionsByIndicators(List<Indicator> indicators);
+
+  List<Section> getByDataElement(Collection<DataElement> dataElements);
 }

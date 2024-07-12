@@ -27,9 +27,13 @@
  */
 package org.hisp.dhis.program;
 
+import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
  * @author Abyot Asalefew
  */
-public interface EventStore extends IdentifiableObjectStore<Event> {}
+public interface EventStore extends IdentifiableObjectStore<Event> {
+
+  List<Event> getAllWithEventDataValuesRootKeysContainingAnyOf(List<String> searchStrings);
+}

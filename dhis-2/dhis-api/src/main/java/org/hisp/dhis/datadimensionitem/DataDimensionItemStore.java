@@ -30,6 +30,7 @@ package org.hisp.dhis.datadimensionitem;
 import java.util.List;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.GenericStore;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.indicator.Indicator;
 
 /**
@@ -44,4 +45,6 @@ public interface DataDimensionItemStore extends GenericStore<DataDimensionItem> 
    * @return matching {@link DataDimensionItem}s
    */
   List<DataDimensionItem> getIndicatorDataDimensionItems(List<Indicator> indicators);
+
+  List<DataDimensionItem> getDataElementDataDimensionItems(List<DataElement> dataElements);
 }

@@ -47,6 +47,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import javax.persistence.PersistenceException;
 import javax.servlet.ServletException;
 import lombok.extern.slf4j.Slf4j;
@@ -429,7 +430,8 @@ public class CrudControllerAdvice {
   @ExceptionHandler(PersistenceException.class)
   @ResponseBody
   public WebMessage persistenceExceptionHandler(PersistenceException ex) {
-    return conflict(ex.getMessage());
+    String helpfulMessage = getHelpfulMessage(ex);
+    return conflict(helpfulMessage);
   }
 
   @ExceptionHandler(AccessDeniedException.class)
@@ -704,5 +706,30 @@ public class CrudControllerAdvice {
 
       setValue(enumValue);
     }
+  }
+
+  /**
+   * {@link PersistenceException}s can have deeply-nested root causes and may have a very vague
+   * message, which may not be very helpful. This method checks if a more detailed, user-friendly
+   * message is available and returns it if found.
+   *
+   * <p>For example, instead of returning: <b><i>"Could not execute statement"</i></b> , potentially
+   * returning: <b><i>"duplicate key value violates unique constraint "minmaxdataelement_unique_key"
+   * Detail: Key (sourceid, dataelementid, categoryoptioncomboid)=(x, y, z) already exists"</i></b>.
+   *
+   * @param ex exception to check
+   * @return detailed message or original exception message
+   */
+  @Nullable
+  public static String getHelpfulMessage(PersistenceException ex) {
+    Throwable cause = ex.getCause();
+
+    if (cause != null) {
+      Throwable rootCause = cause.getCause();
+      if (rootCause != null) {
+        return rootCause.getMessage();
+      }
+    }
+    return ex.getMessage();
   }
 }

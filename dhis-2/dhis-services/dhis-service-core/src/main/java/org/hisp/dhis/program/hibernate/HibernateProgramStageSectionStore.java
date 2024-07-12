@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.program.hibernate;
 
+import java.util.List;
 import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageSectionStore;
 import org.hisp.dhis.security.acl.AclService;
@@ -49,5 +51,18 @@ public class HibernateProgramStageSectionStore
       ApplicationEventPublisher publisher,
       AclService aclService) {
     super(entityManager, jdbcTemplate, publisher, ProgramStageSection.class, aclService, true);
+  }
+
+  @Override
+  public List<ProgramStageSection> getAllByDataElement(List<DataElement> dataElements) {
+    return getQuery(
+            """
+            select pss from ProgramStageSection pss
+            join pss.dataElements de
+            where de in :dataElements
+            group by pss
+            """)
+        .setParameter("dataElements", dataElements)
+        .list();
   }
 }

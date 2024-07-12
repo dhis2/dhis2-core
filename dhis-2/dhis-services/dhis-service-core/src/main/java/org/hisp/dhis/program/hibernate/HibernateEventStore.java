@@ -27,13 +27,16 @@
  */
 package org.hisp.dhis.program.hibernate;
 
+import com.vladmihalcea.hibernate.type.array.StringArrayType;
 import java.util.List;
 import java.util.function.Function;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventStore;
 import org.hisp.dhis.security.acl.AclService;
@@ -65,5 +68,24 @@ public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
   @Override
   protected Event postProcessObject(Event event) {
     return (event == null || event.isDeleted()) ? null : event;
+  }
+
+  /**
+   * Method which searches the `eventdatavalues` jsonb column. It checks if any of the root keys
+   * (which are {@link DataElement}) {@link UID}s, match any of the search strings passed in.
+   *
+   * @param searchStrings strings to search for, at the root key level
+   * @return all Events whose eventdatavalues contain any of the search strings passed in
+   */
+  @Override
+  public List<Event> getAllWithEventDataValuesRootKeysContainingAnyOf(List<String> searchStrings) {
+    return nativeSynchronizedTypedQuery(
+            """
+             select * from event e
+             where jsonb_exists_any(e.eventdatavalues, :searchStrings)
+              """)
+        .setParameter(
+            "searchStrings", searchStrings.toArray(String[]::new), StringArrayType.INSTANCE)
+        .getResultList();
   }
 }
