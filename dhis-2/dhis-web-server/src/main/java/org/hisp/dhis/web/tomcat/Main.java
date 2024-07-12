@@ -103,9 +103,6 @@ public class Main {
     context.setPath("");
     context.setMimeMappings(MimeMappings.lazyCopy(MimeMappings.DEFAULT));
 
-    //    RequestContextListener requestContextListener = new RequestContextListener();
-    //    context.addApplicationEventListener(requestContextListener);
-
     context.setResources(new LoaderHidingResourceRoot(context));
     context.addLifecycleListener(new FixContextListener());
     ClassLoader parentClassLoader = Main.class.getClassLoader();
