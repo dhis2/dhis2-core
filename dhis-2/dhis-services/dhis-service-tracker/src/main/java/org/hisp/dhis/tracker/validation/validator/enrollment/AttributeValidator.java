@@ -27,17 +27,16 @@
  */
 package org.hisp.dhis.tracker.validation.validator.enrollment;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1006;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1018;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1019;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1075;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1076;
+import static org.hisp.dhis.tracker.validation.validator.ValidationUtils.getTrackedEntityAttributes;
 import static org.hisp.dhis.tracker.validation.validator.ValidationUtils.validateOptionSet;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Streams;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -48,7 +47,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
@@ -59,7 +57,6 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
-import org.hisp.dhis.tracker.validation.validator.TrackerImporterAssertErrors;
 import org.springframework.stereotype.Component;
 
 /**
@@ -79,9 +76,7 @@ class AttributeValidator extends org.hisp.dhis.tracker.validation.validator.Attr
   public void validate(Reporter reporter, TrackerBundle bundle, Enrollment enrollment) {
     TrackerPreheat preheat = bundle.getPreheat();
     Program program = preheat.getProgram(enrollment.getProgram());
-    checkNotNull(program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL);
-
-    TrackedEntityInstance tei = bundle.getPreheat().getTrackedEntity(enrollment.getTrackedEntity());
+    TrackedEntityInstance te = bundle.getPreheat().getTrackedEntity(enrollment.getTrackedEntity());
 
     OrganisationUnit orgUnit =
         preheat.getOrganisationUnit(getOrgUnitUidFromTei(bundle, enrollment.getTrackedEntity()));
@@ -104,7 +99,7 @@ class AttributeValidator extends org.hisp.dhis.tracker.validation.validator.Attr
         validateOptionSet(reporter, enrollment, teAttribute, attribute.getValue());
 
         validateAttributeUniqueness(
-            reporter, preheat, enrollment, attribute.getValue(), teAttribute, tei, orgUnit);
+            reporter, preheat, enrollment, attribute.getValue(), teAttribute, te, orgUnit);
       }
     }
 
@@ -154,13 +149,13 @@ class AttributeValidator extends org.hisp.dhis.tracker.validation.validator.Attr
 
     // 1 - attributes from enrollment whose value is non-empty
 
-    // 2 - attributes from existing TEI (if any) from preheat
-    Set<MetadataIdentifier> teiAttributes =
-        buildTeiAttributes(bundle, enrollment.getTrackedEntity());
+    // 2 - attributes from existing TE (if any) from preheat
+    Set<MetadataIdentifier> teAttributes =
+        getTrackedEntityAttributes(bundle, enrollment.getTrackedEntity());
 
     // merged ids of eligible attributes to validate
     Set<MetadataIdentifier> mergedAttributes =
-        Streams.concat(enrollmentNonEmptyAttributes.keySet().stream(), teiAttributes.stream())
+        Streams.concat(enrollmentNonEmptyAttributes.keySet().stream(), teAttributes.stream())
             .collect(Collectors.toSet());
 
     // Map having as key program attribute and mandatory flag as value
@@ -173,6 +168,16 @@ class AttributeValidator extends org.hisp.dhis.tracker.validation.validator.Attr
                         idSchemes.toMetadataIdentifier(
                             programTrackedEntityAttribute.getAttribute()),
                     ProgramTrackedEntityAttribute::isMandatory));
+
+    // enrollment must not contain any attribute which is not defined in
+    // program
+    enrollmentNonEmptyAttributes.forEach(
+        (attrId, attrVal) ->
+            reporter.addErrorIf(
+                () -> !programAttributesMap.containsKey(attrId),
+                enrollment,
+                E1019,
+                attrId.getIdentifierOrAttributeValue() + "=" + attrVal));
 
     // Merged attributes must contain each mandatory program attribute.
     programAttributesMap.entrySet().stream()
@@ -187,30 +192,6 @@ class AttributeValidator extends org.hisp.dhis.tracker.validation.validator.Attr
                     mandatoryProgramAttribute,
                     program.getUid(),
                     enrollment.getEnrollment()));
-
-    // enrollment must not contain any attribute which is not defined in
-    // program
-    enrollmentNonEmptyAttributes.forEach(
-        (attrId, attrVal) ->
-            reporter.addErrorIf(
-                () -> !programAttributesMap.containsKey(attrId),
-                enrollment,
-                E1019,
-                attrId.getIdentifierOrAttributeValue() + "=" + attrVal));
-  }
-
-  private Set<MetadataIdentifier> buildTeiAttributes(
-      TrackerBundle bundle, String trackedEntityInstanceUid) {
-    TrackerIdSchemeParams idSchemes = bundle.getPreheat().getIdSchemes();
-    return Optional.of(bundle)
-        .map(TrackerBundle::getPreheat)
-        .map(trackerPreheat -> trackerPreheat.getTrackedEntity(trackedEntityInstanceUid))
-        .map(TrackedEntityInstance::getTrackedEntityAttributeValues)
-        .orElse(Collections.emptySet())
-        .stream()
-        .map(TrackedEntityAttributeValue::getAttribute)
-        .map(idSchemes::toMetadataIdentifier)
-        .collect(Collectors.toSet());
   }
 
   private MetadataIdentifier getOrgUnitUidFromTei(TrackerBundle bundle, String teiUid) {
