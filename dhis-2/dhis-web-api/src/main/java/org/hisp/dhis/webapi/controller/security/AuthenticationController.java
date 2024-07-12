@@ -46,6 +46,7 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.security.LoginResponse.STATUS;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AccountExpiredException;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -53,6 +54,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
+import org.springframework.security.authentication.event.InteractiveAuthenticationSuccessEvent;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -102,6 +104,8 @@ public class AuthenticationController {
   @Autowired private SessionRegistry sessionRegistry;
   @Autowired private UserService userService;
 
+  @Autowired protected ApplicationEventPublisher eventPublisher;
+
   private SessionAuthenticationStrategy sessionStrategy = new NullAuthenticatedSessionStrategy();
 
   private final SecurityContextHolderStrategy securityContextHolderStrategy =
@@ -144,6 +148,12 @@ public class AuthenticationController {
       saveContext(request, response, authenticationResult);
 
       String redirectUrl = getRedirectUrl(request, response);
+
+      if (this.eventPublisher != null) {
+        this.eventPublisher.publishEvent(
+            new InteractiveAuthenticationSuccessEvent(authenticationResult, this.getClass()));
+      }
+
       return LoginResponse.builder().loginStatus(STATUS.SUCCESS).redirectUrl(redirectUrl).build();
 
     } catch (TwoFactorAuthenticationException e) {
