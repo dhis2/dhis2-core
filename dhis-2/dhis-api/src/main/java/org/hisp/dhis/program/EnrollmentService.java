@@ -74,14 +74,6 @@ public interface EnrollmentService {
    */
   List<Enrollment> getEnrollments(@Nonnull List<String> uids);
 
-  /**
-   * Checks for the existence of an enrollment by UID. Takes into account also the deleted values.
-   *
-   * @param uid Event UID to check for
-   * @return true/false depending on result
-   */
-  boolean enrollmentExistsIncludingDeleted(String uid);
-
   /** Get enrollments into a program. */
   List<Enrollment> getEnrollments(Program program);
 
