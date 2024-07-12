@@ -73,17 +73,26 @@ public class OpenApiRenderer {
   private static final String CSS =
       """
   @import url('https://fonts.cdnfonts.com/css/futura-std-4');
+
+  @keyframes squareToCircle {
+      0% { transform: rotate(0deg); }
+      25% { transform: rotate(45deg); }
+      50% { transform: rotate(90deg); }
+      75% { transform: rotate(45deg); }
+      100% { transform: rotate(0deg); }
+  }
+
   :root {
        --bg-page: white;
        --percent-op-bg-summary: 30%;
        --percent-op-bg-aside: 15%;
-       --p-op-bg: 20%;
+       --p-op-bg: 15%;
        --color-delete: tomato;
-       --color-patch: plum;
-       --color-post: darkseagreen;
-       --color-put: burlywood;
+       --color-patch: darkolivegreen;
+       --color-post: seagreen;
+       --color-put: chocolate;
        --color-options: rosybrown;
-       --color-get: lightsteelblue;
+       --color-get: steelblue;
        --color-trace: palevioletred;
        --color-head: thistle;
        --color-dep: lemonchiffon;
@@ -108,16 +117,14 @@ public class OpenApiRenderer {
   h2 { display: inline; font-size: 110%; font-weight: normal; }
   h3 { font-size: 105%; display: inline; text-transform: capitalize; font-weight: normal; }
   h4 { font-weight: normal; padding: 0 1em; }
-  h5 { margin: 1em 0 0.5em 0; font-weight: normal; }
+  dt { margin: 1em 0 0.5em 0; font-weight: normal; font-size: 85%; }
+  dd { margin: 0;}
 
-  h2 a[target="_blank"] { float: right; text-decoration: none; }
+  h2 a[target="_blank"] { text-decoration: none; margin-left: 0.5em; }
   a[href^="#"] { text-decoration: none; }
-  .op > summary > a {
-       float: right;
-       visibility: hidden;
-       text-decoration: none;
-  }
-  .op > summary > a:after { content: '#'; visibility: visible; }
+  a[title="permalink"] { position: absolute;  right: 1em; display: inline-block; width: 24px; height: 24px;
+    text-align: center; vertical-align: middle; border-radius: 50% 50% 50% 0; line-height: 24px; color: dimgray; }
+
   code {
     font-family: "Liberation Mono", monospace;
   }
@@ -127,7 +134,7 @@ public class OpenApiRenderer {
       padding: 2px;
       margin-top: 0.5em;
   }
-  body > header:first-child {
+  body > header:first-of-type {
       position: fixed;
       width: 100%;
       height: 60px;
@@ -140,6 +147,7 @@ public class OpenApiRenderer {
       background-repeat: no-repeat;
       padding-left: 100px;
       background-position: 5px 5px;
+      z-index: 100;
   }
   nav {
         position: fixed;
@@ -151,7 +159,7 @@ public class OpenApiRenderer {
         padding: 1rem;
         box-sizing: border-box;
   }
-  body > section { margin-left: 250px; padding-top: 65px; padding-bottom: 1em; }
+  body > section { margin-left: 250px; padding-top: 65px; padding-bottom: 1em; position: relative; }
   body > section > details { margin-top: 10px; }
   body > section > details > summary { padding: 0.5em 1em; }
   body > section h2:before { content: '⛁'; margin-right: 0.5rem; color: dimgray; }
@@ -184,13 +192,12 @@ public class OpenApiRenderer {
 
   /* colors and emphasis effects */
   code.http { display: inline-block; padding: 0 0.5em; font-weight: bold; }
-  code.http.content { color: #aaa; display: inline-grid; grid-template-columns: 1fr 1fr; vertical-align: top; }
-  code.http.content > span { font-size: 70%; font-weight: normal; padding-right: 1em; }
-  code.http.content.error > span { color: tomato; min-width: 1.8em;}
+  code.http.content { margin-top: -2px; color: #aaa; display: inline-grid; grid-template-columns: 1fr 1fr 1fr; vertical-align: top; text-align: center; }
+  code.http.content > span { font-size: 70%; font-weight: normal; padding: 0 0.25em; margin: 1px; }
+  code.http.content > span.status4xx { background: color-mix(in srgb, tomato 65%, transparent); color: snow; }
+  code.http.content > span.status2xx { background: color-mix(in srgb, seagreen 65%, transparent); color: snow; }
   code.http.content .on { color: black; }
   code.http.method { width: 4rem; text-align: right; color: dimgray; }
-  code.http.success { color: seagreen;  }
-  code.http.success:after { content: '⮠'; color: #666; font-weight: normal; padding-left: 0.5rem; }
   code.md { background-color: #eee; }
   code.url { padding: 0.25em 0.5em; background-color: snow; }
   code.url.path { font-weight: bold; }
@@ -223,9 +230,11 @@ public class OpenApiRenderer {
   .TRACE > summary { background: color-mix(in srgb, var(--color-trace) var(--percent-op-bg-summary), transparent); }
 
   /* target highlighting */
-  details.op:target > summary { border-bottom: 5px solid gold; }
-  details.param:target > summary > code:first-child { background-color: gold; }
-  details.response:target > summary > code:first-child { background-color: gold; color: inherit; }
+  details.op:target > summary > code.url.path { background-color: gold; }
+  details.param:target > summary > code:first-of-type { background-color: gold; }
+  details.response:target > summary > code:first-of-type { background-color: gold; color: inherit; }
+  details:target > summary > a[title="permalink"] { background-color: gold; color: black; border: 2px solid snow;
+    animation: squareToCircle 2s 1s infinite alternate; }
 
   details[open].GET { background: color-mix(in srgb, var(--color-get) var(--p-op-bg), transparent); }
   details[open].POST { background: color-mix(in srgb, var(--color-post) var(--p-op-bg), transparent); }
@@ -287,17 +296,17 @@ public class OpenApiRenderer {
   #body[desc-] button.desc:before { content: '🞏'; color: dimgray; }
 
 
-  .param.required code.url:first-child:after {
+  .param.required code.url:first-of-type:after {
     content: '*';
     color: tomato;
   }
-  .param.deprecated > summary > code.url:first-child:before {
+  .param.deprecated > summary > code.url:first-of-type:before {
       content: '⚠️';
       font-family: sans-serif; /* reset font */
       display: inline-block; /* reset text-decorations */
       padding-right: 0.25rem;
   }
-  .param.deprecated > summary > code.url:first-child:hover:after {
+  .param.deprecated > summary > code.url:first-of-type:hover:after {
     content: 'This parameter is deprecated';
     position: absolute;
     background: var(--color-tooltip);
@@ -427,31 +436,51 @@ public class OpenApiRenderer {
   private void renderPageMenu() {
     appendTag(
         "nav",
-        () -> {
-          appendTag("h5", "HTTP Methods");
-          renderToggleButton("GET", "GET", "get-", false);
-          renderToggleButton("POST", "POST", "post-", false);
-          renderToggleButton("PUT", "PUT", "put-", false);
-          renderToggleButton("PATCH", "PATCH", "patch-", false);
-          renderToggleButton("DELETE", "DELETE", "delete-", false);
+        () ->
+            appendTag(
+                "dl",
+                () -> {
+                  renderMenuItem(
+                      "HTTP Methods",
+                      () -> {
+                        renderToggleButton("GET", "GET", "get-", false);
+                        renderToggleButton("POST", "POST", "post-", false);
+                        renderToggleButton("PUT", "PUT", "put-", false);
+                        renderToggleButton("PATCH", "PATCH", "patch-", false);
+                        renderToggleButton("DELETE", "DELETE", "delete-", false);
+                      });
 
-          appendTag("h5", "HTTP Status");
-          for (int statusCode : new int[] {200, 201, 202, 204}) {
-            renderToggleButton(
-                statusCode + " " + statusCodeName(statusCode),
-                "status status2xx status" + statusCode,
-                "status" + statusCode + "-",
-                true);
-          }
+                  renderMenuItem(
+                      "HTTP Status",
+                      () -> {
+                        for (int statusCode : new int[] {200, 201, 202, 204}) {
+                          renderToggleButton(
+                              statusCode + " " + statusCodeName(statusCode),
+                              "status status2xx status" + statusCode,
+                              "status" + statusCode + "-",
+                              true);
+                        }
+                      });
 
-          appendTag("h5", "HTTP Content-Type");
-          for (String mime : new String[] {"json", "xml", "csv"})
-            renderToggleButton(mime.toUpperCase(), mime, mime + "-", true);
+                  renderMenuItem(
+                      "HTTP Content-Type",
+                      () -> {
+                        for (String mime : new String[] {"json", "xml", "csv"})
+                          renderToggleButton(mime.toUpperCase(), mime, mime + "-", true);
+                      });
 
-          appendTag("h5", "Content");
-          renderToggleButton("&#127299; full details", "desc", "desc-", false);
-          renderToggleButton("deprecated", "deprecated", "deprecated-", false);
-        });
+                  renderMenuItem(
+                      "Content",
+                      () -> {
+                        renderToggleButton("&#127299; full details", "desc", "desc-", false);
+                        renderToggleButton("deprecated", "deprecated", "deprecated-", false);
+                      });
+                }));
+  }
+
+  private void renderMenuItem(String title, Runnable body) {
+    appendTag("dt", "HTTP Content-Type");
+    appendTag("dd", body);
   }
 
   private void renderToggleButton(String text, String style, String toggle, boolean code) {
@@ -466,35 +495,36 @@ public class OpenApiRenderer {
   }
 
   private void renderPathPackage(PackageItem pkg) {
+    String id = "-" + pkg.domain();
     appendDetails(
-        "-" + pkg.domain(),
+        id,
         false,
         "",
         () -> {
-          renderPathGroupSummary(pkg);
+          appendSummary(
+              id,
+              null,
+              () ->
+                  appendTag(
+                      "h2",
+                      () -> {
+                        appendRaw(toWords(pkg.domain()));
+                        appendA(
+                            "/api/openapi/openapi.html?domain=" + pkg.domain, true, "&#x1F5D7;");
+                      }));
           pkg.groups().values().forEach(this::renderPathGroup);
         });
   }
 
-  private void renderPathGroupSummary(PackageItem pkg) {
-    appendSummary(
-        null,
-        () ->
-            appendTag(
-                "h2",
-                () -> {
-                  appendRaw(toWords(pkg.domain()));
-                  appendA("/api/openapi/openapi.html?domain=" + pkg.domain, true, "&#x1F5D7;");
-                }));
-  }
-
   private void renderPathGroup(GroupItem group) {
+    String id = "-" + group.domain() + "-" + group.group();
     appendDetails(
-        "-" + group.domain() + "-" + group.group(),
+        id,
         true,
         "paths",
         () -> {
-          appendSummary(null, () -> appendTag("h3", Map.of("class", group.group()), group.group()));
+          appendSummary(
+              id, null, () -> appendTag("h3", Map.of("class", group.group()), group.group()));
           group.operations().forEach(this::renderOperation);
         });
   }
@@ -506,13 +536,13 @@ public class OpenApiRenderer {
 
   private void renderOperation(OperationObject op) {
     if (!op.exists()) return;
+    String id = op.operationId();
     appendDetails(
-        op.operationId(),
+        id,
         false,
         operationStyle(op),
         () -> {
-          String summary = op.summary();
-          appendSummary(summary, () -> renderOperationSummary(op));
+          appendSummary(id, op.summary(), () -> renderOperationSummary(op));
           renderOperationToolbar(op);
           appendTag("header", markdownToHTML(op.description(), op.parameterNames()));
           renderParameters(op);
@@ -543,15 +573,11 @@ public class OpenApiRenderer {
     String method = op.operationMethod().toUpperCase();
     String path = op.operationPath();
 
-    List<String> errorCodes = op.responseErrorCodes();
     renderMediaSubTypesIndicator(op.responseMediaSubTypes());
-    appendCode("http success content", op.responseSuccessCode());
     appendCode(
-        "http error content",
-        () -> {
-          for (String errorCode : errorCodes) appendSpan("http status" + errorCode, errorCode);
-          if (errorCodes.isEmpty()) appendSpan(" ");
-        });
+        "http content",
+        () ->
+            op.responseCodes().forEach(code -> appendSpan("status" + code.charAt(0) + "xx", code)));
     appendCode("http method", method);
     appendCode("url path", getUrlPathInSections(path));
     List<ParameterObject> queryParams = op.parameters(ParameterObject.In.query);
@@ -563,7 +589,6 @@ public class OpenApiRenderer {
       if (queryParams.size() > requiredParams.size()) query += "…";
       appendCode("url query secondary", query);
     }
-    appendA("#" + op.operationId(), false, "permalink");
   }
 
   private void renderMediaSubTypesIndicator(Collection<String> subTypes) {
@@ -611,12 +636,13 @@ public class OpenApiRenderer {
     String style = "param";
     if (p.deprecated()) style += " deprecated";
     if (p.required()) style += " required";
+    String id = op.operationId() + "-" + p.name();
     appendDetails(
-        op.operationId() + "-" + p.name(),
+        id,
         true,
         style,
         () -> {
-          appendSummary(null, () -> renderParameterSummary(p));
+          appendSummary(id, null, () -> renderParameterSummary(p));
           String description = markdownToHTML(p.description(), parameterNames);
           appendTag("article", Map.of("class", "desc"), description);
         });
@@ -664,12 +690,13 @@ public class OpenApiRenderer {
     String style = "requests";
     if (requestBody.required()) style += " required";
     Set<String> parameterNames = op.parameterNames();
+    String id = op.operationId() + "-";
     appendDetails(
-        op.operationId() + "-",
+        id,
         true,
         style,
         () -> {
-          appendSummary(null, () -> renderMediaTypes(requestBody.content()));
+          appendSummary(id, null, () -> renderMediaTypes(requestBody.content()));
           String description = markdownToHTML(requestBody.description(), parameterNames);
           appendTag("article", Map.of("class", "desc"), description);
         });
@@ -705,12 +732,13 @@ public class OpenApiRenderer {
   }
 
   private void renderResponse(OperationObject op, String code, ResponseObject response) {
+    String id = op.operationId() + "!" + code;
     appendDetails(
-        op.operationId() + "!" + code,
+        id,
         code.charAt(0) == '2',
         "response",
         () -> {
-          appendSummary(null, () -> renderResponseSummary(code, response));
+          appendSummary(id, null, () -> renderResponseSummary(code, response));
           JsonMap<MediaTypeObject> content = response.content();
           if (!content.isUndefined() && content.size() > 1) renderMediaTypes(content);
           String description = markdownToHTML(response.description(), op.parameterNames());
@@ -763,6 +791,7 @@ public class OpenApiRenderer {
         appendRaw(":");
         renderTypeDescriptor(schema.additionalProperties().resolve());
       }
+      // TODO else: need to detail the object in full
       return;
     }
     appendRaw(type);
@@ -774,13 +803,21 @@ public class OpenApiRenderer {
     appendTag("details", attrs, body);
   }
 
-  private void appendSummary(String title, Runnable body) {
+  private void appendSummary(String id, String title, Runnable body) {
     Map<String, String> attrs = Map.of("title", title == null ? "" : title);
-    appendTag("summary", attrs, body);
+    appendTag(
+        "summary",
+        attrs,
+        () -> {
+          appendA("#" + id, false, "#");
+          body.run();
+        });
   }
 
   private void appendA(String href, boolean blank, String text) {
-    appendTag("a", Map.of("href", href, "target", blank ? "_blank" : ""), text);
+    String target = blank ? "_blank" : "";
+    String title = "#".equals(text) ? "permalink" : "";
+    appendTag("a", Map.of("href", href, "target", target, "title", title), text);
   }
 
   private void appendSpan(String text) {

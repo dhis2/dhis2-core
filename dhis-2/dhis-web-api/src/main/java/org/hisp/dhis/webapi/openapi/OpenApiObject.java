@@ -278,8 +278,8 @@ public interface OpenApiObject extends JsonObject {
       return responses().keys().filter(code -> code.startsWith("2")).findFirst().orElse(null);
     }
 
-    default List<String> responseErrorCodes() {
-      return responses().keys().filter(code -> code.startsWith("4")).sorted().toList();
+    default List<String> responseCodes() {
+      return responses().keys().distinct().sorted().toList();
     }
 
     default List<String> responseMediaSubTypes() {
