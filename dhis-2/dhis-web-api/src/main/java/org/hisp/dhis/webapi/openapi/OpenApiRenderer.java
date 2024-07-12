@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.openapi;
 
 import static java.util.Comparator.comparing;
 import static java.util.Map.entry;
-import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.webapi.openapi.OpenApiMarkdown.markdownToHTML;
 
 import java.util.ArrayList;
@@ -40,7 +39,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.jsontree.JsonList;
@@ -119,14 +117,12 @@ public class OpenApiRenderer {
        visibility: hidden;
        text-decoration: none;
   }
-  .op > summary > a:after {
-      content: '🔗';
-      visibility: visible;
-      font-size: 80%;
-  }
+  .op > summary > a:after { content: '#'; visibility: visible; }
   code {
     font-family: "Liberation Mono", monospace;
   }
+  ul { list-style-type: none; margin: 0; padding-left: 1rem; }
+  ul > li { margin-top: 0.75rem; }
   summary {
       padding: 2px;
       margin-top: 0.5em;
@@ -193,8 +189,8 @@ public class OpenApiRenderer {
   code.http.content.error > span { color: tomato; min-width: 1.8em;}
   code.http.content .on { color: black; }
   code.http.method { width: 4rem; text-align: right; color: dimgray; }
-  code.http.status2xx { color: seagreen;  }
-  code.http.status2xx:after { content: '⮠'; color: #666; font-weight: normal; padding-left: 0.5rem; }
+  code.http.success { color: seagreen;  }
+  code.http.success:after { content: '⮠'; color: #666; font-weight: normal; padding-left: 0.5rem; }
   code.md { background-color: #eee; }
   code.url { padding: 0.25em 0.5em; background-color: snow; }
   code.url.path { font-weight: bold; }
@@ -204,12 +200,12 @@ public class OpenApiRenderer {
   code.property > span + span { color: darkmagenta; padding: 0.25em; background: color-mix(in srgb, ivory 65%, transparent); }
   code.url.secondary.type { color: dimgray; font-style: italic; }
   code.url.secondary + code.url.secondary { padding-left: 0; }
-  code.mime { background-color: ivory; font-style: italic; padding: 0.25em 0.5em; margin-bottom: 0.25em; display: inline-block; }
+  code.mime { background-color: ivory; font-style: italic; padding: 0.25em 0.5em; }
   code.mime.secondary { background: color-mix(in srgb, ivory 70%, transparent); }
 
-  .response code.status { padding: 0.125em 0.25em; font-weight: bold; }
-  .response.status2xx code.status { background: color-mix(in srgb, seagreen 70%, transparent); color: snow; }
-  .response.status4xx code.status { background: color-mix(in srgb, tomato 70%, transparent); color: snow; }
+  code.status { padding: 0.25em 0.5em; font-weight: bold; }
+  code.status2xx { background: color-mix(in srgb, seagreen 70%, transparent); color: snow; }
+  code.status4xx { background: color-mix(in srgb, tomato 70%, transparent); color: snow; }
 
   .deprecated summary > code.url { background-color: var(--color-dep); color: #666; }
   .deprecated summary > code.url.secondary { background: color-mix(in srgb, var(--color-dep) 70%, transparent); }
@@ -225,7 +221,11 @@ public class OpenApiRenderer {
   .OPTIONS > summary { background: color-mix(in srgb, var(--color-options) var(--percent-op-bg-summary), transparent); }
   .HEAD > summary { background: color-mix(in srgb, var(--color-head) var(--percent-op-bg-summary), transparent); }
   .TRACE > summary { background: color-mix(in srgb, var(--color-trace) var(--percent-op-bg-summary), transparent); }
+
+  /* target highlighting */
   details.op:target > summary { border-bottom: 5px solid gold; }
+  details.param:target > summary > code:first-child { background-color: gold; }
+  details.response:target > summary > code:first-child { background-color: gold; color: inherit; }
 
   details[open].GET { background: color-mix(in srgb, var(--color-get) var(--p-op-bg), transparent); }
   details[open].POST { background: color-mix(in srgb, var(--color-post) var(--p-op-bg), transparent); }
@@ -239,12 +239,19 @@ public class OpenApiRenderer {
   details[open].PATCH > aside { background: color-mix(in srgb, var(--color-patch) var(--percent-op-bg-aside), transparent); }
   details[open].DELETE > aside { background: color-mix(in srgb, var(--color-delete) var(--percent-op-bg-aside), transparent); }
 
-  #body[get-] details.GET,
-  #body[post-] details.POST,
-  #body[put-] details.PUT,
-  #body[patch-] details.PATCH,
-  #body[delete-] details.DELETE,
-  #body[deprecated-] details.deprecated { display: none; }
+  #body[get-] .op.GET,
+  #body[post-] .op.POST,
+  #body[put-] .op.PUT,
+  #body[patch-] .op.PATCH,
+  #body[delete-] .op.DELETE,
+  #body[status200-] .op.status200,
+  #body[status201-] .op.status201,
+  #body[status202-] .op.status202,
+  #body[status204-] .op.status204,
+  #body[json-] .op.json,
+  #body[xml-] .op.xml,
+  #body[csv-] .op.csv,
+  #body[deprecated-] .op.deprecated { display: none; }
 
   nav button {
       border: none;
@@ -269,6 +276,13 @@ public class OpenApiRenderer {
   #body[put-] button.PUT:before,
   #body[patch-] button.PATCH:before,
   #body[delete-] button.DELETE:before,
+  #body[status200-] button.status200:before,
+  #body[status201-] button.status201:before,
+  #body[status202-] button.status202:before,
+  #body[status204-] button.status204:before,
+  #body[json-] button.json:before,
+  #body[xml-] button.xml:before,
+  #body[csv-] button.csv:before,
   #body[deprecated-] button.deprecated:before,
   #body[desc-] button.desc:before { content: '🞏'; color: dimgray; }
 
@@ -297,8 +311,8 @@ public class OpenApiRenderer {
     color: var(--color-tooltiptext);
     padding: 0.25rem 0.5rem;
   }
-  .op aside > button.toggle:after { content: '⇱'; padding-left: 0.5rem; }
-  .op:has(details[data-open]) aside > button.toggle:after { content: '⇲'; }
+  .op aside > button.toggle:after { content: '⊝'; padding-left: 0.5rem; font-size: 16px; }
+  .op:has(details[data-open]) aside > button.toggle:after { content: '⊕'; }
 
   article.desc { margin: 10px 30px 0 30px; color: #333; } /* note: margin is in pixels as the font-size changes */
   article.desc > p { margin: 0 0 10px 0; }
@@ -415,33 +429,35 @@ public class OpenApiRenderer {
         "nav",
         () -> {
           appendTag("h5", "HTTP Methods");
-          renderToggleButton("GET", "GET", "get-");
-          renderToggleButton("POST", "POST", "post-");
-          renderToggleButton("PUT", "PUT", "put-");
-          renderToggleButton("PATCH", "PATCH", "patch-");
-          renderToggleButton("DELETE", "DELETE", "delete-");
+          renderToggleButton("GET", "GET", "get-", false);
+          renderToggleButton("POST", "POST", "post-", false);
+          renderToggleButton("PUT", "PUT", "put-", false);
+          renderToggleButton("PATCH", "PATCH", "patch-", false);
+          renderToggleButton("DELETE", "DELETE", "delete-", false);
 
           appendTag("h5", "HTTP Status");
-          renderToggleButton("200", "status200", "status200-");
-          renderToggleButton("201", "status201", "status201-");
-          renderToggleButton("202", "status202", "status202-");
-          renderToggleButton("204", "status204", "status204-");
+          for (int statusCode : new int[] {200, 201, 202, 204}) {
+            renderToggleButton(
+                statusCode + " " + statusCodeName(statusCode),
+                "status status2xx status" + statusCode,
+                "status" + statusCode + "-",
+                true);
+          }
 
           appendTag("h5", "HTTP Content-Type");
-          renderToggleButton("JSON", "json", "json-");
-          renderToggleButton("XML", "xml", "xml-");
-          renderToggleButton("CSV", "csv", "csv-");
-          renderToggleButton("Other", "other", "other-");
+          for (String mime : new String[] {"json", "xml", "csv"})
+            renderToggleButton(mime.toUpperCase(), mime, mime + "-", true);
 
           appendTag("h5", "Content");
-          renderToggleButton("&#127299; full texts", "desc", "desc-");
-          renderToggleButton("deprecated", "deprecated", "deprecated-");
+          renderToggleButton("&#127299; full details", "desc", "desc-", false);
+          renderToggleButton("deprecated", "deprecated", "deprecated-", false);
         });
   }
 
-  private void renderToggleButton(String text, String className, String toggle) {
+  private void renderToggleButton(String text, String style, String toggle, boolean code) {
     String js = "document.getElementById('body').toggleAttribute('" + toggle + "')";
-    appendTag("button", Map.of("onclick", js, "class", className), () -> appendRaw(text));
+    Runnable body = code ? () -> appendCode(style, text) : () -> appendRaw(text);
+    appendTag("button", Map.of("onclick", js, "class", style), body);
   }
 
   private void renderPaths() {
@@ -490,12 +506,10 @@ public class OpenApiRenderer {
 
   private void renderOperation(OperationObject op) {
     if (!op.exists()) return;
-    String style = op.operationMethod().toUpperCase() + " op";
-    if (op.deprecated()) style += " deprecated";
     appendDetails(
         op.operationId(),
         false,
-        style,
+        operationStyle(op),
         () -> {
           String summary = op.summary();
           appendSummary(summary, () -> renderOperationSummary(op));
@@ -505,6 +519,15 @@ public class OpenApiRenderer {
           renderRequestBody(op);
           renderResponses(op);
         });
+  }
+
+  private static String operationStyle(OperationObject op) {
+    StringBuilder style = new StringBuilder("op");
+    style.append(" ").append(op.operationMethod().toUpperCase());
+    style.append(" status").append(op.responseSuccessCode());
+    for (String mime : op.responseMediaSubTypes()) style.append(" ").append(mime);
+    if (op.deprecated()) style.append(" deprecated");
+    return style.toString();
   }
 
   private void renderOperationToolbar(OperationObject op) {
@@ -519,16 +542,10 @@ public class OpenApiRenderer {
   private void renderOperationSummary(OperationObject op) {
     String method = op.operationMethod().toUpperCase();
     String path = op.operationPath();
-    List<String> responseCodes = op.responses().keys().toList();
-    String successCode =
-        responseCodes.stream().filter(code -> code.startsWith("2")).findFirst().orElse("?");
-    List<String> errorCodes =
-        responseCodes.stream().filter(code -> code.startsWith("4")).sorted().toList();
-    Set<String> subTypes =
-        getMediaSubTypes(op.responses().values().flatMap(r -> r.content().keys()));
 
-    renderMediaSubTypesIndicator(subTypes);
-    appendCode("http status" + successCode.charAt(0) + "xx", successCode);
+    List<String> errorCodes = op.responseErrorCodes();
+    renderMediaSubTypesIndicator(op.responseMediaSubTypes());
+    appendCode("http success content", op.responseSuccessCode());
     appendCode(
         "http error content",
         () -> {
@@ -549,13 +566,7 @@ public class OpenApiRenderer {
     appendA("#" + op.operationId(), false, "permalink");
   }
 
-  private static Set<String> getMediaSubTypes(Stream<String> mediaTypes) {
-    return mediaTypes
-        .map(type -> type.substring(type.indexOf('/') + 1))
-        .collect(toUnmodifiableSet());
-  }
-
-  private void renderMediaSubTypesIndicator(Set<String> subTypes) {
+  private void renderMediaSubTypesIndicator(Collection<String> subTypes) {
     appendCode(
         "http content",
         () -> {
@@ -615,7 +626,7 @@ public class OpenApiRenderer {
     SchemaObject schema = p.schema();
     appendCode("url", p.name());
     appendCode("url secondary", "=");
-    renderSchemaType(schema, "url");
+    renderSchemaDescriptor("url", schema);
 
     JsonValue defaultValue = p.$default();
     if (defaultValue.exists()) {
@@ -658,16 +669,30 @@ public class OpenApiRenderer {
         true,
         style,
         () -> {
-          appendSummary(null, () -> requestBody.content().entries().forEach(this::renderMediaType));
+          appendSummary(null, () -> renderMediaTypes(requestBody.content()));
           String description = markdownToHTML(requestBody.description(), parameterNames);
           appendTag("article", Map.of("class", "desc"), description);
         });
   }
 
+  private void renderMediaTypes(JsonMap<MediaTypeObject> mediaTypes) {
+    if (mediaTypes.isUndefined()) return;
+    if (mediaTypes.size() == 1) {
+      renderMediaType(mediaTypes.entries().toList().get(0));
+    } else {
+      appendTag(
+          "ul", () -> mediaTypes.entries().forEach(e -> appendTag("li", () -> renderMediaType(e))));
+    }
+  }
+
   private void renderMediaType(Map.Entry<String, MediaTypeObject> mediaType) {
-    appendCode("mime", mediaType.getKey());
-    appendCode("mime secondary", "=");
-    renderSchemaType(mediaType.getValue().schema().resolve(), "mime");
+    renderMediaType(mediaType.getKey(), mediaType.getValue().schema());
+  }
+
+  private void renderMediaType(String mediaType, SchemaObject type) {
+    appendCode("mime", mediaType);
+    appendCode("mime secondary", ":");
+    renderSchemaDescriptor("mime", type.resolve());
     appendRaw("<br/>");
   }
 
@@ -680,35 +705,67 @@ public class OpenApiRenderer {
   }
 
   private void renderResponse(OperationObject op, String code, ResponseObject response) {
-    String style = "response status" + code.charAt(0) + "xx status" + code;
     appendDetails(
-        op.operationId() + "!",
+        op.operationId() + "!" + code,
         code.charAt(0) == '2',
-        style,
+        "response",
         () -> {
           appendSummary(null, () -> renderResponseSummary(code, response));
-          response.content().entries().forEach(this::renderMediaType);
+          JsonMap<MediaTypeObject> content = response.content();
+          if (!content.isUndefined() && content.size() > 1) renderMediaTypes(content);
           String description = markdownToHTML(response.description(), op.parameterNames());
           appendTag("article", Map.of("class", "desc"), description);
         });
   }
 
   private void renderResponseSummary(String code, ResponseObject response) {
-    appendCode("status", code);
-    renderMediaSubTypesIndicator(getMediaSubTypes(response.content().keys()));
+    String name = statusCodeName(Integer.parseInt(code));
+    appendCode("status status" + code.charAt(0) + "xx status" + code, code + " " + name);
+    appendCode("mime", "=");
+    JsonMap<MediaTypeObject> content = response.content();
+
+    if (content.isUndefined()) return;
+    if (content.size() == 1) {
+      renderMediaTypes(content);
+    } else if (response.isUniform()) {
+      renderMediaType("*", content.values().toList().get(0).schema());
+      // TODO else make a * : a | b | c
+    }
   }
 
-  private void renderSchemaType(SchemaObject schema, String style) {
-    Runnable type =
-        schema.isShared()
-            ? () -> {
-              appendRaw("&lt;");
-              appendA("#" + schema.getSharedName(), false, schema.getSharedName());
-              appendRaw("&gt;");
-            }
-            : () -> appendRaw("&lt;" + schema.$type() + "&gt;");
+  private void renderSchemaDescriptor(String style, SchemaObject schema) {
+    appendCode(
+        style + " secondary type",
+        () -> {
+          appendRaw("&lt;");
+          renderTypeDescriptor(schema);
+          appendRaw("&gt;");
+        });
+  }
 
-    appendCode(style + " secondary type", type);
+  private void renderTypeDescriptor(SchemaObject schema) {
+    if (schema.isShared()) {
+      appendA("#" + schema.getSharedName(), false, schema.getSharedName());
+      return;
+    }
+    String type = schema.$type();
+    if ("array".equals(type)) {
+      appendRaw("array[");
+      renderTypeDescriptor(schema.items().resolve());
+      appendRaw("]");
+      return;
+    }
+    if ("object".equals(type)) {
+      appendRaw("object");
+      if ((schema.properties().isUndefined() || schema.properties().isEmpty())
+          && schema.additionalProperties().exists()) {
+        // this is a "map" where any not namely specified property has a certain same schema
+        appendRaw(":");
+        renderTypeDescriptor(schema.additionalProperties().resolve());
+      }
+      return;
+    }
+    appendRaw(type);
   }
 
   private void appendDetails(String id, boolean open, String style, Runnable body) {
@@ -785,5 +842,34 @@ public class OpenApiRenderer {
 
   private void appendRaw(String text) {
     out.append(text);
+  }
+
+  private static String statusCodeName(int code) {
+    return switch (code) {
+      case 200 -> "Ok";
+      case 201 -> "Created";
+      case 202 -> "Accepted";
+      case 203 -> "Not Authoritative";
+      case 204 -> "No Content";
+      case 205 -> "Reset Content";
+      case 206 -> "Partial Content";
+      case 400 -> "Bad Request";
+      case 401 -> "Unauthorized";
+      case 402 -> "Payment Required";
+      case 403 -> "Forbidden";
+      case 404 -> "Not Found";
+      case 405 -> "Bad Method";
+      case 406 -> "Not Acceptable";
+      case 407 -> "proxy_auth";
+      case 408 -> "client_timeout";
+      case 409 -> "Conflict";
+      case 410 -> "Gone";
+      case 411 -> "Length_required";
+      case 412 -> "Precondition Failed";
+      case 413 -> "Entity Too Large";
+      case 414 -> "Request Too Long";
+      case 415 -> "Unsupported Type";
+      default -> String.valueOf(code);
+    };
   }
 }

@@ -259,6 +259,10 @@ public interface OpenApiObject extends JsonObject {
       return getBoolean("deprecated").booleanValue(false);
     }
 
+    /*
+    Utility methods based on the essential properties
+     */
+
     default List<ParameterObject> parameters(ParameterObject.In in) {
       return parameters().stream().filter(p -> p.resolve().in() == in).toList();
     }
@@ -268,6 +272,23 @@ public interface OpenApiObject extends JsonObject {
           .map(ParameterObject::resolve)
           .map(ParameterObject::name)
           .collect(toUnmodifiableSet());
+    }
+
+    default String responseSuccessCode() {
+      return responses().keys().filter(code -> code.startsWith("2")).findFirst().orElse(null);
+    }
+
+    default List<String> responseErrorCodes() {
+      return responses().keys().filter(code -> code.startsWith("4")).sorted().toList();
+    }
+
+    default List<String> responseMediaSubTypes() {
+      return responses()
+          .values()
+          .flatMap(r -> r.content().keys())
+          .map(type -> type.substring(type.indexOf('/') + 1).toLowerCase())
+          .sorted()
+          .toList();
     }
   }
 
@@ -367,6 +388,19 @@ public interface OpenApiObject extends JsonObject {
 
     default JsonMap<MediaTypeObject> content() {
       return getMap("content", MediaTypeObject.class);
+    }
+
+    default boolean isUniform() {
+      JsonMap<MediaTypeObject> content = content();
+      if (content.isUndefined()) return false;
+      if (content.size() == 1) return true;
+      List<SchemaObject> types =
+          content.values().map(MediaTypeObject::schema).map(SchemaObject::resolve).toList();
+      SchemaObject type0 = types.get(0);
+      if (type0.isShared())
+        return types.stream()
+            .allMatch(t -> t.isShared() && type0.getSharedName().equals(t.getSharedName()));
+      return types.stream().allMatch(t -> t.toJson().equals(type0.toJson()));
     }
   }
 
