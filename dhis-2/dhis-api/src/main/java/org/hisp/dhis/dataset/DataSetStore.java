@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.dataset;
 
+import java.util.Collection;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.period.PeriodType;
 
@@ -58,4 +60,6 @@ public interface DataSetStore
    * @return a list of DataSets.
    */
   List<DataSet> getDataSetsByDataEntryForm(DataEntryForm dataEntryForm);
+
+  List<DataSetElement> getDataSetElementsByDataElement(Collection<DataElement> dataElements);
 }

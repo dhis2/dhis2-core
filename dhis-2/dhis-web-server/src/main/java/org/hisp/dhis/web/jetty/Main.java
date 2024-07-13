@@ -39,7 +39,6 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.hisp.dhis.system.startup.StartupListener;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.context.ContextLoaderListener;
-import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
@@ -77,9 +76,6 @@ public class Main extends EmbeddedJettyBase {
         new ServletContextHandler(ServletContextHandler.SESSIONS);
     contextHandler.setErrorHandler(null);
 
-    RequestContextListener requestContextListener = new RequestContextListener();
-    contextHandler.addEventListener(requestContextListener);
-
     AnnotationConfigWebApplicationContext webApplicationContext = getWebApplicationContext();
     contextHandler.addEventListener(new ContextLoaderListener(webApplicationContext));
     contextHandler.addEventListener(new StartupListener());
@@ -94,8 +90,6 @@ public class Main extends EmbeddedJettyBase {
     ContextHandler.Context context = contextHandler.getServletContext();
 
     setupServlets(context, webApplicationContext);
-
-    context.addServlet("RootPageServlet", RootPageServlet.class).addMapping("/index.html");
 
     return contextHandler;
   }
