@@ -40,19 +40,18 @@ import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.UserActions;
+import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-@Disabled
 class DataElementMergeTest extends ApiTest {
 
   private RestApiActions dataElementApiActions;
   private RestApiActions datasetApiActions;
-  private RestApiActions metadataApiActions;
+  private MetadataActions metadataApiActions;
   private RestApiActions minMaxActions;
   private UserActions userActions;
   private LoginActions loginActions;
@@ -66,7 +65,7 @@ class DataElementMergeTest extends ApiTest {
     loginActions = new LoginActions();
     dataElementApiActions = new RestApiActions("dataElements");
     datasetApiActions = new RestApiActions("dataSets");
-    metadataApiActions = new RestApiActions("metadata");
+    metadataApiActions = new MetadataActions();
     minMaxActions = new RestApiActions("minMaxDataElements");
     loginActions.loginAsSuperUser();
 

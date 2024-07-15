@@ -86,4 +86,17 @@ public class MetadataActions extends RestApiActions {
 
     return new MetadataApiResponse(response);
   }
+
+  /**
+   * Override to make default behaviour of Metadata POST queries return full object reports
+   *
+   * @param object Body of request
+   * @return
+   */
+  @Override
+  public ApiResponse post(Object object) {
+    QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
+    queryParamsBuilder.addAll("importReportMode=FULL");
+    return super.post(object, queryParamsBuilder);
+  }
 }
