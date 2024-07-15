@@ -59,6 +59,7 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
 import org.hisp.dhis.user.User;
 import org.hisp.quick.BatchHandler;
@@ -202,7 +203,13 @@ public final class ImportContext {
   private final Function<Class<? extends IdentifiableObject>, String> singularNameForType;
 
   public String getCurrentUserName() {
-    return currentUser.getUsername();
+    return currentUser == null ? null : currentUser.getUsername();
+  }
+
+  public boolean currentUserCanAttributeData() {
+    if (currentUser == null) return false;
+    if (currentUser.isSuper()) return true;
+    return currentUser.isAuthorized(Authorities.F_DATAVALUE_ATTRIBUTE.name());
   }
 
   public ImportContext error() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,68 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.datavalueset;
+package org.hisp.dhis.webapi.json.domain;
 
-/**
- * An entry in an {@link DataValueSet} while processing it in context of a {@link
- * DataValueSetReader} or {@link DataValueSetWriter}.
- *
- * @author Jan Bernitt
- */
-public interface DataValueEntry {
-  String getDataElement();
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonObject;
 
-  String getPeriod();
-
-  String getOrgUnit();
-
-  String getCategoryOptionCombo();
-
-  String getAttributeOptionCombo();
-
-  String getValue();
-
-  String getStoredBy();
-
-  String getCreated();
-
-  String getLastUpdated();
-
-  String getComment();
-
-  boolean getFollowup();
-
-  Boolean getDeleted();
-
-  default boolean hasLastUpdated() {
-    String updated = getLastUpdated();
-    return updated != null && !updated.isEmpty();
+public interface JsonDataValueSet extends JsonObject {
+  default String getDataSet() {
+    return getString("dataSet").string();
   }
 
-  default boolean hasCreated() {
-    String created = getCreated();
-    return created != null && !created.isEmpty();
+  default String getCompleteDate() {
+    return getString("completeDate").string();
   }
 
-  default boolean hasStoredBy() {
-    String storedBy = getStoredBy();
-    return storedBy != null && !storedBy.isEmpty();
+  default String getPeriod() {
+    return getString("period").string();
   }
 
-  default String getPrimaryKey() {
-    return getDataElement()
-        + getPeriod()
-        + getOrgUnit()
-        + getCategoryOptionCombo()
-        + getAttributeOptionCombo();
+  default String getOrgUnit() {
+    return getString("orgUnit").string();
   }
 
-  default boolean isNullValue() {
-    return getValue() == null && getComment() == null;
+  default String getAttributeOptionCombo() {
+    return getString("attributeOptionCombo").string();
   }
 
-  default boolean isDeletedValue() {
-    Boolean deleted = getDeleted();
-    return deleted != null && deleted;
+  default JsonList<JsonDataValue> getDataValues() {
+    return get("dataValues").asList(JsonDataValue.class);
   }
 }
