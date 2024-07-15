@@ -38,8 +38,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.AtomicMode;
@@ -83,9 +81,6 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest {
     assertImportedObjects(2, persistenceReport, TrackerType.EVENT);
     assertImportedObjects(2, persistenceReport, TrackerType.RELATIONSHIP);
     assertEquals(6, manager.getAll(Enrollment.class).size());
-    assertEquals(
-        persistenceReport.getTypeReportMap().get(TrackerType.EVENT).getStats().getCreated(),
-        manager.getAll(Event.class).size());
   }
 
   @Test
@@ -140,27 +135,23 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest {
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
     assertDeletedObjects(9, importReport.getPersistenceReport(), TrackerType.TRACKED_ENTITY);
-    // remaining
-    assertEquals(4, manager.getAll(TrackedEntity.class).size());
-    assertEquals(4, manager.getAll(Enrollment.class).size());
+    assertDeletedObjects(2, importReport.getPersistenceReport(), TrackerType.ENROLLMENT);
+    assertDeletedObjects(2, importReport.getPersistenceReport(), TrackerType.EVENT);
+    assertDeletedObjects(2, importReport.getPersistenceReport(), TrackerType.RELATIONSHIP);
   }
 
   @Test
   void testEnrollmentDeletion() throws IOException {
-    dbmsManager.clearSession();
-    assertEquals(2, manager.getAll(Event.class).size());
     TrackerImportParams params = new TrackerImportParams();
     TrackerObjects trackerObjects = fromJson("tracker/enrollment_basic_data_for_deletion.json");
     params.setImportStrategy(TrackerImportStrategy.DELETE);
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
-    assertNoErrors(importReport);
 
+    assertNoErrors(importReport);
     assertDeletedObjects(1, importReport.getPersistenceReport(), TrackerType.ENROLLMENT);
-    // remaining
-    assertEquals(5, manager.getAll(Enrollment.class).size());
-    // delete associated events as well
-    assertEquals(1, manager.getAll(Event.class).size());
+    assertDeletedObjects(1, importReport.getPersistenceReport(), TrackerType.EVENT);
+    assertDeletedObjects(1, importReport.getPersistenceReport(), TrackerType.RELATIONSHIP);
   }
 
   @Test
@@ -173,8 +164,6 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest {
 
     assertNoErrors(importReport);
     assertDeletedObjects(1, importReport.getPersistenceReport(), TrackerType.EVENT);
-    // remaining
-    assertEquals(1, manager.getAll(Event.class).size());
   }
 
   @Test
@@ -198,8 +187,10 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest {
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertNoErrors(importReport);
-    assertDeletedObjects(1, importReport.getPersistenceReport(), TrackerType.ENROLLMENT);
     assertDeletedObjects(1, importReport.getPersistenceReport(), TrackerType.TRACKED_ENTITY);
+    assertDeletedObjects(1, importReport.getPersistenceReport(), TrackerType.ENROLLMENT);
+    assertDeletedObjects(1, importReport.getPersistenceReport(), TrackerType.EVENT);
+    assertDeletedObjects(1, importReport.getPersistenceReport(), TrackerType.RELATIONSHIP);
   }
 
   private void assertImportedObjects(
