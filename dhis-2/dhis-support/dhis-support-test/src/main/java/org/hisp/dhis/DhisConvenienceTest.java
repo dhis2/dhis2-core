@@ -583,6 +583,12 @@ public abstract class DhisConvenienceTest {
     return categoryCombo;
   }
 
+  public static CategoryOptionCombo createCategoryOptionCombo() {
+    CategoryOptionCombo coc = new CategoryOptionCombo();
+    coc.setAutoFields();
+    return coc;
+  }
+
   /**
    * @param categoryComboUniqueIdentifier A unique character to identify the category combo.
    * @param categoryOptionUniqueIdentifiers Unique characters to identify the category options.
@@ -1647,11 +1653,12 @@ public abstract class DhisConvenienceTest {
       ProgramStage programStage, Enrollment enrollment, OrganisationUnit organisationUnit) {
     Event event = new Event();
     event.setAutoFields();
-
     event.setProgramStage(programStage);
     event.setEnrollment(enrollment);
     event.setOrganisationUnit(organisationUnit);
-
+    if (categoryService != null) {
+      event.setAttributeOptionCombo(categoryService.getDefaultCategoryOptionCombo());
+    }
     return event;
   }
 

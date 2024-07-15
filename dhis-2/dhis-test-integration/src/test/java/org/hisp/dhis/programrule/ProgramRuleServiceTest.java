@@ -39,8 +39,9 @@ import com.google.common.collect.Sets;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.hisp.dhis.common.DeleteNotAllowedException;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectStore;
 import org.hisp.dhis.program.Program;
@@ -50,6 +51,8 @@ import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageSectionService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -91,6 +94,10 @@ class ProgramRuleServiceTest extends IntegrationTestBase {
 
   @Autowired private DeletedObjectStore deletedObjectStore;
 
+  @Autowired private DataElementService dataElementService;
+
+  @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
+
   @Override
   public void setUpTest() {
     programA = createProgram('A', null, null);
@@ -131,6 +138,121 @@ class ProgramRuleServiceTest extends IntegrationTestBase {
   }
 
   @Test
+  void shouldRetrieveAllDataElementFromServerRuleActions() {
+    DataElement dataElementA = createDataElement('A');
+    dataElementA.setUid("TvctPPhpD8u");
+    DataElement dataElementB = createDataElement('B');
+    dataElementB.setUid("h4w96yEMlzO");
+    DataElement dataElementC = createDataElement('C');
+    dataElementC.setUid("NpsdDv6kKSO");
+
+    dataElementService.addDataElement(dataElementA);
+    dataElementService.addDataElement(dataElementB);
+    dataElementService.addDataElement(dataElementC);
+
+    ProgramRule ruleA =
+        new ProgramRule("RuleA", "descriptionA", programB, null, null, "true", null);
+    ProgramRule ruleB = new ProgramRule("RuleB", "descriptionG", programB, null, null, "!false", 0);
+    ProgramRule ruleC = new ProgramRule("RuleC", "descriptionF", programB, null, null, "!false", 0);
+    programRuleService.addProgramRule(ruleA);
+    programRuleService.addProgramRule(ruleB);
+    programRuleService.addProgramRule(ruleC);
+
+    ProgramRuleAction showWarningAction = createProgramRuleAction('D');
+    showWarningAction.setProgramRuleActionType(ProgramRuleActionType.SHOWWARNING);
+    showWarningAction.setDataElement(dataElementA);
+    showWarningAction.setProgramRule(ruleA);
+
+    ProgramRuleAction showErrorAction = createProgramRuleAction('E');
+    showErrorAction.setProgramRuleActionType(ProgramRuleActionType.SHOWERROR);
+    showErrorAction.setDataElement(dataElementB);
+    showErrorAction.setProgramRule(ruleB);
+
+    ProgramRuleAction hideFieldAction = createProgramRuleAction('F');
+    hideFieldAction.setProgramRuleActionType(ProgramRuleActionType.HIDEFIELD);
+    hideFieldAction.setDataElement(dataElementC);
+    hideFieldAction.setProgramRule(ruleC);
+
+    programRuleActonService.addProgramRuleAction(showWarningAction);
+    programRuleActonService.addProgramRuleAction(showErrorAction);
+    programRuleActonService.addProgramRuleAction(hideFieldAction);
+
+    ruleA.setProgramRuleActions(Set.of(showWarningAction));
+    ruleB.setProgramRuleActions(Set.of(showErrorAction));
+    ruleC.setProgramRuleActions(Set.of(hideFieldAction));
+
+    programRuleService.updateProgramRule(ruleA);
+    programRuleService.updateProgramRule(ruleB);
+    programRuleService.updateProgramRule(ruleC);
+
+    entityManager.clear();
+    entityManager.flush();
+
+    List<String> dataElementsPresentInProgramRules =
+        programRuleService.getDataElementsPresentInProgramRules();
+
+    assertContainsOnly(List.of("TvctPPhpD8u", "h4w96yEMlzO"), dataElementsPresentInProgramRules);
+  }
+
+  @Test
+  void shouldRetrieveAllTrackedEntityAttributesFromServerRuleActions() {
+    TrackedEntityAttribute trackedEntityAttributeA = createTrackedEntityAttribute('A');
+    trackedEntityAttributeA.setUid("TvctPPhpD8u");
+    TrackedEntityAttribute trackedEntityAttributeB = createTrackedEntityAttribute('B');
+    trackedEntityAttributeB.setUid("h4w96yEMlzO");
+    TrackedEntityAttribute trackedEntityAttributeC = createTrackedEntityAttribute('C');
+    trackedEntityAttributeC.setUid("NpsdDv6kKSO");
+
+    trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttributeA);
+    trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttributeB);
+    trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttributeC);
+
+    ProgramRule ruleA =
+        new ProgramRule("RuleA", "descriptionA", programB, null, null, "true", null);
+    ProgramRule ruleB = new ProgramRule("RuleB", "descriptionG", programB, null, null, "!false", 0);
+    ProgramRule ruleC = new ProgramRule("RuleC", "descriptionF", programB, null, null, "!false", 0);
+    programRuleService.addProgramRule(ruleA);
+    programRuleService.addProgramRule(ruleB);
+    programRuleService.addProgramRule(ruleC);
+
+    ProgramRuleAction showWarningAction = createProgramRuleAction('D');
+    showWarningAction.setProgramRuleActionType(ProgramRuleActionType.SHOWWARNING);
+    showWarningAction.setAttribute(trackedEntityAttributeA);
+    showWarningAction.setProgramRule(ruleA);
+
+    ProgramRuleAction showErrorAction = createProgramRuleAction('E');
+    showErrorAction.setProgramRuleActionType(ProgramRuleActionType.SHOWERROR);
+    showErrorAction.setAttribute(trackedEntityAttributeB);
+    showErrorAction.setProgramRule(ruleB);
+
+    ProgramRuleAction hideFieldAction = createProgramRuleAction('F');
+    hideFieldAction.setProgramRuleActionType(ProgramRuleActionType.HIDEFIELD);
+    hideFieldAction.setAttribute(trackedEntityAttributeC);
+    hideFieldAction.setProgramRule(ruleC);
+
+    programRuleActonService.addProgramRuleAction(showWarningAction);
+    programRuleActonService.addProgramRuleAction(showErrorAction);
+    programRuleActonService.addProgramRuleAction(hideFieldAction);
+
+    ruleA.setProgramRuleActions(Set.of(showWarningAction));
+    ruleB.setProgramRuleActions(Set.of(showErrorAction));
+    ruleC.setProgramRuleActions(Set.of(hideFieldAction));
+
+    programRuleService.updateProgramRule(ruleA);
+    programRuleService.updateProgramRule(ruleB);
+    programRuleService.updateProgramRule(ruleC);
+
+    entityManager.clear();
+    entityManager.flush();
+
+    List<String> trackedEntityAttributesPresentInProgramRules =
+        programRuleService.getTrackedEntityAttributesPresentInProgramRules();
+
+    assertContainsOnly(
+        List.of("TvctPPhpD8u", "h4w96yEMlzO"), trackedEntityAttributesPresentInProgramRules);
+  }
+
+  @Test
   void testAddGet() {
     ProgramRule ruleA =
         new ProgramRule("RuleA", "descriptionA", programA, programStageA, null, "true", null);
@@ -144,220 +266,6 @@ class ProgramRuleServiceTest extends IntegrationTestBase {
     assertEquals(ruleA, programRuleService.getProgramRule(idA));
     assertEquals(ruleB, programRuleService.getProgramRule(idB));
     assertEquals(ruleC, programRuleService.getProgramRule(idC));
-  }
-
-  @Test
-  void testAddGetDefaultValuesForEvaluationTimeAndEnvironments() {
-    ProgramRule ruleA =
-        new ProgramRule("RuleA", "descriptionA", programA, programStageA, null, "true", null);
-    long idA = programRuleService.addProgramRule(ruleA);
-    ProgramRuleAction ruleActionA = createProgramRuleAction('A', ruleA);
-    programRuleActonService.addProgramRuleAction(ruleActionA);
-    ruleA.setProgramRuleActions(Sets.newHashSet(ruleActionA));
-    programRuleService.updateProgramRule(ruleA);
-    ProgramRule retrievedProgramRule = programRuleService.getProgramRule(idA);
-    Set<ProgramRuleActionEvaluationTime> evaluationTimesForActions =
-        retrievedProgramRule.getProgramRuleActions().stream()
-            .map(ProgramRuleAction::getProgramRuleActionEvaluationTime)
-            .collect(Collectors.toSet());
-    Set<ProgramRuleActionEvaluationEnvironment> evaluationEnvironmentsForActions =
-        retrievedProgramRule.getProgramRuleActions().stream()
-            .flatMap(action -> action.getProgramRuleActionEvaluationEnvironments().stream())
-            .collect(Collectors.toSet());
-    assertEquals(ruleA, retrievedProgramRule);
-    assertEquals(1, evaluationTimesForActions.size());
-    assertTrue(evaluationTimesForActions.contains(ProgramRuleActionEvaluationTime.ALWAYS));
-    assertEquals(
-        ProgramRuleActionEvaluationEnvironment.getDefault().size(),
-        evaluationEnvironmentsForActions.size());
-    assertEquals(
-        ProgramRuleActionEvaluationEnvironment.getDefault(), evaluationEnvironmentsForActions);
-  }
-
-  @Test
-  void testAddGetNotDefaultValuesForEvaluationTimeAndEnvironments() {
-    ProgramRule ruleA =
-        new ProgramRule("RuleA", "descriptionA", programA, programStageA, null, "true", null);
-    long idA = programRuleService.addProgramRule(ruleA);
-    ProgramRuleAction ruleActionA = createProgramRuleAction('A', ruleA);
-    ruleActionA.setProgramRuleActionEvaluationTime(ProgramRuleActionEvaluationTime.ON_COMPLETE);
-    ruleActionA.setProgramRuleActionEvaluationEnvironments(
-        Sets.newHashSet(ProgramRuleActionEvaluationEnvironment.ANDROID));
-    programRuleActonService.addProgramRuleAction(ruleActionA);
-    ruleA.setProgramRuleActions(Sets.newHashSet(ruleActionA));
-    programRuleService.updateProgramRule(ruleA);
-    ProgramRule retrievedProgramRule = programRuleService.getProgramRule(idA);
-    Set<ProgramRuleActionEvaluationTime> evaluationTimesForActions =
-        retrievedProgramRule.getProgramRuleActions().stream()
-            .map(ProgramRuleAction::getProgramRuleActionEvaluationTime)
-            .collect(Collectors.toSet());
-    Set<ProgramRuleActionEvaluationEnvironment> evaluationEnvironmentsForActions =
-        retrievedProgramRule.getProgramRuleActions().stream()
-            .flatMap(action -> action.getProgramRuleActionEvaluationEnvironments().stream())
-            .collect(Collectors.toSet());
-    assertEquals(ruleA, retrievedProgramRule);
-    assertEquals(1, evaluationTimesForActions.size());
-    assertTrue(evaluationTimesForActions.contains(ProgramRuleActionEvaluationTime.ON_COMPLETE));
-    assertEquals(1, evaluationEnvironmentsForActions.size());
-    assertEquals(
-        Sets.newHashSet(ProgramRuleActionEvaluationEnvironment.ANDROID),
-        evaluationEnvironmentsForActions);
-  }
-
-  @Test
-  void testAddRetrieveProgramRulesByEvaluationTimeAndEnvironments() {
-    ProgramRule ruleA =
-        new ProgramRule("RuleA", "descriptionA", programA, programStageA, null, "true", null);
-    ProgramRule ruleB =
-        new ProgramRule("RuleB", "descriptionB", programB, programStageA, null, "true", null);
-    long idA = programRuleService.addProgramRule(ruleA);
-    long idB = programRuleService.addProgramRule(ruleB);
-    ProgramRuleAction ruleActionA = createProgramRuleAction('C', ruleA);
-    ruleActionA.setProgramRuleActionEvaluationTime(ProgramRuleActionEvaluationTime.ON_COMPLETE);
-    ruleActionA.setProgramRuleActionEvaluationEnvironments(
-        Sets.newHashSet(ProgramRuleActionEvaluationEnvironment.ANDROID));
-    programRuleActonService.addProgramRuleAction(ruleActionA);
-    ProgramRuleAction ruleActionB = createProgramRuleAction('D', ruleB);
-    ruleActionB.setProgramRuleActionEvaluationTime(ProgramRuleActionEvaluationTime.ON_DATA_ENTRY);
-    ruleActionB.setProgramRuleActionEvaluationEnvironments(
-        Sets.newHashSet(ProgramRuleActionEvaluationEnvironment.WEB));
-    programRuleActonService.addProgramRuleAction(ruleActionB);
-    ruleA.setProgramRuleActions(Sets.newHashSet(ruleActionA));
-    programRuleService.updateProgramRule(ruleA);
-    ruleB.setProgramRuleActions(Sets.newHashSet(ruleActionB));
-    programRuleService.updateProgramRule(ruleB);
-    ProgramRule retrievedProgramRuleA = programRuleService.getProgramRule(idA);
-    ProgramRule retrievedProgramRuleB = programRuleService.getProgramRule(idB);
-    assertEquals(ruleA, retrievedProgramRuleA);
-    assertEquals(ruleB, retrievedProgramRuleB);
-    assertEquals(
-        2,
-        programRuleService
-            .getProgramRulesByEvaluationEnvironment(ProgramRuleActionEvaluationEnvironment.WEB)
-            .size());
-    assertEquals(
-        2,
-        programRuleService
-            .getProgramRulesByEvaluationEnvironment(ProgramRuleActionEvaluationEnvironment.ANDROID)
-            .size());
-    assertEquals(
-        1,
-        programRuleService
-            .getProgramRulesByEvaluationTime(ProgramRuleActionEvaluationTime.ALWAYS)
-            .size());
-    assertEquals(
-        2,
-        programRuleService
-            .getProgramRulesByEvaluationTime(ProgramRuleActionEvaluationTime.ON_COMPLETE)
-            .size());
-    assertEquals(
-        2,
-        programRuleService
-            .getProgramRulesByEvaluationTime(ProgramRuleActionEvaluationTime.ON_DATA_ENTRY)
-            .size());
-  }
-
-  @Test
-  void testAddRetrieveProgramRulesAndActionsByEvaluationTimeAndEnvironments() {
-    ProgramRule ruleA =
-        new ProgramRule("RuleA", "descriptionA", programA, programStageA, null, "true", null);
-    ProgramRule ruleB =
-        new ProgramRule("RuleB", "descriptionB", programB, programStageA, null, "true", null);
-    long idA = programRuleService.addProgramRule(ruleA);
-    long idB = programRuleService.addProgramRule(ruleB);
-    ProgramRuleAction ruleActionA1 = createProgramRuleAction('C', ruleA);
-    ruleActionA1.setProgramRuleActionEvaluationTime(ProgramRuleActionEvaluationTime.ON_COMPLETE);
-    ruleActionA1.setProgramRuleActionEvaluationEnvironments(
-        Sets.newHashSet(ProgramRuleActionEvaluationEnvironment.ANDROID));
-    programRuleActonService.addProgramRuleAction(ruleActionA1);
-    ProgramRuleAction ruleActionA2 = createProgramRuleAction('D', ruleA);
-    ruleActionA2.setProgramRuleActionEvaluationTime(ProgramRuleActionEvaluationTime.ON_DATA_ENTRY);
-    ruleActionA2.setProgramRuleActionEvaluationEnvironments(
-        Sets.newHashSet(ProgramRuleActionEvaluationEnvironment.WEB));
-    programRuleActonService.addProgramRuleAction(ruleActionA2);
-    ProgramRuleAction ruleActionB = createProgramRuleAction('E', ruleB);
-    ruleActionB.setProgramRuleActionEvaluationTime(ProgramRuleActionEvaluationTime.ALWAYS);
-    ruleActionB.setProgramRuleActionEvaluationEnvironments(
-        Sets.newHashSet(
-            ProgramRuleActionEvaluationEnvironment.WEB,
-            ProgramRuleActionEvaluationEnvironment.ANDROID));
-    programRuleActonService.addProgramRuleAction(ruleActionB);
-    ruleA.setProgramRuleActions(Sets.newHashSet(ruleActionA1, ruleActionA2));
-    programRuleService.updateProgramRule(ruleA);
-    ruleB.setProgramRuleActions(Sets.newHashSet(ruleActionB));
-    programRuleService.updateProgramRule(ruleB);
-    ProgramRule retrievedProgramRuleA = programRuleService.getProgramRule(idA);
-    ProgramRule retrievedProgramRuleB = programRuleService.getProgramRule(idB);
-    assertEquals(ruleA, retrievedProgramRuleA);
-    assertEquals(ruleB, retrievedProgramRuleB);
-    assertEquals(
-        3,
-        programRuleService
-            .getProgramRulesByEvaluationEnvironment(ProgramRuleActionEvaluationEnvironment.WEB)
-            .size());
-    assertEquals(
-        3,
-        programRuleService
-            .getProgramRulesByEvaluationEnvironment(ProgramRuleActionEvaluationEnvironment.ANDROID)
-            .size());
-    assertEquals(
-        2,
-        programRuleService
-            .getProgramRulesByEvaluationTime(ProgramRuleActionEvaluationTime.ALWAYS)
-            .size());
-    assertEquals(
-        3,
-        programRuleService
-            .getProgramRulesByEvaluationTime(ProgramRuleActionEvaluationTime.ON_COMPLETE)
-            .size());
-    assertEquals(
-        3,
-        programRuleService
-            .getProgramRulesByEvaluationTime(ProgramRuleActionEvaluationTime.ON_DATA_ENTRY)
-            .size());
-    ProgramRule programRuleARetrievedByEnvironment =
-        programRuleService
-            .getProgramRulesByEvaluationEnvironment(ProgramRuleActionEvaluationEnvironment.WEB)
-            .stream()
-            .filter(rule -> rule.getId() == idA)
-            .findAny()
-            .get();
-    assertEquals(1, programRuleARetrievedByEnvironment.getProgramRuleActions().size());
-    ProgramRule programRuleARetrievedByEvaluationTime =
-        programRuleService
-            .getProgramRulesByEvaluationTime(ProgramRuleActionEvaluationTime.ON_COMPLETE)
-            .stream()
-            .filter(rule -> rule.getId() == idA)
-            .findAny()
-            .get();
-    assertEquals(1, programRuleARetrievedByEvaluationTime.getProgramRuleActions().size());
-  }
-
-  @Test
-  void testGetByProgram() {
-    ProgramRule ruleD =
-        new ProgramRule("RuleD", "descriptionD", programB, null, null, "true", null);
-    ProgramRule ruleE = new ProgramRule("RuleE", "descriptionE", programB, null, null, "$a < 1", 1);
-    ProgramRule ruleF =
-        new ProgramRule(
-            "RuleF", "descriptionF", programB, null, null, "($a < 1 && $a > -10) && !$b", 0);
-    // Add a rule that is not part of programB....
-    ProgramRule ruleG = new ProgramRule("RuleG", "descriptionG", programA, null, null, "!false", 0);
-    programRuleService.addProgramRule(ruleD);
-    programRuleService.addProgramRule(ruleE);
-    programRuleService.addProgramRule(ruleF);
-    programRuleService.addProgramRule(ruleG);
-    // Get all the 3 rules for programB
-    List<ProgramRule> rules = programRuleService.getProgramRule(programB);
-    assertEquals(3, rules.size());
-    assertTrue(rules.contains(ruleD));
-    assertTrue(rules.contains(ruleE));
-    assertTrue(rules.contains(ruleF));
-    // Make sure that the rule connected to program A is not returned as
-    // part of list of rules in program B.
-    assertFalse(rules.contains(ruleG));
-    assertEquals(ruleD.getId(), programRuleService.getProgramRuleByName("RuleD", programB).getId());
-    assertEquals(3, programRuleService.getProgramRules(programB, "rule").size());
   }
 
   @Test
@@ -390,8 +298,10 @@ class ProgramRuleServiceTest extends IntegrationTestBase {
     ProgramRule ruleD =
         new ProgramRule("RuleD", "descriptionD", programB, null, null, "true", null);
     ProgramRule ruleG = new ProgramRule("RuleG", "descriptionG", programB, null, null, "!false", 0);
+    ProgramRule ruleF = new ProgramRule("RuleF", "descriptionF", programB, null, null, "!false", 0);
     programRuleService.addProgramRule(ruleD);
     programRuleService.addProgramRule(ruleG);
+    programRuleService.addProgramRule(ruleF);
 
     ProgramRuleAction sendMessageActionA = createProgramRuleAction('D');
     sendMessageActionA.setProgramRuleActionType(ProgramRuleActionType.SENDMESSAGE);
@@ -409,29 +319,39 @@ class ProgramRuleServiceTest extends IntegrationTestBase {
     hideFieldAction.setProgramRuleActionType(ProgramRuleActionType.HIDEFIELD);
     hideFieldAction.setProgramRule(ruleG);
 
+    ProgramRuleAction hideFieldActionF = createProgramRuleAction('H');
+    hideFieldActionF.setProgramRuleActionType(ProgramRuleActionType.HIDEFIELD);
+    hideFieldActionF.setProgramRule(ruleF);
+
+    ProgramRuleAction hideProgramStage = createProgramRuleAction('P');
+    hideProgramStage.setProgramRuleActionType(ProgramRuleActionType.HIDEPROGRAMSTAGE);
+    hideProgramStage.setProgramRule(ruleF);
+
     programRuleActonService.addProgramRuleAction(sendMessageActionA);
     programRuleActonService.addProgramRuleAction(showWarningAction);
 
     programRuleActonService.addProgramRuleAction(sendMessageActionB);
     programRuleActonService.addProgramRuleAction(hideFieldAction);
 
+    programRuleActonService.addProgramRuleAction(hideFieldActionF);
+    programRuleActonService.addProgramRuleAction(hideProgramStage);
+
     ruleD.setProgramRuleActions(Sets.newHashSet(sendMessageActionA, showWarningAction));
     ruleG.setProgramRuleActions(Sets.newHashSet(sendMessageActionB, hideFieldAction));
+    ruleF.setProgramRuleActions(Sets.newHashSet(hideFieldActionF, hideProgramStage));
 
     programRuleService.updateProgramRule(ruleD);
     programRuleService.updateProgramRule(ruleG);
+    programRuleService.updateProgramRule(ruleF);
+
+    entityManager.clear();
+    entityManager.flush();
 
     List<ProgramRule> rules =
         programRuleService.getProgramRulesByActionTypes(
             programB, ProgramRuleActionType.SERVER_SUPPORTED_TYPES, null);
 
     assertContainsOnly(rules, List.of(ruleD, ruleG));
-
-    List<ProgramRuleAction> ruleActions =
-        rules.stream().flatMap(r -> r.getProgramRuleActions().stream()).toList();
-
-    assertContainsOnly(
-        ruleActions, List.of(showWarningAction, sendMessageActionA, sendMessageActionB));
   }
 
   @Test

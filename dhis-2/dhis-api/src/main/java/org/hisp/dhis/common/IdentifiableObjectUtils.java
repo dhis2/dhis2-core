@@ -41,6 +41,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.calendar.Calendar;
@@ -109,6 +111,20 @@ public class IdentifiableObjectUtils {
             .map(o -> o.getUid())
             .collect(Collectors.toList())
         : null;
+  }
+
+  /**
+   * Returns a list of UIDs for the given collection of IdentifiableObjects.
+   *
+   * @param objects the list of IdentifiableObjects.
+   * @return a list of UIDs. Never returning null.
+   */
+  @Nonnull
+  public static <T extends IdentifiableObject> List<String> getUidsNonNull(
+      @CheckForNull Collection<T> objects) {
+    return objects != null
+        ? objects.stream().filter(Objects::nonNull).map(UidObject::getUid).toList()
+        : List.of();
   }
 
   /**

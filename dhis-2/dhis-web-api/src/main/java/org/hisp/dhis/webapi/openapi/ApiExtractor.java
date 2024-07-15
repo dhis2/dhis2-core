@@ -34,6 +34,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Collectors.toUnmodifiableSet;
+import static org.hisp.dhis.webapi.openapi.ApiDescriptions.toMarkdown;
 import static org.hisp.dhis.webapi.openapi.DirectType.isDirectType;
 import static org.hisp.dhis.webapi.openapi.OpenApiAnnotations.getAnnotated;
 import static org.hisp.dhis.webapi.openapi.OpenApiAnnotations.getAnnotations;
@@ -42,9 +43,11 @@ import static org.hisp.dhis.webapi.openapi.Property.getProperties;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Array;
+import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
@@ -57,6 +60,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -67,6 +71,7 @@ import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Document.Group;
 import org.hisp.dhis.common.UID;
@@ -241,15 +246,14 @@ final class ApiExtractor {
       consumes.add(MediaType.APPLICATION_JSON);
     }
 
-    Boolean deprecated =
-        ConsistentAnnotatedElement.of(source).isAnnotationPresent(Deprecated.class)
-            ? Boolean.TRUE
-            : null;
+    Boolean deprecated = source.isAnnotationPresent(Deprecated.class) ? Boolean.TRUE : null;
 
     Group group = getEndpointGroup(source);
 
+    Maturity.Classification maturity = getMaturity(source);
+
     Api.Endpoint endpoint =
-        new Api.Endpoint(controller, source, entityType, name, group, deprecated);
+        new Api.Endpoint(controller, source, entityType, name, group, deprecated, maturity);
 
     endpoint.getDescription().setIfAbsent(extractDescription(source));
 
@@ -265,6 +269,19 @@ final class ApiExtractor {
     endpoint.getResponses().putAll(extractResponses(endpoint, mapping, consumes));
 
     return endpoint;
+  }
+
+  @CheckForNull
+  private static Maturity.Classification getMaturity(AnnotatedElement source) {
+    if (source.isAnnotationPresent(Maturity.class))
+      return source.getAnnotation(Maturity.class).value();
+    Optional<Annotation> meta =
+        Stream.of(source.getAnnotations())
+            .filter(a -> a.annotationType().isAnnotationPresent(Maturity.class))
+            .findFirst();
+    if (meta.isPresent()) return meta.get().annotationType().getAnnotation(Maturity.class).value();
+    if (source instanceof Member m) return getMaturity(m.getDeclaringClass());
+    return null;
   }
 
   private static Group getEndpointGroup(Method source) {
@@ -314,9 +331,9 @@ final class ApiExtractor {
     // error response(s) from annotated exception types in method signature and
     // error response(s) from annotations on exceptions in method signature
     for (AnnotatedType error : source.getAnnotatedExceptionTypes()) {
-      OpenApi.Response response =
-          error.getType() instanceof Class<?> t ? t.getAnnotation(OpenApi.Response.class) : null;
-      if (response == null) response = error.getAnnotation(OpenApi.Response.class);
+      OpenApi.Response response = error.getAnnotation(OpenApi.Response.class);
+      if (response == null && error.getType() instanceof Class<?> t)
+        response = t.getAnnotation(OpenApi.Response.class);
       if (response != null) {
         res.putAll(newErrorResponse(endpoint, error, response, produces));
       }
@@ -355,10 +372,11 @@ final class ApiExtractor {
     Map<HttpStatus, Api.Response> responses =
         extractResponses(endpoint, response, produces, List.of(), null);
     if (responses.size() == 1) {
-      Api.Response success = responses.values().iterator().next();
-      success
+      Api.Response error = responses.values().iterator().next();
+      Type exType = source.getType();
+      error
           .getDescription()
-          .setIfAbsent(extractDescription(source, endpoint.getSource().getReturnType()));
+          .setIfAbsent(extractDescription(source, exType instanceof Class<?> ex ? ex : null));
     }
     return responses;
   }
@@ -367,11 +385,21 @@ final class ApiExtractor {
     return extractDescription(source, null);
   }
 
-  private static String extractDescription(AnnotatedElement source, Class<?> type) {
-    String desc = ApiDescriptions.toMarkdown(source.getAnnotation(OpenApi.Description.class));
-    if (desc != null) return desc;
-    if (type == null) return null;
-    return ApiDescriptions.toMarkdown(type.getAnnotation(OpenApi.Description.class));
+  private static String extractDescription(
+      @Nonnull AnnotatedElement source, @CheckForNull Class<?> type) {
+    OpenApi.Description desc0 = source.getAnnotation(OpenApi.Description.class);
+    OpenApi.Description desc1 = type == null ? null : type.getAnnotation(OpenApi.Description.class);
+    if (desc0 == null && desc1 == null) return null;
+    String text0 = desc0 == null ? "" : toMarkdown(desc0);
+    String text1 = desc1 == null ? "" : toMarkdown(desc1);
+    if (desc0 == null)
+      return (desc1.ignoreFileDescription() || text1.contains("{md}") ? "" : "{md}\n") + text1;
+    boolean noPlaceholder =
+        desc0.ignoreFileDescription() || text0.contains("{md}") || text1.contains("{md}");
+    String placeholder = noPlaceholder ? "" : "\n{md}\n";
+    return (desc1 == null || desc0.ignoreTypeDescription())
+        ? text0 + placeholder
+        : text0 + placeholder + text1;
   }
 
   private static Map<HttpStatus, Api.Response> extractResponses(
@@ -461,8 +489,10 @@ final class ApiExtractor {
   private static Api.Parameter newGenericParameter(
       Parameter source, String key, ParameterDetails details, Api.Schema type) {
     boolean deprecated = source.isAnnotationPresent(Deprecated.class);
+    Maturity.Classification maturity = getMaturity(source);
     Api.Parameter parameter =
-        new Api.Parameter(source, key, details.in(), details.required(), type, deprecated);
+        new Api.Parameter(
+            source, key, details.in(), details.required(), type, deprecated, maturity);
     parameter.getDefaultValue().setValue(details.defaultValue());
     parameter.getDescription().setIfAbsent(extractDescription(source, source.getType()));
     return parameter;
@@ -473,8 +503,9 @@ final class ApiExtractor {
       Api.Endpoint endpoint, Parameter source, String name, ParameterDetails details) {
     Api.Schema type = extractInputSchema(endpoint, source.getParameterizedType());
     boolean deprecated = source.isAnnotationPresent(Deprecated.class);
+    Maturity.Classification maturity = getMaturity(source);
     Api.Parameter res =
-        new Api.Parameter(source, name, In.PATH, details.required(), type, deprecated);
+        new Api.Parameter(source, name, In.PATH, details.required(), type, deprecated, maturity);
     res.getDescription().setIfAbsent(extractDescription(source, source.getType()));
     return res;
   }
@@ -484,8 +515,9 @@ final class ApiExtractor {
       Api.Endpoint endpoint, Parameter source, String name, ParameterDetails details) {
     Api.Schema type = extractInputSchema(endpoint, source.getParameterizedType());
     boolean deprecated = source.isAnnotationPresent(Deprecated.class);
+    Maturity.Classification maturity = getMaturity(source);
     Api.Parameter res =
-        new Api.Parameter(source, name, In.QUERY, details.required(), type, deprecated);
+        new Api.Parameter(source, name, In.QUERY, details.required(), type, deprecated, maturity);
     res.getDefaultValue().setValue(details.defaultValue());
     res.getDescription().setIfAbsent(extractDescription(source, source.getType()));
     return res;
@@ -509,7 +541,8 @@ final class ApiExtractor {
     }
     boolean deprecated = param.deprecated();
     Api.Parameter parameter =
-        new Api.Parameter(endpoint.getSource(), name, In.QUERY, required, wrapped, deprecated);
+        new Api.Parameter(
+            endpoint.getSource(), name, In.QUERY, required, wrapped, deprecated, null);
     endpoint.getParameters().put(name, parameter);
   }
 
@@ -562,8 +595,10 @@ final class ApiExtractor {
             ? extractGeneratorSchema(endpoint, type, annotated.value())
             : extractInputSchema(endpoint, getSubstitutedType(endpoint, property, source));
     boolean deprecated = source.isAnnotationPresent(Deprecated.class);
+    Maturity.Classification maturity = getMaturity(source);
     Api.Parameter param =
-        new Api.Parameter(source, property.getName(), In.QUERY, false, schema, deprecated);
+        new Api.Parameter(
+            source, property.getName(), In.QUERY, false, schema, deprecated, maturity);
     Object defaultValue = property.getDefaultValue();
     if (defaultValue != null) param.getDefaultValue().setValue(defaultValue.toString());
     param

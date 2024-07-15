@@ -1,2 +1,3 @@
 coverage.csv
 allure-results
+/src/test/java/org/hisp/dhis/analytics/generator/output/

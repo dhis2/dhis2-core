@@ -87,6 +87,12 @@ public enum ConfigurationKey {
   /** Postgres Citus extension. */
   CITUS_EXTENSION("citus.extension", Constants.OFF, false),
 
+  /** Analytics database JDBC catalog name. */
+  ANALYTICS_DATABASE_CATALOG("analytics.database.catalog", "pg_dhis", false),
+
+  /** Analytics database JDBC driver filename. */
+  ANALYTICS_DATABASE_DRIVER_FILENAME("analytics.database.driver_filename", "postgresql.jar", false),
+
   /** JDBC driver class. */
   CONNECTION_DRIVER_CLASS("connection.driver_class", "org.postgresql.Driver", false),
 
@@ -297,21 +303,6 @@ public enum ConfigurationKey {
   /** Defines the query that will be executed for all Analytics connection tests. */
   ANALYTICS_CONNECTION_POOL_TEST_QUERY("analytics.connection.pool.preferred.test.query"),
 
-  /** Build indexes on data element group set analytics table columns. */
-  ANALYTICS_TABLE_INDEX_DATA_ELEMENT_GROUP_SET(
-      "analytics.table.index.data_element_group_set", Constants.ON, false),
-
-  /** Build indexes on category analytics table columns. */
-  ANALYTICS_TABLE_INDEX_CATEGORY("analytics.table.index.category", Constants.ON, false),
-
-  /** Build indexes on category option group set analytics table columns. */
-  ANALYTICS_TABLE_INDEX_CATEGORY_OPTION_GROUP_SET(
-      "analytics.table.index.category_option_group_set", Constants.ON, false),
-
-  /** Build indexes on org unit group set analytics table columns. */
-  ANALYTICS_TABLE_INDEX_ORG_UNIT_GROUP_SET(
-      "analytics.table.index.org_unit_group_set", Constants.ON, false),
-
   /** LDAP server URL. (default: ldaps://0:1) */
   LDAP_URL("ldap.url", "ldaps://0:1", false),
 
@@ -363,10 +354,10 @@ public enum ConfigurationKey {
   /** EHCache replication members. */
   CLUSTER_MEMBERS("cluster.members", "", false),
 
-  /** EHCache replication port. */
+  /** DEPRECATED EHCache replication port. */
   CLUSTER_CACHE_PORT("cluster.cache.port", "4001", false),
 
-  /** EHCache replication remote object port. */
+  /** DEPRECATED EHCache replication remote object port. */
   CLUSTER_CACHE_REMOTE_OBJECT_PORT("cluster.cache.remote.object.port", "0", false),
 
   /** Enable redis cache. (default: false) */
@@ -402,6 +393,18 @@ public enum ConfigurationKey {
 
   /** Use unlogged tables during analytics export. (default: ON) */
   ANALYTICS_TABLE_UNLOGGED("analytics.table.unlogged", Constants.ON),
+
+  /**
+   * Skip building indexes for dimensional columns on analytics tables for the comma-separated list
+   * of dimension identifiers. Experimental.
+   */
+  ANALYTICS_TABLE_SKIP_INDEX("analytics.table.skip_index", "", false),
+
+  /**
+   * Skip creating columns for analytics tables for the comma-separated list of dimensional
+   * identifiers. Experimental.
+   */
+  ANALYTICS_TABLE_SKIP_COLUMN("analytics.table.skip_column", "", false),
 
   /**
    * Artemis support mode, 2 modes supported: EMBEDDED (starts up an embedded Artemis which lives in

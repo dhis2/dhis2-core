@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.web.tomcat;
 
+import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -61,11 +63,13 @@ import org.apache.catalina.webresources.AbstractResourceSet;
 import org.apache.catalina.webresources.EmptyResource;
 import org.apache.catalina.webresources.StandardRoot;
 import org.apache.tomcat.util.scan.StandardJarScanFilter;
+import org.hisp.dhis.common.CodeGenerator;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * This code is a modified version of the original code from Spring Boot project.
+ * This code is a modified version of the original code from Spring Boot project. It serves as the
+ * main entry point for the embedded server. It starts an embedded Tomcat server
  *
  * @author Phillip Webb
  * @author Andy Wilkinson
@@ -74,18 +78,25 @@ import org.springframework.util.StringUtils;
 @Slf4j
 public class Main {
 
-  private static final int PORT = 8080;
+  private static final int DEFAULT_HTTP_PORT = 8080;
+
+  private static int getPort() {
+    return Integer.parseInt(
+        firstNonNull(System.getenv("DHIS2_HTTP_PORT"), Integer.toString(DEFAULT_HTTP_PORT)));
+  }
 
   public static void main(String[] args) throws Exception {
 
+    int port = getPort();
+
     Tomcat tomcat = new Tomcat();
     tomcat.setBaseDir(createTempDir());
-    tomcat.setPort(PORT);
+    tomcat.setPort(port);
 
     Connector connector = new Connector("org.apache.coyote.http11.Http11NioProtocol");
     connector.setThrowOnFailure(true);
     tomcat.getService().addConnector(connector);
-    connector.setPort(PORT);
+    connector.setPort(port);
     connector.setProperty("relaxedQueryChars", "\\ { } | [ ]");
     tomcat.setConnector(connector);
     registerConnectorExecutor(tomcat, connector);
@@ -182,7 +193,7 @@ public class Main {
 
   private static String createTempDir() {
     try {
-      File tempDir = File.createTempFile("tomcat.", "." + PORT);
+      File tempDir = File.createTempFile("tomcat.", "." + CodeGenerator.generateCode(8));
       tempDir.delete();
       tempDir.mkdir();
       tempDir.deleteOnExit();

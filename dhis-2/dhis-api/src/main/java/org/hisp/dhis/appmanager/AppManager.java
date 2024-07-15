@@ -70,7 +70,6 @@ public interface AppManager {
           "scheduler",
           "settings",
           "sms-configuration",
-          "tracker-capture",
           "translations",
           "usage-analytics",
           "user",
@@ -271,9 +270,10 @@ public interface AppManager {
    *
    * @return list of installed apps with given isBundled property
    */
-  public static List<App> filterAppsByPluginType(String pluginType, Collection<App> apps) {
+  static List<App> filterAppsByPluginType(String pluginType, Collection<App> apps) {
     return apps.stream()
+        .filter(app -> app.getPluginType() != null)
         .filter(app -> app.getPluginType().equals(pluginType))
-        .collect(Collectors.toList());
+        .toList();
   }
 }

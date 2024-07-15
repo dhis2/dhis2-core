@@ -31,9 +31,13 @@ import com.google.common.collect.Sets;
 import java.sql.Array;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import javax.annotation.Nonnull;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.collection.CollectionUtils;
 
 /**
  * Utilities for SQL operations, compatible with PostgreSQL and H2 database platforms.
@@ -145,5 +149,28 @@ public class SqlUtils {
    */
   public static String lower(String value) {
     return "lower(" + value + ")";
+  }
+
+  /**
+   * Method which will return a valid like predicate when there are 1 or many like targets. See
+   * {@link SqlUtilsTest#multiLikeMultiTest()} for example.
+   *
+   * @param column column to search
+   * @param likeTargets like targets, can be 1 or many
+   * @return like predicate
+   */
+  public static String likeAny(String column, List<String> likeTargets) {
+    if (StringUtils.isBlank(column) || CollectionUtils.isEmpty(likeTargets))
+      throw new IllegalArgumentException("SQL multi like must have at least one target and column");
+
+    return likeTargets.stream()
+        .reduce(
+            "",
+            (multiLike, target) ->
+                multiLike.concat(or(multiLike) + column + " like '%" + target + "%'"));
+  }
+
+  private static String or(@Nonnull String multiLike) {
+    return multiLike.contains("like") ? " or " : "";
   }
 }

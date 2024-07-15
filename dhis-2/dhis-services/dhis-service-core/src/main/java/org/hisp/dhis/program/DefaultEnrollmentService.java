@@ -36,7 +36,6 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
-import org.hisp.dhis.programrule.engine.EnrollmentEvaluationEvent;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
@@ -82,26 +81,8 @@ public class DefaultEnrollmentService implements EnrollmentService {
 
   @Override
   @Transactional(readOnly = true)
-  public Enrollment getEnrollment(long id) {
-    return enrollmentStore.get(id);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Enrollment getEnrollment(String uid) {
-    return enrollmentStore.getByUid(uid);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public List<Enrollment> getEnrollments(@Nonnull List<String> uids) {
     return enrollmentStore.getByUid(uids);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean enrollmentExists(String uid) {
-    return enrollmentStore.exists(uid);
   }
 
   @Override
@@ -203,7 +184,6 @@ public class DefaultEnrollmentService implements EnrollmentService {
     trackerOwnershipAccessManager.assignOwnership(
         trackedEntity, program, organisationUnit, true, true);
     eventPublisher.publishEvent(new ProgramEnrollmentNotificationEvent(this, enrollment.getId()));
-    eventPublisher.publishEvent(new EnrollmentEvaluationEvent(this, enrollment.getId()));
     updateEnrollment(enrollment);
     trackedEntityService.updateTrackedEntity(trackedEntity);
     return enrollment;

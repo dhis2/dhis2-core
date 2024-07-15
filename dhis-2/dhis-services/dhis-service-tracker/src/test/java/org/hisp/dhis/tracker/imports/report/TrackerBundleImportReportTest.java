@@ -183,7 +183,7 @@ class TrackerBundleImportReportTest {
         toSerializeReport.getPersistenceReport().getTypeReportMap().get(TRACKED_ENTITY);
     TrackerTypeReport deserializedReportTrackerTypeReport =
         deserializedReport.getPersistenceReport().getTypeReportMap().get(TRACKED_ENTITY);
-    // sideEffectsDataBundle is no more relevant to object equivalence, so
+    // NotificationDataBundle is no more relevant to object equivalence, so
     // just asserting on all other fields.
     assertEquals(
         serializedReportTrackerTypeReport.getTrackerType(),

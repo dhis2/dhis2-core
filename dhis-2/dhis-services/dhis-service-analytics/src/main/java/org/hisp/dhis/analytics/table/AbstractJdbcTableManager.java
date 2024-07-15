@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static java.util.function.Predicate.not;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getStartDate;
 import static org.hisp.dhis.commons.util.TextUtils.format;
@@ -60,6 +61,7 @@ import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
@@ -507,8 +509,10 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
                   .name(name)
                   .dataType(TEXT)
                   .selectExpression(prefix + "." + quote(name))
+                  .skipIndex(skipIndex(name))
                   .build();
             })
+        .filter(not(this::skipColumn))
         .toList();
   }
 
@@ -562,13 +566,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             ougs -> {
               String name = ougs.getUid();
-              Skip skipIndex = analyticsTableSettings.skipIndexOrgUnitGroupSetColumns();
               return AnalyticsTableColumn.builder()
                   .name(name)
                   .columnType(AnalyticsColumnType.DYNAMIC)
                   .dataType(CHARACTER_11)
                   .selectExpression("ougs." + quote(name))
-                  .skipIndex(skipIndex)
+                  .skipIndex(skipIndex(ougs))
                   .created(ougs.getCreated())
                   .build();
             })
@@ -580,13 +583,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             degs -> {
               String name = degs.getUid();
-              Skip skipIndex = analyticsTableSettings.skipIndexDataElementGroupSetColumns();
               return AnalyticsTableColumn.builder()
                   .name(name)
                   .columnType(AnalyticsColumnType.DYNAMIC)
                   .dataType(CHARACTER_11)
                   .selectExpression("degs." + quote(name))
-                  .skipIndex(skipIndex)
+                  .skipIndex(skipIndex(degs))
                   .created(degs.getCreated())
                   .build();
             })
@@ -598,13 +600,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             cogs -> {
               String name = cogs.getUid();
-              Skip skipIndex = analyticsTableSettings.skipIndexCategoryOptionGroupSetColumns();
               return AnalyticsTableColumn.builder()
                   .name(name)
                   .columnType(AnalyticsColumnType.DYNAMIC)
                   .dataType(CHARACTER_11)
                   .selectExpression("dcs." + quote(name))
-                  .skipIndex(skipIndex)
+                  .skipIndex(skipIndex(cogs))
                   .created(cogs.getCreated())
                   .build();
             })
@@ -616,13 +617,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             cogs -> {
               String name = cogs.getUid();
-              Skip skipIndex = analyticsTableSettings.skipIndexCategoryOptionGroupSetColumns();
               return AnalyticsTableColumn.builder()
                   .name(name)
                   .columnType(AnalyticsColumnType.DYNAMIC)
                   .dataType(CHARACTER_11)
                   .selectExpression("acs." + quote(name))
-                  .skipIndex(skipIndex)
+                  .skipIndex(skipIndex(cogs))
                   .created(cogs.getCreated())
                   .build();
             })
@@ -634,13 +634,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             category -> {
               String name = category.getUid();
-              Skip skipIndex = analyticsTableSettings.skipIndexCategoryColumns();
               return AnalyticsTableColumn.builder()
                   .name(name)
                   .columnType(AnalyticsColumnType.DYNAMIC)
                   .dataType(CHARACTER_11)
                   .selectExpression("dcs." + quote(name))
-                  .skipIndex(skipIndex)
+                  .skipIndex(skipIndex(category))
                   .created(category.getCreated())
                   .build();
             })
@@ -652,17 +651,51 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             category -> {
               String name = category.getUid();
-              Skip skipIndex = analyticsTableSettings.skipIndexCategoryColumns();
               return AnalyticsTableColumn.builder()
                   .name(name)
                   .columnType(AnalyticsColumnType.DYNAMIC)
                   .dataType(CHARACTER_11)
                   .selectExpression("acs." + quote(name))
-                  .skipIndex(skipIndex)
+                  .skipIndex(skipIndex(category))
                   .created(category.getCreated())
                   .build();
             })
         .toList();
+  }
+
+  /**
+   * Indicates whether indexing should be skipped for the given dimensional object based on the
+   * system configuration.
+   *
+   * @param dimension the {@link DimensionalObject}.
+   * @return {@link Skip#SKIP} if index should be skipped, {@link Skip#INCLUDE} otherwise.
+   */
+  protected Skip skipIndex(DimensionalObject dimension) {
+    return skipIndex(dimension.getUid());
+  }
+
+  /**
+   * Indicates whether indexing should be skipped for the given dimensional identifier based on the
+   * system configuration.
+   *
+   * @param dimension the dimension identifier.
+   * @return {@link Skip#SKIP} if index should be skipped, {@link Skip#INCLUDE} otherwise.
+   */
+  protected Skip skipIndex(String dimension) {
+    Set<String> dimensions = analyticsTableSettings.getSkipIndexDimensions();
+    return dimensions.contains(dimension) ? Skip.SKIP : Skip.INCLUDE;
+  }
+
+  /**
+   * Indicates whether the column should be skipped for the given {@link AnalyticsTableColumn} based
+   * on the system configuration. The matching is performed using the {@code name} property of the
+   * given column.
+   *
+   * @param column the {@link AnalyticsTableColumn}.
+   * @return true if the column should be skipped, false otherwise.
+   */
+  protected boolean skipColumn(AnalyticsTableColumn column) {
+    return analyticsTableSettings.getSkipColumnDimensions().contains(column.getName());
   }
 
   /**

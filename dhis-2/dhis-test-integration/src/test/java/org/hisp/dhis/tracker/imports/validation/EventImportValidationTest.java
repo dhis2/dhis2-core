@@ -52,7 +52,6 @@ import lombok.SneakyThrows;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.TrackerType;
@@ -72,8 +71,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class EventImportValidationTest extends TrackerTest {
   @Autowired protected TrackedEntityService trackedEntityService;
-
-  @Autowired private EventService programStageServiceInstance;
 
   @Autowired private TrackerImportService trackerImportService;
 
@@ -376,10 +373,10 @@ class EventImportValidationTest extends TrackerTest {
   private void testDeletedEventFails(TrackerImportStrategy importStrategy) {
     // Given -> Creates an event
     createEvent("tracker/validations/events-with-notes-data.json");
-    Event event = programStageServiceInstance.getEvent("uLxFbxfYDQE");
+    Event event = manager.get(Event.class, "uLxFbxfYDQE");
     assertNotNull(event);
     // When -> Soft-delete the event
-    programStageServiceInstance.deleteEvent(event);
+    manager.delete(event);
     TrackerObjects trackerObjects = fromJson("tracker/validations/events-with-notes-data.json");
     TrackerImportParams params = new TrackerImportParams();
     params.setImportStrategy(importStrategy);
@@ -436,6 +433,6 @@ class EventImportValidationTest extends TrackerTest {
     final Map<TrackerType, TrackerTypeReport> typeReportMap =
         importReport.getPersistenceReport().getTypeReportMap();
     String newEvent = typeReportMap.get(TrackerType.EVENT).getEntityReport().get(0).getUid();
-    return programStageServiceInstance.getEvent(newEvent);
+    return manager.get(Event.class, newEvent);
   }
 }

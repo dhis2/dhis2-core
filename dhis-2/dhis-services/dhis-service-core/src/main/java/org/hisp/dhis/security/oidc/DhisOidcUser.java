@@ -164,6 +164,12 @@ public class DhisOidcUser extends DefaultOAuth2User implements UserDetails, Oidc
 
   @Nonnull
   @Override
+  public Set<String> getUserEffectiveSearchOrgUnitIds() {
+    return user.getUserEffectiveSearchOrgUnitIds();
+  }
+
+  @Nonnull
+  @Override
   public Set<String> getUserDataOrgUnitIds() {
     return user.getUserDataOrgUnitIds();
   }

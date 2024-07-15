@@ -34,8 +34,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
 import static org.hisp.dhis.security.Authorities.F_REPLICATE_USER;
-import static org.hisp.dhis.user.User.populateUserCredentialsDtoCopyOnlyChanges;
-import static org.hisp.dhis.user.User.populateUserCredentialsDtoFields;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import static org.springframework.http.MediaType.TEXT_XML_VALUE;
@@ -70,7 +68,7 @@ import org.hisp.dhis.common.OpenApi.Document.Group;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UserOrgUnitType;
-import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
 import org.hisp.dhis.commons.jackson.jsonpatch.operations.AddOperation;
@@ -277,9 +275,7 @@ public class UserController extends AbstractCrudController<User> {
 
     User user = userService.getUser(pvUid);
 
-    if (user == null
-        // TODO: To remove when we remove old UserCredentials compatibility
-        || user.getUserCredentials() == null) {
+    if (user == null) {
       throw new NotFoundException("User not found: " + pvUid);
     }
 
@@ -316,8 +312,6 @@ public class UserController extends AbstractCrudController<User> {
   }
 
   private WebMessage postObject(User user) throws ForbiddenException, ConflictException {
-    // TODO: To remove when we remove old UserCredentials compatibility
-    populateUserCredentialsDtoFields(user);
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     validateCreateUser(user, currentUser);
@@ -345,8 +339,6 @@ public class UserController extends AbstractCrudController<User> {
 
   private WebMessage postInvite(HttpServletRequest request, User user)
       throws ForbiddenException, ConflictException {
-    // TODO: To remove when we remove old UserCredentials compatibility
-    populateUserCredentialsDtoFields(user);
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
@@ -377,10 +369,6 @@ public class UserController extends AbstractCrudController<User> {
       throws ForbiddenException, ConflictException {
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    // TODO: To remove when we remove old UserCredentials compatibility
-    for (User user : users.getUsers()) {
-      populateUserCredentialsDtoFields(user);
-    }
 
     for (User user : users.getUsers()) {
       validateInviteUser(user, currentUser);
@@ -496,7 +484,7 @@ public class UserController extends AbstractCrudController<User> {
 
     User userReplica = new User();
     metadataMergeService.merge(
-        new MetadataMergeParams<>(existingUser, userReplica).setMergeMode(MergeMode.MERGE));
+        new MetadataMergeParams<>(existingUser, userReplica).setMergeMode(MergeMode.REPLACE));
     copyAttributeValues(userReplica);
     userReplica.setId(0);
     userReplica.setUuid(UUID.randomUUID());
@@ -610,12 +598,6 @@ public class UserController extends AbstractCrudController<User> {
       HttpServletRequest request)
       throws IOException, ConflictException, ForbiddenException, NotFoundException {
     User inputUser = renderService.fromJson(request.getInputStream(), getEntityClass());
-
-    User user = getEntity(pvUid);
-
-    // TODO: To remove when we remove old UserCredentials compatibility
-    populateUserCredentialsDtoCopyOnlyChanges(user, inputUser);
-
     return importReport(updateUser(pvUid, inputUser)).withPlainResponseBefore(DhisApiVersion.V38);
   }
 
@@ -692,13 +674,6 @@ public class UserController extends AbstractCrudController<User> {
   // -------------------------------------------------------------------------
   // PATCH
   // -------------------------------------------------------------------------
-
-  @Override
-  protected void prePatchEntity(User oldEntity, User newEntity) {
-    // TODO: To remove when we remove old UserCredentials compatibility
-    populateUserCredentialsDtoCopyOnlyChanges(oldEntity, newEntity);
-  }
-
   @Override
   protected void postPatchEntity(JsonPatch patch, User entityAfter) {
     // Make sure we always expire all the user's active sessions if we

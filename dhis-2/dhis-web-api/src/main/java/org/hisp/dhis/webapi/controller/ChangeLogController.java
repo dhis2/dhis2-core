@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.commons.collection.CollectionUtils.emptyIfNull;
+import static org.hisp.dhis.common.collection.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
@@ -253,6 +253,10 @@ public class ChangeLogController {
     return rootNode;
   }
 
+  /**
+   * @deprecated use EventsExportController#getEventChangeLogsByUid instead
+   */
+  @Deprecated(forRemoval = true, since = "2.42")
   @GetMapping("trackedEntityDataValue")
   public RootNode getTrackedEntityDataValueChangeLog(
       @OpenApi.Param({UID[].class, DataElement.class}) @RequestParam(required = false)
@@ -335,6 +339,10 @@ public class ChangeLogController {
     return rootNode;
   }
 
+  /**
+   * @deprecated use TrackedEntitiesExportController#getTrackedEntityAttributeChangeLog instead
+   */
+  @Deprecated(forRemoval = true, since = "2.42")
   @GetMapping("trackedEntityAttributeValue")
   public RootNode getTrackedEntityAttributeValueChangeLog(
       @OpenApi.Param({UID[].class, TrackedEntityAttribute.class}) @RequestParam(required = false)

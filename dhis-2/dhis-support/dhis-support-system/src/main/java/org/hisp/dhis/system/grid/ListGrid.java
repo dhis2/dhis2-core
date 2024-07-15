@@ -29,7 +29,7 @@ package org.hisp.dhis.system.grid;
 
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.common.ValueType.getValueTypeFromSqlType;
-import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
+import static org.hisp.dhis.common.collection.CollectionUtils.mapToList;
 import static org.hisp.dhis.feedback.ErrorCode.E7230;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -77,10 +77,6 @@ import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
  * @author Lars Helge Overland
  */
 public class ListGrid implements Grid, Serializable {
-
-  public static final String HAS_VALUE = ".hasValue";
-  public static final String STATUS = ".status";
-  public static final String EXISTS = ".exists";
   public static final String LEGEND = ".legend";
 
   private static final String REGRESSION_SUFFIX = "_regression";

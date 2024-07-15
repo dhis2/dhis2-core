@@ -48,7 +48,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
@@ -86,7 +85,6 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
       OrganisationUnitService organisationUnitService,
       CategoryService categoryService,
       DataElementService dataElementService,
-      EventService eventService,
       DataSetService dataSetService,
       DataValueService dataValueService,
       CompleteDataSetRegistrationService registrationService,
@@ -101,16 +99,14 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
         organisationUnitService,
         categoryService,
         dataElementService,
-        eventService,
         identifiableObjectManager);
-
     this.dataSetService = dataSetService;
     this.dataValueService = dataValueService;
     this.registrationService = registrationService;
   }
 
   @Override
-  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission)
+  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission, User user)
       throws SMSProcessingException {
     AggregateDatasetSmsSubmission subm = (AggregateDatasetSmsSubmission) submission;
 
@@ -120,10 +116,8 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
     Uid aocid = subm.getAttributeOptionCombo();
 
     OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(ouid.getUid());
-    User user = userService.getUser(subm.getUserId().getUid());
 
     DataSet dataSet = dataSetService.getDataSet(dsid.getUid());
-
     if (dataSet == null) {
       throw new SMSProcessingException(SmsResponse.INVALID_DATASET.set(dsid));
     }

@@ -58,7 +58,6 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -80,13 +79,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class EnrollmentServiceTest extends TransactionalIntegrationTest {
-  @Autowired private org.hisp.dhis.tracker.export.enrollment.EnrollmentService enrollmentService;
+
+  @Autowired private EnrollmentService enrollmentService;
 
   @Autowired protected UserService _userService;
 
-  @Autowired private EnrollmentService apiEnrollmentService;
+  @Autowired private org.hisp.dhis.program.EnrollmentService apiEnrollmentService;
 
   @Autowired private IdentifiableObjectManager manager;
+
+  private final Date incidentDate = new Date();
 
   private User admin;
 
@@ -251,11 +253,9 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     enrollmentA =
         apiEnrollmentService.enrollTrackedEntity(
             trackedEntityA, programA, new Date(), new Date(), orgUnitA);
-    eventA = new Event();
-    eventA.setEnrollment(enrollmentA);
-    eventA.setProgramStage(programStageA);
-    eventA.setOrganisationUnit(orgUnitA);
-    manager.save(eventA, false);
+    eventA = createEvent(programStageA, enrollmentA, orgUnitA);
+    eventA.setOccurredDate(incidentDate);
+    manager.save(eventA);
     enrollmentA.setEvents(Set.of(eventA));
     enrollmentA.setRelationshipItems(Set.of(from, to));
     manager.save(enrollmentA, false);
@@ -383,6 +383,21 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
                 enrollmentService.getEnrollment(
                     enrollmentA.getUid(), EnrollmentParams.FALSE, false));
     assertContains("access to tracked entity type", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailGettingEnrollmentWhenDoesNotExist() {
+    trackedEntityTypeA.getSharing().setOwner(admin);
+    trackedEntityTypeA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    manager.updateNoAcl(trackedEntityTypeA);
+
+    NotFoundException exception =
+        assertThrows(
+            NotFoundException.class,
+            () ->
+                enrollmentService.getEnrollment("non existent UID", EnrollmentParams.FALSE, false));
+    assertContains(
+        "Enrollment with id non existent UID could not be found.", exception.getMessage());
   }
 
   @Test

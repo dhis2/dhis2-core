@@ -37,7 +37,12 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.note.NoteService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -47,7 +52,9 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.Sharing;
 import org.joda.time.DateTime;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -56,7 +63,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
-  @Autowired private EnrollmentService enrollmentService;
+  @Autowired private org.hisp.dhis.program.EnrollmentService apiEnrollmentService;
+
+  @Autowired private org.hisp.dhis.tracker.export.enrollment.EnrollmentService enrollmentService;
 
   @Autowired private TrackedEntityService trackedEntityService;
 
@@ -66,15 +75,19 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private ProgramStageService programStageService;
 
-  @Autowired private EventService eventService;
-
   @Autowired protected UserService _userService;
 
-  @Autowired NoteService noteService;
+  @Autowired private NoteService noteService;
+
+  @Autowired private CategoryService categoryService;
+
+  @Autowired private IdentifiableObjectManager manager;
 
   private Date incidentDate;
 
   private Date enrollmentDate;
+
+  private CategoryOptionCombo coA;
 
   private Program programA;
 
@@ -104,6 +117,8 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   public void setUpTest() {
     userService = _userService;
 
+    coA = categoryService.getDefaultCategoryOptionCombo();
+
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnitA);
     organisationUnitB = createOrganisationUnit('B');
@@ -117,6 +132,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
     programA = createProgram('A', new HashSet<>(), organisationUnitA);
     programService.addProgram(programA);
+    programA.setSharing(Sharing.builder().publicAccess("rwrw----").build());
     ProgramStage stageA = createProgramStage('A', programA);
     stageA.setSortOrder(1);
     programStageService.saveProgramStage(stageA);
@@ -146,9 +162,6 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     enrollmentA = new Enrollment(enrollmentDate, incidentDate, trackedEntityA, programA);
     enrollmentA.setUid("UID-A");
     enrollmentA.setOrganisationUnit(organisationUnitA);
-    eventA = new Event(enrollmentA, stageA);
-    eventA.setUid("UID-PSI-A");
-    eventA.setOrganisationUnit(organisationUnitA);
     enrollmentB = new Enrollment(enrollmentDate, incidentDate, trackedEntityA, programB);
     enrollmentB.setUid("UID-B");
     enrollmentB.setStatus(EnrollmentStatus.CANCELLED);
@@ -160,104 +173,111 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     enrollmentD = new Enrollment(enrollmentDate, incidentDate, trackedEntityB, programA);
     enrollmentD.setUid("UID-D");
     enrollmentD.setOrganisationUnit(organisationUnitB);
+    eventA = new Event(enrollmentA, stageA);
+    eventA.setUid("UID-PSI-A");
+    eventA.setOrganisationUnit(organisationUnitA);
+    eventA.setAttributeOptionCombo(coA);
 
     injectSecurityContextUser(user);
   }
 
   @Test
   void testAddEnrollment() {
-    long idA = enrollmentService.addEnrollment(enrollmentA);
-    long idB = enrollmentService.addEnrollment(enrollmentB);
-    assertNotNull(enrollmentService.getEnrollment(idA));
-    assertNotNull(enrollmentService.getEnrollment(idB));
+    long idA = apiEnrollmentService.addEnrollment(enrollmentA);
+    long idB = apiEnrollmentService.addEnrollment(enrollmentB);
+    assertNotNull(manager.get(Enrollment.class, idA));
+    assertNotNull(manager.get(Enrollment.class, idB));
   }
 
   @Test
   void testDeleteEnrollment() {
-    long idA = enrollmentService.addEnrollment(enrollmentA);
-    long idB = enrollmentService.addEnrollment(enrollmentB);
-    assertNotNull(enrollmentService.getEnrollment(idA));
-    assertNotNull(enrollmentService.getEnrollment(idB));
-    enrollmentService.deleteEnrollment(enrollmentA);
-    assertNull(enrollmentService.getEnrollment(idA));
-    assertNotNull(enrollmentService.getEnrollment(idB));
-    enrollmentService.deleteEnrollment(enrollmentB);
-    assertNull(enrollmentService.getEnrollment(idA));
-    assertNull(enrollmentService.getEnrollment(idB));
+    long idA = apiEnrollmentService.addEnrollment(enrollmentA);
+    long idB = apiEnrollmentService.addEnrollment(enrollmentB);
+    assertNotNull(manager.get(Enrollment.class, idA));
+    assertNotNull(manager.get(Enrollment.class, idB));
+    apiEnrollmentService.deleteEnrollment(enrollmentA);
+    assertNull(manager.get(Enrollment.class, idA));
+    assertNotNull(manager.get(Enrollment.class, idB));
+    apiEnrollmentService.deleteEnrollment(enrollmentB);
+    assertNull(manager.get(Enrollment.class, idA));
+    assertNull(manager.get(Enrollment.class, idB));
   }
 
   @Test
   void testSoftDeleteEnrollmentAndLinkedEvent() {
-    long idA = enrollmentService.addEnrollment(enrollmentA);
-    long eventIdA = eventService.addEvent(eventA);
+    long idA = apiEnrollmentService.addEnrollment(enrollmentA);
+    manager.save(eventA);
+    long eventIdA = eventA.getId();
     enrollmentA.setEvents(Sets.newHashSet(eventA));
-    enrollmentService.updateEnrollment(enrollmentA);
-    assertNotNull(enrollmentService.getEnrollment(idA));
-    assertNotNull(eventService.getEvent(eventIdA));
-    enrollmentService.deleteEnrollment(enrollmentA);
-    assertNull(enrollmentService.getEnrollment(idA));
-    assertNull(eventService.getEvent(eventIdA));
+    apiEnrollmentService.updateEnrollment(enrollmentA);
+    assertNotNull(manager.get(Enrollment.class, idA));
+    assertNotNull(manager.get(Event.class, eventIdA));
+
+    apiEnrollmentService.deleteEnrollment(enrollmentA);
+
+    assertNull(manager.get(Enrollment.class, idA));
+    assertNull(manager.get(Event.class, eventIdA));
   }
 
   @Test
   void testUpdateEnrollment() {
-    long idA = enrollmentService.addEnrollment(enrollmentA);
-    assertNotNull(enrollmentService.getEnrollment(idA));
+    long idA = apiEnrollmentService.addEnrollment(enrollmentA);
+    assertNotNull(manager.get(Enrollment.class, idA));
     enrollmentA.setOccurredDate(enrollmentDate);
-    enrollmentService.updateEnrollment(enrollmentA);
-    assertEquals(enrollmentDate, enrollmentService.getEnrollment(idA).getOccurredDate());
+    apiEnrollmentService.updateEnrollment(enrollmentA);
+    assertEquals(enrollmentDate, manager.get(Enrollment.class, idA).getOccurredDate());
   }
 
   @Test
   void testGetEnrollmentById() {
-    long idA = enrollmentService.addEnrollment(enrollmentA);
-    long idB = enrollmentService.addEnrollment(enrollmentB);
-    assertEquals(enrollmentA, enrollmentService.getEnrollment(idA));
-    assertEquals(enrollmentB, enrollmentService.getEnrollment(idB));
+    long idA = apiEnrollmentService.addEnrollment(enrollmentA);
+    long idB = apiEnrollmentService.addEnrollment(enrollmentB);
+    assertEquals(enrollmentA, manager.get(Enrollment.class, idA));
+    assertEquals(enrollmentB, manager.get(Enrollment.class, idB));
   }
 
   @Test
   void testGetEnrollmentByUid() {
-    enrollmentService.addEnrollment(enrollmentA);
-    enrollmentService.addEnrollment(enrollmentB);
-    assertEquals("UID-A", enrollmentService.getEnrollment("UID-A").getUid());
-    assertEquals("UID-B", enrollmentService.getEnrollment("UID-B").getUid());
+    apiEnrollmentService.addEnrollment(enrollmentA);
+    apiEnrollmentService.addEnrollment(enrollmentB);
+    assertEquals("UID-A", manager.get(Enrollment.class, "UID-A").getUid());
+    assertEquals("UID-B", manager.get(Enrollment.class, "UID-B").getUid());
   }
 
   @Test
   void testGetEnrollmentsByProgram() {
-    enrollmentService.addEnrollment(enrollmentA);
-    enrollmentService.addEnrollment(enrollmentB);
-    enrollmentService.addEnrollment(enrollmentD);
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(programA);
+    apiEnrollmentService.addEnrollment(enrollmentA);
+    apiEnrollmentService.addEnrollment(enrollmentB);
+    apiEnrollmentService.addEnrollment(enrollmentD);
+    List<Enrollment> enrollments = apiEnrollmentService.getEnrollments(programA);
     assertEquals(2, enrollments.size());
     assertTrue(enrollments.contains(enrollmentA));
     assertTrue(enrollments.contains(enrollmentD));
-    enrollments = enrollmentService.getEnrollments(programB);
+    enrollments = apiEnrollmentService.getEnrollments(programB);
     assertEquals(1, enrollments.size());
     assertTrue(enrollments.contains(enrollmentB));
   }
 
   @Test
   void testGetEnrollmentsByTrackedEntityProgramAndEnrollmentStatus() {
-    enrollmentService.addEnrollment(enrollmentA);
+    apiEnrollmentService.addEnrollment(enrollmentA);
     Enrollment enrollment1 =
-        enrollmentService.enrollTrackedEntity(
+        apiEnrollmentService.enrollTrackedEntity(
             trackedEntityA, programA, enrollmentDate, incidentDate, organisationUnitA);
     enrollment1.setStatus(EnrollmentStatus.COMPLETED);
-    enrollmentService.updateEnrollment(enrollment1);
+    apiEnrollmentService.updateEnrollment(enrollment1);
     Enrollment enrollment2 =
-        enrollmentService.enrollTrackedEntity(
+        apiEnrollmentService.enrollTrackedEntity(
             trackedEntityA, programA, enrollmentDate, incidentDate, organisationUnitA);
     enrollment2.setStatus(EnrollmentStatus.COMPLETED);
-    enrollmentService.updateEnrollment(enrollment2);
+    apiEnrollmentService.updateEnrollment(enrollment2);
     List<Enrollment> enrollments =
-        enrollmentService.getEnrollments(trackedEntityA, programA, EnrollmentStatus.COMPLETED);
+        apiEnrollmentService.getEnrollments(trackedEntityA, programA, EnrollmentStatus.COMPLETED);
     assertEquals(2, enrollments.size());
     assertTrue(enrollments.contains(enrollment1));
     assertTrue(enrollments.contains(enrollment2));
     enrollments =
-        enrollmentService.getEnrollments(trackedEntityA, programA, EnrollmentStatus.ACTIVE);
+        apiEnrollmentService.getEnrollments(trackedEntityA, programA, EnrollmentStatus.ACTIVE);
     assertEquals(1, enrollments.size());
     assertTrue(enrollments.contains(enrollmentA));
   }
@@ -265,13 +285,13 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   @Test
   void testEnrollTrackedEntity() {
     Enrollment enrollment =
-        enrollmentService.enrollTrackedEntity(
+        apiEnrollmentService.enrollTrackedEntity(
             trackedEntityA, programB, enrollmentDate, incidentDate, organisationUnitA);
-    assertNotNull(enrollmentService.getEnrollment(enrollment.getId()));
+    assertNotNull(manager.get(Enrollment.class, enrollment.getId()));
   }
 
   @Test
-  void shouldNoteDeleteNoteWhenDeletingEnrollment() {
+  void shouldNotDeleteNoteWhenDeletingEnrollment() throws ForbiddenException, NotFoundException {
 
     Note note = new Note();
     note.setCreator(CodeGenerator.generateUid());
@@ -280,13 +300,14 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
     enrollmentA.setNotes(List.of(note));
 
-    enrollmentService.addEnrollment(enrollmentA);
+    apiEnrollmentService.addEnrollment(enrollmentA);
 
     assertNotNull(enrollmentService.getEnrollment(enrollmentA.getUid()));
 
-    enrollmentService.deleteEnrollment(enrollmentA);
+    apiEnrollmentService.deleteEnrollment(enrollmentA);
 
-    assertNull(enrollmentService.getEnrollment(enrollmentA.getUid()));
+    Assertions.assertThrows(
+        NotFoundException.class, () -> enrollmentService.getEnrollment(enrollmentA.getUid()));
     assertTrue(noteService.noteExists(note.getUid()));
   }
 }

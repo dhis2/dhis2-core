@@ -440,7 +440,7 @@ class EventOperationParamsMapperTest {
     when(organisationUnitService.getOrganisationUnit(searchScopeChildOrgUnit.getUid()))
         .thenReturn(searchScopeChildOrgUnit);
     when(organisationUnitService.isInUserHierarchy(
-            searchScopeChildOrgUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
+            searchScopeChildOrgUnit.getUid(), user.getEffectiveSearchOrganisationUnits()))
         .thenReturn(true);
 
     EventOperationParams operationParams =
@@ -479,7 +479,7 @@ class EventOperationParamsMapperTest {
     when(organisationUnitService.getOrganisationUnit(searchScopeChildOrgUnit.getUid()))
         .thenReturn(searchScopeChildOrgUnit);
     when(organisationUnitService.isInUserHierarchy(
-            searchScopeChildOrgUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
+            searchScopeChildOrgUnit.getUid(), user.getEffectiveSearchOrganisationUnits()))
         .thenReturn(true);
 
     EventOperationParams operationParams =

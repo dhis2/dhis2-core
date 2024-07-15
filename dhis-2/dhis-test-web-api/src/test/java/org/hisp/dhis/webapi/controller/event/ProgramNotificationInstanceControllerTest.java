@@ -40,7 +40,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
@@ -61,15 +60,18 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
 
   @Autowired private EnrollmentService enrollmentService;
 
-  @Autowired private EventService eventService;
-
   @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private IdentifiableObjectManager idObjectManager;
+
   private Enrollment enrollment;
+
   private Event event;
+
   private ProgramNotificationInstance enrollmentNotification1;
+
   private ProgramNotificationInstance enrollmentNotification2;
+
   private ProgramNotificationInstance eventNotification;
 
   @BeforeEach
@@ -97,7 +99,7 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
     programNotificationInstanceService.save(enrollmentNotification2);
 
     event = createEvent(psA, enrollment, ouA);
-    eventService.addEvent(event);
+    manager.save(event);
     eventNotification = new ProgramNotificationInstance();
     eventNotification.setName("event A notification");
     eventNotification.setEvent(event);

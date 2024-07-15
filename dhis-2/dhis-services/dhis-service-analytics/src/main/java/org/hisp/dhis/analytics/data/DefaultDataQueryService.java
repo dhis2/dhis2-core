@@ -316,7 +316,9 @@ public class DefaultDataQueryService implements DataQueryService {
 
   private List<DimensionalObject> getDimensionalObjects(DataQueryRequest request) {
     List<DimensionalObject> list = new ArrayList<>();
-    List<OrganisationUnit> userOrgUnits = getUserOrgUnits(null, request.getUserOrgUnit());
+    DataQueryParams params =
+        DataQueryParams.newBuilder().withUserOrgUnitType(request.getUserOrgUnitType()).build();
+    List<OrganisationUnit> userOrgUnits = getUserOrgUnits(params, request.getUserOrgUnit());
 
     if (request.getDimension() != null) {
       for (String param : request.getDimension()) {

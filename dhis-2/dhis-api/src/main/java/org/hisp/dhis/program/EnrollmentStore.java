@@ -49,15 +49,6 @@ public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
   List<Enrollment> get(TrackedEntity trackedEntity, Program program, EnrollmentStatus status);
 
   /**
-   * Checks for the existence of an enrollment by UID, Deleted enrollments are not taken into
-   * account.
-   *
-   * @param uid Event UID to check for
-   * @return true/false depending on result
-   */
-  boolean exists(String uid);
-
-  /**
    * Checks for the existence of an enrollment by UID. Takes into account also the deleted
    * enrollments.
    *

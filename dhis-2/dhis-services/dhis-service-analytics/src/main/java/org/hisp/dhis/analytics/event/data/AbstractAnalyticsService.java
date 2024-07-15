@@ -66,6 +66,9 @@ import java.util.TreeMap;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.common.processing.MetadataItemsHandler;
+import org.hisp.dhis.analytics.common.scheme.SchemeInfo;
+import org.hisp.dhis.analytics.common.scheme.SchemeInfo.Data;
+import org.hisp.dhis.analytics.common.scheme.SchemeInfo.Settings;
 import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
@@ -256,10 +259,13 @@ public abstract class AbstractAnalyticsService {
     // ---------------------------------------------------------------------
 
     if (params.hasDataIdScheme()) {
-      schemeIdResponseMapper.applyOptionAndLegendSetMapping(grid, NAME);
+      schemeIdResponseMapper.applyOptionAndLegendSetMapping(NAME, grid);
     }
 
-    schemeIdResponseMapper.applyCustomIdScheme(params, grid);
+    if (!params.isSkipMeta()) {
+      SchemeInfo schemeInfo = new SchemeInfo(schemeSettings(params), schemeData(params));
+      schemeIdResponseMapper.applyCustomIdScheme(schemeInfo, grid);
+    }
 
     // ---------------------------------------------------------------------
     // Paging
@@ -280,6 +286,31 @@ public abstract class AbstractAnalyticsService {
     setRowContextColumns(grid);
 
     return grid;
+  }
+
+  protected Data schemeData(EventQueryParams params) {
+    return Data.builder()
+        .dataElements(params.getAllDataElements())
+        .dimensionalItemObjects(new LinkedHashSet<>(params.getAllDimensionItems()))
+        .dataElementOperands(params.getDataElementOperands())
+        .options(params.getItemOptions())
+        .organizationUnits(params.getOrganisationUnits())
+        .program(params.getProgram())
+        .programStage(params.getProgramStage())
+        .indicators(params.getIndicators())
+        .programIndicators(params.getProgramIndicators())
+        .build();
+  }
+
+  protected Settings schemeSettings(EventQueryParams params) {
+    return Settings.builder()
+        .dataIdScheme(params.getDataIdScheme())
+        .outputDataElementIdScheme(params.getOutputDataElementIdScheme())
+        .outputDataItemIdScheme(params.getOutputDataItemIdScheme())
+        .outputIdScheme(params.getOutputIdScheme())
+        .outputOrgUnitIdScheme(params.getOutputOrgUnitIdScheme())
+        .outputFormat(params.getOutputFormat())
+        .build();
   }
 
   /**

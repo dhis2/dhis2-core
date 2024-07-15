@@ -39,6 +39,9 @@ public enum AnalyticsTableType {
   COMPLETENESS("analytics_completeness", true, true),
   COMPLETENESS_TARGET("analytics_completenesstarget", false, false),
   ORG_UNIT_TARGET("analytics_orgunittarget", false, false),
+  VALIDATION_RESULT("analytics_validationresult", true, false),
+  EVENT("analytics_event", false, true),
+  ENROLLMENT("analytics_enrollment", false, false),
   EVENT("analytics_event", false, true, "psi"),
   ENROLLMENT("analytics_enrollment", false, false, "pi"),
   OWNERSHIP("analytics_ownership", false, false),
@@ -46,7 +49,10 @@ public enum AnalyticsTableType {
   TRACKED_ENTITY_INSTANCE_EVENTS("analytics_tei_events", false, true, "trackedentityinstanceuid"),
   TRACKED_ENTITY_INSTANCE_ENROLLMENTS(
       "analytics_tei_enrollments", false, false, "trackedentityinstanceuid"),
-  TRACKED_ENTITY_INSTANCE("analytics_tei", false, false, "trackedentityinstanceuid");
+  TRACKED_ENTITY_INSTANCE("analytics_tei", false, false, "trackedentityinstanceuid"),
+  TRACKED_ENTITY_INSTANCE_EVENTS("analytics_tei_events", false, true),
+  TRACKED_ENTITY_INSTANCE_ENROLLMENTS("analytics_tei_enrollments", false, false),
+  TRACKED_ENTITY_INSTANCE("analytics_tei", false, false);
 
   @Getter private String tableName;
 

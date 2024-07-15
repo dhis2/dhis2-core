@@ -16,8 +16,8 @@
     <rootDir>../</rootDir>
     <build.time>${maven.build.timestamp}</build.time>
     <mainClass>org.hisp.dhis.web.tomcat.Main</mainClass>
-    <tomcat.version>9.0.87</tomcat.version>
-    <spring-boot-maven-plugin.version>3.3.0</spring-boot-maven-plugin.version>
+    <tomcat.version>9.0.90</tomcat.version>
+    <spring-boot-maven-plugin.version>3.3.1</spring-boot-maven-plugin.version>
     <env>default</env>
   </properties>
 
@@ -385,7 +385,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-shade-plugin</artifactId>
-            <version>3.5.3</version>
+            <version>3.6.0</version>
             <executions>
               <execution>
                 <id>rebuild</id>

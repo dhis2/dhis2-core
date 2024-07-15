@@ -77,6 +77,8 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private TrackerOwnershipManager trackerOwnershipAccessManager;
 
+  private Date enrollmentDate;
+
   private TrackedEntity teA;
 
   private TrackedEntity teB;
@@ -116,6 +118,8 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
   @Override
   protected void setUpTest() throws Exception {
     userService = _userService;
+
+    enrollmentDate = new Date();
 
     orgUnitA = createOrganisationUnit('A');
     manager.save(orgUnitA, false);
@@ -157,20 +161,17 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
     manager.save(program, false);
 
     enrollmentA =
-        enrollmentService.enrollTrackedEntity(teA, program, new Date(), new Date(), orgUnitA);
-    eventA = new Event();
-    eventA.setEnrollment(enrollmentA);
-    eventA.setProgramStage(programStage);
-    eventA.setOrganisationUnit(orgUnitA);
-    manager.save(eventA, false);
+        enrollmentService.enrollTrackedEntity(
+            teA, program, enrollmentDate, enrollmentDate, orgUnitA);
+    eventA = createEvent(programStage, enrollmentA, orgUnitA);
+    eventA.setOccurredDate(enrollmentDate);
+    manager.save(eventA);
 
     Enrollment enrollmentB =
         enrollmentService.enrollTrackedEntity(teB, program, new Date(), new Date(), orgUnitA);
-    inaccessibleEvent = new Event();
-    inaccessibleEvent.setEnrollment(enrollmentB);
-    inaccessibleEvent.setProgramStage(inaccessibleProgramStage);
-    inaccessibleEvent.setOrganisationUnit(orgUnitA);
-    manager.save(inaccessibleEvent, false);
+    inaccessibleEvent = createEvent(inaccessibleProgramStage, enrollmentB, orgUnitA);
+    inaccessibleEvent.setOccurredDate(enrollmentDate);
+    manager.save(inaccessibleEvent);
 
     teToTeType
         .getFromConstraint()

@@ -38,7 +38,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -61,8 +60,6 @@ class ProgramMessageControllerTest extends DhisControllerConvenienceTest {
 
   @Autowired private EnrollmentService enrollmentService;
 
-  @Autowired private EventService eventService;
-
   @Autowired private IdentifiableObjectManager idObjectManager;
 
   private Enrollment enrollmentA;
@@ -82,7 +79,7 @@ class ProgramMessageControllerTest extends DhisControllerConvenienceTest {
     enrollmentA = createEnrollment(prA, trackedEntityA, ouA);
     enrollmentService.addEnrollment(enrollmentA);
     eventA = createEvent(psA, enrollmentA, ouA);
-    eventService.addEvent(eventA);
+    manager.save(eventA);
   }
 
   @Test

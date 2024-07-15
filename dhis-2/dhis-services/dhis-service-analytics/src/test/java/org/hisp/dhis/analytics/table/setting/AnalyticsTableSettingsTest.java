@@ -36,6 +36,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.configuration.CitusSettings;
 import org.hisp.dhis.configuration.CitusSettings.PgExtension;
@@ -121,24 +122,42 @@ class AnalyticsTableSettingsTest {
   }
 
   @Test
-  void testToSkip() {
-    assertEquals(Skip.INCLUDE, settings.toSkip(true));
-    assertEquals(Skip.SKIP, settings.toSkip(false));
+  void testGetSkipIndexDimensionsDefault() {
+    when(config.getProperty(ConfigurationKey.ANALYTICS_TABLE_SKIP_INDEX))
+        .thenReturn(ConfigurationKey.ANALYTICS_TABLE_SKIP_INDEX.getDefaultValue());
+
+    assertEquals(Set.of(), settings.getSkipIndexDimensions());
   }
 
   @Test
-  void testSkipIndexCategoryColumns() {
-    when(config.isEnabled(ConfigurationKey.ANALYTICS_TABLE_INDEX_DATA_ELEMENT_GROUP_SET))
-        .thenReturn(true);
-    when(config.isEnabled(ConfigurationKey.ANALYTICS_TABLE_INDEX_CATEGORY)).thenReturn(true);
-    when(config.isEnabled(ConfigurationKey.ANALYTICS_TABLE_INDEX_CATEGORY_OPTION_GROUP_SET))
-        .thenReturn(false);
-    when(config.isEnabled(ConfigurationKey.ANALYTICS_TABLE_INDEX_ORG_UNIT_GROUP_SET))
-        .thenReturn(false);
+  void testGetSkipIndexDimensions() {
+    when(config.getProperty(ConfigurationKey.ANALYTICS_TABLE_SKIP_INDEX))
+        .thenReturn("kJ7yGrfR413, Hg5tGfr2fas  , Ju71jG19Kaq,b5TgfRL9pUq");
 
-    assertEquals(Skip.INCLUDE, settings.skipIndexDataElementGroupSetColumns());
-    assertEquals(Skip.INCLUDE, settings.skipIndexCategoryColumns());
-    assertEquals(Skip.SKIP, settings.skipIndexCategoryOptionGroupSetColumns());
-    assertEquals(Skip.SKIP, settings.skipIndexOrgUnitGroupSetColumns());
+    assertEquals(
+        Set.of("kJ7yGrfR413", "Hg5tGfr2fas", "Ju71jG19Kaq", "b5TgfRL9pUq"),
+        settings.getSkipIndexDimensions());
+  }
+
+  @Test
+  void testGetSkipColumnDimensions() {
+    when(config.getProperty(ConfigurationKey.ANALYTICS_TABLE_SKIP_COLUMN))
+        .thenReturn("sixmonthlyapril, financialapril  , financialjuly,financialnov");
+
+    assertEquals(
+        Set.of("sixmonthlyapril", "financialapril", "financialjuly", "financialnov"),
+        settings.getSkipColumnDimensions());
+  }
+
+  @Test
+  void testToSet() {
+    Set<String> expected = Set.of("kJ7yGrfR413", "Hg5tGfr2fas", "Ju71jG19Kaq", "b5TgfRL9pUq");
+    assertEquals(expected, settings.toSet("kJ7yGrfR413, Hg5tGfr2fas  , Ju71jG19Kaq,b5TgfRL9pUq"));
+  }
+
+  @Test
+  void testToSkip() {
+    assertEquals(Skip.INCLUDE, settings.toSkip(true));
+    assertEquals(Skip.SKIP, settings.toSkip(false));
   }
 }

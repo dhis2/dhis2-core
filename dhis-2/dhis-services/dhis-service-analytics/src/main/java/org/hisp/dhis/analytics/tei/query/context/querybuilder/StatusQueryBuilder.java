@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
@@ -86,6 +85,7 @@ public class StatusQueryBuilder extends SqlQueryBuilderAdaptor {
     RenderableSqlQuery.RenderableSqlQueryBuilder builder = RenderableSqlQuery.builder();
 
     streamDimensions(acceptedHeaders, acceptedDimensions, acceptedSortingParams)
+        .filter(DimensionIdentifier::isTeDimension)
         .map(
             dimensionIdentifier -> {
               StaticDimension staticDimension =
@@ -99,12 +99,31 @@ public class StatusQueryBuilder extends SqlQueryBuilderAdaptor {
             })
         .forEach(builder::selectField);
 
+    streamDimensions(acceptedHeaders, acceptedDimensions, acceptedSortingParams)
+        .filter(Predicate.not(DimensionIdentifier::isTeDimension))
+        .map(
+            dimensionIdentifier -> {
+              StaticDimension staticDimension =
+                  dimensionIdentifier.getDimension().getStaticDimension();
+              String prefix = getPrefix(dimensionIdentifier, false);
+
+              return Field.ofUnquoted(
+                  doubleQuote(prefix),
+                  staticDimension::getColumnName,
+                  prefix + DIMENSION_SEPARATOR + staticDimension.getHeaderName());
+            })
+        // Fields that are not TE specific, are Virtual since they will be extracted from the JSON
+        .map(Field::asVirtual)
+        .forEach(builder::selectField);
+
     acceptedDimensions.stream()
         .filter(SqlQueryBuilders::hasRestrictions)
         .map(
             dimensionIdentifier ->
                 GroupableCondition.of(
-                    dimensionIdentifier.getGroupId(), StatusCondition.of(dimensionIdentifier, ctx)))
+                    dimensionIdentifier.getGroupId(),
+                    SqlQueryHelper.buildExistsValueSubquery(
+                        dimensionIdentifier, StatusCondition.of(dimensionIdentifier, ctx))))
         .forEach(builder::groupableCondition);
 
     acceptedSortingParams.forEach(
@@ -113,12 +132,12 @@ public class StatusQueryBuilder extends SqlQueryBuilderAdaptor {
           String fieldName =
               dimensionIdentifier.getDimension().getStaticDimension().getColumnName();
 
-          Field field =
-              Field.ofUnquoted(
-                  getPrefix(sortingParam.getOrderBy()), () -> fieldName, StringUtils.EMPTY);
           builder.orderClause(
               IndexedOrder.of(
-                  sortingParam.getIndex(), Order.of(field, sortingParam.getSortDirection())));
+                  sortingParam.getIndex(),
+                  Order.of(
+                      SqlQueryHelper.buildOrderSubQuery(sortingParam.getOrderBy(), () -> fieldName),
+                      sortingParam.getSortDirection())));
         });
 
     return builder.build();
