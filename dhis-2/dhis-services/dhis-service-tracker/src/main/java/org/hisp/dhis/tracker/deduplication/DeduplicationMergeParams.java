@@ -25,40 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.deduplication;
+package org.hisp.dhis.tracker.deduplication;
 
-import java.util.List;
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import lombok.Builder;
+import lombok.Data;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 
-public interface PotentialDuplicateStore extends IdentifiableObjectStore<PotentialDuplicate> {
-  int getCountPotentialDuplicates(PotentialDuplicateCriteria query);
+@Data
+@Builder
+public class DeduplicationMergeParams {
+  private TrackedEntity original;
 
-  List<PotentialDuplicate> getPotentialDuplicates(PotentialDuplicateCriteria query);
+  private TrackedEntity duplicate;
 
-  boolean exists(PotentialDuplicate potentialDuplicate) throws PotentialDuplicateConflictException;
+  private MergeObject mergeObject;
 
-  /**
-   * Moves the tracked entity attribute values from the "duplicate" te into the "original" te. Only
-   * the trackedEntityAttributes specified in the argument are considered. If a corresponding
-   * trackedEntityAttribute value already exists in the old te, they are overwritten. If no
-   * trackedEntityAttributeValue exists in the old te, then a new TEAV with the value as in the
-   * duplicate is created and the old teav is deleted.
-   *
-   * @param original The original TE
-   * @param duplicate The duplicate TE
-   * @param trackedEntityAttributes The teas that has to be considered for moving from duplicate to
-   *     original
-   */
-  void moveTrackedEntityAttributeValues(
-      TrackedEntity original, TrackedEntity duplicate, List<String> trackedEntityAttributes);
-
-  void moveRelationships(
-      TrackedEntity originalUid, TrackedEntity duplicateUid, List<String> relationships);
-
-  void moveEnrollments(TrackedEntity original, TrackedEntity duplicate, List<String> enrollments);
-
-  void removeTrackedEntity(TrackedEntity trackedEntity);
-
-  void auditMerge(DeduplicationMergeParams params);
+  private PotentialDuplicate potentialDuplicate;
 }

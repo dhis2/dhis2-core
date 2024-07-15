@@ -86,12 +86,6 @@ public class DefaultEnrollmentService implements EnrollmentService {
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public boolean enrollmentExistsIncludingDeleted(String uid) {
-    return enrollmentStore.existsIncludingDeleted(uid);
-  }
-
-  @Override
   @Transactional
   public void updateEnrollment(Enrollment enrollment) {
     enrollmentStore.update(enrollment);

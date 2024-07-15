@@ -30,15 +30,10 @@ package org.hisp.dhis;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.core.config.Configurator;
 import org.hibernate.FlushMode;
 import org.hibernate.annotations.QueryHints;
 import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.utils.TestUtils;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,8 +53,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 public abstract class BaseSpringTest extends DhisConvenienceTest
     implements ApplicationContextAware {
 
-  public static final String ORG_HISP_DHIS_DATASOURCE_QUERY = "org.hisp.dhis.datasource.query";
-
   protected ApplicationContext applicationContext;
 
   public EntityManager entityManager;
@@ -71,15 +64,6 @@ public abstract class BaseSpringTest extends DhisConvenienceTest
   @Override
   public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
     this.applicationContext = applicationContext;
-  }
-
-  @Autowired protected DhisConfigurationProvider dhisConfigurationProvider;
-
-  @BeforeAll
-  static void beforeClass() {
-    // We usually don't want all the create db/tables statements in the
-    // query logger
-    Configurator.setLevel(ORG_HISP_DHIS_DATASOURCE_QUERY, Level.WARN);
   }
 
   /** Method to override. */
@@ -94,12 +78,9 @@ public abstract class BaseSpringTest extends DhisConvenienceTest
     try {
       dbmsManager.clearSession();
     } catch (Exception e) {
-      log.info("Failed to clear hibernate session, reason:" + e.getMessage());
+      log.error("Failed to clear hibernate session, reason: {}", e.getMessage(), e);
     }
     unbindSession();
-    // We normally don't want all the delete/empty db statements in the
-    // query logger
-    Configurator.setLevel(ORG_HISP_DHIS_DATASOURCE_QUERY, Level.WARN);
     transactionTemplate.execute(
         status -> {
           dbmsManager.emptyDatabase();
@@ -109,14 +90,6 @@ public abstract class BaseSpringTest extends DhisConvenienceTest
 
   protected void integrationTestBeforeEach() throws Exception {
     TestUtils.executeStartupRoutines(applicationContext);
-    boolean enableQueryLogging =
-        dhisConfigurationProvider.isEnabled(ConfigurationKey.ENABLE_QUERY_LOGGING);
-    // Enable to query logger to log only what's happening inside the test
-    // method
-    if (enableQueryLogging) {
-      Configurator.setLevel(ORG_HISP_DHIS_DATASOURCE_QUERY, Level.INFO);
-      Configurator.setRootLevel(Level.INFO);
-    }
     setUpTest();
   }
 
