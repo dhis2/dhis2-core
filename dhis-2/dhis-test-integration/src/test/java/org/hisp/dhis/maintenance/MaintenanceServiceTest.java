@@ -28,8 +28,6 @@
 package org.hisp.dhis.maintenance;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
-import static org.hisp.dhis.utils.Assertions.assertNotEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -262,12 +260,11 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     assertNotNull(manager.get(Enrollment.class, idA));
     apiEnrollmentService.deleteEnrollment(enrollment);
     assertNull(manager.get(Enrollment.class, idA));
-    EnrollmentOperationParams params = createEnrollmentParamsIncludingDeleted(enrollment.getUid());
-    assertNotEmpty(enrollmentService.getEnrollments(params));
+    assertTrue(enrollmentExistsIncludingDeleted(enrollment));
 
     maintenanceService.deleteSoftDeletedEnrollments();
 
-    assertIsEmpty(enrollmentService.getEnrollments(params));
+    assertFalse(enrollmentExistsIncludingDeleted(enrollment));
   }
 
   @Test
@@ -342,15 +339,11 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     assertNotNull(manager.get(Enrollment.class, idA));
     apiEnrollmentService.deleteEnrollment(enrollment);
     assertNull(manager.get(Enrollment.class, idA));
-    assertNotEmpty(
-        enrollmentService.getEnrollments(
-            createEnrollmentParamsIncludingDeleted(enrollment.getUid())));
+    assertTrue(enrollmentExistsIncludingDeleted(enrollment));
 
     maintenanceService.deleteSoftDeletedEnrollments();
 
-    assertIsEmpty(
-        enrollmentService.getEnrollments(
-            createEnrollmentParamsIncludingDeleted(enrollment.getUid())));
+    assertFalse(enrollmentExistsIncludingDeleted(enrollment));
   }
 
   @Test
@@ -418,16 +411,12 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     apiEnrollmentService.deleteEnrollment(enrollment);
     assertNull(manager.get(Enrollment.class, enrollment.getId()));
     assertNull(relationshipService.getRelationship(r.getId()));
-    assertNotEmpty(
-        enrollmentService.getEnrollments(
-            createEnrollmentParamsIncludingDeleted(enrollment.getUid())));
+    assertTrue(enrollmentExistsIncludingDeleted(enrollment));
     assertTrue(relationshipService.relationshipExistsIncludingDeleted(r.getUid()));
 
     maintenanceService.deleteSoftDeletedEnrollments();
 
-    assertIsEmpty(
-        enrollmentService.getEnrollments(
-            createEnrollmentParamsIncludingDeleted(enrollment.getUid())));
+    assertFalse(enrollmentExistsIncludingDeleted(enrollment));
     assertFalse(relationshipService.relationshipExistsIncludingDeleted(r.getUid()));
   }
 
@@ -487,11 +476,15 @@ class MaintenanceServiceTest extends IntegrationTestBase {
             "select exists(select 1 from event where uid=?)", Boolean.class, uid));
   }
 
-  private EnrollmentOperationParams createEnrollmentParamsIncludingDeleted(String enrollmentUid) {
-    return EnrollmentOperationParams.builder()
-        .enrollmentUids(Set.of(enrollmentUid))
-        .orgUnitMode(ALL)
-        .includeDeleted(true)
-        .build();
+  private boolean enrollmentExistsIncludingDeleted(Enrollment enrollment)
+      throws ForbiddenException, BadRequestException {
+    EnrollmentOperationParams params =
+        EnrollmentOperationParams.builder()
+            .enrollmentUids(Set.of(enrollment.getUid()))
+            .orgUnitMode(ALL)
+            .includeDeleted(true)
+            .build();
+
+    return !enrollmentService.getEnrollments(params).isEmpty();
   }
 }
