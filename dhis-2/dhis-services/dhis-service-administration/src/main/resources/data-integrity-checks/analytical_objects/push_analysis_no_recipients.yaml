@@ -35,7 +35,7 @@ summary_sql: >-
     from pushanalysis where pushanalysisid NOT IN 
     (SELECT DISTINCT usergroupid from pushanalysisrecipientusergroups );
 details_sql: >-
-  SELECT uid,name,lastrun from pushanalysis where pushanalysisid NOT IN 
+  SELECT uid,name from pushanalysis where pushanalysisid NOT IN 
   (SELECT DISTINCT usergroupid from pushanalysisrecipientusergroups );
 severity: WARNING
 introduction: >

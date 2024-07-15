@@ -51,9 +51,9 @@ class DataIntegrityPushAnalysisNoRecipientsControllerTest
             HttpStatus.CREATED,
             POST(
                 "/pushAnalysis",
-                "{ 'name': 'Foo', 'dashboard' : {'"
+                "{ 'name':'Foo', 'dashboard':{'id': '"
                     + testDashboard
-                    + "'}, 'recipientUserGroups' : []}"));
+                    + "'}, 'pushAnalysisItems':[] }"));
 
     assertHasDataIntegrityIssues(DETAILS_ID_TYPE, CHECK, 100, testPushAnalysis, "Foo", null, true);
   }
