@@ -82,6 +82,7 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.postgresql.util.PSQLException;
@@ -113,13 +114,15 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
       EventTimeFieldSqlRenderer timeFieldSqlRenderer,
       ExecutionPlanStore executionPlanStore,
-      SqlBuilder sqlBuilder) {
+      SqlBuilder sqlBuilder,
+      OrganisationUnitService organisationUnitService) {
     super(
         jdbcTemplate,
         programIndicatorService,
         programIndicatorSubqueryBuilder,
         executionPlanStore,
-        sqlBuilder);
+        sqlBuilder,
+        organisationUnitService);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
   }
 

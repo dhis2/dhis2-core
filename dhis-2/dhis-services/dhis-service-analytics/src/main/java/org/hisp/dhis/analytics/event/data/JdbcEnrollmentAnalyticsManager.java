@@ -70,6 +70,7 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.locationtech.jts.util.Assert;
@@ -123,13 +124,15 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
       EnrollmentTimeFieldSqlRenderer timeFieldSqlRenderer,
       ExecutionPlanStore executionPlanStore,
-      SqlBuilder sqlBuilder) {
+      SqlBuilder sqlBuilder,
+      OrganisationUnitService organisationUnitService) {
     super(
         jdbcTemplate,
         programIndicatorService,
         programIndicatorSubqueryBuilder,
         executionPlanStore,
-        sqlBuilder);
+        sqlBuilder,
+        organisationUnitService);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
   }
 
