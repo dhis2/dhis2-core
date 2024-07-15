@@ -30,6 +30,7 @@ package org.hisp.dhis.actions.metadata;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import java.io.File;
 import org.hisp.dhis.actions.RestApiActions;
@@ -38,6 +39,13 @@ import org.hisp.dhis.dto.MetadataApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 
 /**
+ * An important point to note about this class in relation to test data clean-up is that the
+ * implemented methods in this class use the query param `importReportMode=FULL`. This param is
+ * paramount if the metadata created needs to be deleted after a test completes. By passing this
+ * param, `objectReports` are returned in the response, which contain UIDs which allow the test
+ * framework to track what has been created, which then allows deletion of said objects after each
+ * test.
+ *
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class MetadataActions extends RestApiActions {
@@ -67,6 +75,12 @@ public class MetadataActions extends RestApiActions {
     return new MetadataApiResponse(response);
   }
 
+  public MetadataApiResponse importMetadata(String metadata) {
+    JsonObject json = new Gson().fromJson(metadata, JsonObject.class);
+    ApiResponse response = importMetadata(json);
+    return new MetadataApiResponse(response);
+  }
+
   public MetadataApiResponse importAndValidateMetadata(JsonObject object, String... queryParams) {
     ApiResponse response = importMetadata(object, queryParams);
 
@@ -85,18 +99,5 @@ public class MetadataActions extends RestApiActions {
         .body("response.stats.ignored", not(equalTo(response.extract("response.stats.total"))));
 
     return new MetadataApiResponse(response);
-  }
-
-  /**
-   * Override to make default behaviour of Metadata POST queries return full object reports
-   *
-   * @param object Body of request
-   * @return
-   */
-  @Override
-  public ApiResponse post(Object object) {
-    QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
-    queryParamsBuilder.addAll("importReportMode=FULL");
-    return super.post(object, queryParamsBuilder);
   }
 }

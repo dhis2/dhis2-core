@@ -318,12 +318,12 @@ class DataElementMergeTest extends ApiTest {
   private void setupProgramStageDataElements(
       String sourceUid1, String sourceUid2, String targetUid) {
     metadataApiActions
-        .post(programWithStageAndDataElements(sourceUid1, sourceUid2, targetUid))
+        .importMetadata(programWithStageAndDataElements(sourceUid1, sourceUid2, targetUid))
         .validateStatus(200);
   }
 
   private void setupMinMaxDataElements(String sourceUid1, String sourceUid2, String targetUid) {
-    metadataApiActions.post(metadata()).validateStatus(200);
+    metadataApiActions.importMetadata(metadata()).validateStatus(200);
     minMaxActions.post(minMaxDataElements("OrgUnit0001", sourceUid1, "CatOptCom01"));
     minMaxActions.post(minMaxDataElements("OrgUnit0001", sourceUid2, "CatOptCom01"));
     minMaxActions.post(minMaxDataElements("OrgUnit0001", targetUid, "CatOptCom01"));
