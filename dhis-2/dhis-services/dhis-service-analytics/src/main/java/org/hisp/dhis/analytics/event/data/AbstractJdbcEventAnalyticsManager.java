@@ -1090,7 +1090,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     } else if (header.getValueType() == ValueType.ORGANISATION_UNIT) {
       String uid = StringUtils.trimToNull(sqlRowSet.getString(index));
       OrganisationUnit ou = organisationUnitService.getOrganisationUnit(uid);
-      grid.addValue(ou.getName());
+      grid.addValue(ou != null ? ou.getName(): uid);
     } else {
       grid.addValue(StringUtils.trimToNull(sqlRowSet.getString(index)));
     }
