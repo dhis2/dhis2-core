@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.deduplication;
+package org.hisp.dhis.tracker.deduplication;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -39,11 +39,6 @@ import java.util.Collections;
 import java.util.List;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
-import org.hisp.dhis.tracker.deduplication.DeduplicationService;
-import org.hisp.dhis.tracker.deduplication.DeduplicationStatus;
-import org.hisp.dhis.tracker.deduplication.PotentialDuplicate;
-import org.hisp.dhis.tracker.deduplication.PotentialDuplicateConflictException;
-import org.hisp.dhis.tracker.deduplication.PotentialDuplicateCriteria;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
