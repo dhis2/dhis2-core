@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.configuration;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.CITUS_EXTENSION;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CITUS_EXTENSION;
 
 import java.util.List;
 import java.util.Optional;
@@ -85,7 +85,7 @@ public class CitusSettings {
    * @return true if the Citus extension is disabled in dhis configuration file.
    */
   private boolean isCitusDisabledByConfig() {
-    return !dhisConfigurationProvider.isEnabled(CITUS_EXTENSION);
+    return !dhisConfigurationProvider.isEnabled(ANALYTICS_CITUS_EXTENSION);
   }
 
   /**

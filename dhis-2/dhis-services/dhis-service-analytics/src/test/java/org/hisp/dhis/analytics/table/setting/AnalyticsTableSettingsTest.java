@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.table.setting;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.CITUS_EXTENSION;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CITUS_EXTENSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -92,27 +92,27 @@ class AnalyticsTableSettingsTest {
 
   @Test
   void testIsCitusEnabledWhenDisabledByConfig() {
-    when(config.isEnabled(CITUS_EXTENSION)).thenReturn(false);
+    when(config.isEnabled(ANALYTICS_CITUS_EXTENSION)).thenReturn(false);
     assertFalse(citusSettings.isCitusExtensionEnabled());
   }
 
   @Test
   void testIsCitusEnabledWhenNoCitusExtensionInstalled() {
-    when(config.isEnabled(CITUS_EXTENSION)).thenReturn(true);
+    when(config.isEnabled(ANALYTICS_CITUS_EXTENSION)).thenReturn(true);
     mockTemplate(List.of());
     assertFalse(citusSettings.isCitusExtensionEnabled());
   }
 
   @Test
   void testIsCitusEnabledWhenInstalledButNotCreated() {
-    when(config.isEnabled(CITUS_EXTENSION)).thenReturn(true);
+    when(config.isEnabled(ANALYTICS_CITUS_EXTENSION)).thenReturn(true);
     mockTemplate(List.of(new PgExtension("citus", null)));
     assertFalse(citusSettings.isCitusExtensionEnabled());
   }
 
   @Test
   void testIsCitusEnabledWhenInstalledAndCreated() {
-    when(config.isEnabled(CITUS_EXTENSION)).thenReturn(true);
+    when(config.isEnabled(ANALYTICS_CITUS_EXTENSION)).thenReturn(true);
     mockTemplate(List.of(new PgExtension("citus", "V1.0")));
     assertTrue(citusSettings.isCitusExtensionEnabled());
   }

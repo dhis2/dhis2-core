@@ -103,7 +103,7 @@ public class AnalyticsTableSettings {
 
   /**
    * Returns the years' offset defined for the period generation. See {@link
-   * ANALYTICS_MAX_PERIOD_YEARS_OFFSET}.
+   * org.hisp.dhis.setting.SettingKey#ANALYTICS_MAX_PERIOD_YEARS_OFFSET}.
    *
    * @return the offset defined in system settings, or null if nothing is set.
    */
