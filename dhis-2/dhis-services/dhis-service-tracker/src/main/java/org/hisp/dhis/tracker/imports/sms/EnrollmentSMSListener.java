@@ -138,7 +138,7 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
     EnrollmentSmsSubmission subm = (EnrollmentSmsSubmission) submission;
 
     Date enrollmentDate = subm.getEnrollmentDate();
-    Date incidentDate = subm.getIncidentDate();
+    Date occurredDate = subm.getIncidentDate();
     Uid teUid = subm.getTrackedEntityInstance();
     Uid progid = subm.getTrackerProgram();
     Uid tetid = subm.getTrackedEntityType();
@@ -193,7 +193,7 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
       enrollment =
           enrollmentService.getEnrollment(enrollmentid.getUid(), UserDetails.fromUser(user));
       enrollment.setEnrollmentDate(enrollmentDate);
-      enrollment.setOccurredDate(incidentDate);
+      enrollment.setOccurredDate(occurredDate);
     } catch (ForbiddenException e) {
       throw new SMSProcessingException(SmsResponse.INVALID_ENROLL.set(enrollmentid.getUid()));
     } catch (NotFoundException e) {
@@ -205,7 +205,7 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
     if (enrollment == null) {
       enrollment =
           apiEnrollmentService.enrollTrackedEntity(
-              te, program, enrollmentDate, incidentDate, orgUnit, enrollmentid.getUid());
+              te, program, enrollmentDate, occurredDate, orgUnit, enrollmentid.getUid());
 
       if (enrollment == null) {
         throw new SMSProcessingException(SmsResponse.ENROLL_FAILED.set(teUid, progid));
