@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.deduplication;
+package org.hisp.dhis.tracker.deduplication;
 
 import java.util.Date;
 import java.util.List;
@@ -42,7 +42,7 @@ import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service("org.hisp.dhis.deduplication.DeduplicationService")
+@Service("org.hisp.dhis.tracker.deduplication.domain.deduplication.DeduplicationService")
 @RequiredArgsConstructor
 public class DefaultDeduplicationService implements DeduplicationService {
   private final PotentialDuplicateStore potentialDuplicateStore;

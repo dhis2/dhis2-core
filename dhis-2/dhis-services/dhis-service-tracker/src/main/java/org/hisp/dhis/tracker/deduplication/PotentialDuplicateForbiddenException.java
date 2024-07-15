@@ -25,13 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.deduplication;
+package org.hisp.dhis.tracker.deduplication;
 
 /**
  * @author Luca Cambi <luca@dhis2.org>
  */
-public class PotentialDuplicateConflictException extends Exception {
-  public PotentialDuplicateConflictException(String message) {
+public class PotentialDuplicateForbiddenException extends Exception {
+  public PotentialDuplicateForbiddenException(String message) {
     super(message);
   }
 }
