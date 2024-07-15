@@ -25,29 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.deduplication;
+package org.hisp.dhis.tracker.deduplication;
 
 import java.util.List;
+import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 
-public interface DeduplicationService {
-  PotentialDuplicate getPotentialDuplicateById(long id);
+public interface PotentialDuplicateStore extends IdentifiableObjectStore<PotentialDuplicate> {
+  int getCountPotentialDuplicates(PotentialDuplicateCriteria query);
 
-  PotentialDuplicate getPotentialDuplicateByUid(String uid);
-
-  int countPotentialDuplicates(PotentialDuplicateCriteria criteria);
+  List<PotentialDuplicate> getPotentialDuplicates(PotentialDuplicateCriteria query);
 
   boolean exists(PotentialDuplicate potentialDuplicate) throws PotentialDuplicateConflictException;
 
-  List<PotentialDuplicate> getPotentialDuplicates(PotentialDuplicateCriteria criteria);
+  /**
+   * Moves the tracked entity attribute values from the "duplicate" te into the "original" te. Only
+   * the trackedEntityAttributes specified in the argument are considered. If a corresponding
+   * trackedEntityAttribute value already exists in the old te, they are overwritten. If no
+   * trackedEntityAttributeValue exists in the old te, then a new TEAV with the value as in the
+   * duplicate is created and the old teav is deleted.
+   *
+   * @param original The original TE
+   * @param duplicate The duplicate TE
+   * @param trackedEntityAttributes The teas that has to be considered for moving from duplicate to
+   *     original
+   */
+  void moveTrackedEntityAttributeValues(
+      TrackedEntity original, TrackedEntity duplicate, List<String> trackedEntityAttributes);
 
-  void addPotentialDuplicate(PotentialDuplicate potentialDuplicate)
-      throws PotentialDuplicateConflictException;
+  void moveRelationships(
+      TrackedEntity originalUid, TrackedEntity duplicateUid, List<String> relationships);
 
-  void updatePotentialDuplicate(PotentialDuplicate potentialDuplicate);
+  void moveEnrollments(TrackedEntity original, TrackedEntity duplicate, List<String> enrollments);
 
-  void autoMerge(DeduplicationMergeParams deduplicationRequest)
-      throws PotentialDuplicateConflictException, PotentialDuplicateForbiddenException;
+  void removeTrackedEntity(TrackedEntity trackedEntity);
 
-  void manualMerge(DeduplicationMergeParams deduplicationRequest)
-      throws PotentialDuplicateConflictException, PotentialDuplicateForbiddenException;
+  void auditMerge(DeduplicationMergeParams params);
 }
