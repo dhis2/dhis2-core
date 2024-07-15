@@ -30,6 +30,7 @@ package org.hisp.dhis.cache;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Properties;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
@@ -37,9 +38,13 @@ import org.hibernate.FlushMode;
 import org.hibernate.SessionFactory;
 import org.hibernate.jpa.QueryHints;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.config.TestContainerPostgresConfig;
+import org.hisp.dhis.config.TestDhisConfigurationProvider;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.scheduling.HousekeepingJob;
 import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.AfterEach;
@@ -47,10 +52,28 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.orm.jpa.EntityManagerHolder;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-class HibernateQueryCacheTest extends HibernateCacheBaseTest {
+@ContextConfiguration(classes = {HibernateQueryCacheTest.DhisConfig.class})
+class HibernateQueryCacheTest extends IntegrationTestBase {
+
+  static class DhisConfig extends TestContainerPostgresConfig {
+    @Bean(name = "dhisConfigurationProvider")
+    @Override
+    public DhisConfigurationProvider dhisConfigurationProvider() {
+      Properties dhisConfig = new Properties();
+      dhisConfig.put("filestore.provider", "transient");
+      dhisConfig.put("connection.schema", "validate");
+      dhisConfig.put("encryption.password", "54C73D06-1D34-477F-94B0-8F94E59BE41D");
+      dhisConfig.put("hibernate.cache.use_query_cache", "true");
+      dhisConfig.put("hibernate.cache.use_second_level_cache", "true");
+      dhisConfig.putAll(getConnectionProperties());
+      return new TestDhisConfigurationProvider(dhisConfig);
+    }
+  }
 
   private @Autowired EntityManagerFactory entityManagerFactory;
   private @Autowired UserService _userService;
@@ -59,7 +82,8 @@ class HibernateQueryCacheTest extends HibernateCacheBaseTest {
   private SessionFactory sessionFactory;
 
   @BeforeEach
-  public final void before() throws Exception {
+  @Override
+  public void before() throws Exception {
     this.entityManager = entityManagerFactory.createEntityManager();
     this.sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
 

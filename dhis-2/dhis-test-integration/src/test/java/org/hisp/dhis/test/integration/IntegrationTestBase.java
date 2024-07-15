@@ -52,7 +52,7 @@ public abstract class IntegrationTestBase extends BaseSpringTest {
   private User adminUser;
 
   @BeforeEach
-  public final void before() throws Exception {
+  public void before() throws Exception {
     bindSession();
 
     userService = _userService;

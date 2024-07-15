@@ -30,7 +30,7 @@ package org.hisp.dhis.config;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class H2DhisConfigurationProvider extends TestConfigurationProvider {
+public class H2DhisConfigurationProvider extends TestDhisConfigurationProvider {
   private static final String DEFAULT_CONFIGURATION_FILE_NAME = "h2TestConfig.conf";
 
   public H2DhisConfigurationProvider() {

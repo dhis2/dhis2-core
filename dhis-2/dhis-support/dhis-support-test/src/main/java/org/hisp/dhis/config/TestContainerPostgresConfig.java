@@ -68,10 +68,17 @@ public class TestContainerPostgresConfig {
 
   @Bean(name = "dhisConfigurationProvider")
   public DhisConfigurationProvider dhisConfigurationProvider() {
-
     PostgresDhisConfigurationProvider dhisConfigurationProvider =
-        new PostgresDhisConfigurationProvider(getConfigurationFile());
+        new PostgresDhisConfigurationProvider("postgresTestConfig.conf");
+    dhisConfigurationProvider.addProperties(getConnectionProperties());
+    return dhisConfigurationProvider;
+  }
 
+  /**
+   * Returns the DHIS2 DB connection properties that are only known after the DB container has been
+   * started.
+   */
+  protected static Properties getConnectionProperties() {
     Properties properties = new Properties();
     properties.setProperty(
         "connection.dialect", "org.hisp.dhis.hibernate.dialect.DhisPostgresDialect");
@@ -79,12 +86,6 @@ public class TestContainerPostgresConfig {
     properties.setProperty("connection.url", POSTGRES_CONTAINER.getJdbcUrl());
     properties.setProperty("connection.username", POSTGRES_USERNAME);
     properties.setProperty("connection.password", POSTGRES_PASSWORD);
-    dhisConfigurationProvider.addProperties(properties);
-
-    return dhisConfigurationProvider;
-  }
-
-  protected String getConfigurationFile() {
-    return "postgresTestConfig.conf";
+    return properties;
   }
 }

@@ -30,7 +30,7 @@ package org.hisp.dhis.config;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class AppControllerConfigurationProvider extends TestConfigurationProvider {
+public class AppControllerConfigurationProvider extends TestDhisConfigurationProvider {
 
   public AppControllerConfigurationProvider(String configurationFileName) {
     this.properties = getPropertiesFromFile(configurationFileName);
