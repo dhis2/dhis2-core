@@ -30,9 +30,12 @@ package org.hisp.dhis.tracker.imports.bundle;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -51,6 +54,7 @@ import org.hisp.dhis.tracker.imports.notification.NotificationHandlerService;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheatService;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleService;
+import org.hisp.dhis.tracker.imports.report.Entity;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.hisp.dhis.user.User;
@@ -162,12 +166,27 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
     }
 
     Map<TrackerType, TrackerTypeReport> reportMap =
-        Map.of(
-            TrackerType.RELATIONSHIP, deletionService.deleteRelationships(bundle),
-            TrackerType.EVENT, deletionService.deleteEvents(bundle),
-            TrackerType.ENROLLMENT, deletionService.deleteEnrollments(bundle),
-            TrackerType.TRACKED_ENTITY, deletionService.deleteTrackedEntity(bundle));
+        Stream.of(
+                deletionService.deleteRelationships(bundle),
+                deletionService.deleteEvents(bundle),
+                deletionService.deleteEnrollments(bundle),
+                deletionService.deleteTrackedEntities(bundle))
+            .flatMap(Collection::stream)
+            .collect(Collectors.groupingBy(Entity::getTrackerType))
+            .entrySet()
+            .stream()
+            .collect(Collectors.toMap(Map.Entry::getKey, e -> map(e.getKey(), e.getValue())));
 
     return new PersistenceReport(reportMap);
+  }
+
+  private TrackerTypeReport map(TrackerType trackerType, List<Entity> objectReport) {
+    TrackerTypeReport trackerTypeReport = new TrackerTypeReport(trackerType);
+    objectReport.forEach(
+        o -> {
+          trackerTypeReport.addEntity(o);
+          trackerTypeReport.getStats().incDeleted();
+        });
+    return trackerTypeReport;
   }
 }

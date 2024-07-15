@@ -36,6 +36,8 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -46,6 +48,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DefaultDeduplicationService implements DeduplicationService {
   private final PotentialDuplicateStore potentialDuplicateStore;
+
+  private final TrackerObjectDeletionService trackerObjectDeletionService;
 
   private final DeduplicationHelper deduplicationHelper;
 
@@ -160,8 +164,14 @@ public class DefaultDeduplicationService implements DeduplicationService {
         original, duplicate, mergeObject.getTrackedEntityAttributes());
     potentialDuplicateStore.moveRelationships(original, duplicate, mergeObject.getRelationships());
     potentialDuplicateStore.moveEnrollments(original, duplicate, mergeObject.getEnrollments());
-
-    potentialDuplicateStore.removeTrackedEntity(duplicate);
+    trackerObjectDeletionService.deleteTrackedEntities(
+        TrackerBundle.builder()
+            .trackedEntities(
+                List.of(
+                    org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
+                        .trackedEntity(duplicate.getUid())
+                        .build()))
+            .build());
     updateTeiAndPotentialDuplicate(params, original);
     potentialDuplicateStore.auditMerge(params);
   }

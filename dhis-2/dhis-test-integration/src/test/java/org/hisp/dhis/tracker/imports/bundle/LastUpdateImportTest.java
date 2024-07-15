@@ -45,6 +45,7 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.imports.TrackerIdScheme;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -207,7 +208,14 @@ class LastUpdateImportTest extends TrackerTest {
         trackerImportService.importTracker(
             params, TrackerObjects.builder().trackedEntities(List.of(trackedEntity)).build());
     assertNoErrors(importReport);
-    assertEquals(1, importReport.getStats().getDeleted());
+    assertEquals(
+        1,
+        importReport
+            .getPersistenceReport()
+            .getTypeReportMap()
+            .get(TrackerType.TRACKED_ENTITY)
+            .getStats()
+            .getDeleted());
 
     TrackedEntity entityAfterDeletion = getTrackedEntity();
 
@@ -241,7 +249,14 @@ class LastUpdateImportTest extends TrackerTest {
             params, TrackerObjects.builder().trackedEntities(List.of(trackedEntity)).build());
 
     assertNoErrors(importReport);
-    assertEquals(1, importReport.getStats().getDeleted());
+    assertEquals(
+        1,
+        importReport
+            .getPersistenceReport()
+            .getTypeReportMap()
+            .get(TrackerType.TRACKED_ENTITY)
+            .getStats()
+            .getDeleted());
 
     clearSession();
 
@@ -288,7 +303,14 @@ class LastUpdateImportTest extends TrackerTest {
         trackerImportService.importTracker(
             params, TrackerObjects.builder().enrollments(List.of(enrollment)).build());
     assertNoErrors(importReport);
-    assertEquals(1, importReport.getStats().getDeleted());
+    assertEquals(
+        1,
+        importReport
+            .getPersistenceReport()
+            .getTypeReportMap()
+            .get(TrackerType.ENROLLMENT)
+            .getStats()
+            .getDeleted());
 
     clearSession();
 

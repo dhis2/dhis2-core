@@ -58,7 +58,5 @@ public interface PotentialDuplicateStore extends IdentifiableObjectStore<Potenti
 
   void moveEnrollments(TrackedEntity original, TrackedEntity duplicate, List<String> enrollments);
 
-  void removeTrackedEntity(TrackedEntity trackedEntity);
-
   void auditMerge(DeduplicationMergeParams params);
 }

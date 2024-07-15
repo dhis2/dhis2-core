@@ -311,11 +311,6 @@ public class HibernatePotentialDuplicateStore
   }
 
   @Override
-  public void removeTrackedEntity(TrackedEntity trackedEntity) {
-    trackedEntityStore.delete(trackedEntity);
-  }
-
-  @Override
   public void auditMerge(DeduplicationMergeParams params) {
     TrackedEntity duplicate = params.getDuplicate();
     MergeObject mergeObject = params.getMergeObject();

@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.RelationshipService;
@@ -43,7 +43,6 @@ import org.hisp.dhis.tracker.imports.converter.EnrollmentTrackerConverterService
 import org.hisp.dhis.tracker.imports.converter.EventTrackerConverterService;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.report.Entity;
-import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.springframework.stereotype.Service;
 
 /**
@@ -65,20 +64,15 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
   private final EventTrackerConverterService eventTrackerConverterService;
 
   @Override
-  public TrackerTypeReport deleteEnrollments(TrackerBundle bundle) throws NotFoundException {
-    TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.ENROLLMENT);
-
+  public List<Entity> deleteEnrollments(TrackerBundle bundle) {
     List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments = bundle.getEnrollments();
-
+    List<Entity> deletedEntities = new ArrayList<>();
     for (org.hisp.dhis.tracker.imports.domain.Enrollment value : enrollments) {
       String uid = value.getEnrollment();
 
       Entity objectReport = new Entity(TrackerType.ENROLLMENT, uid);
 
       Enrollment enrollment = manager.get(Enrollment.class, uid);
-      if (enrollment == null) {
-        throw new NotFoundException(Enrollment.class, uid);
-      }
       enrollment.setLastUpdatedByUserInfo(bundle.getUserInfo());
 
       List<org.hisp.dhis.tracker.imports.domain.Event> events =
@@ -92,7 +86,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
               .userInfo(bundle.getUserInfo())
               .build();
 
-      deleteEvents(trackerBundle);
+      List<Entity> entities = deleteEvents(trackerBundle);
 
       TrackedEntity te = enrollment.getTrackedEntity();
       te.setLastUpdatedByUserInfo(bundle.getUserInfo());
@@ -101,16 +95,16 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
       apiEnrollmentService.deleteEnrollment(enrollment);
       teService.updateTrackedEntity(te);
 
-      typeReport.getStats().incDeleted();
-      typeReport.addEntity(objectReport);
+      deletedEntities.add(objectReport);
+      deletedEntities.addAll(entities);
     }
 
-    return typeReport;
+    return deletedEntities;
   }
 
   @Override
-  public TrackerTypeReport deleteEvents(TrackerBundle bundle) {
-    TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.EVENT);
+  public List<Entity> deleteEvents(TrackerBundle bundle) {
+    List<Entity> deletedEntities = new ArrayList<>();
 
     List<org.hisp.dhis.tracker.imports.domain.Event> events = bundle.getEvents();
 
@@ -137,16 +131,15 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
         apiEnrollmentService.updateEnrollment(enrollment);
       }
 
-      typeReport.getStats().incDeleted();
-      typeReport.addEntity(objectReport);
+      deletedEntities.add(objectReport);
     }
 
-    return typeReport;
+    return deletedEntities;
   }
 
   @Override
-  public TrackerTypeReport deleteTrackedEntity(TrackerBundle bundle) throws NotFoundException {
-    TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.TRACKED_ENTITY);
+  public List<Entity> deleteTrackedEntities(TrackerBundle bundle) {
+    List<Entity> deletedEntities = new ArrayList<>();
 
     List<org.hisp.dhis.tracker.imports.domain.TrackedEntity> trackedEntities =
         bundle.getTrackedEntities();
@@ -172,20 +165,20 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
               .userInfo(bundle.getUserInfo())
               .build();
 
-      deleteEnrollments(trackerBundle);
+      List<Entity> entities = deleteEnrollments(trackerBundle);
 
       teService.deleteTrackedEntity(entity);
 
-      typeReport.getStats().incDeleted();
-      typeReport.addEntity(objectReport);
+      deletedEntities.add(objectReport);
+      deletedEntities.addAll(entities);
     }
 
-    return typeReport;
+    return deletedEntities;
   }
 
   @Override
-  public TrackerTypeReport deleteRelationships(TrackerBundle bundle) {
-    TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.RELATIONSHIP);
+  public List<Entity> deleteRelationships(TrackerBundle bundle) {
+    List<Entity> deletedEntities = new ArrayList<>();
 
     List<Relationship> relationships = bundle.getRelationships();
 
@@ -199,10 +192,9 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
       relationshipService.deleteRelationship(relationship);
 
-      typeReport.getStats().incDeleted();
-      typeReport.addEntity(objectReport);
+      deletedEntities.add(objectReport);
     }
 
-    return typeReport;
+    return deletedEntities;
   }
 }
