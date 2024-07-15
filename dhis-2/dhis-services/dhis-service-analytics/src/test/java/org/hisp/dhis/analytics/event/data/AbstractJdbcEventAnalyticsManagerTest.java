@@ -51,6 +51,7 @@ import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.common.ValueType.BOOLEAN;
 import static org.hisp.dhis.common.ValueType.NUMBER;
+import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.period.RelativePeriodEnum.THIS_YEAR;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
@@ -94,6 +95,8 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodTypeEnum;
@@ -122,6 +125,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   @Mock private ProgramIndicatorService programIndicatorService;
 
   @Mock private ExecutionPlanStore executionPlanStore;
+  @Mock private OrganisationUnitService organisationUnitService;
 
   private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
@@ -153,7 +157,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             programIndicatorSubqueryBuilder,
             new EventTimeFieldSqlRenderer(sqlBuilder),
             executionPlanStore,
-            sqlBuilder);
+            sqlBuilder,
+            organisationUnitService);
 
     enrollmentSubject =
         new JdbcEnrollmentAnalyticsManager(
@@ -162,7 +167,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             programIndicatorSubqueryBuilder,
             new EnrollmentTimeFieldSqlRenderer(sqlBuilder),
             executionPlanStore,
-            sqlBuilder);
+            sqlBuilder,
+            organisationUnitService);
 
     programA = createProgram('A');
 
@@ -814,6 +820,36 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
+  void testAddGridValueForOrganisationUnit() throws SQLException {
+    String organisationUnitUid = "fWIAEtYVEGk";
+    String organisationUnitName = "Badjia";
+    int index = 1;
+
+    RowSetMetaDataImpl metaData = new RowSetMetaDataImpl();
+    metaData.setColumnCount(1);
+    metaData.setColumnName(1, "col-1");
+
+    ResultSet resultSet = mock(ResultSet.class);
+    when(resultSet.getString(index)).thenReturn(organisationUnitUid);
+    when(resultSet.getMetaData()).thenReturn(metaData);
+    when(organisationUnitService.getOrganisationUnit(organisationUnitUid))
+        .thenReturn(new OrganisationUnit(organisationUnitName));
+
+    EventQueryParams queryParams = new EventQueryParams.Builder().build();
+
+    GridHeader header = new GridHeader("header-1", ORGANISATION_UNIT);
+    Grid grid = new ListGrid();
+    grid.addHeader(header);
+    grid.addRow();
+
+    SqlRowSet sqlRowSet = new ResultSetWrappingSqlRowSet(resultSet);
+
+    eventSubject.addGridValue(grid, header, index, sqlRowSet, queryParams);
+
+    assertEquals(organisationUnitName, grid.getColumn(0).get(0));
+  }
+
+  @Test
   void testAddGridValueForNull() throws SQLException {
     Double nullObject = null;
     int index = 1;
@@ -826,7 +862,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     ResultSet resultSet = mock(ResultSet.class);
     when(resultSet.getObject(index)).thenReturn(nullObject);
     when(resultSet.getMetaData()).thenReturn(metaData);
-
     EventQueryParams queryParams = new EventQueryParams.Builder().withSkipRounding(false).build();
 
     GridHeader header = new GridHeader("header-1", NUMBER);
