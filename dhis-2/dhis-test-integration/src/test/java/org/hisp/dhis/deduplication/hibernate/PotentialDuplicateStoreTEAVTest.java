@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.google.common.collect.Lists;
 import java.util.List;
-import org.hisp.dhis.deduplication.PotentialDuplicateStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
@@ -41,6 +40,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.deduplication.PotentialDuplicateStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;

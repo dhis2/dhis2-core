@@ -25,13 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.deduplication;
+package org.hisp.dhis.tracker.deduplication;
 
-/**
- * @author Luca Cambi <luca@dhis2.org>
- */
-public class PotentialDuplicateForbiddenException extends Exception {
-  public PotentialDuplicateForbiddenException(String message) {
-    super(message);
-  }
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import java.util.ArrayList;
+import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@JsonDeserialize(builder = MergeObject.MergeObjectBuilder.class)
+@NoArgsConstructor
+@AllArgsConstructor
+public class MergeObject {
+  @Builder.Default @JsonProperty private List<String> trackedEntityAttributes = new ArrayList<>();
+
+  @Builder.Default @JsonProperty private List<String> relationships = new ArrayList<>();
+
+  @Builder.Default @JsonProperty private List<String> enrollments = new ArrayList<>();
 }
