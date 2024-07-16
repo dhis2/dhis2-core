@@ -40,8 +40,8 @@ import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
 import org.junit.jupiter.api.Test;
 
 /**
- * Integrity check to identify users who have no user role associated with their user. {@see
- * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/users/users_with_no_user_role.yaml}
+ * Integrity check to identify users who have invalid usernames.  {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/users/users_with_invalid_usernames.yaml}
  *
  * @author Jason P. Pickering
  */
