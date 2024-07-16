@@ -58,7 +58,7 @@ class AppControllerTest extends AppControllerBaseTest {
 
   static {
     try {
-      ClassPathResource classPathResource = new ClassPathResource("AppControllerTestConfig.conf");
+      ClassPathResource classPathResource = new ClassPathResource("appControllerBaseTestDhis.conf");
       Path tempDir = createTempDirectory("appFiles").toAbsolutePath();
       try (InputStream inputStream = classPathResource.getInputStream()) {
         Path destFile = tempDir.resolve("dhis.conf");

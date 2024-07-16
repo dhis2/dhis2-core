@@ -38,8 +38,7 @@ import org.hibernate.FlushMode;
 import org.hibernate.SessionFactory;
 import org.hibernate.jpa.QueryHints;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.config.TestContainerPostgresConfig;
-import org.hisp.dhis.config.TestDhisConfigurationProvider;
+import org.hisp.dhis.config.PostgresDhisConfigurationProvider;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.scheduling.HousekeepingJob;
@@ -57,21 +56,19 @@ import org.springframework.orm.jpa.EntityManagerHolder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-@ContextConfiguration(classes = {HibernateQueryCacheTest.DhisConfig.class})
+@ContextConfiguration(classes = {HibernateQueryCacheTest.DhisConfiguration.class})
 class HibernateQueryCacheTest extends IntegrationTestBase {
 
-  static class DhisConfig extends TestContainerPostgresConfig {
-    @Bean(name = "dhisConfigurationProvider")
-    @Override
+  static class DhisConfiguration {
+    @Bean
     public DhisConfigurationProvider dhisConfigurationProvider() {
-      Properties dhisConfig = new Properties();
-      dhisConfig.put("filestore.provider", "transient");
-      dhisConfig.put("connection.schema", "validate");
-      dhisConfig.put("encryption.password", "54C73D06-1D34-477F-94B0-8F94E59BE41D");
-      dhisConfig.put("hibernate.cache.use_query_cache", "true");
-      dhisConfig.put("hibernate.cache.use_second_level_cache", "true");
-      dhisConfig.putAll(getConnectionProperties());
-      return new TestDhisConfigurationProvider(dhisConfig);
+      Properties override = new Properties();
+      override.put("hibernate.cache.use_query_cache", "true");
+      override.put("hibernate.cache.use_second_level_cache", "true");
+      PostgresDhisConfigurationProvider postgresDhisConfigurationProvider =
+          new PostgresDhisConfigurationProvider();
+      postgresDhisConfigurationProvider.addProperties(override);
+      return postgresDhisConfigurationProvider;
     }
   }
 

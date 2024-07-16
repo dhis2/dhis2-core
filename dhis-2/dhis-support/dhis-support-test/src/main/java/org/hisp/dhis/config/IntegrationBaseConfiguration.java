@@ -42,7 +42,7 @@ import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
  */
 @Configuration
 @ComponentScan("org.hisp.dhis")
-public class IntegrationBaseConfig {
+public class IntegrationBaseConfiguration {
   @Bean
   public static SessionRegistry sessionRegistry() {
     return new SessionRegistryImpl();

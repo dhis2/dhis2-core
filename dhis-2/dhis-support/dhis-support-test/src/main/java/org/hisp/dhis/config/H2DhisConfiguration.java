@@ -25,19 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi;
+package org.hisp.dhis.config;
 
-import org.hisp.dhis.config.H2DhisConfigurationProvider;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 
+/** Use this Spring configuration for tests relying on the H2 in-memory DB. */
 @Configuration
-public class JwtConfigProviderConfiguration {
-  @Bean(name = "dhisConfigurationProvider")
-  @Primary
+@Profile({"!impersonate-user-test"})
+public class H2DhisConfiguration {
+  @Bean
   public DhisConfigurationProvider dhisConfigurationProvider() {
-    return new H2DhisConfigurationProvider("h2TestConfigWithJWTAuth.conf");
+    return new H2DhisConfigurationProvider();
   }
 }

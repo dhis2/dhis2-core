@@ -27,12 +27,62 @@
  */
 package org.hisp.dhis.config;
 
+import java.util.Map;
+import java.util.Properties;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.utility.DockerImageName;
+
 /**
  * @author Luciano Fiandesio
  */
 public class PostgresDhisConfigurationProvider extends TestDhisConfigurationProvider {
+  private static final String DEFAULT_CONFIGURATION_FILE_NAME = "postgresTestDhis.conf";
 
-  public PostgresDhisConfigurationProvider(String fileName) {
-    this.properties = getPropertiesFromFile(fileName);
+  /**
+   * Refers to the {@code postgis/postgis:13-3.4-alpine} image which contains PostgreSQL 16 and
+   * PostGIS 3.4.2.
+   */
+  private static final String POSTGRES_POSTGIS_VERSION = "13-3.4-alpine";
+
+  private static final DockerImageName POSTGIS_IMAGE_NAME =
+      DockerImageName.parse("postgis/postgis").asCompatibleSubstituteFor("postgres");
+  private static final String POSTGRES_DATABASE_NAME = "dhis";
+  private static final String POSTGRES_USERNAME = "dhis";
+  private static final String POSTGRES_PASSWORD = "dhis";
+  private static final PostgreSQLContainer<?> POSTGRES_CONTAINER;
+
+  static {
+    POSTGRES_CONTAINER =
+        new PostgreSQLContainer<>(POSTGIS_IMAGE_NAME.withTag(POSTGRES_POSTGIS_VERSION))
+            .withDatabaseName(POSTGRES_DATABASE_NAME)
+            .withUsername(POSTGRES_USERNAME)
+            .withPassword(POSTGRES_PASSWORD)
+            .withInitScript("db/extensions.sql")
+            .withTmpFs(Map.of("/testtmpfs", "rw"))
+            .withEnv("LC_COLLATE", "C");
+
+    POSTGRES_CONTAINER.start();
+  }
+
+  public PostgresDhisConfigurationProvider() {
+    Properties dhisConfig = new Properties();
+    dhisConfig.putAll(getPropertiesFromFile(DEFAULT_CONFIGURATION_FILE_NAME));
+    dhisConfig.putAll(getConnectionProperties());
+    this.properties = dhisConfig;
+  }
+
+  /**
+   * Returns the DHIS2 DB connection properties that are only known after the DB container has been
+   * started.
+   */
+  private static Properties getConnectionProperties() {
+    Properties properties = new Properties();
+    properties.setProperty(
+        "connection.dialect", "org.hisp.dhis.hibernate.dialect.DhisPostgresDialect");
+    properties.setProperty("connection.driver_class", POSTGRES_CONTAINER.getDriverClassName());
+    properties.setProperty("connection.url", POSTGRES_CONTAINER.getJdbcUrl());
+    properties.setProperty("connection.username", POSTGRES_USERNAME);
+    properties.setProperty("connection.password", POSTGRES_PASSWORD);
+    return properties;
   }
 }
