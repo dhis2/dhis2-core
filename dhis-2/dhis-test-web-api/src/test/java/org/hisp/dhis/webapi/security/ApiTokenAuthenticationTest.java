@@ -54,7 +54,7 @@ import org.springframework.test.context.ActiveProfiles;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@ActiveProfiles({"test-h2", "cache-test"})
+@ActiveProfiles("cache-test")
 class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest {
   public static final String URI = "/me?fields=settings,id";
 

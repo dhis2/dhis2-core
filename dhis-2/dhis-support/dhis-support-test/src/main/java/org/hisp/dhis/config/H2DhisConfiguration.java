@@ -33,8 +33,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 /** Use this Spring configuration for tests relying on the H2 in-memory DB. */
+@Profile("test-h2")
 @Configuration
-@Profile({"!impersonate-user-test"})
 public class H2DhisConfiguration {
   @Bean
   public DhisConfigurationProvider dhisConfigurationProvider() {
