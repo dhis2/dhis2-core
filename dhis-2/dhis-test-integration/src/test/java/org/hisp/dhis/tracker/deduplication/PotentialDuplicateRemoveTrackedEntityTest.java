@@ -54,7 +54,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegrationTest {
 
-  @Autowired private PotentialDuplicateStore potentialDuplicateStore;
+  @Autowired private HibernatePotentialDuplicateStore potentialDuplicateStore;
 
   @Autowired private TrackedEntityService trackedEntityService;
 
