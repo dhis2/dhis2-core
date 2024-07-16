@@ -43,6 +43,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.Objects;
+import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -252,13 +253,16 @@ public class FileResourceUtils {
     }
   }
 
-  public void validateUserAvatar(MultipartFile file) throws ConflictException {
+  public void validateUserAvatar(@Nonnull MultipartFile file) {
     validateContentType(file.getContentType(), ALLOWED_AVATAR_MIME_TYPES);
     validateFileExtension(file.getOriginalFilename(), ALLOWED_AVATAR_FILE_EXTENSIONS);
     validateFileSize(file, MAX_AVATAR_FILE_SIZE_IN_BYTES);
   }
 
-  private void validateContentType(String contentType, List<String> validExtensions) {
+  private void validateContentType(String contentType, @Nonnull List<String> validExtensions) {
+    if (contentType == null) {
+      throw new IllegalQueryException("Invalid content type, content type is NULL");
+    }
     contentType = contentType.split(";")[0].trim();
     if (!validExtensions.contains(contentType)) {
       throw new IllegalQueryException(
@@ -278,7 +282,7 @@ public class FileResourceUtils {
     }
   }
 
-  private static void validateFileSize(MultipartFile file, long maxFileSizeInBytes) {
+  private static void validateFileSize(@Nonnull MultipartFile file, long maxFileSizeInBytes) {
     if (file.getSize() > maxFileSizeInBytes) {
       throw new IllegalQueryException(
           String.format(
