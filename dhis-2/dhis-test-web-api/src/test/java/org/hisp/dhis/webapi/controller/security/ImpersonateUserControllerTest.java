@@ -29,18 +29,43 @@ package org.hisp.dhis.webapi.controller.security;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.Properties;
+import org.hisp.dhis.config.H2DhisConfigurationProvider;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.ImpersonateUserControllerBaseTest;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonImpersonateUserResponse;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class ImpersonateUserControllerTest extends ImpersonateUserControllerBaseTest {
+@ContextConfiguration(
+    classes = {
+      ImpersonateUserControllerTest.DhisConfiguration.class,
+    })
+@ActiveProfiles("impersonate-user-test")
+class ImpersonateUserControllerTest extends DhisControllerConvenienceTest {
+
+  static class DhisConfiguration {
+    @Bean
+    public DhisConfigurationProvider dhisConfigurationProvider() {
+      H2DhisConfigurationProvider provider = new H2DhisConfigurationProvider();
+
+      Properties properties = new Properties();
+      properties.put(ConfigurationKey.SWITCH_USER_FEATURE_ENABLED.getKey(), "true");
+      provider.addProperties(properties);
+
+      return provider;
+    }
+  }
 
   @Test
   void testImpersonateUserOKAsRoot() {

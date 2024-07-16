@@ -34,43 +34,160 @@ import static org.hisp.dhis.web.WebClientUtils.failOnException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 
+import java.util.Date;
+import lombok.Getter;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.config.H2DhisConfiguration;
+import org.hisp.dhis.config.PostgresDhisConfiguration;
+import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserRole;
+import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.utils.TestUtils;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.utils.DhisMockMvcControllerTest;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.web.context.WebApplicationContext;
 
 /**
- * Base class for all Spring Mock MVC based controller tests.
+ * Main base class for all Spring Mock MVC based controller integration tests. The Spring context is
+ * configured to contain the Spring components to test the DHIS2 web app.
+ *
+ * <p>Concrete test classes can either
+ *
+ * <ul>
+ *   <li>directly extend this class and pick the DB they want to test against via the {@link
+ *       ActiveProfiles}
+ *   <li>or extend one of the base classes for the different test {@link Profile} like {@link
+ *       DhisControllerIntegrationTest} or {@link DhisControllerConvenienceTest}
+ * </ul>
+ *
+ * Refer to {@link ContextConfiguration} and {@link ActiveProfiles} before creating yet another base
+ * class.
  *
  * @author Viet Nguyen
  */
-public class DhisControllerTestBase extends DhisMockMvcControllerTest {
+@ExtendWith(SpringExtension.class)
+@WebAppConfiguration
+@ContextConfiguration(
+    classes = {
+      H2DhisConfiguration.class,
+      PostgresDhisConfiguration.class,
+      MvcTestConfig.class,
+      WebTestConfiguration.class
+    })
+@Transactional
+public abstract class DhisControllerTestBase extends DhisMockMvcControllerTest {
+
+  @Autowired private WebApplicationContext webApplicationContext;
+
+  @Autowired private UserService _userService;
+
+  @Autowired private RenderService _renderService;
+
+  @Autowired protected IdentifiableObjectManager manager;
+
+  @Autowired protected DbmsManager dbmsManager;
+
+  @Autowired private TransactionTemplate txTemplate;
+
+  @Getter private User adminUser;
+
+  @Getter protected User superUser;
+
+  @Getter protected User currentUser;
+
   protected MockMvc mvc;
 
   protected MockHttpSession session;
-
-  protected User superUser;
-
-  protected User currentUser;
 
   protected final String getSuperuserUid() {
     return superUser.getUid();
   }
 
-  public final User getCurrentUser() {
-    return currentUser;
+  @BeforeEach
+  final void setup() {
+    userService = _userService;
+    renderService = _renderService;
+    clearSecurityContext();
+
+    this.adminUser = _preCreateInjectAdminUserWithoutPersistence();
+    manager.persist(adminUser);
+    _injectSecurityContextUser(adminUser);
+
+    superUser = createAndAddAdminUser("ALL");
+
+    mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+
+    switchContextToUser(superUser);
+    currentUser = superUser;
+
+    TestUtils.executeStartupRoutines(webApplicationContext);
+
+    dbmsManager.flushSession();
+    dbmsManager.clearSession();
   }
 
-  public User getSuperUser() {
-    return superUser;
+  private void _injectSecurityContextUser(User user) {
+    if (user == null) {
+      clearSecurityContext();
+      return;
+    }
+    hibernateService.flushSession();
+    User user1 = manager.find(User.class, user.getId());
+    injectSecurityContext(UserDetails.fromUser(user1));
+  }
+
+  private User _preCreateInjectAdminUserWithoutPersistence() {
+    UserRole role = createUserRole("Superuser_Test_" + CodeGenerator.generateUid(), "ALL");
+    role.setUid(CodeGenerator.generateUid());
+    manager.persist(role);
+    User user = new User();
+    String uid = CodeGenerator.generateUid();
+    user.setUid(uid);
+    user.setFirstName("Firstname_" + uid);
+    user.setSurname("Surname_" + uid);
+    user.setUsername(DEFAULT_USERNAME + "_test_" + CodeGenerator.generateUid());
+    user.setPassword(DEFAULT_ADMIN_PASSWORD);
+    user.getUserRoles().add(role);
+    user.setLastUpdated(new Date());
+    user.setCreated(new Date());
+    return user;
+  }
+
+  protected final void doInTransaction(Runnable operation) {
+    final int defaultPropagationBehaviour = txTemplate.getPropagationBehavior();
+    txTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+    txTemplate.execute(
+        status -> {
+          operation.run();
+          return null;
+        });
+    // restore original propagation behaviour
+    txTemplate.setPropagationBehavior(defaultPropagationBehaviour);
   }
 
   protected final User switchToSuperuser() {
