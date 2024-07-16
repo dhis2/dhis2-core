@@ -31,8 +31,9 @@ import java.util.Date;
 import org.hisp.dhis.IntegrationH2Test;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.config.AppControllerTestConfigProvider;
+import org.hisp.dhis.config.TestDhisConfigurationProvider;
 import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -42,6 +43,7 @@ import org.hisp.dhis.utils.TestUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -60,7 +62,7 @@ import org.springframework.web.context.WebApplicationContext;
 @WebAppConfiguration
 @ContextConfiguration(
     classes = {
-      AppControllerTestConfigProvider.class,
+      AppControllerBaseTest.DhisConfiguration.class,
       MvcTestConfig.class,
       WebTestConfiguration.class
     })
@@ -68,6 +70,14 @@ import org.springframework.web.context.WebApplicationContext;
 @IntegrationH2Test
 @Transactional
 public abstract class AppControllerBaseTest extends DhisControllerTestBase {
+
+  static class DhisConfiguration {
+    @Bean
+    public DhisConfigurationProvider dhisConfigurationProvider() {
+      return new TestDhisConfigurationProvider("appControllerBaseTestDhis.conf");
+    }
+  }
+
   @Autowired private WebApplicationContext webApplicationContext;
 
   @Autowired private UserService _userService;

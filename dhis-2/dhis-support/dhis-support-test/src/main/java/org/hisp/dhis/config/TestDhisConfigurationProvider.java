@@ -47,9 +47,19 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
 
 @Slf4j
-public abstract class TestConfigurationProvider implements DhisConfigurationProvider {
+public class TestDhisConfigurationProvider implements DhisConfigurationProvider {
 
   protected Properties properties;
+
+  public TestDhisConfigurationProvider() {}
+
+  public TestDhisConfigurationProvider(Properties properties) {
+    this.properties = properties;
+  }
+
+  public TestDhisConfigurationProvider(String filename) {
+    this.properties = getPropertiesFromFile(filename);
+  }
 
   @Override
   public Properties getProperties() {

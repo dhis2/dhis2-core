@@ -25,31 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.security;
+package org.hisp.dhis.config;
 
-import java.util.Properties;
-import org.hisp.dhis.config.H2DhisConfigurationProvider;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.ldap.authentication.LdapAuthenticator;
+import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Configuration
-@Profile({"app-controller-test"})
-public class AppControllerTestConfiguration {
+@ComponentScan("org.hisp.dhis")
+public class IntegrationBaseConfiguration {
+  @Bean
+  public static SessionRegistry sessionRegistry() {
+    return new SessionRegistryImpl();
+  }
 
-  @Bean(name = "dhisConfigurationProvider")
-  public DhisConfigurationProvider dhisConfigurationProvider() {
-    H2DhisConfigurationProvider provider = new H2DhisConfigurationProvider();
+  @Bean
+  public LdapAuthenticator ldapAuthenticator() {
+    return authentication -> null;
+  }
 
-    Properties properties = new Properties();
-    properties.put(ConfigurationKey.FILESTORE_PROVIDER.getKey(), "filesystem");
-    provider.addProperties(properties);
+  @Bean
+  public LdapAuthoritiesPopulator ldapAuthoritiesPopulator() {
+    return (dirContextOperations, s) -> null;
+  }
 
-    return provider;
+  @Bean
+  public PasswordEncoder encoder() {
+    return new BCryptPasswordEncoder();
   }
 }

@@ -27,12 +27,17 @@
  */
 package org.hisp.dhis.config;
 
-/**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
- */
-public class AppControllerConfigurationProvider extends TestConfigurationProvider {
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
-  public AppControllerConfigurationProvider(String configurationFileName) {
-    this.properties = getPropertiesFromFile(configurationFileName);
+/** Use this Spring configuration for tests relying on the H2 in-memory DB. */
+@Configuration
+@Profile({"!impersonate-user-test"})
+public class H2DhisConfiguration {
+  @Bean
+  public DhisConfigurationProvider dhisConfigurationProvider() {
+    return new H2DhisConfigurationProvider();
   }
 }

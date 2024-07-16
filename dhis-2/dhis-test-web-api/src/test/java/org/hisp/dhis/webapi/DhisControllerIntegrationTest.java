@@ -33,7 +33,7 @@ import java.util.function.BooleanSupplier;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.config.TestContainerPostgresConfig;
+import org.hisp.dhis.config.PostgresDhisConfiguration;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.user.User;
@@ -63,7 +63,7 @@ import org.springframework.web.context.WebApplicationContext;
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
 @ContextConfiguration(
-    classes = {TestContainerPostgresConfig.class, MvcTestConfig.class, WebTestConfiguration.class})
+    classes = {PostgresDhisConfiguration.class, MvcTestConfig.class, WebTestConfiguration.class})
 @ActiveProfiles(profiles = {"test-postgres"})
 @IntegrationTest
 @Transactional
