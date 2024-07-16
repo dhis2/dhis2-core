@@ -145,10 +145,7 @@ public class ProgramRuleAction extends BaseIdentifiableObject implements Metadat
    * <ul>
    *   <li>sendmessage
    * </ul>
-   *
-   * @deprecated use {@link #notificationTemplate} instead
    */
-  @Deprecated(since = "2.43")
   private String templateUid;
 
   /**
