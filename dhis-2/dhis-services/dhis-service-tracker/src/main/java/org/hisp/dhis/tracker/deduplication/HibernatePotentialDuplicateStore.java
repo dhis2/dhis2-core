@@ -71,11 +71,12 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
-@Repository("org.hisp.dhis.tracker.deduplication.domain.deduplication.PotentialDuplicateStore")
-class HibernatePotentialDuplicateStore extends HibernateIdentifiableObjectStore<PotentialDuplicate>
-    implements PotentialDuplicateStore {
+@Component(
+    "org.hisp.dhis.tracker.deduplication.domain.deduplication.HibernatePotentialDuplicateStore")
+class HibernatePotentialDuplicateStore
+    extends HibernateIdentifiableObjectStore<PotentialDuplicate> {
   private final AuditManager auditManager;
 
   private final TrackedEntityStore trackedEntityStore;
@@ -100,7 +101,6 @@ class HibernatePotentialDuplicateStore extends HibernateIdentifiableObjectStore<
     this.config = config;
   }
 
-  @Override
   public int getCountPotentialDuplicates(PotentialDuplicateCriteria query) {
     CriteriaBuilder cb = getCriteriaBuilder();
 
@@ -116,7 +116,6 @@ class HibernatePotentialDuplicateStore extends HibernateIdentifiableObjectStore<
     return relationshipTypedQuery.getSingleResult().intValue();
   }
 
-  @Override
   public List<PotentialDuplicate> getPotentialDuplicates(PotentialDuplicateCriteria criteria) {
     CriteriaBuilder cb = getCriteriaBuilder();
 
@@ -170,7 +169,6 @@ class HibernatePotentialDuplicateStore extends HibernateIdentifiableObjectStore<
         : Collections.singletonList(status);
   }
 
-  @Override
   @SuppressWarnings("unchecked")
   public boolean exists(PotentialDuplicate potentialDuplicate)
       throws PotentialDuplicateConflictException {
@@ -190,7 +188,6 @@ class HibernatePotentialDuplicateStore extends HibernateIdentifiableObjectStore<
     return query.getSingleResult().intValue() != 0;
   }
 
-  @Override
   public void moveTrackedEntityAttributeValues(
       TrackedEntity original, TrackedEntity duplicate, List<String> trackedEntityAttributes) {
     // Collect existing teav from original for the tea list
@@ -257,7 +254,6 @@ class HibernatePotentialDuplicateStore extends HibernateIdentifiableObjectStore<
     }
   }
 
-  @Override
   public void moveRelationships(
       TrackedEntity original, TrackedEntity duplicate, List<String> relationships) {
     duplicate.getRelationshipItems().stream()
@@ -270,7 +266,6 @@ class HibernatePotentialDuplicateStore extends HibernateIdentifiableObjectStore<
             });
   }
 
-  @Override
   public void moveEnrollments(
       TrackedEntity original, TrackedEntity duplicate, List<String> enrollments) {
     List<Enrollment> enrollmentList =
@@ -302,12 +297,10 @@ class HibernatePotentialDuplicateStore extends HibernateIdentifiableObjectStore<
     getSession().flush();
   }
 
-  @Override
   public void removeTrackedEntity(TrackedEntity trackedEntity) {
     trackedEntityStore.delete(trackedEntity);
   }
 
-  @Override
   public void auditMerge(DeduplicationMergeParams params) {
     TrackedEntity duplicate = params.getDuplicate();
     MergeObject mergeObject = params.getMergeObject();

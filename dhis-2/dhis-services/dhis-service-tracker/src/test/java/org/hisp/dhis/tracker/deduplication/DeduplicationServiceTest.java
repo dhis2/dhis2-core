@@ -72,7 +72,7 @@ class DeduplicationServiceTest {
 
   @Mock private DeduplicationHelper deduplicationHelper;
 
-  @Mock private PotentialDuplicateStore potentialDuplicateStore;
+  @Mock private HibernatePotentialDuplicateStore potentialDuplicateStore;
 
   private DeduplicationMergeParams deduplicationMergeParams;
 
