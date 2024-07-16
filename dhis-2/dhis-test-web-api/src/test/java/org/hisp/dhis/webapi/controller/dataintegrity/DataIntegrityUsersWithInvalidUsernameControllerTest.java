@@ -55,19 +55,16 @@ class DataIntegrityUsersWithInvalidUsernameControllerTest
   @Test
   void testCanFlagUsersWithInvalidUsername() {
 
-    // Use the service layer, as the API will refuse to create a user with an invalid username.
-    // Usernames should not start or end with _
-    // Should not start with an underscore
-    User userA = createUser("_bobby_tables_");
-    // Non-ASCII characters are not allowed
-    User userB = createUser("måns_tables");
-    // At least four characters
-    User userC = createUser("foo");
-    // No consecutive underscores
-    User userD = createUser("foo__bar");
-    // Should not end with an underscore
-    User userE = createUser("foo_");
-
+    Set<String> badUsers =
+        Set.of(
+            "_bobby_tables_", // Leading and trailing underscores
+            "måns_tables", // Non-ASCII character
+            "foo", // Too short
+            "foo__bar", // Double underscore
+            "foo_" // Trailing underscore
+            );
+    // Create all of the users
+    badUsers.forEach(this::createUser);
     dbmsManager.clearSession();
 
     // Note that there are already two users which exist due to the overall test setup,
@@ -81,21 +78,15 @@ class DataIntegrityUsersWithInvalidUsernameControllerTest
         issues.stream()
             .map(JsonDataIntegrityDetails.JsonDataIntegrityIssue::getName)
             .collect(Collectors.toUnmodifiableSet());
-    Set<String> bad_usernames =
-        Set.of(
-            userA.getUsername(),
-            userB.getUsername(),
-            userC.getUsername(),
-            userD.getUsername(),
-            userE.getUsername());
-    assertEquals(bad_usernames, badUsernames);
+
+    assertEquals(badUsers, badUsernames);
     assertEquals(DETAILS_ID_TYPE, details.getIssuesIdType());
     assertEquals(CHECK_NAME, details.getName());
 
     // There are already two existing users as part of the test setup
     JsonDataIntegritySummary summary = getSummary(CHECK_NAME);
     assertEquals(71, summary.getPercentage().intValue());
-    assertEquals(bad_usernames.size(), summary.getCount());
+    assertEquals(badUsernames.size(), summary.getCount());
   }
 
   @Test
