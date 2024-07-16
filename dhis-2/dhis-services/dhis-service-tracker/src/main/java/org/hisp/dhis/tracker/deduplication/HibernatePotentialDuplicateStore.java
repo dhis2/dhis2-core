@@ -76,7 +76,7 @@ import org.springframework.stereotype.Component;
 // This class is annotated with @Component instead of @Repository because @Repository creates a
 // proxy that can't be used to inject the class.
 @Component(
-    "org.hisp.dhis.tracker.deduplication.domain.deduplication.HibernatePotentialDuplicateStore")
+    "org.hisp.dhis.tracker.deduplication.HibernatePotentialDuplicateStore")
 class HibernatePotentialDuplicateStore
     extends HibernateIdentifiableObjectStore<PotentialDuplicate> {
   private final AuditManager auditManager;
