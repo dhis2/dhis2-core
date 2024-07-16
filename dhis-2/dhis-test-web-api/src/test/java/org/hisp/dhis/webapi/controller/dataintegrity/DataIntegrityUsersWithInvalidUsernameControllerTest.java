@@ -95,7 +95,7 @@ class DataIntegrityUsersWithInvalidUsernameControllerTest
     assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, CHECK_NAME, true);
   }
 
-  private User createUser(String username) {
+  private void createUser(String username) {
     User user = new User();
     user.setUid(CodeGenerator.generateUid());
     user.setFirstName("Bobby");
@@ -105,6 +105,5 @@ class DataIntegrityUsersWithInvalidUsernameControllerTest
     user.setLastUpdated(new Date());
     user.setCreated(new Date());
     manager.persist(user);
-    return user;
   }
 }
