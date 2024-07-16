@@ -47,7 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("org.hisp.dhis.tracker.deduplication.domain.deduplication.DeduplicationService")
 @RequiredArgsConstructor
 public class DefaultDeduplicationService implements DeduplicationService {
-  private final PotentialDuplicateStore potentialDuplicateStore;
+  private final HibernatePotentialDuplicateStore potentialDuplicateStore;
 
   private final TrackerObjectDeletionService trackerObjectDeletionService;
 

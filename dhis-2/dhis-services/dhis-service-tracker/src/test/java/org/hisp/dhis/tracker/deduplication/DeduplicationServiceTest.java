@@ -77,7 +77,7 @@ class DeduplicationServiceTest {
 
   @Mock private TrackerObjectDeletionService trackerObjectDeletionService;
 
-  @Mock private PotentialDuplicateStore potentialDuplicateStore;
+  @Mock private HibernatePotentialDuplicateStore potentialDuplicateStore;
 
   private DeduplicationMergeParams deduplicationMergeParams;
 

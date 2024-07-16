@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,15 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cache;
+package org.hisp.dhis.config;
 
-import org.hisp.dhis.config.TestContainerPostgresConfig;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Use this Spring configuration for tests relying on the Postgres DB running in a Docker container.
+ *
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ */
 @Configuration
-public class HibernateCacheTestConfig extends TestContainerPostgresConfig {
-  @Override
-  protected String getConfigurationFile() {
-    return "hibernateCacheTest.conf";
+public class PostgresDhisConfiguration {
+  @Bean
+  public DhisConfigurationProvider dhisConfigurationProvider() {
+    return new PostgresDhisConfigurationProvider();
   }
 }

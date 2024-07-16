@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,31 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.security;
+package org.hisp.dhis.webapi.controller.dataintegrity;
 
-import java.util.Properties;
-import org.hisp.dhis.config.H2DhisConfigurationProvider;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-@Configuration
-@Profile({"app-controller-test"})
-public class AppControllerTestConfiguration {
+import org.hisp.dhis.web.HttpStatus;
+import org.junit.jupiter.api.Test;
 
-  @Bean(name = "dhisConfigurationProvider")
-  public DhisConfigurationProvider dhisConfigurationProvider() {
-    H2DhisConfigurationProvider provider = new H2DhisConfigurationProvider();
+class DataIntegrityPushAnalysisNoRecipientsControllerTest
+    extends AbstractDataIntegrityIntegrationTest {
+  private static final String CHECK = "push_analysis_no_recipients";
 
-    Properties properties = new Properties();
-    properties.put(ConfigurationKey.FILESTORE_PROVIDER.getKey(), "filesystem");
-    provider.addProperties(properties);
+  private static final String DETAILS_ID_TYPE = "pushAnalysis";
 
-    return provider;
+  @Test
+  void testPushAnalysisNoRecipients() {
+
+    String testDashboard =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/dashboards", "{ 'name': 'Test Dashboard', 'description': 'Test Dashboard' }"));
+
+    String testPushAnalysis =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/pushAnalysis",
+                "{ 'name':'Foo', 'dashboard':{'id': '"
+                    + testDashboard
+                    + "'}, 'pushAnalysisItems':[] }"));
+
+    assertHasDataIntegrityIssues(DETAILS_ID_TYPE, CHECK, 100, testPushAnalysis, "Foo", null, true);
   }
 }

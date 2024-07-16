@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.deduplication.hibernate;
+package org.hisp.dhis.tracker.deduplication;
 
 import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
 import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
@@ -67,23 +67,17 @@ import org.hisp.dhis.trackedentity.TrackedEntityStore;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLog;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogStore;
-import org.hisp.dhis.tracker.deduplication.DeduplicationMergeParams;
-import org.hisp.dhis.tracker.deduplication.DeduplicationStatus;
-import org.hisp.dhis.tracker.deduplication.MergeObject;
-import org.hisp.dhis.tracker.deduplication.PotentialDuplicate;
-import org.hisp.dhis.tracker.deduplication.PotentialDuplicateConflictException;
-import org.hisp.dhis.tracker.deduplication.PotentialDuplicateCriteria;
-import org.hisp.dhis.tracker.deduplication.PotentialDuplicateStore;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
-@Repository("org.hisp.dhis.tracker.deduplication.domain.deduplication.PotentialDuplicateStore")
-public class HibernatePotentialDuplicateStore
-    extends HibernateIdentifiableObjectStore<PotentialDuplicate>
-    implements PotentialDuplicateStore {
+// This class is annotated with @Component instead of @Repository because @Repository creates a
+// proxy that can't be used to inject the class.
+@Component("org.hisp.dhis.tracker.deduplication.HibernatePotentialDuplicateStore")
+class HibernatePotentialDuplicateStore
+    extends HibernateIdentifiableObjectStore<PotentialDuplicate> {
   private final AuditManager auditManager;
 
   private final TrackedEntityStore trackedEntityStore;
@@ -108,7 +102,6 @@ public class HibernatePotentialDuplicateStore
     this.config = config;
   }
 
-  @Override
   public int getCountPotentialDuplicates(PotentialDuplicateCriteria query) {
     CriteriaBuilder cb = getCriteriaBuilder();
 
@@ -124,7 +117,6 @@ public class HibernatePotentialDuplicateStore
     return relationshipTypedQuery.getSingleResult().intValue();
   }
 
-  @Override
   public List<PotentialDuplicate> getPotentialDuplicates(PotentialDuplicateCriteria criteria) {
     CriteriaBuilder cb = getCriteriaBuilder();
 
@@ -178,7 +170,6 @@ public class HibernatePotentialDuplicateStore
         : Collections.singletonList(status);
   }
 
-  @Override
   @SuppressWarnings("unchecked")
   public boolean exists(PotentialDuplicate potentialDuplicate)
       throws PotentialDuplicateConflictException {
@@ -198,7 +189,6 @@ public class HibernatePotentialDuplicateStore
     return query.getSingleResult().intValue() != 0;
   }
 
-  @Override
   public void moveTrackedEntityAttributeValues(
       TrackedEntity original, TrackedEntity duplicate, List<String> trackedEntityAttributes) {
     // Collect existing teav from original for the tea list
@@ -265,7 +255,6 @@ public class HibernatePotentialDuplicateStore
     }
   }
 
-  @Override
   public void moveRelationships(
       TrackedEntity original, TrackedEntity duplicate, List<String> relationships) {
     duplicate.getRelationshipItems().stream()
@@ -278,7 +267,6 @@ public class HibernatePotentialDuplicateStore
             });
   }
 
-  @Override
   public void moveEnrollments(
       TrackedEntity original, TrackedEntity duplicate, List<String> enrollments) {
     List<Enrollment> enrollmentList =
@@ -310,7 +298,6 @@ public class HibernatePotentialDuplicateStore
     getSession().flush();
   }
 
-  @Override
   public void auditMerge(DeduplicationMergeParams params) {
     TrackedEntity duplicate = params.getDuplicate();
     MergeObject mergeObject = params.getMergeObject();

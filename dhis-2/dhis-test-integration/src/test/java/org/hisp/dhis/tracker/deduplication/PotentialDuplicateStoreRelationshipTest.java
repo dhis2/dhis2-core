@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.deduplication.hibernate;
+package org.hisp.dhis.tracker.deduplication;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -41,7 +41,6 @@ import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
-import org.hisp.dhis.tracker.deduplication.PotentialDuplicateStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -51,7 +50,7 @@ import org.springframework.beans.factory.annotation.Autowired;
     "moveRelationships method do not really belong to a store now. We should a better place for it")
 class PotentialDuplicateStoreRelationshipTest extends IntegrationTestBase {
 
-  @Autowired private PotentialDuplicateStore potentialDuplicateStore;
+  @Autowired private HibernatePotentialDuplicateStore potentialDuplicateStore;
 
   @Autowired private TrackedEntityService trackedEntityService;
 

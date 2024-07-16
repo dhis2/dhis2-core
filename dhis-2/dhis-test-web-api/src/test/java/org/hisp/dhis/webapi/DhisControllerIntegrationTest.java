@@ -30,14 +30,11 @@ package org.hisp.dhis.webapi;
 import java.time.Duration;
 import java.util.Date;
 import java.util.function.BooleanSupplier;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.core.config.Configurator;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.config.TestContainerPostgresConfig;
+import org.hisp.dhis.config.PostgresDhisConfiguration;
 import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -66,13 +63,11 @@ import org.springframework.web.context.WebApplicationContext;
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
 @ContextConfiguration(
-    classes = {TestContainerPostgresConfig.class, MvcTestConfig.class, WebTestConfiguration.class})
+    classes = {PostgresDhisConfiguration.class, MvcTestConfig.class, WebTestConfiguration.class})
 @ActiveProfiles(profiles = {"test-postgres"})
 @IntegrationTest
 @Transactional
 public class DhisControllerIntegrationTest extends DhisControllerTestBase {
-  public static final String ORG_HISP_DHIS_DATASOURCE_QUERY = "org.hisp.dhis.datasource.query";
-
   @Autowired private WebApplicationContext webApplicationContext;
 
   @Autowired private UserService _userService;
@@ -101,8 +96,6 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
     currentUser = superUser;
 
     TestUtils.executeStartupRoutines(webApplicationContext);
-
-    integrationTestBefore();
 
     dbmsManager.flushSession();
     dbmsManager.clearSession();
@@ -143,17 +136,6 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
     lookUpInjectUserSecurityContext(user);
 
     return user;
-  }
-
-  protected void integrationTestBefore() {
-    boolean enableQueryLogging =
-        dhisConfigurationProvider.isEnabled(ConfigurationKey.ENABLE_QUERY_LOGGING);
-    // Enable to query logger to log only what's happening inside the test
-    // method
-    if (enableQueryLogging) {
-      Configurator.setLevel(ORG_HISP_DHIS_DATASOURCE_QUERY, Level.INFO);
-      Configurator.setRootLevel(Level.INFO);
-    }
   }
 
   protected static boolean await(Duration timeout, BooleanSupplier test)

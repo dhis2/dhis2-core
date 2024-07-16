@@ -40,6 +40,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import org.apache.commons.lang3.time.DateUtils;
 import org.hibernate.query.Query;
+import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
@@ -108,19 +109,6 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
             .addPredicate(root -> builder.equal(root.get("trackedEntity"), trackedEntity))
             .addPredicate(root -> builder.equal(root.get("program"), program))
             .addPredicate(root -> builder.equal(root.get(STATUS), status)));
-  }
-
-  @Override
-  public boolean existsIncludingDeleted(String uid) {
-    if (uid == null) {
-      return false;
-    }
-
-    Query<?> query =
-        nativeSynchronizedQuery("select exists(select 1 from enrollment where uid=:uid)");
-    query.setParameter("uid", uid);
-
-    return ((Boolean) query.getSingleResult()).booleanValue();
   }
 
   @Override

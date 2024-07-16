@@ -33,6 +33,8 @@ import javax.persistence.EntityManager;
 import javax.sql.DataSource;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.IntegrationH2Test;
+import org.hisp.dhis.config.TestDhisConfigurationProvider;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.h2.H2SqlFunction;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -42,6 +44,7 @@ import org.hisp.dhis.webapi.utils.DhisMockMvcControllerTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -61,11 +64,19 @@ import org.springframework.web.context.WebApplicationContext;
  */
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = {JwtConfigProviderConfiguration.class, WebMvcConfig.class})
+@ContextConfiguration(
+    classes = {DhisControllerWithJwtTokenAuthTest.DhisConfiguration.class, WebMvcConfig.class})
 @ActiveProfiles("test-h2")
 @IntegrationH2Test
 @Transactional
 public abstract class DhisControllerWithJwtTokenAuthTest extends DhisMockMvcControllerTest {
+
+  static class DhisConfiguration {
+    @Bean
+    public DhisConfigurationProvider dhisConfigurationProvider() {
+      return new TestDhisConfigurationProvider("dhisControllerWithJwtTokenAuthTestDhis.conf");
+    }
+  }
 
   @Autowired private WebApplicationContext webApplicationContext;
 

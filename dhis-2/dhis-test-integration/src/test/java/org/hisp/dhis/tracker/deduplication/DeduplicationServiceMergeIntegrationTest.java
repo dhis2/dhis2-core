@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.deduplication;
+package org.hisp.dhis.tracker.deduplication;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -48,12 +48,6 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.tracker.deduplication.DeduplicationMergeParams;
-import org.hisp.dhis.tracker.deduplication.DeduplicationService;
-import org.hisp.dhis.tracker.deduplication.DeduplicationStatus;
-import org.hisp.dhis.tracker.deduplication.PotentialDuplicate;
-import org.hisp.dhis.tracker.deduplication.PotentialDuplicateConflictException;
-import org.hisp.dhis.tracker.deduplication.PotentialDuplicateForbiddenException;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.system;
 
-import org.hisp.dhis.config.ConfigProviderConfiguration;
+import org.hisp.dhis.config.H2DhisConfiguration;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.leader.election.NoOpLeaderManager;
@@ -36,7 +36,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Import(ConfigProviderConfiguration.class)
+@Import(H2DhisConfiguration.class)
 public class SystemTestConfig {
   @Bean
   public LeaderManager leaderManager(DhisConfigurationProvider dhisConfigurationProvider) {
