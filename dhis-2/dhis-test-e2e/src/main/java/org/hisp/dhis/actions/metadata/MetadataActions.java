@@ -30,6 +30,7 @@ package org.hisp.dhis.actions.metadata;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import java.io.File;
 import org.hisp.dhis.actions.RestApiActions;
@@ -38,6 +39,13 @@ import org.hisp.dhis.dto.MetadataApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 
 /**
+ * An important point to note about this class in relation to test data clean-up is that the
+ * implemented methods in this class use the query param `importReportMode=FULL`. This param is
+ * paramount if the metadata created needs to be deleted after a test completes. By passing this
+ * param, `objectReports` are returned in the response, which contain UIDs which allow the test
+ * framework to track what has been created, which then allows deletion of said objects after each
+ * test. See {@link RestApiActions#saveCreatedObjects(ApiResponse)} for more info.
+ *
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class MetadataActions extends RestApiActions {
@@ -64,6 +72,12 @@ public class MetadataActions extends RestApiActions {
     ApiResponse response = post(object, queryParamsBuilder);
     response.validate().statusCode(200);
 
+    return new MetadataApiResponse(response);
+  }
+
+  public MetadataApiResponse importMetadata(String metadata) {
+    JsonObject json = new Gson().fromJson(metadata, JsonObject.class);
+    ApiResponse response = importMetadata(json);
     return new MetadataApiResponse(response);
   }
 
