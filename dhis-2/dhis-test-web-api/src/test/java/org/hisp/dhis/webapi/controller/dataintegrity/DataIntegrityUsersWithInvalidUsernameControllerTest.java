@@ -57,13 +57,13 @@ class DataIntegrityUsersWithInvalidUsernameControllerTest
 
     Set<String> badUsers =
         Set.of(
-            "_bobby_tables_", // Leading and trailing underscores
-            "måns_tables", // Non-ASCII character
+            "_bobby", // Leading and trailing underscores
+            "måns", // Non-ASCII character
             "foo", // Too short
             "foo__bar", // Double underscore
             "foo_" // Trailing underscore
             );
-    // Create all of the users
+
     badUsers.forEach(this::createUser);
     dbmsManager.clearSession();
 
