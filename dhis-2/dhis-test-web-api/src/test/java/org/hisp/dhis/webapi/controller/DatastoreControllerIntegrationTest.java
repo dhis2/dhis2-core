@@ -46,6 +46,7 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.hisp.dhis.webapi.json.domain.JsonDatastoreValue;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -66,8 +67,8 @@ class DatastoreControllerIntegrationTest extends DhisControllerIntegrationTest {
    */
   @Autowired private DatastoreService service;
 
-  @Override
-  protected void beforeEach() {
+  @BeforeEach
+  void setUp() {
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     currentUserDetails.setId(0L);
     clearSecurityContext();

@@ -69,11 +69,12 @@ public abstract class DhisControllerConvenienceTest extends DhisControllerTestBa
   @Autowired private WebApplicationContext webApplicationContext;
 
   @Autowired private UserService _userService;
-  @Autowired private RenderService _renderService;
 
   @Autowired protected IdentifiableObjectManager manager;
 
   @Autowired protected DbmsManager dbmsManager;
+
+  @Autowired private RenderService _renderService;
 
   private User adminUser;
 

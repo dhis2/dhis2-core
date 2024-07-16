@@ -27,15 +27,13 @@
  */
 package org.hisp.dhis.webapi;
 
-import java.time.Duration;
 import java.util.Date;
-import java.util.function.BooleanSupplier;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.config.PostgresDhisConfiguration;
 import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
@@ -64,7 +62,7 @@ import org.springframework.web.context.WebApplicationContext;
 @WebAppConfiguration
 @ContextConfiguration(
     classes = {PostgresDhisConfiguration.class, MvcTestConfig.class, WebTestConfiguration.class})
-@ActiveProfiles(profiles = {"test-postgres"})
+@ActiveProfiles("test-postgres")
 @IntegrationTest
 @Transactional
 public class DhisControllerIntegrationTest extends DhisControllerTestBase {
@@ -76,14 +74,14 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
 
   @Autowired protected DbmsManager dbmsManager;
 
-  @Autowired protected DhisConfigurationProvider dhisConfigurationProvider;
+  @Autowired private RenderService _renderService;
 
   @Autowired private TransactionTemplate txTemplate;
 
   @BeforeEach
   final void setup() {
     userService = _userService;
-
+    renderService = _renderService;
     clearSecurityContext();
 
     createAndPersistAdminUserAndRole();
@@ -99,11 +97,7 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
 
     dbmsManager.flushSession();
     dbmsManager.clearSession();
-
-    beforeEach();
   }
-
-  protected void beforeEach() {}
 
   protected void lookUpInjectUserSecurityContext(User user) {
     if (user == null) {
@@ -136,16 +130,6 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
     lookUpInjectUserSecurityContext(user);
 
     return user;
-  }
-
-  protected static boolean await(Duration timeout, BooleanSupplier test)
-      throws InterruptedException {
-    while (!timeout.isNegative() && !test.getAsBoolean()) {
-      Thread.sleep(20);
-      timeout = timeout.minusMillis(20);
-    }
-    if (!timeout.isNegative()) return true;
-    return test.getAsBoolean();
   }
 
   protected final void doInTransaction(Runnable operation) {
