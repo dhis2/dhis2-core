@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.deduplication;
+package org.hisp.dhis.webapi.controller.tracker.deduplication;
 
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
@@ -37,15 +37,6 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.deduplication.DeduplicationMergeParams;
-import org.hisp.dhis.deduplication.DeduplicationService;
-import org.hisp.dhis.deduplication.DeduplicationStatus;
-import org.hisp.dhis.deduplication.MergeObject;
-import org.hisp.dhis.deduplication.MergeStrategy;
-import org.hisp.dhis.deduplication.PotentialDuplicate;
-import org.hisp.dhis.deduplication.PotentialDuplicateConflictException;
-import org.hisp.dhis.deduplication.PotentialDuplicateCriteria;
-import org.hisp.dhis.deduplication.PotentialDuplicateForbiddenException;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -55,6 +46,15 @@ import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.tracker.deduplication.DeduplicationMergeParams;
+import org.hisp.dhis.tracker.deduplication.DeduplicationService;
+import org.hisp.dhis.tracker.deduplication.DeduplicationStatus;
+import org.hisp.dhis.tracker.deduplication.MergeObject;
+import org.hisp.dhis.tracker.deduplication.MergeStrategy;
+import org.hisp.dhis.tracker.deduplication.PotentialDuplicate;
+import org.hisp.dhis.tracker.deduplication.PotentialDuplicateConflictException;
+import org.hisp.dhis.tracker.deduplication.PotentialDuplicateCriteria;
+import org.hisp.dhis.tracker.deduplication.PotentialDuplicateForbiddenException;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;

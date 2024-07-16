@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.deduplication.hibernate;
+package org.hisp.dhis.tracker.deduplication;
 
 import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
 import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
@@ -55,13 +55,6 @@ import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.deduplication.DeduplicationMergeParams;
-import org.hisp.dhis.deduplication.DeduplicationStatus;
-import org.hisp.dhis.deduplication.MergeObject;
-import org.hisp.dhis.deduplication.PotentialDuplicate;
-import org.hisp.dhis.deduplication.PotentialDuplicateConflictException;
-import org.hisp.dhis.deduplication.PotentialDuplicateCriteria;
-import org.hisp.dhis.deduplication.PotentialDuplicateStore;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.program.Enrollment;
@@ -80,9 +73,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-@Repository("org.hisp.dhis.deduplication.PotentialDuplicateStore")
-public class HibernatePotentialDuplicateStore
-    extends HibernateIdentifiableObjectStore<PotentialDuplicate>
+@Repository("org.hisp.dhis.tracker.deduplication.domain.deduplication.PotentialDuplicateStore")
+class HibernatePotentialDuplicateStore extends HibernateIdentifiableObjectStore<PotentialDuplicate>
     implements PotentialDuplicateStore {
   private final AuditManager auditManager;
 

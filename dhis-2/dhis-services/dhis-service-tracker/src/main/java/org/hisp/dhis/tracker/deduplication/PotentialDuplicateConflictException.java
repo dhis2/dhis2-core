@@ -25,14 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.deduplication;
+package org.hisp.dhis.tracker.deduplication;
 
-import lombok.Getter;
-
-@Getter
-public enum DeduplicationStatus {
-  ALL,
-  OPEN,
-  INVALID,
-  MERGED
+/**
+ * @author Luca Cambi <luca@dhis2.org>
+ */
+public class PotentialDuplicateConflictException extends Exception {
+  public PotentialDuplicateConflictException(String message) {
+    super(message);
+  }
 }
