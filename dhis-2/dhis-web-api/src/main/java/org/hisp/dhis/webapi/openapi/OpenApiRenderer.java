@@ -155,7 +155,7 @@ public class OpenApiRenderer {
         width: 250px;
         text-align: left;
         display: inline-block;
-        padding: 1rem;
+        padding-right: 1rem;
         box-sizing: border-box;
   }
   body > section { margin-left: 250px; padding-top: 65px; padding-bottom: 1em; position: relative; }
@@ -165,6 +165,15 @@ public class OpenApiRenderer {
 
   body > section details {
     margin-left: 2rem;
+  }
+  body > nav details {
+    padding: 0.5rem 0 0 1rem;
+  }
+  body > nav > details > summary {
+      background-color: #147cd7;
+      color: snow;
+      margin-left: -1rem;
+      padding-left: 1rem;
   }
   body > section details > summary:before {
       content: '⊕';
@@ -508,12 +517,12 @@ public class OpenApiRenderer {
                 renderMenuItem(
                     "Summaries",
                     () -> {
-                      renderToggleButton("Show request type", "request", "request-", false);
-                      renderToggleButton("Show response type", "response", "response-", false);
-                      renderToggleButton("Show content type", "content", "content-", false);
+                      renderToggleButton("Show request info", "request", "request-", false);
+                      renderToggleButton("Show response info", "response", "response-", false);
+                      renderToggleButton("Show content info", "content", "content-", false);
                     });
                 renderMenuItem(
-                    "Operations",
+                    "Details",
                     () -> renderToggleButton("Abbr. Descriptions", "desc", "desc-", false));
               });
         });
@@ -626,7 +635,7 @@ public class OpenApiRenderer {
             entry("onclick", "toggleDescriptions(this)"),
             entry("title", "remembering expand/collapse"),
             entry("class", "toggle"));
-    appendTag("aside", () -> appendTag("button", attrs, "&#128214;"));
+    appendTag("aside", () -> appendTag("button", attrs, "All"));
   }
 
   private void renderOperationSummary(OperationObject op) {
@@ -809,7 +818,7 @@ public class OpenApiRenderer {
     JsonMap<ResponseObject> responses = op.responses();
     if (responses.isUndefined() || responses.isEmpty()) return;
 
-    renderOperationSectionHeader("::...", "Responses");
+    renderOperationSectionHeader("::", "Responses");
     responses.entries().forEach(e -> renderResponse(op, e.getKey(), e.getValue()));
   }
 
