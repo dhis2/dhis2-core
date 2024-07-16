@@ -117,13 +117,6 @@ public class DhisControllerTestBase extends DhisMockMvcControllerTest {
         SecurityContextHolder.getContext());
   }
 
-  private String makeApiUrl(String path) {
-    if (path.startsWith("/api/")) {
-      return path;
-    }
-    return "/api/" + path;
-  }
-
   protected final HttpResponse POST_MULTIPART(String url, MockMultipartFile part) {
 
     return webRequest(multipart(makeApiUrl(url)).file(part));
