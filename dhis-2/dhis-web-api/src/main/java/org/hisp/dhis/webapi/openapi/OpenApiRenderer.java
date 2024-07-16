@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Consumer;
+import javax.annotation.CheckForNull;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.jsontree.JsonList;
@@ -84,8 +85,8 @@ public class OpenApiRenderer {
 
   :root {
        --bg-page: white;
-       --percent-op-bg-summary: 30%;
-       --percent-op-bg-aside: 15%;
+       --percent-op-bg-summary: 20%;
+       --percent-op-bg-aside: 10%;
        --p-op-bg: 15%;
        --color-delete: tomato;
        --color-patch: darkolivegreen;
@@ -117,8 +118,7 @@ public class OpenApiRenderer {
   h2 { display: inline; font-size: 110%; font-weight: normal; }
   h3 { font-size: 105%; display: inline; text-transform: capitalize; font-weight: normal; }
   h4 { font-weight: normal; padding: 0 1em; }
-  dt { margin: 1em 0 0.5em 0; font-weight: normal; font-size: 85%; }
-  dd { margin: 0;}
+  nav > summary { margin: 1em 0 0.5em 0; font-weight: normal; font-size: 85%; }
 
   h2 a[target="_blank"] { text-decoration: none; margin-left: 0.5em; }
   a[href^="#"] { text-decoration: none; }
@@ -152,10 +152,9 @@ public class OpenApiRenderer {
   nav {
         position: fixed;
         top: 60px;
-        width: 220px;
+        width: 250px;
         text-align: left;
         display: inline-block;
-        background-color: aliceblue;
         padding: 1rem;
         box-sizing: border-box;
   }
@@ -164,15 +163,15 @@ public class OpenApiRenderer {
   body > section > details > summary { padding: 0.5em 1em; }
   body > section h2:before { content: '⛁'; margin-right: 0.5rem; color: dimgray; }
 
-  details {
+  body > section details {
     margin-left: 2rem;
   }
-  details > summary:before {
+  body > section details > summary:before {
       content: '⊕';
       float: left;
       margin-left: calc(-1rem - 10px);
   }
-  details[open] > summary:before {
+  body > section details[open] > summary:before {
     content: '⊝';
   }
   body > section > details[open] > summary {
@@ -194,8 +193,8 @@ public class OpenApiRenderer {
   code.http { display: inline-block; padding: 0 0.5em; font-weight: bold; }
   code.http.content { margin-top: -2px; color: #aaa; display: inline-grid; grid-template-columns: 1fr 1fr 1fr; vertical-align: top; text-align: center; }
   code.http.content > span { font-size: 70%; font-weight: normal; padding: 0 0.25em; margin: 1px; }
-  code.http.content > span.status4xx { background: color-mix(in srgb, tomato 65%, transparent); color: snow; }
-  code.http.content > span.status2xx { background: color-mix(in srgb, seagreen 65%, transparent); color: snow; }
+  code.http.content > span.status4xx { background: color-mix(in srgb, tomato 75%, transparent); color: snow; }
+  code.http.content > span.status2xx { background: color-mix(in srgb, seagreen 75%, transparent); color: snow; }
   code.http.content .on { color: black; }
   code.http.method { width: 4rem; text-align: right; color: dimgray; }
   code.md { background-color: #eee; }
@@ -205,8 +204,9 @@ public class OpenApiRenderer {
   code.url small { color: gray; }
   code.property { color: dimgray; margin-left: 2em; }
   code.property > span + span { color: darkmagenta; padding: 0.25em; background: color-mix(in srgb, ivory 65%, transparent); }
-  code.url.secondary.type { color: dimgray; font-style: italic; }
+  code.secondary.type { color: dimgray; font-style: italic; }
   code.url.secondary + code.url.secondary { padding-left: 0; }
+  code.request, code.response { padding: 0.25em 0.5em; color: dimgray; }
   code.mime { background-color: ivory; font-style: italic; padding: 0.25em 0.5em; }
   code.mime.secondary { background: color-mix(in srgb, ivory 70%, transparent); }
 
@@ -236,6 +236,7 @@ public class OpenApiRenderer {
   details:target > summary > a[title="permalink"] { background-color: gold; color: black; border: 2px solid snow;
     animation: squareToCircle 2s 1s infinite alternate; }
 
+  /* opration background colors */
   details[open].GET { background: color-mix(in srgb, var(--color-get) var(--p-op-bg), transparent); }
   details[open].POST { background: color-mix(in srgb, var(--color-post) var(--p-op-bg), transparent); }
   details[open].PUT { background: color-mix(in srgb, var(--color-put) var(--p-op-bg), transparent); }
@@ -248,6 +249,7 @@ public class OpenApiRenderer {
   details[open].PATCH > aside { background: color-mix(in srgb, var(--color-patch) var(--percent-op-bg-aside), transparent); }
   details[open].DELETE > aside { background: color-mix(in srgb, var(--color-delete) var(--percent-op-bg-aside), transparent); }
 
+  /* operation visibility filters */
   #body[get-] .op.GET,
   #body[post-] .op.POST,
   #body[put-] .op.PUT,
@@ -260,7 +262,14 @@ public class OpenApiRenderer {
   #body[json-] .op.json,
   #body[xml-] .op.xml,
   #body[csv-] .op.csv,
-  #body[deprecated-] .op.deprecated { display: none; }
+  #body[alpha-] .op.alpha,
+  #body[beta-] .op.beta,
+  #body[stable-] .op.stable,
+  #body[open-] .op.open,
+  #body[deprecated-] .op.deprecated,
+  #body[request-] .op > summary > code.request,
+  #body[response-] .op > summary > code.response,
+  #body[content-] .op > summary > code.http.content { display: none; }
 
   nav button {
       border: none;
@@ -271,11 +280,7 @@ public class OpenApiRenderer {
       display: inline;
       margin: 2px;
   }
-  nav button:before {
-      content: '🞕';
-      margin-right: 0.5rem;
-      font-weight: normal;
-  }
+  nav button:before { content: '🞕'; margin-right: 0.5rem;font-weight: normal; }
   nav button.deprecated { background-color: var(--color-dep); }
 
   details.op button { background-color: #444; color: white; border: none; cursor: pointer; }
@@ -292,34 +297,28 @@ public class OpenApiRenderer {
   #body[json-] button.json:before,
   #body[xml-] button.xml:before,
   #body[csv-] button.csv:before,
+  #body[alpha-] button.alpha:before,
+  #body[beta-] button.beta:before,
+  #body[stable-] button.stable:before,
+  #body[open-] button.open:before,
   #body[deprecated-] button.deprecated:before,
-  #body[desc-] button.desc:before { content: '🞏'; color: dimgray; }
+  #body[request-] button.request:before,
+  #body[response-] button.response:before,
+  #body:not([desc-]) button.desc:before,
+  #body[content-] button.content:before { content: '🞏'; color: dimgray; }
 
 
-  .param.required code.url:first-of-type:after {
-    content: '*';
-    color: tomato;
-  }
-  .param.deprecated > summary > code.url:first-of-type:before {
-      content: '⚠️';
-      font-family: sans-serif; /* reset font */
-      display: inline-block; /* reset text-decorations */
-      padding-right: 0.25rem;
-  }
-  .param.deprecated > summary > code.url:first-of-type:hover:after {
-    content: 'This parameter is deprecated';
-    position: absolute;
-    background: var(--color-tooltip);
-    color: var(--color-tooltiptext);
-    padding: 0.25rem 0.5rem;
-  }
-  .op.deprecated > summary > code.url:hover:after {
-    content: 'This operation is deprecated';
-    position: absolute;
-    background: var(--color-tooltip);
-    color: var(--color-tooltiptext);
-    padding: 0.25rem 0.5rem;
-  }
+  /* ~~~ highlights and annotations from inserted symbols ~~ */
+  /* path markers */
+  .op.alpha > summary > code.url.path:before { content: '🧪'; padding: 0.25em; }
+  .op.beta > summary > code.url.path:before { content: '🔧'; padding: 0.25em; }
+  .op.stable > summary > code.url.path:before { content: '🛡️'; padding: 0.25em; }
+  .op.deprecated > summary > code.url.path:before,
+   nav code.deprecated:before { content: '⚠️'; padding: 0.25em; font-family: sans-serif; }
+  /* parameter markers */
+  .param.required code.url:first-of-type:after { content: '*'; color: tomato; }
+  .param.deprecated > summary > code.url:first-of-type:before { content: '⚠️'; font-family: sans-serif; display: inline-block; padding-right: 0.25rem; }
+  /* +/- buttons for expand/collapse */
   .op aside > button.toggle:after { content: '⊝'; padding-left: 0.5rem; font-size: 16px; }
   .op:has(details[data-open]) aside > button.toggle:after { content: '⊕'; }
 
@@ -329,6 +328,24 @@ public class OpenApiRenderer {
   article.desc a[target="_blank"]:after { content: '🗗'; }
   body[desc-] article.desc:not(:hover) { font-size: 0.1rem; }
   body[desc-] article.desc:not(:hover):first-line { font-size: 1rem; }
+
+  /* tooltips */
+  .param.deprecated > summary > code.url:first-of-type:hover:after {
+    content: 'This parameter is deprecated';
+    position: absolute; background: var(--color-tooltip); color: var(--color-tooltiptext); padding: 0.25rem 0.5rem; }
+  .op.deprecated > summary > code.url:hover:after {
+    content: 'This operation is deprecated';
+    position: absolute; background: var(--color-tooltip); color: var(--color-tooltiptext); padding: 0.25rem 0.5rem; }
+  .op.alpha > summary > code.url.path:hover:after {
+    content: 'This operation is alpha, consider it an experiment 🙀';
+    position: absolute; background: var(--color-tooltip); color: var(--color-tooltiptext); padding: 0.25rem 0.5rem; }
+  .op.beta > summary > code.url.path:hover:after {
+    content: 'This operation is beta and still subject to change 😾';
+    position: absolute; background: var(--color-tooltip); color: var(--color-tooltiptext); padding: 0.25rem 0.5rem; }
+  .op.stable > summary > code.url.path:hover:after {
+    content: 'This operation is stable 😸🎉';
+    position: absolute; background: var(--color-tooltip); color: var(--color-tooltiptext); padding: 0.25rem 0.5rem; }
+
   """;
 
   @Language("js")
@@ -420,7 +437,7 @@ public class OpenApiRenderer {
               });
           appendTag(
               "body",
-              Map.of("id", "body", "desc-", ""),
+              Map.of("id", "body"),
               () -> {
                 renderPageHeader();
                 renderPageMenu();
@@ -436,51 +453,92 @@ public class OpenApiRenderer {
   private void renderPageMenu() {
     appendTag(
         "nav",
-        () ->
-            appendTag(
-                "dl",
-                () -> {
-                  renderMenuItem(
-                      "HTTP Methods",
-                      () -> {
-                        renderToggleButton("GET", "GET", "get-", false);
-                        renderToggleButton("POST", "POST", "post-", false);
-                        renderToggleButton("PUT", "PUT", "put-", false);
-                        renderToggleButton("PATCH", "PATCH", "patch-", false);
-                        renderToggleButton("DELETE", "DELETE", "delete-", false);
-                      });
+        () -> {
+          renderMenuGroup(
+              "Filters",
+              () -> {
+                renderMenuItem(
+                    "HTTP Methods",
+                    () -> {
+                      renderToggleButton("GET", "GET", "get-", false);
+                      renderToggleButton("POST", "POST", "post-", false);
+                      renderToggleButton("PUT", "PUT", "put-", false);
+                      renderToggleButton("PATCH", "PATCH", "patch-", false);
+                      renderToggleButton("DELETE", "DELETE", "delete-", false);
+                    });
 
-                  renderMenuItem(
-                      "HTTP Status",
-                      () -> {
-                        for (int statusCode : new int[] {200, 201, 202, 204}) {
-                          renderToggleButton(
-                              statusCode + " " + statusCodeName(statusCode),
-                              "status status2xx status" + statusCode,
-                              "status" + statusCode + "-",
-                              true);
-                        }
-                      });
+                renderMenuItem(
+                    "HTTP Status",
+                    () -> {
+                      for (int statusCode : new int[] {200, 201, 202, 204}) {
+                        renderToggleButton(
+                            statusCode + " " + statusCodeName(statusCode),
+                            "status status2xx status" + statusCode,
+                            "status" + statusCode + "-",
+                            true);
+                      }
+                    });
 
-                  renderMenuItem(
-                      "HTTP Content-Type",
-                      () -> {
-                        for (String mime : new String[] {"json", "xml", "csv"})
-                          renderToggleButton(mime.toUpperCase(), mime, mime + "-", true);
-                      });
+                renderMenuItem(
+                    "HTTP Content-Type",
+                    () -> {
+                      for (String mime : new String[] {"json", "xml", "csv"})
+                        renderToggleButton(mime.toUpperCase(), mime, mime + "-", true);
+                    });
 
-                  renderMenuItem(
-                      "Content",
-                      () -> {
-                        renderToggleButton("&#127299; full details", "desc", "desc-", false);
-                        renderToggleButton("deprecated", "deprecated", "deprecated-", false);
-                      });
-                }));
+                renderMenuItem(
+                    "Maturity",
+                    () -> {
+                      renderToggleButton("&#129514; Alpha", "alpha", "alpha-", false);
+                      renderToggleButton("&#128295; Beta", "beta", "beta-", false);
+                      renderToggleButton("&#128737;&#65039; Stable", "stable", "stable-", false);
+                      renderToggleButton("Unspecified", "open", "open-", false);
+                    });
+
+                renderMenuItem(
+                    "Content",
+                    () -> {
+                      renderToggleButton("@Deprecated", "deprecated", "deprecated-", true);
+                    });
+              });
+
+          renderMenuGroup(
+              "View",
+              () -> {
+                renderMenuItem(
+                    "Summaries",
+                    () -> {
+                      renderToggleButton("Show request type", "request", "request-", false);
+                      renderToggleButton("Show response type", "response", "response-", false);
+                      renderToggleButton("Show content type", "content", "content-", false);
+                    });
+                renderMenuItem(
+                    "Operations",
+                    () -> renderToggleButton("Abbr. Descriptions", "desc", "desc-", false));
+              });
+        });
   }
 
-  private void renderMenuItem(String title, Runnable body) {
-    appendTag("dt", "HTTP Content-Type");
-    appendTag("dd", body);
+  private void renderMenuGroup(String title, Runnable renderBody) {
+    appendDetails(
+        null,
+        true,
+        "",
+        () -> {
+          appendSummary(null, "", () -> appendRaw(title));
+          renderBody.run();
+        });
+  }
+
+  private void renderMenuItem(String title, Runnable renderBody) {
+    appendDetails(
+        null,
+        true,
+        "",
+        () -> {
+          appendSummary(null, "", () -> appendRaw(title));
+          renderBody.run();
+        });
   }
 
   private void renderToggleButton(String text, String style, String toggle, boolean code) {
@@ -557,6 +615,8 @@ public class OpenApiRenderer {
     style.append(" status").append(op.responseSuccessCode());
     for (String mime : op.responseMediaSubTypes()) style.append(" ").append(mime);
     if (op.deprecated()) style.append(" deprecated");
+    String maturity = op.x_maturity();
+    style.append(" ").append(maturity == null ? "open" : maturity);
     return style.toString();
   }
 
@@ -564,9 +624,9 @@ public class OpenApiRenderer {
     Map<String, String> attrs =
         Map.ofEntries(
             entry("onclick", "toggleDescriptions(this)"),
-            entry("title", "show/hide description text"),
+            entry("title", "remembering expand/collapse"),
             entry("class", "toggle"));
-    appendTag("aside", () -> appendTag("button", attrs, "&#127299;"));
+    appendTag("aside", () -> appendTag("button", attrs, "&#128214;"));
   }
 
   private void renderOperationSummary(OperationObject op) {
@@ -584,10 +644,24 @@ public class OpenApiRenderer {
     if (!queryParams.isEmpty()) {
       String query = "?";
       List<String> requiredParams =
-          queryParams.stream().filter(ParameterObject::required).map(p -> p.name() + "=").toList();
+          queryParams.stream()
+              .filter(ParameterObject::required)
+              .map(p -> p.name() + "=&blank;")
+              .toList();
       query += String.join("&", requiredParams);
-      if (queryParams.size() > requiredParams.size()) query += "…";
+      if (queryParams.size() > requiredParams.size()) query += "&hellip;";
       appendCode("url query secondary", query);
+    }
+    List<SchemaObject> request = op.requestSchemas();
+    if (!request.isEmpty()) {
+      appendCode("request secondary", "{");
+      renderSchemaSummary("request secondary", request);
+      appendCode("request secondary", "}");
+    }
+    List<SchemaObject> successOneOf = op.responseSuccessSchemas();
+    if (!successOneOf.isEmpty()) {
+      appendCode("response secondary", "::");
+      renderSchemaSummary("response secondary", successOneOf);
     }
   }
 
@@ -652,7 +726,7 @@ public class OpenApiRenderer {
     SchemaObject schema = p.schema();
     appendCode("url", p.name());
     appendCode("url secondary", "=");
-    renderSchemaDescriptor("url", schema);
+    renderSchemaDetail("url secondary", schema);
 
     JsonValue defaultValue = p.$default();
     if (defaultValue.exists()) {
@@ -717,9 +791,17 @@ public class OpenApiRenderer {
   }
 
   private void renderMediaType(String mediaType, SchemaObject type) {
+    renderMediaType(mediaType, () -> renderSchemaDetail("mime secondary", type.resolve()));
+  }
+
+  private void renderMediaTypeSummary(List<SchemaObject> oneOf) {
+    renderMediaType("*", () -> renderSchemaSummary("mime secondary", oneOf));
+  }
+
+  private void renderMediaType(String mediaType, Runnable renderType) {
     appendCode("mime", mediaType);
     appendCode("mime secondary", ":");
-    renderSchemaDescriptor("mime", type.resolve());
+    renderType.run();
     appendRaw("<br/>");
   }
 
@@ -727,7 +809,7 @@ public class OpenApiRenderer {
     JsonMap<ResponseObject> responses = op.responses();
     if (responses.isUndefined() || responses.isEmpty()) return;
 
-    renderOperationSectionHeader("&#11168;...", "Responses");
+    renderOperationSectionHeader("::...", "Responses");
     responses.entries().forEach(e -> renderResponse(op, e.getKey(), e.getValue()));
   }
 
@@ -757,29 +839,58 @@ public class OpenApiRenderer {
       renderMediaTypes(content);
     } else if (response.isUniform()) {
       renderMediaType("*", content.values().toList().get(0).schema());
-      // TODO else make a * : a | b | c
+    } else {
+      // * : a | b | c
+      renderMediaTypeSummary(content.values().map(MediaTypeObject::schema).toList());
     }
   }
 
-  private void renderSchemaDescriptor(String style, SchemaObject schema) {
+  private void renderSchemaSummary(String style, List<SchemaObject> oneOf) {
+    if (oneOf.isEmpty()) return;
+    renterSchemaDescriptor(style, () -> renderTypeDescriptor(oneOf, true));
+  }
+
+  private void renderSchemaDetail(String style, SchemaObject schema) {
+    renterSchemaDescriptor(style, () -> renderTypeDescriptor(schema, false));
+  }
+
+  private void renderSchemaSummary(String style, SchemaObject schema) {
+    renterSchemaDescriptor(style, () -> renderTypeDescriptor(schema, true));
+  }
+
+  private void renterSchemaDescriptor(String style, Runnable renderType) {
     appendCode(
-        style + " secondary type",
+        style + " type",
         () -> {
           appendRaw("&lt;");
-          renderTypeDescriptor(schema);
+          renderType.run();
           appendRaw("&gt;");
         });
   }
 
-  private void renderTypeDescriptor(SchemaObject schema) {
+  private void renderTypeDescriptor(List<SchemaObject> oneOf, boolean summary) {
+    for (int i = 0; i < oneOf.size(); i++) {
+      if (i > 0) appendRaw(" | ");
+      renderTypeDescriptor(oneOf.get(0), summary);
+    }
+  }
+
+  private void renderTypeDescriptor(SchemaObject schema, boolean summary) {
     if (schema.isShared()) {
       appendA("#" + schema.getSharedName(), false, schema.getSharedName());
       return;
     }
     String type = schema.$type();
+    if (type == null) {
+      SchemaObject resolved = schema.resolve();
+      if (resolved.isShared()) {
+        renderTypeDescriptor(resolved, summary);
+        return;
+      }
+    }
     if ("array".equals(type)) {
       appendRaw("array[");
-      renderTypeDescriptor(schema.items().resolve());
+      renderTypeDescriptor(schema.items(), summary);
       appendRaw("]");
       return;
     }
@@ -789,7 +900,7 @@ public class OpenApiRenderer {
           && schema.additionalProperties().exists()) {
         // this is a "map" where any not namely specified property has a certain same schema
         appendRaw(":");
-        renderTypeDescriptor(schema.additionalProperties().resolve());
+        renderTypeDescriptor(schema.additionalProperties(), summary);
       }
       // TODO else: need to detail the object in full
       return;
@@ -797,19 +908,19 @@ public class OpenApiRenderer {
     appendRaw(type);
   }
 
-  private void appendDetails(String id, boolean open, String style, Runnable body) {
+  private void appendDetails(@CheckForNull String id, boolean open, String style, Runnable body) {
     Map<String, String> attrs =
         Map.of("class", style, "id", id == null ? "" : id, open ? "open" : "", "");
     appendTag("details", attrs, body);
   }
 
-  private void appendSummary(String id, String title, Runnable body) {
+  private void appendSummary(@CheckForNull String id, String title, Runnable body) {
     Map<String, String> attrs = Map.of("title", title == null ? "" : title);
     appendTag(
         "summary",
         attrs,
         () -> {
-          appendA("#" + id, false, "#");
+          if (id != null) appendA("#" + id, false, "#");
           body.run();
         });
   }

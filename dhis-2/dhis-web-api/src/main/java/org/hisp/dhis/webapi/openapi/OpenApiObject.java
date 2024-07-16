@@ -230,6 +230,10 @@ public interface OpenApiObject extends JsonObject {
       return getString("x-group").string();
     }
 
+    default String x_maturity() {
+      return getString("x-maturity").string();
+    }
+
     default List<String> tags() {
       return getArray("tags").stringValues();
     }
@@ -287,8 +291,36 @@ public interface OpenApiObject extends JsonObject {
           .values()
           .flatMap(r -> r.content().keys())
           .map(type -> type.substring(type.indexOf('/') + 1).toLowerCase())
+          .distinct()
           .sorted()
           .toList();
+    }
+
+    default List<SchemaObject> requestSchemas() {
+      if (requestBody().isUndefined()) return List.of();
+      return toListOfSchemas(requestBody().content());
+    }
+
+    /**
+     * @return the {@link SchemaObject}s necessary to accurately describe the success response of
+     *     this operation. This will be as few {@link SchemaObject}s as possible avoiding duplicates
+     *     from different mime types. If more than one {@link SchemaObject} is returned the schemas
+     *     have to be understood as a possible response each depending on the mime type. So they are
+     *     alternatives outcomes of the operation.
+     */
+    default List<SchemaObject> responseSuccessSchemas() {
+      if (responses().isUndefined() || responses().isEmpty()) return List.of();
+      String successCode = responseSuccessCode();
+      if (successCode == null) return List.of();
+      return toListOfSchemas(responses().get(successCode).content());
+    }
+
+    private static List<SchemaObject> toListOfSchemas(JsonMap<MediaTypeObject> content) {
+      if (content.isUndefined() || content.isEmpty()) return List.of();
+      List<SchemaObject> schemas = content.values().map(MediaTypeObject::schema).toList();
+      if (content.size() == 1) return schemas;
+      if (MediaTypeObject.isUniform(content)) return List.of(schemas.get(0));
+      return schemas;
     }
   }
 
@@ -377,6 +409,18 @@ public interface OpenApiObject extends JsonObject {
     default SchemaObject schema() {
       return get("schema", SchemaObject.class);
     }
+
+    static boolean isUniform(JsonMap<MediaTypeObject> content) {
+      if (content.isUndefined()) return false;
+      if (content.size() == 1) return true;
+      List<SchemaObject> types =
+          content.values().map(MediaTypeObject::schema).map(SchemaObject::resolve).toList();
+      SchemaObject type0 = types.get(0);
+      if (type0.isShared())
+        return types.stream()
+            .allMatch(t -> t.isShared() && type0.getSharedName().equals(t.getSharedName()));
+      return types.stream().allMatch(t -> t.toJson().equals(type0.toJson()));
+    }
   }
 
   interface ResponseObject extends JsonObject {
@@ -391,16 +435,7 @@ public interface OpenApiObject extends JsonObject {
     }
 
     default boolean isUniform() {
-      JsonMap<MediaTypeObject> content = content();
-      if (content.isUndefined()) return false;
-      if (content.size() == 1) return true;
-      List<SchemaObject> types =
-          content.values().map(MediaTypeObject::schema).map(SchemaObject::resolve).toList();
-      SchemaObject type0 = types.get(0);
-      if (type0.isShared())
-        return types.stream()
-            .allMatch(t -> t.isShared() && type0.getSharedName().equals(t.getSharedName()));
-      return types.stream().allMatch(t -> t.toJson().equals(type0.toJson()));
+      return MediaTypeObject.isUniform(content());
     }
   }
 

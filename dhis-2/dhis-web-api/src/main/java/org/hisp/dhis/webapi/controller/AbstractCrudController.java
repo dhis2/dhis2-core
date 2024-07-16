@@ -52,6 +52,9 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjects;
+import org.hisp.dhis.common.Maturity.Alpha;
+import org.hisp.dhis.common.Maturity.Beta;
+import org.hisp.dhis.common.Maturity.Stable;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.common.UID;
@@ -166,6 +169,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
    * releases we might also want to support "application/json" after the old patch behavior has been
    * removed.
    */
+  @Beta
   @OpenApi.Params(WebOptions.class)
   @OpenApi.Params(MetadataImportParams.class)
   @OpenApi.Param(JsonPatch.class)
@@ -241,6 +245,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     return patchedObject;
   }
 
+  @Alpha // TOOO just a test
   @OpenApi.Params(WebOptions.class)
   @OpenApi.Params(MetadataImportParams.class)
   @OpenApi.Param(BulkJsonPatch.class)
@@ -293,6 +298,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
   // POST
   // --------------------------------------------------------------------------
 
+  @Stable
   @OpenApi.Params(MetadataImportParams.class)
   @OpenApi.Param(OpenApi.EntityType.class)
   @PostMapping(consumes = APPLICATION_JSON_VALUE)
