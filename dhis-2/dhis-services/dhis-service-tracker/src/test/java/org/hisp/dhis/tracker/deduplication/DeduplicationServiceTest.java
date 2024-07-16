@@ -40,6 +40,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -151,7 +152,9 @@ class DeduplicationServiceTest {
 
   @Test
   void shouldBeAutoMergeable()
-      throws PotentialDuplicateConflictException, PotentialDuplicateForbiddenException {
+      throws PotentialDuplicateConflictException,
+          PotentialDuplicateForbiddenException,
+          NotFoundException {
     MergeObject mergeObject = MergeObject.builder().build();
     when(deduplicationHelper.generateMergeObject(trackedEntityA, trackedEntityB))
         .thenReturn(mergeObject);
@@ -282,7 +285,9 @@ class DeduplicationServiceTest {
 
   @Test
   void shouldtBeAutoMergeableAttributeValuesIsEmpty()
-      throws PotentialDuplicateConflictException, PotentialDuplicateForbiddenException {
+      throws PotentialDuplicateConflictException,
+          PotentialDuplicateForbiddenException,
+          NotFoundException {
     when(trackedEntityB.getTrackedEntityAttributeValues()).thenReturn(new HashSet<>());
     MergeObject mergeObject = MergeObject.builder().build();
     when(deduplicationHelper.generateMergeObject(trackedEntityA, trackedEntityB))
@@ -309,7 +314,9 @@ class DeduplicationServiceTest {
 
   @Test
   void shouldBeManualMergeable()
-      throws PotentialDuplicateConflictException, PotentialDuplicateForbiddenException {
+      throws PotentialDuplicateConflictException,
+          PotentialDuplicateForbiddenException,
+          NotFoundException {
     deduplicationService.manualMerge(deduplicationMergeParams);
     verify(deduplicationHelper, times(1)).getInvalidReferenceErrors(deduplicationMergeParams);
     verify(deduplicationHelper, times(0)).generateMergeObject(trackedEntityA, trackedEntityB);

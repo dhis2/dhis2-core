@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -164,14 +165,18 @@ public class DefaultDeduplicationService implements DeduplicationService {
         original, duplicate, mergeObject.getTrackedEntityAttributes());
     potentialDuplicateStore.moveRelationships(original, duplicate, mergeObject.getRelationships());
     potentialDuplicateStore.moveEnrollments(original, duplicate, mergeObject.getEnrollments());
-    trackerObjectDeletionService.deleteTrackedEntities(
-        TrackerBundle.builder()
-            .trackedEntities(
-                List.of(
-                    org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-                        .trackedEntity(duplicate.getUid())
-                        .build()))
-            .build());
+    try {
+      trackerObjectDeletionService.deleteTrackedEntities(
+          TrackerBundle.builder()
+              .trackedEntities(
+                  List.of(
+                      org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
+                          .trackedEntity(duplicate.getUid())
+                          .build()))
+              .build());
+    } catch (NotFoundException e) {
+      throw new RuntimeException("Could not find TrackedEntity: " + duplicate.getUid());
+    }
     updateTeiAndPotentialDuplicate(params, original);
     potentialDuplicateStore.auditMerge(params);
   }

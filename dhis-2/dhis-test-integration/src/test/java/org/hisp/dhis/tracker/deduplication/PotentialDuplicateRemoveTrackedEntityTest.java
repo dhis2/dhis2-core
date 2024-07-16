@@ -57,8 +57,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegrationTest {
 
-  @Autowired private HibernatePotentialDuplicateStore potentialDuplicateStore;
-
   @Autowired private TrackerObjectDeletionService trackerObjectDeletionService;
 
   @Autowired private TrackedEntityService trackedEntityService;
@@ -80,7 +78,7 @@ class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegration
   @Autowired private ProgramService programService;
 
   @Test
-  void shouldDeleteTrackedEntity() {
+  void shouldDeleteTrackedEntity() throws NotFoundException {
     TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute('A');
     trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttribute);
     TrackedEntity trackedEntity = createTrackedEntity(trackedEntityAttribute);
@@ -90,7 +88,7 @@ class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegration
   }
 
   @Test
-  void shouldDeleteTeAndAttributeValues() {
+  void shouldDeleteTeAndAttributeValues() throws NotFoundException {
     TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute('A');
     trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttribute);
     TrackedEntity trackedEntity = createTrackedEntity(trackedEntityAttribute);
@@ -106,7 +104,7 @@ class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegration
   }
 
   @Test
-  void shouldDeleteRelationShips() {
+  void shouldDeleteRelationShips() throws NotFoundException {
     OrganisationUnit ou = createOrganisationUnit("OU_A");
     organisationUnitService.addOrganisationUnit(ou);
     TrackedEntity original = createTrackedEntity(ou);
@@ -133,6 +131,7 @@ class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegration
     assertNotNull(trackedEntityService.getTrackedEntity(duplicate.getUid()));
     assertNotNull(trackedEntityService.getTrackedEntity(control1.getUid()));
     assertNotNull(trackedEntityService.getTrackedEntity(control2.getUid()));
+    dbmsManager.clearSession();
     removeTrackedEntity(duplicate);
     assertNull(relationshipService.getRelationship(relationShip3));
     assertNull(relationshipService.getRelationship(relationShip4));
@@ -193,7 +192,7 @@ class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegration
     return trackedEntity;
   }
 
-  private void removeTrackedEntity(TrackedEntity trackedEntity) {
+  private void removeTrackedEntity(TrackedEntity trackedEntity) throws NotFoundException {
     trackerObjectDeletionService.deleteTrackedEntities(
         TrackerBundle.builder()
             .trackedEntities(

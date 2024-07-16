@@ -27,19 +27,19 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
-import java.util.List;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.report.Entity;
+import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 
 /**
  * @author Zubair Asghar
  */
 public interface TrackerObjectDeletionService {
-  List<Entity> deleteEnrollments(TrackerBundle bundle);
+  TrackerTypeReport deleteEnrollments(TrackerBundle bundle) throws NotFoundException;
 
-  List<Entity> deleteEvents(TrackerBundle bundle);
+  TrackerTypeReport deleteEvents(TrackerBundle bundle);
 
-  List<Entity> deleteTrackedEntities(TrackerBundle bundle);
+  TrackerTypeReport deleteTrackedEntities(TrackerBundle bundle) throws NotFoundException;
 
-  List<Entity> deleteRelationships(TrackerBundle bundle);
+  TrackerTypeReport deleteRelationships(TrackerBundle bundle);
 }
