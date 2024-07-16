@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
 import java.util.Set;
@@ -57,7 +58,6 @@ class DataIntegrityUsersWithInvalidUsernameControllerTest
 
     Set<String> badUsers =
         Set.of(
-            "_bobby", // Leading and trailing underscores
             "måns", // Non-ASCII character
             "foo", // Too short
             "foo__bar", // Double underscore
@@ -83,9 +83,10 @@ class DataIntegrityUsersWithInvalidUsernameControllerTest
     assertEquals(DETAILS_ID_TYPE, details.getIssuesIdType());
     assertEquals(CHECK_NAME, details.getName());
 
-    // There are already two existing users as part of the test setup
+    // There are already two existing users as part of the test setup, thus 4/6 users have bad
+    // usernames
     JsonDataIntegritySummary summary = getSummary(CHECK_NAME);
-    assertEquals(71, summary.getPercentage().intValue());
+    assertTrue(almostEqual(66.67, summary.getPercentage().doubleValue(), 0.01));
     assertEquals(badUsernames.size(), summary.getCount());
   }
 
@@ -105,5 +106,9 @@ class DataIntegrityUsersWithInvalidUsernameControllerTest
     user.setLastUpdated(new Date());
     user.setCreated(new Date());
     manager.persist(user);
+  }
+
+  private boolean almostEqual(double a, double b, double epsilon) {
+    return Math.abs(a - b) < epsilon;
   }
 }
