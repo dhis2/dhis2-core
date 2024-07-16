@@ -40,7 +40,7 @@ import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
 import org.junit.jupiter.api.Test;
 
 /**
- * Integrity check to identify users who have invalid usernames.  {@see
+ * Integrity check to identify users who have invalid usernames. {@see
  * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/users/users_with_invalid_usernames.yaml}
  *
  * @author Jason P. Pickering
