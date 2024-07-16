@@ -73,6 +73,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
+// This class is annotated with @Component instead of @Repository because @Repository creates a
+// proxy that can't be used for injection.
 @Component(
     "org.hisp.dhis.tracker.deduplication.domain.deduplication.HibernatePotentialDuplicateStore")
 class HibernatePotentialDuplicateStore
