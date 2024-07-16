@@ -62,7 +62,7 @@ import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.scheduling.JobRunner;
-import org.imgscalr.Scalr;
+import org.imgscalr.Scalr.Mode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
@@ -87,8 +87,17 @@ public class FileResourceUtils {
   private static final long CUSTOM_ICON_FILE_SIZE_LIMIT_IN_BYTES = 25_000_000;
 
   private static final int CUSTOM_ICON_TARGET_HEIGHT = 48;
-
   private static final int CUSTOM_ICON_TARGET_WIDTH = 48;
+
+  private static final int AVATAR_TARGET_HEIGHT = 200;
+  private static final int AVATAR_TARGET_WIDTH = 200;
+
+  private static final long MAX_AVATAR_FILE_SIZE_IN_BYTES = 2_000_000;
+
+  private static final List<String> ALLOWED_AVATAR_FILE_EXTENSIONS =
+      List.of("jpg", "jpeg", "png", "gif");
+  private static final List<String> ALLOWED_AVATAR_MIME_TYPES =
+      List.of("image/jpeg", "image/png", "image/gif");
 
   /**
    * Transfers the given multipart file content to a local temporary file.
@@ -243,40 +252,51 @@ public class FileResourceUtils {
     }
   }
 
-  public static void validateCustomIconFile(MultipartFile file) {
-    validateFileExtension(file.getOriginalFilename());
-    validateFileSize(file);
+  public void validateUserAvatar(MultipartFile file) throws ConflictException {
+    validateContentType(file.getContentType(), ALLOWED_AVATAR_MIME_TYPES);
+    validateFileExtension(file.getOriginalFilename(), ALLOWED_AVATAR_FILE_EXTENSIONS);
+    validateFileSize(file, MAX_AVATAR_FILE_SIZE_IN_BYTES);
   }
 
-  private static void validateFileExtension(String fileName) {
-    if (getExtension(fileName) == null
-        || !CUSTOM_ICON_VALID_ICON_EXTENSIONS.contains(getExtension(fileName))) {
+  private void validateContentType(String contentType, List<String> validExtensions) {
+    contentType = contentType.split(";")[0].trim();
+    if (!validExtensions.contains(contentType)) {
       throw new IllegalQueryException(
-          "Wrong file extension, valid extensions are: "
-              + String.join(",", CUSTOM_ICON_VALID_ICON_EXTENSIONS));
+          "Invalid content type, valid content types are: " + String.join(",", validExtensions));
     }
   }
 
-  private static void validateFileSize(MultipartFile file) {
-    if (file.getSize() > CUSTOM_ICON_FILE_SIZE_LIMIT_IN_BYTES) {
+  public static void validateCustomIconFile(MultipartFile file) {
+    validateFileExtension(file.getOriginalFilename(), CUSTOM_ICON_VALID_ICON_EXTENSIONS);
+    validateFileSize(file, CUSTOM_ICON_FILE_SIZE_LIMIT_IN_BYTES);
+  }
+
+  private static void validateFileExtension(String fileName, List<String> validExtension) {
+    if (getExtension(fileName) == null || !validExtension.contains(getExtension(fileName))) {
+      throw new IllegalQueryException(
+          "Wrong file extension, valid extensions are: " + String.join(",", validExtension));
+    }
+  }
+
+  private static void validateFileSize(MultipartFile file, long maxFileSizeInBytes) {
+    if (file.getSize() > maxFileSizeInBytes) {
       throw new IllegalQueryException(
           String.format(
               "File size can't be bigger than %d, current file size %d",
-              CUSTOM_ICON_FILE_SIZE_LIMIT_IN_BYTES, file.getSize()));
+              maxFileSizeInBytes, file.getSize()));
     }
   }
 
-  public static MultipartFile resizeToDefaultIconSize(MultipartFile multipartFile)
+  public static MultipartFile resizeImageToCustomSize(
+      MultipartFile multipartFile, int targetWidth, int targetHeight, Mode resizeMode)
       throws IOException {
     File tmpFile = null;
 
     try {
       BufferedImage resizedImage =
           resize(
-              ImageIO.read(multipartFile.getInputStream()),
-              Scalr.Mode.FIT_EXACT,
-              CUSTOM_ICON_TARGET_WIDTH,
-              CUSTOM_ICON_TARGET_HEIGHT);
+              ImageIO.read(multipartFile.getInputStream()), resizeMode, targetWidth, targetHeight);
+
       tmpFile = Files.createTempFile("org.hisp.dhis", ".tmp").toFile();
 
       ImageIO.write(
@@ -298,12 +318,24 @@ public class FileResourceUtils {
       }
 
       return new CommonsMultipartFile(fileItem);
-    } catch (IOException e) {
-      throw new IOException("Failed to resize image", e);
+    } catch (Exception e) {
+      throw new IOException("Failed to resize image: " + e.getMessage());
     } finally {
       if (tmpFile != null && tmpFile.exists()) {
         Files.delete(tmpFile.toPath());
       }
     }
+  }
+
+  public static MultipartFile resizeIconToDefaultSize(MultipartFile multipartFile)
+      throws IOException {
+    return resizeImageToCustomSize(
+        multipartFile, CUSTOM_ICON_TARGET_WIDTH, CUSTOM_ICON_TARGET_HEIGHT, Mode.FIT_EXACT);
+  }
+
+  public static MultipartFile resizeAvatarToDefaultSize(MultipartFile multipartFile)
+      throws IOException {
+    return resizeImageToCustomSize(
+        multipartFile, AVATAR_TARGET_WIDTH, AVATAR_TARGET_HEIGHT, Mode.AUTOMATIC);
   }
 }
