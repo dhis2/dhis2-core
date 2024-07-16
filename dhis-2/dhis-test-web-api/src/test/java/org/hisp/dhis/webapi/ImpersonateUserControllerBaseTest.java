@@ -28,20 +28,24 @@
 package org.hisp.dhis.webapi;
 
 import java.util.Date;
+import java.util.Properties;
 import org.hisp.dhis.IntegrationH2Test;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.config.H2DhisConfigurationProvider;
 import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
-import org.hisp.dhis.webapi.controller.security.TestableImpersonateUserConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -60,14 +64,28 @@ import org.springframework.web.context.WebApplicationContext;
 @WebAppConfiguration
 @ContextConfiguration(
     classes = {
-      TestableImpersonateUserConfiguration.class,
+      ImpersonateUserControllerBaseTest.DhisConfiguration.class,
       MvcTestConfig.class,
       WebTestConfiguration.class
     })
-@ActiveProfiles("test-h2")
+@ActiveProfiles({"test-h2", "impersonate-user-test"})
 @IntegrationH2Test
 @Transactional
 public abstract class ImpersonateUserControllerBaseTest extends DhisControllerTestBase {
+
+  static class DhisConfiguration {
+    @Bean
+    public DhisConfigurationProvider dhisConfigurationProvider() {
+      H2DhisConfigurationProvider provider = new H2DhisConfigurationProvider();
+
+      Properties properties = new Properties();
+      properties.put(ConfigurationKey.SWITCH_USER_FEATURE_ENABLED.getKey(), "true");
+      provider.addProperties(properties);
+
+      return provider;
+    }
+  }
+
   @Autowired private WebApplicationContext webApplicationContext;
 
   @Autowired private UserService _userService;

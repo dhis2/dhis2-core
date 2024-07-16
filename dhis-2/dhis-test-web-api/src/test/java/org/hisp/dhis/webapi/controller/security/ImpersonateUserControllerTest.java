@@ -36,12 +36,10 @@ import org.hisp.dhis.webapi.json.domain.JsonImpersonateUserResponse;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.context.ActiveProfiles;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@ActiveProfiles({"test-h2", "impersonate-user-test"})
 class ImpersonateUserControllerTest extends ImpersonateUserControllerBaseTest {
 
   @Test
