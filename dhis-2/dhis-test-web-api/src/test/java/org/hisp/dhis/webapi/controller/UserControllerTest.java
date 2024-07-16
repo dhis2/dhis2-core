@@ -668,7 +668,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
 
     manager.flush();
     manager.clear();
-    injectSecurityContextUser(getAdminUser());
+    injectSecurityContextUser(this.superUser);
 
     // assert lastUpdated has been updated by new user & users not empty
     JsonUserGroup userGroupUserAdded =

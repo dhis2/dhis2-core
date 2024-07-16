@@ -71,8 +71,7 @@ class GistCsvControllerTest extends AbstractGistControllerTest {
     List<User> allUsers = userService.getAllUsers();
 
     // Remove admin user
-    List<String> cleanSplit =
-        split.stream().filter(l -> !l.contains(getAdminUser().getUid())).toList();
+    List<String> cleanSplit = split.stream().filter(l -> !l.contains(superUser.getUid())).toList();
 
     assertLinesMatch(
         List.of(

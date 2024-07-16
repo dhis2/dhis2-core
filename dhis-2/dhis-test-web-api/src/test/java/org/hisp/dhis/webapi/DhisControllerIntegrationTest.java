@@ -99,7 +99,7 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
     dbmsManager.clearSession();
   }
 
-  protected void lookUpInjectUserSecurityContext(User user) {
+  private void lookUpInjectUserSecurityContext(User user) {
     if (user == null) {
       clearSecurityContext();
       return;
@@ -110,7 +110,7 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
     injectSecurityContext(UserDetails.fromUser(foundUser));
   }
 
-  protected User createAndPersistAdminUserAndRole() {
+  private User createAndPersistAdminUserAndRole() {
     UserRole role = createUserRole("Superuser_Test_" + CodeGenerator.generateUid(), "ALL");
     role.setUid(CodeGenerator.generateUid());
 

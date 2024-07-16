@@ -27,14 +27,12 @@
  */
 package org.hisp.dhis.webapi;
 
-import java.util.Collections;
 import java.util.Date;
 import org.hisp.dhis.IntegrationH2Test;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.config.H2DhisConfiguration;
 import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -49,7 +47,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
@@ -76,17 +76,15 @@ public abstract class DhisControllerConvenienceTest extends DhisControllerTestBa
 
   @Autowired private RenderService _renderService;
 
-  private User adminUser;
+  @Autowired private TransactionTemplate txTemplate;
 
   @BeforeEach
-  public final void setup() throws Exception {
+  final void setup() {
     userService = _userService;
     renderService = _renderService;
     clearSecurityContext();
 
-    this.adminUser = XpreCreateInjectAdminUserWithoutPersistence();
-    manager.persist(adminUser);
-    XinjectSecurityContextUser(adminUser);
+    createAndPersistAdminUserAndRole();
 
     superUser = createAndAddAdminUser("ALL");
 
@@ -101,56 +99,48 @@ public abstract class DhisControllerConvenienceTest extends DhisControllerTestBa
     dbmsManager.clearSession();
   }
 
-  public User getAdminUser() {
-    return adminUser;
-  }
-
-  protected void switchToUserWithOrgUnitDataView(String userName, String orgUnitId) {
-    User user = makeUser(userName, Collections.singletonList("ALL"));
-    user.getDataViewOrganisationUnits().add(manager.get(OrganisationUnit.class, orgUnitId));
-    userService.addUser(user);
-    switchContextToUser(user);
-  }
-
-  protected void XinjectSecurityContextUser(User user) {
+  private void lookUpInjectUserSecurityContext(User user) {
     if (user == null) {
       clearSecurityContext();
       return;
     }
     hibernateService.flushSession();
-    User user1 = manager.find(User.class, user.getId());
-    //    user = userService.getUser(user.getUid());
-    injectSecurityContext(UserDetails.fromUser(user1));
+
+    User foundUser = manager.find(User.class, user.getId());
+    injectSecurityContext(UserDetails.fromUser(foundUser));
   }
 
-  protected User XpreCreateInjectAdminUserWithoutPersistence() {
+  private User createAndPersistAdminUserAndRole() {
     UserRole role = createUserRole("Superuser_Test_" + CodeGenerator.generateUid(), "ALL");
     role.setUid(CodeGenerator.generateUid());
 
     manager.persist(role);
 
     User user = new User();
-    String uid = CodeGenerator.generateUid();
-    user.setUid(uid);
-    user.setFirstName("Firstname_" + uid);
-    user.setSurname("Surname_" + uid);
+    user.setUid(CodeGenerator.generateUid());
+    user.setFirstName("Admin");
+    user.setSurname("User");
     user.setUsername(DEFAULT_USERNAME + "_test_" + CodeGenerator.generateUid());
     user.setPassword(DEFAULT_ADMIN_PASSWORD);
     user.getUserRoles().add(role);
     user.setLastUpdated(new Date());
     user.setCreated(new Date());
 
-    //    UserDetails currentUserDetails = UserDetails.fromUser(user);
-    //
-    //    Authentication authentication =
-    //        new UsernamePasswordAuthenticationToken(
-    //            currentUserDetails, DEFAULT_ADMIN_PASSWORD, List.of(new
-    // SimpleGrantedAuthority("ALL")));
-    //
-    //    SecurityContext context = SecurityContextHolder.createEmptyContext();
-    //    context.setAuthentication(authentication);
-    //    SecurityContextHolder.setContext(context);
+    manager.persist(user);
+    lookUpInjectUserSecurityContext(user);
 
     return user;
+  }
+
+  protected final void doInTransaction(Runnable operation) {
+    final int defaultPropagationBehaviour = txTemplate.getPropagationBehavior();
+    txTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+    txTemplate.execute(
+        status -> {
+          operation.run();
+          return null;
+        });
+    // restore original propagation behaviour
+    txTemplate.setPropagationBehavior(defaultPropagationBehaviour);
   }
 }
