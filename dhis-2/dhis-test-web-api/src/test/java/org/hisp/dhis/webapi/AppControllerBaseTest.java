@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi;
 
 import java.util.Date;
+import lombok.Getter;
 import org.hisp.dhis.IntegrationH2Test;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -49,7 +50,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
@@ -81,13 +84,16 @@ public abstract class AppControllerBaseTest extends DhisControllerTestBase {
   @Autowired private WebApplicationContext webApplicationContext;
 
   @Autowired private UserService _userService;
+
   @Autowired private RenderService _renderService;
 
   @Autowired protected IdentifiableObjectManager manager;
 
   @Autowired protected DbmsManager dbmsManager;
 
-  private User adminUser;
+  @Autowired private TransactionTemplate txTemplate;
+
+  @Getter private User adminUser;
 
   @BeforeEach
   public final void setup() throws Exception {
@@ -137,5 +143,17 @@ public abstract class AppControllerBaseTest extends DhisControllerTestBase {
     user.setLastUpdated(new Date());
     user.setCreated(new Date());
     return user;
+  }
+
+  protected final void doInTransaction(Runnable operation) {
+    final int defaultPropagationBehaviour = txTemplate.getPropagationBehavior();
+    txTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+    txTemplate.execute(
+        status -> {
+          operation.run();
+          return null;
+        });
+    // restore original propagation behaviour
+    txTemplate.setPropagationBehavior(defaultPropagationBehaviour);
   }
 }

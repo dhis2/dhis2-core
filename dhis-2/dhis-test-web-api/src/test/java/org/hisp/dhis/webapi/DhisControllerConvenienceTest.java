@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi;
 
 import java.util.Date;
+import lombok.Getter;
 import org.hisp.dhis.IntegrationH2Test;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -70,13 +71,15 @@ public abstract class DhisControllerConvenienceTest extends DhisControllerTestBa
 
   @Autowired private UserService _userService;
 
+  @Autowired private RenderService _renderService;
+
   @Autowired protected IdentifiableObjectManager manager;
 
   @Autowired protected DbmsManager dbmsManager;
 
-  @Autowired private RenderService _renderService;
-
   @Autowired private TransactionTemplate txTemplate;
+
+  @Getter private User adminUser;
 
   @BeforeEach
   final void setup() {
@@ -84,7 +87,9 @@ public abstract class DhisControllerConvenienceTest extends DhisControllerTestBa
     renderService = _renderService;
     clearSecurityContext();
 
-    createAndPersistAdminUserAndRole();
+    this.adminUser = _preCreateInjectAdminUserWithoutPersistence();
+    manager.persist(adminUser);
+    _injectSecurityContextUser(adminUser);
 
     superUser = createAndAddAdminUser("ALL");
 
@@ -99,36 +104,30 @@ public abstract class DhisControllerConvenienceTest extends DhisControllerTestBa
     dbmsManager.clearSession();
   }
 
-  private void lookUpInjectUserSecurityContext(User user) {
+  private void _injectSecurityContextUser(User user) {
     if (user == null) {
       clearSecurityContext();
       return;
     }
     hibernateService.flushSession();
-
-    User foundUser = manager.find(User.class, user.getId());
-    injectSecurityContext(UserDetails.fromUser(foundUser));
+    User user1 = manager.find(User.class, user.getId());
+    injectSecurityContext(UserDetails.fromUser(user1));
   }
 
-  private User createAndPersistAdminUserAndRole() {
+  private User _preCreateInjectAdminUserWithoutPersistence() {
     UserRole role = createUserRole("Superuser_Test_" + CodeGenerator.generateUid(), "ALL");
     role.setUid(CodeGenerator.generateUid());
-
     manager.persist(role);
-
     User user = new User();
-    user.setUid(CodeGenerator.generateUid());
-    user.setFirstName("Admin");
-    user.setSurname("User");
+    String uid = CodeGenerator.generateUid();
+    user.setUid(uid);
+    user.setFirstName("Firstname_" + uid);
+    user.setSurname("Surname_" + uid);
     user.setUsername(DEFAULT_USERNAME + "_test_" + CodeGenerator.generateUid());
     user.setPassword(DEFAULT_ADMIN_PASSWORD);
     user.getUserRoles().add(role);
     user.setLastUpdated(new Date());
     user.setCreated(new Date());
-
-    manager.persist(user);
-    lookUpInjectUserSecurityContext(user);
-
     return user;
   }
 
