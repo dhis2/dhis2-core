@@ -129,6 +129,7 @@ public class DefaultFileResourceService implements FileResourceService {
   @Override
   @Transactional
   public String saveFileResource(FileResource fileResource, byte[] bytes) {
+    validateFileResource(fileResource);
     fileResource.setStorageStatus(FileResourceStorageStatus.PENDING);
     fileResourceStore.save(fileResource);
     sessionFactory.getCurrentSession().flush();
