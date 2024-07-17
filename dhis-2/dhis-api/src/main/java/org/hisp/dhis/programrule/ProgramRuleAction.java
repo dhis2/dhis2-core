@@ -27,10 +27,7 @@
  */
 package org.hisp.dhis.programrule;
 
-import com.fasterxml.jackson.annotation.JsonGetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -138,7 +135,8 @@ public class ProgramRuleAction extends BaseIdentifiableObject implements Metadat
    *   <li>sendmessage
    * </ul>
    */
-  @JsonIgnore private ProgramNotificationTemplate notificationTemplate;
+  @JsonProperty(value = "templateUid")
+  private ProgramNotificationTemplate notificationTemplate;
 
   /**
    * Used to determine which widget to display data for the two action types:
@@ -327,12 +325,10 @@ public class ProgramRuleAction extends BaseIdentifiableObject implements Metadat
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @Property(required = Property.Value.FALSE, owner = Property.Value.TRUE)
-  @JsonGetter
   public String getTemplateUid() {
     return notificationTemplate != null ? notificationTemplate.getUid() : null;
   }
 
-  @JsonSetter
   public void setTemplateUid(String templateUid) {
     if (templateUid == null) {
       notificationTemplate = null;
