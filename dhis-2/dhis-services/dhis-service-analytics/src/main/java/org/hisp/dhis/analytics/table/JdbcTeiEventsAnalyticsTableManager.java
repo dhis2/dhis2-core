@@ -399,10 +399,9 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
     String tableName = partition.getName();
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
     String partitionClause = getPartitionClause(partition);
-    Distribution distribution = analyticsTableSettings.getDistribution();
 
-    if (distribution == DISTRIBUTED) {
-      partitionClause = eventDateExpression + " is not null";
+    if (partition.getMasterTable().isDistributed()) {
+      partitionClause = " and " + eventDateExpression + " is not null ";
     }
 
     StringBuilder sql = new StringBuilder("insert into " + tableName + " (");

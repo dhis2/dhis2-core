@@ -33,6 +33,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
@@ -52,6 +53,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
  * @author Lars Helge Overland
  */
 @Getter
+@Slf4j
 public class AnalyticsTable extends Table {
   /** Analytics table type. */
   private final AnalyticsTableType tableType;
@@ -255,6 +257,16 @@ public class AnalyticsTable extends Table {
    */
   public AnalyticsTable addTablePartition(
       List<String> checks, Integer year, Date startDate, Date endDate) {
+
+    if (isDistributed()) {
+      log.info(
+          "Partitions are not supported when using CITUS for distributed analytics tables: no partition for "
+              + year
+              + " will be added to table "
+              + getName());
+      return this;
+    }
+
     Objects.requireNonNull(year);
 
     AnalyticsTablePartition partition =

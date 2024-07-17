@@ -55,7 +55,7 @@ public class Table {
   /** Table name. Required. */
   @EqualsAndHashCode.Include private final String name;
 
-  private boolean distribution;
+  private boolean distributed;
 
   /** Table columns. At least one column required, unless a parent table is specified. */
   private final List<Column> columns;
@@ -107,7 +107,7 @@ public class Table {
     this.checks = List.of();
     this.logged = logged;
     this.parent = null;
-    this.distribution = false;
+    this.distributed = false;
     this.validate();
   }
 
@@ -124,14 +124,14 @@ public class Table {
       List<Column> columns,
       List<String> primaryKey,
       Logged logged,
-      boolean distribution) {
+      boolean distributed) {
     this.name = name;
     this.columns = columns;
     this.primaryKey = primaryKey;
     this.checks = List.of();
     this.logged = logged;
     this.parent = null;
-    this.distribution = distribution;
+    this.distributed = distributed;
     this.validate();
   }
 

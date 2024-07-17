@@ -33,7 +33,6 @@ import static org.hisp.dhis.analytics.table.util.PartitionUtils.getStartDate;
 import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.TEXT;
-import static org.hisp.dhis.db.model.Distribution.DISTRIBUTED;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.Collection;
@@ -190,7 +189,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     createAnalyticsTable(table);
     createAnalyticsTablePartitions(table);
 
-    if (analyticsTableSettings.getDistribution() == DISTRIBUTED) {
+    if (table.isDistributed()) {
       createDistributedCitusTable(table);
     }
   }
@@ -213,7 +212,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
     try {
       jdbcTemplate.query(
-          "select create_distributed_table( :1, :2 )",
+          "select create_distributed_table( ?, ? )",
           ps -> {
             ps.setString(1, tableName);
             ps.setString(2, distributionColumn);
