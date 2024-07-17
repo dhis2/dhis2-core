@@ -37,7 +37,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -53,8 +52,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private TrackedEntityService trackedEntityService;
-
-  @Autowired private EnrollmentService enrollmentService;
 
   @Autowired private CategoryService categoryService;
 
@@ -113,9 +110,9 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase {
     enrollmentA = createEnrollment(prA, trackedEntityA, ouA);
     enrollmentB = createEnrollment(prA, trackedEntityB, ouB);
     enrollmentC = createEnrollment(prA, trackedEntityC, ouA);
-    enrollmentService.addEnrollment(enrollmentA);
-    enrollmentService.addEnrollment(enrollmentB);
-    enrollmentService.addEnrollment(enrollmentC);
+    manager.save(enrollmentA);
+    manager.save(enrollmentB);
+    manager.save(enrollmentC);
     eventA = createEvent(psA, enrollmentA, ouA);
     eventB = createEvent(psA, enrollmentB, ouB);
     eventC = createEvent(psA, enrollmentC, ouA);

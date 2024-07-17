@@ -33,6 +33,7 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
@@ -58,12 +59,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
 
   private final TrackerOwnershipManager trackerOwnershipAccessManager;
 
-  @Override
-  @Transactional
-  public long addEnrollment(Enrollment enrollment) {
-    enrollmentStore.save(enrollment);
-    return enrollment.getId();
-  }
+  private final IdentifiableObjectManager identifiableObjectManager;
 
   @Override
   @Transactional
@@ -174,7 +170,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
     Enrollment enrollment =
         prepareEnrollment(
             trackedEntity, program, enrollmentDate, occurredDate, organisationUnit, uid);
-    addEnrollment(enrollment);
+    identifiableObjectManager.save(enrollment);
     trackerOwnershipAccessManager.assignOwnership(
         trackedEntity, program, organisationUnit, true, true);
     eventPublisher.publishEvent(new ProgramEnrollmentNotificationEvent(this, enrollment.getId()));
