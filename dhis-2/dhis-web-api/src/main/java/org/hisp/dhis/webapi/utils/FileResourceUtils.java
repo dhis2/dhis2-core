@@ -104,7 +104,7 @@ public class FileResourceUtils {
   private static final List<String> ALLOWED_IMAGE_MIME_TYPES =
       List.of("image/jpeg", "image/png", "image/gif");
 
-  private class MultipartFileByteSource extends ByteSource {
+  private static class MultipartFileByteSource extends ByteSource {
     private MultipartFile file;
 
     public MultipartFileByteSource(MultipartFile file) {
