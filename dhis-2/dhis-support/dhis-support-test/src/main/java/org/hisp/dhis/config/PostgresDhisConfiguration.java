@@ -27,12 +27,21 @@
  */
 package org.hisp.dhis.config;
 
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+
 /**
+ * Use this Spring configuration for tests relying on the Postgres DB running in a Docker container.
+ *
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class AppControllerConfigurationProvider extends TestConfigurationProvider {
-
-  public AppControllerConfigurationProvider(String configurationFileName) {
-    this.properties = getPropertiesFromFile(configurationFileName);
+@Profile("test-postgres")
+@Configuration
+public class PostgresDhisConfiguration {
+  @Bean
+  public DhisConfigurationProvider dhisConfigurationProvider() {
+    return new PostgresDhisConfigurationProvider();
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,31 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.security;
+package org.hisp.dhis.common.network;
 
-import java.util.Properties;
-import org.hisp.dhis.config.H2DhisConfigurationProvider;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.util.Random;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-@Configuration
-@Profile({"app-controller-test"})
-public class AppControllerTestConfiguration {
+public class PortUtil {
+  private static final int MIN_PORT = 49152;
+  private static final int MAX_PORT = 65535;
+  private static final Random random = new Random();
 
-  @Bean(name = "dhisConfigurationProvider")
-  public DhisConfigurationProvider dhisConfigurationProvider() {
-    H2DhisConfigurationProvider provider = new H2DhisConfigurationProvider();
+  public static int findAvailablePort() {
+    int port;
+    do {
+      port = pickRandomPort();
+    } while (!isPortAvailable(port));
+    return port;
+  }
 
-    Properties properties = new Properties();
-    properties.put(ConfigurationKey.FILESTORE_PROVIDER.getKey(), "filesystem");
-    provider.addProperties(properties);
+  private static int pickRandomPort() {
+    return random.nextInt(MAX_PORT - MIN_PORT + 1) + MIN_PORT;
+  }
 
-    return provider;
+  private static boolean isPortAvailable(int port) {
+    try (ServerSocket serverSocket = new ServerSocket(port)) {
+      serverSocket.setReuseAddress(true);
+      return true;
+    } catch (IOException e) {
+      return false;
+    }
   }
 }

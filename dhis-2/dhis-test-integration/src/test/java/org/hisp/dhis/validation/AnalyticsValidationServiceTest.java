@@ -227,7 +227,7 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest {
     Enrollment enrollment =
         enrollmentService.enrollTrackedEntity(
             trackedEntity, program, dateMar20, dateMar20, orgUnitA);
-    enrollmentService.addEnrollment(enrollment);
+    manager.save(enrollment);
     Event eventA = createEvent(stageA, enrollment, orgUnitA);
     eventA.setOccurredDate(dateMar20);
     manager.save(eventA);

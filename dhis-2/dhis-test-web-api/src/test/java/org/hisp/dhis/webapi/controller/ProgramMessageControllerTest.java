@@ -31,12 +31,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -58,10 +56,6 @@ class ProgramMessageControllerTest extends DhisControllerConvenienceTest {
 
   @Autowired private TrackedEntityService trackedEntityService;
 
-  @Autowired private EnrollmentService enrollmentService;
-
-  @Autowired private IdentifiableObjectManager idObjectManager;
-
   private Enrollment enrollmentA;
 
   private Event eventA;
@@ -69,15 +63,15 @@ class ProgramMessageControllerTest extends DhisControllerConvenienceTest {
   @BeforeEach
   void setUp() {
     OrganisationUnit ouA = createOrganisationUnit('A');
-    idObjectManager.save(ouA);
+    manager.save(ouA);
     Program prA = createProgram('A', Sets.newHashSet(), ouA);
-    idObjectManager.save(prA);
+    manager.save(prA);
     ProgramStage psA = createProgramStage('A', prA);
-    idObjectManager.save(psA);
+    manager.save(psA);
     TrackedEntity trackedEntityA = createTrackedEntity('A', ouA);
     trackedEntityService.addTrackedEntity(trackedEntityA);
     enrollmentA = createEnrollment(prA, trackedEntityA, ouA);
-    enrollmentService.addEnrollment(enrollmentA);
+    manager.save(enrollmentA);
     eventA = createEvent(psA, enrollmentA, ouA);
     manager.save(eventA);
   }

@@ -159,7 +159,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
-  @Autowired private IdentifiableObjectManager idObjectManager;
+  @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private ProgramOwnershipHistoryService programOwnershipHistoryService;
 
@@ -284,20 +284,20 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     ouM = createOrganisationUnit('M', ouC);
     ouN = createOrganisationUnit('N', ouC);
 
-    idObjectManager.save(ouA);
-    idObjectManager.save(ouB);
-    idObjectManager.save(ouC);
-    idObjectManager.save(ouD);
-    idObjectManager.save(ouE);
-    idObjectManager.save(ouF);
-    idObjectManager.save(ouG);
-    idObjectManager.save(ouH);
-    idObjectManager.save(ouI);
-    idObjectManager.save(ouJ);
-    idObjectManager.save(ouK);
-    idObjectManager.save(ouL);
-    idObjectManager.save(ouM);
-    idObjectManager.save(ouN);
+    manager.save(ouA);
+    manager.save(ouB);
+    manager.save(ouC);
+    manager.save(ouD);
+    manager.save(ouE);
+    manager.save(ouF);
+    manager.save(ouG);
+    manager.save(ouH);
+    manager.save(ouI);
+    manager.save(ouJ);
+    manager.save(ouK);
+    manager.save(ouL);
+    manager.save(ouM);
+    manager.save(ouN);
 
     level3Ous = organisationUnitService.getOrganisationUnitsAtLevel(3);
 
@@ -308,9 +308,9 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     ou2.getSharing().setPublicAccess("--------");
     OrganisationUnitLevel ou3 = new OrganisationUnitLevel(3, "Ou Level 3");
     ou3.getSharing().setPublicAccess("--------");
-    idObjectManager.save(ou1);
-    idObjectManager.save(ou2);
-    idObjectManager.save(ou3);
+    manager.save(ou1);
+    manager.save(ou2);
+    manager.save(ou3);
 
     // Category Options
     coA = createCategoryOption('A');
@@ -393,47 +393,47 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     psA.setUid("progrStageA");
     psA.addDataElement(deA, 1);
     psA.addDataElement(deU, 2);
-    idObjectManager.save(psA);
+    manager.save(psA);
 
     ProgramStage psB = createProgramStage('B', 0);
     psB.setUid("progrStageB");
     psB.addDataElement(deA, 1);
     psB.addDataElement(deB, 2);
     psB.addDataElement(deM, 3);
-    idObjectManager.save(psB);
+    manager.save(psB);
 
     // Programs
     programA = createProgram('A');
     programA.getProgramStages().add(psA);
     programA.getOrganisationUnits().addAll(level3Ous);
     programA.setUid("programA123");
-    idObjectManager.save(programA);
+    manager.save(programA);
 
     programB = createProgram('B');
     programB.getProgramStages().add(psB);
     programB.getOrganisationUnits().addAll(level3Ous);
     programB.setUid("programB123");
     programB.setCategoryCombo(ccA);
-    idObjectManager.save(programB);
+    manager.save(programB);
 
     // Tracked Entity Attributes
     atU = createTrackedEntityAttribute('U', ORGANISATION_UNIT);
     atU.setUid("teaAttribuU");
-    idObjectManager.save(atU);
+    manager.save(atU);
 
     ProgramTrackedEntityAttribute pTea = createProgramTrackedEntityAttribute(programA, atU);
     programA.getProgramAttributes().add(pTea);
-    idObjectManager.update(programA);
+    manager.update(programA);
 
     // Tracked Entity Types
     TrackedEntityType trackedEntityType = createTrackedEntityType('A');
-    idObjectManager.save(trackedEntityType);
+    manager.save(trackedEntityType);
 
     // Tracked Entity Instances (Registrations)
     TrackedEntity teiA = createTrackedEntity(ouD);
     teiA.setUid("trackEntInA");
     teiA.setTrackedEntityType(trackedEntityType);
-    idObjectManager.save(teiA);
+    manager.save(teiA);
 
     // Tracked Entity Attribute Values
     TrackedEntityAttributeValue atv = createTrackedEntityAttributeValue('A', teiA, atU);
@@ -444,12 +444,12 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     Enrollment piA = enrollmentService.enrollTrackedEntity(teiA, programA, jan1, jan1, ouE);
     piA.setEnrollmentDate(jan1);
     piA.setOccurredDate(jan1);
-    enrollmentService.addEnrollment(piA);
+    manager.save(piA);
 
     Enrollment piB = enrollmentService.enrollTrackedEntity(teiA, programB, jan1, jan1, ouE);
     piB.setEnrollmentDate(jan1);
     piB.setOccurredDate(jan1);
-    enrollmentService.addEnrollment(piB);
+    manager.save(piB);
 
     // Change programA / teiA ownership through time:
     // Jan 1 (enrollment) - Jan 15: ouE
@@ -560,9 +560,9 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     eventM1.setUid("event0000M1");
     eventM1.setEventDataValues(Set.of(new EventDataValue(deM.getUid(), "abc,def,ghi,jkl")));
     eventM1.setAttributeOptionCombo(cocDefault);
-    idObjectManager.save(eventA2);
+    manager.save(eventA2);
 
-    idObjectManager.save(
+    manager.save(
         List.of(
             eventA1, eventA2, eventA3, eventB1, eventB2, eventB3, eventB4, eventB5, eventB6,
             eventB7, eventB8, eventM1));
@@ -573,7 +573,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     userService.addUser(userA);
     enableDataSharing(userA, programA, AccessStringHelper.DATA_READ_WRITE);
     enableDataSharing(userA, programB, AccessStringHelper.DATA_READ_WRITE);
-    idObjectManager.update(userA);
+    manager.update(userA);
 
     // Wait for one second. This is needed because last updated time for
     // the data we just created is stored to milliseconds, hh:mm:ss.SSS.

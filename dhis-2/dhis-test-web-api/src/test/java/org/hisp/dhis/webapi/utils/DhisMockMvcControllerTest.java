@@ -94,7 +94,7 @@ public abstract class DhisMockMvcControllerTest extends DhisConvenienceTest impl
     return webRequest(buildMockRequest(method, url, headers, contentType, content));
   }
 
-  private String makeApiUrl(String path) {
+  protected String makeApiUrl(String path) {
     if (path.startsWith("/api/")) {
       return path;
     }
