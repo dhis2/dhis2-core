@@ -33,6 +33,7 @@ import static org.hisp.dhis.db.model.DataType.BIGINT;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.DataType.TEXT;
+import static org.hisp.dhis.db.model.Distribution.DISTRIBUTED;
 import static org.hisp.dhis.db.model.Distribution.NONE;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
@@ -197,5 +198,53 @@ class AnalyticsTableTest {
     uniqueList.add(tableA);
     uniqueList.add(tableB);
     assertEquals(1, uniqueList.size());
+  }
+
+  @Test
+  void skipPartitionWhenTableTypeDistributedAndSystemSettingsDistributed() {
+    AnalyticsTable table =
+        new AnalyticsTable(AnalyticsTableType.EVENT, columnsA, Logged.UNLOGGED, DISTRIBUTED);
+    table.addTablePartition(
+        List.of(),
+        2014,
+        new DateTime(2014, 1, 1, 0, 0).toDate(),
+        new DateTime(2015, 1, 1, 0, 0).toDate());
+    assertEquals(0, table.getTablePartitions().size());
+  }
+
+  @Test
+  void createPartitionWhenTableTypeNotDistributedAndSystemSettingsDistributed() {
+    AnalyticsTable table =
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, Logged.UNLOGGED, DISTRIBUTED);
+    table.addTablePartition(
+        List.of(),
+        2014,
+        new DateTime(2014, 1, 1, 0, 0).toDate(),
+        new DateTime(2015, 1, 1, 0, 0).toDate());
+    assertEquals(1, table.getTablePartitions().size());
+  }
+
+  @Test
+  void createPartitionWhenTableTypeDistributedAndSystemSettingsNotDistributed() {
+    AnalyticsTable table =
+        new AnalyticsTable(AnalyticsTableType.EVENT, columnsA, Logged.UNLOGGED, NONE);
+    table.addTablePartition(
+        List.of(),
+        2014,
+        new DateTime(2014, 1, 1, 0, 0).toDate(),
+        new DateTime(2015, 1, 1, 0, 0).toDate());
+    assertEquals(1, table.getTablePartitions().size());
+  }
+
+  @Test
+  void createPartitionWhenTableTypeNotDistributedAndSystemSettingsNotDistributed() {
+    AnalyticsTable table =
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, Logged.UNLOGGED, NONE);
+    table.addTablePartition(
+        List.of(),
+        2014,
+        new DateTime(2014, 1, 1, 0, 0).toDate(),
+        new DateTime(2015, 1, 1, 0, 0).toDate());
+    assertEquals(1, table.getTablePartitions().size());
   }
 }
