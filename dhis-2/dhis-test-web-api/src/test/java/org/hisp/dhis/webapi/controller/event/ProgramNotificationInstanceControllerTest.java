@@ -34,11 +34,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Sets;
 import java.util.List;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -58,11 +56,7 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
 
   @Autowired private ProgramNotificationInstanceService programNotificationInstanceService;
 
-  @Autowired private EnrollmentService enrollmentService;
-
   @Autowired private TrackedEntityService trackedEntityService;
-
-  @Autowired private IdentifiableObjectManager idObjectManager;
 
   private Enrollment enrollment;
 
@@ -77,16 +71,16 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
   @BeforeEach
   void setUp() {
     OrganisationUnit ouA = createOrganisationUnit('A');
-    idObjectManager.save(ouA);
+    manager.save(ouA);
 
     Program prA = createProgram('A', Sets.newHashSet(), ouA);
-    idObjectManager.save(prA);
+    manager.save(prA);
     ProgramStage psA = createProgramStage('A', prA);
-    idObjectManager.save(psA);
+    manager.save(psA);
     TrackedEntity trackedEntityA = createTrackedEntity('A', ouA);
     trackedEntityService.addTrackedEntity(trackedEntityA);
     enrollment = createEnrollment(prA, trackedEntityA, ouA);
-    enrollmentService.addEnrollment(enrollment);
+    manager.save(enrollment);
 
     enrollmentNotification1 = new ProgramNotificationInstance();
     enrollmentNotification1.setName("enrollment A notification 1");

@@ -142,7 +142,7 @@ public class SimpleEventSMSListener extends EventSavingSMSListener {
       enrollment.setProgram(program);
       enrollment.setStatus(EnrollmentStatus.ACTIVE);
 
-      enrollmentService.addEnrollment(enrollment);
+      identifiableObjectManager.save(enrollment);
 
       enrollments.add(enrollment);
     } else if (enrollments.size() > 1) {
