@@ -32,32 +32,18 @@ import static org.hisp.dhis.security.Authorities.F_SEND_EMAIL;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageBatch;
-import org.hisp.dhis.program.message.ProgramMessageQueryParams;
 import org.hisp.dhis.program.message.ProgramMessageService;
-import org.hisp.dhis.program.message.ProgramMessageStatus;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /** Zubair <rajazubair.asghar@gmail.com> */
@@ -68,61 +54,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class ProgramMessageController extends AbstractCrudController<ProgramMessage> {
 
   private final ProgramMessageService programMessageService;
-  private final RenderService renderService;
-
-  // GET
-  @RequiresAuthority(anyOf = F_MOBILE_SENDSMS)
-  @GetMapping(produces = APPLICATION_JSON_VALUE)
-  public List<ProgramMessage> getProgramMessages(
-      @RequestParam(required = false) Set<String> ou,
-      @RequestParam(required = false) UID enrollment,
-      @RequestParam(required = false) UID event,
-      @RequestParam(required = false) ProgramMessageStatus messageStatus,
-      @RequestParam(required = false) Date afterDate,
-      @RequestParam(required = false) Date beforeDate,
-      @RequestParam(required = false) Integer page,
-      @RequestParam(required = false) Integer pageSize)
-      throws ConflictException {
-    if (enrollment == null && event == null) {
-      throw new ConflictException("Enrollment or Event must be specified.");
-    }
-
-    ProgramMessageQueryParams params =
-        programMessageService.getFromUrl(
-            ou,
-            enrollment == null ? null : enrollment.getValue(),
-            event == null ? null : event.getValue(),
-            messageStatus,
-            page,
-            pageSize,
-            afterDate,
-            beforeDate);
-
-    return programMessageService.getProgramMessages(params);
-  }
-
-  @RequiresAuthority(anyOf = F_MOBILE_SENDSMS)
-  @GetMapping(value = "/scheduled/{status}", produces = APPLICATION_JSON_VALUE)
-  public List<ProgramMessage> getScheduledSentMessage(
-      @OpenApi.Param({UID.class, Enrollment.class}) @RequestParam(required = false) UID enrollment,
-      @OpenApi.Param({UID.class, Event.class}) @RequestParam(required = false) UID event,
-      @RequestParam(required = false) Date afterDate,
-      @RequestParam(required = false) Integer page,
-      @RequestParam(required = false) Integer pageSize,
-      @PathVariable ProgramMessageStatus status) {
-    ProgramMessageQueryParams params =
-        programMessageService.getFromUrl(
-            null,
-            enrollment == null ? null : enrollment.getValue(),
-            event == null ? null : event.getValue(),
-            status,
-            page,
-            pageSize,
-            afterDate,
-            null);
-
-    return programMessageService.getProgramMessages(params);
-  }
 
   // POST
   @RequiresAuthority(anyOf = {F_MOBILE_SENDSMS, F_SEND_EMAIL})
