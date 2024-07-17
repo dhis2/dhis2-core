@@ -77,9 +77,7 @@ class PredictorControllerTest extends DhisControllerConvenienceTest {
   void testRunPredictor() {
     String pId = postNewPredictor();
 
-    User actingUser = XpreCreateInjectAdminUserWithoutPersistence();
-    manager.persist(actingUser);
-
+    User actingUser = superUser;
     UserDetails currentUserDetails = UserDetails.fromUser(actingUser);
     currentUserDetails.setId(0L);
     injectSecurityContext(currentUserDetails);
