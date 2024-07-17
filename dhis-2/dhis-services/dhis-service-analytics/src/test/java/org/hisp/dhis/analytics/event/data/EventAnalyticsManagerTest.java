@@ -79,7 +79,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
@@ -109,7 +108,6 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private ExecutionPlanStore executionPlanStore;
 
-  @Mock private OrganisationUnitService organisationUnitService;
   private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
   private JdbcEventAnalyticsManager subject;
@@ -140,8 +138,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             programIndicatorSubqueryBuilder,
             timeCoordinateSelector,
             executionPlanStore,
-            sqlBuilder,
-            organisationUnitService);
+            sqlBuilder);
 
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(this.rowSet);
   }
