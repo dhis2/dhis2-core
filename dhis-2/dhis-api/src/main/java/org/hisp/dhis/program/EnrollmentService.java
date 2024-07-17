@@ -60,13 +60,6 @@ public interface EnrollmentService {
   void hardDeleteEnrollment(Enrollment enrollment);
 
   /**
-   * Updates an {@link Enrollment}.
-   *
-   * @param enrollment the Enrollment to update.
-   */
-  void updateEnrollment(Enrollment enrollment);
-
-  /**
    * Returns a list of existing Enrollments from the provided UIDs
    *
    * @param uids Event UIDs to check

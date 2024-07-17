@@ -35,6 +35,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
@@ -70,6 +71,8 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase {
   @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private ProgramService programService;
+
+  @Autowired private IdentifiableObjectManager manager;
 
   @Override
   public void setUpTest() {
@@ -153,8 +156,8 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase {
     Enrollment enrollment2 = createEnrollment(program1, duplicate, ou);
     enrollmentService.addEnrollment(enrollment1);
     enrollmentService.addEnrollment(enrollment2);
-    enrollmentService.updateEnrollment(enrollment1);
-    enrollmentService.updateEnrollment(enrollment2);
+    manager.update(enrollment1);
+    manager.update(enrollment2);
     original.getEnrollments().add(enrollment1);
     duplicate.getEnrollments().add(enrollment2);
     trackedEntityService.updateTrackedEntity(original);
