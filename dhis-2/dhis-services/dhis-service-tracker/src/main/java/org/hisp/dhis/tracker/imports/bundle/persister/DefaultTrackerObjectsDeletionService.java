@@ -38,7 +38,6 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceParam;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
-import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
@@ -104,10 +103,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
       List<org.hisp.dhis.tracker.imports.domain.Relationship> relationships =
           relationshipTrackerConverterService.to(
-              enrollment.getRelationshipItems().stream()
-                  .map(RelationshipItem::getRelationship)
-                  .filter(r -> !r.isDeleted())
-                  .toList());
+              relationshipService.getRelationshipsByEnrollment(enrollment, false));
 
       TrackerBundle trackerBundle =
           TrackerBundle.builder()
@@ -155,10 +151,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
       List<org.hisp.dhis.tracker.imports.domain.Relationship> relationships =
           relationshipTrackerConverterService.to(
-              event.getRelationshipItems().stream()
-                  .map(RelationshipItem::getRelationship)
-                  .filter(r -> !r.isDeleted())
-                  .toList());
+              relationshipService.getRelationshipsByEvent(event, false));
 
       TrackerBundle trackerBundle =
           TrackerBundle.builder()
@@ -220,10 +213,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
       List<org.hisp.dhis.tracker.imports.domain.Relationship> relationships =
           relationshipTrackerConverterService.to(
-              entity.getRelationshipItems().stream()
-                  .map(RelationshipItem::getRelationship)
-                  .filter(r -> !r.isDeleted())
-                  .toList());
+              relationshipService.getRelationshipsByTrackedEntity(entity, false));
 
       TrackerBundle trackerBundle =
           TrackerBundle.builder()
