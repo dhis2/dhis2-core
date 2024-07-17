@@ -62,6 +62,10 @@ import org.mockito.quality.Strictness;
 @ExtendWith(MockitoExtension.class)
 class DeduplicationServiceTest {
 
+  private static final String TE_A_UID = "TvctPPhpD8u";
+
+  private static final String TE_B_UID = "D9PbzJY8bJO";
+
   @InjectMocks private DefaultDeduplicationService deduplicationService;
 
   @Mock private TrackedEntity trackedEntityA;
@@ -106,6 +110,8 @@ class DeduplicationServiceTest {
     TrackedEntityType trackedEntityPerson = new TrackedEntityType();
     trackedEntityPerson.setName("Person");
     trackedEntityPerson.setUid(CodeGenerator.generateUid());
+    when(trackedEntityA.getUid()).thenReturn(TE_A_UID);
+    when(trackedEntityB.getUid()).thenReturn(TE_B_UID);
     when(trackedEntityA.getTrackedEntityType()).thenReturn(trackedEntityPerson);
     when(trackedEntityB.getTrackedEntityType()).thenReturn(trackedEntityPerson);
     when(deduplicationHelper.getUserAccessErrors(any(), any(), any())).thenReturn(null);
