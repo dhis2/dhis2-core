@@ -35,6 +35,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
@@ -71,6 +72,8 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase {
 
   @Autowired private ProgramService programService;
 
+  @Autowired private IdentifiableObjectManager manager;
+
   @Override
   public void setUpTest() {
     super.userService = this.userService;
@@ -99,8 +102,8 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase {
     programService.addProgram(program1);
     Enrollment enrollment1 = createEnrollment(program, original, ou);
     Enrollment enrollment2 = createEnrollment(program1, duplicate, ou);
-    enrollmentService.addEnrollment(enrollment1);
-    enrollmentService.addEnrollment(enrollment2);
+    manager.save(enrollment1);
+    manager.save(enrollment2);
     original.getEnrollments().add(enrollment1);
     duplicate.getEnrollments().add(enrollment2);
     trackedEntityService.updateTrackedEntity(original);
@@ -151,8 +154,8 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase {
     program1.setSharing(sharing);
     Enrollment enrollment1 = createEnrollment(program, original, ou);
     Enrollment enrollment2 = createEnrollment(program1, duplicate, ou);
-    enrollmentService.addEnrollment(enrollment1);
-    enrollmentService.addEnrollment(enrollment2);
+    manager.save(enrollment1);
+    manager.save(enrollment2);
     enrollmentService.updateEnrollment(enrollment1);
     enrollmentService.updateEnrollment(enrollment2);
     original.getEnrollments().add(enrollment1);

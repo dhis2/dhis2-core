@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -68,7 +69,7 @@ class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegration
 
   @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
-  @Autowired private org.hisp.dhis.program.EnrollmentService apiEnrollmentService;
+  @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private EnrollmentService enrollmentService;
 
@@ -155,10 +156,10 @@ class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegration
     Enrollment enrollment2 = createEnrollment(program, duplicate, ou);
     Enrollment enrollment3 = createEnrollment(program, control1, ou);
     Enrollment enrollment4 = createEnrollment(program, control2, ou);
-    apiEnrollmentService.addEnrollment(enrollment1);
-    apiEnrollmentService.addEnrollment(enrollment2);
-    apiEnrollmentService.addEnrollment(enrollment3);
-    apiEnrollmentService.addEnrollment(enrollment4);
+    manager.save(enrollment1);
+    manager.save(enrollment2);
+    manager.save(enrollment3);
+    manager.save(enrollment4);
     original.getEnrollments().add(enrollment1);
     duplicate.getEnrollments().add(enrollment2);
     control1.getEnrollments().add(enrollment3);
