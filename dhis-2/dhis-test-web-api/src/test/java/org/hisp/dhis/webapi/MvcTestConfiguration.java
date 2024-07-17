@@ -96,7 +96,7 @@ import org.springframework.web.servlet.resource.ResourceUrlProviderExposingInter
 @Configuration
 @EnableWebMvc
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-public class MvcTestConfig implements WebMvcConfigurer {
+public class MvcTestConfiguration implements WebMvcConfigurer {
   @Autowired private UserSettingService userSettingService;
 
   @Autowired public DefaultRequestInfoService requestInfoService;

@@ -96,7 +96,7 @@ import org.springframework.web.context.WebApplicationContext;
     classes = {
       H2DhisConfiguration.class,
       PostgresDhisConfiguration.class,
-      MvcTestConfig.class,
+      MvcTestConfiguration.class,
       WebTestConfiguration.class
     })
 @Transactional
