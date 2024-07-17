@@ -39,6 +39,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -68,6 +69,7 @@ class DeduplicationServiceTest {
   @Mock private Enrollment enrollmentA;
 
   @Mock private Enrollment enrollmentB;
+
   @Mock private UserService userService;
 
   @Mock private DeduplicationHelper deduplicationHelper;
@@ -89,7 +91,7 @@ class DeduplicationServiceTest {
   private static final String teavSexFirstName = "John";
 
   @BeforeEach
-  void setUp() {
+  void setUp() throws ForbiddenException {
     PotentialDuplicate potentialDuplicate = new PotentialDuplicate("original", "duplicate");
     deduplicationMergeParams =
         DeduplicationMergeParams.builder()
@@ -146,7 +148,9 @@ class DeduplicationServiceTest {
 
   @Test
   void shouldBeAutoMergeable()
-      throws PotentialDuplicateConflictException, PotentialDuplicateForbiddenException {
+      throws PotentialDuplicateConflictException,
+          PotentialDuplicateForbiddenException,
+          ForbiddenException {
     MergeObject mergeObject = MergeObject.builder().build();
     when(deduplicationHelper.generateMergeObject(trackedEntityA, trackedEntityB))
         .thenReturn(mergeObject);
@@ -252,7 +256,9 @@ class DeduplicationServiceTest {
 
   @Test
   void shouldNotBeAutoMergeableNoUserAccess()
-      throws PotentialDuplicateConflictException, PotentialDuplicateForbiddenException {
+      throws PotentialDuplicateConflictException,
+          PotentialDuplicateForbiddenException,
+          ForbiddenException {
     MergeObject mergeObject = MergeObject.builder().build();
     when(deduplicationHelper.generateMergeObject(trackedEntityA, trackedEntityB))
         .thenReturn(mergeObject);
@@ -269,7 +275,9 @@ class DeduplicationServiceTest {
 
   @Test
   void shouldtBeAutoMergeableAttributeValuesIsEmpty()
-      throws PotentialDuplicateConflictException, PotentialDuplicateForbiddenException {
+      throws PotentialDuplicateConflictException,
+          PotentialDuplicateForbiddenException,
+          ForbiddenException {
     when(trackedEntityB.getTrackedEntityAttributeValues()).thenReturn(new HashSet<>());
     MergeObject mergeObject = MergeObject.builder().build();
     when(deduplicationHelper.generateMergeObject(trackedEntityA, trackedEntityB))
@@ -288,7 +296,9 @@ class DeduplicationServiceTest {
 
   @Test
   void shouldBeManualMergeable()
-      throws PotentialDuplicateConflictException, PotentialDuplicateForbiddenException {
+      throws PotentialDuplicateConflictException,
+          PotentialDuplicateForbiddenException,
+          ForbiddenException {
     deduplicationService.manualMerge(deduplicationMergeParams);
     verify(deduplicationHelper, times(1)).getInvalidReferenceErrors(deduplicationMergeParams);
     verify(deduplicationHelper, times(0)).generateMergeObject(trackedEntityA, trackedEntityB);
@@ -311,7 +321,9 @@ class DeduplicationServiceTest {
 
   @Test
   void shouldThrowManualMergeableHasInvalidReference()
-      throws PotentialDuplicateConflictException, PotentialDuplicateForbiddenException {
+      throws PotentialDuplicateConflictException,
+          PotentialDuplicateForbiddenException,
+          ForbiddenException {
     when(deduplicationHelper.getInvalidReferenceErrors(deduplicationMergeParams))
         .thenReturn("Error");
     assertThrows(

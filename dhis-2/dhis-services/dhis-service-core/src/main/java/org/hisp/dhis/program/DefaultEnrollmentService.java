@@ -29,7 +29,6 @@ package org.hisp.dhis.program;
 
 import java.util.Date;
 import java.util.List;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
@@ -77,12 +76,6 @@ public class DefaultEnrollmentService implements EnrollmentService {
   @Transactional
   public void hardDeleteEnrollment(Enrollment enrollment) {
     enrollmentStore.hardDelete(enrollment);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<Enrollment> getEnrollments(@Nonnull List<String> uids) {
-    return enrollmentStore.getByUid(uids);
   }
 
   @Override

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.tracker.deduplication;
 
+import static org.hisp.dhis.security.Authorities.ALL;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -36,16 +38,19 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.collection.ListUtils;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -65,6 +70,7 @@ public class DeduplicationHelper {
   private final EnrollmentService enrollmentService;
 
   private final UserService userService;
+  private final TrackerAccessManager trackerAccessManager;
 
   public String getInvalidReferenceErrors(DeduplicationMergeParams params) {
     TrackedEntity original = params.getOriginal();
@@ -248,13 +254,16 @@ public class DeduplicationHelper {
   }
 
   public String getUserAccessErrors(
-      TrackedEntity original, TrackedEntity duplicate, MergeObject mergeObject) {
+      TrackedEntity original, TrackedEntity duplicate, MergeObject mergeObject)
+      throws ForbiddenException {
 
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
 
     if (currentUserDetails == null
-        || !(currentUserDetails.getAllAuthorities().contains("ALL")
-            || currentUserDetails.getAllAuthorities().contains("F_TRACKED_ENTITY_MERGE"))) {
+        || !(currentUserDetails.getAllAuthorities().contains(ALL.name())
+            || currentUserDetails
+                .getAllAuthorities()
+                .contains(Authorities.F_TRACKED_ENTITY_MERGE.name()))) {
       return "Missing required authority for merging tracked entities.";
     }
 
@@ -274,7 +283,8 @@ public class DeduplicationHelper {
       return "Missing data write access to one or more Relationship Types.";
     }
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(mergeObject.getEnrollments());
+    List<Enrollment> enrollments =
+        enrollmentService.getEnrollments(mergeObject.getEnrollments(), currentUserDetails);
 
     if (enrollments.stream()
         .anyMatch(e -> !aclService.canDataWrite(currentUserDetails, e.getProgram()))) {

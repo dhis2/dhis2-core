@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.export.enrollment;
 
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -57,6 +58,15 @@ public interface EnrollmentService {
   /** Get a page of enrollments matching given params. */
   Page<Enrollment> getEnrollments(EnrollmentOperationParams params, PageParams pageParams)
       throws BadRequestException, ForbiddenException;
+
+  /**
+   * Returns a list of existing Enrollments from the provided UIDs
+   *
+   * @param uids Enrollment UIDs to check
+   * @return Enrollment list
+   */
+  List<Enrollment> getEnrollments(@Nonnull List<String> uids, UserDetails currentUser)
+      throws ForbiddenException;
 
   /**
    * Fields the {@link #getEnrollments(EnrollmentOperationParams)} can order enrollments by.
