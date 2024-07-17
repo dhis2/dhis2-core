@@ -94,6 +94,7 @@ public class CopyService {
   private final EnrollmentService enrollmentService;
 
   private final AclService aclService;
+
   private final IdentifiableObjectManager identifiableObjectManager;
 
   /**
