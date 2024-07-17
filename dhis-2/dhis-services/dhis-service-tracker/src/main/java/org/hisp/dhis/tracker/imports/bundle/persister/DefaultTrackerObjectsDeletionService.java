@@ -92,14 +92,15 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
               .filter(event -> !event.isDeleted())
               .map(BaseIdentifiableObject::getUid)
               .toList();
+      deleteEvents(events);
 
       List<String> relationships =
           relationshipService.getRelationshipsByEnrollment(enrollment, false).stream()
               .map(BaseIdentifiableObject::getUid)
               .toList();
 
-      deleteEvents(events);
       deleteRelationships(relationships);
+
       List<ProgramNotificationInstance> notificationInstances =
           programNotificationInstanceService.getProgramNotificationInstances(
               ProgramNotificationInstanceParam.builder().enrollment(enrollment).build());
@@ -187,13 +188,12 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
               .filter(enrollment -> !enrollment.isDeleted())
               .map(BaseIdentifiableObject::getUid)
               .toList();
+      deleteEnrollments(enrollments);
 
       List<String> relationships =
           relationshipService.getRelationshipsByTrackedEntity(entity, false).stream()
               .map(BaseIdentifiableObject::getUid)
               .toList();
-
-      deleteEnrollments(enrollments);
       deleteRelationships(relationships);
 
       Collection<TrackedEntityAttributeValue> attributeValues =
