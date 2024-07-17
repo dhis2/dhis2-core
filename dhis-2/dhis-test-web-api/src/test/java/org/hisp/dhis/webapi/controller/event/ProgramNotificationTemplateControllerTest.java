@@ -41,7 +41,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,7 +49,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class ProgramNotificationTemplateControllerTest extends DhisControllerConvenienceTest {
+class ProgramNotificationTemplateControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager idObjectManager;
 

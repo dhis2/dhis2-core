@@ -37,7 +37,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -46,7 +46,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class DataSetControllerTest extends DhisControllerConvenienceTest {
+class DataSetControllerTest extends H2ControllerIntegrationTestBase {
 
   private String dsId;
 

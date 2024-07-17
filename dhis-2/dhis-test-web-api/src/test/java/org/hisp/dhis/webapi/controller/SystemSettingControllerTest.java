@@ -39,7 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.Test;
 
@@ -48,7 +48,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class SystemSettingControllerTest extends DhisControllerConvenienceTest {
+class SystemSettingControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testSetSystemSettingOrTranslation_NoSuchObject() {

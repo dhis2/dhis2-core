@@ -36,7 +36,7 @@ import java.util.List;
 import org.hisp.dhis.jsontree.JsonBoolean;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.controller.UserDatastoreController;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,7 +48,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class UserDatastoreSuperuserControllerTest extends DhisControllerConvenienceTest {
+class UserDatastoreSuperuserControllerTest extends H2ControllerIntegrationTestBase {
   private User paul;
 
   @BeforeEach

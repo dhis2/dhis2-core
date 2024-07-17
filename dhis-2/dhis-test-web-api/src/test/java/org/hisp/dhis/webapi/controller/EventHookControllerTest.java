@@ -39,7 +39,7 @@ import org.hisp.dhis.eventhook.targets.WebhookTarget;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -47,7 +47,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Morten Olav Hansen
  */
-class EventHookControllerTest extends DhisControllerIntegrationTest {
+class EventHookControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void testGetEventHooks() {
     JsonObject eventHooks = GET("/eventHooks").content(HttpStatus.OK);

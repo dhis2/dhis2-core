@@ -43,13 +43,13 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Slf4j
-class CrudControllerIntegrationTest extends DhisControllerIntegrationTest {
+class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired private UserSettingService userSettingService;
 

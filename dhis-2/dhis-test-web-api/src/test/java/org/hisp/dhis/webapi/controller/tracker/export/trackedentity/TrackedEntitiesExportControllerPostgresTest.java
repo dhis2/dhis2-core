@@ -64,7 +64,7 @@ import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage.JsonPager;
 import org.hisp.dhis.webapi.controller.tracker.JsonTrackedEntityChangeLog;
@@ -75,7 +75,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrationTest {
+class TrackedEntitiesExportControllerPostgresTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired private ObjectBundleService objectBundleService;
 

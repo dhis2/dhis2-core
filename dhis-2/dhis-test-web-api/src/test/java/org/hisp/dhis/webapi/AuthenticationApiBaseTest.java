@@ -27,67 +27,60 @@
  */
 package org.hisp.dhis.webapi;
 
-import static org.hisp.dhis.web.WebClientUtils.failOnException;
-
-import javax.persistence.EntityManager;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.config.H2DhisConfiguration;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.utils.TestUtils;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 import org.springframework.security.web.FilterChainProxy;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 /**
  * Base class for convenient testing of the web API on basis of {@link
- * org.hisp.dhis.jsontree.JsonMixed} responses, with API tokens.
+ * org.hisp.dhis.jsontree.JsonMixed} responses, with authentication.
  *
- * <p>This class differs from {@link DhisControllerConvenienceTest} in that this base class also
+ * <p>This class differs from {@link H2ControllerIntegrationTestBase} in that this base class also
  * includes the {@link FilterChainProxy} so that we can authenticate the request like it would in a
  * normal running server.
  *
- * @author Morten Svanæs
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @ContextConfiguration(
     inheritLocations = false,
-    classes = {H2DhisConfiguration.class, WebMvcConfig.class})
-public abstract class DhisControllerWithApiTokenAuthTest extends DhisControllerConvenienceTest {
-  @Autowired private UserService _userService;
+    classes = {
+      H2DhisConfiguration.class,
+      WebMvcConfig.class,
+      AuthenticationApiBaseTest.AuthConfigProviderConfiguration.class,
+    })
+public abstract class AuthenticationApiBaseTest extends H2ControllerIntegrationTestBase {
 
-  @Autowired private EntityManager entityManager;
-
-  @Autowired private FilterChainProxy springSecurityFilterChain;
-
-  @Override
-  @BeforeEach
-  void setup() {
-    userService = _userService;
-    clearSecurityContext();
-
-    User randomAdminUser =
-        DhisConvenienceTest.createRandomAdminUserWithEntityManager(entityManager);
-    injectSecurityContextUser(randomAdminUser);
-
-    adminUser = createAndAddAdminUser("ALL");
-
-    mvc =
-        MockMvcBuilders.webAppContextSetup(webApplicationContext)
-            .addFilter(springSecurityFilterChain)
-            .build();
-
-    injectSecurityContextUser(adminUser);
-
-    TestUtils.executeStartupRoutines(webApplicationContext);
+  static class AuthConfigProviderConfiguration {
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+      return web ->
+          web.debug(false)
+              .ignoring()
+              .requestMatchers(
+                  new AntPathRequestMatcher("/api/ping"),
+                  new AntPathRequestMatcher("/auth/login"),
+                  new AntPathRequestMatcher("/favicon.ico"));
+    }
   }
 
-  @Override
-  protected final HttpResponse webRequest(MockHttpServletRequestBuilder request) {
-    return failOnException(
-        () -> new HttpResponse(toResponse(mvc.perform(request).andReturn().getResponse())));
+  @Autowired
+  @Qualifier("springSecurityFilterChain")
+  private FilterChainProxy springSecurityFilterChain;
+
+  @BeforeEach
+  void setupMockMvc() {
+    mvc =
+        MockMvcBuilders.webAppContextSetup(webApplicationContext)
+            .apply(SecurityMockMvcConfigurers.springSecurity(springSecurityFilterChain))
+            .build();
   }
 }

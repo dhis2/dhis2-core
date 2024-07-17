@@ -59,7 +59,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.web.snippets.SomeUserId;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.webapi.json.domain.JsonGeoMap;
@@ -80,7 +80,7 @@ import org.springframework.http.MediaType;
  *
  * @author Jan Bernitt
  */
-class AbstractCrudControllerTest extends DhisControllerConvenienceTest {
+class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testGetObjectList() {

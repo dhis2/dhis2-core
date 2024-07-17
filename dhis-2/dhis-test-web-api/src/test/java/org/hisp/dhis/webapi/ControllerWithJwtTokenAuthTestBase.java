@@ -27,60 +27,48 @@
  */
 package org.hisp.dhis.webapi;
 
-import org.hisp.dhis.config.H2DhisConfiguration;
+import java.sql.SQLException;
+import javax.sql.DataSource;
+import org.hisp.dhis.config.TestDhisConfigurationProvider;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.h2.H2SqlFunction;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
-import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 import org.springframework.security.web.FilterChainProxy;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 /**
  * Base class for convenient testing of the web API on basis of {@link
- * org.hisp.dhis.jsontree.JsonMixed} responses, with authentication.
+ * org.hisp.dhis.jsontree.JsonMixed} responses, with JWT token
  *
- * <p>This class differs from {@link DhisControllerConvenienceTest} in that this base class also
- * includes the {@link FilterChainProxy} so that we can authenticate the request like it would in a
- * normal running server.
- *
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author Morten Svanæs
  */
 @ContextConfiguration(
     inheritLocations = false,
-    classes = {
-      H2DhisConfiguration.class,
-      WebMvcConfig.class,
-      DhisAuthenticationApiTest.AuthConfigProviderConfiguration.class,
-    })
-public abstract class DhisAuthenticationApiTest extends DhisControllerConvenienceTest {
+    classes = {ControllerWithJwtTokenAuthTestBase.DhisConfiguration.class, WebMvcConfig.class})
+public abstract class ControllerWithJwtTokenAuthTestBase extends H2ControllerIntegrationTestBase {
 
-  static class AuthConfigProviderConfiguration {
+  static class DhisConfiguration {
     @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-      return web ->
-          web.debug(false)
-              .ignoring()
-              .requestMatchers(
-                  new AntPathRequestMatcher("/api/ping"),
-                  new AntPathRequestMatcher("/auth/login"),
-                  new AntPathRequestMatcher("/favicon.ico"));
+    public DhisConfigurationProvider dhisConfigurationProvider() {
+      return new TestDhisConfigurationProvider("dhisControllerWithJwtTokenAuthTestDhis.conf");
     }
   }
 
-  @Autowired
-  @Qualifier("springSecurityFilterChain")
-  private FilterChainProxy springSecurityFilterChain;
+  @Autowired private FilterChainProxy springSecurityFilterChain;
+
+  @Autowired private DataSource dataSource;
 
   @BeforeEach
-  void setupMockMvc() {
+  void setupMockMvcAndH2() throws SQLException {
     mvc =
         MockMvcBuilders.webAppContextSetup(webApplicationContext)
-            .apply(SecurityMockMvcConfigurers.springSecurity(springSecurityFilterChain))
+            .addFilter(springSecurityFilterChain)
             .build();
+
+    H2SqlFunction.registerH2Functions(dataSource);
   }
 }

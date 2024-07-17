@@ -33,12 +33,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.List;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.webapi.json.domain.JsonOptionSet;
 import org.junit.jupiter.api.Test;
 
-class OptionControllerTest extends DhisControllerConvenienceTest {
+class OptionControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testUpdateOptionWithSortOrderGap() {
     // Create OptionSet with two Options

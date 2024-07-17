@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -42,7 +42,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class MapControllerTest extends DhisControllerConvenienceTest {
+class MapControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testPutJsonObject() {
     String mapId = assertStatus(HttpStatus.CREATED, POST("/maps/", "{'name':'My map'}"));

@@ -45,7 +45,7 @@ import org.hisp.dhis.security.apikey.ApiTokenStore;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.web.HttpStatus.Series;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,7 +56,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Jan Bernitt
  */
-class MeControllerTest extends DhisControllerConvenienceTest {
+class MeControllerTest extends H2ControllerIntegrationTestBase {
   private User userA;
 
   @Autowired private ApiTokenStore apiTokenStore;

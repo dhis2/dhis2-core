@@ -34,13 +34,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-class MetadataImportIntegrationTest extends DhisControllerIntegrationTest {
+class MetadataImportIntegrationTest extends PostgresControllerIntegrationTestBase {
   @Test
   @DisplayName("Should return error when import program with inaccessible programStage")
   void testImportInaccessibleReference() {

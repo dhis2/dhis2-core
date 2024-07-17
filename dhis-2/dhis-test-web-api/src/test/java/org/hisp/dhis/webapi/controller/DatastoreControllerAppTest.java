@@ -37,7 +37,7 @@ import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +60,7 @@ import org.springframework.core.io.ClassPathResource;
  * @author Jan Bernitt
  * @see DatastoreControllerTest
  */
-class DatastoreControllerAppTest extends DhisControllerConvenienceTest {
+class DatastoreControllerAppTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private AppManager appManager;
 

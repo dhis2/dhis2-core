@@ -37,10 +37,10 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 
-abstract class AbstractDataValueControllerTest extends DhisControllerConvenienceTest {
+abstract class AbstractDataValueControllerTest extends H2ControllerIntegrationTestBase {
   protected String dataElementId;
 
   protected String orgUnitId;

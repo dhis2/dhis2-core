@@ -40,7 +40,7 @@ import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,7 +50,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class JobSchedulerControllerTest extends DhisControllerConvenienceTest {
+class JobSchedulerControllerTest extends H2ControllerIntegrationTestBase {
   private String jobIdA;
 
   private String jobIdB;

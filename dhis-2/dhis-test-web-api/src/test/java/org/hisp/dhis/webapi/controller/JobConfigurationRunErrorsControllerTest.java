@@ -41,7 +41,7 @@ import org.hisp.dhis.jsontree.JsonNodeType;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.scheduling.JobStatus;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.json.domain.JsonJobConfiguration;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,7 +52,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class JobConfigurationRunErrorsControllerTest extends DhisControllerIntegrationTest {
+class JobConfigurationRunErrorsControllerTest extends PostgresControllerIntegrationTestBase {
 
   private String jobId;
 

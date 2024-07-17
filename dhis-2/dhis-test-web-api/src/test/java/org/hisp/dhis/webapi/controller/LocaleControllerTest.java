@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.json.domain.JsonWebLocale;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -44,7 +44,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class LocaleControllerTest extends DhisControllerConvenienceTest {
+class LocaleControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testAddLocale() {

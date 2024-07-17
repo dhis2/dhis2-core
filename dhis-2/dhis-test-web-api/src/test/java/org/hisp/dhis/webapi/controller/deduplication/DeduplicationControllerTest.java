@@ -44,7 +44,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.deduplication.DeduplicationStatus;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicate;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,7 +53,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author luca@dhis2.org
  */
-class DeduplicationControllerTest extends DhisControllerConvenienceTest {
+class DeduplicationControllerTest extends H2ControllerIntegrationTestBase {
   private static final String ENDPOINT = "/" + "potentialDuplicates/";
 
   @Autowired private IdentifiableObjectManager dbmsManager;
