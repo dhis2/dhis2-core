@@ -37,22 +37,37 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.hisp.dhis.appmanager.AppManager;
+import org.hisp.dhis.config.TestDhisConfigurationProvider;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.AppControllerBaseTest;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.test.context.ContextConfiguration;
 
 /**
  * Tests the {@link AppController}
  *
  * @author Jan Bernitt
  */
-class AppControllerTest extends AppControllerBaseTest {
+@ContextConfiguration(
+    classes = {
+      AppControllerTest.DhisConfiguration.class,
+    })
+class AppControllerTest extends DhisControllerConvenienceTest {
+
+  static class DhisConfiguration {
+    @Bean
+    public DhisConfigurationProvider dhisConfigurationProvider() {
+      return new TestDhisConfigurationProvider("appControllerBaseTestDhis.conf");
+    }
+  }
 
   @Autowired private AppManager appManager;
 

@@ -38,6 +38,8 @@ import java.util.List;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpMethod;
 import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
@@ -202,5 +204,12 @@ class DataValueControllerTest extends AbstractDataValueControllerTest {
     return format(
         "{'dataElement':'%s', 'period':'%s', 'orgUnit':'%s', 'categoryOptionCombo':'%s', 'followup':%b}",
         dataElementId, period, orgUnitId, categoryOptionComboId, followup);
+  }
+
+  private void switchToUserWithOrgUnitDataView(String userName, String orgUnitId) {
+    User user = makeUser(userName, Collections.singletonList("ALL"));
+    user.getDataViewOrganisationUnits().add(manager.get(OrganisationUnit.class, orgUnitId));
+    userService.addUser(user);
+    switchContextToUser(user);
   }
 }
