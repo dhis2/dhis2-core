@@ -46,7 +46,7 @@ class ApiVersionTypeTest extends DhisWebSpringTest {
 
   @Test
   void testTypeAnnotationDefault() throws Exception {
-    MockHttpSession session = getSession("ALL");
+    MockHttpSession session = getMockHttpSession();
     String endpoint = "/type/testDefault";
     mvc.perform(get(endpoint).session(session)).andExpect(status().isOk());
     mvc.perform(get("/31" + endpoint).session(session)).andExpect(status().isNotFound());
@@ -55,7 +55,7 @@ class ApiVersionTypeTest extends DhisWebSpringTest {
 
   @Test
   void testTypeAnnotationDefaultV31() throws Exception {
-    MockHttpSession session = getSession("ALL");
+    MockHttpSession session = getMockHttpSession();
     String endpoint = "/type/testDefaultV31";
     mvc.perform(get(endpoint).session(session)).andExpect(status().isOk());
     mvc.perform(get("/31" + endpoint).session(session)).andExpect(status().isOk());
@@ -64,7 +64,7 @@ class ApiVersionTypeTest extends DhisWebSpringTest {
 
   @Test
   void testTypeAnnotationV31V32() throws Exception {
-    MockHttpSession session = getSession("ALL");
+    MockHttpSession session = getMockHttpSession();
     String endpoint = "/type/testV31V32";
     mvc.perform(get(endpoint).session(session)).andExpect(status().isNotFound());
     mvc.perform(get("/31" + endpoint).session(session)).andExpect(status().isOk());
@@ -73,7 +73,7 @@ class ApiVersionTypeTest extends DhisWebSpringTest {
 
   @Test
   void testTypeAnnotationAll() throws Exception {
-    MockHttpSession session = getSession("ALL");
+    MockHttpSession session = getMockHttpSession();
     String endpoint = "/type/testAll";
     mvc.perform(get(endpoint).session(session)).andExpect(status().isNotFound());
     mvc.perform(get("/31" + endpoint).session(session)).andExpect(status().isOk());
@@ -82,7 +82,7 @@ class ApiVersionTypeTest extends DhisWebSpringTest {
 
   @Test
   void testTypeAnnotationAllExcludeV32() throws Exception {
-    MockHttpSession session = getSession("ALL");
+    MockHttpSession session = getMockHttpSession();
     String endpoint = "/type/testAllExcludeV32";
     mvc.perform(get(endpoint).session(session)).andExpect(status().isNotFound());
     mvc.perform(get("/31" + endpoint).session(session)).andExpect(status().isOk());
@@ -91,7 +91,7 @@ class ApiVersionTypeTest extends DhisWebSpringTest {
 
   @Test
   void testTypeAnnotationDefaultAll() throws Exception {
-    MockHttpSession session = getSession("ALL");
+    MockHttpSession session = getMockHttpSession();
     String endpoint = "/type/testDefaultAll";
     mvc.perform(get(endpoint).session(session)).andExpect(status().isOk());
     mvc.perform(get("/31" + endpoint).session(session)).andExpect(status().isOk());

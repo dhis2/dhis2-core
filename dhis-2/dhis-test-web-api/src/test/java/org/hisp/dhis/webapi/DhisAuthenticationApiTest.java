@@ -77,7 +77,7 @@ public abstract class DhisAuthenticationApiTest extends DhisControllerConvenienc
   private FilterChainProxy springSecurityFilterChain;
 
   @BeforeEach
-  void setUpSecurityFilterChain() {
+  void setupMockMvc() {
     mvc =
         MockMvcBuilders.webAppContextSetup(webApplicationContext)
             .apply(SecurityMockMvcConfigurers.springSecurity(springSecurityFilterChain))

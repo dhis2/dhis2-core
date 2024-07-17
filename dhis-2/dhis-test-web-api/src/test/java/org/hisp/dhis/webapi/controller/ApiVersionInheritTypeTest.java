@@ -44,7 +44,7 @@ class ApiVersionInheritTypeTest extends DhisWebSpringTest {
 
   @Test
   void testGetInherited() throws Exception {
-    MockHttpSession session = getSession("ALL");
+    MockHttpSession session = getMockHttpSession();
     String endpoint = "/type/testInheritedFromBase";
     mvc.perform(get(endpoint).session(session)).andExpect(status().isNotFound());
     mvc.perform(post(endpoint + "/abc").session(session)).andExpect(status().isNotFound());
