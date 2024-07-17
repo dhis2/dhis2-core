@@ -114,7 +114,7 @@ public abstract class DhisControllerTestBase extends DhisMockMvcControllerTest {
 
   @Autowired private TransactionTemplate txTemplate;
 
-  @Getter private User adminUser;
+  @Getter protected User adminUser;
 
   @Getter protected User superUser;
 
@@ -129,7 +129,7 @@ public abstract class DhisControllerTestBase extends DhisMockMvcControllerTest {
   }
 
   @BeforeEach
-  final void setup() {
+  void setup() {
     userService = _userService;
     renderService = _renderService;
     clearSecurityContext();
@@ -240,7 +240,7 @@ public abstract class DhisControllerTestBase extends DhisMockMvcControllerTest {
   }
 
   @Override
-  protected final HttpResponse webRequest(MockHttpServletRequestBuilder request) {
+  protected HttpResponse webRequest(MockHttpServletRequestBuilder request) {
     return failOnException(
         () ->
             new HttpResponse(
