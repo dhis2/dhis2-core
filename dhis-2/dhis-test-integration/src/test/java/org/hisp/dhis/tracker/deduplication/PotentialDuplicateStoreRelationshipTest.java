@@ -50,7 +50,7 @@ import org.springframework.beans.factory.annotation.Autowired;
     "moveRelationships method do not really belong to a store now. We should a better place for it")
 class PotentialDuplicateStoreRelationshipTest extends IntegrationTestBase {
 
-  @Autowired private PotentialDuplicateStore potentialDuplicateStore;
+  @Autowired private HibernatePotentialDuplicateStore potentialDuplicateStore;
 
   @Autowired private TrackedEntityService trackedEntityService;
 

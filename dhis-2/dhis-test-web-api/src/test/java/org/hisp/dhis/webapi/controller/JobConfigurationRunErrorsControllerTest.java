@@ -33,6 +33,7 @@ import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Duration;
 import java.util.function.BooleanSupplier;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonMixed;
@@ -178,6 +179,15 @@ class JobConfigurationRunErrorsControllerTest extends DhisControllerIntegrationT
     BooleanSupplier jobCompleted =
         () -> isDone(GET("/jobConfigurations/{id}/gist?fields=id,jobStatus", jobId).content());
     assertTrue(await(ofSeconds(10), jobCompleted), "import did not run");
+  }
+
+  private static boolean await(Duration timeout, BooleanSupplier test) throws InterruptedException {
+    while (!timeout.isNegative() && !test.getAsBoolean()) {
+      Thread.sleep(20);
+      timeout = timeout.minusMillis(20);
+    }
+    if (!timeout.isNegative()) return true;
+    return test.getAsBoolean();
   }
 
   private static boolean isDone(JsonMixed config) {

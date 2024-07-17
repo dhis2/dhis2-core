@@ -183,72 +183,73 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void testAddEnrollment() {
-    long idA = apiEnrollmentService.addEnrollment(enrollmentA);
-    long idB = apiEnrollmentService.addEnrollment(enrollmentB);
-    assertNotNull(manager.get(Enrollment.class, idA));
-    assertNotNull(manager.get(Enrollment.class, idB));
+    manager.save(enrollmentA);
+    manager.save(enrollmentB);
+    assertNotNull(manager.get(Enrollment.class, enrollmentA.getUid()));
+    assertNotNull(manager.get(Enrollment.class, enrollmentB.getUid()));
   }
 
   @Test
   void testDeleteEnrollment() {
-    long idA = apiEnrollmentService.addEnrollment(enrollmentA);
-    long idB = apiEnrollmentService.addEnrollment(enrollmentB);
-    assertNotNull(manager.get(Enrollment.class, idA));
-    assertNotNull(manager.get(Enrollment.class, idB));
+    manager.save(enrollmentA);
+    manager.save(enrollmentB);
+    assertNotNull(manager.get(Enrollment.class, enrollmentA.getUid()));
+    assertNotNull(manager.get(Enrollment.class, enrollmentB.getUid()));
     apiEnrollmentService.deleteEnrollment(enrollmentA);
-    assertNull(manager.get(Enrollment.class, idA));
-    assertNotNull(manager.get(Enrollment.class, idB));
+    assertNull(manager.get(Enrollment.class, enrollmentA.getUid()));
+    assertNotNull(manager.get(Enrollment.class, enrollmentB.getUid()));
     apiEnrollmentService.deleteEnrollment(enrollmentB);
-    assertNull(manager.get(Enrollment.class, idA));
-    assertNull(manager.get(Enrollment.class, idB));
+    assertNull(manager.get(Enrollment.class, enrollmentA.getUid()));
+    assertNull(manager.get(Enrollment.class, enrollmentB.getUid()));
   }
 
   @Test
   void testSoftDeleteEnrollmentAndLinkedEvent() {
-    long idA = apiEnrollmentService.addEnrollment(enrollmentA);
+    manager.save(enrollmentA);
     manager.save(eventA);
     long eventIdA = eventA.getId();
     enrollmentA.setEvents(Sets.newHashSet(eventA));
-    apiEnrollmentService.updateEnrollment(enrollmentA);
-    assertNotNull(manager.get(Enrollment.class, idA));
+    manager.update(enrollmentA);
+    assertNotNull(manager.get(Enrollment.class, enrollmentA.getUid()));
     assertNotNull(manager.get(Event.class, eventIdA));
 
     apiEnrollmentService.deleteEnrollment(enrollmentA);
 
-    assertNull(manager.get(Enrollment.class, idA));
+    assertNull(manager.get(Enrollment.class, enrollmentA.getUid()));
     assertNull(manager.get(Event.class, eventIdA));
   }
 
   @Test
   void testUpdateEnrollment() {
-    long idA = apiEnrollmentService.addEnrollment(enrollmentA);
-    assertNotNull(manager.get(Enrollment.class, idA));
+    manager.save(enrollmentA);
+    assertNotNull(manager.get(Enrollment.class, enrollmentA.getUid()));
     enrollmentA.setOccurredDate(enrollmentDate);
-    apiEnrollmentService.updateEnrollment(enrollmentA);
-    assertEquals(enrollmentDate, manager.get(Enrollment.class, idA).getOccurredDate());
+    manager.update(enrollmentA);
+    assertEquals(
+        enrollmentDate, manager.get(Enrollment.class, enrollmentA.getUid()).getOccurredDate());
   }
 
   @Test
   void testGetEnrollmentById() {
-    long idA = apiEnrollmentService.addEnrollment(enrollmentA);
-    long idB = apiEnrollmentService.addEnrollment(enrollmentB);
-    assertEquals(enrollmentA, manager.get(Enrollment.class, idA));
-    assertEquals(enrollmentB, manager.get(Enrollment.class, idB));
+    manager.save(enrollmentA);
+    manager.save(enrollmentB);
+    assertEquals(enrollmentA, manager.get(Enrollment.class, enrollmentA.getUid()));
+    assertEquals(enrollmentB, manager.get(Enrollment.class, enrollmentB.getUid()));
   }
 
   @Test
   void testGetEnrollmentByUid() {
-    apiEnrollmentService.addEnrollment(enrollmentA);
-    apiEnrollmentService.addEnrollment(enrollmentB);
+    manager.save(enrollmentA);
+    manager.save(enrollmentB);
     assertEquals("UID-A", manager.get(Enrollment.class, "UID-A").getUid());
     assertEquals("UID-B", manager.get(Enrollment.class, "UID-B").getUid());
   }
 
   @Test
   void testGetEnrollmentsByProgram() {
-    apiEnrollmentService.addEnrollment(enrollmentA);
-    apiEnrollmentService.addEnrollment(enrollmentB);
-    apiEnrollmentService.addEnrollment(enrollmentD);
+    manager.save(enrollmentA);
+    manager.save(enrollmentB);
+    manager.save(enrollmentD);
     List<Enrollment> enrollments = apiEnrollmentService.getEnrollments(programA);
     assertEquals(2, enrollments.size());
     assertTrue(enrollments.contains(enrollmentA));
@@ -260,17 +261,17 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void testGetEnrollmentsByTrackedEntityProgramAndEnrollmentStatus() {
-    apiEnrollmentService.addEnrollment(enrollmentA);
+    manager.save(enrollmentA);
     Enrollment enrollment1 =
         apiEnrollmentService.enrollTrackedEntity(
             trackedEntityA, programA, enrollmentDate, incidentDate, organisationUnitA);
     enrollment1.setStatus(EnrollmentStatus.COMPLETED);
-    apiEnrollmentService.updateEnrollment(enrollment1);
+    manager.update(enrollment1);
     Enrollment enrollment2 =
         apiEnrollmentService.enrollTrackedEntity(
             trackedEntityA, programA, enrollmentDate, incidentDate, organisationUnitA);
     enrollment2.setStatus(EnrollmentStatus.COMPLETED);
-    apiEnrollmentService.updateEnrollment(enrollment2);
+    manager.update(enrollment2);
     List<Enrollment> enrollments =
         apiEnrollmentService.getEnrollments(trackedEntityA, programA, EnrollmentStatus.COMPLETED);
     assertEquals(2, enrollments.size());
@@ -300,7 +301,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
     enrollmentA.setNotes(List.of(note));
 
-    apiEnrollmentService.addEnrollment(enrollmentA);
+    manager.save(enrollmentA);
 
     assertNotNull(enrollmentService.getEnrollment(enrollmentA.getUid()));
 

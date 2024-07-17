@@ -27,32 +27,8 @@
  */
 package org.hisp.dhis.webapi;
 
-import java.time.Duration;
-import java.util.Date;
-import java.util.function.BooleanSupplier;
 import org.hisp.dhis.IntegrationTest;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.config.TestContainerPostgresConfig;
-import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserRole;
-import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.utils.TestUtils;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
-import org.springframework.web.context.WebApplicationContext;
 
 /**
  * Base class for all Spring Mock MVC based controller tests which use postgres database in a docker
@@ -60,103 +36,6 @@ import org.springframework.web.context.WebApplicationContext;
  *
  * @author Viet Nguyen
  */
-@ExtendWith(SpringExtension.class)
-@WebAppConfiguration
-@ContextConfiguration(
-    classes = {TestContainerPostgresConfig.class, MvcTestConfig.class, WebTestConfiguration.class})
-@ActiveProfiles(profiles = {"test-postgres"})
+@ActiveProfiles("test-postgres")
 @IntegrationTest
-@Transactional
-public class DhisControllerIntegrationTest extends DhisControllerTestBase {
-  @Autowired private WebApplicationContext webApplicationContext;
-
-  @Autowired private UserService _userService;
-
-  @Autowired protected IdentifiableObjectManager manager;
-
-  @Autowired protected DbmsManager dbmsManager;
-
-  @Autowired protected DhisConfigurationProvider dhisConfigurationProvider;
-
-  @Autowired private TransactionTemplate txTemplate;
-
-  @BeforeEach
-  final void setup() {
-    userService = _userService;
-
-    clearSecurityContext();
-
-    createAndPersistAdminUserAndRole();
-
-    superUser = createAndAddAdminUser("ALL");
-
-    mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
-
-    switchContextToUser(superUser);
-    currentUser = superUser;
-
-    TestUtils.executeStartupRoutines(webApplicationContext);
-
-    dbmsManager.flushSession();
-    dbmsManager.clearSession();
-
-    beforeEach();
-  }
-
-  protected void beforeEach() {}
-
-  protected void lookUpInjectUserSecurityContext(User user) {
-    if (user == null) {
-      clearSecurityContext();
-      return;
-    }
-    hibernateService.flushSession();
-
-    User foundUser = manager.find(User.class, user.getId());
-    injectSecurityContext(UserDetails.fromUser(foundUser));
-  }
-
-  protected User createAndPersistAdminUserAndRole() {
-    UserRole role = createUserRole("Superuser_Test_" + CodeGenerator.generateUid(), "ALL");
-    role.setUid(CodeGenerator.generateUid());
-
-    manager.persist(role);
-
-    User user = new User();
-    user.setUid(CodeGenerator.generateUid());
-    user.setFirstName("Admin");
-    user.setSurname("User");
-    user.setUsername(DEFAULT_USERNAME + "_test_" + CodeGenerator.generateUid());
-    user.setPassword(DEFAULT_ADMIN_PASSWORD);
-    user.getUserRoles().add(role);
-    user.setLastUpdated(new Date());
-    user.setCreated(new Date());
-
-    manager.persist(user);
-    lookUpInjectUserSecurityContext(user);
-
-    return user;
-  }
-
-  protected static boolean await(Duration timeout, BooleanSupplier test)
-      throws InterruptedException {
-    while (!timeout.isNegative() && !test.getAsBoolean()) {
-      Thread.sleep(20);
-      timeout = timeout.minusMillis(20);
-    }
-    if (!timeout.isNegative()) return true;
-    return test.getAsBoolean();
-  }
-
-  protected final void doInTransaction(Runnable operation) {
-    final int defaultPropagationBehaviour = txTemplate.getPropagationBehavior();
-    txTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
-    txTemplate.execute(
-        status -> {
-          operation.run();
-          return null;
-        });
-    // restore original propagation behaviour
-    txTemplate.setPropagationBehavior(defaultPropagationBehaviour);
-  }
-}
+public class DhisControllerIntegrationTest extends DhisControllerTestBase {}

@@ -33,7 +33,7 @@ import javax.persistence.EntityManager;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.IntegrationH2Test;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.config.ConfigProviderConfiguration;
+import org.hisp.dhis.config.H2DhisConfiguration;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
@@ -70,7 +70,7 @@ import org.springframework.web.context.WebApplicationContext;
 @ContextConfiguration(
     classes = {
       AuthConfigProviderConfiguration.class,
-      ConfigProviderConfiguration.class,
+      H2DhisConfiguration.class,
       WebMvcConfig.class
     })
 @ActiveProfiles("test-h2")
