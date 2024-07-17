@@ -36,6 +36,7 @@ summary_sql: >-
   WHERE LENGTH(username) NOT BETWEEN 4 AND 255
     OR username ~ '[-_.@]{2}'
     OR username ~ '[-_.@]$'
+    OR username ~ '^[-_.@]'
     OR username !~ '^[-_.@a-zA-Z0-9]+$';
 details_sql: >
   SELECT uid, 
@@ -45,6 +46,7 @@ details_sql: >
   WHERE LENGTH(username) NOT BETWEEN 4 AND 255
       OR username ~ '[-_.@]{2}'
       OR username ~ '[-_.@]$'
+      OR username ~ '^[-_.@]'
       OR username !~ '^[-_.@a-zA-Z0-9]+$';
 details_id_type: users
 severity: WARNING

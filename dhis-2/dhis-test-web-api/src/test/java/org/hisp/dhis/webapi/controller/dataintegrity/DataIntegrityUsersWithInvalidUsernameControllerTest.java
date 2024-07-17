@@ -58,6 +58,7 @@ class DataIntegrityUsersWithInvalidUsernameControllerTest
 
     Set<String> badUsers =
         Set.of(
+            "_foo", // Leading underscore
             "måns", // Non-ASCII character
             "foo", // Too short
             "foo__bar", // Double underscore
@@ -67,8 +68,6 @@ class DataIntegrityUsersWithInvalidUsernameControllerTest
     badUsers.forEach(this::createUser);
     dbmsManager.clearSession();
 
-    // Note that there are already two users which exist due to the overall test setup,
-    // thus, four users in total.
     postSummary(CHECK_NAME);
     postDetails(CHECK_NAME);
 
@@ -83,10 +82,10 @@ class DataIntegrityUsersWithInvalidUsernameControllerTest
     assertEquals(DETAILS_ID_TYPE, details.getIssuesIdType());
     assertEquals(CHECK_NAME, details.getName());
 
-    // There are already two existing users as part of the test setup, thus 4/6 users have bad
+    // There are already two existing users as part of the test setup, thus 5/7 users have bad
     // usernames
     JsonDataIntegritySummary summary = getSummary(CHECK_NAME);
-    assertTrue(almostEqual(66.67, summary.getPercentage().doubleValue(), 0.01));
+    assertTrue(almostEqual(71.4, summary.getPercentage().doubleValue(), 0.1));
     assertEquals(badUsernames.size(), summary.getCount());
   }
 
