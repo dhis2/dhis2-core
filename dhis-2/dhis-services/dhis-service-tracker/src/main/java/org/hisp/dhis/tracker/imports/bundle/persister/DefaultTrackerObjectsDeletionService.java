@@ -158,7 +158,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
         enrollment.setLastUpdatedByUserInfo(userInfoSnapshot);
 
         enrollment.getEvents().remove(event);
-        apiEnrollmentService.updateEnrollment(enrollment);
+        manager.update(enrollment);
       }
 
       typeReport.getStats().incDeleted();

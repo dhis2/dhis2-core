@@ -59,7 +59,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
 
   private final TrackerOwnershipManager trackerOwnershipAccessManager;
 
-  private final IdentifiableObjectManager identifiableObjectManager;
+  private final IdentifiableObjectManager manager;
 
   @Override
   @Transactional
@@ -79,12 +79,6 @@ public class DefaultEnrollmentService implements EnrollmentService {
   @Transactional(readOnly = true)
   public List<Enrollment> getEnrollments(@Nonnull List<String> uids) {
     return enrollmentStore.getByUid(uids);
-  }
-
-  @Override
-  @Transactional
-  public void updateEnrollment(Enrollment enrollment) {
-    enrollmentStore.update(enrollment);
   }
 
   @Override
@@ -170,11 +164,11 @@ public class DefaultEnrollmentService implements EnrollmentService {
     Enrollment enrollment =
         prepareEnrollment(
             trackedEntity, program, enrollmentDate, occurredDate, organisationUnit, uid);
-    identifiableObjectManager.save(enrollment);
+    manager.save(enrollment);
     trackerOwnershipAccessManager.assignOwnership(
         trackedEntity, program, organisationUnit, true, true);
     eventPublisher.publishEvent(new ProgramEnrollmentNotificationEvent(this, enrollment.getId()));
-    updateEnrollment(enrollment);
+    manager.update(enrollment);
     trackedEntityService.updateTrackedEntity(trackedEntity);
     return enrollment;
   }

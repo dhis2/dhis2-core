@@ -208,7 +208,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     Set<Enrollment> enrollments = new HashSet<>();
     enrollments.add(enrollment);
     trackedEntityA1.setEnrollments(enrollments);
-    enrollmentService.updateEnrollment(enrollment);
+    manager.update(enrollment);
     trackedEntityService.updateTrackedEntity(trackedEntityA1);
     TrackedEntity trackedEntityA = trackedEntityService.getTrackedEntity(idA);
     Enrollment psA = manager.get(Enrollment.class, enrollment.getUid());
