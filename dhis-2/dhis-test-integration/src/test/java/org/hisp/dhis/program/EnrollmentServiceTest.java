@@ -207,7 +207,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   }
 
   @Test
-  void testSoftDeleteEnrollmentAndLinkedEvent() {
+  void testSoftDeleteEnrollmentAndLinkedEvent() throws NotFoundException {
     manager.save(enrollmentA);
     manager.save(eventA);
     long eventIdA = eventA.getId();

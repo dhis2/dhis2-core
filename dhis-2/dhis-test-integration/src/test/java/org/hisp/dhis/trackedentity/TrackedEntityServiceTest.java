@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import static java.util.Set.of;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -203,8 +202,12 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     manager.save(enrollment);
     manager.save(event);
     long eventIdA = event.getId();
-    enrollment.setEvents(of(event));
-    trackedEntityA1.setEnrollments(of(enrollment));
+    Set<Event> events = new HashSet<>();
+    events.add(event);
+    enrollment.setEvents(events);
+    Set<Enrollment> enrollments = new HashSet<>();
+    enrollments.add(enrollment);
+    trackedEntityA1.setEnrollments(enrollments);
     enrollmentService.updateEnrollment(enrollment);
     trackedEntityService.updateTrackedEntity(trackedEntityA1);
     TrackedEntity trackedEntityA = trackedEntityService.getTrackedEntity(idA);
