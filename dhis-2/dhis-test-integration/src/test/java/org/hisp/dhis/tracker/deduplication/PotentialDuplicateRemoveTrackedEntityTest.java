@@ -50,7 +50,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
-import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -193,13 +192,6 @@ class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegration
   }
 
   private void removeTrackedEntity(TrackedEntity trackedEntity) throws NotFoundException {
-    trackerObjectDeletionService.deleteTrackedEntities(
-        TrackerBundle.builder()
-            .trackedEntities(
-                List.of(
-                    org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-                        .trackedEntity(trackedEntity.getUid())
-                        .build()))
-            .build());
+    trackerObjectDeletionService.deleteTrackedEntities(List.of(trackedEntity.getUid()));
   }
 }

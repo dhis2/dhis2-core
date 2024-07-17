@@ -37,7 +37,6 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -166,14 +165,7 @@ public class DefaultDeduplicationService implements DeduplicationService {
     potentialDuplicateStore.moveRelationships(original, duplicate, mergeObject.getRelationships());
     potentialDuplicateStore.moveEnrollments(original, duplicate, mergeObject.getEnrollments());
     try {
-      trackerObjectDeletionService.deleteTrackedEntities(
-          TrackerBundle.builder()
-              .trackedEntities(
-                  List.of(
-                      org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-                          .trackedEntity(duplicate.getUid())
-                          .build()))
-              .build());
+      trackerObjectDeletionService.deleteTrackedEntities(List.of(duplicate.getUid()));
     } catch (NotFoundException e) {
       throw new RuntimeException("Could not find TrackedEntity: " + duplicate.getUid());
     }

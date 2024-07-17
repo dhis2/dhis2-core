@@ -47,7 +47,6 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -166,15 +165,7 @@ class DeduplicationServiceTest {
             trackedEntityA, trackedEntityB, mergeObject.getTrackedEntityAttributes());
     verify(potentialDuplicateStore)
         .moveRelationships(trackedEntityA, trackedEntityB, mergeObject.getRelationships());
-    verify(trackerObjectDeletionService)
-        .deleteTrackedEntities(
-            TrackerBundle.builder()
-                .trackedEntities(
-                    List.of(
-                        org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-                            .trackedEntity(trackedEntityB.getUid())
-                            .build()))
-                .build());
+    verify(trackerObjectDeletionService).deleteTrackedEntities(List.of(trackedEntityB.getUid()));
     verify(potentialDuplicateStore)
         .update(argThat(t -> t.getStatus().equals(DeduplicationStatus.MERGED)));
     verify(potentialDuplicateStore).auditMerge(deduplicationMergeParams);
@@ -300,15 +291,7 @@ class DeduplicationServiceTest {
             trackedEntityA, trackedEntityB, mergeObject.getTrackedEntityAttributes());
     verify(potentialDuplicateStore)
         .moveRelationships(trackedEntityA, trackedEntityB, mergeObject.getRelationships());
-    verify(trackerObjectDeletionService)
-        .deleteTrackedEntities(
-            TrackerBundle.builder()
-                .trackedEntities(
-                    List.of(
-                        org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-                            .trackedEntity(trackedEntityB.getUid())
-                            .build()))
-                .build());
+    verify(trackerObjectDeletionService).deleteTrackedEntities(List.of(trackedEntityB.getUid()));
     verify(potentialDuplicateStore).auditMerge(deduplicationMergeParams);
   }
 
@@ -333,15 +316,7 @@ class DeduplicationServiceTest {
             trackedEntityA,
             trackedEntityB,
             deduplicationMergeParams.getMergeObject().getRelationships());
-    verify(trackerObjectDeletionService)
-        .deleteTrackedEntities(
-            TrackerBundle.builder()
-                .trackedEntities(
-                    List.of(
-                        org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-                            .trackedEntity(trackedEntityB.getUid())
-                            .build()))
-                .build());
+    verify(trackerObjectDeletionService).deleteTrackedEntities(List.of(trackedEntityB.getUid()));
     verify(potentialDuplicateStore).auditMerge(deduplicationMergeParams);
   }
 

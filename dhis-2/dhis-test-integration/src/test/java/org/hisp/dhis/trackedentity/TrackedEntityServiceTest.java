@@ -36,10 +36,10 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.SortDirection;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
@@ -53,10 +53,10 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.joda.time.DateTime;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -84,7 +84,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
 
-  @Autowired private CategoryService categoryService;
+  @Autowired private TrackerObjectDeletionService trackerObjectDeletionService;
 
   private Event event;
 
@@ -198,8 +198,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   }
 
   @Test
-  @Disabled("If we want to maintain this test, it will need to use tracker importer")
-  void testDeleteTrackedEntityAndLinkedEnrollmentsAndEvents() {
+  void testDeleteTrackedEntityAndLinkedEnrollmentsAndEvents() throws NotFoundException {
     long idA = trackedEntityService.addTrackedEntity(trackedEntityA1);
     long psIdA = enrollmentService.addEnrollment(enrollment);
     manager.save(event);
@@ -214,7 +213,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     assertNotNull(trackedEntityA);
     assertNotNull(psA);
     assertNotNull(eventA);
-    trackedEntityService.deleteTrackedEntity(trackedEntityA1);
+    trackerObjectDeletionService.deleteTrackedEntities(List.of(trackedEntityA.getUid()));
     assertNull(trackedEntityService.getTrackedEntity(trackedEntityA.getUid()));
     assertNull(manager.get(Enrollment.class, psIdA));
     assertNull(manager.get(Event.class, eventIdA));
