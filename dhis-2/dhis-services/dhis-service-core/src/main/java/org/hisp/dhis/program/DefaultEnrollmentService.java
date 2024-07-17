@@ -63,13 +63,6 @@ public class DefaultEnrollmentService implements EnrollmentService {
 
   @Override
   @Transactional
-  public long addEnrollment(Enrollment enrollment) {
-    enrollmentStore.save(enrollment);
-    return enrollment.getId();
-  }
-
-  @Override
-  @Transactional
   public void deleteEnrollment(Enrollment enrollment) {
     enrollment.setStatus(EnrollmentStatus.CANCELLED);
     enrollmentStore.update(enrollment);
@@ -171,7 +164,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
     Enrollment enrollment =
         prepareEnrollment(
             trackedEntity, program, enrollmentDate, occurredDate, organisationUnit, uid);
-    addEnrollment(enrollment);
+    manager.save(enrollment);
     trackerOwnershipAccessManager.assignOwnership(
         trackedEntity, program, organisationUnit, true, true);
     eventPublisher.publishEvent(new ProgramEnrollmentNotificationEvent(this, enrollment.getId()));

@@ -37,13 +37,6 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
  * @author Abyot Asalefew
  */
 public interface EnrollmentService {
-  /**
-   * Adds an {@link Enrollment}
-   *
-   * @param enrollment The to Enrollment add.
-   * @return A generated unique id of the added {@link Enrollment}.
-   */
-  long addEnrollment(Enrollment enrollment);
 
   /**
    * Soft deletes a {@link Enrollment}.

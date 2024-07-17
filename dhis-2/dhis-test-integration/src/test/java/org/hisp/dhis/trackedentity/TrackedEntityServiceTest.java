@@ -199,7 +199,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   @Test
   void testDeleteTrackedEntityAndLinkedEnrollmentsAndEvents() {
     long idA = trackedEntityService.addTrackedEntity(trackedEntityA1);
-    long psIdA = enrollmentService.addEnrollment(enrollment);
+    manager.save(enrollment);
     manager.save(event);
     long eventIdA = event.getId();
     enrollment.setEvents(of(event));
@@ -207,14 +207,14 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     manager.update(enrollment);
     trackedEntityService.updateTrackedEntity(trackedEntityA1);
     TrackedEntity trackedEntityA = trackedEntityService.getTrackedEntity(idA);
-    Enrollment psA = manager.get(Enrollment.class, psIdA);
+    Enrollment psA = manager.get(Enrollment.class, enrollment.getUid());
     Event eventA = manager.get(Event.class, eventIdA);
     assertNotNull(trackedEntityA);
     assertNotNull(psA);
     assertNotNull(eventA);
     trackedEntityService.deleteTrackedEntity(trackedEntityA1);
     assertNull(trackedEntityService.getTrackedEntity(trackedEntityA.getUid()));
-    assertNull(manager.get(Enrollment.class, psIdA));
+    assertNull(manager.get(Enrollment.class, enrollment.getUid()));
     assertNull(manager.get(Event.class, eventIdA));
   }
 
@@ -476,7 +476,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     injectSecurityContextUser(superUser);
 
     addEntityInstances();
-    enrollmentService.addEnrollment(enrollment);
+    manager.save(enrollment);
     addEnrollment(trackedEntityB1, DateTime.now().plusDays(2).toDate(), 'B');
     addEnrollment(trackedEntityC1, DateTime.now().minusDays(2).toDate(), 'C');
     addEnrollment(trackedEntityD1, DateTime.now().plusDays(1).toDate(), 'D');
@@ -506,7 +506,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     trackedEntityD1.setInactive(false);
     addEntityInstances();
 
-    enrollmentService.addEnrollment(enrollment);
+    manager.save(enrollment);
     addEnrollment(trackedEntityB1, DateTime.now().plusDays(2).toDate(), 'B');
     addEnrollment(trackedEntityC1, DateTime.now().minusDays(2).toDate(), 'C');
     addEnrollment(trackedEntityD1, DateTime.now().plusDays(1).toDate(), 'D');
@@ -687,7 +687,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     enrollment.setUid("UID-PSI-" + programStage);
     enrollment.setOrganisationUnit(organisationUnit);
 
-    enrollmentService.addEnrollment(enrollment);
+    manager.save(enrollment);
   }
 
   private void addEntityInstances() {

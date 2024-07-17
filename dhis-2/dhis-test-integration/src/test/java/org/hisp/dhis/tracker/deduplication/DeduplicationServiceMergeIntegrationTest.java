@@ -39,7 +39,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.Authorities;
@@ -65,8 +64,6 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase {
   @Autowired private OrganisationUnitService organisationUnitService;
 
   @Autowired private TrackedEntityTypeService trackedEntityTypeService;
-
-  @Autowired private EnrollmentService enrollmentService;
 
   @Autowired private TrackedEntityService trackedEntityService;
 
@@ -102,8 +99,8 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase {
     programService.addProgram(program1);
     Enrollment enrollment1 = createEnrollment(program, original, ou);
     Enrollment enrollment2 = createEnrollment(program1, duplicate, ou);
-    enrollmentService.addEnrollment(enrollment1);
-    enrollmentService.addEnrollment(enrollment2);
+    manager.save(enrollment1);
+    manager.save(enrollment2);
     original.getEnrollments().add(enrollment1);
     duplicate.getEnrollments().add(enrollment2);
     trackedEntityService.updateTrackedEntity(original);
@@ -154,8 +151,8 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase {
     program1.setSharing(sharing);
     Enrollment enrollment1 = createEnrollment(program, original, ou);
     Enrollment enrollment2 = createEnrollment(program1, duplicate, ou);
-    enrollmentService.addEnrollment(enrollment1);
-    enrollmentService.addEnrollment(enrollment2);
+    manager.save(enrollment1);
+    manager.save(enrollment2);
     manager.update(enrollment1);
     manager.update(enrollment2);
     original.getEnrollments().add(enrollment1);

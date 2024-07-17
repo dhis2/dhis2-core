@@ -49,6 +49,7 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
@@ -109,6 +110,8 @@ class CopyServiceTest extends DhisConvenienceTest {
 
   @Mock private AclService aclService;
 
+  @Mock private IdentifiableObjectManager identifiableObjectManager;
+
   @InjectMocks private CopyService copyService;
 
   private static final String VALID_PROGRAM_UID = "abcdefghijk";
@@ -152,7 +155,7 @@ class CopyServiceTest extends DhisConvenienceTest {
     verify(programRuleVariableService, times(1))
         .addProgramRuleVariable(any(ProgramRuleVariable.class));
     verify(programSectionService, times(1)).addProgramSection(any(ProgramSection.class));
-    verify(enrollmentService, times(1)).addEnrollment(any(Enrollment.class));
+    verify(identifiableObjectManager, times(1)).save(any(Enrollment.class));
   }
 
   @Test
@@ -311,7 +314,7 @@ class CopyServiceTest extends DhisConvenienceTest {
 
     assertNotEquals(original.getUid(), programCopy.getUid());
     assertTrue(CodeGenerator.isValidUid(programCopy.getUid()));
-    verify(enrollmentService, never()).addEnrollment(any(Enrollment.class));
+    verify(identifiableObjectManager, never()).save(any(Enrollment.class));
   }
 
   @Test
