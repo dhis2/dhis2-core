@@ -209,7 +209,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     manager.save(eventA);
     long eventIdA = eventA.getId();
     enrollmentA.setEvents(Sets.newHashSet(eventA));
-    apiEnrollmentService.updateEnrollment(enrollmentA);
+    manager.update(enrollmentA);
     assertNotNull(manager.get(Enrollment.class, enrollmentA.getUid()));
     assertNotNull(manager.get(Event.class, eventIdA));
 
@@ -224,7 +224,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     manager.save(enrollmentA);
     assertNotNull(manager.get(Enrollment.class, enrollmentA.getUid()));
     enrollmentA.setOccurredDate(enrollmentDate);
-    apiEnrollmentService.updateEnrollment(enrollmentA);
+    manager.update(enrollmentA);
     assertEquals(
         enrollmentDate, manager.get(Enrollment.class, enrollmentA.getUid()).getOccurredDate());
   }
@@ -266,12 +266,12 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
         apiEnrollmentService.enrollTrackedEntity(
             trackedEntityA, programA, enrollmentDate, incidentDate, organisationUnitA);
     enrollment1.setStatus(EnrollmentStatus.COMPLETED);
-    apiEnrollmentService.updateEnrollment(enrollment1);
+    manager.update(enrollment1);
     Enrollment enrollment2 =
         apiEnrollmentService.enrollTrackedEntity(
             trackedEntityA, programA, enrollmentDate, incidentDate, organisationUnitA);
     enrollment2.setStatus(EnrollmentStatus.COMPLETED);
-    apiEnrollmentService.updateEnrollment(enrollment2);
+    manager.update(enrollment2);
     List<Enrollment> enrollments =
         apiEnrollmentService.getEnrollments(trackedEntityA, programA, EnrollmentStatus.COMPLETED);
     assertEquals(2, enrollments.size());

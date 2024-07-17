@@ -204,7 +204,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     long eventIdA = event.getId();
     enrollment.setEvents(of(event));
     trackedEntityA1.setEnrollments(of(enrollment));
-    enrollmentService.updateEnrollment(enrollment);
+    manager.update(enrollment);
     trackedEntityService.updateTrackedEntity(trackedEntityA1);
     TrackedEntity trackedEntityA = trackedEntityService.getTrackedEntity(idA);
     Enrollment psA = manager.get(Enrollment.class, enrollment.getUid());
