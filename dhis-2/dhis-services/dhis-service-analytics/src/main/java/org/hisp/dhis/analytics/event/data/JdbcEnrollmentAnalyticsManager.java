@@ -685,6 +685,11 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     }
   }
 
+  /**
+   * Returns true if the item is a program attribute and the value type is an organizational unit.
+   *
+   * @param item the {@link QueryItem}.
+   */
   private boolean isOrganizationUnitProgramAttribute(QueryItem item) {
     return item.getValueType() == ValueType.ORGANISATION_UNIT
         && item.getItem().getDimensionItemType() == DimensionItemType.PROGRAM_ATTRIBUTE;
