@@ -55,6 +55,7 @@ import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -70,7 +71,6 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.locationtech.jts.util.Assert;
@@ -124,15 +124,13 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
       EnrollmentTimeFieldSqlRenderer timeFieldSqlRenderer,
       ExecutionPlanStore executionPlanStore,
-      SqlBuilder sqlBuilder,
-      OrganisationUnitService organisationUnitService) {
+      SqlBuilder sqlBuilder) {
     super(
         jdbcTemplate,
         programIndicatorService,
         programIndicatorSubqueryBuilder,
         executionPlanStore,
-        sqlBuilder,
-        organisationUnitService);
+        sqlBuilder);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
   }
 
@@ -680,9 +678,16 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
           + " "
           + LIMIT_1
           + " )";
+    } else if (isOrganizationUnitProgramAttribute(item)) {
+      return quoteAlias(colName + suffix);
     } else {
       return quoteAlias(colName);
     }
+  }
+
+  private boolean isOrganizationUnitProgramAttribute(QueryItem item) {
+    return item.getValueType() == ValueType.ORGANISATION_UNIT
+        && item.getItem().getDimensionItemType() == DimensionItemType.PROGRAM_ATTRIBUTE;
   }
 
   /**

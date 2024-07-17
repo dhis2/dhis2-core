@@ -115,7 +115,6 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -164,8 +163,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected final ExecutionPlanStore executionPlanStore;
 
   protected final SqlBuilder sqlBuilder;
-
-  protected final OrganisationUnitService organisationUnitService;
 
   /**
    * Returns a SQL paging clause.
@@ -1087,11 +1084,11 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       } catch (Exception e) {
         grid.addValue(json);
       }
-    } else if (header.getValueType() == ValueType.ORGANISATION_UNIT) {
-      String uid = StringUtils.trimToNull(sqlRowSet.getString(index));
-      OrganisationUnit ou = organisationUnitService.getOrganisationUnit(uid);
-      grid.addValue(ou != null ? ou.getName() : uid);
-    } else {
+    } /*else if (header.getValueType() == ValueType.ORGANISATION_UNIT) {
+        String uid = StringUtils.trimToNull(sqlRowSet.getString(index));
+        OrganisationUnit ou = organisationUnitService.getOrganisationUnit(uid);
+        grid.addValue(ou != null ? ou.getName() : uid);
+      }*/ else {
       grid.addValue(StringUtils.trimToNull(sqlRowSet.getString(index)));
     }
   }

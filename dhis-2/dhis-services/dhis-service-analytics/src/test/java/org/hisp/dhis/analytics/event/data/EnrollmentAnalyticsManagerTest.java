@@ -69,7 +69,6 @@ import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -107,7 +106,6 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
   @Mock private SqlRowSet rowSet;
 
   @Mock private ProgramIndicatorService programIndicatorService;
-  @Mock private OrganisationUnitService organisationUnitService;
 
   private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
@@ -136,8 +134,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             programIndicatorSubqueryBuilder,
             new EnrollmentTimeFieldSqlRenderer(sqlBuilder),
             executionPlanStore,
-            sqlBuilder,
-            organisationUnitService);
+            sqlBuilder);
   }
 
   @Test
