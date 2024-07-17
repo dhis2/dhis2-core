@@ -27,33 +27,18 @@
  */
 package org.hisp.dhis.webapi;
 
-import static org.hisp.dhis.web.WebClientUtils.failOnException;
-
-import javax.persistence.EntityManager;
-import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.IntegrationH2Test;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.config.H2DhisConfiguration;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.utils.TestUtils;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
-import org.hisp.dhis.webapi.utils.DhisMockMvcControllerTest;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 import org.springframework.security.web.FilterChainProxy;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.context.WebApplicationContext;
 
 /**
  * Base class for convenient testing of the web API on basis of {@link
@@ -65,60 +50,37 @@ import org.springframework.web.context.WebApplicationContext;
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@ExtendWith(SpringExtension.class)
-@WebAppConfiguration
 @ContextConfiguration(
+    inheritLocations = false,
     classes = {
-      AuthConfigProviderConfiguration.class,
       H2DhisConfiguration.class,
-      WebMvcConfig.class
+      WebMvcConfig.class,
+      DhisAuthenticationApiTest.AuthConfigProviderConfiguration.class,
     })
-@ActiveProfiles("test-h2")
-@IntegrationH2Test
-@Transactional
-public abstract class DhisAuthenticationApiTest extends DhisMockMvcControllerTest {
+public abstract class DhisAuthenticationApiTest extends DhisControllerConvenienceTest {
 
-  @Autowired protected WebApplicationContext webApplicationContext;
+  static class AuthConfigProviderConfiguration {
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+      return web ->
+          web.debug(false)
+              .ignoring()
+              .requestMatchers(
+                  new AntPathRequestMatcher("/api/ping"),
+                  new AntPathRequestMatcher("/auth/login"),
+                  new AntPathRequestMatcher("/favicon.ico"));
+    }
+  }
 
   @Autowired
   @Qualifier("springSecurityFilterChain")
   private FilterChainProxy springSecurityFilterChain;
 
-  @Autowired private UserService _userService;
-  @Autowired protected IdentifiableObjectManager manager;
-  @Autowired EntityManager entityManager;
-
-  protected MockMvc mvc;
-  protected User adminUser;
-
   @BeforeEach
-  public void setup() throws Exception {
-    userService = _userService;
-    clearSecurityContext();
-
-    User randomAdminUser =
-        DhisConvenienceTest.createRandomAdminUserWithEntityManager(entityManager);
-    injectSecurityContextUser(randomAdminUser);
-
-    adminUser = createAndAddAdminUser("ALL");
-
+  void setUpSecurityFilterChain() {
     mvc =
         MockMvcBuilders.webAppContextSetup(webApplicationContext)
             .apply(SecurityMockMvcConfigurers.springSecurity(springSecurityFilterChain))
             .build();
-
-    injectSecurityContextUser(adminUser);
-
-    TestUtils.executeStartupRoutines(webApplicationContext);
-  }
-
-  public User getAdminUser() {
-    return adminUser;
-  }
-
-  @Override
-  protected final HttpResponse webRequest(MockHttpServletRequestBuilder request) {
-    return failOnException(
-        () -> new HttpResponse(toResponse(mvc.perform(request).andReturn().getResponse())));
   }
 }

@@ -102,7 +102,7 @@ import org.springframework.web.context.WebApplicationContext;
 @Transactional
 public abstract class DhisControllerTestBase extends DhisMockMvcControllerTest {
 
-  @Autowired private WebApplicationContext webApplicationContext;
+  @Autowired protected WebApplicationContext webApplicationContext;
 
   @Autowired private UserService _userService;
 
