@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.common.network;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.util.Random;
 
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.DhisWebSpringTest;
-import org.junit.jupiter.api.Test;
-import org.springframework.mock.web.MockHttpSession;
+public class PortUtil {
+  private static final int MIN_PORT = 49152;
+  private static final int MAX_PORT = 65535;
+  private static final Random random = new Random();
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-class PrePostSecurityAnnotationsTest extends DhisWebSpringTest {
-
-  @Test
-  void authorityAllCanAccessApps() throws Exception {
-    MockHttpSession session = getMockHttpSession();
-    mvc.perform(put("/api/apps").session(session)).andExpect(status().isNoContent());
+  public static int findAvailablePort() {
+    int port;
+    do {
+      port = pickRandomPort();
+    } while (!isPortAvailable(port));
+    return port;
   }
 
-  @Test
-  void authorityNoAuthorityCantAccessApps() throws Exception {
-    User noAuthUser = createAndAddUser("A", null, "NO_AUTHORITY");
-    injectSecurityContextUser(noAuthUser);
-    MockHttpSession session = getMockHttpSession();
-    mvc.perform(put("/api/apps").session(session)).andExpect(status().isForbidden());
+  private static int pickRandomPort() {
+    return random.nextInt(MAX_PORT - MIN_PORT + 1) + MIN_PORT;
+  }
+
+  private static boolean isPortAvailable(int port) {
+    try (ServerSocket serverSocket = new ServerSocket(port)) {
+      serverSocket.setReuseAddress(true);
+      return true;
+    } catch (IOException e) {
+      return false;
+    }
   }
 }

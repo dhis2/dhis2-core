@@ -219,7 +219,7 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
         enrollmentService.enrollTrackedEntity(
             trackedEntityA, programA, enrollmentDate, incidentDate, organisationUnitA);
     enrollmentA.setUid(enrollmentUid);
-    enrollmentService.updateEnrollment(enrollmentA);
+    manager.save(enrollmentA);
     // Event to be provided in message renderer
     eventA = createEvent(programStageA, enrollmentA, organisationUnitA);
     eventA.setScheduledDate(enrollmentDate);
@@ -236,7 +236,7 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
     eventA.setEventDataValues(Sets.newHashSet(eventDataValueA, eventDataValueB));
     manager.save(eventA);
     enrollmentA.getEvents().add(eventA);
-    enrollmentService.updateEnrollment(enrollmentA);
+    manager.save(enrollmentA);
     programNotificationTemplate = new ProgramNotificationTemplate();
     programNotificationTemplate.setName("Test-PNT");
     programNotificationTemplate.setMessageTemplate("message_template");

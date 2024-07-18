@@ -27,14 +27,12 @@
  */
 package org.hisp.dhis.programrule;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.Set;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
@@ -137,16 +135,8 @@ public class ProgramRuleAction extends BaseIdentifiableObject implements Metadat
    *   <li>sendmessage
    * </ul>
    */
-  @JsonIgnore private ProgramNotificationTemplate notificationTemplate;
-
-  /**
-   * The program notification template uid that will be triggered by the rule action. Used for:
-   *
-   * <ul>
-   *   <li>sendmessage
-   * </ul>
-   */
-  private String templateUid;
+  @JsonProperty(value = "templateUid")
+  private ProgramNotificationTemplate notificationTemplate;
 
   /**
    * Used to determine which widget to display data for the two action types:
@@ -277,7 +267,7 @@ public class ProgramRuleAction extends BaseIdentifiableObject implements Metadat
   }
 
   public boolean hasNotification() {
-    return StringUtils.isNotBlank(this.templateUid);
+    return getTemplateUid() != null;
   }
 
   public boolean hasOption() {
@@ -345,7 +335,6 @@ public class ProgramRuleAction extends BaseIdentifiableObject implements Metadat
       return;
     }
 
-    this.templateUid = templateUid;
     ProgramNotificationTemplate template = new ProgramNotificationTemplate();
     template.setUid(templateUid);
     setNotificationTemplate(template);

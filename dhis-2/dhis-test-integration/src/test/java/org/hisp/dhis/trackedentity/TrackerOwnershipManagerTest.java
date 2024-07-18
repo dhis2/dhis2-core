@@ -40,13 +40,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.AccessLevel;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.Authorities;
@@ -84,7 +84,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
 
   @Autowired private ProgramService programService;
 
-  @Autowired private EnrollmentService enrollmentService;
+  @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private TrackedEntityTypeService trackedEntityTypeService;
 
@@ -163,7 +163,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
 
     Enrollment trackedEntityA1Enrollment =
         createEnrollment(programA, trackedEntityA1, organisationUnitA);
-    enrollmentService.addEnrollment(trackedEntityA1Enrollment);
+    manager.save(trackedEntityA1Enrollment);
 
     defaultParams =
         new TrackedEntityParams(false, TrackedEntityEnrollmentParams.FALSE, false, false);

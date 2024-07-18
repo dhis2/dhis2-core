@@ -27,80 +27,26 @@
  */
 package org.hisp.dhis.webapi;
 
-import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
-import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest;
-import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
-import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
 
-import javax.persistence.EntityManager;
-import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.IntegrationH2Test;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.config.H2DhisConfiguration;
-import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.utils.TestUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.restdocs.RestDocumentationContextProvider;
 import org.springframework.restdocs.RestDocumentationExtension;
-import org.springframework.restdocs.mockmvc.RestDocumentationResultHandler;
-import org.springframework.restdocs.snippet.Snippet;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@ExtendWith({RestDocumentationExtension.class, SpringExtension.class})
-@WebAppConfiguration
-@ContextConfiguration(
-    classes = {H2DhisConfiguration.class, MvcTestConfig.class, WebTestConfiguration.class})
-@ActiveProfiles("test-h2")
-@IntegrationH2Test
-@Transactional
-public abstract class DhisWebSpringTest extends DhisConvenienceTest {
-  @Autowired protected WebApplicationContext webApplicationContext;
-
-  @Autowired protected IdentifiableObjectManager manager;
-
-  @Autowired protected RenderService renderService;
-
-  @Autowired protected UserService _userService;
-
-  @Autowired EntityManager entityManager;
-
-  protected MockMvc mvc;
-
-  @Autowired protected SchemaService schemaService;
-
-  private User adminUser;
+@ExtendWith({RestDocumentationExtension.class})
+public abstract class DhisWebSpringTest extends DhisControllerConvenienceTest {
 
   @BeforeEach
-  public void setup(RestDocumentationContextProvider restDocumentation) throws Exception {
-    userService = _userService;
-    clearSecurityContext();
-
-    this.adminUser = DhisConvenienceTest.createRandomAdminUserWithEntityManager(entityManager);
-    injectSecurityContextUser(this.adminUser);
-
-    User all = createAndAddAdminUser("ALL");
-    injectSecurityContextUser(all);
-
+  void setupMockMvc(RestDocumentationContextProvider restDocumentation) {
     CharacterEncodingFilter characterEncodingFilter = new CharacterEncodingFilter();
     characterEncodingFilter.setEncoding("UTF-8");
     characterEncodingFilter.setForceEncoding(true);
@@ -108,29 +54,9 @@ public abstract class DhisWebSpringTest extends DhisConvenienceTest {
         MockMvcBuilders.webAppContextSetup(webApplicationContext)
             .apply(documentationConfiguration(restDocumentation))
             .build();
-
-    TestUtils.executeStartupRoutines(webApplicationContext);
-
-    setUpTest();
   }
 
-  public User getAdminUser() {
-    return adminUser;
-  }
-
-  public void reLoginAdminUser() {
-    injectSecurityContextUser(adminUser);
-  }
-
-  protected void setUpTest() throws Exception {}
-
-  // -------------------------------------------------------------------------
-  // Supportive methods
-  // -------------------------------------------------------------------------
-
-  public MockHttpSession getSession(String... authorities) {
-    // createAndInjectAdminUser( authorities );
-
+  public MockHttpSession getMockHttpSession() {
     MockHttpSession session = new MockHttpSession();
 
     session.setAttribute(
@@ -138,22 +64,5 @@ public abstract class DhisWebSpringTest extends DhisConvenienceTest {
         SecurityContextHolder.getContext());
 
     return session;
-  }
-
-  public RestDocumentationResultHandler documentPrettyPrint(String useCase, Snippet... snippets) {
-    return document(
-        useCase, preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()), snippets);
-  }
-
-  public SchemaService getSchemaService() {
-    return schemaService;
-  }
-
-  public MockMvc getMvc() {
-    return mvc;
-  }
-
-  public IdentifiableObjectManager getManager() {
-    return manager;
   }
 }

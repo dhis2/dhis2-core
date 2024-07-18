@@ -299,7 +299,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
     trackedEntityFrom.setTrackedEntityType(trackedEntityType);
     manager.save(trackedEntityFrom);
 
-    enrollmentService.addEnrollment(createEnrollment(program, trackedEntityFrom, orgUnitA));
+    manager.save(createEnrollment(program, trackedEntityFrom, orgUnitA));
 
     trackerOwnershipAccessManager.assignOwnership(
         trackedEntityFrom, program, orgUnitA, false, true);

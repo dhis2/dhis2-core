@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.actions.metadata;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.oneOf;
 
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.DhisWebSpringTest;
-import org.junit.jupiter.api.Test;
-import org.springframework.mock.web.MockHttpSession;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Zubair Asghar
  */
-class PrePostSecurityAnnotationsTest extends DhisWebSpringTest {
-
-  @Test
-  void authorityAllCanAccessApps() throws Exception {
-    MockHttpSession session = getMockHttpSession();
-    mvc.perform(put("/api/apps").session(session)).andExpect(status().isNoContent());
+public class ProgramNotificationTemplateActions extends RestApiActions {
+  public ProgramNotificationTemplateActions() {
+    super("/programNotificationTemplates");
   }
 
-  @Test
-  void authorityNoAuthorityCantAccessApps() throws Exception {
-    User noAuthUser = createAndAddUser("A", null, "NO_AUTHORITY");
-    injectSecurityContextUser(noAuthUser);
-    MockHttpSession session = getMockHttpSession();
-    mvc.perform(put("/api/apps").session(session)).andExpect(status().isForbidden());
+  /**
+   * Create ProgramNotificationTemplate and return its id
+   *
+   * @return ProgramNotificationTemplate id
+   */
+  public String createProgramNotificationTemplate() {
+    JsonArray deliveryChannels = new JsonArray();
+    deliveryChannels.add("SMS");
+    JsonObject pnt =
+        new JsonObjectBuilder()
+            .addProperty("name", "test_template")
+            .addProperty("code", "test_template")
+            .addProperty("messageTemplate", "message text")
+            .addProperty("subjectTemplate", "subject text")
+            .addProperty("notificationTrigger", "COMPLETION")
+            .addProperty("notificationRecipient", "USER_GROUP")
+            .addArray("deliveryChannels", deliveryChannels)
+            .build();
+
+    ApiResponse response = this.post(pnt);
+
+    response.validate().statusCode(is(oneOf(201, 200)));
+    return response.extractUid();
   }
 }

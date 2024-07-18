@@ -31,27 +31,17 @@ import static org.hisp.dhis.web.WebClientUtils.failOnException;
 
 import javax.persistence.EntityManager;
 import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.IntegrationH2Test;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.config.H2DhisConfiguration;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
-import org.hisp.dhis.webapi.utils.DhisMockMvcControllerTest;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.web.FilterChainProxy;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.context.WebApplicationContext;
 
 /**
  * Base class for convenient testing of the web API on basis of {@link
@@ -63,29 +53,19 @@ import org.springframework.web.context.WebApplicationContext;
  *
  * @author Morten Svanæs
  */
-@ExtendWith(SpringExtension.class)
-@WebAppConfiguration
-@ContextConfiguration(classes = {H2DhisConfiguration.class, WebMvcConfig.class})
-@ActiveProfiles("test-h2")
-@IntegrationH2Test
-@Transactional
-public abstract class DhisControllerWithApiTokenAuthTest extends DhisMockMvcControllerTest {
+@ContextConfiguration(
+    inheritLocations = false,
+    classes = {H2DhisConfiguration.class, WebMvcConfig.class})
+public abstract class DhisControllerWithApiTokenAuthTest extends DhisControllerConvenienceTest {
+  @Autowired private UserService _userService;
 
-  @Autowired private WebApplicationContext webApplicationContext;
+  @Autowired private EntityManager entityManager;
 
   @Autowired private FilterChainProxy springSecurityFilterChain;
 
-  @Autowired private UserService _userService;
-
-  @Autowired protected IdentifiableObjectManager manager;
-  @Autowired EntityManager entityManager;
-
-  protected MockMvc mvc;
-
-  protected User adminUser;
-
+  @Override
   @BeforeEach
-  public void setup() throws Exception {
+  void setup() {
     userService = _userService;
     clearSecurityContext();
 
@@ -103,10 +83,6 @@ public abstract class DhisControllerWithApiTokenAuthTest extends DhisMockMvcCont
     injectSecurityContextUser(adminUser);
 
     TestUtils.executeStartupRoutines(webApplicationContext);
-  }
-
-  public User getAdminUser() {
-    return adminUser;
   }
 
   @Override
