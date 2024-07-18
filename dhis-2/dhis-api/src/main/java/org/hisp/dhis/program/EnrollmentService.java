@@ -29,7 +29,6 @@ package org.hisp.dhis.program;
 
 import java.util.Date;
 import java.util.List;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 
@@ -51,14 +50,6 @@ public interface EnrollmentService {
    * @param enrollment the Enrollment to delete.
    */
   void hardDeleteEnrollment(Enrollment enrollment);
-
-  /**
-   * Returns a list of existing Enrollments from the provided UIDs
-   *
-   * @param uids Event UIDs to check
-   * @return Enrollment list
-   */
-  List<Enrollment> getEnrollments(@Nonnull List<String> uids);
 
   /** Get enrollments into a program. */
   List<Enrollment> getEnrollments(Program program);
