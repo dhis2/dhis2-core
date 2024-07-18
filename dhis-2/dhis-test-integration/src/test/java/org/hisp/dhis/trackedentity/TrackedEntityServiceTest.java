@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import static java.util.Set.of;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -168,7 +169,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     attributeService.addTrackedEntityAttribute(filtG);
 
     User user = createUserWithAuth("testUser");
-    user.setTeiSearchOrganisationUnits(Set.of(organisationUnit));
+    user.setTeiSearchOrganisationUnits(of(organisationUnit));
     injectSecurityContextUser(user);
   }
 
@@ -202,12 +203,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     manager.save(enrollment);
     manager.save(event);
     long eventIdA = event.getId();
-    Set<Event> events = new HashSet<>();
-    events.add(event);
-    enrollment.setEvents(events);
-    Set<Enrollment> enrollments = new HashSet<>();
-    enrollments.add(enrollment);
-    trackedEntityA1.setEnrollments(enrollments);
+    enrollment.setEvents(of(event));
+    trackedEntityA1.setEnrollments(of(enrollment));
     manager.update(enrollment);
     trackedEntityService.updateTrackedEntity(trackedEntityA1);
     TrackedEntity trackedEntityA = trackedEntityService.getTrackedEntity(idA);
@@ -269,7 +266,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
 
-    params.setOrgUnits(Set.of(organisationUnit));
+    params.setOrgUnits(of(organisationUnit));
     params.setOrders(List.of(new OrderParam("createdAt", SortDirection.ASC)));
 
     List<Long> trackedEntityIdList = trackedEntityService.getTrackedEntityIds(params, true, true);
@@ -295,7 +292,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
 
-    params.setOrgUnits(Set.of(organisationUnit));
+    params.setOrgUnits(of(organisationUnit));
     params.setOrders(List.of(new OrderParam("createdAt", SortDirection.DESC)));
 
     List<Long> trackedEntityIdList = trackedEntityService.getTrackedEntityIds(params, true, true);
@@ -321,7 +318,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
 
-    params.setOrgUnits(Set.of(organisationUnit));
+    params.setOrgUnits(of(organisationUnit));
     params.setOrders(List.of(new OrderParam("createdAt", SortDirection.ASC)));
 
     List<Long> trackedEntityIdList = trackedEntityService.getTrackedEntityIds(params, true, true);
@@ -350,7 +347,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
 
-    params.setOrgUnits(Set.of(organisationUnit));
+    params.setOrgUnits(of(organisationUnit));
     params.setOrders(List.of(new OrderParam("createdAt", SortDirection.DESC)));
 
     List<Long> trackedEntityIdList = trackedEntityService.getTrackedEntityIds(params, true, true);
@@ -381,7 +378,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     trackedEntityService.updateTrackedEntity(trackedEntityA1);
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
-    params.setOrgUnits(Set.of(organisationUnit));
+    params.setOrgUnits(of(organisationUnit));
     params.setOrders(List.of(new OrderParam("updatedAt", SortDirection.ASC)));
 
     List<Long> trackedEntityIdList = trackedEntityService.getTrackedEntityIds(params, true, true);
@@ -413,7 +410,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
 
-    params.setOrgUnits(Set.of(organisationUnit));
+    params.setOrgUnits(of(organisationUnit));
     params.setOrders(List.of(new OrderParam("updatedAt", SortDirection.DESC)));
 
     List<Long> trackedEntityIdList = trackedEntityService.getTrackedEntityIds(params, true, true);
@@ -435,7 +432,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
 
-    params.setOrgUnits(Set.of(organisationUnit));
+    params.setOrgUnits(of(organisationUnit));
     params.setOrders(List.of(new OrderParam("trackedEntity", SortDirection.DESC)));
 
     List<Long> trackedEntityIdList = trackedEntityService.getTrackedEntityIds(params, true, true);
@@ -461,7 +458,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
 
-    params.setOrgUnits(Set.of(organisationUnit));
+    params.setOrgUnits(of(organisationUnit));
     params.setOrders(List.of(new OrderParam("updatedAtClient", SortDirection.DESC)));
 
     List<Long> trackedEntityIdList = trackedEntityService.getTrackedEntityIds(params, true, true);
@@ -487,7 +484,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
 
-    params.setOrgUnits(Set.of(organisationUnit));
+    params.setOrgUnits(of(organisationUnit));
     params.setOrders(List.of(new OrderParam("enrolledAt", SortDirection.DESC)));
 
     List<Long> trackedEntityIdList = trackedEntityService.getTrackedEntityIds(params, true, true);
@@ -517,7 +514,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
 
-    params.setOrgUnits(Set.of(organisationUnit));
+    params.setOrgUnits(of(organisationUnit));
     params.setOrders(
         List.of(
             new OrderParam("inactive", SortDirection.DESC),
@@ -540,7 +537,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     addEntityInstances();
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
-    params.setOrgUnits(Set.of(organisationUnit));
+    params.setOrgUnits(of(organisationUnit));
 
     List<Long> trackedEntityIdList = trackedEntityService.getTrackedEntityIds(params, true, true);
 
@@ -565,7 +562,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     setUpEntityAndAttributeValue(trackedEntityD1, "2-Attribute Value D1");
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
-    params.setOrgUnits(Set.of(organisationUnit));
+    params.setOrgUnits(of(organisationUnit));
     params.setOrders(List.of(new OrderParam(trackedEntityAttribute.getUid(), SortDirection.ASC)));
     params.setAttributes(List.of(new QueryItem(trackedEntityAttribute)));
 
@@ -598,7 +595,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
 
-    params.setOrgUnits(Set.of(organisationUnit));
+    params.setOrgUnits(of(organisationUnit));
     params.setOrders(
         List.of(
             new OrderParam(trackedEntityAttribute.getUid(), SortDirection.DESC),
@@ -631,7 +628,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
 
-    params.setOrgUnits(Set.of(organisationUnit));
+    params.setOrgUnits(of(organisationUnit));
     params.setOrders(List.of(new OrderParam(tea.getUid(), SortDirection.DESC)));
 
     List<Long> trackedEntityIdList = trackedEntityService.getTrackedEntityIds(params, true, true);
@@ -660,7 +657,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
 
-    params.setOrgUnits(Set.of(organisationUnit));
+    params.setOrgUnits(of(organisationUnit));
     params.setOrders(List.of(new OrderParam(tea.getUid(), SortDirection.ASC)));
 
     List<Long> trackedEntityIdList = trackedEntityService.getTrackedEntityIds(params, true, true);

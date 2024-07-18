@@ -109,7 +109,6 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
       TrackedEntity te = enrollment.getTrackedEntity();
       te.setLastUpdatedByUserInfo(userInfoSnapshot);
-      te.getEnrollments().remove(enrollment);
 
       apiEnrollmentService.deleteEnrollment(enrollment);
       teService.updateTrackedEntity(te);
@@ -157,7 +156,6 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
         Enrollment enrollment = event.getEnrollment();
         enrollment.setLastUpdatedByUserInfo(userInfoSnapshot);
 
-        enrollment.getEvents().remove(event);
         manager.update(enrollment);
       }
 
