@@ -69,15 +69,53 @@ public class TestSetupExtension implements BeforeEachCallback, AfterEachCallback
         testClass.getName(),
         hasTransactional,
         hasPerClassLifecycle);
-    if (hasTransactional || hasPerClassLifecycle) {
+    if (hasPerClassLifecycle) {
       return;
     }
 
-    bindSession(context);
+    if (!hasTransactional) {
+      bindSession(context);
+    }
     // TODO(ivo) how can I create the admin from here and inject it into the tests security context?
     // userService = _userService;
     // adminUser = preCreateInjectAdminUser();
     TestUtils.executeStartupRoutines(getApplicationContext(context));
+  }
+
+  @Override
+  public void afterEach(ExtensionContext context) {
+    if (context.getTestClass().isEmpty()) {
+      return;
+    }
+
+    boolean hasPerClassLifecycle =
+        context.getTestInstanceLifecycle().orElse(Lifecycle.PER_METHOD) == Lifecycle.PER_CLASS;
+    Class<?> testClass = context.getTestClass().get();
+    boolean hasTransactional = findAnnotation(testClass, Transactional.class).isPresent();
+
+    log.debug(
+        "beforeEachCallback testClass={} @Transactional={} perClassLifecycle={}",
+        testClass.getName(),
+        hasTransactional,
+        hasPerClassLifecycle);
+    if (hasPerClassLifecycle) {
+      return;
+    }
+
+    clearSecurityContext();
+    // TODO(ivo) according to Enrico this is not needed
+    //    try {
+    //      dbmsManager.clearSession();
+    //    } catch (Exception e) {
+    //      log.error("Failed to clear hibernate session, reason: {}", e.getMessage(), e);
+    //    }
+
+    if (hasTransactional) {
+      return;
+    }
+
+    unbindSession(context);
+    emptyDatabase(context);
   }
 
   private void bindSession(ExtensionContext context)
@@ -102,21 +140,15 @@ public class TestSetupExtension implements BeforeEachCallback, AfterEachCallback
     return SpringExtension.getApplicationContext(context);
   }
 
-  @Override
-  public void afterEach(ExtensionContext context) {
-    nonTransactionalAfter(context);
+  protected void unbindSession(ExtensionContext context) {
+    EntityManagerFactory sessionFactory =
+        (EntityManagerFactory) getApplicationContext(context).getBean("entityManagerFactory");
+    EntityManagerHolder entityManagerHolder =
+        (EntityManagerHolder) TransactionSynchronizationManager.unbindResource(sessionFactory);
+    EntityManagerFactoryUtils.closeEntityManager(entityManagerHolder.getEntityManager());
   }
 
-  protected void nonTransactionalAfter(ExtensionContext context) {
-    clearSecurityContext();
-    // TODO(ivo) according to Enrico this is not needed
-    //    try {
-    //      dbmsManager.clearSession();
-    //    } catch (Exception e) {
-    //      log.error("Failed to clear hibernate session, reason: {}", e.getMessage(), e);
-    //    }
-    unbindSession(context);
-
+  private static void emptyDatabase(ExtensionContext context) {
     TransactionTemplate transactionTemplate =
         (TransactionTemplate) getApplicationContext(context).getBean("transactionTemplate");
     DbmsManager dbmsManager = (DbmsManager) getApplicationContext(context).getBean("dbmsManager");
@@ -125,13 +157,5 @@ public class TestSetupExtension implements BeforeEachCallback, AfterEachCallback
           dbmsManager.emptyDatabase();
           return null;
         });
-  }
-
-  protected void unbindSession(ExtensionContext context) {
-    EntityManagerFactory sessionFactory =
-        (EntityManagerFactory) getApplicationContext(context).getBean("entityManagerFactory");
-    EntityManagerHolder entityManagerHolder =
-        (EntityManagerHolder) TransactionSynchronizationManager.unbindResource(sessionFactory);
-    EntityManagerFactoryUtils.closeEntityManager(entityManagerHolder.getEntityManager());
   }
 }
