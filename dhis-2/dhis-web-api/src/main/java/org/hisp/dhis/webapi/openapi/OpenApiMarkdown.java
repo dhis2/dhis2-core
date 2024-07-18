@@ -85,7 +85,7 @@ final class OpenApiMarkdown {
   }
 
   private final StringBuilder html;
-  private final Set<String> parameters;
+  private final Set<String> keywords;
 
   /**
    * Is markdown which is just plain text as it does not have any characters that would trigger
@@ -97,11 +97,10 @@ final class OpenApiMarkdown {
     return markdownToHTML(markdown, Set.of());
   }
 
-  public static String markdownToHTML(String markdown, Set<String> parameters) {
+  public static String markdownToHTML(String markdown, Set<String> keywords) {
     if (markdown == null || markdown.isBlank()) return null;
     if (PLAIN_TEXT.matcher(markdown).matches()) return markdown;
-    OpenApiMarkdown renderer =
-        new OpenApiMarkdown(new StringBuilder(markdown.length()), parameters);
+    OpenApiMarkdown renderer = new OpenApiMarkdown(new StringBuilder(markdown.length()), keywords);
     renderer.renderText(MarkdownParser.parse(markdown));
     return renderer.html.toString();
   }
@@ -206,7 +205,7 @@ final class OpenApiMarkdown {
       case PLAIN -> html.append(escapeHtml(span.value));
       case CODE -> {
         html.append("<code class=\"md");
-        if (parameters.contains(span.value)) html.append(" url");
+        if (keywords.contains(span.value)) html.append(" url");
         html.append("\">").append(escapeHtml(span.value)).append("</code>");
       }
     }
@@ -216,7 +215,7 @@ final class OpenApiMarkdown {
   private static final Pattern PLAIN_HTML =
       Pattern.compile("^[-_a-zA-Z0-9^!$§%/()=?\\\\`~*#@:.,;|+ \t°{}\\[\\]]*$");
 
-  private static String escapeHtml(String str) {
+  public static String escapeHtml(String str) {
     if (PLAIN_HTML.matcher(str).matches()) return str;
     return StringEscapeUtils.escapeHtml4(str);
   }

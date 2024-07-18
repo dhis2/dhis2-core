@@ -29,6 +29,9 @@ package org.hisp.dhis.webapi.openapi;
 
 import static java.util.Comparator.comparing;
 import static java.util.Map.entry;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toUnmodifiableSet;
+import static org.hisp.dhis.webapi.openapi.OpenApiMarkdown.escapeHtml;
 import static org.hisp.dhis.webapi.openapi.OpenApiMarkdown.markdownToHTML;
 
 import java.util.ArrayList;
@@ -45,6 +48,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonNodeType;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.webapi.openapi.OpenApiObject.MediaTypeObject;
@@ -67,7 +71,9 @@ public class OpenApiRenderer {
   @Data
   public static class OpenApiRenderingParams {
     boolean sortEndpointsByMethod = true; // make this a sortEndpointsBy=method,path,id thing?
-    // TODO inline enum types
+
+    /** Include the JSON source in the operations and schemas? */
+    boolean source = false;
   }
 
   @Language("css")
@@ -97,6 +103,7 @@ public class OpenApiRenderer {
        --color-trace: palevioletred;
        --color-head: thistle;
        --color-dep: lemonchiffon;
+       --color-schema: slategray;
        --color-tooltip: #444;
        --color-tooltiptext: #eee;
        --color-tooltipborder: lightgray;
@@ -115,7 +122,7 @@ public class OpenApiRenderer {
     text-rendering: optimizespeed;
   }
   h1 { margin: 0.5rem; color: rgb(33, 41, 52); font-size: 110%; font-weight: normal; text-align: left; }
-  h2 { display: inline; font-size: 110%; font-weight: normal; }
+  h2 { display: inline; font-size: 110%; font-weight: normal; text-transform: capitalize; }
   h3 { font-size: 105%; display: inline; text-transform: capitalize; font-weight: normal; }
   h4 { font-weight: normal; padding: 0 1em; }
   nav > summary { margin: 1em 0 0.5em 0; font-weight: normal; font-size: 85%; }
@@ -125,9 +132,8 @@ public class OpenApiRenderer {
   a[title="permalink"] { position: absolute;  right: 1em; display: inline-block; width: 24px; height: 24px;
     text-align: center; vertical-align: middle; border-radius: 50% 50% 50% 0; line-height: 24px; color: dimgray; }
 
-  code {
-    font-family: "Liberation Mono", monospace;
-  }
+  code { font-family: "Liberation Mono", monospace; }
+  pre {font-family: "Liberation Mono", monospace; background-color: floralwhite; color: #222; margin-right: 2em; padding: 0.5rem; }
   ul { list-style-type: none; margin: 0; padding-left: 1rem; }
   ul > li { margin-top: 0.75rem; }
   summary {
@@ -162,6 +168,7 @@ public class OpenApiRenderer {
   body > section > details { margin-top: 10px; }
   body > section > details > summary { padding: 0.5em 1em; }
   body > section h2:before { content: '⛁'; margin-right: 0.5rem; color: dimgray; }
+  body > section .kind h2:before { content: '⎐';  }
 
   body > section details {
     margin-left: 2rem;
@@ -180,9 +187,10 @@ public class OpenApiRenderer {
       float: left;
       margin-left: calc(-1rem - 10px);
   }
-  body > section details[open] > summary:before {
-    content: '⊝';
-  }
+  body > section details > summary:last-child:before { content: ''; }
+
+  body > section details[open] > summary:before { content: '⊝'; }
+
   body > section > details[open] > summary {
        margin-top: 0;
   }
@@ -193,10 +201,10 @@ public class OpenApiRenderer {
       list-style-type: none;
       cursor: pointer;
   }
-  details.op[open] { padding-bottom: 1rem; }
-  details.op > summary { padding: 0.5rem; }
-  details.op > header { padding: 0.5rem 1rem; font-size: 95%; }
-  details.op > aside { padding: 0.5rem 1rem; }
+  details.op[open], details.schema[open] { padding-bottom: 1rem; }
+  details.op > summary, details.schema > summary { padding: 0.5rem; }
+  details > header { padding: 0.5rem 1rem; font-size: 95%; }
+  details > aside { padding: 0.5rem 1rem; }
 
   /* colors and emphasis effects */
   code.http { display: inline-block; padding: 0 0.5em; font-weight: bold; }
@@ -207,17 +215,21 @@ public class OpenApiRenderer {
   code.http.content .on { color: black; }
   code.http.method { width: 4rem; text-align: right; color: dimgray; }
   code.md { background-color: #eee; }
+  code.property { padding: 0.25em 0.5em; background: color-mix(in srgb, powderblue 70%, transparent); }
+  code.property.secondary, code.property.secondary ~ code.type { background: color-mix(in srgb, lemonchiffon 70%, transparent); }
   code.url { padding: 0.25em 0.5em; background-color: snow; }
   code.url.path { font-weight: bold; }
-  code.url em, code.url.secondary { color: lightslategrey; font-style: normal; font-weight: normal; background: color-mix(in srgb, snow 70%, transparent); }
+  code.url em, code.url.secondary, code.url.secondary + code.type { color: lightslategrey; font-style: normal; font-weight: normal; background: color-mix(in srgb, snow 70%, transparent); }
   code.url small { color: gray; }
-  code.property { color: dimgray; margin-left: 2em; }
-  code.property > span + span { color: darkmagenta; padding: 0.25em; background: color-mix(in srgb, ivory 65%, transparent); }
-  code.secondary.type { color: dimgray; font-style: italic; }
+  code.tag { color: dimgray; margin-left: 2em; }
+  code.tag > span + span { color: darkblue; padding: 0.25em; background: color-mix(in srgb, ivory 65%, transparent); }
+  code.tag.columns { display: inline-block; padding-left: 100px; }
+  code.tag.columns > span:first-of-type { margin-left: -100px; padding-right: 1em; }
+  code.secondary ~ code.type { color: dimgray; font-style: italic; padding: 0.25em 0.5em; }
   code.url.secondary + code.url.secondary { padding-left: 0; }
   code.request, code.response { padding: 0.25em 0.5em; color: dimgray; }
   code.mime { background-color: ivory; font-style: italic; padding: 0.25em 0.5em; }
-  code.mime.secondary { background: color-mix(in srgb, ivory 70%, transparent); }
+  code.mime.secondary, code.mime.secondary + code.type { background: color-mix(in srgb, ivory 70%, transparent); }
 
   code.status { padding: 0.25em 0.5em; font-weight: bold; }
   code.status2xx { background: color-mix(in srgb, seagreen 70%, transparent); color: snow; }
@@ -225,6 +237,8 @@ public class OpenApiRenderer {
 
   .deprecated summary > code.url { background-color: var(--color-dep); color: #666; }
   .deprecated summary > code.url.secondary { background: color-mix(in srgb, var(--color-dep) 70%, transparent); }
+
+  .schema > summary > code.type { min-width: 20em; display: inline-block; }
 
   .op:not([open]) code.url small > span { font-size: 2px; }
   .op:not([open]) code.url small:hover > span { font-size: inherit; }
@@ -237,26 +251,32 @@ public class OpenApiRenderer {
   .OPTIONS > summary { background: color-mix(in srgb, var(--color-options) var(--percent-op-bg-summary), transparent); }
   .HEAD > summary { background: color-mix(in srgb, var(--color-head) var(--percent-op-bg-summary), transparent); }
   .TRACE > summary { background: color-mix(in srgb, var(--color-trace) var(--percent-op-bg-summary), transparent); }
+  .schema > summary { background: color-mix(in srgb, var(--color-schema) var(--percent-op-bg-summary), transparent); }
+
 
   /* target highlighting */
   details.op:target > summary > code.url.path { background-color: gold; }
+  details.schema:target > summary { background-color: gold; }
   details.param:target > summary > code:first-of-type { background-color: gold; }
+  details.property:target > summary > code:first-of-type { background-color: gold; }
   details.response:target > summary > code:first-of-type { background-color: gold; color: inherit; }
   details:target > summary > a[title="permalink"] { background-color: gold; color: black; border: 2px solid snow;
     animation: squareToCircle 2s 1s infinite alternate; }
 
-  /* opration background colors */
+  /* operation background colors */
   details[open].GET { background: color-mix(in srgb, var(--color-get) var(--p-op-bg), transparent); }
   details[open].POST { background: color-mix(in srgb, var(--color-post) var(--p-op-bg), transparent); }
   details[open].PUT { background: color-mix(in srgb, var(--color-put) var(--p-op-bg), transparent); }
   details[open].PATCH { background: color-mix(in srgb, var(--color-patch) var(--p-op-bg), transparent); }
   details[open].DELETE { background: color-mix(in srgb, var(--color-delete) var(--p-op-bg), transparent); }
+  details[open].schema { background: color-mix(in srgb, var(--color-schema) var(--p-op-bg), transparent); }
 
   details[open].GET > aside { background: color-mix(in srgb, var(--color-get) var(--percent-op-bg-aside), transparent); }
   details[open].POST > aside { background: color-mix(in srgb, var(--color-post) var(--percent-op-bg-aside), transparent); }
   details[open].PUT > aside { background: color-mix(in srgb, var(--color-put) var(--percent-op-bg-aside), transparent); }
   details[open].PATCH > aside { background: color-mix(in srgb, var(--color-patch) var(--percent-op-bg-aside), transparent); }
   details[open].DELETE > aside { background: color-mix(in srgb, var(--color-delete) var(--percent-op-bg-aside), transparent); }
+  details[open].schema > aside { background: color-mix(in srgb, var(--color-schema) var(--percent-op-bg-aside), transparent); }
 
   /* operation visibility filters */
   #body[get-] .op.GET,
@@ -277,7 +297,9 @@ public class OpenApiRenderer {
   #body[open-] .op.open,
   #body[deprecated-] .op.deprecated,
   #body[request-] .op > summary > code.request,
+  #body[request-] .op > summary > code.request + code.type,
   #body[response-] .op > summary > code.response,
+  #body[response-] .op > summary > code.response + code.type,
   #body[content-] .op > summary > code.http.content { display: none; }
 
   nav button {
@@ -292,7 +314,7 @@ public class OpenApiRenderer {
   nav button:before { content: '🞕'; margin-right: 0.5rem;font-weight: normal; }
   nav button.deprecated { background-color: var(--color-dep); }
 
-  details.op button { background-color: #444; color: white; border: none; cursor: pointer; }
+  details.box aside button { background-color: #444; color: white; border: none; cursor: pointer; }
 
   #body[get-] button.GET:before,
   #body[post-] button.POST:before,
@@ -325,11 +347,21 @@ public class OpenApiRenderer {
   .op.deprecated > summary > code.url.path:before,
    nav code.deprecated:before { content: '⚠️'; padding: 0.25em; font-family: sans-serif; }
   /* parameter markers */
-  .param.required code.url:first-of-type:after { content: '*'; color: tomato; }
+  .param.required > summary > code:first-of-type:after,
+  .property.required > summary > code:first-of-type:after { content: '*'; color: tomato; }
   .param.deprecated > summary > code.url:first-of-type:before { content: '⚠️'; font-family: sans-serif; display: inline-block; padding-right: 0.25rem; }
   /* +/- buttons for expand/collapse */
-  .op aside > button.toggle:after { content: '⊝'; padding-left: 0.5rem; font-size: 16px; }
-  .op:has(details[data-open]) aside > button.toggle:after { content: '⊕'; }
+  .box aside > button.toggle { pointer-events: none; opacity: 0.65; }
+  .box aside > button.toggle:after { content: '⊝'; padding-left: 0.5rem; font-size: 16px; }
+  .box:has(details[data-open]) aside > button.toggle:after { content: '⊕'; }
+  .box:has(details[open]) aside > button.toggle, .box:has(details[data-open]) aside > button.toggle { pointer-events: inherit; opacity: inherit; }
+  /* schema type markers */
+  .schema > summary > code:first-of-type:before { padding: 0 1rem; color: dimgray; }
+  .schema.object > summary > code:first-of-type:before { content: '{}'; }
+  .schema.array > summary > code:first-of-type:before { content: '[]'; }
+  .schema.string > summary > code:first-of-type:before { content: '""'; }
+  .schema.number > summary > code:first-of-type:before { content: '#.'; }
+  .schema.boolean > summary > code:first-of-type:before { content: '01'; }
 
   article.desc { margin: 10px 30px 0 30px; color: #333; } /* note: margin is in pixels as the font-size changes */
   article.desc > p { margin: 0 0 10px 0; }
@@ -360,8 +392,8 @@ public class OpenApiRenderer {
   @Language("js")
   private static final String GLOBAL_JS =
       """
-  function toggleDescriptions(element) {
-    let allDetails = element.closest('details.op').querySelectorAll('details');
+  function openToggleDown1(element) {
+    let allDetails = element.closest('details.box').querySelectorAll('details');
     const isRestore = Array.from(allDetails.values()).some(e => e.hasAttribute('data-open'));
     const set = isRestore ? 'open' : 'data-open';
     const remove = isRestore ? 'data-open' : 'open';
@@ -372,6 +404,31 @@ public class OpenApiRenderer {
         }
     });
   }
+
+  function openRecursiveUp(element) {
+    while (element && element.tagName.toLowerCase() === 'details') {
+      element.setAttribute('open', '');
+      element = target.closest('details');
+    }
+  }
+
+  function addUrlParameter(name, value) {
+    var searchParams = new URLSearchParams(window.location.search)
+    searchParams.set(name, value)
+    window.location.search = searchParams.toString()
+  }
+
+  window.addEventListener('hashchange',
+    (event) => openRecursiveUp(document.getElementById(location.hash.substring(1))),
+    false,
+  );
+
+  document.addEventListener("DOMContentLoaded", (event) => {
+    const hash = location.hash;
+    if (hash) {
+      openRecursiveUp(document.getElementById(hash.substring(1)));
+    }
+  });
   """;
 
   /*
@@ -380,6 +437,8 @@ public class OpenApiRenderer {
   record PackageItem(String domain, Map<String, GroupItem> groups) {}
 
   record GroupItem(String domain, String group, List<OperationObject> operations) {}
+
+  record KindItem(String kind, List<SchemaObject> schemas) {}
 
   private static final Comparator<OperationObject> SORT_BY_METHOD =
       comparing(OperationObject::operationMethod)
@@ -405,6 +464,21 @@ public class OpenApiRenderer {
           .values()
           .forEach(p -> p.groups().values().forEach(g -> g.operations().sort(SORT_BY_METHOD)));
     return List.copyOf(packages.values());
+  }
+
+  private List<KindItem> groupKinds() {
+    Map<String, KindItem> kinds = new TreeMap<>();
+    api.components()
+        .schemas()
+        .forEach(
+            (name, schema) -> {
+              String kind = schema.x_kind();
+              kinds
+                  .computeIfAbsent(kind, key -> new KindItem(key, new ArrayList<>()))
+                  .schemas()
+                  .add(schema);
+            });
+    return List.copyOf(kinds.values());
   }
 
   /*
@@ -451,12 +525,17 @@ public class OpenApiRenderer {
                 renderPageHeader();
                 renderPageMenu();
                 renderPaths();
+                renderComponentsSchemas();
               });
         });
   }
 
   private void renderPageHeader() {
-    appendTag("header", () -> appendTag("h1", api.info().title() + " " + api.info().version()));
+    appendTag(
+        "header",
+        () -> {
+          appendTag("h1", api.info().title() + " " + api.info().version());
+        });
   }
 
   private void renderPageMenu() {
@@ -526,6 +605,7 @@ public class OpenApiRenderer {
                     () -> renderToggleButton("Abbr. Descriptions", "desc", "desc-", false));
               });
         });
+    // TODO bring back tags as actual tags usable as filters
   }
 
   private void renderMenuGroup(String title, Runnable renderBody) {
@@ -610,16 +690,17 @@ public class OpenApiRenderer {
         operationStyle(op),
         () -> {
           appendSummary(id, op.summary(), () -> renderOperationSummary(op));
-          renderOperationToolbar(op);
+          renderBoxToolbar();
           appendTag("header", markdownToHTML(op.description(), op.parameterNames()));
           renderParameters(op);
           renderRequestBody(op);
           renderResponses(op);
+          if (params.isSource()) renderSource("@" + op.operationId(), op);
         });
   }
 
   private static String operationStyle(OperationObject op) {
-    StringBuilder style = new StringBuilder("op");
+    StringBuilder style = new StringBuilder("op box");
     style.append(" ").append(op.operationMethod().toUpperCase());
     style.append(" status").append(op.responseSuccessCode());
     for (String mime : op.responseMediaSubTypes()) style.append(" ").append(mime);
@@ -629,13 +710,13 @@ public class OpenApiRenderer {
     return style.toString();
   }
 
-  private void renderOperationToolbar(OperationObject op) {
+  private void renderBoxToolbar() {
     Map<String, String> attrs =
         Map.ofEntries(
-            entry("onclick", "toggleDescriptions(this)"),
+            entry("onclick", "openToggleDown1(this)"),
             entry("title", "remembering expand/collapse"),
             entry("class", "toggle"));
-    appendTag("aside", () -> appendTag("button", attrs, "All"));
+    appendTag("aside", () -> appendTag("button", attrs, "All &bbrktbrk;"));
   }
 
   private void renderOperationSummary(OperationObject op) {
@@ -664,13 +745,13 @@ public class OpenApiRenderer {
     List<SchemaObject> request = op.requestSchemas();
     if (!request.isEmpty()) {
       appendCode("request secondary", "{");
-      renderSchemaSummary("request secondary", request);
+      renderSchemaSignature(request);
       appendCode("request secondary", "}");
     }
     List<SchemaObject> successOneOf = op.responseSuccessSchemas();
     if (!successOneOf.isEmpty()) {
       appendCode("response secondary", "::");
-      renderSchemaSummary("response secondary", successOneOf);
+      renderSchemaSignature(successOneOf);
     }
   }
 
@@ -728,6 +809,7 @@ public class OpenApiRenderer {
           appendSummary(id, null, () -> renderParameterSummary(p));
           String description = markdownToHTML(p.description(), parameterNames);
           appendTag("article", Map.of("class", "desc"), description);
+          renderSchemaDetails(p.schema(), false, true);
         });
   }
 
@@ -735,83 +817,87 @@ public class OpenApiRenderer {
     SchemaObject schema = p.schema();
     appendCode("url", p.name());
     appendCode("url secondary", "=");
-    renderSchemaDetail("url secondary", schema);
+    renderSchemaSummary(schema, false);
 
-    JsonValue defaultValue = p.$default();
-    if (defaultValue.exists()) {
-      String value =
-          defaultValue.type() == JsonNodeType.STRING
-              ? defaultValue.as(JsonString.class).string()
-              : defaultValue.toJson();
-      renderProperty("default", value);
-    }
-    if (!schema.isShared()) {
-      renderProperty("format", schema.format());
-      renderProperty("minLength", schema.minLength());
-      renderProperty("maxLength", schema.maxLength());
-      renderProperty("pattern", schema.pattern());
-      renderProperty("enum", schema.$enum());
-    }
+    // parameter default uses schema default as fallback
+    renderLabelledValue("default", p.$default());
   }
 
-  private void renderProperty(String name, Object value) {
+  private void renderLabelledValue(String label, Object value) {
+    renderLabelledValue(label, value, false);
+  }
+
+  private void renderLabelledValue(String label, Object value, boolean block) {
     if (value == null) return;
     if (value instanceof Collection<?> l && l.isEmpty()) return;
-    String str = value.toString();
+    if (value instanceof JsonValue json) value = jsonToDisplayValue(json);
+    if (value == null) return;
+    Object val = value;
+    String tag = "tag";
+    if (block) tag += " columns";
     appendCode(
-        "property",
+        tag,
         () -> {
-          appendSpan(name + ":");
-          appendSpan(str);
+          appendSpan(label + ":");
+          if (val instanceof Collection<?> c) {
+            appendSpan(c.stream().map(Object::toString).collect(joining("</span>, <span>")));
+          } else {
+            appendSpan(val.toString());
+          }
         });
+    if (block) appendRaw("<br/>");
+  }
+
+  private String jsonToDisplayValue(JsonValue value) {
+    if (value.isUndefined()) return null;
+    return value.type() == JsonNodeType.STRING
+        ? value.as(JsonString.class).string()
+        : value.toJson();
   }
 
   private void renderRequestBody(OperationObject op) {
     RequestBodyObject requestBody = op.requestBody();
     if (requestBody.isUndefined()) return;
     renderOperationSectionHeader("{...}", "Request Body");
-    String style = "requests";
+
+    renderMarkdown(requestBody.description(), op.parameterNames());
+
+    JsonMap<MediaTypeObject> content = requestBody.content();
+    if (content.isUndefined() || content.isEmpty()) return;
+    String style = "request";
     if (requestBody.required()) style += " required";
-    Set<String> parameterNames = op.parameterNames();
-    String id = op.operationId() + "-";
+    String id = op.operationId();
+    renderMediaTypes(id, style, content);
+  }
+
+  private void renderMarkdown(String text, Set<String> keywords) {
+    appendTag("article", Map.of("class", "desc"), markdownToHTML(text, keywords));
+  }
+
+  private void renderMediaTypes(
+      String idPrefix, String style, JsonMap<MediaTypeObject> mediaTypes) {
+    if (mediaTypes.isUndefined()) return;
+    mediaTypes.forEach(
+        (mediaType, schema) -> renderMediaType(idPrefix, style, mediaType, schema.schema()));
+  }
+
+  private void renderMediaType(String idPrefix, String style, String mediaType, SchemaObject type) {
+    String id = idPrefix == null ? null : idPrefix + "-" + mediaType;
     appendDetails(
         id,
-        true,
+        false,
         style,
         () -> {
-          appendSummary(id, null, () -> renderMediaTypes(requestBody.content()));
-          String description = markdownToHTML(requestBody.description(), parameterNames);
-          appendTag("article", Map.of("class", "desc"), description);
+          appendSummary(
+              id,
+              "",
+              () -> {
+                appendCode("mime", mediaType);
+                appendCode("mime secondary", ":");
+                renderSchemaSummary(type, false);
+              });
+          renderSchemaDetails(type, false, false);
         });
-  }
-
-  private void renderMediaTypes(JsonMap<MediaTypeObject> mediaTypes) {
-    if (mediaTypes.isUndefined()) return;
-    if (mediaTypes.size() == 1) {
-      renderMediaType(mediaTypes.entries().toList().get(0));
-    } else {
-      appendTag(
-          "ul", () -> mediaTypes.entries().forEach(e -> appendTag("li", () -> renderMediaType(e))));
-    }
-  }
-
-  private void renderMediaType(Map.Entry<String, MediaTypeObject> mediaType) {
-    renderMediaType(mediaType.getKey(), mediaType.getValue().schema());
-  }
-
-  private void renderMediaType(String mediaType, SchemaObject type) {
-    renderMediaType(mediaType, () -> renderSchemaDetail("mime secondary", type.resolve()));
-  }
-
-  private void renderMediaTypeSummary(List<SchemaObject> oneOf) {
-    renderMediaType("*", () -> renderSchemaSummary("mime secondary", oneOf));
-  }
-
-  private void renderMediaType(String mediaType, Runnable renderType) {
-    appendCode("mime", mediaType);
-    appendCode("mime secondary", ":");
-    renderType.run();
-    appendRaw("<br/>");
   }
 
   private void renderResponses(OperationObject op) {
@@ -830,46 +916,45 @@ public class OpenApiRenderer {
         "response",
         () -> {
           appendSummary(id, null, () -> renderResponseSummary(code, response));
+          renderMarkdown(response.description(), op.parameterNames());
+
           JsonMap<MediaTypeObject> content = response.content();
-          if (!content.isUndefined() && content.size() > 1) renderMediaTypes(content);
-          String description = markdownToHTML(response.description(), op.parameterNames());
-          appendTag("article", Map.of("class", "desc"), description);
+          if (content.isUndefined() || content.isEmpty()) return;
+          renderMediaTypes(id, "response", content);
         });
   }
 
   private void renderResponseSummary(String code, ResponseObject response) {
     String name = statusCodeName(Integer.parseInt(code));
     appendCode("status status" + code.charAt(0) + "xx status" + code, code + " " + name);
-    appendCode("mime", "=");
-    JsonMap<MediaTypeObject> content = response.content();
 
-    if (content.isUndefined()) return;
+    JsonMap<MediaTypeObject> content = response.content();
+    if (content.isUndefined() || content.isEmpty()) return;
+
+    appendCode("mime", "=");
+
     if (content.size() == 1) {
-      renderMediaTypes(content);
+      // TODO
     } else if (response.isUniform()) {
-      renderMediaType("*", content.values().toList().get(0).schema());
+      // TODO renderMediaType("*", content.values().toList().get(0).schema());
     } else {
       // * : a | b | c
-      renderMediaTypeSummary(content.values().map(MediaTypeObject::schema).toList());
+      // TODO renderMediaTypeSummary(content.values().map(MediaTypeObject::schema).toList());
     }
   }
 
-  private void renderSchemaSummary(String style, List<SchemaObject> oneOf) {
+  private void renderSchemaSignature(List<SchemaObject> oneOf) {
     if (oneOf.isEmpty()) return;
-    renterSchemaDescriptor(style, () -> renderTypeDescriptor(oneOf, true));
+    renderSchemaSignature(() -> renderSchemaSignatureType(oneOf));
   }
 
-  private void renderSchemaDetail(String style, SchemaObject schema) {
-    renterSchemaDescriptor(style, () -> renderTypeDescriptor(schema, false));
+  private void renderSchemaSignature(SchemaObject schema) {
+    renderSchemaSignature(() -> renderSchemaSignatureTypeLinked(schema));
   }
 
-  private void renderSchemaSummary(String style, SchemaObject schema) {
-    renterSchemaDescriptor(style, () -> renderTypeDescriptor(schema, true));
-  }
-
-  private void renterSchemaDescriptor(String style, Runnable renderType) {
+  private void renderSchemaSignature(Runnable renderType) {
     appendCode(
-        style + " type",
+        "type",
         () -> {
           appendRaw("&lt;");
           renderType.run();
@@ -877,44 +962,158 @@ public class OpenApiRenderer {
         });
   }
 
-  private void renderTypeDescriptor(List<SchemaObject> oneOf, boolean summary) {
+  private void renderSchemaSignatureType(List<SchemaObject> oneOf) {
     for (int i = 0; i < oneOf.size(); i++) {
       if (i > 0) appendRaw(" | ");
-      renderTypeDescriptor(oneOf.get(0), summary);
+      renderSchemaSignatureTypeLinked(oneOf.get(0));
     }
   }
 
-  private void renderTypeDescriptor(SchemaObject schema, boolean summary) {
+  private void renderSchemaSignatureTypeLinked(SchemaObject schema) {
     if (schema.isShared()) {
       appendA("#" + schema.getSharedName(), false, schema.getSharedName());
       return;
     }
-    String type = schema.$type();
-    if (type == null) {
-      SchemaObject resolved = schema.resolve();
-      if (resolved.isShared()) {
-        renderTypeDescriptor(resolved, summary);
-        return;
-      }
+    renderSchemaSignatureTypeRaw(schema);
+  }
+
+  private void renderSchemaSignatureTypeRaw(SchemaObject schema) {
+    if (schema.isRef()) {
+      renderSchemaSignatureTypeLinked(schema.resolve());
+      return;
     }
-    if ("array".equals(type)) {
+    if (schema.isArray()) {
       appendRaw("array[");
-      renderTypeDescriptor(schema.items(), summary);
+      renderSchemaSignatureTypeLinked(schema.items());
       appendRaw("]");
       return;
     }
-    if ("object".equals(type)) {
+    if (schema.isObject()) {
       appendRaw("object");
-      if ((schema.properties().isUndefined() || schema.properties().isEmpty())
-          && schema.additionalProperties().exists()) {
-        // this is a "map" where any not namely specified property has a certain same schema
-        appendRaw(":");
-        renderTypeDescriptor(schema.additionalProperties(), summary);
+      if (schema.isMap()) {
+        appendRaw("{*:");
+        renderSchemaSignatureTypeLinked(schema.additionalProperties());
+        appendRaw("}");
       }
-      // TODO else: need to detail the object in full
       return;
     }
-    appendRaw(type);
+    if (schema.isString() && schema.get("enum").exists()) {
+      appendRaw("enum");
+      return;
+    }
+    // TODO handle oneof and anyof types
+    appendRaw(schema.$type());
+  }
+
+  private void renderComponentsSchemas() {
+    appendTag(
+        "section",
+        () -> {
+          for (KindItem kind : groupKinds()) {
+            String id = "--" + kind.kind;
+            appendDetails(
+                id,
+                false,
+                "kind",
+                () -> {
+                  appendSummary(id, "", () -> appendTag("h2", toWords(kind.kind) + "s"));
+                  kind.schemas.forEach(this::renderSchema);
+                });
+          }
+        });
+  }
+
+  private void renderSchema(SchemaObject schema) {
+    String id = schema.getSharedName();
+    appendDetails(
+        id,
+        false,
+        "schema box " + schema.$type(),
+        () -> {
+          appendSummary(
+              schema.getSharedName(),
+              "",
+              () -> {
+                appendCode("type", schema.getSharedName());
+                renderSchemaSummary(schema, true);
+              });
+          renderBoxToolbar();
+          renderSchemaDetails(schema, true, false);
+          if (params.isSource()) renderSource("@" + id, schema);
+        });
+  }
+
+  private void renderSchemaSummary(SchemaObject schema, boolean isDeclaration) {
+    if (!isDeclaration) renderSchemaSignature(schema);
+    if (schema.isRef() || (!isDeclaration && schema.isShared())) return;
+    renderLabelledValue("format", schema.format());
+    renderLabelledValue("minLength", schema.minLength());
+    renderLabelledValue("maxLength", schema.maxLength());
+    renderLabelledValue("pattern", schema.pattern());
+  }
+
+  private void renderSchemaDetails(
+      SchemaObject schema, boolean isDeclaration, boolean skipDefault) {
+    if (schema.isRef() || (!isDeclaration && schema.isShared()))
+      return; // summary already gave all that is needed
+    Set<String> names =
+        schema.isObject() ? schema.properties().keys().collect(toUnmodifiableSet()) : Set.of();
+    appendTag("header", markdownToHTML(schema.description(), names));
+    if (!skipDefault) renderLabelledValue("default", schema.$default(), true);
+    renderLabelledValue("enum", schema.$enum(), true);
+
+    if (schema.isObject()) {
+      List<String> required = schema.required();
+      schema
+          .properties()
+          .forEach((n, s) -> renderSchemaProperty(schema, n, s, required.contains(n)));
+      SchemaObject additionalProperties = schema.additionalProperties();
+      if (!additionalProperties.isUndefined()) {
+        renderSchemaProperty(schema, "&lt;additionalProperties&gt;", additionalProperties, false);
+      }
+    }
+    if (schema.isArray()) {
+      renderSchemaProperty(schema, "&lt;items&gt;", schema.items(), false);
+    }
+    // TODO handle oneof (x | y) and allof (x & y) types
+  }
+
+  private void renderSchemaProperty(
+      SchemaObject parent, String name, SchemaObject type, boolean required) {
+    String id = parent.isShared() ? parent.getSharedName() + "-" + name : null;
+    String style = "property";
+    if (required) style += " required";
+    boolean open = type.isObject() || type.isArray() && type.items().isObject();
+    appendDetails(
+        id,
+        open,
+        style,
+        () -> {
+          appendSummary(
+              id,
+              "",
+              () -> {
+                appendCode("property", name);
+                appendCode("property secondary", ":");
+                renderSchemaSummary(type, false);
+              });
+          renderSchemaDetails(type, false, false);
+        });
+  }
+
+  private void renderSource(String id, JsonObject op) {
+    appendDetails(
+        id,
+        false,
+        "source",
+        () -> {
+          appendSummary(id, "", () -> appendRaw("&#128435; Source"));
+          appendTag(
+              "pre",
+              () -> {
+                appendRaw(escapeHtml(op.toJson()));
+              });
+        });
   }
 
   private void appendDetails(@CheckForNull String id, boolean open, String style, Runnable body) {

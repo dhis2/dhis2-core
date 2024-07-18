@@ -492,9 +492,11 @@ public class OpenApiGenerator extends JsonGenerator {
     addNumberMember("maxLength", simpleType.maxLength());
     addStringMember("pattern", simpleType.pattern());
     addDefaultMember(source, defaultValue, type);
-    if (!simpleType.enums().isEmpty()) {
+    boolean isEnum = !simpleType.enums().isEmpty();
+    if (isEnum) {
       addInlineArrayMember("enum", simpleType.enums());
     }
+
     addStringMultilineMember("description", simpleType.description());
   }
 
@@ -514,6 +516,7 @@ public class OpenApiGenerator extends JsonGenerator {
 
   private void generateUidSchema(Api.Schema schema) {
     addStringMember("type", "string");
+    addStringMember("x-kind", "uid");
     addStringMember("format", "uid");
     addStringMember("pattern", "^[0-9a-zA-Z]{11}$");
     addNumberMember("minLength", 11);

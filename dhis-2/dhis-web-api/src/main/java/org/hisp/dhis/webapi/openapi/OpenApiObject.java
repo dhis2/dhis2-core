@@ -369,7 +369,8 @@ public interface OpenApiObject extends JsonObject {
     }
 
     default boolean isShared() {
-      return node().getPath().toString().startsWith(".components.parameters");
+      String path = node().getPath().toString();
+      return path.substring(0, path.lastIndexOf('.')).equals(".components.parameters");
     }
 
     default String getSharedName() {
@@ -406,6 +407,7 @@ public interface OpenApiObject extends JsonObject {
   }
 
   interface MediaTypeObject extends JsonObject {
+
     default SchemaObject schema() {
       return get("schema", SchemaObject.class);
     }
@@ -449,8 +451,13 @@ public interface OpenApiObject extends JsonObject {
       return node().getRoot().lift(getAccessStore()).asObject().get(path, SchemaObject.class);
     }
 
+    default boolean isRef() {
+      return get("$ref").exists();
+    }
+
     default boolean isShared() {
-      return node().getPath().toString().startsWith(".components.schemas");
+      String path = node().getPath().toString();
+      return path.substring(0, path.lastIndexOf('.')).equals(".components.schemas");
     }
 
     default String getSharedName() {
@@ -464,6 +471,13 @@ public interface OpenApiObject extends JsonObject {
     @Validation(oneOfValues = {"string", "array", "integer", "number", "boolean", "object"})
     default String $type() {
       return getString("type").string();
+    }
+
+    default String x_kind() {
+      JsonString kind = getString("x-kind");
+      if (kind.exists()) return kind.string();
+      if (get("enum").exists()) return "enum";
+      return $type();
     }
 
     @Language("markdown")
@@ -525,6 +539,33 @@ public interface OpenApiObject extends JsonObject {
 
     default JsonMap<SchemaObject> properties() {
       return getMap("properties", SchemaObject.class);
+    }
+
+    /**
+     * @return an object with no explicitly defined properties and where all additional properties
+     *     have the same type is essentially a map with {@link String} keys and the {@link
+     *     #additionalProperties()} {@link SchemaObject} values.
+     */
+    default boolean isMap() {
+      if (!isObject()) return false;
+      if (additionalProperties().isUndefined()) return false;
+      return properties().isUndefined() || properties().isEmpty();
+    }
+
+    default boolean isObject() {
+      return "object".equalsIgnoreCase($type());
+    }
+
+    default boolean isArray() {
+      return "array".equalsIgnoreCase($type());
+    }
+
+    default boolean isString() {
+      return "string".equalsIgnoreCase($type());
+    }
+
+    default boolean isNumber() {
+      return "number".equalsIgnoreCase($type());
     }
 
     /*
