@@ -147,18 +147,14 @@ public class FileResourceController {
       @RequestParam(defaultValue = "DATA_VALUE") FileResourceDomain domain,
       @RequestParam(required = false) String uid)
       throws IOException, WebMessageException {
-    FileResource fileResource;
 
+    FileResourceUtils.validateFileSize(
+        file, Long.parseLong(dhisConfig.getProperty(ConfigurationKey.MAX_FILE_UPLOAD_SIZE_BYTES)));
+    FileResource fileResource;
     if (domain.equals(FileResourceDomain.USER_AVATAR)) {
       fileResourceUtils.validateUserAvatar(file);
       fileResource =
           fileResourceUtils.saveFileResource(uid, resizeAvatarToDefaultSize(file), domain);
-
-    } else if (domain.equals(FileResourceDomain.ORG_UNIT)) {
-      fileResourceUtils.validateOrgUnitImage(file);
-      fileResource =
-          fileResourceUtils.saveFileResource(
-              uid, fileResourceUtils.resizeOrgToDefaultSize(file), domain);
 
     } else {
       fileResource = fileResourceUtils.saveFileResource(uid, file, domain);

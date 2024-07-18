@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
@@ -34,6 +35,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonString;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
@@ -42,6 +46,74 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.mock.web.MockMultipartFile;
 
 class FileResourceControllerTest extends DhisControllerConvenienceTest {
+
+  @Test
+  void testSaveTooBigFileSize() {
+    byte[] bytes = new byte[10_000_001];
+    MockMultipartFile image =
+        new MockMultipartFile("file", "OU_profile_image.png", "image/png", bytes);
+    HttpResponse response = POST_MULTIPART("/fileResources?domain=USER_AVATAR", image);
+    JsonString errorMessage = response.content(HttpStatus.CONFLICT).getString("message");
+    assertEquals(
+        "File size can't be bigger than 10000000, current file size 10000001",
+        errorMessage.string());
+  }
+
+  @Test
+  void testSaveBadAvatarImageData() {
+    MockMultipartFile image =
+        new MockMultipartFile(
+            "file", "OU_profile_image.png", "image/png", "<<png data>>".getBytes());
+    HttpResponse response = POST_MULTIPART("/fileResources?domain=USER_AVATAR", image);
+    JsonString errorMessage =
+        response.content(HttpStatus.INTERNAL_SERVER_ERROR).getString("message");
+    assertEquals("Failed to resize image: src cannot be null", errorMessage.string());
+  }
+
+  @Test
+  void testSaveBadAvatarContentType() {
+    MockMultipartFile image =
+        new MockMultipartFile(
+            "file", "OU_profile_image.png", "image/tiff", "<<png data>>".getBytes());
+    HttpResponse response = POST_MULTIPART("/fileResources?domain=USER_AVATAR", image);
+    JsonString errorMessage = response.content(HttpStatus.CONFLICT).getString("message");
+    assertEquals(
+        "Invalid content type, valid content types are: image/jpeg,image/png,image/gif",
+        errorMessage.string());
+  }
+
+  @Test
+  void testSaveBadAvatarFileExtension() {
+    MockMultipartFile image =
+        new MockMultipartFile(
+            "file", "OU_profile_image.tiff", "image/png", "<<png data>>".getBytes());
+    HttpResponse response = POST_MULTIPART("/fileResources?domain=USER_AVATAR", image);
+    JsonString errorMessage = response.content(HttpStatus.CONFLICT).getString("message");
+    assertEquals(
+        "Wrong file extension, valid extensions are: jpg,jpeg,png,gif", errorMessage.string());
+  }
+
+  @Test
+  void testSaveBadAvatarFileSize() {
+    byte[] bytes = new byte[2_000_001];
+    MockMultipartFile image =
+        new MockMultipartFile("file", "OU_profile_image.png", "image/png", bytes);
+    HttpResponse response = POST_MULTIPART("/fileResources?domain=USER_AVATAR", image);
+    JsonString errorMessage = response.content(HttpStatus.CONFLICT).getString("message");
+    assertEquals(
+        "File size can't be bigger than 2000000, current file size 2000001", errorMessage.string());
+  }
+
+  @Test
+  void testSaveGoodAvatar() throws IOException {
+    File file = new ClassPathResource("file/dhis2.png").getFile();
+    MockMultipartFile image =
+        new MockMultipartFile("file", "dhis2.png", "image/png", Files.readAllBytes(file.toPath()));
+    HttpResponse response = POST_MULTIPART("/fileResources?domain=USER_AVATAR", image);
+    JsonObject savedObject =
+        response.content(HttpStatus.ACCEPTED).getObject("response").getObject("fileResource");
+    assertEquals("dhis2.png", savedObject.getString("name").string());
+  }
 
   @Test
   void testSaveOrgUnitImage() throws IOException {
