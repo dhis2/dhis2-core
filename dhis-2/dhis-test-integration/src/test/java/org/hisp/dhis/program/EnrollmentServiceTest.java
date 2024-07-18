@@ -50,6 +50,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -64,6 +65,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private org.hisp.dhis.program.EnrollmentService apiEnrollmentService;
+
+  @Autowired private TrackerObjectDeletionService trackerObjectDeletionService;
 
   @Autowired private org.hisp.dhis.tracker.export.enrollment.EnrollmentService enrollmentService;
 
@@ -204,7 +207,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   }
 
   @Test
-  void testSoftDeleteEnrollmentAndLinkedEvent() {
+  void testSoftDeleteEnrollmentAndLinkedEvent() throws NotFoundException {
     manager.save(enrollmentA);
     manager.save(eventA);
     long eventIdA = eventA.getId();
@@ -213,7 +216,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     assertNotNull(manager.get(Enrollment.class, enrollmentA.getUid()));
     assertNotNull(manager.get(Event.class, eventIdA));
 
-    apiEnrollmentService.deleteEnrollment(enrollmentA);
+    trackerObjectDeletionService.deleteEnrollments(List.of(enrollmentA.getUid()));
 
     assertNull(manager.get(Enrollment.class, enrollmentA.getUid()));
     assertNull(manager.get(Event.class, eventIdA));

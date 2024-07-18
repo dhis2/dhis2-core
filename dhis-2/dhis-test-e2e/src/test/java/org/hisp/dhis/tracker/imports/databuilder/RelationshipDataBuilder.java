@@ -28,7 +28,7 @@
 package org.hisp.dhis.tracker.imports.databuilder;
 
 import com.google.gson.JsonObject;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
+import org.hisp.dhis.test.e2e.helpers.JsonObjectBuilder;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>

@@ -46,8 +46,8 @@ import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_TTL_MODE;
 import static org.hisp.dhis.setting.SettingKey.CACHEABILITY;
 import static org.hisp.dhis.setting.SettingKey.CACHE_STRATEGY;
 import static org.hisp.dhis.setting.SettingKey.getAsRealClass;
-import static org.hisp.dhis.utils.Assertions.assertStartsWith;
-import static org.hisp.dhis.utils.Assertions.assertWithinRange;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.test.utils.Assertions.assertWithinRange;
 import static org.hisp.dhis.webapi.utils.ContextUtils.getAttachmentFileName;
 import static org.hisp.dhis.webapi.utils.ContextUtils.stripFormatCompressionExtension;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -61,7 +61,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.webapi.DhisWebSpringTest;
+import org.hisp.dhis.test.webapi.WebSpringTestBase;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -71,7 +71,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 /**
  * @author Stian Sandvold
  */
-class ContextUtilsTest extends DhisWebSpringTest {
+class ContextUtilsTest extends WebSpringTestBase {
   @Autowired private ContextUtils contextUtils;
 
   @Autowired private SystemSettingManager systemSettingManager;

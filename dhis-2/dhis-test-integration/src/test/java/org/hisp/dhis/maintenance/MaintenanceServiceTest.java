@@ -229,6 +229,7 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     assertNotNull(relationshipService.getRelationship(r.getId()));
     trackedEntityService.deleteTrackedEntity(trackedEntity);
     assertNull(trackedEntityService.getTrackedEntity(trackedEntity.getId()));
+    manager.delete(r);
     assertNull(relationshipService.getRelationship(r.getId()));
     assertTrue(trackedEntityService.trackedEntityExistsIncludingDeleted(trackedEntity.getUid()));
     assertTrue(relationshipService.relationshipExistsIncludingDeleted(r.getUid()));
@@ -376,6 +377,7 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     assertNotNull(relationshipService.getRelationship(r.getId()));
     manager.delete(eventA);
     assertNull(getEvent(idA));
+    manager.delete(r);
     assertNull(relationshipService.getRelationship(r.getId()));
     assertTrue(eventExistsIncludingDeleted(eventA.getUid()));
     assertTrue(relationshipService.relationshipExistsIncludingDeleted(r.getUid()));
@@ -410,6 +412,7 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     assertNotNull(relationshipService.getRelationship(r.getId()));
     apiEnrollmentService.deleteEnrollment(enrollment);
     assertNull(manager.get(Enrollment.class, enrollment.getId()));
+    manager.delete(r);
     assertNull(relationshipService.getRelationship(r.getId()));
     assertTrue(enrollmentExistsIncludingDeleted(enrollment));
     assertTrue(relationshipService.relationshipExistsIncludingDeleted(r.getUid()));

@@ -29,11 +29,11 @@ package org.hisp.dhis.tracker.imports.config;
 
 import static org.mockito.Mockito.mock;
 
-import org.hisp.dhis.config.H2DhisConfiguration;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.test.config.H2DhisConfiguration;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.extension.ExtendWith;

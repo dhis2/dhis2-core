@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.analytics.outlier.data;
 
-import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
-import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
-import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
-import static org.hisp.dhis.DhisConvenienceTest.injectSecurityContext;
+import static org.hisp.dhis.test.DhisConvenienceTest.createDataElement;
+import static org.hisp.dhis.test.DhisConvenienceTest.createDataSet;
+import static org.hisp.dhis.test.DhisConvenienceTest.createOrganisationUnit;
+import static org.hisp.dhis.test.DhisConvenienceTest.injectSecurityContext;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyList;

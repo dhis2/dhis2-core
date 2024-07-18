@@ -27,20 +27,20 @@
  */
 package org.hisp.dhis.webapi.controller.metadata;
 
-import static org.hisp.dhis.web.WebClient.Body;
+import static org.hisp.dhis.test.web.WebClient.Body;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
+import org.hisp.dhis.test.webapi.json.domain.JsonImportSummary;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
-import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
-import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-class MetadataImportIntegrationTest extends DhisControllerIntegrationTest {
+class MetadataImportIntegrationTest extends PostgresControllerIntegrationTestBase {
   @Test
   @DisplayName("Should return error when import program with inaccessible programStage")
   void testImportInaccessibleReference() {

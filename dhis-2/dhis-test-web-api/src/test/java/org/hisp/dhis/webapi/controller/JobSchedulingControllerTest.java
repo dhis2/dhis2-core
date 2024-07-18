@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -41,7 +41,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class JobSchedulingControllerTest extends DhisControllerIntegrationTest {
+class JobSchedulingControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testGetRunningProgressTypesOnly() {

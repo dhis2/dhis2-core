@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.common;
 
-import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionCombo;
-import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
-import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
-import static org.hisp.dhis.DhisConvenienceTest.createIndicator;
-import static org.hisp.dhis.DhisConvenienceTest.createProgram;
-import static org.hisp.dhis.DhisConvenienceTest.createProgramIndicator;
-import static org.hisp.dhis.DhisConvenienceTest.createTrackedEntityAttribute;
+import static org.hisp.dhis.test.DhisConvenienceTest.createCategoryOptionCombo;
+import static org.hisp.dhis.test.DhisConvenienceTest.createDataElement;
+import static org.hisp.dhis.test.DhisConvenienceTest.createDataSet;
+import static org.hisp.dhis.test.DhisConvenienceTest.createIndicator;
+import static org.hisp.dhis.test.DhisConvenienceTest.createProgram;
+import static org.hisp.dhis.test.DhisConvenienceTest.createProgramIndicator;
+import static org.hisp.dhis.test.DhisConvenienceTest.createTrackedEntityAttribute;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.analytics.AggregationType;

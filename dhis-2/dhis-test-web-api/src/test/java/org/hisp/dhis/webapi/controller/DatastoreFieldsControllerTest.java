@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.utils.JavaToJson.toJson;
+import static org.hisp.dhis.test.utils.JavaToJson.toJson;
+import static org.hisp.dhis.test.webapi.Assertions.assertJson;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -35,7 +37,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.datastore.DatastoreParams;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.test.web.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

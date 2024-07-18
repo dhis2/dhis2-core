@@ -29,7 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import org.hisp.dhis.webapi.DhisWebSpringTest;
+import org.hisp.dhis.test.webapi.WebSpringTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -37,7 +37,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class ApiVersionTypeTest extends DhisWebSpringTest {
+class ApiVersionTypeTest extends WebSpringTestBase {
 
   private MockHttpServletRequestBuilder get(String urlTemplate, Object... uriVariables) {
     return org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(

@@ -34,7 +34,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.option.Option;
@@ -48,6 +47,7 @@ import org.hisp.dhis.programrule.action.validation.HideOptionProgramRuleActionVa
 import org.hisp.dhis.programrule.action.validation.NotificationProgramRuleActionValidator;
 import org.hisp.dhis.programrule.action.validation.ProgramRuleActionValidationContext;
 import org.hisp.dhis.programrule.action.validation.ProgramRuleActionValidationService;
+import org.hisp.dhis.test.DhisConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
