@@ -35,14 +35,14 @@ import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternParser;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.utils.TestUtils;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Luca Cambi
  */
-class TrackedEntityAttributeControllerTest extends DhisControllerConvenienceTest {
+class TrackedEntityAttributeControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void shouldGenerateRandomValuesOrgUnitCodeAndRandom() throws Exception {
 

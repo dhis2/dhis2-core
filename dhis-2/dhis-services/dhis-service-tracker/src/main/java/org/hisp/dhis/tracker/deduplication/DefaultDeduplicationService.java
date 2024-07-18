@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.UserInfoSnapshot;
@@ -96,7 +97,9 @@ public class DefaultDeduplicationService implements DeduplicationService {
   @Override
   @Transactional
   public void autoMerge(DeduplicationMergeParams params)
-      throws PotentialDuplicateConflictException, PotentialDuplicateForbiddenException {
+      throws PotentialDuplicateConflictException,
+          PotentialDuplicateForbiddenException,
+          ForbiddenException {
     String autoMergeConflicts =
         getAutoMergeConflictErrors(params.getOriginal(), params.getDuplicate());
 
@@ -114,7 +117,9 @@ public class DefaultDeduplicationService implements DeduplicationService {
   @Override
   @Transactional
   public void manualMerge(DeduplicationMergeParams deduplicationMergeParams)
-      throws PotentialDuplicateConflictException, PotentialDuplicateForbiddenException {
+      throws PotentialDuplicateConflictException,
+          PotentialDuplicateForbiddenException,
+          ForbiddenException {
     String invalidReference =
         deduplicationHelper.getInvalidReferenceErrors(deduplicationMergeParams);
     if (invalidReference != null) {
@@ -149,7 +154,8 @@ public class DefaultDeduplicationService implements DeduplicationService {
     return null;
   }
 
-  private void merge(DeduplicationMergeParams params) throws PotentialDuplicateForbiddenException {
+  private void merge(DeduplicationMergeParams params)
+      throws PotentialDuplicateForbiddenException, ForbiddenException {
     TrackedEntity original = params.getOriginal();
     TrackedEntity duplicate = params.getDuplicate();
     MergeObject mergeObject = params.getMergeObject();

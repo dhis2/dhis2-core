@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,17 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi;
+package org.hisp.dhis.actions.metadata;
 
-import org.hisp.dhis.IntegrationH2Test;
-import org.springframework.test.context.ActiveProfiles;
+import org.hisp.dhis.actions.RestApiActions;
 
 /**
- * Base class for convenient testing of the web API on basis of {@link
- * org.hisp.dhis.jsontree.JsonMixed} responses.
- *
- * @author Jan Bernitt
+ * @author Zubair Asghar
  */
-@ActiveProfiles("test-h2")
-@IntegrationH2Test
-public abstract class DhisControllerConvenienceTest extends DhisControllerTestBase {}
+public class ProgramRuleHandler extends RestApiActions {
+  public ProgramRuleHandler() {
+    super("/programRules");
+  }
+}

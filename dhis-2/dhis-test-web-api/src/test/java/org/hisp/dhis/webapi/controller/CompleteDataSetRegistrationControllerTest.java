@@ -31,6 +31,7 @@ import static org.hisp.dhis.web.WebClient.Accept;
 import static org.hisp.dhis.web.WebClient.Body;
 import static org.hisp.dhis.web.WebClient.ContentType;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.webapi.Assertions.assertWebMessage;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -38,7 +39,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -48,7 +49,7 @@ import org.springframework.http.MediaType;
  *
  * @author Jan Bernitt
  */
-class CompleteDataSetRegistrationControllerTest extends DhisControllerConvenienceTest {
+class CompleteDataSetRegistrationControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testPostCompleteRegistrationsJson() {

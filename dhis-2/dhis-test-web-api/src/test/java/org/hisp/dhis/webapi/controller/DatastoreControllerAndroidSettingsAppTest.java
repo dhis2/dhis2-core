@@ -35,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.datastore.DatastoreService;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -46,7 +46,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class DatastoreControllerAndroidSettingsAppTest extends DhisControllerConvenienceTest {
+class DatastoreControllerAndroidSettingsAppTest extends H2ControllerIntegrationTestBase {
 
   @BeforeEach
   void setUp() {

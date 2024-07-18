@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,33 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.utils;
+package org.hisp.dhis.webapi;
 
+import static org.hisp.dhis.utils.JavaToJson.singleToDoubleQuotes;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.List;
-import javax.servlet.http.Cookie;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.jsontree.JsonMixed;
-import org.hisp.dhis.web.HttpMethod;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.web.HttpStatus.Series;
-import org.hisp.dhis.web.WebClient;
+import org.hisp.dhis.web.WebClient.HttpResponse;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
-import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 /**
- * Base class for all Spring Mock MVC based controller tests.
- *
- * @author Jan Bernitt
+ * Assertions contains web related assertions. General purpose assertions can be found and put into
+ * {@link org.hisp.dhis.utils.Assertions}.
  */
-public abstract class DhisMockMvcControllerTest extends DhisConvenienceTest implements WebClient {
+public final class Assertions {
+  private Assertions() {
+    throw new UnsupportedOperationException("util");
+  }
 
   public static JsonWebMessage assertWebMessage(HttpStatus expected, HttpResponse response) {
     JsonWebMessage actual = response.content(expected).as(JsonWebMessage.class);
@@ -84,81 +77,7 @@ public abstract class DhisMockMvcControllerTest extends DhisConvenienceTest impl
     assertEquals(status, actual.getStatus(), "unexpected status");
   }
 
-  public static ResponseAdapter toResponse(MockHttpServletResponse response) {
-    return new MockMvcResponseAdapter(response);
-  }
-
-  @Override
-  public HttpResponse webRequest(
-      HttpMethod method, String url, List<Header> headers, String contentType, String content) {
-    return webRequest(buildMockRequest(method, url, headers, contentType, content));
-  }
-
-  protected String makeApiUrl(String path) {
-    if (path.startsWith("/api/")) {
-      return path;
-    }
-    return "/api/" + path;
-  }
-
-  protected MockHttpServletRequestBuilder buildMockRequest(
-      HttpMethod method, String url, List<Header> headers, String contentType, String content) {
-
-    MockHttpServletRequestBuilder request =
-        MockMvcRequestBuilders.request(
-            org.springframework.http.HttpMethod.resolve(method.name()), makeApiUrl(url));
-
-    for (Header header : headers) {
-      request.header(header.getName(), header.getValue());
-    }
-    if (contentType != null) {
-      request.contentType(contentType);
-    }
-    if (content != null) {
-      request.content(content);
-    }
-
-    return request;
-  }
-
-  protected abstract HttpResponse webRequest(MockHttpServletRequestBuilder request);
-
-  private static class MockMvcResponseAdapter implements ResponseAdapter {
-
-    private final MockHttpServletResponse response;
-
-    MockMvcResponseAdapter(MockHttpServletResponse response) {
-      this.response = response;
-    }
-
-    @Override
-    public int getStatus() {
-      return response.getStatus();
-    }
-
-    @Override
-    public String getContent() {
-      try {
-        return response.getContentAsString(StandardCharsets.UTF_8);
-      } catch (UnsupportedEncodingException ex) {
-        throw new RuntimeException(ex);
-      }
-    }
-
-    @Override
-    public String getErrorMessage() {
-      return response.getErrorMessage();
-    }
-
-    @Override
-    public String getHeader(String name) {
-      return response.getHeader(name);
-    }
-
-    @Override
-    public String[] getCookies() {
-      Cookie[] cookies = response.getCookies();
-      return Arrays.stream(cookies).map(Cookie::getValue).toArray(String[]::new);
-    }
+  public static void assertJson(String expected, HttpResponse actual) {
+    assertEquals(singleToDoubleQuotes(expected), actual.content().toString());
   }
 }

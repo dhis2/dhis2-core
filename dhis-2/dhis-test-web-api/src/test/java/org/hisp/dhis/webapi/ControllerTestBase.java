@@ -28,14 +28,18 @@
 package org.hisp.dhis.webapi;
 
 import static java.lang.String.format;
-import static org.hisp.dhis.utils.JavaToJson.singleToDoubleQuotes;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.hisp.dhis.web.WebClientUtils.failOnException;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
+import javax.servlet.http.Cookie;
 import lombok.Getter;
+import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -49,12 +53,14 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
+import org.hisp.dhis.web.HttpMethod;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.utils.DhisMockMvcControllerTest;
+import org.hisp.dhis.web.WebClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -66,6 +72,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
@@ -76,13 +83,14 @@ import org.springframework.web.context.WebApplicationContext;
  * Main base class for all Spring Mock MVC based controller integration tests. The Spring context is
  * configured to contain the Spring components to test the DHIS2 web app.
  *
- * <p>Concrete test classes can either
+ * <p>Concrete test classes
  *
  * <ul>
- *   <li>directly extend this class and pick the DB they want to test against via the {@link
- *       ActiveProfiles}
- *   <li>or extend one of the base classes for the different test {@link Profile} like {@link
- *       DhisControllerIntegrationTest} or {@link DhisControllerConvenienceTest}
+ *   <li>should ideally extend one of {@link PostgresControllerIntegrationTestBase} or {@link
+ *       H2ControllerIntegrationTestBase}
+ *   <li>only if the above do not fit should they directly extend this class and pick the DB they
+ *       want to test against via the {@link ActiveProfiles} matching one of the {@link Profile}
+ *       declared in {@link PostgresDhisConfiguration} or {@link H2DhisConfiguration}
  * </ul>
  *
  * Refer to {@link ContextConfiguration} and {@link ActiveProfiles} before creating yet another base
@@ -96,13 +104,13 @@ import org.springframework.web.context.WebApplicationContext;
     classes = {
       H2DhisConfiguration.class,
       PostgresDhisConfiguration.class,
-      MvcTestConfig.class,
+      MvcTestConfiguration.class,
       WebTestConfiguration.class
     })
 @Transactional
-public abstract class DhisControllerTestBase extends DhisMockMvcControllerTest {
+public abstract class ControllerTestBase extends DhisConvenienceTest implements WebClient {
 
-  @Autowired private WebApplicationContext webApplicationContext;
+  @Autowired protected WebApplicationContext webApplicationContext;
 
   @Autowired private UserService _userService;
 
@@ -114,7 +122,7 @@ public abstract class DhisControllerTestBase extends DhisMockMvcControllerTest {
 
   @Autowired private TransactionTemplate txTemplate;
 
-  @Getter private User adminUser;
+  @Getter protected User adminUser;
 
   @Getter protected User superUser;
 
@@ -129,7 +137,7 @@ public abstract class DhisControllerTestBase extends DhisMockMvcControllerTest {
   }
 
   @BeforeEach
-  final void setup() {
+  void setup() {
     userService = _userService;
     renderService = _renderService;
     clearSecurityContext();
@@ -197,7 +205,7 @@ public abstract class DhisControllerTestBase extends DhisMockMvcControllerTest {
 
   /**
    * Method which allows passing in actual {@link Authorities}. It calls the existing method {@link
-   * DhisControllerTestBase#switchToNewUser(String, String...)} that accepts String authorities
+   * ControllerTestBase#switchToNewUser(String, String...)} that accepts String authorities
    * underneath.
    *
    * @param username - username
@@ -234,25 +242,95 @@ public abstract class DhisControllerTestBase extends DhisMockMvcControllerTest {
         SecurityContextHolder.getContext());
   }
 
-  protected final HttpResponse POST_MULTIPART(String url, MockMultipartFile part) {
-
-    return webRequest(multipart(makeApiUrl(url)).file(part));
+  public static ResponseAdapter toResponse(MockHttpServletResponse response) {
+    return new MockMvcResponseAdapter(response);
   }
 
   @Override
-  protected final HttpResponse webRequest(MockHttpServletRequestBuilder request) {
+  public HttpResponse webRequest(
+      HttpMethod method, String url, List<Header> headers, String contentType, String content) {
+    return webRequest(buildMockRequest(method, url, headers, contentType, content));
+  }
+
+  protected final HttpResponse POST_MULTIPART(String url, MockMultipartFile part) {
+    return webRequest(multipart(makeApiUrl(url)).file(part));
+  }
+
+  protected HttpResponse webRequest(MockHttpServletRequestBuilder request) {
     return failOnException(
         () ->
             new HttpResponse(
                 toResponse(mvc.perform(request.session(session)).andReturn().getResponse())));
   }
 
-  protected final MvcResult webRequestWithMvcResult(MockHttpServletRequestBuilder request) {
-    return failOnException(() -> mvc.perform(request.session(session)).andReturn());
+  protected String makeApiUrl(String path) {
+    if (path.startsWith("/api/")) {
+      return path;
+    }
+    return "/api/" + path;
   }
 
-  protected final void assertJson(String expected, HttpResponse actual) {
-    assertEquals(singleToDoubleQuotes(expected), actual.content().toString());
+  protected MockHttpServletRequestBuilder buildMockRequest(
+      HttpMethod method, String url, List<Header> headers, String contentType, String content) {
+
+    MockHttpServletRequestBuilder request =
+        MockMvcRequestBuilders.request(
+            org.springframework.http.HttpMethod.resolve(method.name()), makeApiUrl(url));
+
+    for (Header header : headers) {
+      request.header(header.getName(), header.getValue());
+    }
+    if (contentType != null) {
+      request.contentType(contentType);
+    }
+    if (content != null) {
+      request.content(content);
+    }
+
+    return request;
+  }
+
+  private static class MockMvcResponseAdapter implements ResponseAdapter {
+
+    private final MockHttpServletResponse response;
+
+    MockMvcResponseAdapter(MockHttpServletResponse response) {
+      this.response = response;
+    }
+
+    @Override
+    public int getStatus() {
+      return response.getStatus();
+    }
+
+    @Override
+    public String getContent() {
+      try {
+        return response.getContentAsString(StandardCharsets.UTF_8);
+      } catch (UnsupportedEncodingException ex) {
+        throw new RuntimeException(ex);
+      }
+    }
+
+    @Override
+    public String getErrorMessage() {
+      return response.getErrorMessage();
+    }
+
+    @Override
+    public String getHeader(String name) {
+      return response.getHeader(name);
+    }
+
+    @Override
+    public String[] getCookies() {
+      Cookie[] cookies = response.getCookies();
+      return Arrays.stream(cookies).map(Cookie::getValue).toArray(String[]::new);
+    }
+  }
+
+  protected final MvcResult webRequestWithMvcResult(MockHttpServletRequestBuilder request) {
+    return failOnException(() -> mvc.perform(request.session(session)).andReturn());
   }
 
   protected final String addDataElement(

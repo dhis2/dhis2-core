@@ -28,6 +28,8 @@
 package org.hisp.dhis.webapi.controller.userdatastore;
 
 import static org.hisp.dhis.utils.JavaToJson.toJson;
+import static org.hisp.dhis.webapi.Assertions.assertJson;
+import static org.hisp.dhis.webapi.Assertions.assertWebMessage;
 
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;

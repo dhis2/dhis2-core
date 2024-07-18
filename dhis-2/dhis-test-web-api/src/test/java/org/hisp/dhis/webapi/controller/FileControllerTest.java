@@ -29,9 +29,10 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.web.WebClient.Body;
 import static org.hisp.dhis.web.WebClient.ContentType;
+import static org.hisp.dhis.webapi.Assertions.assertWebMessage;
 
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -39,7 +40,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class FileControllerTest extends DhisControllerConvenienceTest {
+class FileControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testPostCustomScript() {

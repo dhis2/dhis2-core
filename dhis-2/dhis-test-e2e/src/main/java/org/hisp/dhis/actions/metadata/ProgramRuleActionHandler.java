@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,17 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi;
+package org.hisp.dhis.actions.metadata;
 
-import org.hisp.dhis.IntegrationTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.hisp.dhis.actions.RestApiActions;
 
 /**
- * Base class for all Spring Mock MVC based controller tests which use postgres database in a docker
- * instance.
- *
- * @author Viet Nguyen
+ * @author Zubair Asghar
  */
-@ActiveProfiles("test-postgres")
-@IntegrationTest
-public class DhisControllerIntegrationTest extends DhisControllerTestBase {}
+public class ProgramRuleActionHandler extends RestApiActions {
+  public ProgramRuleActionHandler() {
+    super("/programRuleActions");
+  }
+}

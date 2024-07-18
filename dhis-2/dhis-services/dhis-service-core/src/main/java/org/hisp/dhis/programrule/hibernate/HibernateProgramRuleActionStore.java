@@ -75,7 +75,7 @@ public class HibernateProgramRuleActionStore
   @Override
   public List<ProgramRuleAction> getProgramActionsWithNoNotification() {
     return getQuery(
-            "FROM ProgramRuleAction pra WHERE pra.programRuleActionType IN ( :notificationTypes ) AND pra.templateUid IS NULL")
+            "FROM ProgramRuleAction pra WHERE pra.programRuleActionType IN ( :notificationTypes ) AND pra.notificationTemplate IS NULL")
         .setParameter("notificationTypes", ProgramRuleActionType.NOTIFICATION_LINKED_TYPES)
         .getResultList();
   }

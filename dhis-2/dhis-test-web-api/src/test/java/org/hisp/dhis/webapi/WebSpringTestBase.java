@@ -27,21 +27,42 @@
  */
 package org.hisp.dhis.webapi;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
 
-@Configuration
-public class AuthConfigProviderConfiguration {
-  @Bean
-  public WebSecurityCustomizer webSecurityCustomizer() {
-    return web ->
-        web.debug(false)
-            .ignoring()
-            .requestMatchers(
-                new AntPathRequestMatcher("/api/ping"),
-                new AntPathRequestMatcher("/auth/login"),
-                new AntPathRequestMatcher("/favicon.ico"));
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.mock.web.MockHttpSession;
+import org.springframework.restdocs.RestDocumentationContextProvider;
+import org.springframework.restdocs.RestDocumentationExtension;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.filter.CharacterEncodingFilter;
+
+/**
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
+ */
+@ExtendWith({RestDocumentationExtension.class})
+public abstract class WebSpringTestBase extends H2ControllerIntegrationTestBase {
+
+  @BeforeEach
+  void setupMockMvc(RestDocumentationContextProvider restDocumentation) {
+    CharacterEncodingFilter characterEncodingFilter = new CharacterEncodingFilter();
+    characterEncodingFilter.setEncoding("UTF-8");
+    characterEncodingFilter.setForceEncoding(true);
+    mvc =
+        MockMvcBuilders.webAppContextSetup(webApplicationContext)
+            .apply(documentationConfiguration(restDocumentation))
+            .build();
+  }
+
+  public MockHttpSession getMockHttpSession() {
+    MockHttpSession session = new MockHttpSession();
+
+    session.setAttribute(
+        HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+        SecurityContextHolder.getContext());
+
+    return session;
   }
 }

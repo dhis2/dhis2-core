@@ -32,6 +32,7 @@ import static org.hisp.dhis.web.HttpStatus.Series.SUCCESSFUL;
 import static org.hisp.dhis.web.WebClient.Accept;
 import static org.hisp.dhis.web.WebClient.Body;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -65,7 +66,7 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
@@ -83,7 +84,7 @@ import org.springframework.security.core.session.SessionRegistry;
  *
  * @author Jan Bernitt
  */
-class UserControllerTest extends DhisControllerConvenienceTest {
+class UserControllerTest extends H2ControllerIntegrationTestBase {
   @Autowired private MessageSender messageSender;
 
   @Autowired private SystemSettingManager systemSettingManager;

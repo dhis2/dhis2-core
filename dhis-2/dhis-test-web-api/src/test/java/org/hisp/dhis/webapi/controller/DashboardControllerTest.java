@@ -42,12 +42,12 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class DashboardControllerTest extends DhisControllerIntegrationTest {
+class DashboardControllerTest extends PostgresControllerIntegrationTestBase {
   @Autowired private AclService aclService;
 
   @Test

@@ -28,11 +28,12 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
 
@@ -41,7 +42,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class PredictionControllerTest extends DhisControllerIntegrationTest {
+class PredictionControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testRunPredictors() {

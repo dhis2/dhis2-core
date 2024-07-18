@@ -52,7 +52,7 @@ import com.google.gson.JsonObject;
 import java.util.Optional;
 import org.hisp.dhis.fileresource.JCloudsFileResourceContentStore;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.webapi.DhisWebSpringTest;
+import org.hisp.dhis.webapi.WebSpringTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,7 +63,7 @@ import org.springframework.test.web.servlet.ResultActions;
 /**
  * @author Luciano Fiandesio
  */
-class StaticContentControllerTest extends DhisWebSpringTest {
+class StaticContentControllerTest extends WebSpringTestBase {
 
   private static final String URL = "/api/staticContent/";
 
@@ -79,7 +79,7 @@ class StaticContentControllerTest extends DhisWebSpringTest {
 
   @BeforeEach
   void setUp() {
-    this.session = getSession("ALL");
+    this.session = getMockHttpSession();
     this.mockMultipartFile =
         new MockMultipartFile("file", "testlogo.png", MIME_PNG, "image".getBytes());
     systemSettingManager.saveSystemSetting(USE_CUSTOM_LOGO_BANNER, FALSE);

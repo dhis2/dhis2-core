@@ -74,7 +74,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -675,9 +674,9 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
         EnrollmentOperationParams.builder().orgUnitMode(ALL).build();
 
     BadRequestException exception =
-        Assertions.assertThrows(
+        assertThrows(
             BadRequestException.class, () -> enrollmentService.getEnrollments(operationParams));
-    Assertions.assertEquals(
+    assertEquals(
         "Current user is not authorized to query across all organisation units",
         exception.getMessage());
   }
@@ -693,9 +692,9 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
             .build();
 
     ForbiddenException exception =
-        Assertions.assertThrows(
+        assertThrows(
             ForbiddenException.class, () -> enrollmentService.getEnrollments(operationParams));
-    Assertions.assertEquals(
+    assertEquals(
         String.format("Organisation unit is not part of the search scope: %s", orgUnitA.getUid()),
         exception.getMessage());
   }
@@ -773,6 +772,24 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     assertContainsOnly(
         List.of(enrollmentA.getUid(), enrollmentChildA.getUid(), enrollmentGrandchildA.getUid()),
         uids(enrollments));
+  }
+
+  @Test
+  void shouldFailWhenRequestingListOfEnrollmentsAndAtLeastOneNotAccessible() {
+    injectSecurityContextUser(admin);
+    programA.getSharing().setPublicAccess("rw------");
+    manager.update(programA);
+
+    injectSecurityContextUser(authorizedUser);
+    ForbiddenException exception =
+        assertThrows(
+            ForbiddenException.class,
+            () ->
+                enrollmentService.getEnrollments(
+                    List.of(enrollmentA.getUid(), enrollmentB.getUid())));
+    assertContains(
+        String.format("User has no data read access to program: %s", programA.getUid()),
+        exception.getMessage());
   }
 
   private static List<String> attributeUids(Enrollment enrollment) {

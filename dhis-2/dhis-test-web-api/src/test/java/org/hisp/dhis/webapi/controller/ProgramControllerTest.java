@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.feedback.ErrorCode.E1005;
 import static org.hisp.dhis.web.WebClient.Body;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.webapi.Assertions.assertWebMessage;
 import static org.hisp.dhis.webapi.utils.TestUtils.getMatchingGroupFromPattern;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -44,7 +45,7 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.webapi.json.domain.JsonObjectReport;
 import org.hisp.dhis.webapi.json.domain.JsonProgram;
@@ -61,7 +62,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author David Mackessy
  */
-class ProgramControllerTest extends DhisControllerConvenienceTest {
+class ProgramControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private ObjectMapper jsonMapper;
 

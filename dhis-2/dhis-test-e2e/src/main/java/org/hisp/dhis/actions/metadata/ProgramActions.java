@@ -50,10 +50,12 @@ import org.hisp.dhis.utils.SharingUtils;
  */
 public class ProgramActions extends RestApiActions {
   public ProgramStageActions programStageActions;
+  public ProgramRuleHandler programRuleHandler;
 
   public ProgramActions() {
     super("/programs");
     this.programStageActions = new ProgramStageActions();
+    this.programRuleHandler = new ProgramRuleHandler();
   }
 
   public ApiResponse createProgram(String programType) {
@@ -137,6 +139,27 @@ public class ProgramActions extends RestApiActions {
             .build();
 
     ApiResponse response = programStageActions.post(programStage);
+
+    response.validate().statusCode(is(oneOf(201, 200)));
+    return response.extractUid();
+  }
+
+  /**
+   * Creates a program rule and links it to the program.
+   *
+   * @param programId
+   * @param programRuleName
+   * @return program rule id
+   */
+  public String createProgramRule(String programId, String programRuleName) {
+    JsonObject programRule =
+        new JsonObjectBuilder()
+            .addProperty("name", programRuleName)
+            .addProperty("code", programRuleName)
+            .addObject("program", new JsonObjectBuilder().addProperty("id", programId))
+            .build();
+
+    ApiResponse response = programRuleHandler.post(programRule);
 
     response.validate().statusCode(is(oneOf(201, 200)));
     return response.extractUid();

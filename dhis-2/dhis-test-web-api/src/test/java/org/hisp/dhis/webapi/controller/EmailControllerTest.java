@@ -27,12 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.webapi.Assertions.assertWebMessage;
+
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 
 /** Tests the {@link EmailController} using (mocked) REST requests. */
-class EmailControllerTest extends DhisControllerConvenienceTest {
+class EmailControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testSendTestEmail() {

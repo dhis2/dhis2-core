@@ -35,7 +35,7 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.json.domain.JsonImpersonateUserResponse;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
@@ -52,7 +52,7 @@ import org.springframework.test.context.ContextConfiguration;
       ImpersonateUserControllerTest.DhisConfiguration.class,
     })
 @ActiveProfiles("impersonate-user-test")
-class ImpersonateUserControllerTest extends DhisControllerConvenienceTest {
+class ImpersonateUserControllerTest extends H2ControllerIntegrationTestBase {
 
   static class DhisConfiguration {
     @Bean
