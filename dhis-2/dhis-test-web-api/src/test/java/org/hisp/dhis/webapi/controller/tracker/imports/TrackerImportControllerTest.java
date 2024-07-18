@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
+import static org.hisp.dhis.webapi.Assertions.assertWebMessage;
+
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;

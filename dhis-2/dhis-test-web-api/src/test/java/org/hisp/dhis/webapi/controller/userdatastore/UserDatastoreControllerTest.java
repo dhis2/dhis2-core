@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.userdatastore;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.web.HttpStatus;

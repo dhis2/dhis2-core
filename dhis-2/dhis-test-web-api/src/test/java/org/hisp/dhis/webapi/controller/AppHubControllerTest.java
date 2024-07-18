@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.external.conf.ConfigurationKey;
