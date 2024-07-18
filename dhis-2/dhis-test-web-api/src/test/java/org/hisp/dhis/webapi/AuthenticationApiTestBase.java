@@ -55,9 +55,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
     classes = {
       H2DhisConfiguration.class,
       WebMvcConfig.class,
-      AuthenticationApiBaseTest.AuthConfigProviderConfiguration.class,
+      AuthenticationApiTestBase.AuthConfigProviderConfiguration.class,
     })
-public abstract class AuthenticationApiBaseTest extends H2ControllerIntegrationTestBase {
+public abstract class AuthenticationApiTestBase extends H2ControllerIntegrationTestBase {
 
   static class AuthConfigProviderConfiguration {
     @Bean
