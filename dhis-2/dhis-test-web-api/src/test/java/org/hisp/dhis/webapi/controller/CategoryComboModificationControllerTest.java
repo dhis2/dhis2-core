@@ -34,12 +34,12 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.json.domain.JsonCategoryOptionCombo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class CategoryComboModificationControllerTest extends DhisControllerConvenienceTest {
+class CategoryComboModificationControllerTest extends H2ControllerIntegrationTestBase {
 
   String testCatCombo;
 

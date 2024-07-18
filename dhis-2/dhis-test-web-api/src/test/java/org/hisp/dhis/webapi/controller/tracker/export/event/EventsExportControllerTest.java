@@ -50,7 +50,7 @@ import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -61,7 +61,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 
 @ContextConfiguration(classes = EventExportTestConfiguration.class)
-class EventsExportControllerTest extends DhisControllerConvenienceTest {
+class EventsExportControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
 

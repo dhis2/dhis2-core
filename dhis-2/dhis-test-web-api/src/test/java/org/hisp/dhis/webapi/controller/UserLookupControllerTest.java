@@ -38,7 +38,7 @@ import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,7 +49,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class UserLookupControllerTest extends DhisControllerConvenienceTest {
+class UserLookupControllerTest extends H2ControllerIntegrationTestBase {
 
   private String roleId;
 

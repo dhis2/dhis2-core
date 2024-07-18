@@ -31,13 +31,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author viet@dhis2.org
  */
-class GeoFeatureControllerTest extends DhisControllerConvenienceTest {
+class GeoFeatureControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testGetWithCoordinateField() {
     POST(

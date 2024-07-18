@@ -31,11 +31,10 @@ import org.hisp.dhis.IntegrationH2Test;
 import org.springframework.test.context.ActiveProfiles;
 
 /**
- * Base class for convenient testing of the web API on basis of {@link
- * org.hisp.dhis.jsontree.JsonMixed} responses.
+ * Base class for all Spring Mock MVC based controller tests which use an H2 in-memory DB.
  *
  * @author Jan Bernitt
  */
 @ActiveProfiles("test-h2")
 @IntegrationH2Test
-public abstract class DhisControllerConvenienceTest extends DhisControllerTestBase {}
+public abstract class H2ControllerIntegrationTestBase extends ControllerTestBase {}

@@ -47,13 +47,13 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.web.WebClient;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class VisualizationControllerTest extends DhisControllerConvenienceTest {
+class VisualizationControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
   private Program mockProgram;

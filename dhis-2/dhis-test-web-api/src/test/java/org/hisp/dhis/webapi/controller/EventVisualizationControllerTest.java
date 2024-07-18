@@ -58,7 +58,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -70,7 +70,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author maikel arabori
  */
-class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
+class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
   @Autowired private ObjectMapper jsonMapper;
 
   @Autowired private IdentifiableObjectManager manager;

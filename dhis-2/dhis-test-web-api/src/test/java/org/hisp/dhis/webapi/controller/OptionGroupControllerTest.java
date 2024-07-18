@@ -31,14 +31,14 @@ import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Jan Bernitt
  */
-class OptionGroupControllerTest extends DhisControllerConvenienceTest {
+class OptionGroupControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testPostOptionGroupWithDescription() {
     String uid =

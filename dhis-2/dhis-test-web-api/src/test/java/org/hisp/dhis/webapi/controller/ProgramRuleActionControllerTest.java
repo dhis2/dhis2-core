@@ -37,7 +37,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.junit.jupiter.api.Test;
 
@@ -47,7 +47,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class ProgramRuleActionControllerTest extends DhisControllerConvenienceTest {
+class ProgramRuleActionControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testGetDataExpressionDescription() {

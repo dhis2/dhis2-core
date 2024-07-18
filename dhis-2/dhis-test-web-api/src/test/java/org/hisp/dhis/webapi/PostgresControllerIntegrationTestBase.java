@@ -27,42 +27,15 @@
  */
 package org.hisp.dhis.webapi;
 
-import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.mock.web.MockHttpSession;
-import org.springframework.restdocs.RestDocumentationContextProvider;
-import org.springframework.restdocs.RestDocumentationExtension;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.filter.CharacterEncodingFilter;
+import org.hisp.dhis.IntegrationTest;
+import org.springframework.test.context.ActiveProfiles;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Base class for all Spring Mock MVC based controller tests which use a Postgres DB running in a
+ * Docker container.
+ *
+ * @author Viet Nguyen
  */
-@ExtendWith({RestDocumentationExtension.class})
-public abstract class DhisWebSpringTest extends DhisControllerConvenienceTest {
-
-  @BeforeEach
-  void setupMockMvc(RestDocumentationContextProvider restDocumentation) {
-    CharacterEncodingFilter characterEncodingFilter = new CharacterEncodingFilter();
-    characterEncodingFilter.setEncoding("UTF-8");
-    characterEncodingFilter.setForceEncoding(true);
-    mvc =
-        MockMvcBuilders.webAppContextSetup(webApplicationContext)
-            .apply(documentationConfiguration(restDocumentation))
-            .build();
-  }
-
-  public MockHttpSession getMockHttpSession() {
-    MockHttpSession session = new MockHttpSession();
-
-    session.setAttribute(
-        HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
-        SecurityContextHolder.getContext());
-
-    return session;
-  }
-}
+@ActiveProfiles("test-postgres")
+@IntegrationTest
+public abstract class PostgresControllerIntegrationTestBase extends ControllerTestBase {}

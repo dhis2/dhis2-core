@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
 
@@ -40,7 +40,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class ValidationControllerTest extends DhisControllerIntegrationTest {
+class ValidationControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testRunValidationNotificationsTask() {

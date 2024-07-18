@@ -76,13 +76,14 @@ import org.springframework.web.context.WebApplicationContext;
  * Main base class for all Spring Mock MVC based controller integration tests. The Spring context is
  * configured to contain the Spring components to test the DHIS2 web app.
  *
- * <p>Concrete test classes can either
+ * <p>Concrete test classes
  *
  * <ul>
- *   <li>directly extend this class and pick the DB they want to test against via the {@link
- *       ActiveProfiles}
- *   <li>or extend one of the base classes for the different test {@link Profile} like {@link
- *       DhisControllerIntegrationTest} or {@link DhisControllerConvenienceTest}
+ *   <li>should ideally extend one of {@link PostgresControllerIntegrationTestBase} or {@link
+ *       H2ControllerIntegrationTestBase}
+ *   <li>only if the above do not fit should they directly extend this class and pick the DB they
+ *       want to test against via the {@link ActiveProfiles} matching one of the {@link Profile}
+ *       declared in {@link PostgresDhisConfiguration} or {@link H2DhisConfiguration}
  * </ul>
  *
  * Refer to {@link ContextConfiguration} and {@link ActiveProfiles} before creating yet another base
@@ -100,7 +101,7 @@ import org.springframework.web.context.WebApplicationContext;
       WebTestConfiguration.class
     })
 @Transactional
-public abstract class DhisControllerTestBase extends DhisMockMvcControllerTest {
+public abstract class ControllerTestBase extends DhisMockMvcControllerTest {
 
   @Autowired protected WebApplicationContext webApplicationContext;
 
@@ -197,7 +198,7 @@ public abstract class DhisControllerTestBase extends DhisMockMvcControllerTest {
 
   /**
    * Method which allows passing in actual {@link Authorities}. It calls the existing method {@link
-   * DhisControllerTestBase#switchToNewUser(String, String...)} that accepts String authorities
+   * ControllerTestBase#switchToNewUser(String, String...)} that accepts String authorities
    * underneath.
    *
    * @param username - username

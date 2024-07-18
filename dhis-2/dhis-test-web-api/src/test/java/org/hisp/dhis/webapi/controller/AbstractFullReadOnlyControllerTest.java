@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -48,7 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author David Mackessy
  */
-class AbstractFullReadOnlyControllerTest extends DhisControllerConvenienceTest {
+class AbstractFullReadOnlyControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private DataElementService dataElementService;
 

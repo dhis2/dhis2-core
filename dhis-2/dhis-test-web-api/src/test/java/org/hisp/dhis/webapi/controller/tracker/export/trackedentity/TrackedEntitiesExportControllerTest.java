@@ -78,7 +78,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.controller.tracker.JsonAttribute;
 import org.hisp.dhis.webapi.controller.tracker.JsonDataValue;
 import org.hisp.dhis.webapi.controller.tracker.JsonEnrollment;
@@ -91,7 +91,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest {
+class TrackedEntitiesExportControllerTest extends H2ControllerIntegrationTestBase {
   // Used to generate unique chars for creating test objects like TEA, ...
   private static final String UNIQUE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   private static final String EVENT_OCCURRED_AT = "2023-03-23T12:23:00.000";

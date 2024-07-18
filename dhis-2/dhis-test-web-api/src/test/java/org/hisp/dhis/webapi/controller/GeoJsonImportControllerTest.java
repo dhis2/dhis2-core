@@ -44,7 +44,7 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonNumber;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.json.domain.JsonImportConflict;
 import org.hisp.dhis.webapi.json.domain.JsonImportCount;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
@@ -55,7 +55,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class GeoJsonImportControllerTest extends DhisControllerConvenienceTest {
+class GeoJsonImportControllerTest extends H2ControllerIntegrationTestBase {
   /**
    * Names of the OUs in the test file: {@code geo-json/sierra-leone-districts.geojson} in the same
    * order as provided in the file

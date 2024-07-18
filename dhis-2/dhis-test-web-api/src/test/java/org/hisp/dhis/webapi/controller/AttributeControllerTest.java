@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.hisp.dhis.attribute.Attribute.ObjectType;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -42,7 +42,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class AttributeControllerTest extends DhisControllerIntegrationTest {
+class AttributeControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testGistList() {

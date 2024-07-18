@@ -51,7 +51,7 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -61,7 +61,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Jan Bernitt
  */
-class DimensionControllerTest extends DhisControllerConvenienceTest {
+class DimensionControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private CategoryService categoryService;
   @Autowired private OrganisationUnitGroupService orgUnitGroupService;

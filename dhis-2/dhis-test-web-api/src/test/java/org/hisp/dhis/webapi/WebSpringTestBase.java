@@ -27,48 +27,42 @@
  */
 package org.hisp.dhis.webapi;
 
-import java.sql.SQLException;
-import javax.sql.DataSource;
-import org.hisp.dhis.config.TestDhisConfigurationProvider;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.h2.H2SqlFunction;
-import org.hisp.dhis.webapi.security.config.WebMvcConfig;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
+
 import org.junit.jupiter.api.BeforeEach;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.security.web.FilterChainProxy;
-import org.springframework.test.context.ContextConfiguration;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.mock.web.MockHttpSession;
+import org.springframework.restdocs.RestDocumentationContextProvider;
+import org.springframework.restdocs.RestDocumentationExtension;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.filter.CharacterEncodingFilter;
 
 /**
- * Base class for convenient testing of the web API on basis of {@link
- * org.hisp.dhis.jsontree.JsonMixed} responses, with JWT token
- *
- * @author Morten Svanæs
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@ContextConfiguration(
-    inheritLocations = false,
-    classes = {DhisControllerWithJwtTokenAuthTest.DhisConfiguration.class, WebMvcConfig.class})
-public abstract class DhisControllerWithJwtTokenAuthTest extends DhisControllerConvenienceTest {
-
-  static class DhisConfiguration {
-    @Bean
-    public DhisConfigurationProvider dhisConfigurationProvider() {
-      return new TestDhisConfigurationProvider("dhisControllerWithJwtTokenAuthTestDhis.conf");
-    }
-  }
-
-  @Autowired private FilterChainProxy springSecurityFilterChain;
-
-  @Autowired private DataSource dataSource;
+@ExtendWith({RestDocumentationExtension.class})
+public abstract class WebSpringTestBase extends H2ControllerIntegrationTestBase {
 
   @BeforeEach
-  void setupMockMvcAndH2() throws SQLException {
+  void setupMockMvc(RestDocumentationContextProvider restDocumentation) {
+    CharacterEncodingFilter characterEncodingFilter = new CharacterEncodingFilter();
+    characterEncodingFilter.setEncoding("UTF-8");
+    characterEncodingFilter.setForceEncoding(true);
     mvc =
         MockMvcBuilders.webAppContextSetup(webApplicationContext)
-            .addFilter(springSecurityFilterChain)
+            .apply(documentationConfiguration(restDocumentation))
             .build();
+  }
 
-    H2SqlFunction.registerH2Functions(dataSource);
+  public MockHttpSession getMockHttpSession() {
+    MockHttpSession session = new MockHttpSession();
+
+    session.setAttribute(
+        HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+        SecurityContextHolder.getContext());
+
+    return session;
   }
 }

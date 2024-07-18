@@ -42,7 +42,7 @@ import org.hisp.dhis.metadata.MetadataProposalTarget;
 import org.hisp.dhis.metadata.MetadataProposalType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.controller.json.JsonMetadataProposal;
 import org.hisp.dhis.webapi.controller.metadata.MetadataWorkflowController;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
@@ -57,7 +57,7 @@ import org.springframework.http.MediaType;
  *
  * @author Jan Bernitt
  */
-class MetadataWorkflowControllerTest extends DhisControllerConvenienceTest {
+class MetadataWorkflowControllerTest extends H2ControllerIntegrationTestBase {
 
   private String defaultTargetId;
 

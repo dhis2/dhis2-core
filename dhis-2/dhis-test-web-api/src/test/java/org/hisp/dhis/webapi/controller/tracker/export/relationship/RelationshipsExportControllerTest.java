@@ -74,7 +74,7 @@ import org.hisp.dhis.trackerdataview.TrackerDataView;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.controller.tracker.JsonAttribute;
 import org.hisp.dhis.webapi.controller.tracker.JsonDataValue;
 import org.hisp.dhis.webapi.controller.tracker.JsonNote;
@@ -86,7 +86,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
+class RelationshipsExportControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
 

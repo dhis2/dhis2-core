@@ -38,7 +38,7 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.controller.ProgramStageWorkingListController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,7 +47,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 /** Tests the {@link ProgramStageWorkingListController} using (mocked) REST requests. */
-class ProgramStageWorkingListControllerTest extends DhisControllerConvenienceTest {
+class ProgramStageWorkingListControllerTest extends H2ControllerIntegrationTestBase {
 
   private String programId;
 

@@ -39,7 +39,7 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -48,7 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Jan Bernitt
  */
-class AccountControllerTest extends DhisControllerIntegrationTest {
+class AccountControllerTest extends PostgresControllerIntegrationTestBase {
   @Autowired private SystemSettingManager systemSettingManager;
 
   @Test

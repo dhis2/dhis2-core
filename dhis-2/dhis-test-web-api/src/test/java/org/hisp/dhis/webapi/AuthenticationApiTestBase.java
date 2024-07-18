@@ -44,7 +44,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
  * Base class for convenient testing of the web API on basis of {@link
  * org.hisp.dhis.jsontree.JsonMixed} responses, with authentication.
  *
- * <p>This class differs from {@link DhisControllerConvenienceTest} in that this base class also
+ * <p>This class differs from {@link H2ControllerIntegrationTestBase} in that this base class also
  * includes the {@link FilterChainProxy} so that we can authenticate the request like it would in a
  * normal running server.
  *
@@ -55,9 +55,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
     classes = {
       H2DhisConfiguration.class,
       WebMvcConfig.class,
-      DhisAuthenticationApiTest.AuthConfigProviderConfiguration.class,
+      AuthenticationApiTestBase.AuthConfigProviderConfiguration.class,
     })
-public abstract class DhisAuthenticationApiTest extends DhisControllerConvenienceTest {
+public abstract class AuthenticationApiTestBase extends H2ControllerIntegrationTestBase {
 
   static class AuthConfigProviderConfiguration {
     @Bean

@@ -39,7 +39,7 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -48,7 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Jan Bernitt
  */
-abstract class AbstractGistControllerTest extends DhisControllerConvenienceTest {
+abstract class AbstractGistControllerTest extends H2ControllerIntegrationTestBase {
   @Autowired protected OrganisationUnitService organisationUnitService;
 
   protected String userGroupId;

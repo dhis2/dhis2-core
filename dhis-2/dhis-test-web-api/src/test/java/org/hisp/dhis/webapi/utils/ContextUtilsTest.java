@@ -61,7 +61,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.webapi.DhisWebSpringTest;
+import org.hisp.dhis.webapi.WebSpringTestBase;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -71,7 +71,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 /**
  * @author Stian Sandvold
  */
-class ContextUtilsTest extends DhisWebSpringTest {
+class ContextUtilsTest extends WebSpringTestBase {
   @Autowired private ContextUtils contextUtils;
 
   @Autowired private SystemSettingManager systemSettingManager;

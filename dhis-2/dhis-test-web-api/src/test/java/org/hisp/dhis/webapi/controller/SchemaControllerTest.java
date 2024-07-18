@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.json.domain.JsonSchema;
 import org.junit.jupiter.api.Test;
 
@@ -43,7 +43,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class SchemaControllerTest extends DhisControllerConvenienceTest {
+class SchemaControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testValidateSchema() {
     assertWebMessage(

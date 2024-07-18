@@ -49,7 +49,7 @@ import org.hisp.dhis.icon.AddIconRequest;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.controller.json.JsonPager;
 import org.hisp.dhis.webapi.json.domain.JsonIcon;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
@@ -57,7 +57,7 @@ import org.hisp.dhis.webapi.service.ContextService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class IconControllerTest extends DhisControllerIntegrationTest {
+class IconControllerTest extends PostgresControllerIntegrationTestBase {
   private static final ObjectMapper mapper = new ObjectMapper();
 
   private static final String key1 = "key1";

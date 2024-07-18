@@ -42,7 +42,7 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerWithApiTokenAuthTest;
+import org.hisp.dhis.webapi.ControllerWithApiTokenAuthTestBase;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig;
 import org.junit.jupiter.api.BeforeAll;
@@ -54,7 +54,7 @@ import org.springframework.test.context.ActiveProfiles;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @ActiveProfiles("cache-test")
-class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest {
+class ApiTokenAuthenticationTest extends ControllerWithApiTokenAuthTestBase {
   public static final String URI = "/me?fields=settings,id";
 
   public static final String CHECKSUM_VALIDATION_FAILED = "Checksum validation failed";

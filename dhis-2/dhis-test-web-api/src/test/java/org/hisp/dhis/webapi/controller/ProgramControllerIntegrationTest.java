@@ -43,7 +43,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.web.WebClient;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.controller.tracker.JsonEnrollment;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,7 +58,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author David Mackessy
  */
-class ProgramControllerIntegrationTest extends DhisControllerIntegrationTest {
+class ProgramControllerIntegrationTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired private ObjectMapper jsonMapper;
 

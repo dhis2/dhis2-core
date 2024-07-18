@@ -60,7 +60,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.controller.tracker.JsonEventChangeLog;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage.JsonPager;
@@ -70,7 +70,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
+class EventsExportControllerPostgresTest extends PostgresControllerIntegrationTestBase {
   private static final String DATA_ELEMENT_VALUE = "value 1";
 
   @Autowired private IdentifiableObjectManager manager;

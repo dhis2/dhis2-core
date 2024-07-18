@@ -33,7 +33,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -43,7 +43,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class PdfFormControllerTest extends DhisControllerConvenienceTest {
+class PdfFormControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testSendFormPdfDataSet_Empty() {

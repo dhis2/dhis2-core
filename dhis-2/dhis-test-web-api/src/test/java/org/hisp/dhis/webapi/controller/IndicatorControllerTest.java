@@ -33,7 +33,7 @@ import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -43,7 +43,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class IndicatorControllerTest extends DhisControllerConvenienceTest {
+class IndicatorControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testGetExpressionDescription() {

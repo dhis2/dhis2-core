@@ -52,7 +52,7 @@ import com.google.gson.JsonObject;
 import java.util.Optional;
 import org.hisp.dhis.fileresource.JCloudsFileResourceContentStore;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.webapi.DhisWebSpringTest;
+import org.hisp.dhis.webapi.WebSpringTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,7 +63,7 @@ import org.springframework.test.web.servlet.ResultActions;
 /**
  * @author Luciano Fiandesio
  */
-class StaticContentControllerTest extends DhisWebSpringTest {
+class StaticContentControllerTest extends WebSpringTestBase {
 
   private static final String URL = "/api/staticContent/";
 

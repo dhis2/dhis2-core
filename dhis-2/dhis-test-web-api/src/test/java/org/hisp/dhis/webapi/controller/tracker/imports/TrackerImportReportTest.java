@@ -43,7 +43,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.web.WebClient;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.controller.tracker.JsonImportReport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -53,7 +53,7 @@ import org.junit.jupiter.params.provider.ValueSource;
  * Tests {@link ImportReport} behavior through {@link TrackerImportController} using (mocked) REST
  * requests
  */
-class TrackerImportReportTest extends DhisControllerConvenienceTest {
+class TrackerImportReportTest extends H2ControllerIntegrationTestBase {
 
   private static final String ORG_UNIT_UID = "PSeMWi7rBgb";
 

@@ -47,7 +47,7 @@ import org.hisp.dhis.sqlview.SqlViewQuery;
 import org.hisp.dhis.sqlview.SqlViewService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.Test;
@@ -62,7 +62,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Jan Bernitt
  */
 @ExtendWith(MockitoExtension.class)
-class SqlViewControllerTest extends DhisControllerConvenienceTest {
+class SqlViewControllerTest extends H2ControllerIntegrationTestBase {
 
   @Mock private SqlViewService sqlViewService;
 
