@@ -48,7 +48,6 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventStore;
 import org.hisp.dhis.program.Program;
@@ -82,8 +81,6 @@ class ProgramNotificationServiceTest extends TransactionalIntegrationTest {
   @Autowired private ProgramStageService programStageService;
 
   @Autowired private TrackedEntityService trackedEntityService;
-
-  @Autowired private EnrollmentService enrollmentService;
 
   @Autowired private CategoryService categoryService;
 
@@ -168,9 +165,9 @@ class ProgramNotificationServiceTest extends TransactionalIntegrationTest {
     Date enrollmentDate = testDate2.toDate();
     enrollmentA = new Enrollment(enrollmentDate, incidenDate, trackedEntityA, programA);
     enrollmentA.setUid("UID-PIA");
-    enrollmentService.addEnrollment(enrollmentA);
+    manager.save(enrollmentA);
     enrollmentB = new Enrollment(enrollmentDate, incidenDate, trackedEntityB, programB);
-    enrollmentService.addEnrollment(enrollmentB);
+    manager.save(enrollmentB);
     Event eventA = new Event(enrollmentA, stageA);
     eventA.setScheduledDate(enrollmentDate);
     eventA.setUid("UID-A");

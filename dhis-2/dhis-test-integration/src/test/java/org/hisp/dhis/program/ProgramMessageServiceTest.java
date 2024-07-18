@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.message.ProgramMessage;
@@ -111,7 +112,7 @@ class ProgramMessageServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private TrackedEntityService trackedEntityService;
 
-  @Autowired private EnrollmentService enrollmentService;
+  @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private ProgramService programService;
 
@@ -140,7 +141,7 @@ class ProgramMessageServiceTest extends TransactionalIntegrationTest {
     enrollmentA.setName("enrollmentA");
     enrollmentA.setEnrollmentDate(new Date());
     enrollmentA.setAutoFields();
-    enrollmentService.addEnrollment(enrollmentA);
+    manager.save(enrollmentA);
     Set<OrganisationUnit> ouSet = new HashSet<>();
     ouSet.add(ouA);
     Set<String> ouUids = new HashSet<>();

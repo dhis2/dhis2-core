@@ -28,11 +28,11 @@
 package org.hisp.dhis.tracker;
 
 import static java.util.Collections.singletonList;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.tracker.imports.domain.MetadataIdentifier.ofAttribute;
 import static org.hisp.dhis.tracker.imports.domain.MetadataIdentifier.ofCode;
 import static org.hisp.dhis.tracker.imports.domain.MetadataIdentifier.ofName;
 import static org.hisp.dhis.tracker.imports.domain.MetadataIdentifier.ofUid;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.utils;
 
-import static org.hisp.dhis.DhisConvenienceTest.getDate;
+import static org.hisp.dhis.test.DhisConvenienceTest.getDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Date;

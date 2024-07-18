@@ -161,7 +161,8 @@ public class DeduplicationController {
       @RequestBody(required = false) MergeObject mergeObject)
       throws NotFoundException,
           PotentialDuplicateConflictException,
-          PotentialDuplicateForbiddenException {
+          PotentialDuplicateForbiddenException,
+          ForbiddenException {
     PotentialDuplicate potentialDuplicate = getPotentialDuplicateBy(id);
 
     if (potentialDuplicate.getOriginal() == null || potentialDuplicate.getDuplicate() == null) {

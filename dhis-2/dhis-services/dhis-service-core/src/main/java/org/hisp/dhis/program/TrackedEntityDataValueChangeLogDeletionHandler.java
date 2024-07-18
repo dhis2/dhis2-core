@@ -44,14 +44,9 @@ public class TrackedEntityDataValueChangeLogDeletionHandler extends DeletionHand
   @Override
   protected void register() {
     whenDeleting(DataElement.class, this::deleteDataElement);
-    whenDeleting(Event.class, this::deleteEvent);
   }
 
   private void deleteDataElement(DataElement dataElement) {
     trackedEntityDataValueAuditService.deleteTrackedEntityDataValueChangeLog(dataElement);
-  }
-
-  private void deleteEvent(Event event) {
-    trackedEntityDataValueAuditService.deleteTrackedEntityDataValueChangeLog(event);
   }
 }

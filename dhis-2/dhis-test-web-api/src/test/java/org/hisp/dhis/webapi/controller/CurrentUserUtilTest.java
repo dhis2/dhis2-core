@@ -32,15 +32,15 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author david mackessy
  */
-class CurrentUserUtilTest extends DhisControllerConvenienceTest {
+class CurrentUserUtilTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testCurrentUserDetailsIsSuper() {
