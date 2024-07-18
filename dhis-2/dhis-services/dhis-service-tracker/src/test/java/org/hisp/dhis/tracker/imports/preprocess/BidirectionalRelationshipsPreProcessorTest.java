@@ -31,8 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.test.DhisConvenienceTest;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;

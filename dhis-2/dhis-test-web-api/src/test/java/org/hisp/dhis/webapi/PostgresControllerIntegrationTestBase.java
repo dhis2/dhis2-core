@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi;
 
-import org.hisp.dhis.IntegrationTest;
+import org.hisp.dhis.test.IntegrationTest;
 import org.springframework.test.context.ActiveProfiles;
 
 /**

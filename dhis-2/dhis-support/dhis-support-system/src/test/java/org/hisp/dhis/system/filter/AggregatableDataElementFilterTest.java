@@ -31,10 +31,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Sets;
 import java.util.Set;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.test.DhisConvenienceTest;
 import org.junit.jupiter.api.Test;
 
 /**

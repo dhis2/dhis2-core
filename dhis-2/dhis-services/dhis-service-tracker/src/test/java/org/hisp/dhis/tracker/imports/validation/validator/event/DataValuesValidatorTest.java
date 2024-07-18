@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.event;
 
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertNoErrors;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
 import java.util.List;

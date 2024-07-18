@@ -36,12 +36,12 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Optional;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.test.DhisConvenienceTest;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;

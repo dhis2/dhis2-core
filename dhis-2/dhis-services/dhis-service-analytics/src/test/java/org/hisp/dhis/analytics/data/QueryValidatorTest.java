@@ -27,21 +27,21 @@
  */
 package org.hisp.dhis.analytics.data;
 
-import static org.hisp.dhis.DhisConvenienceTest.createCategory;
-import static org.hisp.dhis.DhisConvenienceTest.createCategoryCombo;
-import static org.hisp.dhis.DhisConvenienceTest.createCategoryOption;
-import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionCombo;
-import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
-import static org.hisp.dhis.DhisConvenienceTest.createDataElementGroup;
-import static org.hisp.dhis.DhisConvenienceTest.createDataElementGroupSet;
-import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
-import static org.hisp.dhis.DhisConvenienceTest.createIndicator;
-import static org.hisp.dhis.DhisConvenienceTest.createIndicatorType;
-import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
-import static org.hisp.dhis.DhisConvenienceTest.createProgram;
-import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
+import static org.hisp.dhis.test.DhisConvenienceTest.createCategory;
+import static org.hisp.dhis.test.DhisConvenienceTest.createCategoryCombo;
+import static org.hisp.dhis.test.DhisConvenienceTest.createCategoryOption;
+import static org.hisp.dhis.test.DhisConvenienceTest.createCategoryOptionCombo;
+import static org.hisp.dhis.test.DhisConvenienceTest.createDataElement;
+import static org.hisp.dhis.test.DhisConvenienceTest.createDataElementGroup;
+import static org.hisp.dhis.test.DhisConvenienceTest.createDataElementGroupSet;
+import static org.hisp.dhis.test.DhisConvenienceTest.createDataSet;
+import static org.hisp.dhis.test.DhisConvenienceTest.createIndicator;
+import static org.hisp.dhis.test.DhisConvenienceTest.createIndicatorType;
+import static org.hisp.dhis.test.DhisConvenienceTest.createOrganisationUnit;
+import static org.hisp.dhis.test.DhisConvenienceTest.createProgram;
+import static org.hisp.dhis.test.DhisConvenienceTest.getDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 

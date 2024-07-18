@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
-import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContainsAll;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertEnrollmentWithinRelationship;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertEventWithinRelationshipItem;
@@ -64,6 +64,7 @@ import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
@@ -73,7 +74,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackerdataview.TrackerDataView;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
-import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.controller.tracker.JsonAttribute;
 import org.hisp.dhis.webapi.controller.tracker.JsonDataValue;

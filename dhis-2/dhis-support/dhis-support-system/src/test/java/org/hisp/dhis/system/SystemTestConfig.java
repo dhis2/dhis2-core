@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.system;
 
-import org.hisp.dhis.config.H2DhisConfiguration;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.leader.election.NoOpLeaderManager;
+import org.hisp.dhis.test.config.H2DhisConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;

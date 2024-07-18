@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.icon;
 
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContainsAll;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -48,11 +48,11 @@ import org.hisp.dhis.fileresource.FileResourceStorageStatus;
 import org.hisp.dhis.icon.AddIconRequest;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.json.domain.JsonIcon;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.controller.json.JsonPager;
-import org.hisp.dhis.webapi.json.domain.JsonIcon;
-import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -27,19 +27,19 @@
  */
 package org.hisp.dhis.webapi;
 
-import static org.hisp.dhis.utils.JavaToJson.singleToDoubleQuotes;
+import static org.hisp.dhis.test.utils.JavaToJson.singleToDoubleQuotes;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.jsontree.JsonMixed;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.web.HttpStatus.Series;
-import org.hisp.dhis.web.WebClient.HttpResponse;
-import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.web.HttpStatus.Series;
+import org.hisp.dhis.test.web.WebClient.HttpResponse;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 
 /**
  * Assertions contains web related assertions. General purpose assertions can be found and put into
- * {@link org.hisp.dhis.utils.Assertions}.
+ * {@link org.hisp.dhis.test.utils.Assertions}.
  */
 public final class Assertions {
   private Assertions() {

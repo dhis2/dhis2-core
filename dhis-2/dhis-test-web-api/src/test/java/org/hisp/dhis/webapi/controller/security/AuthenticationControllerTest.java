@@ -36,12 +36,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.Calendar;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.json.domain.JsonLoginResponse;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.AuthenticationApiTestBase;
-import org.hisp.dhis.webapi.json.domain.JsonLoginResponse;
-import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.jboss.aerogear.security.otp.Totp;
 import org.jboss.aerogear.security.otp.api.Base32;
 import org.junit.jupiter.api.Assertions;

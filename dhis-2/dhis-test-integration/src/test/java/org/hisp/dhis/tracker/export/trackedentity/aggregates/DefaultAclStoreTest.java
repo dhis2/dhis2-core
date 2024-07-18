@@ -29,7 +29,7 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 
 import java.util.Collections;
 import java.util.List;

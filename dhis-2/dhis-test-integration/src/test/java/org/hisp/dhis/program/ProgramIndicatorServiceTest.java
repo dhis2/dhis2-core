@@ -33,7 +33,7 @@ import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.program.ProgramIndicator.KEY_ATTRIBUTE;
 import static org.hisp.dhis.program.ProgramIndicator.KEY_DATAELEMENT;
 import static org.hisp.dhis.program.ProgramIndicator.KEY_PROGRAM_VARIABLE;
-import static org.hisp.dhis.utils.Assertions.assertMapEquals;
+import static org.hisp.dhis.test.utils.Assertions.assertMapEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;

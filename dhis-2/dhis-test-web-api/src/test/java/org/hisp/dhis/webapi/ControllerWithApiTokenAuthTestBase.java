@@ -27,14 +27,14 @@
  */
 package org.hisp.dhis.webapi;
 
-import static org.hisp.dhis.web.WebClientUtils.failOnException;
+import static org.hisp.dhis.test.web.WebClientUtils.failOnException;
 
 import javax.persistence.EntityManager;
-import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.config.H2DhisConfiguration;
+import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.config.H2DhisConfiguration;
+import org.hisp.dhis.test.utils.TestUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.utils.TestUtils;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;

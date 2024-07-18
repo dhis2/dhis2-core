@@ -29,9 +29,9 @@ package org.hisp.dhis.tracker.imports.validation.validator.enrollment;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1119;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasWarning;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -39,7 +39,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.hisp.dhis.random.BeanRandomizer;
+import org.hisp.dhis.test.random.BeanRandomizer;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;

@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.webapi.security;
 
-import static org.hisp.dhis.web.WebClient.Body;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.web.WebClient.Body;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -39,11 +39,11 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.web.WebClientUtils;
+import org.hisp.dhis.test.webapi.json.domain.JsonApiToken;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.web.WebClientUtils;
 import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
-import org.hisp.dhis.webapi.json.domain.JsonApiToken;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

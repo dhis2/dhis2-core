@@ -28,8 +28,8 @@
 package org.hisp.dhis.webapi.security;
 
 import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.generatePersonalAccessToken;
-import static org.hisp.dhis.web.WebClient.ApiTokenHeader;
-import static org.hisp.dhis.web.WebClient.Header;
+import static org.hisp.dhis.test.web.WebClient.ApiTokenHeader;
+import static org.hisp.dhis.test.web.WebClient.Header;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.concurrent.TimeUnit;
@@ -38,12 +38,12 @@ import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.TokenWrapper;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.security.apikey.ApiTokenStore;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.json.domain.JsonUser;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.ControllerWithApiTokenAuthTestBase;
-import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

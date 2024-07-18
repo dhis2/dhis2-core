@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.utils.CsvUtils.getRowCountFromCsv;
-import static org.hisp.dhis.utils.CsvUtils.getRowFromCsv;
-import static org.hisp.dhis.utils.CsvUtils.getValueFromCsv;
+import static org.hisp.dhis.test.utils.CsvUtils.getRowCountFromCsv;
+import static org.hisp.dhis.test.utils.CsvUtils.getRowFromCsv;
+import static org.hisp.dhis.test.utils.CsvUtils.getValueFromCsv;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;

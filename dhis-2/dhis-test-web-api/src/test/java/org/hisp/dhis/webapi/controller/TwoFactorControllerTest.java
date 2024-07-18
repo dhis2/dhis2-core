@@ -27,17 +27,17 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.hisp.dhis.user.UserService.TWO_FACTOR_CODE_APPROVAL_PREFIX;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
+import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.controller.security.TwoFactorController;
 import org.jboss.aerogear.security.otp.Totp;

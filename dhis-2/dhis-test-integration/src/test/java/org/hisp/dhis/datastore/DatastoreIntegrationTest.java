@@ -28,7 +28,7 @@
 package org.hisp.dhis.datastore;
 
 import static java.util.stream.Collectors.toList;
-import static org.hisp.dhis.utils.JavaToJson.toJson;
+import static org.hisp.dhis.test.utils.JavaToJson.toJson;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
