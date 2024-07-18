@@ -198,7 +198,7 @@ class EventSecurityImportValidationTest extends TrackerTest {
     Enrollment enrollment =
         enrollmentService.enrollTrackedEntity(
             maleA, programA, dateMar20, dateApr10, organisationUnitA, "MNWZ6hnuhSX");
-    enrollmentService.addEnrollment(enrollment);
+    manager.save(enrollment);
     trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
         maleA.getUid(), programA.getUid(), organisationUnitA.getUid());
     manager.update(programA);

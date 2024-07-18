@@ -48,9 +48,7 @@ public class NotificationProgramRuleActionValidator implements ProgramRuleAction
     ProgramRule rule = validationContext.getProgramRule();
 
     if (!programRuleAction.hasNotification()) {
-      log.debug(
-          String.format(
-              "ProgramNotificationTemplate cannot be null for program rule: %s ", rule.getName()));
+      log.debug("templateUid cannot be null for program rule: {}", rule.getName());
 
       return ProgramRuleActionValidationResult.builder()
           .valid(false)
@@ -73,9 +71,9 @@ public class NotificationProgramRuleActionValidator implements ProgramRuleAction
 
     if (pnt == null) {
       log.debug(
-          String.format(
-              "ProgramNotificationTemplate id: %s for program rule: %s does not exist",
-              programRuleAction.getTemplateUid(), rule.getName()));
+          "ProgramNotificationTemplate id: {} for program rule: {} does not exist.",
+          programRuleAction.getTemplateUid(),
+          rule.getName());
 
       return ProgramRuleActionValidationResult.builder()
           .valid(false)

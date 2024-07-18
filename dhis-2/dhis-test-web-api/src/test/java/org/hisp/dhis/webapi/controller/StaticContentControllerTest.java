@@ -79,7 +79,7 @@ class StaticContentControllerTest extends DhisWebSpringTest {
 
   @BeforeEach
   void setUp() {
-    this.session = getSession("ALL");
+    this.session = getMockHttpSession();
     this.mockMultipartFile =
         new MockMultipartFile("file", "testlogo.png", MIME_PNG, "image".getBytes());
     systemSettingManager.saveSystemSetting(USE_CUSTOM_LOGO_BANNER, FALSE);

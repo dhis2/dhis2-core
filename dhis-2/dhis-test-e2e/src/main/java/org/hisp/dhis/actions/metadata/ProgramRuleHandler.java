@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,23 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi;
+package org.hisp.dhis.actions.metadata;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.hisp.dhis.actions.RestApiActions;
 
-@Configuration
-public class AuthConfigProviderConfiguration {
-  @Bean
-  public WebSecurityCustomizer webSecurityCustomizer() {
-    return web ->
-        web.debug(false)
-            .ignoring()
-            .requestMatchers(
-                new AntPathRequestMatcher("/api/ping"),
-                new AntPathRequestMatcher("/auth/login"),
-                new AntPathRequestMatcher("/favicon.ico"));
+/**
+ * @author Zubair Asghar
+ */
+public class ProgramRuleHandler extends RestApiActions {
+  public ProgramRuleHandler() {
+    super("/programRules");
   }
 }

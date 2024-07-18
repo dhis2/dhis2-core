@@ -35,6 +35,10 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.notification.NotificationTrigger;
+import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -55,6 +59,8 @@ class ProgramRuleActionStoreTest extends SingleSetupIntegrationTestBase {
   @Autowired private ProgramRuleActionStore actionStore;
 
   @Autowired private ProgramService programService;
+
+  @Autowired private ProgramNotificationTemplateService programNotificationTemplateService;
 
   @Override
   public void setUpTest() {
@@ -156,25 +162,19 @@ class ProgramRuleActionStoreTest extends SingleSetupIntegrationTestBase {
             "$placeofliving",
             null,
             null);
-    ProgramRuleAction actionC =
-        new ProgramRuleAction(
-            "ActionC",
-            programRuleA,
-            ProgramRuleActionType.HIDESECTION,
-            null,
-            null,
-            null,
-            null,
-            null,
-            "con",
-            "Hello",
-            "$placeofliving",
-            null,
-            null);
-    actionA.setTemplateUid("templateuid");
+
+    ProgramNotificationTemplate pnt =
+        createProgramNotificationTemplate(
+            "test123",
+            3,
+            NotificationTrigger.PROGRAM_RULE,
+            ProgramNotificationRecipient.USER_GROUP);
+
+    programNotificationTemplateService.save(pnt);
+
+    actionA.setNotificationTemplate(pnt);
     actionStore.save(actionA);
     actionStore.save(actionB);
-    actionStore.save(actionC);
     assertEquals(1, actionStore.getProgramActionsWithNoNotification().size());
     assertTrue(actionStore.getProgramActionsWithNoNotification().contains(actionB));
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.actions.metadata;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.DhisWebSpringTest;
-import org.junit.jupiter.api.Test;
-import org.springframework.mock.web.MockHttpSession;
+import org.hisp.dhis.actions.RestApiActions;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Zubair Asghar
  */
-class PrePostSecurityAnnotationsTest extends DhisWebSpringTest {
-
-  @Test
-  void authorityAllCanAccessApps() throws Exception {
-    MockHttpSession session = getMockHttpSession();
-    mvc.perform(put("/api/apps").session(session)).andExpect(status().isNoContent());
-  }
-
-  @Test
-  void authorityNoAuthorityCantAccessApps() throws Exception {
-    User noAuthUser = createAndAddUser("A", null, "NO_AUTHORITY");
-    injectSecurityContextUser(noAuthUser);
-    MockHttpSession session = getMockHttpSession();
-    mvc.perform(put("/api/apps").session(session)).andExpect(status().isForbidden());
+public class ProgramRuleActionHandler extends RestApiActions {
+  public ProgramRuleActionHandler() {
+    super("/programRuleActions");
   }
 }
