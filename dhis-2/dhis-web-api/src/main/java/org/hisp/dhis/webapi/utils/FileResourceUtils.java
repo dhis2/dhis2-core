@@ -83,8 +83,6 @@ public class FileResourceUtils {
   @Autowired private final JobRunner jobRunner;
   @Autowired private final FileResourceService fileResourceService;
 
-  public static final long MAX_FILE_UPLOAD_SIZE_BYTES = 3_000_000;
-
   private static final List<String> CUSTOM_ICON_VALID_ICON_EXTENSIONS = List.of("png");
 
   private static final long CUSTOM_ICON_FILE_SIZE_LIMIT_IN_BYTES = 25_000_000;
