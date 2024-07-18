@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +42,6 @@ import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.tracker.TrackerType;
@@ -193,13 +191,6 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
               .map(BaseIdentifiableObject::getUid)
               .toList();
       deleteRelationships(relationships);
-
-      Collection<TrackedEntityAttributeValue> attributeValues =
-          attributeValueService.getTrackedEntityAttributeValues(entity);
-
-      for (TrackedEntityAttributeValue attributeValue : attributeValues) {
-        attributeValueService.deleteTrackedEntityAttributeValue(attributeValue);
-      }
 
       teService.deleteTrackedEntity(entity);
 
