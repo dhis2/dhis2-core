@@ -283,8 +283,7 @@ public class DeduplicationHelper {
       return "Missing data write access to one or more Relationship Types.";
     }
 
-    List<Enrollment> enrollments =
-        enrollmentService.getEnrollments(mergeObject.getEnrollments(), currentUserDetails);
+    List<Enrollment> enrollments = enrollmentService.getEnrollments(mergeObject.getEnrollments());
 
     if (enrollments.stream()
         .anyMatch(e -> !aclService.canDataWrite(currentUserDetails, e.getProgram()))) {

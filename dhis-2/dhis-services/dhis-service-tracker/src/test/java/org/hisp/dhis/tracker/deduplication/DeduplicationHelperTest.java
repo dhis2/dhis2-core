@@ -138,8 +138,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest {
     when(aclService.canDataWrite(currentUserDetails, enrollment.getProgram())).thenReturn(true);
 
     when(relationshipService.getRelationships(relationshipUids)).thenReturn(getRelationships());
-    when(enrollmentService.getEnrollments(enrollmentUids, currentUserDetails))
-        .thenReturn(getEnrollments());
+    when(enrollmentService.getEnrollments(enrollmentUids)).thenReturn(getEnrollments());
     when(organisationUnitService.isInUserHierarchyCached(user, organisationUnitA)).thenReturn(true);
     when(organisationUnitService.isInUserHierarchyCached(user, organisationUnitB)).thenReturn(true);
   }

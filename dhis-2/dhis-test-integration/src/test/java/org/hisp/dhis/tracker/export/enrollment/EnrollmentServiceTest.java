@@ -73,7 +73,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -781,13 +780,13 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     programA.getSharing().setPublicAccess("rw------");
     manager.update(programA);
 
+    injectSecurityContextUser(authorizedUser);
     ForbiddenException exception =
         assertThrows(
             ForbiddenException.class,
             () ->
                 enrollmentService.getEnrollments(
-                    List.of(enrollmentA.getUid(), enrollmentB.getUid()),
-                    UserDetails.fromUser(authorizedUser)));
+                    List.of(enrollmentA.getUid(), enrollmentB.getUid())));
     assertContains(
         String.format("User has no data read access to program: %s", programA.getUid()),
         exception.getMessage());

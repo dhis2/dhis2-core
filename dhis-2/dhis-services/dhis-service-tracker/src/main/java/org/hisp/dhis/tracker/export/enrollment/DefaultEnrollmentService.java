@@ -52,6 +52,7 @@ import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -220,13 +221,13 @@ class DefaultEnrollmentService implements EnrollmentService {
   }
 
   @Override
-  public List<Enrollment> getEnrollments(@Nonnull List<String> uids, UserDetails currentUser)
-      throws ForbiddenException {
+  public List<Enrollment> getEnrollments(@Nonnull List<String> uids) throws ForbiddenException {
     List<Enrollment> enrollments = enrollmentStore.getByUid(uids);
+    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
 
     List<String> errors =
         enrollments.stream()
-            .flatMap(e -> trackerAccessManager.canRead(currentUser, e, false).stream())
+            .flatMap(e -> trackerAccessManager.canRead(user, e, false).stream())
             .toList();
 
     if (!errors.isEmpty()) {
@@ -234,7 +235,7 @@ class DefaultEnrollmentService implements EnrollmentService {
     }
 
     return enrollments.stream()
-        .map(e -> getEnrollment(e, EnrollmentParams.FALSE, false, currentUser))
+        .map(e -> getEnrollment(e, EnrollmentParams.FALSE, false, user))
         .toList();
   }
 
