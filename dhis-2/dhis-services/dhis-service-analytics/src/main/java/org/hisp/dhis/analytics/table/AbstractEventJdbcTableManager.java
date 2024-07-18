@@ -229,6 +229,14 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     return columns;
   }
 
+  /**
+   * The select statement used by the table population.
+   *
+   * @param attribute the {@link TrackedEntityAttribute}.
+   * @param fromType the sql snippet related to "from" part
+   * @param dataClause the data type related clause like "NUMERIC"
+   * @return
+   */
   protected String selectForInsert(
       TrackedEntityAttribute attribute, String fromType, String dataClause) {
     return replace(
