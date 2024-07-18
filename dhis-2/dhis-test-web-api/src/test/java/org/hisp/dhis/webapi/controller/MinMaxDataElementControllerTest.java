@@ -28,7 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
-import static org.hisp.dhis.webapi.Assertions.assertWebMessage;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 
 import org.hisp.dhis.test.web.HttpStatus;
 import org.junit.jupiter.api.Test;

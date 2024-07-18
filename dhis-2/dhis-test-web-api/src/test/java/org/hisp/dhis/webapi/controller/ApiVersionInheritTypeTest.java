@@ -33,7 +33,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import org.hisp.dhis.webapi.WebSpringTestBase;
+import org.hisp.dhis.test.webapi.WebSpringTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpSession;
 

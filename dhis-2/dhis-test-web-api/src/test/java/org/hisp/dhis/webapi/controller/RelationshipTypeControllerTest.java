@@ -34,7 +34,7 @@ import java.util.List;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.test.web.HttpStatus;
-import org.hisp.dhis.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

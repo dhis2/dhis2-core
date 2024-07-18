@@ -33,10 +33,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonImportSummary;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

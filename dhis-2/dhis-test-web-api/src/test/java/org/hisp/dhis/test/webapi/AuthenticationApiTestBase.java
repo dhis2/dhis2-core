@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi;
+package org.hisp.dhis.test.webapi;
 
 import org.hisp.dhis.test.config.H2DhisConfiguration;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;

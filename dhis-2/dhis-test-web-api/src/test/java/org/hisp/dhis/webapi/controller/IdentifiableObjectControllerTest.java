@@ -33,7 +33,7 @@ import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 
 import org.hisp.dhis.test.web.HttpStatus;
-import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 
 /**

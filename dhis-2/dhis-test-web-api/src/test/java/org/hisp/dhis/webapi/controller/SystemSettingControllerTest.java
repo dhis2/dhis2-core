@@ -32,7 +32,7 @@ import static org.hisp.dhis.test.web.WebClient.Accept;
 import static org.hisp.dhis.test.web.WebClient.Body;
 import static org.hisp.dhis.test.web.WebClient.ContentType;
 import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
-import static org.hisp.dhis.webapi.Assertions.assertWebMessage;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -40,7 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.test.web.HttpStatus;
-import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.Test;
 
