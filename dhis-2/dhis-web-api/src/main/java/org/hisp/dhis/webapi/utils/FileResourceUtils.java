@@ -288,7 +288,7 @@ public class FileResourceUtils {
     }
   }
 
-  private static void validateFileSize(@Nonnull MultipartFile file, long maxFileSizeInBytes) {
+  public static void validateFileSize(@Nonnull MultipartFile file, long maxFileSizeInBytes) {
     if (file.getSize() > maxFileSizeInBytes) {
       throw new IllegalQueryException(
           String.format(
