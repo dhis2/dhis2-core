@@ -46,13 +46,14 @@ class FileResourceControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void testSaveTooBigFileSize() {
-    byte[] bytes = new byte[3_000_001];
+    byte[] bytes = new byte[10_000_001];
     MockMultipartFile image =
         new MockMultipartFile("file", "OU_profile_image.png", "image/png", bytes);
     HttpResponse response = POST_MULTIPART("/fileResources?domain=USER_AVATAR", image);
     JsonString errorMessage = response.content(HttpStatus.CONFLICT).getString("message");
     assertEquals(
-        "File size can't be bigger than 3000000, current file size 3000001", errorMessage.string());
+        "File size can't be bigger than 10000000, current file size 10000001",
+        errorMessage.string());
   }
 
   @Test
