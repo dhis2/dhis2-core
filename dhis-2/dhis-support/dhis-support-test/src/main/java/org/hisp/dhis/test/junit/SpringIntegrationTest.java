@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,31 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.integration;
+package org.hisp.dhis.test.junit;
 
-import lombok.Getter;
-import org.hisp.dhis.test.IntegrationTest;
-import org.hisp.dhis.test.NewBaseSpringTest;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
-import org.junit.jupiter.api.BeforeEach;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ActiveProfiles;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ * SpringIntegration test groups JUnit annotations needed for our Spring integration tests. It also
+ * ensures that JUnit extensions are declared in the correct order as for example our {@link
+ * TestSetupExtension} depends on the {@link SpringExtension}.
  */
-@IntegrationTest
-@ActiveProfiles(profiles = {"test-postgres"})
-public abstract class NewIntegrationTestBase extends NewBaseSpringTest {
-
-  @Autowired private UserService _userService;
-
-  @Getter private User adminUser;
-
-  @BeforeEach
-  public void before() throws Exception {
-    userService = _userService;
-    adminUser = preCreateInjectAdminUser();
-  }
-}
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@ExtendWith({SpringExtension.class, TestSetupExtension.class})
+public @interface SpringIntegrationTest {}

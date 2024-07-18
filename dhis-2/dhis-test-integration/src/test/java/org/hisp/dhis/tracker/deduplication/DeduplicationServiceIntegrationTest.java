@@ -38,18 +38,15 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.hisp.dhis.common.SortDirection;
-import org.hisp.dhis.test.integration.NewIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class DeduplicationServiceIntegrationTest extends NewIntegrationTestBase {
+class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
   @Autowired private DeduplicationService deduplicationService;
-
-  @Autowired private UserService userService;
 
   private static final String trackedEntityA = "trackedentA";
 
@@ -61,7 +58,6 @@ class DeduplicationServiceIntegrationTest extends NewIntegrationTestBase {
 
   @BeforeEach
   public void setupTestUser() {
-    super.userService = userService;
     User user = createUserWithAuth("testUser");
     injectSecurityContextUser(user);
   }

@@ -25,28 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test;
+package org.hisp.dhis.test.integration;
 
-import javax.persistence.EntityManager;
-import lombok.Setter;
-import org.hisp.dhis.test.config.IntegrationBaseConfiguration;
-import org.hisp.dhis.test.config.PostgresDhisConfiguration;
-import org.hisp.dhis.test.junit.TestSetupExtension;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.hisp.dhis.test.IntegrationTest;
+import org.hisp.dhis.test.SpringIntegrationTestBase;
+import org.springframework.test.context.ActiveProfiles;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@ContextConfiguration(
-    classes = {
-      IntegrationBaseConfiguration.class,
-      PostgresDhisConfiguration.class,
-    })
-@ExtendWith(SpringExtension.class)
-@ExtendWith(TestSetupExtension.class)
-public abstract class NewBaseSpringTest extends DhisConvenienceTest {
-
-  @Setter public EntityManager entityManager;
-}
+@IntegrationTest
+@ActiveProfiles(profiles = {"test-postgres"})
+public abstract class PostgresIntegrationTestBase extends SpringIntegrationTestBase {}
