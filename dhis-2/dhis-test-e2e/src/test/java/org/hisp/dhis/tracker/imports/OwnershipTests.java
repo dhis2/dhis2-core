@@ -33,13 +33,13 @@ import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 
 import com.google.gson.JsonObject;
-import org.hisp.dhis.Constants;
-import org.hisp.dhis.actions.UserActions;
-import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.test.e2e.Constants;
+import org.hisp.dhis.test.e2e.actions.UserActions;
+import org.hisp.dhis.test.e2e.actions.metadata.ProgramActions;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
+import org.hisp.dhis.test.e2e.utils.DataGenerator;
 import org.hisp.dhis.tracker.TrackerApiTest;
 import org.hisp.dhis.tracker.imports.databuilder.EnrollmentDataBuilder;
-import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
