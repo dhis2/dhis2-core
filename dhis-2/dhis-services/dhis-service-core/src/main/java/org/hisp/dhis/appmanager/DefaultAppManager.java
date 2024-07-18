@@ -285,7 +285,7 @@ public class DefaultAppManager implements AppManager {
   }
 
   @Override
-  public AppStatus installApp(UUID appHubId) { // UI install comes through here
+  public AppStatus installApp(UUID appHubId) {
     if (appHubId == null) {
       return AppStatus.NOT_FOUND;
     }

@@ -1745,7 +1745,6 @@
         <version>${testcontainers.version}</version>
       </dependency>
 
-
       <!-- Monitoring -->
       <dependency>
         <groupId>io.micrometer</groupId>

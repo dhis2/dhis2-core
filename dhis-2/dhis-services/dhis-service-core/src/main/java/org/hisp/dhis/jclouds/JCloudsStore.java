@@ -209,7 +209,7 @@ public class JCloudsStore {
   }
 
   public void deleteDirectory(String dirName) {
-    ((LocalBlobStore)getBlobStore()).deleteDirectory(getBlobContainer(), dirName);
+    ((LocalBlobStore) getBlobStore()).deleteDirectory(getBlobContainer(), dirName);
   }
 
   public String getBlobContainer() {
