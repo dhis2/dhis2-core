@@ -31,6 +31,7 @@ import static java.util.regex.Pattern.compile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.net.URLConnection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.FilterChain;
@@ -145,10 +146,29 @@ public class AppOverrideFilter extends OncePerRequestFilter {
         response.setContentType(mimeType);
       }
 
-      response.setContentLength((int) resource.contentLength());
+      // we need to handle scenarios when the Resource is a File (knowing the content length)
+      // or when it's URL (not knowing the content length and having to make a call, e.g. remote web
+      // link in AWS S3/MinIO) - otherwise content length can be set to 0 which causes issues at
+      // the front-end
+      response.setContentLength(getUriContentLength(resource));
       response.setHeader("ETag", etag);
 
       StreamUtils.copyThenCloseInputStream(resource.getInputStream(), response.getOutputStream());
+    }
+  }
+
+  /**
+   * @param resource resource to check content length
+   * @return the content length or -1 (unknown size) if exception caught
+   */
+  public int getUriContentLength(Resource resource) {
+    try {
+      URLConnection urlConnection = resource.getURL().openConnection();
+      return urlConnection.getContentLength();
+    } catch (IOException e) {
+      log.error("Error trying to retrieve content length of URL");
+      e.printStackTrace();
+      return -1;
     }
   }
 }

@@ -316,7 +316,8 @@ public enum ConfigurationKey {
   LDAP_SEARCH_FILTER("ldap.search.filter", "(cn={0})", false),
 
   /**
-   * File store provider, currently 'filesystem' and 'aws-s3' are supported. (default: filesystem)
+   * File store provider, currently 'filesystem', 'aws-s3' and 's3' are supported. (default:
+   * filesystem)
    */
   FILESTORE_PROVIDER("filestore.provider", "filesystem", false),
 

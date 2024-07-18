@@ -43,6 +43,7 @@ import org.jclouds.ContextBuilder;
 import org.jclouds.blobstore.BlobRequestSigner;
 import org.jclouds.blobstore.BlobStore;
 import org.jclouds.blobstore.BlobStoreContext;
+import org.jclouds.blobstore.config.LocalBlobStore;
 import org.jclouds.blobstore.domain.Blob;
 import org.jclouds.blobstore.domain.PageSet;
 import org.jclouds.blobstore.domain.StorageMetadata;
@@ -208,7 +209,7 @@ public class JCloudsStore {
   }
 
   public void deleteDirectory(String dirName) {
-    getBlobStore().deleteDirectory(getBlobContainer(), dirName);
+    ((LocalBlobStore)getBlobStore()).deleteDirectory(getBlobContainer(), dirName);
   }
 
   public String getBlobContainer() {
@@ -221,5 +222,9 @@ public class JCloudsStore {
 
   public BlobRequestSigner getBlobRequestSigner() {
     return blobStoreContext.getSigner();
+  }
+
+  public boolean isUsingFileSystem() {
+    return JCLOUDS_PROVIDER_KEY_FILESYSTEM.equals(fileStoreConfig.provider());
   }
 }
