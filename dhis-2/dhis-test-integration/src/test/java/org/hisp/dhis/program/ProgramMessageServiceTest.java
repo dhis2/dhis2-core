@@ -248,6 +248,16 @@ class ProgramMessageServiceTest extends TransactionalIntegrationTest {
   }
 
   @Test
+  void testGetProgramMessageByQuery() {
+    programMessageService.saveProgramMessage(pmsgA);
+    programMessageService.saveProgramMessage(pmsgB);
+    List<ProgramMessage> list = programMessageService.getProgramMessages(params);
+    assertNotNull(list);
+    assertTrue(equals(list, pmsgA, pmsgB));
+    assertTrue(channels.equals(list.get(0).getDeliveryChannels()));
+  }
+
+  @Test
   void testSaveProgramMessage() {
     Long pmsgAId = null;
     pmsgAId = programMessageService.saveProgramMessage(pmsgA);
