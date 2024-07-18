@@ -37,5 +37,6 @@ import org.hisp.dhis.common.DxfNamespaces;
 public enum ProgramMessageStatus {
   SENT,
   FAILED,
-  SCHEDULED
+  SCHEDULED,
+  OUTBOUND
 }

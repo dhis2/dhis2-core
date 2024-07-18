@@ -69,7 +69,7 @@ class ProgramMessageServiceTest extends TransactionalIntegrationTest {
 
   private BulkSmsGatewayConfig bulkSmsConfig;
 
-  private ProgramMessageStatus messageStatus = ProgramMessageStatus.SENT;
+  private ProgramMessageStatus messageStatus = ProgramMessageStatus.OUTBOUND;
 
   private Set<DeliveryChannel> channels = new HashSet<>();
 
