@@ -42,7 +42,7 @@ class PrePostSecurityAnnotationsTest extends DhisWebSpringTest {
 
   @Test
   void authorityAllCanAccessApps() throws Exception {
-    MockHttpSession session = getSession("ALL");
+    MockHttpSession session = getMockHttpSession();
     mvc.perform(put("/api/apps").session(session)).andExpect(status().isNoContent());
   }
 
@@ -50,7 +50,7 @@ class PrePostSecurityAnnotationsTest extends DhisWebSpringTest {
   void authorityNoAuthorityCantAccessApps() throws Exception {
     User noAuthUser = createAndAddUser("A", null, "NO_AUTHORITY");
     injectSecurityContextUser(noAuthUser);
-    MockHttpSession session = getSession("NO_AUTHORITY");
+    MockHttpSession session = getMockHttpSession();
     mvc.perform(put("/api/apps").session(session)).andExpect(status().isForbidden());
   }
 }

@@ -27,34 +27,18 @@
  */
 package org.hisp.dhis.webapi;
 
-import static org.hisp.dhis.web.WebClientUtils.failOnException;
-
-import javax.persistence.EntityManager;
+import java.sql.SQLException;
 import javax.sql.DataSource;
-import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.IntegrationH2Test;
 import org.hisp.dhis.config.TestDhisConfigurationProvider;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.h2.H2SqlFunction;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.utils.TestUtils;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
-import org.hisp.dhis.webapi.utils.DhisMockMvcControllerTest;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.web.FilterChainProxy;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.context.WebApplicationContext;
 
 /**
  * Base class for convenient testing of the web API on basis of {@link
@@ -62,14 +46,10 @@ import org.springframework.web.context.WebApplicationContext;
  *
  * @author Morten Svanæs
  */
-@ExtendWith(SpringExtension.class)
-@WebAppConfiguration
 @ContextConfiguration(
+    inheritLocations = false,
     classes = {DhisControllerWithJwtTokenAuthTest.DhisConfiguration.class, WebMvcConfig.class})
-@ActiveProfiles("test-h2")
-@IntegrationH2Test
-@Transactional
-public abstract class DhisControllerWithJwtTokenAuthTest extends DhisMockMvcControllerTest {
+public abstract class DhisControllerWithJwtTokenAuthTest extends DhisControllerConvenienceTest {
 
   static class DhisConfiguration {
     @Bean
@@ -78,44 +58,17 @@ public abstract class DhisControllerWithJwtTokenAuthTest extends DhisMockMvcCont
     }
   }
 
-  @Autowired private WebApplicationContext webApplicationContext;
-
   @Autowired private FilterChainProxy springSecurityFilterChain;
 
-  @Autowired private UserService _userService;
-
   @Autowired private DataSource dataSource;
-  @Autowired EntityManager entityManager;
-  protected MockMvc mvc;
-
-  protected User superUser;
 
   @BeforeEach
-  final void setup() throws Exception {
-    userService = _userService;
-    clearSecurityContext();
-
-    User randomAdminUser =
-        DhisConvenienceTest.createRandomAdminUserWithEntityManager(entityManager);
-    injectSecurityContextUser(randomAdminUser);
-
-    superUser = createAndAddAdminUser("ALL");
-
+  void setupMockMvcAndH2() throws SQLException {
     mvc =
         MockMvcBuilders.webAppContextSetup(webApplicationContext)
             .addFilter(springSecurityFilterChain)
             .build();
 
-    injectSecurityContextUser(superUser);
-
-    TestUtils.executeStartupRoutines(webApplicationContext);
-
     H2SqlFunction.registerH2Functions(dataSource);
-  }
-
-  @Override
-  protected final HttpResponse webRequest(MockHttpServletRequestBuilder request) {
-    return failOnException(
-        () -> new HttpResponse(toResponse(mvc.perform(request).andReturn().getResponse())));
   }
 }

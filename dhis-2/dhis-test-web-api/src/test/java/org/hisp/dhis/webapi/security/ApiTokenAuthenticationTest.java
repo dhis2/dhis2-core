@@ -46,7 +46,6 @@ import org.hisp.dhis.webapi.DhisControllerWithApiTokenAuthTest;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
@@ -67,11 +66,6 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest {
   @BeforeAll
   static void setUpClass() {
     DhisWebApiWebSecurityConfig.setApiContextPath("");
-  }
-
-  @BeforeEach
-  public void setup() throws Exception {
-    super.setup();
   }
 
   private ApiKeyTokenGenerator.TokenWrapper createNewToken() {
@@ -114,7 +108,7 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest {
         GET(URI, ApiTokenHeader(new String(newToken.getPlaintextToken())))
             .content(HttpStatus.OK)
             .as(JsonUser.class);
-    assertEquals(adminUser.getUid(), user.getId());
+    assertEquals(getAdminUser().getUid(), user.getId());
   }
 
   @Test
@@ -141,7 +135,7 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest {
     apiTokenService.update(token);
 
     JsonUser user = GET(URI, ApiTokenHeader(plaintext)).content().as(JsonUser.class);
-    assertEquals(adminUser.getUid(), user.getId());
+    assertEquals(getAdminUser().getUid(), user.getId());
   }
 
   @Test
@@ -162,7 +156,7 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest {
     apiTokenService.update(token);
 
     JsonUser user = GET(URI, ApiTokenHeader(plaintext)).content().as(JsonUser.class);
-    assertEquals(adminUser.getUid(), user.getId());
+    assertEquals(getAdminUser().getUid(), user.getId());
   }
 
   @Test
@@ -186,7 +180,7 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest {
         GET(URI, ApiTokenHeader(plaintext), Header("referer", "https://two.io"))
             .content()
             .as(JsonUser.class);
-    assertEquals(adminUser.getUid(), user.getId());
+    assertEquals(getAdminUser().getUid(), user.getId());
   }
 
   @Test
@@ -207,7 +201,7 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest {
     ApiKeyTokenGenerator.TokenWrapper wrapper = createNewToken();
     final String token = new String(wrapper.getPlaintextToken());
 
-    User user = adminUser;
+    User user = getAdminUser();
     user.setDisabled(true);
     userService.updateUser(user);
 
@@ -237,7 +231,7 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest {
 
     // Do a request to cache the token
     JsonUser user = GET(URI, ApiTokenHeader(plaintext)).content().as(JsonUser.class);
-    assertEquals(adminUser.getUid(), user.getId());
+    assertEquals(getAdminUser().getUid(), user.getId());
 
     ApiToken token = wrapper.getApiToken();
     apiTokenService.delete(token);
