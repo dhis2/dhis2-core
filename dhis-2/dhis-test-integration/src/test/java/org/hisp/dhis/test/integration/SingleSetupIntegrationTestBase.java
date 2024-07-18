@@ -94,6 +94,6 @@ public abstract class SingleSetupIntegrationTestBase extends BaseSpringTest {
 
   @AfterAll
   public final void after() throws Exception {
-    clearSecurityContext();
+    nonTransactionalAfter();
   }
 }
