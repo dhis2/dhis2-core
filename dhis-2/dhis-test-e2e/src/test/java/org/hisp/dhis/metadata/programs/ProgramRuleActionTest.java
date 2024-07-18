@@ -77,7 +77,8 @@ class ProgramRuleActionTest extends ApiTest {
 
   @ParameterizedTest
   @ValueSource(strings = {"SENDMESSAGE", "SCHEDULEMESSAGE"})
-  void shouldAddProgramRuleActionTypeSENDMESSAGE(String programRuleActionType) {
+  void shouldAddProgramRuleAction_of_type_SendMessage_and_ScheduleMessage(
+      String programRuleActionType) {
     JsonObject programRuleAction =
         new JsonObjectBuilder()
             .addProperty("name", "test_rule_action")
