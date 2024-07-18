@@ -25,17 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi;
+package org.hisp.dhis.test.webapi;
 
-import org.hisp.dhis.test.IntegrationTest;
+import org.hisp.dhis.test.IntegrationH2Test;
 import org.springframework.test.context.ActiveProfiles;
 
 /**
- * Base class for all Spring Mock MVC based controller tests which use a Postgres DB running in a
- * Docker container.
+ * Base class for all Spring Mock MVC based controller tests which use an H2 in-memory DB.
  *
- * @author Viet Nguyen
+ * @author Jan Bernitt
  */
-@ActiveProfiles("test-postgres")
-@IntegrationTest
-public abstract class PostgresControllerIntegrationTestBase extends ControllerTestBase {}
+@ActiveProfiles("test-h2")
+@IntegrationH2Test
+public abstract class H2ControllerIntegrationTestBase extends ControllerTestBase {}

@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import static org.hisp.dhis.webapi.Assertions.assertWebMessage;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 
 import org.hisp.dhis.test.web.HttpStatus;
-import org.hisp.dhis.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 
 /**

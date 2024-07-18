@@ -33,9 +33,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.List;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.test.webapi.json.domain.JsonOptionSet;
-import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 
 class OptionControllerTest extends H2ControllerIntegrationTestBase {

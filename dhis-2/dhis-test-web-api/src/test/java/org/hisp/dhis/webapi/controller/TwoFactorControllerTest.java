@@ -35,10 +35,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
 import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.controller.security.TwoFactorController;
 import org.jboss.aerogear.security.otp.Totp;
 import org.junit.jupiter.api.Test;

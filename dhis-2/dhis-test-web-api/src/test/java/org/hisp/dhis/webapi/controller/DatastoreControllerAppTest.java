@@ -37,7 +37,7 @@ import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.test.web.HttpStatus;
-import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

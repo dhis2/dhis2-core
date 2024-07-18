@@ -40,10 +40,10 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
-import org.hisp.dhis.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 

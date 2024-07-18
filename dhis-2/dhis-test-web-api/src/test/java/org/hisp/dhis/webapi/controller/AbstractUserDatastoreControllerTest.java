@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.test.utils.JavaToJson;
 import org.hisp.dhis.test.web.HttpStatus;
-import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 
 /**
  * Base class for testing the {@link UserDatastoreController} providing helpers to set up entries in

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.Assertions.assertJson;
+import static org.hisp.dhis.test.webapi.Assertions.assertJson;
 
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;

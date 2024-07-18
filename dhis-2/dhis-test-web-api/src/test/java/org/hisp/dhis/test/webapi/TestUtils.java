@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.utils;
+package org.hisp.dhis.test.webapi;
 
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 

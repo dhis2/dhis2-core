@@ -38,7 +38,7 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.test.web.HttpStatus;
-import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.controller.ProgramStageWorkingListController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

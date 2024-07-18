@@ -43,7 +43,7 @@ import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.test.config.TestDhisConfigurationProvider;
 import org.hisp.dhis.test.web.HttpStatus;
-import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
