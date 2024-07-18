@@ -28,15 +28,15 @@
 package org.hisp.dhis.tracker.deduplication;
 
 import com.google.gson.JsonObject;
-import org.hisp.dhis.Constants;
-import org.hisp.dhis.TestRunStorage;
-import org.hisp.dhis.actions.UserActions;
-import org.hisp.dhis.actions.tracker.PotentialDuplicatesActions;
-import org.hisp.dhis.actions.tracker.TrackerImportExportActions;
-import org.hisp.dhis.dto.TrackerApiResponse;
+import org.hisp.dhis.test.e2e.Constants;
+import org.hisp.dhis.test.e2e.TestRunStorage;
+import org.hisp.dhis.test.e2e.actions.UserActions;
+import org.hisp.dhis.test.e2e.actions.tracker.PotentialDuplicatesActions;
+import org.hisp.dhis.test.e2e.actions.tracker.TrackerImportExportActions;
+import org.hisp.dhis.test.e2e.dto.TrackerApiResponse;
+import org.hisp.dhis.test.e2e.utils.DataGenerator;
 import org.hisp.dhis.tracker.TrackerApiTest;
 import org.hisp.dhis.tracker.imports.databuilder.TrackedEntityDataBuilder;
-import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
