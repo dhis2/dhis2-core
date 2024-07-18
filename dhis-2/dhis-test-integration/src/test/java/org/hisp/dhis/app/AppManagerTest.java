@@ -56,7 +56,7 @@ class AppManagerTest extends TransactionalIntegrationTest {
   void canInstallAppUsingMinIoTest() throws IOException {
     AppStatus appStatus =
         appManager.installApp(
-            new ClassPathResource("app/test-app-minio-v1.zip").getFile(), "test-app-minio-v1");
+            new ClassPathResource("app/test-app-minio-v1.zip").getFile(), "test-app-minio-v1.zip");
 
     assertTrue(appStatus.ok());
     assertEquals("ok", appStatus.getMessage());
