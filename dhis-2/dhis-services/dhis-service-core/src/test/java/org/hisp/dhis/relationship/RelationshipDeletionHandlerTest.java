@@ -27,21 +27,16 @@
  */
 package org.hisp.dhis.relationship;
 
-import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.system.deletion.DefaultDeletionManager;
 import org.hisp.dhis.system.deletion.DeletionManager;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -73,27 +68,5 @@ class RelationshipDeletionHandlerTest {
     assertEquals(
         "Object could not be deleted because it is associated with another object: Relationship",
         ex.getMessage());
-  }
-
-  @Test
-  void allowDeleteRelationshipTypeWithoutData() {
-    when(relationshipService.getRelationshipsByRelationshipType(any())).thenReturn(emptyList());
-
-    ObjectDeletionRequestedEvent event = new ObjectDeletionRequestedEvent(new RelationshipType());
-    deletionManager.onDeletion(event);
-
-    verify(relationshipService, atLeastOnce()).getRelationshipsByRelationshipType(any());
-  }
-
-  @Test
-  void deleteTrackedEntity() {
-    when(relationshipService.getRelationshipsByTrackedEntity(any(), anyBoolean()))
-        .thenReturn(singletonList(new Relationship()));
-
-    ObjectDeletionRequestedEvent event = new ObjectDeletionRequestedEvent(new TrackedEntity());
-    deletionManager.onDeletion(event);
-
-    verify(relationshipService, atLeastOnce()).getRelationshipsByTrackedEntity(any(), anyBoolean());
-    verify(relationshipService, atLeastOnce()).deleteRelationship(any());
   }
 }

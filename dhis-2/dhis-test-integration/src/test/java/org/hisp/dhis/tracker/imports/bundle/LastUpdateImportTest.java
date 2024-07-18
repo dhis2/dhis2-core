@@ -100,7 +100,7 @@ class LastUpdateImportTest extends TrackerTest {
 
   @Test
   void shouldUpdateTrackedEntityWhenTrackedEntityIsUpdated() throws IOException {
-
+    injectAdminUser();
     TrackedEntity entityBeforeUpdate = getTrackedEntity();
 
     clearSession();
@@ -224,6 +224,7 @@ class LastUpdateImportTest extends TrackerTest {
 
   @Test
   void shouldUpdateAndDeleteTrackedEntityCascadeWhenTeWithEnrollmentIsDeleted() {
+    injectAdminUser();
     TrackedEntity entityBeforeUpdate = getTrackedEntity();
 
     Enrollment enrollmentBeforeDelete = getEnrollment();
@@ -275,8 +276,9 @@ class LastUpdateImportTest extends TrackerTest {
     Enrollment enrollmentBeforeDeletion = getEnrollment();
 
     Event eventBeforeDeletion = getEvent();
-
+    injectAdminUser();
     User user = createAndAddUser("userDelete", organisationUnit, "F_ENROLLMENT_CASCADE_DELETE");
+    injectSecurityContextUser(user);
 
     clearSession();
 
@@ -418,7 +420,7 @@ class LastUpdateImportTest extends TrackerTest {
 
   @Test
   void shouldUpdatedEventProgramWhenEventIsDeleted() throws IOException {
-
+    injectAdminUser();
     org.hisp.dhis.tracker.imports.domain.Event ev = importEventProgram();
 
     Event eventBeforeDeletion = getEvent(ev.getUid());
@@ -458,7 +460,10 @@ class LastUpdateImportTest extends TrackerTest {
   }
 
   private User user() {
-    return createAndAddUser(CodeGenerator.generateUid(), organisationUnit);
+    injectAdminUser();
+    User user = createAndAddUser(CodeGenerator.generateUid(), organisationUnit);
+    injectSecurityContextUser(user);
+    return user;
   }
 
   private org.hisp.dhis.tracker.imports.domain.Event importEventProgram() throws IOException {

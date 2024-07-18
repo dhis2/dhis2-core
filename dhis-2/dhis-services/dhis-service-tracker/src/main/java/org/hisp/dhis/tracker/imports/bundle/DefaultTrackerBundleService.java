@@ -45,6 +45,7 @@ import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.bundle.persister.CommitService;
 import org.hisp.dhis.tracker.imports.bundle.persister.PersistenceException;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
+import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.notification.NotificationHandlerService;
@@ -163,10 +164,18 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
 
     Map<TrackerType, TrackerTypeReport> reportMap =
         Map.of(
-            TrackerType.RELATIONSHIP, deletionService.deleteRelationships(bundle),
-            TrackerType.EVENT, deletionService.deleteEvents(bundle),
-            TrackerType.ENROLLMENT, deletionService.deleteEnrollments(bundle),
-            TrackerType.TRACKED_ENTITY, deletionService.deleteTrackedEntity(bundle));
+            TrackerType.RELATIONSHIP,
+                deletionService.deleteRelationships(
+                    bundle.getRelationships().stream().map(TrackerDto::getUid).toList()),
+            TrackerType.EVENT,
+                deletionService.deleteEvents(
+                    bundle.getEvents().stream().map(TrackerDto::getUid).toList()),
+            TrackerType.ENROLLMENT,
+                deletionService.deleteEnrollments(
+                    bundle.getEnrollments().stream().map(TrackerDto::getUid).toList()),
+            TrackerType.TRACKED_ENTITY,
+                deletionService.deleteTrackedEntities(
+                    bundle.getTrackedEntities().stream().map(TrackerDto::getUid).toList()));
 
     return new PersistenceReport(reportMap);
   }

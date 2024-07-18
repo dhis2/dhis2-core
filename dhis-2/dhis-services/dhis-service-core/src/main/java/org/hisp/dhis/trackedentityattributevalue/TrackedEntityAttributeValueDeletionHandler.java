@@ -29,11 +29,9 @@ package org.hisp.dhis.trackedentityattributevalue;
 
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
-import java.util.Collection;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Component;
 
@@ -51,17 +49,7 @@ public class TrackedEntityAttributeValueDeletionHandler extends DeletionHandler 
 
   @Override
   protected void register() {
-    whenDeleting(TrackedEntity.class, this::deleteTrackedEntity);
     whenVetoing(TrackedEntityAttribute.class, this::allowDeleteTrackedEntityAttribute);
-  }
-
-  private void deleteTrackedEntity(TrackedEntity trackedEntity) {
-    Collection<TrackedEntityAttributeValue> attributeValues =
-        attributeValueService.getTrackedEntityAttributeValues(trackedEntity);
-
-    for (TrackedEntityAttributeValue attributeValue : attributeValues) {
-      attributeValueService.deleteTrackedEntityAttributeValue(attributeValue);
-    }
   }
 
   private DeletionVeto allowDeleteTrackedEntityAttribute(TrackedEntityAttribute attribute) {
