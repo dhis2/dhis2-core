@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.security;
 
-import static org.hisp.dhis.web.WebClient.JwtTokenHeader;
+import static org.hisp.dhis.test.web.WebClient.JwtTokenHeader;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -44,11 +44,11 @@ import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.security.oidc.GenericOidcProviderConfigParser;
 import org.hisp.dhis.security.oidc.provider.GoogleProvider;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.json.domain.JsonError;
+import org.hisp.dhis.test.webapi.json.domain.JsonUser;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.ControllerWithJwtTokenAuthTestBase;
-import org.hisp.dhis.webapi.json.domain.JsonError;
-import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig;
 import org.hisp.dhis.webapi.security.utils.JoseHeader;
 import org.hisp.dhis.webapi.security.utils.JoseHeaderNames;

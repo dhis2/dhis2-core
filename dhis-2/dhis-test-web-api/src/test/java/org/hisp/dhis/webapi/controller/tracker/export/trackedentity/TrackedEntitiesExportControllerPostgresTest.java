@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
-import static org.hisp.dhis.utils.Assertions.assertContains;
-import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.test.utils.Assertions.assertContains;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -51,6 +51,8 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -63,13 +65,11 @@ import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage.JsonPager;
 import org.hisp.dhis.webapi.controller.tracker.JsonTrackedEntityChangeLog;
 import org.hisp.dhis.webapi.controller.tracker.JsonUser;
-import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

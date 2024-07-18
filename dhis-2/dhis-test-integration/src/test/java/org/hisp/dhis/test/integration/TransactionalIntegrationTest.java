@@ -28,10 +28,10 @@
 package org.hisp.dhis.test.integration;
 
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.BaseSpringTest;
-import org.hisp.dhis.IntegrationTest;
-import org.hisp.dhis.config.IntegrationBaseConfiguration;
-import org.hisp.dhis.config.PostgresDhisConfiguration;
+import org.hisp.dhis.test.BaseSpringTest;
+import org.hisp.dhis.test.IntegrationTest;
+import org.hisp.dhis.test.config.IntegrationBaseConfiguration;
+import org.hisp.dhis.test.config.PostgresDhisConfiguration;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.AfterEach;

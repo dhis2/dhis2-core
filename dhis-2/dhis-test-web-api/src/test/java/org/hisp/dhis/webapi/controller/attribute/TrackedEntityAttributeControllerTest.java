@@ -27,14 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller.attribute;
 
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 
 import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.schema.descriptors.TrackedEntityAttributeSchemaDescriptor;
+import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternParser;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.utils.TestUtils;
 import org.junit.jupiter.api.Test;

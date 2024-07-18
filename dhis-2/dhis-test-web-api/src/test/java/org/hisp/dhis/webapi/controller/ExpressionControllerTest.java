@@ -31,8 +31,8 @@ import static org.hisp.dhis.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
-import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
 
 /**

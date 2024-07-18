@@ -29,9 +29,9 @@ package org.hisp.dhis.webapi;
 
 import java.sql.SQLException;
 import javax.sql.DataSource;
-import org.hisp.dhis.config.TestDhisConfigurationProvider;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.h2.H2SqlFunction;
+import org.hisp.dhis.test.config.TestDhisConfigurationProvider;
+import org.hisp.dhis.test.h2.H2SqlFunction;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;

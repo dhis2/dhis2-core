@@ -28,7 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.singletonList;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
@@ -36,7 +36,7 @@ import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

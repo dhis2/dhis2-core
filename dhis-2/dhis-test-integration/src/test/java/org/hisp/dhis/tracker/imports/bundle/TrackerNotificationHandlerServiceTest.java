@@ -28,8 +28,8 @@
 package org.hisp.dhis.tracker.imports.bundle;
 
 import static org.awaitility.Awaitility.await;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 
 import java.io.IOException;
 import java.time.Instant;

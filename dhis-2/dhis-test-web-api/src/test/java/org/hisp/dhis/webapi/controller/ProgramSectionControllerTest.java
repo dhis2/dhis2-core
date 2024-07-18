@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramSection;
-import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

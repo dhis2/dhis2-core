@@ -37,7 +37,7 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Stream;
 import org.hamcrest.MatcherAssert;
-import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.test.DhisConvenienceTest;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.User;

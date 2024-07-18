@@ -27,14 +27,14 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator;
 
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.CREATE;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.CREATE_AND_UPDATE;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.DELETE;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.UPDATE;
 import static org.hisp.dhis.tracker.imports.validation.validator.Each.each;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Arrays;

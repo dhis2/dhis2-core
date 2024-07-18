@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.merge.orgunit.handler;
 
-import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
-import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
-import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnitGroup;
-import static org.hisp.dhis.DhisConvenienceTest.createProgram;
+import static org.hisp.dhis.test.DhisConvenienceTest.createDataSet;
+import static org.hisp.dhis.test.DhisConvenienceTest.createOrganisationUnit;
+import static org.hisp.dhis.test.DhisConvenienceTest.createOrganisationUnitGroup;
+import static org.hisp.dhis.test.DhisConvenienceTest.createProgram;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 

@@ -27,20 +27,20 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
-import static org.hisp.dhis.web.WebClientUtils.objectReference;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.web.WebClientUtils.objectReference;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.util.List;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
+import org.hisp.dhis.test.webapi.json.domain.JsonOrganisationUnit;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
-import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
-import org.hisp.dhis.webapi.json.domain.JsonOrganisationUnit;
-import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

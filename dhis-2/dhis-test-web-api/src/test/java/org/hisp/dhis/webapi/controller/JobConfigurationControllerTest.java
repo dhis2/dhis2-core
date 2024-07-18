@@ -28,8 +28,8 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.lang.String.format;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -49,9 +49,9 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.scheduling.JobStatus;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingType;
-import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.json.domain.JsonJobConfiguration;
 import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
-import org.hisp.dhis.webapi.json.domain.JsonJobConfiguration;
 import org.junit.jupiter.api.Test;
 
 /**

@@ -35,7 +35,6 @@ import static org.hamcrest.Matchers.notNullValue;
 import com.google.common.collect.Lists;
 import java.util.Arrays;
 import java.util.List;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -49,6 +48,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.period.WeeklyPeriodType;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.test.DhisConvenienceTest;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 

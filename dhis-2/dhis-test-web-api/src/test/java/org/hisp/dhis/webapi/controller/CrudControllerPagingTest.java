@@ -31,9 +31,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.json.domain.JsonOrganisationUnit;
 import org.hisp.dhis.webapi.H2ControllerIntegrationTestBase;
-import org.hisp.dhis.webapi.json.domain.JsonOrganisationUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

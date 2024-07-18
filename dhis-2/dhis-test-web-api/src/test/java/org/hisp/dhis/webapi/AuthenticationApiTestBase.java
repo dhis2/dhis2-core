@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi;
 
-import org.hisp.dhis.config.H2DhisConfiguration;
+import org.hisp.dhis.test.config.H2DhisConfiguration;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
