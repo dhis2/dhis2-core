@@ -149,7 +149,7 @@ public class AppOverrideFilter extends OncePerRequestFilter {
       // we need to handle scenarios when the Resource is a File (knowing the content length)
       // or when it's URL (not knowing the content length and having to make a call, e.g. remote web
       // link in AWS S3/MinIO) - otherwise content length can be set to 0 which causes issues at
-      // the front-end
+      // the front-end, returning an empty body.
       response.setContentLength(getUriContentLength(resource));
       response.setHeader("ETag", etag);
 
@@ -166,7 +166,7 @@ public class AppOverrideFilter extends OncePerRequestFilter {
       URLConnection urlConnection = resource.getURL().openConnection();
       return urlConnection.getContentLength();
     } catch (IOException e) {
-      log.error("Error trying to retrieve content length of URL");
+      log.error("Error trying to retrieve content length of Resource");
       e.printStackTrace();
       return -1;
     }
