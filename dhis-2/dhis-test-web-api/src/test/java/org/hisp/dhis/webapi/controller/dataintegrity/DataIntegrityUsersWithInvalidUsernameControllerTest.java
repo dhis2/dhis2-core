@@ -35,9 +35,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegrityDetails;
+import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegritySummary;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
 import org.junit.jupiter.api.Test;
 
 /**
