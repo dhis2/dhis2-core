@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,8 @@ import java.util.Properties;
 import org.testcontainers.containers.MinIOContainer;
 
 /**
- * Config provider for MinIO store usage. It extends the Postgres config to make use of that setup.
+ * Config provider for MinIO store usage. It extends the Postgres config, resulting in Postgres
+ * setup + MinIO storage (overriding the default file system storage).
  *
  * @author david mackessy
  */
