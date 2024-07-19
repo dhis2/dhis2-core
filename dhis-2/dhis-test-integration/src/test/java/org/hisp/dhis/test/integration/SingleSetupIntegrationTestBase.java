@@ -83,7 +83,6 @@ public abstract class SingleSetupIntegrationTestBase extends BaseSpringTest {
       clearSecurityContext();
       return;
     }
-    hibernateService.flushSession();
     User user1 = dbmsManager.getEntityManager().find(User.class, user.getId());
     this.adminUser = user1;
     UserDetails currentUserDetails = UserDetails.fromUser(user1);

@@ -66,11 +66,6 @@ public abstract class BaseSpringTest extends DhisConvenienceTest
   protected void nonTransactionalAfter() throws Exception {
     clearSecurityContext();
     tearDownTest();
-    try {
-      dbmsManager.clearSession();
-    } catch (Exception e) {
-      log.error("Failed to clear hibernate session, reason: {}", e.getMessage(), e);
-    }
     transactionTemplate.execute(
         status -> {
           dbmsManager.emptyDatabase();
