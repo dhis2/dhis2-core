@@ -122,7 +122,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
   }
 
   @Override
-  public TrackerTypeReport deleteEvents(List<String> events) {
+  public TrackerTypeReport deleteEvents(List<String> events) throws NotFoundException {
     UserInfoSnapshot userInfoSnapshot =
         UserInfoSnapshot.from(CurrentUserUtil.getCurrentUserDetails());
     TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.EVENT);
@@ -212,14 +212,17 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
   }
 
   @Override
-  public TrackerTypeReport deleteRelationships(List<String> relationships) {
+  public TrackerTypeReport deleteRelationships(List<String> relationships)
+      throws NotFoundException {
     TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.RELATIONSHIP);
 
     for (String uid : relationships) {
       Entity objectReport = new Entity(TrackerType.RELATIONSHIP, uid);
 
       Relationship relationship = manager.get(Relationship.class, uid);
-
+      if (relationship == null) {
+        throw new NotFoundException(Relationship.class, uid);
+      }
       manager.delete(relationship);
 
       typeReport.getStats().incDeleted();
