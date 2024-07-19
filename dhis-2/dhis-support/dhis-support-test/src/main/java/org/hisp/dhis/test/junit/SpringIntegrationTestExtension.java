@@ -31,7 +31,6 @@ import static org.hisp.dhis.test.DhisConvenienceTest.clearSecurityContext;
 import static org.junit.platform.commons.util.AnnotationUtils.findAnnotation;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 import javax.persistence.EntityManager;
@@ -81,8 +80,8 @@ import org.springframework.transaction.support.TransactionTemplate;
  *   <li>empty DB tables in case the test is not annotated with {@link Transactional}
  * </ul>
  *
- * <p>The exact before and after is decided based on the tests {@link Lifecycle}, if the lifecycle
- * is
+ * <p>What before and after callback is doing the work is decided based on the tests {@link
+ * Lifecycle}. If the lifecycle is
  *
  * <ul>
  *   <li>{@link Lifecycle#PER_METHOD} (default) the above setup and tear down is done using {@link
@@ -102,6 +101,7 @@ public class SpringIntegrationTestExtension
     }
 
     setUp(context);
+    log(context, "beforeAll", "ran setUp");
   }
 
   @Override
@@ -111,6 +111,7 @@ public class SpringIntegrationTestExtension
     }
 
     setUp(context);
+    log(context, "beforeEach", "ran setUp");
   }
 
   @Override
@@ -120,6 +121,7 @@ public class SpringIntegrationTestExtension
     }
 
     tearDown(context);
+    log(context, "afterAll", "ran tearDown");
   }
 
   @Override
@@ -129,19 +131,12 @@ public class SpringIntegrationTestExtension
     }
 
     tearDown(context);
+    log(context, "afterEach", "ran tearDown");
   }
 
-  private void setUp(ExtensionContext context)
-      throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+  private void setUp(ExtensionContext context) throws IllegalAccessException {
     boolean hasPerClassLifecycle = isTestLifecyclePerClass(context);
     boolean hasTransactional = isAnnotatedWithTransactional(context);
-
-    Class<?> testClass = context.getRequiredTestClass();
-    log.debug(
-        "beforeEachCallback testClass={} @Transactional={} perClassLifecycle={}",
-        testClass.getName(),
-        hasTransactional,
-        hasPerClassLifecycle);
 
     if (hasPerClassLifecycle || !hasTransactional) {
       bindSession(context);
@@ -151,67 +146,45 @@ public class SpringIntegrationTestExtension
   }
 
   private void tearDown(ExtensionContext context) {
-    boolean hasPerClassLifecycle = isTestLifecyclePerClass(context);
-    boolean hasTransactional = isAnnotatedWithTransactional(context);
-
-    Class<?> testClass = context.getRequiredTestClass();
-    log.debug(
-        "beforeEachCallback testClass={} @Transactional={} perClassLifecycle={}",
-        testClass.getName(),
-        hasTransactional,
-        hasPerClassLifecycle);
-
     clearSecurityContext();
 
-    if (hasPerClassLifecycle || !hasTransactional) {
+    if (isTestLifecyclePerClass(context) || !isAnnotatedWithTransactional(context)) {
       unbindSession(context);
       emptyDatabase(context);
     }
-  }
-
-  private static boolean isAnnotatedWithTransactional(ExtensionContext context) {
-    return findAnnotation(context.getRequiredTestClass(), Transactional.class).isPresent();
   }
 
   private static boolean isTestLifecyclePerClass(ExtensionContext context) {
     return context.getTestInstanceLifecycle().orElse(Lifecycle.PER_METHOD) == Lifecycle.PER_CLASS;
   }
 
-  private void bindSession(ExtensionContext context)
-      throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+  private static boolean isAnnotatedWithTransactional(ExtensionContext context) {
+    return findAnnotation(context.getRequiredTestClass(), Transactional.class).isPresent();
+  }
+
+  private void bindSession(ExtensionContext context) throws IllegalAccessException {
     EntityManagerFactory entityManagerFactory = getBean(context, EntityManagerFactory.class);
     EntityManager entityManager = entityManagerFactory.createEntityManager();
     entityManager.setProperty(QueryHints.FLUSH_MODE, FlushMode.AUTO);
 
     Object testInstance = context.getRequiredTestInstance();
-    testInstance
-        .getClass()
-        .getMethod("setEntityManager", EntityManager.class)
-        .invoke(testInstance, entityManager);
+    setField(testInstance, "entityManager", entityManager);
 
     TransactionSynchronizationManager.bindResource(
         entityManagerFactory, new EntityManagerHolder(entityManager));
   }
 
-  private void setupAdminUser(ExtensionContext context)
-      throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-    // TODO(ivo) decide on field access modifiers and cleanup this reflection mess
+  private void setupAdminUser(ExtensionContext context) throws IllegalAccessException {
     Object testInstance = context.getRequiredTestInstance();
-    Class<?> klazz = testInstance.getClass();
 
     UserService userService = getBean(context, UserService.class);
-    List<Field> fields =
-        ReflectionSupport.findFields(
-            klazz, field -> "userService".equals(field.getName()), HierarchyTraversalMode.TOP_DOWN);
-    assert fields.size() == 1;
-    fields.get(0).setAccessible(true);
-    fields.get(0).set(testInstance, userService);
+    setField(testInstance, "userService", userService);
 
     Method preCreateInjectAdminUser =
         ReflectionSupport.findMethod(context.getRequiredTestClass(), "preCreateInjectAdminUser")
             .get();
     User admin = (User) ReflectionSupport.invokeMethod(preCreateInjectAdminUser, testInstance);
-    testInstance.getClass().getMethod("setAdminUser", User.class).invoke(testInstance, admin);
+    setField(testInstance, "adminUser", admin);
   }
 
   private static void executeStartupRoutines(ExtensionContext context) {
@@ -230,6 +203,17 @@ public class SpringIntegrationTestExtension
     return SpringExtension.getApplicationContext(context);
   }
 
+  private static void setField(Object testInstance, String fieldName, Object value)
+      throws IllegalAccessException {
+    Class<?> klazz = testInstance.getClass();
+    List<Field> fields =
+        ReflectionSupport.findFields(
+            klazz, field -> fieldName.equals(field.getName()), HierarchyTraversalMode.TOP_DOWN);
+    assert fields.size() == 1;
+    fields.get(0).setAccessible(true);
+    fields.get(0).set(testInstance, value);
+  }
+
   protected void unbindSession(ExtensionContext context) {
     EntityManagerFactory sessionFactory = getBean(context, EntityManagerFactory.class);
     EntityManagerHolder entityManagerHolder =
@@ -245,5 +229,21 @@ public class SpringIntegrationTestExtension
           dbmsManager.emptyDatabase();
           return null;
         });
+  }
+
+  private static void log(ExtensionContext context, String callback, String message) {
+    if (!log.isDebugEnabled()) {
+      // only pay the annotation lookup cost if needed
+      return;
+    }
+    boolean hasPerClassLifecycle = isTestLifecyclePerClass(context);
+    boolean hasTransactional = isAnnotatedWithTransactional(context);
+    log.debug(
+        "testClass={} callback={} @Transactional={} perClassLifecycle={} message={}",
+        context.getRequiredTestClass().getName(),
+        callback,
+        hasTransactional,
+        hasPerClassLifecycle,
+        message);
   }
 }

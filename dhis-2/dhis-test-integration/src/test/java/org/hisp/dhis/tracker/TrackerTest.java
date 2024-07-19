@@ -32,7 +32,6 @@ import static org.hisp.dhis.feedback.Assertions.assertNoErrors;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -55,7 +54,6 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Luciano Fiandesio
  */
-@Slf4j
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class TrackerTest extends PostgresIntegrationTestBase {

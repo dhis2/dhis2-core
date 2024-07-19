@@ -29,7 +29,6 @@ package org.hisp.dhis.test;
 
 import javax.persistence.EntityManager;
 import lombok.Getter;
-import lombok.Setter;
 import org.hisp.dhis.test.config.IntegrationBaseConfiguration;
 import org.hisp.dhis.test.config.PostgresDhisConfiguration;
 import org.hisp.dhis.test.junit.SpringIntegrationTest;
@@ -47,6 +46,6 @@ import org.springframework.test.context.ContextConfiguration;
 @SpringIntegrationTest
 public abstract class SpringIntegrationTestBase extends DhisConvenienceTest {
 
-  @Setter @Getter private User adminUser;
-  @Setter public EntityManager entityManager;
+  @Getter private User adminUser;
+  public EntityManager entityManager;
 }

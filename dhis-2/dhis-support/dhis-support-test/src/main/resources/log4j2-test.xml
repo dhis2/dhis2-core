@@ -47,9 +47,5 @@
         <!-- <Logger name="org.springframework.test.context.cache" level="debug">-->
         <!--     <AppenderRef ref="console"/>-->
         <!-- </Logger>-->
-        <!-- Uncomment if you want to debug our JUnit extension -->
-         <Logger name="org.hisp.dhis.test.junit.extension" level="debug">
-             <AppenderRef ref="console"/>
-         </Logger>
     </Loggers>
 </Configuration>

@@ -92,7 +92,6 @@ public abstract class BaseSpringTest extends DhisConvenienceTest
     EntityManagerFactory entityManagerFactory =
         (EntityManagerFactory) applicationContext.getBean("entityManagerFactory");
     EntityManager entityManager = entityManagerFactory.createEntityManager();
-
     this.entityManager = entityManager;
     entityManager.setProperty(QueryHints.FLUSH_MODE, FlushMode.AUTO);
     TransactionSynchronizationManager.bindResource(
