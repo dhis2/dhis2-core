@@ -92,46 +92,74 @@ import org.springframework.transaction.support.TransactionTemplate;
  * </ul>
  */
 @Slf4j
-public class SpringIntegrationTestExtension implements BeforeEachCallback, AfterEachCallback {
+public class SpringIntegrationTestExtension
+    implements BeforeAllCallback, BeforeEachCallback, AfterAllCallback, AfterEachCallback {
+
+  @Override
+  public void beforeAll(ExtensionContext context) throws Exception {
+    if (!isTestLifecyclePerClass(context)) {
+      return;
+    }
+
+    setUp(context);
+  }
 
   @Override
   public void beforeEach(ExtensionContext context) throws Exception {
-    boolean hasPerClassLifecycle =
-        context.getTestInstanceLifecycle().orElse(Lifecycle.PER_METHOD) == Lifecycle.PER_CLASS;
-    Class<?> testClass = context.getRequiredTestClass();
-    boolean hasTransactional = findAnnotation(testClass, Transactional.class).isPresent();
+    if (isTestLifecyclePerClass(context)) {
+      return;
+    }
 
+    setUp(context);
+  }
+
+  @Override
+  public void afterAll(ExtensionContext context) {
+    if (!isTestLifecyclePerClass(context)) {
+      return;
+    }
+
+    tearDown(context);
+  }
+
+  @Override
+  public void afterEach(ExtensionContext context) {
+    if (isTestLifecyclePerClass(context)) {
+      return;
+    }
+
+    tearDown(context);
+  }
+
+  private void setUp(ExtensionContext context)
+      throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    boolean hasPerClassLifecycle = isTestLifecyclePerClass(context);
+    boolean hasTransactional = isAnnotatedWithTransactional(context);
+
+    Class<?> testClass = context.getRequiredTestClass();
     log.debug(
         "beforeEachCallback testClass={} @Transactional={} perClassLifecycle={}",
         testClass.getName(),
         hasTransactional,
         hasPerClassLifecycle);
-    if (hasPerClassLifecycle) {
-      return;
-    }
 
-    if (!hasTransactional) {
+    if (hasPerClassLifecycle || !hasTransactional) {
       bindSession(context);
     }
     setupAdminUser(context);
     executeStartupRoutines(context);
   }
 
-  @Override
-  public void afterEach(ExtensionContext context) {
-    boolean hasPerClassLifecycle =
-        context.getTestInstanceLifecycle().orElse(Lifecycle.PER_METHOD) == Lifecycle.PER_CLASS;
-    Class<?> testClass = context.getRequiredTestClass();
-    boolean hasTransactional = findAnnotation(testClass, Transactional.class).isPresent();
+  private void tearDown(ExtensionContext context) {
+    boolean hasPerClassLifecycle = isTestLifecyclePerClass(context);
+    boolean hasTransactional = isAnnotatedWithTransactional(context);
 
+    Class<?> testClass = context.getRequiredTestClass();
     log.debug(
         "beforeEachCallback testClass={} @Transactional={} perClassLifecycle={}",
         testClass.getName(),
         hasTransactional,
         hasPerClassLifecycle);
-    if (hasPerClassLifecycle) {
-      return;
-    }
 
     clearSecurityContext();
     // TODO(ivo) according to Enrico this is not needed
@@ -141,12 +169,18 @@ public class SpringIntegrationTestExtension implements BeforeEachCallback, After
     //      log.error("Failed to clear hibernate session, reason: {}", e.getMessage(), e);
     //    }
 
-    if (hasTransactional) {
-      return;
+    if (hasPerClassLifecycle || !hasTransactional) {
+      unbindSession(context);
+      emptyDatabase(context);
     }
+  }
 
-    unbindSession(context);
-    emptyDatabase(context);
+  private static boolean isAnnotatedWithTransactional(ExtensionContext context) {
+    return findAnnotation(context.getRequiredTestClass(), Transactional.class).isPresent();
+  }
+
+  private static boolean isTestLifecyclePerClass(ExtensionContext context) {
+    return context.getTestInstanceLifecycle().orElse(Lifecycle.PER_METHOD) == Lifecycle.PER_CLASS;
   }
 
   private void bindSession(ExtensionContext context)

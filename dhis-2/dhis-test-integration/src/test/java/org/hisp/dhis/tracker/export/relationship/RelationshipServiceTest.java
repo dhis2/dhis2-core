@@ -56,16 +56,21 @@ import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class RelationshipServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired protected UserService _userService;
 
@@ -115,10 +120,8 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
 
   private TrackedEntityType trackedEntityType;
 
-  @Override
-  protected void setUpTest() throws Exception {
-    userService = _userService;
-
+  @BeforeAll
+  protected void setUp() throws Exception {
     enrollmentDate = new Date();
 
     orgUnitA = createOrganisationUnit('A');
