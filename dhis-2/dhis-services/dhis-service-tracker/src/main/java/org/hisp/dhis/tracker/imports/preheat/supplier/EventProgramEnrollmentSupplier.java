@@ -46,7 +46,7 @@ import org.springframework.stereotype.Component;
  */
 @RequiredArgsConstructor
 @Component
-public class EnrollmentSupplier extends AbstractPreheatSupplier {
+public class EventProgramEnrollmentSupplier extends AbstractPreheatSupplier {
   @Nonnull private final EntityManager entityManager;
 
   @Override

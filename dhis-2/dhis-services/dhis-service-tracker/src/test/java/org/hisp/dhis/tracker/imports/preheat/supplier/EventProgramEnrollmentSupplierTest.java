@@ -55,9 +55,9 @@ import org.mockito.quality.Strictness;
  */
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
-class EnrollmentSupplierTest extends DhisConvenienceTest {
+class EventProgramEnrollmentSupplierTest extends DhisConvenienceTest {
 
-  @InjectMocks private EnrollmentSupplier supplier;
+  @InjectMocks private EventProgramEnrollmentSupplier supplier;
 
   @Mock private EntityManager entityManager;
 
