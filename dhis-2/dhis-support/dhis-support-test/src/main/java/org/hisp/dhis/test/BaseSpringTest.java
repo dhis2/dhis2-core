@@ -27,11 +27,7 @@
  */
 package org.hisp.dhis.test;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.FlushMode;
-import org.hibernate.annotations.QueryHints;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.test.utils.TestUtils;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,10 +35,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.orm.jpa.EntityManagerFactoryUtils;
-import org.springframework.orm.jpa.EntityManagerHolder;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
@@ -54,8 +47,6 @@ public abstract class BaseSpringTest extends DhisConvenienceTest
     implements ApplicationContextAware {
 
   protected ApplicationContext applicationContext;
-
-  public EntityManager entityManager;
 
   @Autowired protected DbmsManager dbmsManager;
 
@@ -76,12 +67,10 @@ public abstract class BaseSpringTest extends DhisConvenienceTest
     clearSecurityContext();
     tearDownTest();
     try {
-      entityManager.flush();
-      entityManager.clear();
+      dbmsManager.clearSession();
     } catch (Exception e) {
       log.error("Failed to clear hibernate session, reason: {}", e.getMessage(), e);
     }
-    unbindSession();
     transactionTemplate.execute(
         status -> {
           dbmsManager.emptyDatabase();
@@ -92,23 +81,5 @@ public abstract class BaseSpringTest extends DhisConvenienceTest
   protected void integrationTestBeforeEach() throws Exception {
     TestUtils.executeStartupRoutines(applicationContext);
     setUpTest();
-  }
-
-  protected void bindSession() {
-    EntityManagerFactory entityManagerFactory =
-        (EntityManagerFactory) applicationContext.getBean("entityManagerFactory");
-    EntityManager entityManager = entityManagerFactory.createEntityManager();
-    this.entityManager = entityManager;
-    entityManager.setProperty(QueryHints.FLUSH_MODE, FlushMode.AUTO);
-    TransactionSynchronizationManager.bindResource(
-        entityManagerFactory, new EntityManagerHolder(entityManager));
-  }
-
-  protected void unbindSession() {
-    EntityManagerFactory sessionFactory =
-        (EntityManagerFactory) applicationContext.getBean("entityManagerFactory");
-    EntityManagerHolder entityManagerHolder =
-        (EntityManagerHolder) TransactionSynchronizationManager.unbindResource(sessionFactory);
-    EntityManagerFactoryUtils.closeEntityManager(entityManagerHolder.getEntityManager());
   }
 }

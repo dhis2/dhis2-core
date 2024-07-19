@@ -59,6 +59,10 @@ public class HibernateDbmsManager implements DbmsManager {
     this.entityManager = entityManager;
   }
 
+  public EntityManager getEntityManager() {
+    return entityManager;
+  }
+
   private HibernateCacheManager cacheManager;
 
   public void setCacheManager(HibernateCacheManager cacheManager) {

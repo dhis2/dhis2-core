@@ -28,6 +28,7 @@
 package org.hisp.dhis.dbms;
 
 import java.util.List;
+import javax.persistence.EntityManager;
 
 /**
  * @author Lars Helge Overland
@@ -46,4 +47,6 @@ public interface DbmsManager {
   boolean tableExists(String tableName);
 
   List<List<Object>> getTableContent(String table);
+
+  EntityManager getEntityManager();
 }

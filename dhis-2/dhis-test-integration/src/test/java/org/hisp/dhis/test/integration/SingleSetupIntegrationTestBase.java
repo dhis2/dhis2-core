@@ -61,9 +61,8 @@ public abstract class SingleSetupIntegrationTestBase extends BaseSpringTest {
 
   @BeforeAll
   public final void before() throws Exception {
-    bindSession();
-
-    User userAdmin = DhisConvenienceTest.createRandomAdminUserWithEntityManager(entityManager);
+    User userAdmin =
+        DhisConvenienceTest.createRandomAdminUserWithEntityManager(dbmsManager.getEntityManager());
     adminUsername = userAdmin.getUsername();
 
     XinjectSecurityContextUser(userAdmin);
@@ -85,7 +84,7 @@ public abstract class SingleSetupIntegrationTestBase extends BaseSpringTest {
       return;
     }
     hibernateService.flushSession();
-    User user1 = entityManager.find(User.class, user.getId());
+    User user1 = dbmsManager.getEntityManager().find(User.class, user.getId());
     this.adminUser = user1;
     UserDetails currentUserDetails = UserDetails.fromUser(user1);
     this.adminUserDetails = currentUserDetails;

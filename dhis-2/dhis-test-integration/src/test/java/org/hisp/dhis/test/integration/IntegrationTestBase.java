@@ -54,8 +54,6 @@ public abstract class IntegrationTestBase extends BaseSpringTest {
 
   @BeforeEach
   public void before() throws Exception {
-    bindSession();
-
     userService = _userService;
     adminUser = preCreateInjectAdminUser();
 
