@@ -138,7 +138,10 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
       deleteRelationships(relationships);
 
+      // This is needed until deprecated method
+      // TrackedEntityDataValueChangeLogService.getTrackedEntityDataValueChangeLogs is not removed.
       dataValueChangeLogService.deleteTrackedEntityDataValueChangeLog(event);
+
       List<ProgramNotificationInstance> notificationInstances =
           programNotificationInstanceService.getProgramNotificationInstances(
               ProgramNotificationInstanceParam.builder().event(event).build());
