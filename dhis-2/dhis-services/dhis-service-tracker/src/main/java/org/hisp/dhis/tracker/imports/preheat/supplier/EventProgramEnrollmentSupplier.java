@@ -39,8 +39,8 @@ import org.hisp.dhis.tracker.imports.preheat.mappers.EnrollmentMapper;
 import org.springframework.stereotype.Component;
 
 /**
- * This supplier adds to the pre-heat a list of all enrollments that are part of an event programs
- * and are not soft deleted.
+ * This supplier adds to the pre-heat a list of all enrollments that are part of an event program
+ * and are not soft-deleted.
  *
  * @author Luciano Fiandesio
  */
