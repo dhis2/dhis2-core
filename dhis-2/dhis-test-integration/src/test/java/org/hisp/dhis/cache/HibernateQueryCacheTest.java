@@ -34,7 +34,6 @@ import java.util.Properties;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
-import org.hibernate.FlushMode;
 import org.hibernate.SessionFactory;
 import org.hibernate.jpa.QueryHints;
 import org.hisp.dhis.common.ValueType;
@@ -46,15 +45,12 @@ import org.hisp.dhis.test.config.PostgresDhisConfigurationProvider;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.orm.jpa.EntityManagerHolder;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @ContextConfiguration(classes = {HibernateQueryCacheTest.DhisConfiguration.class})
 class HibernateQueryCacheTest extends IntegrationTestBase {
@@ -81,13 +77,6 @@ class HibernateQueryCacheTest extends IntegrationTestBase {
   @BeforeEach
   @Override
   public void before() throws Exception {
-    this.entityManager = entityManagerFactory.createEntityManager();
-    this.sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
-
-    this.entityManager.setProperty(org.hibernate.annotations.QueryHints.FLUSH_MODE, FlushMode.AUTO);
-    TransactionSynchronizationManager.bindResource(
-        entityManagerFactory, new EntityManagerHolder(entityManager));
-
     userService = _userService;
     User adminUser = preCreateInjectAdminUser();
     injectSecurityContextUser(adminUser);
@@ -96,21 +85,16 @@ class HibernateQueryCacheTest extends IntegrationTestBase {
     sessionFactory.getStatistics().clear();
   }
 
-  @AfterEach
-  public final void afterEach() {
-    entityManager.close();
-  }
-
   @Test
   @DisplayName("Hibernate Query cache should be used")
   void testQueryCache() {
     setUpData();
 
     for (int i = 0; i < 10; i++) {
-      entityManager.getTransaction().begin();
-      TypedQuery<OptionSet> query = createQuery(entityManager);
+      dbmsManager.getEntityManager().getTransaction().begin();
+      TypedQuery<OptionSet> query = createQuery(dbmsManager.getEntityManager());
       assertEquals(1, query.getResultList().size());
-      entityManager.getTransaction().commit();
+      dbmsManager.getEntityManager().getTransaction().commit();
     }
 
     assertEquals(1, sessionFactory.getStatistics().getQueryCacheMissCount());
@@ -141,17 +125,17 @@ class HibernateQueryCacheTest extends IntegrationTestBase {
     optionSet.setCode("OptionSetCodeA");
     optionSet.setValueType(ValueType.TEXT);
 
-    entityManager.getTransaction().begin();
-    entityManager.persist(optionSet);
-    entityManager.getTransaction().commit();
+    dbmsManager.getEntityManager().getTransaction().begin();
+    dbmsManager.getEntityManager().persist(optionSet);
+    dbmsManager.getEntityManager().getTransaction().commit();
   }
 
   private void createSelectQuery(int numberOfQueries) {
     for (int i = 0; i < numberOfQueries; i++) {
-      entityManager.getTransaction().begin();
-      TypedQuery<OptionSet> query = createQuery(entityManager);
+      dbmsManager.getEntityManager().getTransaction().begin();
+      TypedQuery<OptionSet> query = createQuery(dbmsManager.getEntityManager());
       assertEquals(1, query.getResultList().size());
-      entityManager.getTransaction().commit();
+      dbmsManager.getEntityManager().getTransaction().commit();
     }
   }
 

@@ -185,8 +185,8 @@ class ProgramRuleServiceTest extends IntegrationTestBase {
     programRuleService.updateProgramRule(ruleB);
     programRuleService.updateProgramRule(ruleC);
 
-    entityManager.clear();
-    entityManager.flush();
+    dbmsManager.getEntityManager().clear();
+    dbmsManager.getEntityManager().flush();
 
     List<String> dataElementsPresentInProgramRules =
         programRuleService.getDataElementsPresentInProgramRules();
@@ -242,8 +242,8 @@ class ProgramRuleServiceTest extends IntegrationTestBase {
     programRuleService.updateProgramRule(ruleB);
     programRuleService.updateProgramRule(ruleC);
 
-    entityManager.clear();
-    entityManager.flush();
+    dbmsManager.getEntityManager().clear();
+    dbmsManager.getEntityManager().flush();
 
     List<String> trackedEntityAttributesPresentInProgramRules =
         programRuleService.getTrackedEntityAttributesPresentInProgramRules();
@@ -344,8 +344,8 @@ class ProgramRuleServiceTest extends IntegrationTestBase {
     programRuleService.updateProgramRule(ruleG);
     programRuleService.updateProgramRule(ruleF);
 
-    entityManager.clear();
-    entityManager.flush();
+    dbmsManager.getEntityManager().clear();
+    dbmsManager.getEntityManager().flush();
 
     List<ProgramRule> rules =
         programRuleService.getProgramRulesByActionTypes(

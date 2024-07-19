@@ -524,7 +524,8 @@ class LastUpdateImportTest extends TrackerTest {
   public <T extends SoftDeletableObject> T getEntityJpql(String entity, String uid) {
 
     return (T)
-        entityManager
+        dbmsManager
+            .getEntityManager()
             .createQuery("SELECT e FROM " + entity + " e WHERE e.uid = :uid")
             .setParameter("uid", uid)
             .getSingleResult();

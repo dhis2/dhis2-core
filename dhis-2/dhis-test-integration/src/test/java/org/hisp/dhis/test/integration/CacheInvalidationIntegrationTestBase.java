@@ -54,11 +54,10 @@ public abstract class CacheInvalidationIntegrationTestBase extends BaseSpringTes
 
   @BeforeEach
   public final void before() throws Exception {
-    bindSession();
-
     userService = _userService;
 
-    User admin = DhisConvenienceTest.createRandomAdminUserWithEntityManager(entityManager);
+    User admin =
+        DhisConvenienceTest.createRandomAdminUserWithEntityManager(dbmsManager.getEntityManager());
     XinjectSecurityContextUser(admin);
 
     integrationTestBeforeEach();
@@ -70,7 +69,7 @@ public abstract class CacheInvalidationIntegrationTestBase extends BaseSpringTes
       return;
     }
     hibernateService.flushSession();
-    User user1 = entityManager.find(User.class, user.getId());
+    User user1 = dbmsManager.getEntityManager().find(User.class, user.getId());
     UserDetails currentUserDetails = UserDetails.fromUser(user1);
     injectSecurityContext(currentUserDetails);
   }
