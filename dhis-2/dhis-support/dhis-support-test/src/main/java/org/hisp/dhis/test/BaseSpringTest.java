@@ -76,7 +76,8 @@ public abstract class BaseSpringTest extends DhisConvenienceTest
     clearSecurityContext();
     tearDownTest();
     try {
-      dbmsManager.clearSession();
+      entityManager.flush();
+      entityManager.clear();
     } catch (Exception e) {
       log.error("Failed to clear hibernate session, reason: {}", e.getMessage(), e);
     }
