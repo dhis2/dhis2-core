@@ -68,14 +68,6 @@ public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
       ProgramNotificationTemplate template, Date notificationDate);
 
   /**
-   * Return all enrollment linked to programs.
-   *
-   * @param programs Programs to fetch by
-   * @return List of all enrollments that are linked to programs
-   */
-  List<Enrollment> getByPrograms(List<Program> programs);
-
-  /**
    * Hard deletes a {@link Enrollment}.
    *
    * @param enrollment the enrollment to delete.
