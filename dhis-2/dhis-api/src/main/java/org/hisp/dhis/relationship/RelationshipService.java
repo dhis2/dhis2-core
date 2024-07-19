@@ -52,13 +52,6 @@ public interface RelationshipService {
   /**
    * Returns a {@link Relationship}.
    *
-   * @param relationship the relationship.
-   */
-  void deleteRelationship(Relationship relationship);
-
-  /**
-   * Returns a {@link Relationship}.
-   *
    * @param id the id of the relationship to return.
    * @return the relationship with the given identifier.
    */
