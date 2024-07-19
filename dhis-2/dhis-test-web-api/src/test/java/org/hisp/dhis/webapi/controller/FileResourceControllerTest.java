@@ -46,6 +46,18 @@ import org.springframework.mock.web.MockMultipartFile;
 class FileResourceControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
+  void testSaveTooBigFileSize() {
+    byte[] bytes = new byte[10_000_001];
+    MockMultipartFile image =
+        new MockMultipartFile("file", "OU_profile_image.png", "image/png", bytes);
+    HttpResponse response = POST_MULTIPART("/fileResources?domain=USER_AVATAR", image);
+    JsonString errorMessage = response.content(HttpStatus.CONFLICT).getString("message");
+    assertEquals(
+        "File size can't be bigger than 10000000, current file size 10000001",
+        errorMessage.string());
+  }
+
+  @Test
   void testSaveBadAvatarImageData() {
     MockMultipartFile image =
         new MockMultipartFile(
@@ -102,10 +114,11 @@ class FileResourceControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void testSaveOrgUnitImage() {
+  void testSaveOrgUnitImage() throws IOException {
+    File file = new ClassPathResource("file/dhis2.png").getFile();
     MockMultipartFile image =
         new MockMultipartFile(
-            "file", "OU_profile_image.png", "image/png", "<<png data>>".getBytes());
+            "file", "OU_profile_image.png", "image/png", Files.readAllBytes(file.toPath()));
     HttpResponse response = POST_MULTIPART("/fileResources?domain=ORG_UNIT", image);
     JsonObject savedObject =
         response.content(HttpStatus.ACCEPTED).getObject("response").getObject("fileResource");
@@ -120,10 +133,11 @@ class FileResourceControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void testSaveOrgUnitImageWithUid() {
+  void testSaveOrgUnitImageWithUid() throws IOException {
+    File file = new ClassPathResource("file/dhis2.png").getFile();
     MockMultipartFile image =
         new MockMultipartFile(
-            "file", "OU_profile_image.png", "image/png", "<<png data>>".getBytes());
+            "file", "OU_profile_image.png", "image/png", Files.readAllBytes(file.toPath()));
     HttpResponse response = POST_MULTIPART("/fileResources?domain=ORG_UNIT&uid=0123456789a", image);
     JsonObject savedObject =
         response.content(HttpStatus.ACCEPTED).getObject("response").getObject("fileResource");
@@ -132,10 +146,11 @@ class FileResourceControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void testSaveOrgUnitImageWithUid_Update() {
+  void testSaveOrgUnitImageWithUid_Update() throws IOException {
+    File file = new ClassPathResource("file/dhis2.png").getFile();
     MockMultipartFile image =
         new MockMultipartFile(
-            "file", "OU_profile_image.png", "image/png", "<<png data>>".getBytes());
+            "file", "OU_profile_image.png", "image/png", Files.readAllBytes(file.toPath()));
     HttpResponse response = POST_MULTIPART("/fileResources?domain=ORG_UNIT&uid=0123456789x", image);
     JsonObject savedObject =
         response.content(HttpStatus.ACCEPTED).getObject("response").getObject("fileResource");
@@ -145,7 +160,7 @@ class FileResourceControllerTest extends H2ControllerIntegrationTestBase {
     // now update the resource with a different image but the same UID
     MockMultipartFile image2 =
         new MockMultipartFile(
-            "file", "OU_profile_image2.png", "image/png", "<<png data>>".getBytes());
+            "file", "OU_profile_image2.png", "image/png", Files.readAllBytes(file.toPath()));
 
     JsonWebMessage message =
         assertWebMessage(
