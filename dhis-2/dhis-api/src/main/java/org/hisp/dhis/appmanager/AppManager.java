@@ -209,6 +209,8 @@ public interface AppManager {
    */
   boolean markAppToDelete(App app);
 
+  int getUriContentLength(Resource resource);
+
   // -------------------------------------------------------------------------
   // Static methods for manipulating a collection of apps
   // -------------------------------------------------------------------------

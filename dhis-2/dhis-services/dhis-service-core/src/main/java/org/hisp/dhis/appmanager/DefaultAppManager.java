@@ -471,4 +471,19 @@ public class DefaultAppManager implements AppManager {
     }
     return tempFile;
   }
+
+  /**
+   * @param resource resource to check content length
+   * @return the content length or -1 (unknown size) if exception caught
+   */
+  public int getUriContentLength(Resource resource) {
+    try {
+      URLConnection urlConnection = resource.getURL().openConnection();
+      return urlConnection.getContentLength();
+    } catch (IOException e) {
+      log.error("Error trying to retrieve content length of Resource");
+      e.printStackTrace();
+      return -1;
+    }
+  }
 }

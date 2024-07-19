@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.test.config.MinIOConfiguration;
@@ -40,6 +41,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
@@ -52,18 +55,7 @@ class AppManagerTest extends TransactionalIntegrationTest {
   @Autowired AppManager appManager;
 
   @Test
-  @DisplayName("Can install an App using MinIO storage")
-  void canInstallAppUsingMinIoTest() throws IOException {
-    AppStatus appStatus =
-        appManager.installApp(
-            new ClassPathResource("app/test-app-minio-v1.zip").getFile(), "test-app-minio-v1.zip");
-
-    assertTrue(appStatus.ok());
-    assertEquals("ok", appStatus.getMessage());
-  }
-
-  @Test
-  @DisplayName("Can update an App using MinIO storage")
+  @DisplayName("Can install and then update an App using MinIO storage")
   void canUpdateAppUsingMinIoTest() throws IOException {
     // install an app for the 1st time (version 1)
     AppStatus appStatus =
@@ -83,5 +75,26 @@ class AppManagerTest extends TransactionalIntegrationTest {
 
     assertTrue(update.ok());
     assertEquals("ok", appStatus.getMessage());
+
+    // get 2nd version
+    App app = appManager.getApp("test minio");
+    Resource resource = appManager.getAppResource(app, "index.html");
+
+    assertEquals("2.0.0", app.getVersion());
+    assertEquals(63, appManager.getUriContentLength(resource));
+  }
+
+  @Test
+  @DisplayName("Content size for File resource returns positive int")
+  void fileResourceContentLengthTest() {
+    // given
+    Resource resource =
+        new FileSystemResource("./src/test/resources/app/test-file-content-length.txt");
+
+    // when
+    int uriContentLength = appManager.getUriContentLength(resource);
+
+    // then
+    assertEquals(38, uriContentLength);
   }
 }
