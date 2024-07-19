@@ -30,18 +30,14 @@ package org.hisp.dhis.tracker.imports.preheat.supplier;
 import static org.hisp.dhis.program.ProgramType.WITHOUT_REGISTRATION;
 import static org.hisp.dhis.program.ProgramType.WITH_REGISTRATION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStore;
 import org.hisp.dhis.test.DhisConvenienceTest;
 import org.hisp.dhis.test.random.BeanRandomizer;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,8 +58,6 @@ import org.mockito.quality.Strictness;
 class EnrollmentSupplierTest extends DhisConvenienceTest {
 
   @InjectMocks private EnrollmentSupplier supplier;
-
-  @Mock private ProgramStore programStore;
 
   @Mock private EntityManager entityManager;
 
@@ -100,25 +94,10 @@ class EnrollmentSupplierTest extends DhisConvenienceTest {
     preheat = new TrackerPreheat();
   }
 
-  @Test
-  void verifySupplierWhenNoEventProgramArePresent() {
-    preheat.put(TrackerIdSchemeParam.UID, programWithRegistration);
-
-    this.supplier.preheatAdd(params, preheat);
-
-    final List<String> programUids =
-        enrollments.stream().map(enrollment -> enrollment.getProgram().getUid()).toList();
-    for (String programUid : programUids) {
-      assertNull(preheat.getEnrollmentsWithoutRegistration(programUid));
-    }
-  }
-
   // TODO: MAS. Fix this test, it is failing because of the recursive mapping of the OrgUnit
   @Test
   @Disabled
   void verifySupplierWhenNoProgramsArePresent() {
-    when(programStore.getByType(WITHOUT_REGISTRATION))
-        .thenReturn(List.of(programWithoutRegistration));
     enrollments = rnd.objects(Enrollment.class, 1).collect(Collectors.toList());
     // set the OrgUnit parent to null to avoid recursive errors when mapping
     enrollments.forEach(p -> p.getOrganisationUnit().setParent(null));

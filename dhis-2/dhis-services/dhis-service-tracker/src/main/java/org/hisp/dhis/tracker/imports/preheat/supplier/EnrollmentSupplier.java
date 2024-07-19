@@ -28,17 +28,14 @@
 package org.hisp.dhis.tracker.imports.preheat.supplier;
 
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStore;
-import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.imports.preheat.mappers.EnrollmentMapper;
 import org.springframework.stereotype.Component;
 
 /**
@@ -47,36 +44,25 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Component
 public class EnrollmentSupplier extends AbstractPreheatSupplier {
-  @Nonnull private final ProgramStore programStore;
   @Nonnull private final EntityManager entityManager;
 
   @Override
   public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
-    List<Program> programsWithoutRegistration =
-        preheat.getAll(Program.class).stream()
-            .filter(program -> program.getProgramType().equals(ProgramType.WITHOUT_REGISTRATION))
-            .collect(Collectors.toList());
-    if (programsWithoutRegistration.isEmpty()) {
-      programsWithoutRegistration = programStore.getByType(ProgramType.WITHOUT_REGISTRATION);
-    }
+    List<Enrollment> enrollments =
+        DetachUtils.detach(EnrollmentMapper.INSTANCE, getEnrollmentsByProgram());
 
-    if (!programsWithoutRegistration.isEmpty()) {
-      List<Enrollment> enrollments = getEnrollmentsByProgram(programsWithoutRegistration);
-
-      enrollments.forEach(
-          e -> {
-            preheat.putEnrollment(e.getUid(), e);
-            preheat.putEnrollmentsWithoutRegistration(e.getProgram().getUid(), e);
-          });
-    }
+    enrollments.forEach(
+        e -> {
+          preheat.putEnrollment(e.getUid(), e);
+          preheat.putEnrollmentsWithoutRegistration(e.getProgram().getUid(), e);
+        });
   }
 
-  private List<Enrollment> getEnrollmentsByProgram(List<Program> programs) {
+  private List<Enrollment> getEnrollmentsByProgram() {
     TypedQuery<Enrollment> query =
         entityManager.createQuery(
-            "FROM Enrollment e WHERE e.deleted = false AND e.program IN (:programIds)",
+            "select e from Enrollment e inner join e.program p where e.deleted = false and p.programType ='WITHOUT_REGISTRATION'",
             Enrollment.class);
-    query.setParameter("programIds", programs);
     return query.getResultList();
   }
 }
