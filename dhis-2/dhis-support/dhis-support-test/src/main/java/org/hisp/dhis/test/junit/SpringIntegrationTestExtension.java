@@ -236,14 +236,12 @@ public class SpringIntegrationTestExtension
       // only pay the annotation lookup cost if needed
       return;
     }
-    boolean hasPerClassLifecycle = isTestLifecyclePerClass(context);
-    boolean hasTransactional = isAnnotatedWithTransactional(context);
     log.debug(
-        "testClass={} callback={} @Transactional={} perClassLifecycle={} message={}",
+        "testClass={} testCallback={} @Transactional={} testLifecycle={} message={}",
         context.getRequiredTestClass().getName(),
         callback,
-        hasTransactional,
-        hasPerClassLifecycle,
+        isAnnotatedWithTransactional(context),
+        context.getTestInstanceLifecycle(),
         message);
   }
 }
