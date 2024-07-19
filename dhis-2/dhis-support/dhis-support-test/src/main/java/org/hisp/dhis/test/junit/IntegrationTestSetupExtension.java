@@ -92,7 +92,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  * </ul>
  */
 @Slf4j
-public class TestSetupExtension implements BeforeEachCallback, AfterEachCallback {
+public class IntegrationTestSetupExtension implements BeforeEachCallback, AfterEachCallback {
 
   @Override
   public void beforeEach(ExtensionContext context) throws Exception {

@@ -37,9 +37,9 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 /**
  * SpringIntegration test groups JUnit annotations needed for our Spring integration tests. It also
  * ensures that JUnit extensions are declared in the correct order as for example our {@link
- * TestSetupExtension} depends on the {@link SpringExtension}.
+ * IntegrationTestSetupExtension} depends on the {@link SpringExtension}.
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@ExtendWith({SpringExtension.class, TestSetupExtension.class})
+@ExtendWith({SpringExtension.class, IntegrationTestSetupExtension.class})
 public @interface SpringIntegrationTest {}
