@@ -31,6 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.List;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -49,12 +51,13 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
+import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegrationTest {
 
-  @Autowired private HibernatePotentialDuplicateStore potentialDuplicateStore;
+  @Autowired private TrackerObjectDeletionService trackerObjectDeletionService;
 
   @Autowired private TrackedEntityService trackedEntityService;
 
@@ -68,14 +71,14 @@ class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegration
 
   @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
-  @Autowired private org.hisp.dhis.program.EnrollmentService apiEnrollmentService;
+  @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private EnrollmentService enrollmentService;
 
   @Autowired private ProgramService programService;
 
   @Test
-  void shouldDeleteTrackedEntity() {
+  void shouldDeleteTrackedEntity() throws NotFoundException {
     TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute('A');
     trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttribute);
     TrackedEntity trackedEntity = createTrackedEntity(trackedEntityAttribute);
@@ -85,7 +88,7 @@ class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegration
   }
 
   @Test
-  void shouldDeleteTeAndAttributeValues() {
+  void shouldDeleteTeAndAttributeValues() throws NotFoundException {
     TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute('A');
     trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttribute);
     TrackedEntity trackedEntity = createTrackedEntity(trackedEntityAttribute);
@@ -101,7 +104,7 @@ class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegration
   }
 
   @Test
-  void shouldDeleteRelationShips() {
+  void shouldDeleteRelationShips() throws NotFoundException {
     OrganisationUnit ou = createOrganisationUnit("OU_A");
     organisationUnitService.addOrganisationUnit(ou);
     TrackedEntity original = createTrackedEntity(ou);
@@ -128,6 +131,7 @@ class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegration
     assertNotNull(trackedEntityService.getTrackedEntity(duplicate.getUid()));
     assertNotNull(trackedEntityService.getTrackedEntity(control1.getUid()));
     assertNotNull(trackedEntityService.getTrackedEntity(control2.getUid()));
+    dbmsManager.clearSession();
     removeTrackedEntity(duplicate);
     assertNull(relationshipService.getRelationship(relationShip3));
     assertNull(relationshipService.getRelationship(relationShip4));
@@ -155,10 +159,10 @@ class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegration
     Enrollment enrollment2 = createEnrollment(program, duplicate, ou);
     Enrollment enrollment3 = createEnrollment(program, control1, ou);
     Enrollment enrollment4 = createEnrollment(program, control2, ou);
-    apiEnrollmentService.addEnrollment(enrollment1);
-    apiEnrollmentService.addEnrollment(enrollment2);
-    apiEnrollmentService.addEnrollment(enrollment3);
-    apiEnrollmentService.addEnrollment(enrollment4);
+    manager.save(enrollment1);
+    manager.save(enrollment2);
+    manager.save(enrollment3);
+    manager.save(enrollment4);
     original.getEnrollments().add(enrollment1);
     duplicate.getEnrollments().add(enrollment2);
     control1.getEnrollments().add(enrollment3);
@@ -188,7 +192,7 @@ class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegration
     return trackedEntity;
   }
 
-  private void removeTrackedEntity(TrackedEntity trackedEntity) {
-    potentialDuplicateStore.removeTrackedEntity(trackedEntity);
+  private void removeTrackedEntity(TrackedEntity trackedEntity) throws NotFoundException {
+    trackerObjectDeletionService.deleteTrackedEntities(List.of(trackedEntity.getUid()));
   }
 }

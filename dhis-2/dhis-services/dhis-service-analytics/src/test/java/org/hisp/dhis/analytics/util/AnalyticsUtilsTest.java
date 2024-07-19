@@ -49,7 +49,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.EnumUtils;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -87,6 +86,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.test.DhisConvenienceTest;
 import org.junit.jupiter.api.Test;
 
 /**

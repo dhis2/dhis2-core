@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static java.util.Arrays.asList;
 import static org.hisp.dhis.appmanager.AndroidSettingsApp.AUTHORITY;
 import static org.hisp.dhis.appmanager.AndroidSettingsApp.NAMESPACE;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
@@ -41,11 +41,11 @@ import org.hisp.dhis.datastore.DatastoreEntry;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
 import org.hisp.dhis.datastore.DatastoreService;
 import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonDatastoreValue;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
-import org.hisp.dhis.webapi.json.domain.JsonDatastoreValue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,7 +57,7 @@ import org.springframework.core.io.ClassPathResource;
  *
  * @author Jan Bernitt
  */
-class DatastoreControllerIntegrationTest extends DhisControllerIntegrationTest {
+class DatastoreControllerIntegrationTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired private AppManager appManager;
 

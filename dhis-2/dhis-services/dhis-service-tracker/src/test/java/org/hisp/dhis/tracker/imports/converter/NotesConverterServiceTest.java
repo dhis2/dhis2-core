@@ -35,9 +35,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.note.Note;
-import org.hisp.dhis.random.BeanRandomizer;
+import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.random.BeanRandomizer;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;

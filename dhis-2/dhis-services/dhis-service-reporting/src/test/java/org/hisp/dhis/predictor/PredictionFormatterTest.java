@@ -38,8 +38,8 @@ import static org.hisp.dhis.predictor.PredictionFormatter.formatPrediction;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.test.DhisConvenienceTest;
 import org.junit.jupiter.api.Test;
 
 /**

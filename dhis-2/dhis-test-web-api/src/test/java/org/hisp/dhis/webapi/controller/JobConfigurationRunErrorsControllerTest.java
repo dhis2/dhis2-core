@@ -29,7 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static java.time.Duration.ofSeconds;
 import static org.hisp.dhis.security.Authorities.F_JOB_LOG_READ;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -40,10 +40,10 @@ import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonNodeType;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.scheduling.JobStatus;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
-import org.hisp.dhis.webapi.json.domain.JsonJobConfiguration;
-import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonJobConfiguration;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -52,7 +52,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class JobConfigurationRunErrorsControllerTest extends DhisControllerIntegrationTest {
+class JobConfigurationRunErrorsControllerTest extends PostgresControllerIntegrationTestBase {
 
   private String jobId;
 

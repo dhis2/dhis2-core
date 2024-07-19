@@ -31,6 +31,7 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.function.Consumer;
 import lombok.AllArgsConstructor;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -58,6 +59,8 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
   private final ProgramStageService programStageService;
 
   private final AclService aclService;
+
+  private final IdentifiableObjectManager identifiableObjectManager;
 
   @Override
   public void postCreate(Program object, ObjectBundle bundle) {
@@ -131,7 +134,7 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
       enrollment.setStatus(EnrollmentStatus.ACTIVE);
       enrollment.setStoredBy("system-process");
 
-      this.enrollmentService.addEnrollment(enrollment);
+      identifiableObjectManager.save(enrollment);
     }
   }
 

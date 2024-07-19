@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.utils.CsvUtils.getRowCountFromCsv;
-import static org.hisp.dhis.utils.CsvUtils.getRowFromCsv;
-import static org.hisp.dhis.utils.CsvUtils.getValueFromCsv;
+import static org.hisp.dhis.test.utils.CsvUtils.getRowCountFromCsv;
+import static org.hisp.dhis.test.utils.CsvUtils.getRowFromCsv;
+import static org.hisp.dhis.test.utils.CsvUtils.getValueFromCsv;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -48,7 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author David Mackessy
  */
-class AbstractFullReadOnlyControllerTest extends DhisControllerConvenienceTest {
+class AbstractFullReadOnlyControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private DataElementService dataElementService;
 

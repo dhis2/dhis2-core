@@ -37,13 +37,13 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.hisp.dhis.appmanager.AppManager;
-import org.hisp.dhis.config.TestDhisConfigurationProvider;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.test.config.TestDhisConfigurationProvider;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +60,7 @@ import org.springframework.test.context.ContextConfiguration;
     classes = {
       AppControllerTest.DhisConfiguration.class,
     })
-class AppControllerTest extends DhisControllerConvenienceTest {
+class AppControllerTest extends H2ControllerIntegrationTestBase {
 
   static class DhisConfiguration {
     @Bean

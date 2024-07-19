@@ -34,11 +34,11 @@ import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
-import static org.hisp.dhis.DhisConvenienceTest.createIndicator;
-import static org.hisp.dhis.DhisConvenienceTest.createIndicatorType;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_DATA_X;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ORGUNIT;
+import static org.hisp.dhis.test.DhisConvenienceTest.createDataElement;
+import static org.hisp.dhis.test.DhisConvenienceTest.createIndicator;
+import static org.hisp.dhis.test.DhisConvenienceTest.createIndicatorType;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;

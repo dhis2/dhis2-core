@@ -214,7 +214,7 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
 
     enrollment.setStatus(getCoreEnrollmentStatus(subm.getEnrollmentStatus()));
     enrollment.setGeometry(convertGeoPointToGeometry(subm.getCoordinates()));
-    apiEnrollmentService.updateEnrollment(enrollment);
+    identifiableObjectManager.update(enrollment);
 
     // We now check if the enrollment has events to process
     List<Object> errorUIDs = new ArrayList<>();
@@ -225,7 +225,7 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
     }
     enrollment.setStatus(getCoreEnrollmentStatus(subm.getEnrollmentStatus()));
     enrollment.setGeometry(convertGeoPointToGeometry(subm.getCoordinates()));
-    apiEnrollmentService.updateEnrollment(enrollment);
+    identifiableObjectManager.update(enrollment);
 
     if (!errorUIDs.isEmpty()) {
       return SmsResponse.WARN_DVERR.setList(errorUIDs);

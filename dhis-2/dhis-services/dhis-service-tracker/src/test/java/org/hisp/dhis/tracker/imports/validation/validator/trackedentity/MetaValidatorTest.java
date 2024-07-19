@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.trackedentity;
 
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1005;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1049;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;

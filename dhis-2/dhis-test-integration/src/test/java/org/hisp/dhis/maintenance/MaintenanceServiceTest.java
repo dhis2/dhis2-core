@@ -187,8 +187,8 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     enrollmentWithTeAssociation.setUid("UID-B");
     enrollmentWithTeAssociation.setOrganisationUnit(organisationUnit);
     trackedEntityService.addTrackedEntity(trackedEntityWithAssociations);
-    apiEnrollmentService.addEnrollment(enrollmentWithTeAssociation);
-    apiEnrollmentService.addEnrollment(enrollment);
+    manager.save(enrollmentWithTeAssociation);
+    manager.save(enrollment);
     event = new Event(enrollment, stageA);
     event.setUid("PSUID-B");
     event.setOrganisationUnit(organisationUnit);
@@ -229,6 +229,7 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     assertNotNull(relationshipService.getRelationship(r.getId()));
     trackedEntityService.deleteTrackedEntity(trackedEntity);
     assertNull(trackedEntityService.getTrackedEntity(trackedEntity.getId()));
+    manager.delete(r);
     assertNull(relationshipService.getRelationship(r.getId()));
     assertTrue(trackedEntityService.trackedEntityExistsIncludingDeleted(trackedEntity.getUid()));
     assertTrue(relationshipService.relationshipExistsIncludingDeleted(r.getUid()));
@@ -255,11 +256,11 @@ class MaintenanceServiceTest extends IntegrationTestBase {
             .deliveryChannels(Sets.newHashSet(DeliveryChannel.EMAIL))
             .enrollment(enrollment)
             .build();
-    long idA = apiEnrollmentService.addEnrollment(enrollment);
+    manager.save(enrollment);
     programMessageService.saveProgramMessage(message);
-    assertNotNull(manager.get(Enrollment.class, idA));
+    assertNotNull(manager.get(Enrollment.class, enrollment.getUid()));
     apiEnrollmentService.deleteEnrollment(enrollment);
-    assertNull(manager.get(Enrollment.class, idA));
+    assertNull(manager.get(Enrollment.class, enrollment.getUid()));
     assertTrue(enrollmentExistsIncludingDeleted(enrollment));
 
     maintenanceService.deleteSoftDeletedEnrollments();
@@ -335,10 +336,10 @@ class MaintenanceServiceTest extends IntegrationTestBase {
             dataElement, eventA, "value", "modifiedBy", false, ChangeLogType.UPDATE);
     trackedEntityDataValueAuditService.addTrackedEntityDataValueChangeLog(
         trackedEntityDataValueChangeLog);
-    long idA = apiEnrollmentService.addEnrollment(enrollment);
-    assertNotNull(manager.get(Enrollment.class, idA));
+    manager.save(enrollment);
+    assertNotNull(manager.get(Enrollment.class, enrollment.getUid()));
     apiEnrollmentService.deleteEnrollment(enrollment);
-    assertNull(manager.get(Enrollment.class, idA));
+    assertNull(manager.get(Enrollment.class, enrollment.getUid()));
     assertTrue(enrollmentExistsIncludingDeleted(enrollment));
 
     maintenanceService.deleteSoftDeletedEnrollments();
@@ -376,6 +377,7 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     assertNotNull(relationshipService.getRelationship(r.getId()));
     manager.delete(eventA);
     assertNull(getEvent(idA));
+    manager.delete(r);
     assertNull(relationshipService.getRelationship(r.getId()));
     assertTrue(eventExistsIncludingDeleted(eventA.getUid()));
     assertTrue(relationshipService.relationshipExistsIncludingDeleted(r.getUid()));
@@ -410,6 +412,7 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     assertNotNull(relationshipService.getRelationship(r.getId()));
     apiEnrollmentService.deleteEnrollment(enrollment);
     assertNull(manager.get(Enrollment.class, enrollment.getId()));
+    manager.delete(r);
     assertNull(relationshipService.getRelationship(r.getId()));
     assertTrue(enrollmentExistsIncludingDeleted(enrollment));
     assertTrue(relationshipService.relationshipExistsIncludingDeleted(r.getUid()));
