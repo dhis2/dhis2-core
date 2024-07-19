@@ -147,8 +147,8 @@ public class RenderableSqlQuery implements Renderable {
   private List<Field> nonVirtualSelectFields() {
     return selectFields.stream()
         .filter(Predicate.not(Field::isVirtual))
-        // we need to filter out fields that have already been rendered;
-        // it might happen that a field can be added multiple times (for example
+        // We need to filter out fields that have already been rendered.
+        // It might happen that a field can be added multiple times (for example
         // TE static fields, which are always added to the query, and TE period fields)
         // see: DHIS2-17745
         .filter(distinctByRendered())

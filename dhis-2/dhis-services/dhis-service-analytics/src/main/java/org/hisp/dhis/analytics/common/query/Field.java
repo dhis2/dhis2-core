@@ -69,7 +69,7 @@ public class Field extends BaseRenderable {
   /** virtual fields won't be added to the select clause */
   @With @Getter private final boolean virtual;
 
-  // a cached version of the rendered field
+  // A cached version of the rendered field.
   private String renderedField;
 
   public Field asVirtual() {
