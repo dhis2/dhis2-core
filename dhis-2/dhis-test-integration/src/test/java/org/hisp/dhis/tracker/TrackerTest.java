@@ -43,9 +43,11 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.user.User;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,26 +57,20 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Slf4j
 @Transactional
-public abstract class TrackerTest extends SingleSetupIntegrationTestBase {
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+public abstract class TrackerTest extends PostgresIntegrationTestBase {
   @Autowired protected IdentifiableObjectManager manager;
 
   @Autowired private RenderService _renderService;
-
-  //  @Autowired protected UserService _userService;
 
   @Autowired private ObjectBundleService objectBundleService;
 
   @Autowired private ObjectBundleValidationService objectBundleValidationService;
 
-  @Override
-  protected void setUpTest() throws IOException {
-    //    userService = _userService;
-    //    preCreateInjectAdminUser();
+  @BeforeAll
+  final void setUpRenderService() {
     renderService = _renderService;
-    initTest();
   }
-
-  protected abstract void initTest() throws IOException;
 
   protected ObjectBundle setUpMetadata(String path) throws IOException {
     Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =

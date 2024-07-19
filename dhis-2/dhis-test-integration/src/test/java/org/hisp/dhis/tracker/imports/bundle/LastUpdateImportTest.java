@@ -38,6 +38,7 @@ import java.util.List;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.SoftDeletableObject;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
@@ -54,7 +55,7 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -63,18 +64,16 @@ class LastUpdateImportTest extends TrackerTest {
 
   @Autowired private IdentifiableObjectManager manager;
 
+  @Autowired private DbmsManager dbmsManager;
+
   private org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity;
   private org.hisp.dhis.tracker.imports.domain.Enrollment enrollment;
   private org.hisp.dhis.tracker.imports.domain.Event event;
 
   private OrganisationUnit organisationUnit;
 
-  @Autowired protected UserService _userService;
-
-  @Override
-  protected void initTest() throws IOException {
-    userService = _userService;
-
+  @BeforeAll
+  void setUp() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
 
     injectAdminUser();

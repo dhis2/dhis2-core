@@ -40,7 +40,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
@@ -54,7 +53,7 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,7 +64,6 @@ class IconTest extends TrackerTest {
 
   @Autowired private FileResourceService fileResourceService;
   @Autowired private IconService iconService;
-  @Autowired private UserService _userService;
 
   private final Set<String> keywords = Set.of("k1", "k2", "m1");
   private final String key = "iconKey";
@@ -74,9 +72,8 @@ class IconTest extends TrackerTest {
   private FileResource fileResource;
   private User currentUser;
 
-  @Override
-  protected void initTest() throws IOException {
-    userService = _userService;
+  @BeforeAll
+  void setUp() {
     String currentUsername = CurrentUserUtil.getCurrentUsername();
     currentUser = userService.getUserByUsername(currentUsername);
     injectSecurityContextUser(currentUser);

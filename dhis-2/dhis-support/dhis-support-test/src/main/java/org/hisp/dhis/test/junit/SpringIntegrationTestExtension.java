@@ -162,12 +162,6 @@ public class SpringIntegrationTestExtension
         hasPerClassLifecycle);
 
     clearSecurityContext();
-    // TODO(ivo) according to Enrico this is not needed
-    //    try {
-    //      dbmsManager.clearSession();
-    //    } catch (Exception e) {
-    //      log.error("Failed to clear hibernate session, reason: {}", e.getMessage(), e);
-    //    }
 
     if (hasPerClassLifecycle || !hasTransactional) {
       unbindSession(context);
