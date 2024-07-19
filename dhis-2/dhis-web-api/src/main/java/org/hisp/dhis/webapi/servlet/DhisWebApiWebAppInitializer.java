@@ -100,9 +100,6 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
     dispatcher.setLoadOnStartup(1);
     dispatcher.addMapping("/*");
 
-    //    RequestContextListener requestContextListener = new RequestContextListener();
-    //    context.addListener(requestContextListener);
-
     context
         .addServlet("TempGetAppMenuServlet", TempGetAppMenuServlet.class)
         .addMapping("/dhis-web-commons/menu/getModules.action");

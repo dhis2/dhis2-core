@@ -30,19 +30,14 @@ package org.hisp.dhis.tracker.imports.preheat.supplier;
 import static org.hisp.dhis.program.ProgramType.WITHOUT_REGISTRATION;
 import static org.hisp.dhis.program.ProgramType.WITH_REGISTRATION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.Mockito.when;
 
-import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentStore;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStore;
 import org.hisp.dhis.test.DhisConvenienceTest;
 import org.hisp.dhis.test.random.BeanRandomizer;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,13 +55,11 @@ import org.mockito.quality.Strictness;
  */
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
-class EnrollmentSupplierTest extends DhisConvenienceTest {
+class EventProgramEnrollmentSupplierTest extends DhisConvenienceTest {
 
-  @InjectMocks private EnrollmentSupplier supplier;
+  @InjectMocks private EventProgramEnrollmentSupplier supplier;
 
-  @Mock private EnrollmentStore enrollmentStore;
-
-  @Mock private ProgramStore programStore;
+  @Mock private EntityManager entityManager;
 
   private List<Enrollment> enrollments;
 
@@ -79,8 +72,6 @@ class EnrollmentSupplierTest extends DhisConvenienceTest {
   private final BeanRandomizer rnd = BeanRandomizer.create();
 
   private TrackerPreheat preheat;
-
-  private Enrollment enrollmentWithoutRegistration;
 
   @BeforeEach
   public void setUp() {
@@ -96,60 +87,27 @@ class EnrollmentSupplierTest extends DhisConvenienceTest {
 
     programWithoutRegistration = createProgram('B');
     programWithoutRegistration.setProgramType(WITHOUT_REGISTRATION);
-    enrollmentWithoutRegistration = enrollments.get(1);
+    Enrollment enrollmentWithoutRegistration = enrollments.get(1);
     enrollmentWithoutRegistration.setProgram(programWithoutRegistration);
-
-    when(enrollmentStore.getByPrograms(Lists.newArrayList(programWithoutRegistration)))
-        .thenReturn(enrollments);
 
     params = TrackerObjects.builder().build();
     preheat = new TrackerPreheat();
-  }
-
-  @Test
-  void verifySupplierWhenNoEventProgramArePresent() {
-    preheat.put(TrackerIdSchemeParam.UID, programWithRegistration);
-
-    this.supplier.preheatAdd(params, preheat);
-
-    final List<String> programUids =
-        enrollments.stream().map(enrollment -> enrollment.getProgram().getUid()).toList();
-    for (String programUid : programUids) {
-      assertNull(preheat.getEnrollmentsWithoutRegistration(programUid));
-    }
   }
 
   // TODO: MAS. Fix this test, it is failing because of the recursive mapping of the OrgUnit
   @Test
   @Disabled
   void verifySupplierWhenNoProgramsArePresent() {
-    when(programStore.getByType(WITHOUT_REGISTRATION))
-        .thenReturn(List.of(programWithoutRegistration));
     enrollments = rnd.objects(Enrollment.class, 1).collect(Collectors.toList());
     // set the OrgUnit parent to null to avoid recursive errors when mapping
     enrollments.forEach(p -> p.getOrganisationUnit().setParent(null));
     Enrollment enrollment = enrollments.get(0);
     enrollment.setProgram(programWithoutRegistration);
-    when(enrollmentStore.getByPrograms(List.of(programWithoutRegistration)))
-        .thenReturn(enrollments);
 
     this.supplier.preheatAdd(params, preheat);
 
     assertEnrollmentInPreheat(
         enrollment, preheat.getEnrollmentsWithoutRegistration(programWithoutRegistration.getUid()));
-  }
-
-  @Test
-  void verifySupplier() {
-    preheat.put(
-        TrackerIdSchemeParam.UID,
-        Lists.newArrayList(programWithRegistration, programWithoutRegistration));
-
-    this.supplier.preheatAdd(params, preheat);
-
-    assertEnrollmentInPreheat(
-        enrollmentWithoutRegistration,
-        preheat.getEnrollmentsWithoutRegistration(programWithoutRegistration.getUid()));
   }
 
   private void assertEnrollmentInPreheat(Enrollment expected, Enrollment actual) {

@@ -220,7 +220,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
       org.hisp.dhis.relationship.Relationship relationship =
           relationshipService.getRelationship(uid);
 
-      relationshipService.deleteRelationship(relationship);
+      manager.delete(relationship);
 
       typeReport.getStats().incDeleted();
       typeReport.addEntity(objectReport);
