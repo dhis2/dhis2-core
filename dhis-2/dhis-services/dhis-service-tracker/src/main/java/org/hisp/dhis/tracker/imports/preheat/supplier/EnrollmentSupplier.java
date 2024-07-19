@@ -39,6 +39,9 @@ import org.hisp.dhis.tracker.imports.preheat.mappers.EnrollmentMapper;
 import org.springframework.stereotype.Component;
 
 /**
+ * This supplier adds to the pre-heat a list of all enrollments that are part of an event programs
+ * and not soft deleted.
+ *
  * @author Luciano Fiandesio
  */
 @RequiredArgsConstructor
@@ -49,7 +52,7 @@ public class EnrollmentSupplier extends AbstractPreheatSupplier {
   @Override
   public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
     List<Enrollment> enrollments =
-        DetachUtils.detach(EnrollmentMapper.INSTANCE, getEnrollmentsByProgram());
+        DetachUtils.detach(EnrollmentMapper.INSTANCE, getEventProgramEnrollments());
 
     enrollments.forEach(
         e -> {
@@ -58,7 +61,7 @@ public class EnrollmentSupplier extends AbstractPreheatSupplier {
         });
   }
 
-  private List<Enrollment> getEnrollmentsByProgram() {
+  private List<Enrollment> getEventProgramEnrollments() {
     TypedQuery<Enrollment> query =
         entityManager.createQuery(
             "select e from Enrollment e inner join e.program p where e.deleted = false and p.programType ='WITHOUT_REGISTRATION'",
