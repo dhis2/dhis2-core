@@ -96,13 +96,9 @@ public class SpringIntegrationTestExtension implements BeforeEachCallback, After
 
   @Override
   public void beforeEach(ExtensionContext context) throws Exception {
-    if (context.getTestClass().isEmpty()) {
-      return;
-    }
-
     boolean hasPerClassLifecycle =
         context.getTestInstanceLifecycle().orElse(Lifecycle.PER_METHOD) == Lifecycle.PER_CLASS;
-    Class<?> testClass = context.getTestClass().get();
+    Class<?> testClass = context.getRequiredTestClass();
     boolean hasTransactional = findAnnotation(testClass, Transactional.class).isPresent();
 
     log.debug(
@@ -123,13 +119,9 @@ public class SpringIntegrationTestExtension implements BeforeEachCallback, After
 
   @Override
   public void afterEach(ExtensionContext context) {
-    if (context.getTestClass().isEmpty()) {
-      return;
-    }
-
     boolean hasPerClassLifecycle =
         context.getTestInstanceLifecycle().orElse(Lifecycle.PER_METHOD) == Lifecycle.PER_CLASS;
-    Class<?> testClass = context.getTestClass().get();
+    Class<?> testClass = context.getRequiredTestClass();
     boolean hasTransactional = findAnnotation(testClass, Transactional.class).isPresent();
 
     log.debug(
