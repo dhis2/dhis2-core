@@ -40,6 +40,7 @@ import org.hisp.dhis.query.Junction;
  */
 @Data
 @OpenApi.Shared
+@OpenApi.Property // all fields are public properties
 public final class GistParams {
   String locale = "";
 
@@ -74,6 +75,7 @@ public final class GistParams {
 
   Junction.Type rootJunction = Junction.Type.AND;
 
+  @OpenApi.Property(OpenApi.PropertyNames[].class)
   String fields;
 
   String filter;

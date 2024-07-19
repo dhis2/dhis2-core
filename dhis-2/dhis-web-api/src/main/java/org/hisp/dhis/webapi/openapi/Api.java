@@ -87,14 +87,6 @@ public class Api {
     Schema generate(Endpoint endpoint, Type source, Class<?>... args);
   }
 
-  /**
-   * A "virtual" property name enumeration type. It creates an OpenAPI {@code enum} string schema
-   * containing all valid property names for the target type. The target type is either the actual
-   * type substitute for the {@link OpenApi.EntityType} or the first argument type.
-   */
-  @NoArgsConstructor
-  public static final class PropertyNames {}
-
   /** Can be set to enable debug mode */
   Maybe<Boolean> debug = new Maybe<>(false);
 

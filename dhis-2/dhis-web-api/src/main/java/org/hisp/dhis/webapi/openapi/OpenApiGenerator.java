@@ -460,6 +460,9 @@ public class OpenApiGenerator extends JsonGenerator {
       }
       if (!schema.getRequiredProperties().isEmpty())
         addInlineArrayMember("required", schema.getRequiredProperties());
+      // TODO kind via OpenApi.Kind annotation
+      if (IdentifiableObject.class.isAssignableFrom(schema.getRawType()))
+        addStringMember("x-kind", "IdentifiableObject");
       addObjectMember(
           "properties",
           schema.getProperties(),

@@ -35,6 +35,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.intellij.lang.annotations.Language;
 
@@ -519,4 +520,12 @@ public @interface OpenApi {
   @interface ResponseRepeat {
     Response[] value();
   }
+
+  /**
+   * A "virtual" property name enumeration type. It creates an OpenAPI {@code enum} string schema
+   * containing all valid property names for the target type. The target type is either the actual
+   * type substitute for the {@link EntityType} or the first argument type.
+   */
+  @NoArgsConstructor
+  final class PropertyNames {}
 }

@@ -464,6 +464,15 @@ public interface OpenApiObject extends JsonObject {
       return isShared() ? node().getPath().toString().substring(20) : null;
     }
 
+    default String x_kind() {
+      JsonString kind = getString("x-kind");
+      if (kind.exists()) return kind.string();
+      if (get("enum").exists()) return "enum";
+      String type = $type();
+      if (type != null) return type;
+      return "other";
+    }
+
     /*
     From JSON schema spec...
      */
@@ -473,11 +482,16 @@ public interface OpenApiObject extends JsonObject {
       return getString("type").string();
     }
 
-    default String x_kind() {
-      JsonString kind = getString("x-kind");
-      if (kind.exists()) return kind.string();
-      if (get("enum").exists()) return "enum";
-      return $type();
+    default boolean isObject() {
+      return "object".equalsIgnoreCase($type());
+    }
+
+    default boolean isArray() {
+      return "array".equalsIgnoreCase($type());
+    }
+
+    default boolean isString() {
+      return "string".equalsIgnoreCase($type());
     }
 
     @Language("markdown")
@@ -511,6 +525,10 @@ public interface OpenApiObject extends JsonObject {
 
     default List<String> $enum() {
       return getArray("enum").stringValues();
+    }
+
+    default boolean isEnum() {
+      return has("enum");
     }
 
     /*
@@ -552,28 +570,66 @@ public interface OpenApiObject extends JsonObject {
       return properties().isUndefined() || properties().isEmpty();
     }
 
-    default boolean isObject() {
-      return "object".equalsIgnoreCase($type());
+    default boolean isWrapper() {
+      return isObject() && properties().exists() && properties().size() == 1;
     }
 
-    default boolean isArray() {
-      return "array".equalsIgnoreCase($type());
+    default boolean isPaged() {
+      if (!isObject()) return false;
+      JsonMap<SchemaObject> properties = properties();
+      if (properties.isUndefined()) return false;
+      if (properties.size() != 2) return false;
+      if (properties.values().noneMatch(SchemaObject::isArray)) return false;
+      return properties.values().anyMatch(s -> s.isObject() || s.isRef() && s.resolve().isObject());
     }
 
-    default boolean isString() {
-      return "string".equalsIgnoreCase($type());
-    }
-
-    default boolean isNumber() {
-      return "number".equalsIgnoreCase($type());
+    default boolean isFlat() {
+      if (isRef()) return true;
+      String type = $type();
+      if (type != null)
+        return switch (type) {
+          case "array" -> items().isFlat();
+          case "object" -> isMap() && additionalProperties().isFlat();
+          default -> size() == 1; // "type" is the only member
+        };
+      if (oneOf().exists()) return oneOf().stream().allMatch(SchemaObject::isFlat);
+      if (allOf().exists()) return allOf().stream().allMatch(SchemaObject::isFlat);
+      if (anyOf().exists()) return anyOf().stream().allMatch(SchemaObject::isFlat);
+      if (not().exists()) return not().isFlat();
+      return false; // IDK, probably not
     }
 
     /*
-    type composition (non concrete types)
+    type composition (non-concrete types)
+    (they do not have a value for the "type" field!)
      */
 
+    /**
+     * @return type must match one and only one of the specified schema elements
+     */
     default JsonList<SchemaObject> oneOf() {
       return getList("oneOf", SchemaObject.class);
+    }
+
+    /**
+     * @return type must match all of the specified schema elements
+     */
+    default JsonList<SchemaObject> allOf() {
+      return getList("allOf", SchemaObject.class);
+    }
+
+    /**
+     * @return type must match at least one of the specified schema elements
+     */
+    default JsonList<SchemaObject> anyOf() {
+      return getList("anyOf", SchemaObject.class);
+    }
+
+    /**
+     * @return type must not match the specified schema
+     */
+    default SchemaObject not() {
+      return get("not", SchemaObject.class);
     }
   }
 }

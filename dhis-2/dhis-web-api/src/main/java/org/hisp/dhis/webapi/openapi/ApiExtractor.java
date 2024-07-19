@@ -160,7 +160,7 @@ final class ApiExtractor {
 
   static {
     register(UID.class, SchemaGenerators.UID);
-    register(Api.PropertyNames.class, SchemaGenerators.PROPERTY_NAMES);
+    register(OpenApi.PropertyNames.class, SchemaGenerators.PROPERTY_NAMES);
   }
 
   /**
@@ -820,7 +820,7 @@ final class ApiExtractor {
 
   private static String getPropertyName(Api.Endpoint endpoint, Property property) {
     return "path$".equals(property.getName())
-        ? endpoint.getIn().getPaths().get(0).replace("/", "")
+        ? endpoint.getIn().getPaths().get(0).replace("/api/", "").replace("/", "")
         : property.getName();
   }
 

@@ -27,12 +27,13 @@
  */
 package org.hisp.dhis.webapi.openapi;
 
+import static org.hisp.dhis.webapi.openapi.OpenApiHtmlUtils.escapeHtml;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.text.StringEscapeUtils;
 
 /**
  * This is a simplified markdown to HTML helper used in {@link OpenApiRenderer} to render
@@ -193,12 +194,12 @@ final class OpenApiMarkdown {
       }
       case IMAGE ->
           html.append("<img src=\"")
-              .append(span.value)
+              .append(escapeHtml(span.value))
               .append("\" title=\"")
               .append(escapeHtml(span.inner.get(0).value))
               .append(" />");
       case LINK -> {
-        html.append("<a target=\"_blank\" href=\"").append(span.value).append("\">");
+        html.append("<a target=\"_blank\" href=\"").append(escapeHtml(span.value)).append("\">");
         span.inner.forEach(this::renderSpan);
         html.append("</a>");
       }
@@ -209,15 +210,6 @@ final class OpenApiMarkdown {
         html.append("\">").append(escapeHtml(span.value)).append("</code>");
       }
     }
-  }
-
-  /** Is HTML that does not need escaping as it only has characters that don't need it. */
-  private static final Pattern PLAIN_HTML =
-      Pattern.compile("^[-_a-zA-Z0-9^!$§%/()=?\\\\`~*#@:.,;|+ \t°{}\\[\\]]*$");
-
-  public static String escapeHtml(String str) {
-    if (PLAIN_HTML.matcher(str).matches()) return str;
-    return StringEscapeUtils.escapeHtml4(str);
   }
 
   @RequiredArgsConstructor

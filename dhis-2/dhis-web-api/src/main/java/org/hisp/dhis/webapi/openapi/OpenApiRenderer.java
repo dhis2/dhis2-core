@@ -31,7 +31,8 @@ import static java.util.Comparator.comparing;
 import static java.util.Map.entry;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toUnmodifiableSet;
-import static org.hisp.dhis.webapi.openapi.OpenApiMarkdown.escapeHtml;
+import static org.hisp.dhis.webapi.openapi.OpenApiHtmlUtils.escapeHtml;
+import static org.hisp.dhis.webapi.openapi.OpenApiHtmlUtils.stripHtml;
 import static org.hisp.dhis.webapi.openapi.OpenApiMarkdown.markdownToHTML;
 
 import java.util.ArrayList;
@@ -74,20 +75,17 @@ public class OpenApiRenderer {
 
     /** Include the JSON source in the operations and schemas? */
     boolean source = false;
+
+    /** A shared enum with less than the limit values is shown in the summary //TODO implement */
+    int inlineEnumsLimit = 0;
   }
 
   @Language("css")
   private static final String CSS =
       """
-  @import url('https://fonts.cdnfonts.com/css/futura-std-4');
+  @import url('https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200..1000;1,200..1000&family=Noto+Sans+Mono:wght@100..900&display=swap');
 
-  @keyframes squareToCircle {
-      0% { transform: rotate(0deg); }
-      25% { transform: rotate(45deg); }
-      50% { transform: rotate(90deg); }
-      75% { transform: rotate(45deg); }
-      100% { transform: rotate(0deg); }
-  }
+  @keyframes spin { 0% { transform: rotate(360deg); } 100% { transform: rotate(0deg); } }
 
   :root {
        --bg-page: white;
@@ -117,11 +115,11 @@ public class OpenApiRenderer {
     margin: 0;
     padding-right: 40px;
     min-height: 100%;
-    font-family: 'Futura Std', Inter, sans-serif;
+    font-family: "Mulish", sans-serif;
     font-size: 16px;
     text-rendering: optimizespeed;
   }
-  h1 { margin: 0.5rem; color: rgb(33, 41, 52); font-size: 110%; font-weight: normal; text-align: left; }
+  h1 { margin: 0.5rem; color: rgb(33, 41, 52); font-size: 110%; text-align: left; }
   h2 { display: inline; font-size: 110%; font-weight: normal; text-transform: capitalize; }
   h3 { font-size: 105%; display: inline; text-transform: capitalize; font-weight: normal; }
   h4 { font-weight: normal; padding: 0 1em; }
@@ -130,12 +128,10 @@ public class OpenApiRenderer {
   h2 a[target="_blank"] { text-decoration: none; margin-left: 0.5em; }
   a[href^="#"] { text-decoration: none; }
   a[title="permalink"] { position: absolute;  right: 1em; display: inline-block; width: 24px; height: 24px;
-    text-align: center; vertical-align: middle; border-radius: 50% 50% 50% 0; line-height: 24px; color: dimgray; }
+    text-align: center; vertical-align: middle; border-radius: 50%; line-height: 24px; color: dimgray; }
 
-  code { font-family: "Liberation Mono", monospace; }
-  pre {font-family: "Liberation Mono", monospace; background-color: floralwhite; color: #222; margin-right: 2em; padding: 0.5rem; }
-  ul { list-style-type: none; margin: 0; padding-left: 1rem; }
-  ul > li { margin-top: 0.75rem; }
+  pre, code { font-family: "Noto Sans Mono", "Liberation Mono", monospace; }
+  pre { background-color: floralwhite; color: #222; margin-right: 2em; padding: 0.5rem; }
   summary {
       padding: 2px;
       margin-top: 0.5em;
@@ -148,7 +144,7 @@ public class OpenApiRenderer {
       padding: 10px;
       text-align: center;
       border-bottom: 5px solid #147cd7;
-      background-color: white;
+      background-color: snow;
       background-image: url('/../favicon.ico');
       background-repeat: no-repeat;
       padding-left: 100px;
@@ -204,7 +200,7 @@ public class OpenApiRenderer {
   details.op[open], details.schema[open] { padding-bottom: 1rem; }
   details.op > summary, details.schema > summary { padding: 0.5rem; }
   details > header { padding: 0.5rem 1rem; font-size: 95%; }
-  details > aside { padding: 0.5rem 1rem; }
+  details > aside { padding: 0.5rem 1rem; margin-bottom: 1em; }
 
   /* colors and emphasis effects */
   code.http { display: inline-block; padding: 0 0.5em; font-weight: bold; }
@@ -214,20 +210,20 @@ public class OpenApiRenderer {
   code.http.content > span.status2xx { background: color-mix(in srgb, seagreen 75%, transparent); color: snow; }
   code.http.content .on { color: black; }
   code.http.method { width: 4rem; text-align: right; color: dimgray; }
-  code.md { background-color: #eee; }
+  code.md { background: color-mix(in srgb, snow 70%, transparent); padding: 0.125em 0.25em; }
   code.property { padding: 0.25em 0.5em; background: color-mix(in srgb, powderblue 70%, transparent); }
   code.property.secondary, code.property.secondary ~ code.type { background: color-mix(in srgb, lemonchiffon 70%, transparent); }
   code.url { padding: 0.25em 0.5em; background-color: snow; }
   code.url.path { font-weight: bold; }
-  code.url em, code.url.secondary, code.url.secondary + code.type { color: lightslategrey; font-style: normal; font-weight: normal; background: color-mix(in srgb, snow 70%, transparent); }
+  code.url em, code.url.secondary, code.url.secondary + code.type { color: darkslateblue; font-style: normal; font-weight: normal; background: color-mix(in srgb, snow 70%, transparent); }
   code.url small { color: gray; }
   code.tag { color: dimgray; margin-left: 2em; }
-  code.tag > span + span { color: darkblue; padding: 0.25em; background: color-mix(in srgb, ivory 65%, transparent); }
+  code.tag > span + span { color: darkblue; padding: 0.25em; background: color-mix(in srgb, lemonchiffon 65%, transparent); }
   code.tag.columns { display: inline-block; padding-left: 100px; }
   code.tag.columns > span:first-of-type { margin-left: -100px; padding-right: 1em; }
-  code.secondary ~ code.type { color: dimgray; font-style: italic; padding: 0.25em 0.5em; }
+  code.secondary ~ code.type { color: darkslateblue; padding: 0.25em 0.5em; }
   code.url.secondary + code.url.secondary { padding-left: 0; }
-  code.request, code.response { padding: 0.25em 0.5em; color: dimgray; }
+  code.request, code.response { padding: 0.25em 0.5em; color: dimgray; font-weight: bold; }
   code.mime { background-color: ivory; font-style: italic; padding: 0.25em 0.5em; }
   code.mime.secondary, code.mime.secondary + code.type { background: color-mix(in srgb, ivory 70%, transparent); }
 
@@ -261,7 +257,7 @@ public class OpenApiRenderer {
   details.property:target > summary > code:first-of-type { background-color: gold; }
   details.response:target > summary > code:first-of-type { background-color: gold; color: inherit; }
   details:target > summary > a[title="permalink"] { background-color: gold; color: black; border: 2px solid snow;
-    animation: squareToCircle 2s 1s infinite alternate; }
+    animation: spin 2s linear 0s infinite reverse; }
 
   /* operation background colors */
   details[open].GET { background: color-mix(in srgb, var(--color-get) var(--p-op-bg), transparent); }
@@ -347,9 +343,9 @@ public class OpenApiRenderer {
   .op.deprecated > summary > code.url.path:before,
    nav code.deprecated:before { content: '⚠️'; padding: 0.25em; font-family: sans-serif; }
   /* parameter markers */
-  .param.required > summary > code:first-of-type:after,
-  .property.required > summary > code:first-of-type:after { content: '*'; color: tomato; }
-  .param.deprecated > summary > code.url:first-of-type:before { content: '⚠️'; font-family: sans-serif; display: inline-block; padding-right: 0.25rem; }
+  .required > summary > code:first-of-type { font-weight: bold; }
+  .required > summary > code:first-of-type:after { content: '*'; color: tomato; }
+  .deprecated > summary > code:first-of-type:before { content: '⚠️'; font-family: sans-serif; display: inline-block; padding-right: 0.25rem; }
   /* +/- buttons for expand/collapse */
   .box aside > button.toggle { pointer-events: none; opacity: 0.65; }
   .box aside > button.toggle:after { content: '⊝'; padding-left: 0.5rem; font-size: 16px; }
@@ -363,8 +359,8 @@ public class OpenApiRenderer {
   .schema.number > summary > code:first-of-type:before { content: '#.'; }
   .schema.boolean > summary > code:first-of-type:before { content: '01'; }
 
-  article.desc { margin: 10px 30px 0 30px; color: #333; } /* note: margin is in pixels as the font-size changes */
-  article.desc > p { margin: 0 0 10px 0; }
+  article.desc { margin: 0.25em 2.5em; color: #333; } /* note: margin is in pixels as the font-size changes */
+  article.desc > p { margin: 0 0 0.5em 0; }
   article.desc > *:first-child { margin-top: 10px; }
   article.desc a[target="_blank"]:after { content: '🗗'; }
   body[desc-] article.desc:not(:hover) { font-size: 0.1rem; }
@@ -683,7 +679,7 @@ public class OpenApiRenderer {
 
   private void renderOperation(OperationObject op) {
     if (!op.exists()) return;
-    String id = op.operationId();
+    String id = stripHtml(op.operationId());
     appendDetails(
         id,
         false,
@@ -800,7 +796,7 @@ public class OpenApiRenderer {
     String style = "param";
     if (p.deprecated()) style += " deprecated";
     if (p.required()) style += " required";
-    String id = op.operationId() + "-" + p.name();
+    String id = stripHtml(op.operationId() + "-" + p.name());
     appendDetails(
         id,
         true,
@@ -860,14 +856,13 @@ public class OpenApiRenderer {
     if (requestBody.isUndefined()) return;
     renderOperationSectionHeader("{...}", "Request Body");
 
-    renderMarkdown(requestBody.description(), op.parameterNames());
-
     JsonMap<MediaTypeObject> content = requestBody.content();
-    if (content.isUndefined() || content.isEmpty()) return;
     String style = "request";
     if (requestBody.required()) style += " required";
-    String id = op.operationId();
+    String id = stripHtml(op.operationId());
     renderMediaTypes(id, style, content);
+
+    renderMarkdown(requestBody.description(), op.parameterNames());
   }
 
   private void renderMarkdown(String text, Set<String> keywords) {
@@ -876,13 +871,13 @@ public class OpenApiRenderer {
 
   private void renderMediaTypes(
       String idPrefix, String style, JsonMap<MediaTypeObject> mediaTypes) {
-    if (mediaTypes.isUndefined()) return;
+    if (mediaTypes.isUndefined() || mediaTypes.isEmpty()) return;
     mediaTypes.forEach(
         (mediaType, schema) -> renderMediaType(idPrefix, style, mediaType, schema.schema()));
   }
 
   private void renderMediaType(String idPrefix, String style, String mediaType, SchemaObject type) {
-    String id = idPrefix == null ? null : idPrefix + "-" + mediaType;
+    String id = idPrefix == null ? null : stripHtml(idPrefix + "-" + mediaType);
     appendDetails(
         id,
         false,
@@ -909,18 +904,16 @@ public class OpenApiRenderer {
   }
 
   private void renderResponse(OperationObject op, String code, ResponseObject response) {
-    String id = op.operationId() + "!" + code;
+    String id = stripHtml(op.operationId() + "!" + code);
+    boolean open = code.charAt(0) == '2' || !response.isUniform();
     appendDetails(
         id,
-        code.charAt(0) == '2',
+        open,
         "response",
         () -> {
           appendSummary(id, null, () -> renderResponseSummary(code, response));
+          renderMediaTypes(id, "response", response.content());
           renderMarkdown(response.description(), op.parameterNames());
-
-          JsonMap<MediaTypeObject> content = response.content();
-          if (content.isUndefined() || content.isEmpty()) return;
-          renderMediaTypes(id, "response", content);
         });
   }
 
@@ -933,14 +926,9 @@ public class OpenApiRenderer {
 
     appendCode("mime", "=");
 
-    if (content.size() == 1) {
-      // TODO
-    } else if (response.isUniform()) {
-      // TODO renderMediaType("*", content.values().toList().get(0).schema());
-    } else {
-      // * : a | b | c
-      // TODO renderMediaTypeSummary(content.values().map(MediaTypeObject::schema).toList());
-    }
+    // TODO if there is one show like in details
+    // if there are more show all the mime types
+    // and only if all of them are uniform also show their schema
   }
 
   private void renderSchemaSignature(List<SchemaObject> oneOf) {
@@ -949,7 +937,7 @@ public class OpenApiRenderer {
   }
 
   private void renderSchemaSignature(SchemaObject schema) {
-    renderSchemaSignature(() -> renderSchemaSignatureTypeLinked(schema));
+    renderSchemaSignature(() -> renderSchemaSignatureType(schema));
   }
 
   private void renderSchemaSignature(Runnable renderType) {
@@ -965,44 +953,105 @@ public class OpenApiRenderer {
   private void renderSchemaSignatureType(List<SchemaObject> oneOf) {
     for (int i = 0; i < oneOf.size(); i++) {
       if (i > 0) appendRaw(" | ");
-      renderSchemaSignatureTypeLinked(oneOf.get(0));
+      renderSchemaSignatureType(oneOf.get(i));
     }
   }
 
-  private void renderSchemaSignatureTypeLinked(SchemaObject schema) {
+  private void renderSchemaSignatureType(SchemaObject schema) {
     if (schema.isShared()) {
       appendA("#" + schema.getSharedName(), false, schema.getSharedName());
       return;
     }
-    renderSchemaSignatureTypeRaw(schema);
+    renderSchemaSignatureTypeAny(schema);
   }
 
-  private void renderSchemaSignatureTypeRaw(SchemaObject schema) {
+  private void renderSchemaSignatureTypeAny(JsonList<SchemaObject> options, String separator) {
+    for (int i = 0; i < options.size(); i++) {
+      if (i > 0) appendRaw(separator);
+      renderSchemaSignatureType(options.get(i));
+    }
+  }
+
+  private void renderSchemaSignatureTypeAny(SchemaObject schema) {
     if (schema.isRef()) {
-      renderSchemaSignatureTypeLinked(schema.resolve());
+      renderSchemaSignatureType(schema.resolve());
       return;
     }
     if (schema.isArray()) {
       appendRaw("array[");
-      renderSchemaSignatureTypeLinked(schema.items());
+      renderSchemaSignatureType(schema.items());
       appendRaw("]");
       return;
     }
     if (schema.isObject()) {
-      appendRaw("object");
-      if (schema.isMap()) {
-        appendRaw("{*:");
-        renderSchemaSignatureTypeLinked(schema.additionalProperties());
-        appendRaw("}");
-      }
+      renderSchemaSignatureTypeObject(schema);
       return;
     }
-    if (schema.isString() && schema.get("enum").exists()) {
+    if (schema.isString() && schema.isEnum()) {
       appendRaw("enum");
       return;
     }
-    // TODO handle oneof and anyof types
-    appendRaw(schema.$type());
+    String type = schema.$type();
+    if (type != null) {
+      appendRaw(type);
+      return;
+    }
+    // must be a composer then
+    if (schema.oneOf().exists()) {
+      renderSchemaSignatureTypeAny(schema.oneOf(), " | ");
+      return;
+    }
+    if (schema.anyOf().exists()) {
+      renderSchemaSignatureTypeAny(schema.anyOf(), " || ");
+      return;
+    }
+    if (schema.allOf().exists()) {
+      renderSchemaSignatureTypeAny(schema.allOf(), " &amp; ");
+      return;
+    }
+    if (schema.not().exists()) {
+      appendRaw("!");
+      renderSchemaSignatureType(schema.not());
+      return;
+    }
+    // we don't know/understand this yet
+    appendRaw("?");
+  }
+
+  /**
+   * For readability’s sake we attempt to describe an object more specific than just {code object}.
+   * When it has the quality of a map or just a single property or is a paged list the structure is
+   * further described in the signature.
+   */
+  private void renderSchemaSignatureTypeObject(SchemaObject schema) {
+    appendRaw("object");
+    if (schema.isMap()) {
+      appendRaw("{*:");
+      renderSchemaSignatureType(schema.additionalProperties());
+      appendRaw("}");
+    } else if (schema.isWrapper()) {
+      Map.Entry<String, SchemaObject> p0 = schema.properties().entries().limit(1).toList().get(0);
+      appendRaw("{");
+      appendEscaped(p0.getKey());
+      appendRaw(":");
+      renderSchemaSignatureType(p0.getValue());
+      appendRaw("}");
+    } else if (schema.isPaged()) {
+      Map.Entry<String, SchemaObject> values =
+          schema
+              .properties()
+              .entries()
+              .filter(e -> e.getValue().isArray())
+              .findFirst()
+              .orElse(null);
+      if (values != null) {
+        appendRaw("{");
+        appendEscaped(values.getKey());
+        appendRaw("[#]:");
+        renderSchemaSignatureType(values.getValue());
+        appendRaw("}");
+      }
+    }
   }
 
   private void renderComponentsSchemas() {
@@ -1024,7 +1073,7 @@ public class OpenApiRenderer {
   }
 
   private void renderSchema(SchemaObject schema) {
-    String id = schema.getSharedName();
+    String id = stripHtml(schema.getSharedName());
     appendDetails(
         id,
         false,
@@ -1056,31 +1105,51 @@ public class OpenApiRenderer {
       SchemaObject schema, boolean isDeclaration, boolean skipDefault) {
     if (schema.isRef() || (!isDeclaration && schema.isShared()))
       return; // summary already gave all that is needed
-    Set<String> names =
-        schema.isObject() ? schema.properties().keys().collect(toUnmodifiableSet()) : Set.of();
-    appendTag("header", markdownToHTML(schema.description(), names));
-    if (!skipDefault) renderLabelledValue("default", schema.$default(), true);
-    renderLabelledValue("enum", schema.$enum(), true);
+    if (schema.isFlat()) return;
+    if (schema.$type() != null) {
+      Set<String> names =
+          schema.isObject() ? schema.properties().keys().collect(toUnmodifiableSet()) : Set.of();
+      appendTag("header", markdownToHTML(schema.description(), names));
+      if (!skipDefault) renderLabelledValue("default", schema.$default(), true);
+      renderLabelledValue("enum", schema.$enum(), true);
 
-    if (schema.isObject()) {
-      List<String> required = schema.required();
-      schema
-          .properties()
-          .forEach((n, s) -> renderSchemaProperty(schema, n, s, required.contains(n)));
-      SchemaObject additionalProperties = schema.additionalProperties();
-      if (!additionalProperties.isUndefined()) {
-        renderSchemaProperty(schema, "&lt;additionalProperties&gt;", additionalProperties, false);
+      if (schema.isObject()) {
+        List<String> required = schema.required();
+        schema
+            .properties()
+            .forEach((n, s) -> renderSchemaProperty(schema, n, s, required.contains(n)));
+        SchemaObject additionalProperties = schema.additionalProperties();
+        if (!additionalProperties.isUndefined()) {
+          renderSchemaProperty(schema, "<additionalProperties>", additionalProperties, false);
+        }
+        return;
       }
+      if (schema.isArray()) {
+        renderSchemaProperty(schema, "<items>", schema.items(), false);
+        return;
+      }
+      return;
     }
-    if (schema.isArray()) {
-      renderSchemaProperty(schema, "&lt;items&gt;", schema.items(), false);
+    if (schema.oneOf().exists()) {
+      schema.oneOf().forEach(s -> renderSchemaProperty(schema, "<oneOf>", s, false));
+      return;
     }
-    // TODO handle oneof (x | y) and allof (x & y) types
+    if (schema.anyOf().exists()) {
+      schema.anyOf().forEach(s -> renderSchemaProperty(schema, "<anyOf>", s, false));
+      return;
+    }
+    if (schema.allOf().exists()) {
+      schema.allOf().forEach(s -> renderSchemaProperty(schema, "<allOf>", s, false));
+      return;
+    }
+    if (schema.not().exists()) {
+      renderSchemaProperty(schema, "<not>", schema.not(), false);
+    }
   }
 
   private void renderSchemaProperty(
       SchemaObject parent, String name, SchemaObject type, boolean required) {
-    String id = parent.isShared() ? parent.getSharedName() + "-" + name : null;
+    String id = parent.isShared() ? stripHtml(parent.getSharedName() + "-" + name) : null;
     String style = "property";
     if (required) style += " required";
     boolean open = type.isObject() || type.isArray() && type.items().isObject();
@@ -1093,7 +1162,7 @@ public class OpenApiRenderer {
               id,
               "",
               () -> {
-                appendCode("property", name);
+                appendCode("property", () -> appendEscaped(name));
                 appendCode("property secondary", ":");
                 renderSchemaSummary(type, false);
               });
@@ -1111,7 +1180,7 @@ public class OpenApiRenderer {
           appendTag(
               "pre",
               () -> {
-                appendRaw(escapeHtml(op.toJson()));
+                appendEscaped(op.toJson());
               });
         });
   }
@@ -1193,7 +1262,15 @@ public class OpenApiRenderer {
     if (emptyValue && ATTR_NAMES_IGNORE_WHEN_EMPTY.contains(name))
       return; // optimisation to prevent rendering `class` without a value
     out.append(' ').append(name);
-    if (!emptyValue) out.append('=').append('"').append(value).append('"');
+    if (!emptyValue) {
+      out.append('=').append('"');
+      appendEscaped(value);
+      out.append('"');
+    }
+  }
+
+  private void appendEscaped(String text) {
+    appendRaw(escapeHtml(text));
   }
 
   private void appendRaw(String text) {

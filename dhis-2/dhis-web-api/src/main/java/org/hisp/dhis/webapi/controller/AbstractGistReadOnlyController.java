@@ -46,6 +46,7 @@ import lombok.Value;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.PropertyNames;
 import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -66,7 +67,6 @@ import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.webapi.CsvBuilder;
 import org.hisp.dhis.webapi.JsonBuilder;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.openapi.Api.PropertyNames;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -94,7 +94,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
   // GET Gist
   // --------------------------------------------------------------------------
 
-  @OpenApi.Response(value = ObjectNode.class)
+  @OpenApi.Response(value = OpenApi.EntityType.class)
   @GetMapping(value = "/{uid}/gist", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody ResponseEntity<JsonNode> getObjectGist(
       @OpenApi.Param(UID.class) @PathVariable("uid") String uid, GistParams params)
@@ -128,11 +128,11 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
   private static class GistListResponse {
     @OpenApi.Property GistPager pager;
 
-    @OpenApi.Property(name = "path$")
+    @OpenApi.Property(name = "path$", value = OpenApi.EntityType[].class)
     ObjectNode[] entries = null;
   }
 
-  @OpenApi.Response({GistListResponse.class, ObjectNode[].class})
+  @OpenApi.Response({GistListResponse.class, OpenApi.EntityType[].class})
   @GetMapping(value = "/gist", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody ResponseEntity<JsonNode> getObjectListGist(
       GistParams params, HttpServletRequest request) throws BadRequestException {
