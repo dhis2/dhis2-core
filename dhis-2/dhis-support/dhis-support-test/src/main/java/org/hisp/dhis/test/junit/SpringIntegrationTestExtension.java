@@ -60,7 +60,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
- * TestSetupExtension sets up the pre-requisites for a Spring based integration test.
+ * SpringIntegrationTestExtension sets up the pre-requisites for a Spring based integration test.
  *
  * <p>Before a test runs it will
  *
@@ -92,7 +92,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  * </ul>
  */
 @Slf4j
-public class IntegrationTestSetupExtension implements BeforeEachCallback, AfterEachCallback {
+public class SpringIntegrationTestExtension implements BeforeEachCallback, AfterEachCallback {
 
   @Override
   public void beforeEach(ExtensionContext context) throws Exception {
