@@ -29,7 +29,6 @@ package org.hisp.dhis.test.webapi;
 
 import static org.hisp.dhis.test.web.WebClientUtils.failOnException;
 
-import javax.persistence.EntityManager;
 import org.hisp.dhis.test.DhisConvenienceTest;
 import org.hisp.dhis.test.config.H2DhisConfiguration;
 import org.hisp.dhis.test.utils.TestUtils;
@@ -59,8 +58,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 public abstract class ControllerWithApiTokenAuthTestBase extends H2ControllerIntegrationTestBase {
   @Autowired private UserService _userService;
 
-  @Autowired private EntityManager entityManager;
-
   @Autowired private FilterChainProxy springSecurityFilterChain;
 
   @Override
@@ -70,7 +67,7 @@ public abstract class ControllerWithApiTokenAuthTestBase extends H2ControllerInt
     clearSecurityContext();
 
     User randomAdminUser =
-        DhisConvenienceTest.createRandomAdminUserWithEntityManager(entityManager);
+        DhisConvenienceTest.createRandomAdminUserWithEntityManager(dbmsManager.getEntityManager());
     injectSecurityContextUser(randomAdminUser);
 
     adminUser = createAndAddAdminUser("ALL");
