@@ -40,7 +40,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * This supplier adds to the pre-heat a list of all enrollments that are part of an event programs
- * and not soft deleted.
+ * and are not soft deleted.
  *
  * @author Luciano Fiandesio
  */
