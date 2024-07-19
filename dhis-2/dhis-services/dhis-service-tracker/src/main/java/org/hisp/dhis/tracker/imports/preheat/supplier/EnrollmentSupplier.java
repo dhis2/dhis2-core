@@ -30,15 +30,15 @@ package org.hisp.dhis.tracker.imports.preheat.supplier;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStore;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.imports.preheat.mappers.EnrollmentMapper;
 import org.springframework.stereotype.Component;
 
 /**
@@ -47,9 +47,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Component
 public class EnrollmentSupplier extends AbstractPreheatSupplier {
-  @Nonnull private final EnrollmentStore enrollmentStore;
-
   @Nonnull private final ProgramStore programStore;
+  @Nonnull private final EntityManager entityManager;
 
   @Override
   public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
@@ -60,11 +59,9 @@ public class EnrollmentSupplier extends AbstractPreheatSupplier {
     if (programsWithoutRegistration.isEmpty()) {
       programsWithoutRegistration = programStore.getByType(ProgramType.WITHOUT_REGISTRATION);
     }
+
     if (!programsWithoutRegistration.isEmpty()) {
-      List<Enrollment> enrollments =
-          DetachUtils.detach(
-              EnrollmentMapper.INSTANCE,
-              enrollmentStore.getByPrograms(programsWithoutRegistration));
+      List<Enrollment> enrollments = getEnrollmentsByProgram(programsWithoutRegistration);
 
       enrollments.forEach(
           e -> {
@@ -72,5 +69,14 @@ public class EnrollmentSupplier extends AbstractPreheatSupplier {
             preheat.putEnrollmentsWithoutRegistration(e.getProgram().getUid(), e);
           });
     }
+  }
+
+  private List<Enrollment> getEnrollmentsByProgram(List<Program> programs) {
+    TypedQuery<Enrollment> query =
+        entityManager.createQuery(
+            "FROM Enrollment e WHERE e.deleted = false AND e.program IN (:programIds)",
+            Enrollment.class);
+    query.setParameter("programIds", programs);
+    return query.getResultList();
   }
 }

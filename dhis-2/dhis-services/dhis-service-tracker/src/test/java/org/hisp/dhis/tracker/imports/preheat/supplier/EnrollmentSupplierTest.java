@@ -33,11 +33,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.when;
 
-import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStore;
 import org.hisp.dhis.test.DhisConvenienceTest;
@@ -51,6 +50,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -62,11 +62,11 @@ import org.mockito.quality.Strictness;
 @ExtendWith(MockitoExtension.class)
 class EnrollmentSupplierTest extends DhisConvenienceTest {
 
-  @InjectMocks private EnrollmentSupplier supplier;
-
-  @Mock private EnrollmentStore enrollmentStore;
+  @Spy @InjectMocks private EnrollmentSupplier supplier;
 
   @Mock private ProgramStore programStore;
+
+  @Mock private EntityManager entityManager;
 
   private List<Enrollment> enrollments;
 
@@ -79,8 +79,6 @@ class EnrollmentSupplierTest extends DhisConvenienceTest {
   private final BeanRandomizer rnd = BeanRandomizer.create();
 
   private TrackerPreheat preheat;
-
-  private Enrollment enrollmentWithoutRegistration;
 
   @BeforeEach
   public void setUp() {
@@ -96,11 +94,8 @@ class EnrollmentSupplierTest extends DhisConvenienceTest {
 
     programWithoutRegistration = createProgram('B');
     programWithoutRegistration.setProgramType(WITHOUT_REGISTRATION);
-    enrollmentWithoutRegistration = enrollments.get(1);
+    Enrollment enrollmentWithoutRegistration = enrollments.get(1);
     enrollmentWithoutRegistration.setProgram(programWithoutRegistration);
-
-    when(enrollmentStore.getByPrograms(Lists.newArrayList(programWithoutRegistration)))
-        .thenReturn(enrollments);
 
     params = TrackerObjects.builder().build();
     preheat = new TrackerPreheat();
@@ -130,26 +125,11 @@ class EnrollmentSupplierTest extends DhisConvenienceTest {
     enrollments.forEach(p -> p.getOrganisationUnit().setParent(null));
     Enrollment enrollment = enrollments.get(0);
     enrollment.setProgram(programWithoutRegistration);
-    when(enrollmentStore.getByPrograms(List.of(programWithoutRegistration)))
-        .thenReturn(enrollments);
 
     this.supplier.preheatAdd(params, preheat);
 
     assertEnrollmentInPreheat(
         enrollment, preheat.getEnrollmentsWithoutRegistration(programWithoutRegistration.getUid()));
-  }
-
-  @Test
-  void verifySupplier() {
-    preheat.put(
-        TrackerIdSchemeParam.UID,
-        Lists.newArrayList(programWithRegistration, programWithoutRegistration));
-
-    this.supplier.preheatAdd(params, preheat);
-
-    assertEnrollmentInPreheat(
-        enrollmentWithoutRegistration,
-        preheat.getEnrollmentsWithoutRegistration(programWithoutRegistration.getUid()));
   }
 
   private void assertEnrollmentInPreheat(Enrollment expected, Enrollment actual) {
