@@ -226,18 +226,18 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     r.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(r));
     relationshipService.addRelationship(r);
     assertNotNull(trackedEntityService.getTrackedEntity(trackedEntity.getId()));
-    assertNotNull(relationshipService.getRelationship(r.getId()));
+    assertNotNull(getRelationship(r.getId()));
     trackedEntityService.deleteTrackedEntity(trackedEntity);
     assertNull(trackedEntityService.getTrackedEntity(trackedEntity.getId()));
     manager.delete(r);
-    assertNull(relationshipService.getRelationship(r.getId()));
+    assertNull(getRelationship(r.getId()));
     assertTrue(trackedEntityService.trackedEntityExistsIncludingDeleted(trackedEntity.getUid()));
-    assertTrue(relationshipService.relationshipExistsIncludingDeleted(r.getUid()));
+    assertTrue(relationshipExistsIncludingDeleted(r.getUid()));
 
     maintenanceService.deleteSoftDeletedTrackedEntities();
 
     assertFalse(trackedEntityService.trackedEntityExistsIncludingDeleted(trackedEntity.getUid()));
-    assertFalse(relationshipService.relationshipExistsIncludingDeleted(r.getUid()));
+    assertFalse(relationshipExistsIncludingDeleted(r.getUid()));
   }
 
   @Test
@@ -374,18 +374,18 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     r.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(r));
     relationshipService.addRelationship(r);
     assertNotNull(getEvent(idA));
-    assertNotNull(relationshipService.getRelationship(r.getId()));
+    assertNotNull(getRelationship(r.getId()));
     manager.delete(eventA);
     assertNull(getEvent(idA));
     manager.delete(r);
-    assertNull(relationshipService.getRelationship(r.getId()));
+    assertNull(getRelationship(r.getId()));
     assertTrue(eventExistsIncludingDeleted(eventA.getUid()));
-    assertTrue(relationshipService.relationshipExistsIncludingDeleted(r.getUid()));
+    assertTrue(relationshipExistsIncludingDeleted(r.getUid()));
 
     maintenanceService.deleteSoftDeletedEvents();
 
     assertFalse(eventExistsIncludingDeleted(eventA.getUid()));
-    assertFalse(relationshipService.relationshipExistsIncludingDeleted(r.getUid()));
+    assertFalse(relationshipExistsIncludingDeleted(r.getUid()));
   }
 
   @Test
@@ -409,18 +409,18 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     r.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(r));
     relationshipService.addRelationship(r);
     assertNotNull(manager.get(Enrollment.class, enrollment.getId()));
-    assertNotNull(relationshipService.getRelationship(r.getId()));
+    assertNotNull(getRelationship(r.getId()));
     apiEnrollmentService.deleteEnrollment(enrollment);
     assertNull(manager.get(Enrollment.class, enrollment.getId()));
     manager.delete(r);
-    assertNull(relationshipService.getRelationship(r.getId()));
+    assertNull(getRelationship(r.getId()));
     assertTrue(enrollmentExistsIncludingDeleted(enrollment));
-    assertTrue(relationshipService.relationshipExistsIncludingDeleted(r.getUid()));
+    assertTrue(relationshipExistsIncludingDeleted(r.getUid()));
 
     maintenanceService.deleteSoftDeletedEnrollments();
 
     assertFalse(enrollmentExistsIncludingDeleted(enrollment));
-    assertFalse(relationshipService.relationshipExistsIncludingDeleted(r.getUid()));
+    assertFalse(relationshipExistsIncludingDeleted(r.getUid()));
   }
 
   @Test
@@ -459,24 +459,38 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     Relationship relationship =
         createTeToTeRelationship(trackedEntity, trackedEntityB, relationshipType);
     relationshipService.addRelationship(relationship);
-    assertNotNull(relationshipService.getRelationship(relationship.getUid()));
+    assertNotNull(getRelationship(relationship.getUid()));
 
     manager.delete(relationship);
-    assertNull(relationshipService.getRelationship(relationship.getUid()));
-    assertNotNull(relationshipService.getRelationshipIncludeDeleted(relationship.getUid()));
+    assertNull(getRelationship(relationship.getUid()));
+    assertTrue(relationshipExistsIncludingDeleted(relationship.getUid()));
 
     maintenanceService.deleteSoftDeletedRelationships();
-    assertNull(relationshipService.getRelationshipIncludeDeleted(relationship.getUid()));
+    assertFalse(relationshipExistsIncludingDeleted(relationship.getUid()));
   }
 
   private Event getEvent(long id) {
     return manager.get(Event.class, id);
   }
 
+  private Relationship getRelationship(String uid) {
+    return manager.get(Relationship.class, uid);
+  }
+
+  private Relationship getRelationship(long id) {
+    return manager.get(Relationship.class, id);
+  }
+
   private boolean eventExistsIncludingDeleted(String uid) {
     return Boolean.TRUE.equals(
         jdbcTemplate.queryForObject(
             "select exists(select 1 from event where uid=?)", Boolean.class, uid));
+  }
+
+  private boolean relationshipExistsIncludingDeleted(String uid) {
+    return Boolean.TRUE.equals(
+        jdbcTemplate.queryForObject(
+            "select exists(select 1 from relationship where uid=?)", Boolean.class, uid));
   }
 
   private boolean enrollmentExistsIncludingDeleted(Enrollment enrollment)

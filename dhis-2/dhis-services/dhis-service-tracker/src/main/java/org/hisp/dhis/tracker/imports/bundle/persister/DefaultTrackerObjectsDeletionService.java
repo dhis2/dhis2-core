@@ -40,6 +40,7 @@ import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceParam;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
+import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
@@ -217,8 +218,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
     for (String uid : relationships) {
       Entity objectReport = new Entity(TrackerType.RELATIONSHIP, uid);
 
-      org.hisp.dhis.relationship.Relationship relationship =
-          relationshipService.getRelationship(uid);
+      Relationship relationship = manager.get(Relationship.class, uid);
 
       manager.delete(relationship);
 

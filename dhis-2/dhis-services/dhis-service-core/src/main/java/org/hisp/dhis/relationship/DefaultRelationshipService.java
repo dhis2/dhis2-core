@@ -51,19 +51,6 @@ public class DefaultRelationshipService implements RelationshipService {
   // -------------------------------------------------------------------------
   // Implementation methods
   // -------------------------------------------------------------------------
-
-  @Override
-  @Transactional(readOnly = true)
-  public Relationship getRelationship(long id) {
-    return relationshipStore.get(id);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean relationshipExistsIncludingDeleted(String uid) {
-    return relationshipStore.existsIncludingDeleted(uid);
-  }
-
   @Override
   @Transactional
   public long addRelationship(Relationship relationship) {
@@ -72,18 +59,6 @@ public class DefaultRelationshipService implements RelationshipService {
     relationshipStore.save(relationship);
 
     return relationship.getId();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Relationship getRelationship(String uid) {
-    return relationshipStore.getByUid(uid);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Relationship getRelationshipIncludeDeleted(String uid) {
-    return relationshipStore.getByUidsIncludeDeleted(List.of(uid)).stream().findAny().orElse(null);
   }
 
   @Override

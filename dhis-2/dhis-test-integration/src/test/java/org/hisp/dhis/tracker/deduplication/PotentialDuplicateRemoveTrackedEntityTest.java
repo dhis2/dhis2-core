@@ -133,11 +133,11 @@ class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegration
     assertNotNull(trackedEntityService.getTrackedEntity(control2.getUid()));
     dbmsManager.clearSession();
     removeTrackedEntity(duplicate);
-    assertNull(relationshipService.getRelationship(relationShip3));
-    assertNull(relationshipService.getRelationship(relationShip4));
-    assertNotNull(relationshipService.getRelationship(relationShip1));
-    assertNotNull(relationshipService.getRelationship(relationShip2));
-    assertNotNull(relationshipService.getRelationship(relationShip5));
+    assertNull(getRelationship(relationShip3));
+    assertNull(getRelationship(relationShip4));
+    assertNotNull(getRelationship(relationShip1));
+    assertNotNull(getRelationship(relationShip2));
+    assertNotNull(getRelationship(relationShip5));
     assertNull(trackedEntityService.getTrackedEntity(duplicate.getUid()));
   }
 
@@ -194,5 +194,9 @@ class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegration
 
   private void removeTrackedEntity(TrackedEntity trackedEntity) throws NotFoundException {
     trackerObjectDeletionService.deleteTrackedEntities(List.of(trackedEntity.getUid()));
+  }
+
+  private Relationship getRelationship(long id) {
+    return manager.get(Relationship.class, id);
   }
 }
