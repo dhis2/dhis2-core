@@ -35,7 +35,7 @@ import org.hisp.dhis.test.config.PostgresDhisConfiguration;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -59,7 +59,7 @@ public abstract class SingleSetupIntegrationTestBase extends BaseSpringTest {
   private UserDetails adminUserDetails;
   private User adminUser;
 
-  @BeforeAll
+  @BeforeEach
   public final void before() throws Exception {
     User userAdmin =
         DhisConvenienceTest.createRandomAdminUserWithEntityManager(dbmsManager.getEntityManager());
