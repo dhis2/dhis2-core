@@ -121,7 +121,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
   private TrackedEntityType trackedEntityType;
 
   @BeforeAll
-  protected void setUp() throws Exception {
+  void setUp() {
     enrollmentDate = new Date();
 
     orgUnitA = createOrganisationUnit('A');

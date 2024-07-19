@@ -191,12 +191,12 @@ public class SpringIntegrationTestExtension
     TestUtils.executeStartupRoutines(getApplicationContext(context));
   }
 
-  private static <T> T getBean(ExtensionContext context, Class<T> aClass) {
-    return getApplicationContext(context).getBean(aClass);
+  private static <T> T getBean(ExtensionContext context, Class<T> klazz) {
+    return getApplicationContext(context).getBean(klazz);
   }
 
-  private static <T> T getBean(ExtensionContext context, Class<T> aClass, String beanName) {
-    return aClass.cast(getApplicationContext(context).getBean(beanName));
+  private static <T> T getBean(ExtensionContext context, Class<T> klazz, String beanName) {
+    return klazz.cast(getApplicationContext(context).getBean(beanName));
   }
 
   private static ApplicationContext getApplicationContext(ExtensionContext context) {
