@@ -513,12 +513,12 @@ public class CrudControllerAdvice {
 
   /**
    * Handles {@link IllegalStateException} and logs the stack trace to standard error. {@link
-   * IllegalArgumentException} is used in DHIS 2 application code but also by various frameworks to
+   * IllegalStateException} is used in DHIS 2 application code but also by various frameworks to
    * indicate programming errors, so stack trace must be printed and not swallowed.
    */
   @ExceptionHandler(IllegalStateException.class)
   @ResponseBody
-  public WebMessage illegalArgumentExceptionHandler(IllegalStateException ex) {
+  public WebMessage illegalStateExceptionHandler(IllegalStateException ex) {
     log.error(IllegalStateException.class.getName(), ex);
     return conflict(ex.getMessage());
   }

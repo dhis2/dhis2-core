@@ -33,10 +33,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -47,6 +49,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DefaultDeduplicationService implements DeduplicationService {
   private final HibernatePotentialDuplicateStore potentialDuplicateStore;
+
+  private final TrackerObjectDeletionService trackerObjectDeletionService;
 
   private final DeduplicationHelper deduplicationHelper;
 
@@ -166,8 +170,11 @@ public class DefaultDeduplicationService implements DeduplicationService {
         original, duplicate, mergeObject.getTrackedEntityAttributes());
     potentialDuplicateStore.moveRelationships(original, duplicate, mergeObject.getRelationships());
     potentialDuplicateStore.moveEnrollments(original, duplicate, mergeObject.getEnrollments());
-
-    potentialDuplicateStore.removeTrackedEntity(duplicate);
+    try {
+      trackerObjectDeletionService.deleteTrackedEntities(List.of(duplicate.getUid()));
+    } catch (NotFoundException e) {
+      throw new RuntimeException("Could not find TrackedEntity: " + duplicate.getUid());
+    }
     updateTeiAndPotentialDuplicate(params, original);
     potentialDuplicateStore.auditMerge(params);
   }

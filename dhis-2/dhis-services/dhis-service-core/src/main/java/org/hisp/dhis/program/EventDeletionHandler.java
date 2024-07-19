@@ -29,7 +29,6 @@ package org.hisp.dhis.program;
 
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
@@ -41,12 +40,9 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class EventDeletionHandler extends IdObjectDeletionHandler<Event> {
-  private final IdentifiableObjectManager manager;
-
   @Override
   protected void registerHandler() {
     whenVetoing(ProgramStage.class, this::allowDeleteProgramStage);
-    whenDeleting(Enrollment.class, this::deleteEnrollment);
     whenVetoing(Program.class, this::allowDeleteProgram);
     whenVetoing(DataElement.class, this::allowDeleteDataElement);
   }
@@ -56,12 +52,6 @@ public class EventDeletionHandler extends IdObjectDeletionHandler<Event> {
         VETO,
         "select 1 from event where programstageid = :id limit 1",
         Map.of("id", programStage.getId()));
-  }
-
-  private void deleteEnrollment(Enrollment enrollment) {
-    for (Event event : enrollment.getEvents()) {
-      manager.delete(event);
-    }
   }
 
   private DeletionVeto allowDeleteProgram(Program program) {

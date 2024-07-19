@@ -63,7 +63,6 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityStore;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLog;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogStore;
@@ -80,8 +79,6 @@ class HibernatePotentialDuplicateStore
     extends HibernateIdentifiableObjectStore<PotentialDuplicate> {
   private final AuditManager auditManager;
 
-  private final TrackedEntityStore trackedEntityStore;
-
   private final TrackedEntityAttributeValueChangeLogStore trackedEntityAttributeValueChangeLogStore;
 
   private final DhisConfigurationProvider config;
@@ -91,12 +88,10 @@ class HibernatePotentialDuplicateStore
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService,
-      TrackedEntityStore trackedEntityStore,
       AuditManager auditManager,
       TrackedEntityAttributeValueChangeLogStore trackedEntityAttributeValueChangeLogStore,
       DhisConfigurationProvider config) {
     super(entityManager, jdbcTemplate, publisher, PotentialDuplicate.class, aclService, false);
-    this.trackedEntityStore = trackedEntityStore;
     this.auditManager = auditManager;
     this.trackedEntityAttributeValueChangeLogStore = trackedEntityAttributeValueChangeLogStore;
     this.config = config;
@@ -296,10 +291,6 @@ class HibernatePotentialDuplicateStore
     // Flush to update records before we delete duplicate, or else it might
     // be soft-deleted by hibernate.
     getSession().flush();
-  }
-
-  public void removeTrackedEntity(TrackedEntity trackedEntity) {
-    trackedEntityStore.delete(trackedEntity);
   }
 
   public void auditMerge(DeduplicationMergeParams params) {

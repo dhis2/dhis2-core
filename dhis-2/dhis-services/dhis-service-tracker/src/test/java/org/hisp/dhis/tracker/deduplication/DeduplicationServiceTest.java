@@ -38,14 +38,17 @@ import com.google.common.collect.Sets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -60,6 +63,10 @@ import org.mockito.quality.Strictness;
 @ExtendWith(MockitoExtension.class)
 class DeduplicationServiceTest {
 
+  private static final String TE_A_UID = "TvctPPhpD8u";
+
+  private static final String TE_B_UID = "D9PbzJY8bJO";
+
   @InjectMocks private DefaultDeduplicationService deduplicationService;
 
   @Mock private TrackedEntity trackedEntityA;
@@ -73,6 +80,8 @@ class DeduplicationServiceTest {
   @Mock private UserService userService;
 
   @Mock private DeduplicationHelper deduplicationHelper;
+
+  @Mock private TrackerObjectDeletionService trackerObjectDeletionService;
 
   @Mock private HibernatePotentialDuplicateStore potentialDuplicateStore;
 
@@ -103,6 +112,8 @@ class DeduplicationServiceTest {
     TrackedEntityType trackedEntityPerson = new TrackedEntityType();
     trackedEntityPerson.setName("Person");
     trackedEntityPerson.setUid(CodeGenerator.generateUid());
+    when(trackedEntityA.getUid()).thenReturn(TE_A_UID);
+    when(trackedEntityB.getUid()).thenReturn(TE_B_UID);
     when(trackedEntityA.getTrackedEntityType()).thenReturn(trackedEntityPerson);
     when(trackedEntityB.getTrackedEntityType()).thenReturn(trackedEntityPerson);
     when(deduplicationHelper.getUserAccessErrors(any(), any(), any())).thenReturn(null);
@@ -150,7 +161,8 @@ class DeduplicationServiceTest {
   void shouldBeAutoMergeable()
       throws PotentialDuplicateConflictException,
           PotentialDuplicateForbiddenException,
-          ForbiddenException {
+          ForbiddenException,
+          NotFoundException {
     MergeObject mergeObject = MergeObject.builder().build();
     when(deduplicationHelper.generateMergeObject(trackedEntityA, trackedEntityB))
         .thenReturn(mergeObject);
@@ -162,7 +174,7 @@ class DeduplicationServiceTest {
             trackedEntityA, trackedEntityB, mergeObject.getTrackedEntityAttributes());
     verify(potentialDuplicateStore)
         .moveRelationships(trackedEntityA, trackedEntityB, mergeObject.getRelationships());
-    verify(potentialDuplicateStore).removeTrackedEntity(trackedEntityB);
+    verify(trackerObjectDeletionService).deleteTrackedEntities(List.of(trackedEntityB.getUid()));
     verify(potentialDuplicateStore)
         .update(argThat(t -> t.getStatus().equals(DeduplicationStatus.MERGED)));
     verify(potentialDuplicateStore).auditMerge(deduplicationMergeParams);
@@ -277,6 +289,7 @@ class DeduplicationServiceTest {
   void shouldtBeAutoMergeableAttributeValuesIsEmpty()
       throws PotentialDuplicateConflictException,
           PotentialDuplicateForbiddenException,
+          NotFoundException,
           ForbiddenException {
     when(trackedEntityB.getTrackedEntityAttributeValues()).thenReturn(new HashSet<>());
     MergeObject mergeObject = MergeObject.builder().build();
@@ -290,7 +303,7 @@ class DeduplicationServiceTest {
             trackedEntityA, trackedEntityB, mergeObject.getTrackedEntityAttributes());
     verify(potentialDuplicateStore)
         .moveRelationships(trackedEntityA, trackedEntityB, mergeObject.getRelationships());
-    verify(potentialDuplicateStore).removeTrackedEntity(trackedEntityB);
+    verify(trackerObjectDeletionService).deleteTrackedEntities(List.of(trackedEntityB.getUid()));
     verify(potentialDuplicateStore).auditMerge(deduplicationMergeParams);
   }
 
@@ -298,6 +311,7 @@ class DeduplicationServiceTest {
   void shouldBeManualMergeable()
       throws PotentialDuplicateConflictException,
           PotentialDuplicateForbiddenException,
+          NotFoundException,
           ForbiddenException {
     deduplicationService.manualMerge(deduplicationMergeParams);
     verify(deduplicationHelper, times(1)).getInvalidReferenceErrors(deduplicationMergeParams);
@@ -315,7 +329,7 @@ class DeduplicationServiceTest {
             trackedEntityA,
             trackedEntityB,
             deduplicationMergeParams.getMergeObject().getRelationships());
-    verify(potentialDuplicateStore).removeTrackedEntity(trackedEntityB);
+    verify(trackerObjectDeletionService).deleteTrackedEntities(List.of(trackedEntityB.getUid()));
     verify(potentialDuplicateStore).auditMerge(deduplicationMergeParams);
   }
 
