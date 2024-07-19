@@ -77,11 +77,5 @@ public abstract class TransactionalIntegrationTest extends BaseSpringTest {
     clearSecurityContext();
 
     tearDownTest();
-
-    try {
-      dbmsManager.clearSession();
-    } catch (Exception e) {
-      log.info("Failed to clear hibernate session, reason:" + e.getMessage());
-    }
   }
 }
