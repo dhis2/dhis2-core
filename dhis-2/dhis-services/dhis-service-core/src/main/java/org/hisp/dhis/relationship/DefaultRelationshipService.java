@@ -53,12 +53,6 @@ public class DefaultRelationshipService implements RelationshipService {
   // -------------------------------------------------------------------------
 
   @Override
-  @Transactional
-  public void deleteRelationship(Relationship relationship) {
-    relationshipStore.delete(relationship);
-  }
-
-  @Override
   @Transactional(readOnly = true)
   public Relationship getRelationship(long id) {
     return relationshipStore.get(id);
