@@ -461,7 +461,7 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     relationshipService.addRelationship(relationship);
     assertNotNull(relationshipService.getRelationship(relationship.getUid()));
 
-    relationshipService.deleteRelationship(relationship);
+    manager.delete(relationship);
     assertNull(relationshipService.getRelationship(relationship.getUid()));
     assertNotNull(relationshipService.getRelationshipIncludeDeleted(relationship.getUid()));
 
