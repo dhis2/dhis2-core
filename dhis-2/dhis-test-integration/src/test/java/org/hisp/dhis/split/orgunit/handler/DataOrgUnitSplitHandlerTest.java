@@ -49,16 +49,21 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.split.orgunit.OrgUnitSplitRequest;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class DataOrgUnitSplitHandlerTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class DataOrgUnitSplitHandlerTest extends PostgresIntegrationTestBase {
 
   @Autowired private CategoryService categoryService;
 
@@ -69,8 +74,6 @@ class DataOrgUnitSplitHandlerTest extends SingleSetupIntegrationTestBase {
   @Autowired private DataValueService dataValueService;
 
   @Autowired private DataApprovalService dataApprovalService;
-
-  @Autowired private UserService userService;
 
   @Autowired private DataOrgUnitSplitHandler handler;
 
@@ -98,8 +101,8 @@ class DataOrgUnitSplitHandlerTest extends SingleSetupIntegrationTestBase {
 
   private DataApprovalWorkflow dwA;
 
-  @Override
-  public void setUpTest() {
+  @BeforeAll
+  void setUp() {
     cocA = categoryService.getDefaultCategoryOptionCombo();
     deA = createDataElement('A');
     deB = createDataElement('B');

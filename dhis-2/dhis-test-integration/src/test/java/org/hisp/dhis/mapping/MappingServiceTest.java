@@ -42,14 +42,20 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class MappingServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class MappingServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager idObjectManager;
 
@@ -71,8 +77,8 @@ class MappingServiceTest extends SingleSetupIntegrationTestBase {
 
   private OrganisationUnitGroupSet ougsA = createOrganisationUnitGroupSet('A');
 
-  @Override
-  public void setUpTest() {
+  @BeforeAll
+  void setUp() {
     renderService = _renderService;
     deA.setCategoryCombo(categoryService.getDefaultCategoryCombo());
     ougsA.addOrganisationUnitGroup(ougA);

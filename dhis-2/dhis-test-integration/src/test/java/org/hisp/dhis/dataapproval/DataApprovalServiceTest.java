@@ -4121,7 +4121,7 @@ class DataApprovalServiceTest extends IntegrationTestBase {
     assertEquals(level1, status.getApprovedLevel());
     assertEquals(organisationUnitA.getUid(), status.getOrganisationUnitUid());
     assertEquals(DataApprovalState.ACCEPTED_HERE, status.getState());
-    assertEquals(false, status.getPermissions().isMayAccept());
+    assertFalse(status.getPermissions().isMayAccept());
     assertEquals(userA.getName(), status.getPermissions().getApprovedBy());
     assertEquals(date, status.getPermissions().getApprovedAt());
   }

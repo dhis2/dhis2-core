@@ -32,7 +32,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,8 +43,6 @@ class ProgramStageSectionServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
 
-  @Autowired private UserService _userService;
-
   @Autowired private AclService aclService;
 
   @Autowired private ProgramStageSectionService programStageSectionService;
@@ -54,7 +51,6 @@ class ProgramStageSectionServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   void init() {
-    userService = _userService;
     categoryService = _categoryService;
   }
 

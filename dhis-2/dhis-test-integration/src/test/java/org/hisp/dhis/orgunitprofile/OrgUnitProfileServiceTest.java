@@ -55,19 +55,25 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.orgunitprofile.impl.DefaultOrgUnitProfileService;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
-class OrgUnitProfileServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class OrgUnitProfileServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private OrgUnitProfileService service;
 
@@ -87,8 +93,8 @@ class OrgUnitProfileServiceTest extends SingleSetupIntegrationTestBase {
 
   private OrgUnitProfileService mockService;
 
-  @Override
-  public void setUpTest() {
+  @BeforeAll
+  void setUp() {
     userService = _userService;
     createAndInjectAdminUser();
     mockAnalyticsService = Mockito.mock(AnalyticsService.class);
