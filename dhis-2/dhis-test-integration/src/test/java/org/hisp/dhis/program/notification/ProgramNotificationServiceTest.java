@@ -56,19 +56,22 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementStore;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.joda.time.DateTime;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Chau Thu Tran
  */
-class ProgramNotificationServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class ProgramNotificationServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -104,8 +107,8 @@ class ProgramNotificationServiceTest extends TransactionalIntegrationTest {
 
   private Enrollment enrollmentB;
 
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     coA = categoryService.getDefaultCategoryOptionCombo();
     OrganisationUnit organisationUnitA = createOrganisationUnit('A');
     OrganisationUnit organisationUnitB = createOrganisationUnit('B');

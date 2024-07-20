@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -51,11 +51,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class ApiTokenServiceImplTest extends TransactionalIntegrationTest {
+@Transactional
+class ApiTokenServiceImplTest extends PostgresIntegrationTestBase {
   @Autowired private ApiTokenStore apiTokenStore;
 
   @Autowired private ApiTokenService apiTokenService;

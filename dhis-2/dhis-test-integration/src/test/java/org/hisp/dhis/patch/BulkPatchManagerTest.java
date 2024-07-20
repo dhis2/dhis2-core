@@ -49,18 +49,21 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author viet@dhis2.org
  */
-class BulkPatchManagerTest extends TransactionalIntegrationTest {
+@Transactional
+class BulkPatchManagerTest extends PostgresIntegrationTestBase {
 
   @Autowired private UserService _userService;
 
@@ -88,8 +91,8 @@ class BulkPatchManagerTest extends TransactionalIntegrationTest {
 
   private User userD;
 
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     userService = _userService;
     userA = createUserWithId("A", "NOOF56dveaZ");
     userB = createUserWithId("B", "Kh68cDMwZsg");

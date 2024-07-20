@@ -40,21 +40,25 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class TrackedEntityStoreTest extends TransactionalIntegrationTest {
+@Transactional
+class TrackedEntityStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackedEntityStore trackedEntityStore;
 
@@ -67,6 +71,8 @@ class TrackedEntityStoreTest extends TransactionalIntegrationTest {
   @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
 
   @Autowired private ProgramService programService;
+
+  @Autowired private DbmsManager dbmsManager;
 
   private TrackedEntity trackedEntityA;
 
@@ -96,8 +102,8 @@ class TrackedEntityStoreTest extends TransactionalIntegrationTest {
 
   private Program prB;
 
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     atA = createTrackedEntityAttribute('A');
     atB = createTrackedEntityAttribute('B');
     atC = createTrackedEntityAttribute('C', ValueType.ORGANISATION_UNIT);

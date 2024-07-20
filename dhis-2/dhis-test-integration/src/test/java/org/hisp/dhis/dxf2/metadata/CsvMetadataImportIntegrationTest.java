@@ -44,21 +44,22 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Tests special validation for {@link org.hisp.dhis.organisationunit.OrganisationUnit} move during
- * metadata import.
+ * Tests special validation for {@link OrganisationUnit} move during metadata import.
  *
  * @author Jan Bernitt
  */
-class CsvMetadataImportIntegrationTest extends TransactionalIntegrationTest {
+@Transactional
+class CsvMetadataImportIntegrationTest extends PostgresIntegrationTestBase {
 
   @Autowired private CsvImportService csvImportService;
 

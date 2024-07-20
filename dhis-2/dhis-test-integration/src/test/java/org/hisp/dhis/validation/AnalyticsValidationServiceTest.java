@@ -82,7 +82,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -91,14 +91,18 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Jim Grace
  */
 @Slf4j
-class AnalyticsValidationServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class AnalyticsValidationServiceTest extends PostgresIntegrationTestBase {
   @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private TrackedEntityAttributeService entityAttributeService;
@@ -161,9 +165,8 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest {
 
   private ValidationRule ruleX;
 
-  @Override
-  public void setUpTest() {
-
+  @BeforeEach
+  void setUp() {
     this.userService = _userService;
 
     final String DATA_ELEMENT_A_UID = "DataElement";
@@ -280,8 +283,8 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest {
     injectSecurityContextUser(user);
   }
 
-  @Override
-  public void tearDownTest() {
+  @AfterEach
+  void tearDown() {
     runner.setAnalyticsService(analyticsService);
   }
 

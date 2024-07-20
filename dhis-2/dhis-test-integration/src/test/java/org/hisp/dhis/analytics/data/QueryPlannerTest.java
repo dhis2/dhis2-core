@@ -86,14 +86,17 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class QueryPlannerTest extends TransactionalIntegrationTest {
+@Transactional
+class QueryPlannerTest extends PostgresIntegrationTestBase {
   private static final AnalyticsTableType ANALYTICS_TABLE_TYPE = AnalyticsTableType.DATA_VALUE;
 
   @Autowired private QueryPlanner queryPlanner;
@@ -107,10 +110,6 @@ class QueryPlannerTest extends TransactionalIntegrationTest {
   @Autowired private CategoryService categoryService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
-
-  // -------------------------------------------------------------------------
-  // Fixture
-  // -------------------------------------------------------------------------
 
   private PeriodType monthly = new MonthlyPeriodType();
 
@@ -178,8 +177,8 @@ class QueryPlannerTest extends TransactionalIntegrationTest {
 
   private DataElementGroupSet dgsB;
 
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     itA = createIndicatorType('A');
     idObjectManager.save(itA);
     inA = createIndicator('A', itA);
@@ -1125,10 +1124,6 @@ class QueryPlannerTest extends TransactionalIntegrationTest {
     assertEquals(expected, partitions);
     assertEquals(ANALYTICS_TABLE_TYPE.getTableName(), query.getTableName());
   }
-
-  // -------------------------------------------------------------------------
-  // Supportive methods
-  // -------------------------------------------------------------------------
 
   private static boolean samePeriodType(List<DimensionalItemObject> isoPeriods) {
     Iterator<DimensionalItemObject> periods = new ArrayList<>(isoPeriods).iterator();
