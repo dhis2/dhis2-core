@@ -52,6 +52,7 @@ import org.hisp.dhis.jdbc.config.JdbcConfig;
 import org.hisp.dhis.leader.election.LeaderElectionConfiguration;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.SystemAuthoritiesProvider;
+import org.hisp.dhis.test.config.NoOpFlywayConfiguration;
 import org.hisp.dhis.test.h2.H2SqlFunction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -96,6 +97,7 @@ import org.springframework.transaction.annotation.Transactional;
   DataSourceConfig.class,
   AnalyticsDataSourceConfig.class,
   JdbcConfig.class,
+  NoOpFlywayConfiguration.class,
   FlywayConfig.class,
   HibernateEncryptionConfig.class,
   ServiceConfig.class,
