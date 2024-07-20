@@ -49,7 +49,7 @@ import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -61,8 +61,6 @@ class EventChangeLogServiceTest extends TrackerTest {
 
   @Autowired private IdentifiableObjectManager manager;
 
-  @Autowired protected UserService _userService;
-
   private User importUser;
 
   private TrackerImportParams importParams;
@@ -71,9 +69,8 @@ class EventChangeLogServiceTest extends TrackerTest {
       EventChangeLogOperationParams.builder().build();
   private final PageParams defaultPageParams = new PageParams(null, null, false);
 
-  @Override
-  protected void initTest() throws IOException {
-    userService = _userService;
+  @BeforeAll
+  void setUp() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
     importUser = userService.getUser("M5zQapPyTZI");
     importParams = TrackerImportParams.builder().userId(importUser.getUid()).build();
