@@ -86,6 +86,7 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms> {
 
   private final UserService userService;
 
+  @Override
   @RequiresAuthority(anyOf = F_MOBILE_SENDSMS)
   @GetMapping
   public @ResponseBody ResponseEntity<StreamingJsonRoot<IncomingSms>> getObjectList(

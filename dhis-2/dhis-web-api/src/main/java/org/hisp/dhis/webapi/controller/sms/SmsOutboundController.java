@@ -89,6 +89,7 @@ public class SmsOutboundController extends AbstractCrudController<OutboundSms> {
     this.outboundSmsService = outboundSmsService;
   }
 
+  @Override
   @RequiresAuthority(anyOf = F_MOBILE_SENDSMS)
   @GetMapping
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OutboundSms>> getObjectList(
