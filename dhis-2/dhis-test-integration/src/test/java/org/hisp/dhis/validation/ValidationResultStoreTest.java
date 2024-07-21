@@ -66,7 +66,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccessService;
 import org.hisp.dhis.user.UserGroupService;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.validation.comparator.ValidationResultQuery;
 import org.junit.jupiter.api.BeforeEach;
@@ -98,8 +97,6 @@ class ValidationResultStoreTest extends PostgresIntegrationTestBase {
   @Autowired protected UserGroupService userGroupService;
 
   @Autowired protected IdentifiableObjectManager identifiableObjectManager;
-
-  @Autowired private UserService _userService;
 
   // -------------------------------------------------------------------------
   // Supporting data
@@ -182,7 +179,6 @@ class ValidationResultStoreTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   void setUp() {
-    userService = _userService;
     // ---------------------------------------------------------------------
     // Add supporting data
     // ---------------------------------------------------------------------

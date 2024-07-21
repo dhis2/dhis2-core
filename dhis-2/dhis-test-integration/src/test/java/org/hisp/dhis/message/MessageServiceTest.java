@@ -40,7 +40,6 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -57,8 +56,6 @@ class MessageServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private MessageService messageService;
 
-  @Autowired private UserService _userService;
-
   private User sender;
 
   private User userA;
@@ -69,7 +66,6 @@ class MessageServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() {
-    userService = _userService;
     sender = makeUser("S");
     userA = makeUser("A");
     userB = makeUser("B");

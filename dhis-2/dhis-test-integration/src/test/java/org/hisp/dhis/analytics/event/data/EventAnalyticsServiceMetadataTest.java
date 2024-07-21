@@ -63,7 +63,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -77,8 +76,6 @@ import org.springframework.transaction.annotation.Transactional;
 @TestInstance(Lifecycle.PER_CLASS)
 @Transactional
 class EventAnalyticsServiceMetadataTest extends PostgresIntegrationTestBase {
-  @Autowired private UserService _userService;
-
   private LegendSet lsA;
 
   private Legend leA;
@@ -121,7 +118,6 @@ class EventAnalyticsServiceMetadataTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() {
-    userService = _userService;
     leA = createLegend('A', 0d, 10d);
     leB = createLegend('B', 11d, 20d);
     leC = createLegend('C', 21d, 30d);

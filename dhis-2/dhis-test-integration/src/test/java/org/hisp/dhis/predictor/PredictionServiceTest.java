@@ -35,7 +35,6 @@ import static org.hisp.dhis.expression.ExpressionValidationOutcome.VALID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -71,12 +70,12 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.joda.time.DateTime;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -84,7 +83,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Lars Helge Overland
  * @author Jim Grace
  */
-class PredictionServiceTest extends IntegrationTestBase {
+class PredictionServiceTest extends PostgresIntegrationTestBase {
   private final JobProgress progress = JobProgress.noop();
 
   @Autowired private PredictionService predictionService;
@@ -108,8 +107,6 @@ class PredictionServiceTest extends IntegrationTestBase {
   @Autowired private ProgramService programService;
 
   @Autowired private BatchHandlerFactory batchHandlerFactory;
-
-  @Autowired private UserService _userService;
 
   private OrganisationUnitLevel orgUnitLevel1;
 
@@ -182,13 +179,8 @@ class PredictionServiceTest extends IntegrationTestBase {
 
   private PredictionSummary summary;
 
-  // -------------------------------------------------------------------------
-  // Fixture
-  // -------------------------------------------------------------------------
-  @Override
-  public void setUpTest() throws Exception {
-    this.userService = _userService;
-
+  @BeforeEach
+  void setUp() {
     PeriodType.invalidatePeriodCache();
     orgUnitLevel1 = new OrganisationUnitLevel(1, "Level1");
     orgUnitLevel2 = new OrganisationUnitLevel(2, "Level2");
@@ -367,10 +359,10 @@ class PredictionServiceTest extends IntegrationTestBase {
       Period period) {
     DataExportParams params =
         new DataExportParams()
-            .setDataElementOperands(Sets.newHashSet(new DataElementOperand(dataElement, combo)))
-            .setAttributeOptionCombos(Sets.newHashSet(attributeOptionCombo))
-            .setOrganisationUnits(Sets.newHashSet(source))
-            .setPeriods(Sets.newHashSet(periodService.reloadPeriod(period)));
+            .setDataElementOperands(newHashSet(new DataElementOperand(dataElement, combo)))
+            .setAttributeOptionCombos(newHashSet(attributeOptionCombo))
+            .setOrganisationUnits(newHashSet(source))
+            .setPeriods(newHashSet(periodService.reloadPeriod(period)));
     List<DeflatedDataValue> values = dataValueService.getDeflatedDataValues(params);
     if (values != null && values.size() > 0) {
       return values.get(0).getValue();
@@ -826,7 +818,7 @@ class PredictionServiceTest extends IntegrationTestBase {
     useDataValue(dataElementA, makeMonth(2001, 7), sourceF, 8);
     dataValueBatchHandler.flush();
     Set<OrganisationUnitLevel> orgUnitLevels =
-        Sets.newHashSet(orgUnitLevel1, orgUnitLevel2, orgUnitLevel3);
+        newHashSet(orgUnitLevel1, orgUnitLevel2, orgUnitLevel3);
     Predictor p =
         createPredictor(
             dataElementX,
@@ -1756,8 +1748,7 @@ class PredictionServiceTest extends IntegrationTestBase {
                 + "}, 64)",
             "description",
             MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING);
-    Set<OrganisationUnitLevel> allLevels =
-        Sets.newHashSet(orgUnitLevel1, orgUnitLevel2, orgUnitLevel3);
+    Set<OrganisationUnitLevel> allLevels = newHashSet(orgUnitLevel1, orgUnitLevel2, orgUnitLevel3);
     Predictor predictor =
         createPredictor(
             dataElementX,
@@ -1800,8 +1791,7 @@ class PredictionServiceTest extends IntegrationTestBase {
                 + "}, 64)",
             "description",
             MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING);
-    Set<OrganisationUnitLevel> allLevels =
-        Sets.newHashSet(orgUnitLevel1, orgUnitLevel2, orgUnitLevel3);
+    Set<OrganisationUnitLevel> allLevels = newHashSet(orgUnitLevel1, orgUnitLevel2, orgUnitLevel3);
     Predictor predictor =
         createPredictor(
             dataElementX,
@@ -1854,8 +1844,7 @@ class PredictionServiceTest extends IntegrationTestBase {
                 + "}, 64)",
             "description",
             MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING);
-    Set<OrganisationUnitLevel> allLevels =
-        Sets.newHashSet(orgUnitLevel1, orgUnitLevel2, orgUnitLevel3);
+    Set<OrganisationUnitLevel> allLevels = newHashSet(orgUnitLevel1, orgUnitLevel2, orgUnitLevel3);
 
     Predictor predictor =
         createPredictor(
@@ -1910,8 +1899,7 @@ class PredictionServiceTest extends IntegrationTestBase {
                 + "}, 64)",
             "description",
             MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING);
-    Set<OrganisationUnitLevel> allLevels =
-        Sets.newHashSet(orgUnitLevel1, orgUnitLevel2, orgUnitLevel3);
+    Set<OrganisationUnitLevel> allLevels = newHashSet(orgUnitLevel1, orgUnitLevel2, orgUnitLevel3);
 
     Predictor predictor =
         createPredictor(

@@ -47,7 +47,6 @@ import org.hisp.dhis.report.Report;
 import org.hisp.dhis.report.ReportService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationService;
 import org.junit.jupiter.api.BeforeEach;
@@ -73,8 +72,6 @@ class DashboardItemDeletionHandlerTest extends PostgresIntegrationTestBase {
 
   @Autowired private EventChartService eventChartService;
 
-  @Autowired private UserService _userService;
-
   @Autowired private ReportService reportService;
 
   @Autowired private ProgramService programService;
@@ -89,7 +86,6 @@ class DashboardItemDeletionHandlerTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   void setUp() {
-    userService = _userService;
     dashboardItem = new DashboardItem();
     dashboard = new Dashboard("A");
     dashboard.getItems().add(dashboardItem);

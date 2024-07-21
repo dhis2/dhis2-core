@@ -56,7 +56,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.orgunitprofile.impl.DefaultOrgUnitProfileService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -77,8 +76,6 @@ class OrgUnitProfileServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private OrgUnitProfileService service;
 
-  @Autowired private UserService _userService;
-
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private OrganisationUnitGroupService organisationUnitGroupService;
@@ -95,7 +92,6 @@ class OrgUnitProfileServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() {
-    userService = _userService;
     createAndInjectAdminUser();
     mockAnalyticsService = Mockito.mock(AnalyticsService.class);
     mockService =

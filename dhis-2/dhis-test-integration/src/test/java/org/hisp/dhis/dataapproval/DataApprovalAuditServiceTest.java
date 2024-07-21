@@ -61,7 +61,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccessService;
 import org.hisp.dhis.user.UserGroupService;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -90,8 +89,6 @@ class DataApprovalAuditServiceTest extends PostgresIntegrationTestBase {
   @Autowired private PeriodService periodService;
 
   @Autowired private CategoryService categoryService;
-
-  @Autowired private UserService _userService;
 
   @Autowired protected UserGroupAccessService userGroupAccessService;
 
@@ -201,9 +198,6 @@ class DataApprovalAuditServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   void setUp() {
-    //    userService = _userService;
-    //    preCreateInjectAdminUser();
-
     // ---------------------------------------------------------------------
     // Add supporting data
     // ---------------------------------------------------------------------

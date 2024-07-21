@@ -46,7 +46,6 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,13 +65,8 @@ class ApiTokenServiceImplTest extends PostgresIntegrationTestBase {
   @Qualifier(value = "xmlMapper")
   public ObjectMapper xmlMapper;
 
-  @Autowired private UserService _userService;
-
   @BeforeEach
-  final void setup() throws Exception {
-    //    userService = _userService;
-    //    preCreateInjectAdminUser();
-
+  final void setup() {
     String currentUsername = CurrentUserUtil.getCurrentUsername();
     User currentUser = userService.getUserByUsername(currentUsername);
     injectSecurityContextUser(currentUser);

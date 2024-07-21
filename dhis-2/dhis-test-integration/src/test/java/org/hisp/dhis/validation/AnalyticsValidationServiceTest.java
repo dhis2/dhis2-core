@@ -90,7 +90,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -135,8 +134,6 @@ class AnalyticsValidationServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataValidationRunner runner;
 
-  @Autowired private UserService _userService;
-
   @Autowired private IdentifiableObjectManager manager;
 
   private CategoryOptionCombo defaultCombo;
@@ -167,8 +164,6 @@ class AnalyticsValidationServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   void setUp() {
-    this.userService = _userService;
-
     final String DATA_ELEMENT_A_UID = "DataElement";
     final String TRACKED_ENTITY_ATTRIBUTE_UID = "TEAttribute";
     final String PROGRAM_UID = "ProgramABCD";

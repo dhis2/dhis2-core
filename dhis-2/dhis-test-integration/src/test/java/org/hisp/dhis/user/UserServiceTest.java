@@ -76,8 +76,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class UserServiceTest extends PostgresIntegrationTestBase {
 
-  @Autowired private UserService _userService;
-
   @Autowired private UserGroupService userGroupService;
 
   @Autowired private UserSettingService userSettingService;
@@ -107,7 +105,6 @@ class UserServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() {
-    super.userService = _userService;
     unitA = createOrganisationUnit('A');
     unitB = createOrganisationUnit('B');
     unitC = createOrganisationUnit('C', unitA);

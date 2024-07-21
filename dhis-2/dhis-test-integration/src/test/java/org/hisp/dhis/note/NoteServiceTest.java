@@ -30,22 +30,23 @@ package org.hisp.dhis.note;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Chau Thu Tran
  */
-class NoteServiceTest extends IntegrationTestBase {
+class NoteServiceTest extends PostgresIntegrationTestBase {
   @Autowired private NoteService noteService;
 
   private Note noteA;
 
   private Note noteB;
 
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     noteA = new Note("A", "Test");
     noteA.setUid(CodeGenerator.generateUid());
     noteB = new Note("B", "Test");

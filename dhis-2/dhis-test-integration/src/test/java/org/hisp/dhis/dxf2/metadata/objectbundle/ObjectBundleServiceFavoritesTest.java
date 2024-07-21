@@ -71,7 +71,7 @@ class ObjectBundleServiceFavoritesTest extends PostgresIntegrationTestBase {
   @Autowired private RenderService _renderService;
 
   @BeforeAll
-  protected void setUpTest() throws Exception {
+  void setUp() {
     renderService = _renderService;
   }
 

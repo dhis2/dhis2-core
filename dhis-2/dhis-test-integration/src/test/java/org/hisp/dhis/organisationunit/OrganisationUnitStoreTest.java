@@ -42,8 +42,6 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -55,12 +53,6 @@ class OrganisationUnitStoreTest extends OrganisationUnitBaseSpringTest {
   @Autowired private DataSetService dataSetService;
 
   @Autowired private IdentifiableObjectManager idObjectManager;
-  @Autowired private UserService _userService;
-
-  @BeforeEach
-  public final void setup() throws Exception {
-    this.userService = _userService;
-  }
 
   // -------------------------------------------------------------------------
   // OrganisationUnit

@@ -46,7 +46,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,13 +66,10 @@ class CsvMetadataImportIntegrationTest extends PostgresIntegrationTestBase {
 
   @Autowired private MetadataImportService importService;
 
-  @Autowired private UserService _userService;
-
   @Autowired private OrganisationUnitService organisationUnitService;
 
   @BeforeEach
   void setUp() throws IOException {
-    userService = _userService;
     ImportReport report =
         runImport(
             "dxf2/metadata/organisationUnits.csv",

@@ -48,9 +48,10 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +59,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Lars Helge Overland
  */
-class DataValueBatchHandlerTest extends IntegrationTestBase {
+class DataValueBatchHandlerTest extends PostgresIntegrationTestBase {
 
   @Autowired private BatchHandlerFactory batchHandlerFactory;
 
@@ -98,12 +99,8 @@ class DataValueBatchHandlerTest extends IntegrationTestBase {
 
   private DataValue dataValueF;
 
-  // -------------------------------------------------------------------------
-  // Fixture
-  // -------------------------------------------------------------------------
-  @Override
-  public void setUpTest() {
-
+  @BeforeEach
+  void setUp() {
     dataElementA = createDataElement('A');
     dataElementService.addDataElement(dataElementA);
     categoryOptionComboA = categoryService.getDefaultCategoryOptionCombo();
@@ -143,12 +140,6 @@ class DataValueBatchHandlerTest extends IntegrationTestBase {
 
   }
 
-  @Override
-  public void tearDownTest() {}
-
-  // -------------------------------------------------------------------------
-  // Tests
-  // -------------------------------------------------------------------------
   @Test
   void testInsertObject() {
     BatchHandler<DataValue> batchHandler;
