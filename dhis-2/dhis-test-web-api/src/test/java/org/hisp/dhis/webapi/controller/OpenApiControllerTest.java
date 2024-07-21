@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.utils.Assertions.assertGreaterOrEqual;
-import static org.hisp.dhis.utils.Assertions.assertLessOrEqual;
+import static org.hisp.dhis.test.utils.Assertions.assertGreaterOrEqual;
+import static org.hisp.dhis.test.utils.Assertions.assertLessOrEqual;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -41,7 +41,7 @@ import java.nio.file.Path;
 import java.util.List;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.openapitools.codegen.DefaultGenerator;
 import org.openapitools.codegen.config.CodegenConfigurator;
@@ -54,7 +54,7 @@ import org.openapitools.codegen.config.CodegenConfigurator;
  *
  * @author Jan Bernitt
  */
-class OpenApiControllerTest extends DhisControllerConvenienceTest {
+class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testGetOpenApiDocumentJson() {
     JsonObject doc =

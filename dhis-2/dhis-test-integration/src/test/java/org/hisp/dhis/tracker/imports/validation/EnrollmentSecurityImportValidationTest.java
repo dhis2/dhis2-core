@@ -62,9 +62,9 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -81,8 +81,6 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
   @Autowired private ProgramStageDataElementService programStageDataElementService;
 
   @Autowired private TrackedEntityTypeService trackedEntityTypeService;
-
-  @Autowired private UserService _userService;
 
   private TrackedEntity maleA;
 
@@ -108,9 +106,8 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
 
   private TrackedEntityType trackedEntityType;
 
-  @Override
-  protected void initTest() throws IOException {
-    userService = _userService;
+  @BeforeAll
+  void setUp() throws IOException {
     setUpMetadata("tracker/tracker_basic_metadata.json");
     injectAdminUser();
     assertNoErrors(

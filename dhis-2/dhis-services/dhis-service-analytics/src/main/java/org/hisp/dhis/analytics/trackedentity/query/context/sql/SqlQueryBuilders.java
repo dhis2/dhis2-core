@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.analytics.trackedentity.query.context.sql;
 
+import static org.apache.commons.text.StringSubstitutor.replace;
+
+import java.util.Map;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
@@ -36,6 +39,49 @@ import org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType;
 /** Utility class of common methods used in the SQL query builders. */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SqlQueryBuilders {
+
+  private static final String EVENT_QUERY =
+      """
+      select json_agg(json_build_object(
+          'programStageUid', ev.programstage,
+          'eventUid', ev.enrollment,
+          'occurredDate', ev.occurreddate,
+          'dueDate', ev.scheduleddate,
+          'orgUnitUid', ev.ou,
+          'orgUnitName', ev.ouname,
+          'orgUnitCode', ev.oucode,
+          'orgUnitNameHierarchy', ev.ounamehierarchy,
+          'eventStatus', ev.status,
+          'eventDataValues', ev.eventdatavalues))
+      from analytics_te_events_${trackedEntityType} ev
+      where ev.event = en.enrollment""";
+
+  private static final String ENROLLMENT_QUERY =
+      replace(
+          """
+              select json_agg(
+                         json_build_object(
+                             'programUid', en.program,
+                             'enrollmentUid', en.enrollment,
+                             'enrollmentDate', en.enrollmentdate,
+                             'incidentDate', en.incidentdate,
+                             'endDate', en.enddate,
+                             'orgUnitUid', en.ou,
+                             'orgUnitName', en.ouname,
+                             'orgUnitCode', en.oucode,
+                             'orgUnitNameHierarchy', en.ounamehierarchy,
+                             'enrollmentStatus', en.enrollmentstatus,
+                             'events', ${eventQuery}))
+                    from analytics_te_enrollments_${trackedEntityType} en
+                    where en.trackedentity = t_1.trackedentity""",
+          Map.of("eventQuery", coalesceToEmptyArray(EVENT_QUERY)));
+
+  private static final String JSON_AGGREGATION_QUERY = coalesceToEmptyArray(ENROLLMENT_QUERY);
+
+  private static String coalesceToEmptyArray(String query) {
+    return replace("coalesce((${query}), '[]'::json)", Map.of("query", query));
+  }
+
   public static boolean isNotPeriodDimension(
       DimensionIdentifier<DimensionParam> dimensionIdentifier) {
     return !dimensionIdentifier.getDimension().isPeriodDimension();
@@ -49,5 +95,9 @@ public class SqlQueryBuilders {
       DimensionIdentifier<DimensionParam> dimensionParamDimensionIdentifier,
       DimensionParamObjectType type) {
     return dimensionParamDimensionIdentifier.getDimension().isOfType(type);
+  }
+
+  public static String getJsonAggregationQuery(String tetTableSuffix) {
+    return replace(JSON_AGGREGATION_QUERY, Map.of("trackedEntityType", tetTableSuffix));
   }
 }

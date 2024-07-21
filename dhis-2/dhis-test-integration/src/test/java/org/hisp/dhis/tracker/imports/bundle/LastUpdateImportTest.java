@@ -38,6 +38,7 @@ import java.util.List;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.SoftDeletableObject;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
@@ -54,7 +55,7 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -63,18 +64,16 @@ class LastUpdateImportTest extends TrackerTest {
 
   @Autowired private IdentifiableObjectManager manager;
 
+  @Autowired private DbmsManager dbmsManager;
+
   private org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity;
   private org.hisp.dhis.tracker.imports.domain.Enrollment enrollment;
   private org.hisp.dhis.tracker.imports.domain.Event event;
 
   private OrganisationUnit organisationUnit;
 
-  @Autowired protected UserService _userService;
-
-  @Override
-  protected void initTest() throws IOException {
-    userService = _userService;
-
+  @BeforeAll
+  void setUp() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
 
     injectAdminUser();
@@ -100,7 +99,7 @@ class LastUpdateImportTest extends TrackerTest {
 
   @Test
   void shouldUpdateTrackedEntityWhenTrackedEntityIsUpdated() throws IOException {
-
+    injectAdminUser();
     TrackedEntity entityBeforeUpdate = getTrackedEntity();
 
     clearSession();
@@ -224,6 +223,7 @@ class LastUpdateImportTest extends TrackerTest {
 
   @Test
   void shouldUpdateAndDeleteTrackedEntityCascadeWhenTeWithEnrollmentIsDeleted() {
+    injectAdminUser();
     TrackedEntity entityBeforeUpdate = getTrackedEntity();
 
     Enrollment enrollmentBeforeDelete = getEnrollment();
@@ -275,8 +275,9 @@ class LastUpdateImportTest extends TrackerTest {
     Enrollment enrollmentBeforeDeletion = getEnrollment();
 
     Event eventBeforeDeletion = getEvent();
-
+    injectAdminUser();
     User user = createAndAddUser("userDelete", organisationUnit, "F_ENROLLMENT_CASCADE_DELETE");
+    injectSecurityContextUser(user);
 
     clearSession();
 
@@ -418,7 +419,7 @@ class LastUpdateImportTest extends TrackerTest {
 
   @Test
   void shouldUpdatedEventProgramWhenEventIsDeleted() throws IOException {
-
+    injectAdminUser();
     org.hisp.dhis.tracker.imports.domain.Event ev = importEventProgram();
 
     Event eventBeforeDeletion = getEvent(ev.getUid());
@@ -458,7 +459,10 @@ class LastUpdateImportTest extends TrackerTest {
   }
 
   private User user() {
-    return createAndAddUser(CodeGenerator.generateUid(), organisationUnit);
+    injectAdminUser();
+    User user = createAndAddUser(CodeGenerator.generateUid(), organisationUnit);
+    injectSecurityContextUser(user);
+    return user;
   }
 
   private org.hisp.dhis.tracker.imports.domain.Event importEventProgram() throws IOException {

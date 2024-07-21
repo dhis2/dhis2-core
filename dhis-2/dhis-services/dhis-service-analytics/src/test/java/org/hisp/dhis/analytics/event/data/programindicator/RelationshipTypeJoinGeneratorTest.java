@@ -35,9 +35,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.Map;
 import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.program.AnalyticsType;
-import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.test.random.BeanRandomizer;
 import org.junit.jupiter.api.Test;
 
 /**

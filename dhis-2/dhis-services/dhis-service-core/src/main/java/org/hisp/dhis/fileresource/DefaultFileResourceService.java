@@ -205,6 +205,8 @@ public class DefaultFileResourceService implements FileResourceService {
   @Override
   @Transactional
   public String asyncSaveFileResource(FileResource fileResource, byte[] bytes) {
+    validateFileResource(fileResource);
+
     fileResource.setStorageStatus(FileResourceStorageStatus.PENDING);
     fileResourceStore.save(fileResource);
     entityManager.flush();
@@ -220,6 +222,8 @@ public class DefaultFileResourceService implements FileResourceService {
   @Transactional
   public String syncSaveFileResource(FileResource fileResource, byte[] bytes)
       throws ConflictException {
+    validateFileResource(fileResource);
+
     fileResource.setContentLength(bytes.length);
     try {
       fileResource.setContentMd5(ByteSource.wrap(bytes).hash(Hashing.md5()).toString());

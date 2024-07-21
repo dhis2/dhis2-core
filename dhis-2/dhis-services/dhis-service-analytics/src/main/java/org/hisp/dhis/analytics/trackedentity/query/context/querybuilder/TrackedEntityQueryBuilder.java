@@ -65,37 +65,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @org.springframework.core.annotation.Order(1)
 public class TrackedEntityQueryBuilder extends SqlQueryBuilderAdaptor {
-  private static final String JSON_AGGREGATION_QUERY =
-      """
-        coalesce( (select json_agg(json_build_object('programUid', pr.uid,
-                                              'enrollmentUid', en.enrollment,
-                                              'enrollmentDate', en.enrollmentdate,
-                                              'incidentDate', en.incidentdate,
-                                              'endDate', en.enddate,
-                                              'orgUnitUid', en.ou,
-                                              'orgUnitName', en.ouname,
-                                              'orgUnitCode', en.oucode,
-                                              'orgUnitNameHierarchy', en.ounamehierarchy,
-                                              'enrollmentStatus', en.enrollmentstatus,
-                                              'events',
-                                              coalesce( (select json_agg(json_build_object('programStageUid', ps.uid,
-                                                                                 'eventUid', ev.programstage,
-                                                                                 'occurredDate', ev.occurreddate,
-                                                                                 'dueDate', ev.scheduleddate,
-                                                                                 'orgUnitUid', ev.ou,
-                                                                                 'orgUnitName', ev.ouname,
-                                                                                 'orgUnitCode', ev.oucode,
-                                                                                 'orgUnitNameHierarchy', ev.ounamehierarchy,
-                                                                                 'eventStatus', ev.status,
-                                                                                 'eventDataValues', ev.eventdatavalues))
-                                               from analytics_te_events_%s ev,
-                                                    programstage ps
-                                               where ev.enrollment = en.enrollment
-                                                 and ps.uid = ev.programstage), '[]'::json)))
-            from analytics_te_enrollments_%s en,
-                 program pr
-            where en.trackedentity = t_1.trackedentity
-              and pr.uid = en.program), '[]'::json)""";
 
   private final IdentifiableObjectManager identifiableObjectManager;
 
@@ -121,8 +90,7 @@ public class TrackedEntityQueryBuilder extends SqlQueryBuilderAdaptor {
   @Override
   protected Stream<Field> getSelect(QueryContext queryContext) {
     String aggregationQuery =
-        JSON_AGGREGATION_QUERY.formatted(
-            queryContext.getTetTableSuffix(), queryContext.getTetTableSuffix());
+        SqlQueryBuilders.getJsonAggregationQuery(queryContext.getTetTableSuffix());
 
     Field aggregatedEnrollments =
         Field.ofUnquoted(EMPTY, () -> aggregationQuery, "enrollments").withUsedInHeaders(false);

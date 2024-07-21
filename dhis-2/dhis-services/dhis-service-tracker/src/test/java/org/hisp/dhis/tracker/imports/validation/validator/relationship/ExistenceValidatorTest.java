@@ -29,12 +29,12 @@ package org.hisp.dhis.tracker.imports.validation.validator.relationship;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4015;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4016;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4017;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasWarning;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;

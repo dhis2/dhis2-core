@@ -27,14 +27,15 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.utils.Assertions.assertNotEmpty;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -69,6 +70,8 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase {
   @Autowired private SystemSettingManager systemSettingManager;
 
   @Autowired private UserService _userService;
+
+  @Autowired private IdentifiableObjectManager manager;
 
   private OrganisationUnit orgUnitA;
 
@@ -127,10 +130,10 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase {
     enrollment3 = createEnrollment(program, trackedEntity3, orgUnitA);
     enrollment4 = createEnrollment(program, trackedEntity4, orgUnitA);
 
-    enrollmentService.addEnrollment(enrollment1);
-    enrollmentService.addEnrollment(enrollment2);
-    enrollmentService.addEnrollment(enrollment3);
-    enrollmentService.addEnrollment(enrollment4);
+    manager.save(enrollment1);
+    manager.save(enrollment2);
+    manager.save(enrollment3);
+    manager.save(enrollment4);
 
     enrollmentService.enrollTrackedEntity(
         trackedEntity1, program, new Date(), new Date(), orgUnitA);

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.system;
 
-import org.hisp.dhis.IntegrationH2Test;
+import org.hisp.dhis.test.IntegrationH2Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;

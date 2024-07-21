@@ -38,7 +38,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.QueryItemHelper;
 import org.hisp.dhis.common.CodeGenerator;
@@ -54,6 +53,7 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.test.DhisConvenienceTest;
 import org.junit.jupiter.api.Test;
 
 /**

@@ -41,7 +41,7 @@ import static org.apache.commons.lang3.StringUtils.substringBetween;
 import static org.apache.hc.client5.http.utils.Base64.encodeBase64;
 import static org.apache.hc.core5.http.HttpHeaders.AUTHORIZATION;
 import static org.apache.http.client.fluent.Request.Get;
-import static org.hisp.dhis.helpers.config.TestConfiguration.get;
+import static org.hisp.dhis.test.e2e.helpers.config.TestConfiguration.get;
 
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;

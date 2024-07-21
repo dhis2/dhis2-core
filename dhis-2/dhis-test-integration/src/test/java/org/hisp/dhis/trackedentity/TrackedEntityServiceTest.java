@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import static java.util.Set.of;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -36,10 +35,10 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.SortDirection;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
@@ -53,6 +52,7 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.joda.time.DateTime;
@@ -83,7 +83,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
 
-  @Autowired private CategoryService categoryService;
+  @Autowired private TrackerObjectDeletionService trackerObjectDeletionService;
 
   private Event event;
 
@@ -197,24 +197,24 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   }
 
   @Test
-  void testDeleteTrackedEntityAndLinkedEnrollmentsAndEvents() {
+  void testDeleteTrackedEntityAndLinkedEnrollmentsAndEvents() throws NotFoundException {
     long idA = trackedEntityService.addTrackedEntity(trackedEntityA1);
-    long psIdA = enrollmentService.addEnrollment(enrollment);
+    manager.save(enrollment);
     manager.save(event);
     long eventIdA = event.getId();
-    enrollment.setEvents(of(event));
-    trackedEntityA1.setEnrollments(of(enrollment));
-    enrollmentService.updateEnrollment(enrollment);
+    enrollment.setEvents(Set.of(event));
+    trackedEntityA1.setEnrollments(Set.of(enrollment));
+    manager.update(enrollment);
     trackedEntityService.updateTrackedEntity(trackedEntityA1);
     TrackedEntity trackedEntityA = trackedEntityService.getTrackedEntity(idA);
-    Enrollment psA = manager.get(Enrollment.class, psIdA);
+    Enrollment psA = manager.get(Enrollment.class, enrollment.getUid());
     Event eventA = manager.get(Event.class, eventIdA);
     assertNotNull(trackedEntityA);
     assertNotNull(psA);
     assertNotNull(eventA);
-    trackedEntityService.deleteTrackedEntity(trackedEntityA1);
+    trackerObjectDeletionService.deleteTrackedEntities(List.of(trackedEntityA.getUid()));
     assertNull(trackedEntityService.getTrackedEntity(trackedEntityA.getUid()));
-    assertNull(manager.get(Enrollment.class, psIdA));
+    assertNull(manager.get(Enrollment.class, enrollment.getUid()));
     assertNull(manager.get(Event.class, eventIdA));
   }
 
@@ -476,7 +476,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     injectSecurityContextUser(superUser);
 
     addEntityInstances();
-    enrollmentService.addEnrollment(enrollment);
+    manager.save(enrollment);
     addEnrollment(trackedEntityB1, DateTime.now().plusDays(2).toDate(), 'B');
     addEnrollment(trackedEntityC1, DateTime.now().minusDays(2).toDate(), 'C');
     addEnrollment(trackedEntityD1, DateTime.now().plusDays(1).toDate(), 'D');
@@ -506,7 +506,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     trackedEntityD1.setInactive(false);
     addEntityInstances();
 
-    enrollmentService.addEnrollment(enrollment);
+    manager.save(enrollment);
     addEnrollment(trackedEntityB1, DateTime.now().plusDays(2).toDate(), 'B');
     addEnrollment(trackedEntityC1, DateTime.now().minusDays(2).toDate(), 'C');
     addEnrollment(trackedEntityD1, DateTime.now().plusDays(1).toDate(), 'D');
@@ -687,7 +687,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     enrollment.setUid("UID-PSI-" + programStage);
     enrollment.setOrganisationUnit(organisationUnit);
 
-    enrollmentService.addEnrollment(enrollment);
+    manager.save(enrollment);
   }
 
   private void addEntityInstances() {

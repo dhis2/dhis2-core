@@ -110,7 +110,7 @@ public abstract class RegisterSMSListener extends CommandSMSListener {
       enrollment.setProgram(smsCommand.getProgram());
       enrollment.setStatus(EnrollmentStatus.ACTIVE);
 
-      enrollmentService.addEnrollment(enrollment);
+      identifiableObjectManager.save(enrollment);
 
       enrollments.add(enrollment);
     } else if (enrollments.size() > 1) {

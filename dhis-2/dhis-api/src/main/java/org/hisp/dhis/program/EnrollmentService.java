@@ -29,7 +29,6 @@ package org.hisp.dhis.program;
 
 import java.util.Date;
 import java.util.List;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 
@@ -37,13 +36,6 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
  * @author Abyot Asalefew
  */
 public interface EnrollmentService {
-  /**
-   * Adds an {@link Enrollment}
-   *
-   * @param enrollment The to Enrollment add.
-   * @return A generated unique id of the added {@link Enrollment}.
-   */
-  long addEnrollment(Enrollment enrollment);
 
   /**
    * Soft deletes a {@link Enrollment}.
@@ -58,29 +50,6 @@ public interface EnrollmentService {
    * @param enrollment the Enrollment to delete.
    */
   void hardDeleteEnrollment(Enrollment enrollment);
-
-  /**
-   * Updates an {@link Enrollment}.
-   *
-   * @param enrollment the Enrollment to update.
-   */
-  void updateEnrollment(Enrollment enrollment);
-
-  /**
-   * Returns a list of existing Enrollments from the provided UIDs
-   *
-   * @param uids Event UIDs to check
-   * @return Enrollment list
-   */
-  List<Enrollment> getEnrollments(@Nonnull List<String> uids);
-
-  /**
-   * Checks for the existence of an enrollment by UID. Takes into account also the deleted values.
-   *
-   * @param uid Event UID to check for
-   * @return true/false depending on result
-   */
-  boolean enrollmentExistsIncludingDeleted(String uid);
 
   /** Get enrollments into a program. */
   List<Enrollment> getEnrollments(Program program);

@@ -91,15 +91,6 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
     super(entityManager, jdbcTemplate, publisher, Enrollment.class, aclService, true);
   }
 
-  @Override
-  public long countEnrollments(EnrollmentQueryParams params) {
-    String hql = buildCountEnrollmentHql(params);
-
-    Query<Long> query = getTypedQuery(hql);
-
-    return query.getSingleResult().longValue();
-  }
-
   private String buildCountEnrollmentHql(EnrollmentQueryParams params) {
     return buildEnrollmentHql(params)
         .getQuery()
@@ -125,6 +116,14 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
 
     LongSupplier enrollmentCount = () -> countEnrollments(params);
     return getPage(pageParams, query.list(), enrollmentCount);
+  }
+
+  private long countEnrollments(EnrollmentQueryParams params) {
+    String hql = buildCountEnrollmentHql(params);
+
+    Query<Long> query = getTypedQuery(hql);
+
+    return query.getSingleResult().longValue();
   }
 
   private Page<Enrollment> getPage(

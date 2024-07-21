@@ -104,7 +104,6 @@ import org.springframework.util.Assert;
 @Slf4j
 @Service("org.hisp.dhis.analytics.EventAnalyticsTableManager")
 public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManager {
-  public static final String OU_NAME_COL_SUFFIX = "_name";
 
   public static final String OU_GEOMETRY_COL_SUFFIX = "_geom";
 
@@ -865,23 +864,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             getClosingParentheses(fromType),
             "dataElementUid",
             quote(dataElement.getUid())));
-  }
-
-  private String selectForInsert(
-      TrackedEntityAttribute attribute, String fromType, String dataClause) {
-    return replace(
-        """
-        (select ${fromType} from trackedentityattributevalue \
-        where trackedentityid=en.trackedentityid \
-        and trackedentityattributeid=${attributeId}\
-        ${dataClause})\
-        ${closingParentheses} as ${attributeUid}""",
-        Map.of(
-            "fromType", fromType,
-            "dataClause", dataClause,
-            "attributeId", String.valueOf(attribute.getId()),
-            "closingParentheses", getClosingParentheses(fromType),
-            "attributeUid", quote(attribute.getUid())));
   }
 
   private List<AnalyticsTableColumn> getColumnFromDataElementWithLegendSet(

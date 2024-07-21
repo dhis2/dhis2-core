@@ -27,15 +27,15 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
-import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
-import static org.hisp.dhis.DhisConvenienceTest.createPeriod;
-import static org.hisp.dhis.DhisConvenienceTest.createProgram;
-import static org.hisp.dhis.DhisConvenienceTest.createProgramStage;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.hisp.dhis.event.EventStatus.SCHEDULE;
 import static org.hisp.dhis.program.EnrollmentStatus.ACTIVE;
 import static org.hisp.dhis.program.EnrollmentStatus.COMPLETED;
+import static org.hisp.dhis.test.DhisConvenienceTest.createDataElement;
+import static org.hisp.dhis.test.DhisConvenienceTest.createOrganisationUnit;
+import static org.hisp.dhis.test.DhisConvenienceTest.createPeriod;
+import static org.hisp.dhis.test.DhisConvenienceTest.createProgram;
+import static org.hisp.dhis.test.DhisConvenienceTest.createProgramStage;
 import static org.mockito.Mockito.when;
 
 import java.util.LinkedHashSet;

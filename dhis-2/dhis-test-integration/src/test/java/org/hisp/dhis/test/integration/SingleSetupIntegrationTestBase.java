@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.test.integration;
 
-import org.hisp.dhis.BaseSpringTest;
-import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.IntegrationTest;
-import org.hisp.dhis.config.IntegrationBaseConfig;
-import org.hisp.dhis.config.TestContainerPostgresConfig;
+import org.hisp.dhis.test.BaseSpringTest;
+import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.IntegrationTest;
+import org.hisp.dhis.test.config.IntegrationBaseConfiguration;
+import org.hisp.dhis.test.config.PostgresDhisConfiguration;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.AfterAll;
@@ -47,7 +47,8 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Jim Grace
  */
-@ContextConfiguration(classes = {IntegrationBaseConfig.class, TestContainerPostgresConfig.class})
+@ContextConfiguration(
+    classes = {IntegrationBaseConfiguration.class, PostgresDhisConfiguration.class})
 @IntegrationTest
 @ActiveProfiles(profiles = {"test-postgres"})
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)

@@ -38,6 +38,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
@@ -93,6 +94,8 @@ public class CopyService {
   private final EnrollmentService enrollmentService;
 
   private final AclService aclService;
+
+  private final IdentifiableObjectManager identifiableObjectManager;
 
   /**
    * Method to copy a {@link Program} from a UID
@@ -208,7 +211,7 @@ public class CopyService {
   private void copyEnrollments(Program original, Program copy) {
     List<Enrollment> enrollments =
         copyList(copy, enrollmentService.getEnrollments(original), Enrollment.copyOf);
-    enrollments.forEach(enrollmentService::addEnrollment);
+    enrollments.forEach(identifiableObjectManager::save);
   }
 
   /**

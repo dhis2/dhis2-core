@@ -30,6 +30,7 @@ package org.hisp.dhis.cache;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Properties;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
@@ -37,9 +38,12 @@ import org.hibernate.FlushMode;
 import org.hibernate.SessionFactory;
 import org.hibernate.jpa.QueryHints;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.scheduling.HousekeepingJob;
 import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.test.config.PostgresDhisConfigurationProvider;
+import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.AfterEach;
@@ -47,10 +51,26 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.orm.jpa.EntityManagerHolder;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-class HibernateQueryCacheTest extends HibernateCacheBaseTest {
+@ContextConfiguration(classes = {HibernateQueryCacheTest.DhisConfiguration.class})
+class HibernateQueryCacheTest extends IntegrationTestBase {
+
+  static class DhisConfiguration {
+    @Bean
+    public DhisConfigurationProvider dhisConfigurationProvider() {
+      Properties override = new Properties();
+      override.put("hibernate.cache.use_query_cache", "true");
+      override.put("hibernate.cache.use_second_level_cache", "true");
+      PostgresDhisConfigurationProvider postgresDhisConfigurationProvider =
+          new PostgresDhisConfigurationProvider();
+      postgresDhisConfigurationProvider.addProperties(override);
+      return postgresDhisConfigurationProvider;
+    }
+  }
 
   private @Autowired EntityManagerFactory entityManagerFactory;
   private @Autowired UserService _userService;
@@ -59,7 +79,8 @@ class HibernateQueryCacheTest extends HibernateCacheBaseTest {
   private SessionFactory sessionFactory;
 
   @BeforeEach
-  public final void before() throws Exception {
+  @Override
+  public void before() throws Exception {
     this.entityManager = entityManagerFactory.createEntityManager();
     this.sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
 

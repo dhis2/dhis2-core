@@ -34,9 +34,9 @@ import static org.hisp.dhis.analytics.AnalyticsTableType.DATA_VALUE;
 import static org.hisp.dhis.analytics.AnalyticsTableType.ENROLLMENT;
 import static org.hisp.dhis.analytics.AnalyticsTableType.EVENT;
 import static org.hisp.dhis.analytics.AnalyticsTableType.OWNERSHIP;
-import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY;
-import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_ENROLLMENTS;
-import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_EVENTS;
+import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE;
+import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_ENROLLMENTS;
+import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS;
 import static org.hisp.dhis.analytics.AnalyticsTableType.VALIDATION_RESULT;
 import static org.hisp.dhis.common.DhisApiVersion.ALL;
 import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
@@ -128,9 +128,9 @@ public class ResourceTableController {
     }
 
     if (isTrue(skipTrackedEntities)) {
-      skipTableTypes.add(TRACKED_ENTITY);
-      skipTableTypes.add(TRACKED_ENTITY_EVENTS);
-      skipTableTypes.add(TRACKED_ENTITY_ENROLLMENTS);
+      skipTableTypes.add(TRACKED_ENTITY_INSTANCE);
+      skipTableTypes.add(TRACKED_ENTITY_INSTANCE_EVENTS);
+      skipTableTypes.add(TRACKED_ENTITY_INSTANCE_ENROLLMENTS);
     }
 
     JobConfiguration config = new JobConfiguration(ANALYTICS_TABLE);
