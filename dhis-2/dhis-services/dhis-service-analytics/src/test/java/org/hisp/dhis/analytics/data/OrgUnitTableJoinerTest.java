@@ -132,14 +132,14 @@ class OrgUnitTableJoinerTest extends DhisConvenienceTest {
             .build();
 
     assertEquals(
-        "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" "
+        "left join analytics_ownership_prabcdefgha as own on ax.\"trackedentity\" = own.\"teuid\" "
             + "and '2023-01-01' between own.\"startdate\" and own.\"enddate\" "
             + "left join analytics_rs_orgunitstructure as ous on ax.\"enrollmentou\" = ous.\"organisationunituid\" "
             + "left join analytics_rs_organisationunitgroupsetstructure as ougs on ous.\"organisationunitid\" = ougs.\"organisationunitid\" ",
         joinOrgUnitTables(params, EVENT));
 
     assertEquals(
-        "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" "
+        "left join analytics_ownership_prabcdefgha as own on ax.\"trackedentity\" = own.\"teuid\" "
             + "and '2023-01-01' between own.\"startdate\" and own.\"enddate\" ",
         joinOrgUnitTables(params, ENROLLMENT));
   }
@@ -157,14 +157,14 @@ class OrgUnitTableJoinerTest extends DhisConvenienceTest {
             .build();
 
     assertEquals(
-        "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" "
+        "left join analytics_ownership_prabcdefgha as own on ax.\"trackedentity\" = own.\"teuid\" "
             + "and '2022-01-01' between own.\"startdate\" and own.\"enddate\" "
             + "left join analytics_rs_orgunitstructure as ous on ax.\"enrollmentou\" = ous.\"organisationunituid\" "
             + "left join analytics_rs_organisationunitgroupsetstructure as ougs on ous.\"organisationunitid\" = ougs.\"organisationunitid\" ",
         joinOrgUnitTables(params, EVENT));
 
     assertEquals(
-        "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" "
+        "left join analytics_ownership_prabcdefgha as own on ax.\"trackedentity\" = own.\"teuid\" "
             + "and '2022-01-01' between own.\"startdate\" and own.\"enddate\" ",
         joinOrgUnitTables(params, ENROLLMENT));
   }
@@ -182,14 +182,14 @@ class OrgUnitTableJoinerTest extends DhisConvenienceTest {
             .build();
 
     assertEquals(
-        "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" "
+        "left join analytics_ownership_prabcdefgha as own on ax.\"trackedentity\" = own.\"teuid\" "
             + "and '2022-01-01' between own.\"startdate\" and own.\"enddate\" "
             + "left join analytics_rs_orgunitstructure as ous on ax.\"enrollmentou\" = ous.\"organisationunituid\" "
             + "left join analytics_rs_organisationunitgroupsetstructure as ougs on ous.\"organisationunitid\" = ougs.\"organisationunitid\" ",
         joinOrgUnitTables(params, EVENT));
 
     assertEquals(
-        "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" "
+        "left join analytics_ownership_prabcdefgha as own on ax.\"trackedentity\" = own.\"teuid\" "
             + "and '2022-01-01' between own.\"startdate\" and own.\"enddate\" ",
         joinOrgUnitTables(params, ENROLLMENT));
   }
@@ -206,14 +206,14 @@ class OrgUnitTableJoinerTest extends DhisConvenienceTest {
             .build();
 
     assertEquals(
-        "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" "
+        "left join analytics_ownership_prabcdefgha as own on ax.\"trackedentity\" = own.\"teuid\" "
             + "and '2023-01-02' between own.\"startdate\" and own.\"enddate\" "
             + "left join analytics_rs_orgunitstructure as ous on ax.\"enrollmentou\" = ous.\"organisationunituid\" "
             + "left join analytics_rs_organisationunitgroupsetstructure as ougs on ous.\"organisationunitid\" = ougs.\"organisationunitid\" ",
         joinOrgUnitTables(params, EVENT));
 
     assertEquals(
-        "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" "
+        "left join analytics_ownership_prabcdefgha as own on ax.\"trackedentity\" = own.\"teuid\" "
             + "and '2023-01-02' between own.\"startdate\" and own.\"enddate\" ",
         joinOrgUnitTables(params, ENROLLMENT));
   }
@@ -231,14 +231,14 @@ class OrgUnitTableJoinerTest extends DhisConvenienceTest {
             .build();
 
     assertEquals(
-        "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" "
+        "left join analytics_ownership_prabcdefgha as own on ax.\"trackedentity\" = own.\"teuid\" "
             + "and '2022-02-01' between own.\"startdate\" and own.\"enddate\" "
             + "left join analytics_rs_orgunitstructure as ous on ax.\"enrollmentou\" = ous.\"organisationunituid\" "
             + "left join analytics_rs_organisationunitgroupsetstructure as ougs on ous.\"organisationunitid\" = ougs.\"organisationunitid\" ",
         joinOrgUnitTables(params, EVENT));
 
     assertEquals(
-        "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" "
+        "left join analytics_ownership_prabcdefgha as own on ax.\"trackedentity\" = own.\"teuid\" "
             + "and '2022-02-01' between own.\"startdate\" and own.\"enddate\" ",
         joinOrgUnitTables(params, ENROLLMENT));
   }
@@ -257,14 +257,14 @@ class OrgUnitTableJoinerTest extends DhisConvenienceTest {
             .build();
 
     assertEquals(
-        "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" "
+        "left join analytics_ownership_prabcdefgha as own on ax.\"trackedentity\" = own.\"teuid\" "
             + "and '2022-04-01' between own.\"startdate\" and own.\"enddate\" "
             + "left join analytics_rs_orgunitstructure as ous on ax.\"enrollmentou\" = ous.\"organisationunituid\" "
             + "left join analytics_rs_organisationunitgroupsetstructure as ougs on ous.\"organisationunitid\" = ougs.\"organisationunitid\" ",
         joinOrgUnitTables(params, EVENT));
 
     assertEquals(
-        "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" "
+        "left join analytics_ownership_prabcdefgha as own on ax.\"trackedentity\" = own.\"teuid\" "
             + "and '2022-04-01' between own.\"startdate\" and own.\"enddate\" ",
         joinOrgUnitTables(params, ENROLLMENT));
   }

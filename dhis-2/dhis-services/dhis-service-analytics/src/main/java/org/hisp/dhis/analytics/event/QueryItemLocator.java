@@ -46,8 +46,8 @@ public interface QueryItemLocator {
    *
    * <p>- Data Element [{de uid}] - Data Element + Legendset [{de uid}-{legendset uid}] - Program
    * Stage + Data Element [{ps uid}.{de uid}] - Program Stage + Data Element + Legendset [{ps
-   * uid}.{de uid}-{legendset uid}] - Tracked Entity Instance [{tei uid}] - Program Indicator [{pi
-   * uid}] - Relationship Type + Program Indicator [{rt uid}.{pi uid}]
+   * uid}.{de uid}-{legendset uid}] - Tracked Entity [{te uid}] - Program Indicator [{pi uid}] -
+   * Relationship Type + Program Indicator [{rt uid}.{pi uid}]
    *
    * <p>If the provided dimension String is not matching any of the above elements, then a {@link
    * org.hisp.dhis.common.IllegalQueryException} is thrown

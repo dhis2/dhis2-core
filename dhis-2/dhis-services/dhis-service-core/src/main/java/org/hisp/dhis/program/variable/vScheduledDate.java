@@ -66,7 +66,7 @@ public class vScheduledDate extends ProgramDateVariable {
     }
 
     return sqlStatement.substring(0, index)
-        + " and psistatus = 'SCHEDULE' "
+        + " and eventstatus = 'SCHEDULE' "
         + sqlStatement.substring(index);
   }
 }
