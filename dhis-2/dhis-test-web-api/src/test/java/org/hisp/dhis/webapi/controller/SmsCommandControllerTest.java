@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,35 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.security.Authorities.F_MOBILE_SENDSMS;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
+import static org.junit.Assert.assertNotNull;
 
-import java.util.List;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
-import org.hisp.dhis.sms.command.SMSCommand;
+import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.sms.incoming.IncomingSmsService;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.user.User;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
-/** Created by zubair@dhis2.org on 18.08.17. */
-public class SmsCommandSchemaDescriptor implements SchemaDescriptor {
-  public static final String SINGULAR = "smsCommand";
+class SmsCommandControllerTest extends H2ControllerIntegrationTestBase {
 
-  public static final String PLURAL = "smsCommands";
+  @Autowired private IncomingSmsService incomingSMSService;
 
-  public static final String API_ENDPOINT = "/" + PLURAL;
+  @Test
+  void testGetSmsCommandsNoAuthority() {
+    User guestUser = createUserWithAuth("guestuser", "NONE");
+    injectSecurityContextUser(guestUser);
 
-  @Override
-  public Schema getSchema() {
-    Schema schema = new Schema(SMSCommand.class, SINGULAR, PLURAL);
-    schema.setRelativeApiEndpoint(API_ENDPOINT);
-    schema.setOrder(1509);
+    assertWebMessage(
+        "Forbidden",
+        403,
+        "ERROR",
+        "You don't have the proper permissions to read objects of this type.",
+        GET("/smsCommands").content(HttpStatus.FORBIDDEN));
+  }
 
-    schema.add(new Authority(AuthorityType.CREATE, List.of(F_MOBILE_SENDSMS.toString())));
-    schema.add(new Authority(AuthorityType.DELETE, List.of(F_MOBILE_SENDSMS.toString())));
-    schema.add(new Authority(AuthorityType.READ, List.of(F_MOBILE_SENDSMS.toString())));
-
-    return schema;
+  @Test
+  void testGetSmsCommands() {
+    JsonMixed content = GET("/smsCommands").content(HttpStatus.OK);
+    assertNotNull(content);
   }
 }
