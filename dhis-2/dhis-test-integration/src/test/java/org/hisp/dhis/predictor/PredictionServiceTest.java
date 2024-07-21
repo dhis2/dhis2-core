@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.predictor;
 
-import static com.google.common.collect.Sets.newHashSet;
 import static org.hisp.dhis.common.OrganisationUnitDescendants.SELECTED;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
 import static org.hisp.dhis.expression.ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED;
@@ -294,7 +293,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     summary = new PredictionSummary();
     dataValueBatchHandler =
         batchHandlerFactory.createBatchHandler(DataValueBatchHandler.class).init();
-    Set<OrganisationUnit> units = newHashSet(sourceA, sourceB, sourceG);
+    Set<OrganisationUnit> units = Sets.newHashSet(sourceA, sourceB, sourceG);
 
     User user = createAndAddUser(true, "mockUser", units, units);
     injectSecurityContextUser(user);
@@ -676,7 +675,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testPredictSequentialStddevPopWithLimitedUser() {
     setupTestData();
-    Set<OrganisationUnit> units = newHashSet(sourceA);
+    Set<OrganisationUnit> units = Sets.newHashSet(sourceA);
 
     User user2 = createAndAddUser(true, "mockUser2", units, units);
     injectSecurityContextUser(user2);

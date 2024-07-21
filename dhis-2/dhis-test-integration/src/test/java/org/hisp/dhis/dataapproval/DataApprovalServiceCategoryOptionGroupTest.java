@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.dataapproval;
 
-import static com.google.common.collect.Sets.newHashSet;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.dataapproval.DataApproval.AUTH_ACCEPT_LOWER_LEVELS;
 import static org.hisp.dhis.dataapproval.DataApproval.AUTH_APPROVE;
@@ -597,12 +596,12 @@ class DataApprovalServiceCategoryOptionGroupTest extends PostgresIntegrationTest
         new DataApprovalWorkflow(
             "workflow1",
             periodType,
-            newHashSet(globalLevel1, countryLevel3, agencyLevel4, partnerLevel5));
+            Sets.newHashSet(globalLevel1, countryLevel3, agencyLevel4, partnerLevel5));
     workflow2 =
         new DataApprovalWorkflow(
             "workflow2",
             periodType,
-            newHashSet(globalLevel1, globalAgencyLevel2, agencyLevel4, partnerLevel5));
+            Sets.newHashSet(globalLevel1, globalAgencyLevel2, agencyLevel4, partnerLevel5));
     dataApprovalService.addWorkflow(workflow1);
     dataApprovalService.addWorkflow(workflow2);
 
