@@ -60,6 +60,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * @author Markus Bekken
  */
 public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableManager {
+  public static final String OU_NAME_COL_SUFFIX = "_name";
+
   public AbstractEventJdbcTableManager(
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
@@ -216,8 +218,41 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
       columns.add(
           new AnalyticsTableColumn(quote(attribute.getUid()), dataType, sql)
               .withSkipIndex(skipIndex));
+
+      if (attribute.getValueType().isOrganisationUnit()) {
+        String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select value";
+        String ouNameSql = selectForOuNameInsert(attribute, fromTypeSql, dataClause);
+
+        columns.add(
+            new AnalyticsTableColumn(
+                    quote(attribute.getUid() + OU_NAME_COL_SUFFIX), dataType, ouNameSql)
+                .withSkipIndex(skipIndex));
+      }
     }
 
     return columns;
+  }
+
+  /**
+   * The select statement used by the table population.
+   *
+   * @param attribute the {@link TrackedEntityAttribute}.
+   * @param fromType the sql snippet related to "from" part
+   * @param dataClause the data type related clause like "NUMERIC"
+   * @return
+   */
+  protected String selectForOuNameInsert(
+      TrackedEntityAttribute attribute, String fromType, String dataClause) {
+    return "(select "
+        + fromType
+        + " from trackedentityattributevalue "
+        + "where trackedentityinstanceid=pi.trackedentityinstanceid "
+        + "and trackedentityattributeid="
+        + attribute.getId()
+        + dataClause
+        + ")"
+        + getClosingParentheses(fromType)
+        + " as "
+        + quote(attribute.getUid());
   }
 }

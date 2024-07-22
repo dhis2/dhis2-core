@@ -658,7 +658,8 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         // Headers
         List.of("enrollmentdate", "ou", "tei", "teaAttribuU"),
         // Grid
-        List.of(List.of("2017-01-01 00:00:00.0", "ouabcdefghE", "trackEntInA", "ouabcdefghF")),
+        List.of(
+            List.of("2017-01-01 00:00:00.0", "ouabcdefghE", "trackEntInA", "OrganisationUnitF")),
         grid);
   }
 
@@ -903,7 +904,8 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         // Headers
         List.of("enrollmentdate", "ou", "tei", "teaAttribuU"),
         // Grid
-        List.of(List.of("2017-01-01 00:00:00.0", "ouabcdefghD", "trackEntInA", "ouabcdefghF")),
+        List.of(
+            List.of("2017-01-01 00:00:00.0", "ouabcdefghD", "trackEntInA", "OrganisationUnitF")),
         grid);
   }
 
@@ -919,7 +921,8 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         List.of("enrollmentdate", "ou", "ouname", "teaAttribuU"),
         // Grid
         List.of(
-            List.of("2017-01-01 00:00:00.0", "ouabcdefghE", "OrganisationUnitE", "ouabcdefghF")),
+            List.of(
+                "2017-01-01 00:00:00.0", "ouabcdefghE", "OrganisationUnitE", "OrganisationUnitF")),
         grid);
   }
 
@@ -936,7 +939,10 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         // Grid
         List.of(
             List.of(
-                "2017-01-01 00:00:00.0", "ouabcdefghE", "OrganisationUnitCodeE", "ouabcdefghF")),
+                "2017-01-01 00:00:00.0",
+                "ouabcdefghE",
+                "OrganisationUnitCodeE",
+                "OrganisationUnitF")),
         grid);
   }
 
@@ -951,7 +957,8 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         // Headers
         List.of("enrollmentdate", "ou", "tei", "teaAttribuU"),
         // Grid
-        List.of(List.of("2017-01-01 00:00:00.0", "ouabcdefghH", "trackEntInA", "ouabcdefghF")),
+        List.of(
+            List.of("2017-01-01 00:00:00.0", "ouabcdefghH", "trackEntInA", "OrganisationUnitF")),
         grid);
   }
 
@@ -965,7 +972,8 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         // Headers
         List.of("enrollmentdate", "ou", "tei", "teaAttribuU"),
         // Grid
-        List.of(List.of("2017-01-01 00:00:00.0", "ouabcdefghE", "trackEntInA", "ouabcdefghF")),
+        List.of(
+            List.of("2017-01-01 00:00:00.0", "ouabcdefghE", "trackEntInA", "OrganisationUnitF")),
         grid);
   }
 
@@ -980,7 +988,8 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         // Headers
         List.of("enrollmentdate", "ou", "tei", "teaAttribuU"),
         // Grid
-        List.of(List.of("2017-01-01 00:00:00.0", "ouabcdefghF", "trackEntInA", "ouabcdefghF")),
+        List.of(
+            List.of("2017-01-01 00:00:00.0", "ouabcdefghF", "trackEntInA", "OrganisationUnitF")),
         grid);
   }
 
