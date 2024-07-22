@@ -58,8 +58,6 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.program.EnrollmentStore")
 public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment>
     implements EnrollmentStore {
-  private static final String PI_HQL_BY_UIDS = "from Enrollment as en where en.uid in (:uids)";
-
   private static final String STATUS = "status";
 
   private static final Set<NotificationTrigger> SCHEDULED_ENROLLMENT_TRIGGERS =
