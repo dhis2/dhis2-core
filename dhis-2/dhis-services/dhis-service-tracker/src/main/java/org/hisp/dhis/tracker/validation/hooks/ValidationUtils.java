@@ -36,18 +36,25 @@ import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ValidationStrategy;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
@@ -107,24 +114,49 @@ public class ValidationUtils {
     return notes;
   }
 
-  public static List<MetadataIdentifier> validateMandatoryDataValue(
-      ProgramStage programStage, Event event, List<MetadataIdentifier> mandatoryDataElements) {
-    List<MetadataIdentifier> notPresentMandatoryDataElements = Lists.newArrayList();
-
+  public static List<MetadataIdentifier> validateDeletionMandatoryDataValue(
+      Event event, ProgramStage programStage, List<MetadataIdentifier> mandatoryDataElements) {
     if (!needsToValidateDataValues(event, programStage)) {
-      return notPresentMandatoryDataElements;
+      return List.of();
     }
 
     Set<MetadataIdentifier> eventDataElements =
-        event.getDataValues().stream().map(DataValue::getDataElement).collect(Collectors.toSet());
+        event.getDataValues().stream()
+            .filter(dv -> dv.getValue() == null)
+            .map(DataValue::getDataElement)
+            .collect(Collectors.toSet());
 
-    for (MetadataIdentifier mandatoryDataElement : mandatoryDataElements) {
-      if (!eventDataElements.contains(mandatoryDataElement)) {
-        notPresentMandatoryDataElements.add(mandatoryDataElement);
-      }
+    return mandatoryDataElements.stream()
+        .filter(eventDataElements::contains)
+        .collect(Collectors.toList());
+  }
+
+  public static List<MetadataIdentifier> validateMandatoryDataValue(
+      TrackerBundle bundle,
+      Event event,
+      ProgramStage programStage,
+      List<MetadataIdentifier> mandatoryDataElements) {
+    if (!needsToValidateDataValues(event, programStage)) {
+      return List.of();
     }
 
-    return notPresentMandatoryDataElements;
+    Set<MetadataIdentifier> eventDataElements = getEventDataValues(bundle, event);
+
+    return mandatoryDataElements.stream()
+        .filter(de -> !eventDataElements.contains(de))
+        .collect(Collectors.toList());
+  }
+
+  private static Set<MetadataIdentifier> getEventDataValues(TrackerBundle bundle, Event event) {
+    Stream<MetadataIdentifier> payloadDataValues =
+        event.getDataValues().stream().map(DataValue::getDataElement);
+    Stream<MetadataIdentifier> savedDataValues =
+        Optional.ofNullable(bundle.getPreheat().getEvent(event.getUid()))
+            .map(org.hisp.dhis.program.ProgramStageInstance::getEventDataValues)
+            .orElse(Set.of())
+            .stream()
+            .map(dv -> MetadataIdentifier.ofUid(dv.getDataElement()));
+    return Stream.concat(payloadDataValues, savedDataValues).collect(Collectors.toSet());
   }
 
   public static boolean needsToValidateDataValues(Event event, ProgramStage programStage) {
@@ -137,6 +169,32 @@ public class ValidationUtils {
     } else {
       return !programStage.getValidationStrategy().equals(ValidationStrategy.ON_COMPLETE);
     }
+  }
+
+  public static Set<MetadataIdentifier> getTrackedEntityAttributes(
+      TrackerBundle bundle, String trackedEntityUid) {
+    TrackerIdSchemeParams idSchemes = bundle.getPreheat().getIdSchemes();
+    Set<MetadataIdentifier> savedTrackedEntityAttributes =
+        Optional.of(bundle)
+            .map(TrackerBundle::getPreheat)
+            .map(trackerPreheat -> trackerPreheat.getTrackedEntity(trackedEntityUid))
+            .map(TrackedEntityInstance::getTrackedEntityAttributeValues)
+            .orElse(Collections.emptySet())
+            .stream()
+            .map(TrackedEntityAttributeValue::getAttribute)
+            .map(idSchemes::toMetadataIdentifier)
+            .collect(Collectors.toSet());
+    Set<MetadataIdentifier> payloadTrackedEntityAttributes =
+        bundle
+            .getTrackedEntity(trackedEntityUid)
+            .map(org.hisp.dhis.tracker.domain.TrackedEntity::getAttributes)
+            .orElse(List.of())
+            .stream()
+            .map(Attribute::getAttribute)
+            .collect(Collectors.toSet());
+    return Stream.concat(
+            savedTrackedEntityAttributes.stream(), payloadTrackedEntityAttributes.stream())
+        .collect(Collectors.toSet());
   }
 
   public static void addIssuesToReporter(
@@ -176,8 +234,8 @@ public class ValidationUtils {
   }
 
   public static <T extends ValueTypedDimensionalItemObject> void validateOptionSet(
-      ValidationErrorReporter reporter, TrackerDto dto, T optionalObject, String value) {
-    if (value == null) {
+      ValidationErrorReporter reporter, TrackerDto dto, T optionalObject, @Nonnull String value) {
+    if (!optionalObject.hasOptionSet()) {
       return;
     }
 

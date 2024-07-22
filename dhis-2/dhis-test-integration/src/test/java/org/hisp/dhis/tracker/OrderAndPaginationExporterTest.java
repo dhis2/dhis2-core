@@ -759,6 +759,40 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     assertEquals(List.of("dUE514NMOlo", "QS6w44flWAf"), trackedEntities);
   }
 
+  @Test
+  void shouldOrderTrackedEntitiesByInactiveDesc() {
+
+    TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+
+    params.addOrganisationUnit(orgUnit);
+    params.setOrganisationUnitMode(SELECTED);
+    params.setTrackedEntityInstanceUids(Set.of("QS6w44flWAf", "dUE514NMOlo"));
+    params.setTrackedEntityType(trackedEntityType);
+    params.setUser(importUser);
+    params.setOrders(List.of(new OrderParam("inactive", SortDirection.DESC)));
+
+    List<String> trackedEntities = getTrackedEntities(params);
+
+    assertEquals(List.of("QS6w44flWAf", "dUE514NMOlo"), trackedEntities);
+  }
+
+  @Test
+  void shouldOrderTrackedEntitiesByInactiveAsc() {
+
+    TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+
+    params.addOrganisationUnit(orgUnit);
+    params.setOrganisationUnitMode(SELECTED);
+    params.setTrackedEntityInstanceUids(Set.of("QS6w44flWAf", "dUE514NMOlo"));
+    params.setTrackedEntityType(trackedEntityType);
+    params.setUser(importUser);
+    params.setOrders(List.of(new OrderParam("inactive", SortDirection.ASC)));
+
+    List<String> trackedEntities = getTrackedEntities(params);
+
+    assertEquals(List.of("dUE514NMOlo", "QS6w44flWAf"), trackedEntities);
+  }
+
   private List<String> getTrackedEntities(TrackedEntityInstanceQueryParams params) {
     return trackedEntityService
         .getTrackedEntityInstances(params, TrackedEntityInstanceParams.FALSE, false, false)

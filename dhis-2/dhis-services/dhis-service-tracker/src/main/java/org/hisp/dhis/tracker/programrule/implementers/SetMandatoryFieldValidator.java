@@ -32,8 +32,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
@@ -83,7 +85,6 @@ public class SetMandatoryFieldValidator
     TrackerPreheat preheat = bundle.getPreheat();
     ProgramStage programStage = preheat.getProgramStage(event.getProgramStage());
     TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
-
     Map<MetadataIdentifier, EventActionRule> mandatoryDataElementsByActionRule =
         actionRules.stream()
             .collect(
@@ -92,7 +93,10 @@ public class SetMandatoryFieldValidator
                     Function.identity()));
 
     return ValidationUtils.validateMandatoryDataValue(
-            programStage, event, Lists.newArrayList(mandatoryDataElementsByActionRule.keySet()))
+            bundle,
+            event,
+            programStage,
+            Lists.newArrayList(mandatoryDataElementsByActionRule.keySet()))
         .stream()
         .map(
             e ->
@@ -112,25 +116,33 @@ public class SetMandatoryFieldValidator
     return enrollmentActionRules.stream()
         .flatMap(
             actionRule ->
-                checkMandatoryEnrollmentAttribute(
-                    enrollment, enrollmentActionRules, bundle.getPreheat())
+                checkMandatoryEnrollmentAttribute(enrollment, enrollmentActionRules, bundle)
                     .stream())
         .collect(Collectors.toList());
   }
 
   private List<ProgramRuleIssue> checkMandatoryEnrollmentAttribute(
-      Enrollment enrollment, List<EnrollmentActionRule> effects, TrackerPreheat preheat) {
-    TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
+      Enrollment enrollment, List<EnrollmentActionRule> effects, TrackerBundle bundle) {
+    TrackerIdSchemeParams idSchemes = bundle.getPreheat().getIdSchemes();
     return effects.stream()
         .map(
             action -> {
               TrackedEntityAttribute ruleAttribute =
-                  preheat.getTrackedEntityAttribute(action.getField());
-              Optional<Attribute> any =
+                  bundle.getPreheat().getTrackedEntityAttribute(action.getField());
+
+              Set<MetadataIdentifier> programAttributes =
                   enrollment.getAttributes().stream()
-                      .filter(attribute -> attribute.getAttribute().isEqualTo(ruleAttribute))
-                      .findAny();
-              if (any.isEmpty() || StringUtils.isEmpty(any.get().getValue())) {
+                      .map(Attribute::getAttribute)
+                      .collect(Collectors.toSet());
+
+              Set<MetadataIdentifier> tetAttributes =
+                  ValidationUtils.getTrackedEntityAttributes(bundle, enrollment.getTrackedEntity());
+
+              boolean missesMandatoryAttribute =
+                  Stream.concat(programAttributes.stream(), tetAttributes.stream())
+                      .noneMatch(a -> a.isEqualTo(ruleAttribute));
+
+              if (missesMandatoryAttribute) {
                 return new ProgramRuleIssue(
                     action.getRuleUid(),
                     TrackerErrorCode.E1306,
@@ -139,9 +151,25 @@ public class SetMandatoryFieldValidator
                             .toMetadataIdentifier(ruleAttribute)
                             .getIdentifierOrAttributeValue()),
                     IssueType.ERROR);
-              } else {
-                return null;
               }
+
+              Optional<Attribute> programAttribute =
+                  enrollment.getAttributes().stream()
+                      .filter(attribute -> attribute.getAttribute().isEqualTo(ruleAttribute))
+                      .findAny();
+
+              if (programAttribute.isPresent()
+                  && StringUtils.isEmpty(programAttribute.get().getValue())) {
+                return new ProgramRuleIssue(
+                    action.getRuleUid(),
+                    TrackerErrorCode.E1317,
+                    Lists.newArrayList(
+                        idSchemes
+                            .toMetadataIdentifier(ruleAttribute)
+                            .getIdentifierOrAttributeValue()),
+                    IssueType.ERROR);
+              }
+              return null;
             })
         .filter(Objects::nonNull)
         .collect(Collectors.toList());

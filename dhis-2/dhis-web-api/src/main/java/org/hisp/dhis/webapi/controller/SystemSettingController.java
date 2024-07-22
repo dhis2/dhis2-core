@@ -60,6 +60,7 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -201,7 +202,7 @@ public class SystemSettingController {
 
   @GetMapping(
       value = "/{key}",
-      produces = {ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_HTML})
+      produces = {ContextUtils.CONTENT_TYPE_JSON})
   public @ResponseBody ResponseEntity<Map<String, Serializable>>
       getSystemSettingOrTranslationAsJson(
           @PathVariable("key") String key,
@@ -209,6 +210,7 @@ public class SystemSettingController {
           @CurrentUser User currentUser) {
     return ResponseEntity.ok()
         .cacheControl(CacheControl.noCache().cachePrivate())
+        .contentType(MediaType.APPLICATION_JSON)
         .body(singletonMap(key, getSystemSettingOrTranslation(key, locale, currentUser)));
   }
 

@@ -66,6 +66,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackerdataview.TrackerDataView;
 import org.hisp.dhis.user.UserService;
@@ -136,6 +137,13 @@ class RelationshipServiceTest extends TransactionalIntegrationTest {
 
     teaB = createTrackedEntityAttribute('B');
     manager.save(teaB, false);
+
+    TrackedEntityTypeAttribute trackedEntityTypeAttribute = new TrackedEntityTypeAttribute();
+    trackedEntityTypeAttribute.setTrackedEntityAttribute(teaA);
+    trackedEntityTypeAttribute.setTrackedEntityType(trackedEntityType);
+
+    trackedEntityType.setTrackedEntityTypeAttributes(List.of(trackedEntityTypeAttribute));
+    manager.save(trackedEntityType);
 
     Program program = createProgram('A', new HashSet<>(), organisationUnit);
     program.setProgramType(ProgramType.WITH_REGISTRATION);

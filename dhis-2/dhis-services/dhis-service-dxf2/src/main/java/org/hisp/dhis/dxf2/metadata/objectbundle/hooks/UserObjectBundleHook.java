@@ -107,6 +107,14 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
               .setErrorProperty(USERNAME));
     }
 
+    User existingUserWithMatchingOpenID = userService.getUserByOpenId(user.getOpenId());
+    if (existingUserWithMatchingOpenID != null
+        && !existingUserWithMatchingOpenID.getUid().equals(user.getUid())) {
+      addReports.accept(
+          new ErrorReport(User.class, ErrorCode.E4054, "OIDC mapping value", user.getOpenId())
+              .setErrorProperty(USERNAME));
+    }
+
     if (user.getUserRoles() == null || user.getUserRoles().isEmpty()) {
       addReports.accept(
           new ErrorReport(User.class, ErrorCode.E4055, USERNAME, user.getUsername())

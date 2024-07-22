@@ -32,7 +32,6 @@ import static org.hisp.dhis.tracker.TrackerType.EVENT;
 import static org.hisp.dhis.tracker.TrackerType.RELATIONSHIP;
 import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E5000;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E5001;
 import static org.hisp.dhis.tracker.validation.PersistablesFilter.filter;
 import static org.hisp.dhis.tracker.validation.hooks.AssertTrackerValidationReport.assertHasError;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
@@ -374,7 +373,7 @@ class PersistablesFilterTest {
             .enrollment("Ok4Fe5moc3N")
             .event("Ox1qBWsnVwE")
             .event("jNyGqnwryNi")
-            .relationship("Te3IC6TpnBB", trackedEntity("xK7H53f4Hc2"), trackedEntity("QxGbKYwChDM"))
+            .relationship("Te3IC6TpnBB", null, null)
             .build();
 
     PersistablesFilter.Result persistable =
@@ -386,177 +385,6 @@ class PersistablesFilterTest {
         () ->
             assertContainsOnly(
                 persistable, Event.class, "Qck4PQ7TMun", "Ox1qBWsnVwE", "jNyGqnwryNi"),
-        () -> assertContainsOnly(persistable, Relationship.class, "Te3IC6TpnBB"),
-        () -> assertIsEmpty(persistable.getErrors()));
-  }
-
-  @Test
-  void testDeleteInvalidTrackedEntityCannotBeDeletedButItsChildrenCan() {
-    Setup setup =
-        new Setup.Builder()
-            .trackedEntity("xK7H53f4Hc2")
-            .isNotValid()
-            .enrollment("t1zaUjKgT3p")
-            .event("Qck4PQ7TMun")
-            .event("Ox1qBWsnVwE")
-            .build();
-
-    PersistablesFilter.Result persistable =
-        filter(setup.bundle, setup.invalidEntities, TrackerImportStrategy.DELETE);
-
-    assertAll(
-        () -> assertIsEmpty(persistable.get(TrackedEntity.class)),
-        () -> assertContainsOnly(persistable, Enrollment.class, "t1zaUjKgT3p"),
-        () -> assertContainsOnly(persistable, Event.class, "Qck4PQ7TMun", "Ox1qBWsnVwE"),
-        () -> assertIsEmpty(persistable.getErrors()));
-  }
-
-  @Test
-  void testDeleteOnlyReportErrorsIfItAddsNewInformation() {
-    // If entities are found to be invalid during the validation an error for the entity will
-    // already be in the
-    // validation report. Only add errors if it would not be clear why an entity cannot be
-    // persisted.
-
-    Setup setup =
-        new Setup.Builder()
-            .trackedEntity("xK7H53f4Hc2")
-            .isNotValid()
-            .enrollment("t1zaUjKgT3p")
-            .isNotValid()
-            .relationship("Te3IC6TpnBB", trackedEntity("xK7H53f4Hc2"), enrollment("t1zaUjKgT3p"))
-            .isNotValid()
-            .build();
-
-    PersistablesFilter.Result persistable =
-        filter(setup.bundle, setup.invalidEntities, TrackerImportStrategy.DELETE);
-
-    assertAll(
-        () -> assertIsEmpty(persistable.get(TrackedEntity.class)),
-        () -> assertIsEmpty(persistable.get(Enrollment.class)),
-        () -> assertIsEmpty(persistable.get(Relationship.class)),
-        () -> assertIsEmpty(persistable.getErrors()));
-  }
-
-  @Test
-  void testDeleteInvalidRelationshipPreventsDeletionOfTrackedEntityAndEvent() {
-    Setup setup =
-        new Setup.Builder()
-            .trackedEntity("xK7H53f4Hc2")
-            .enrollment("t1zaUjKgT3p")
-            .event("Qck4PQ7TMun")
-            .trackedEntity("QxGbKYwChDM")
-            .enrollment("Ok4Fe5moc3N")
-            .relationship("Te3IC6TpnBB", trackedEntity("xK7H53f4Hc2"), event("Qck4PQ7TMun"))
-            .isNotValid()
-            .build();
-
-    PersistablesFilter.Result persistable =
-        filter(setup.bundle, setup.invalidEntities, TrackerImportStrategy.DELETE);
-
-    assertAll(
-        () -> assertContainsOnly(persistable, TrackedEntity.class, "QxGbKYwChDM"),
-        () -> assertContainsOnly(persistable, Enrollment.class, "Ok4Fe5moc3N"),
-        () -> assertIsEmpty(persistable.get(Event.class)),
-        () -> assertIsEmpty(persistable.get(Relationship.class)),
-        () ->
-            assertError(
-                persistable,
-                E5001,
-                TRACKED_ENTITY,
-                "xK7H53f4Hc2",
-                "because \"relationship\" `Te3IC6TpnBB`"),
-        () ->
-            assertError(
-                persistable, E5001, ENROLLMENT, "t1zaUjKgT3p", "because \"event\" `Qck4PQ7TMun`"),
-        () ->
-            assertError(
-                persistable,
-                E5001,
-                EVENT,
-                "Qck4PQ7TMun",
-                "because \"relationship\" `Te3IC6TpnBB`"));
-  }
-
-  @Test
-  void testDeleteInvalidRelationshipPreventsDeletionOfEnrollmentAndEvent() {
-    Setup setup =
-        new Setup.Builder()
-            .trackedEntity("xK7H53f4Hc2")
-            .enrollment("t1zaUjKgT3p")
-            .event("QxGbKYwChDM")
-            .event("Ox1qBWsnVwE")
-            .enrollment("Ok4Fe5moc3N")
-            .relationship("Te3IC6TpnBB", event("QxGbKYwChDM"), enrollment("t1zaUjKgT3p"))
-            .isNotValid()
-            .build();
-
-    PersistablesFilter.Result persistable =
-        filter(setup.bundle, setup.invalidEntities, TrackerImportStrategy.DELETE);
-
-    assertAll(
-        () -> assertIsEmpty(persistable.get(TrackedEntity.class)),
-        () -> assertContainsOnly(persistable, Enrollment.class, "Ok4Fe5moc3N"),
-        () -> assertContainsOnly(persistable, Event.class, "Ox1qBWsnVwE"),
-        () -> assertIsEmpty(persistable.get(Relationship.class)),
-        () ->
-            assertError(
-                persistable,
-                E5001,
-                ENROLLMENT,
-                "t1zaUjKgT3p",
-                "because \"relationship\" `Te3IC6TpnBB`"),
-        () ->
-            assertError(
-                persistable,
-                E5001,
-                EVENT,
-                "QxGbKYwChDM",
-                "because \"relationship\" `Te3IC6TpnBB`"));
-  }
-
-  @Test
-  void testDeleteValidRelationshipWithInvalidFrom() {
-    Setup setup =
-        new Setup.Builder()
-            .trackedEntity("QxGbKYwChDM")
-            .trackedEntity("xK7H53f4Hc2")
-            .enrollment("t1zaUjKgT3p")
-            .isNotValid()
-            .relationship("Te3IC6TpnBB", enrollment("t1zaUjKgT3p"), trackedEntity("QxGbKYwChDM"))
-            .build();
-
-    PersistablesFilter.Result persistable =
-        filter(setup.bundle, setup.invalidEntities, TrackerImportStrategy.DELETE);
-
-    assertAll(
-        () -> assertContainsOnly(persistable, TrackedEntity.class, "QxGbKYwChDM"),
-        () -> assertIsEmpty(persistable.get(Enrollment.class)),
-        () -> assertContainsOnly(persistable, Relationship.class, "Te3IC6TpnBB"));
-  }
-
-  @Test
-  void testDeleteValidEntitiesReferencingParentsNotInPayload() {
-    Setup setup =
-        new Setup.Builder()
-            .trackedEntity("xK7H53f4Hc2")
-            .isInDB()
-            .isNotInPayload()
-            .enrollment("t1zaUjKgT3p")
-            .enrollment("Ok4Fe5moc3N")
-            .isInDB()
-            .isNotInPayload()
-            .event("Ox1qBWsnVwE")
-            .relationship("Te3IC6TpnBB", trackedEntity("xK7H53f4Hc2"), enrollment("Ok4Fe5moc3N"))
-            .build();
-
-    PersistablesFilter.Result persistable =
-        filter(setup.bundle, setup.invalidEntities, TrackerImportStrategy.DELETE);
-
-    assertAll(
-        () -> assertIsEmpty(persistable.get(TrackedEntity.class)),
-        () -> assertContainsOnly(persistable, Enrollment.class, "t1zaUjKgT3p"),
-        () -> assertContainsOnly(persistable, Event.class, "Ox1qBWsnVwE"),
         () -> assertContainsOnly(persistable, Relationship.class, "Te3IC6TpnBB"),
         () -> assertIsEmpty(persistable.getErrors()));
   }

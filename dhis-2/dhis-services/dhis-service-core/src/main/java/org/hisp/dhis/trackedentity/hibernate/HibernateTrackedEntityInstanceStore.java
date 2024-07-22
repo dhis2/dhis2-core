@@ -812,10 +812,6 @@ public class HibernateTrackedEntityInstanceStore
   private String getFromSubQueryJoinProgramOwnerConditions(
       TrackedEntityInstanceQueryParams params) {
 
-    if (skipOwnershipCheck(params)) {
-      return "";
-    }
-
     if (params.hasProgram()) {
       return " INNER JOIN trackedentityprogramowner PO "
           + " ON PO.programid = "
@@ -876,10 +872,6 @@ public class HibernateTrackedEntityInstanceStore
   }
 
   private String getOwnerOrgUnit(TrackedEntityInstanceQueryParams params) {
-
-    if (skipOwnershipCheck(params)) {
-      return "TEI.organisationunitid ";
-    }
 
     if (params.hasProgram()) {
       return "PO.organisationunitid ";
@@ -1515,9 +1507,5 @@ public class HibernateTrackedEntityInstanceStore
     }
 
     return StringUtils.EMPTY;
-  }
-
-  private boolean skipOwnershipCheck(TrackedEntityInstanceQueryParams params) {
-    return params.getUser() != null && params.getUser().isSuper();
   }
 }
