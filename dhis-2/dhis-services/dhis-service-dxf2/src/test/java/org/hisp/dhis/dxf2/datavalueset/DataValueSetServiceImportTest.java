@@ -68,7 +68,7 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.user.UserService;
 import org.hisp.quick.BatchHandlerFactory;
 import org.junit.jupiter.api.Test;
@@ -80,7 +80,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.ClassPathResource;
 
 @ExtendWith(MockitoExtension.class)
-class DataValueSetServiceImportTest extends DhisConvenienceTest {
+class DataValueSetServiceImportTest extends TestBase {
 
   @Mock private IdentifiableObjectManager identifiableObjectManager;
 

@@ -34,14 +34,20 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
 import org.hisp.dhis.scheduling.parameters.MockJobParameters;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Henning Håkonsen
  */
-class JobConfigurationServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class JobConfigurationServiceTest extends PostgresIntegrationTestBase {
 
   private static final String CRON_EVERY_MIN = "0 * * ? * *";
 
@@ -51,8 +57,8 @@ class JobConfigurationServiceTest extends SingleSetupIntegrationTestBase {
 
   private JobConfiguration jobB;
 
-  @Override
-  protected void setUpTest() throws Exception {
+  @BeforeAll
+  void setUp() {
     jobA = new JobConfiguration("jobA", JobType.MOCK);
     jobA.setCronExpression(CRON_EVERY_MIN);
     jobA.setSchedulingType(SchedulingType.CRON);

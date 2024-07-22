@@ -46,7 +46,7 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -54,7 +54,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jim Grace
  */
-class OrgUnitTableJoinerTest extends DhisConvenienceTest {
+class OrgUnitTableJoinerTest extends TestBase {
   private static final OrgUnitField DEFAULT = new OrgUnitField(null);
 
   private static final OrgUnitField ATTRIBUTE = new OrgUnitField("AttributeId");

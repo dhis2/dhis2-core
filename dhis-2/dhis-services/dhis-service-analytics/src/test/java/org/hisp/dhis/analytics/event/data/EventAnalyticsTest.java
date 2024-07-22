@@ -31,11 +31,11 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.hisp.dhis.event.EventStatus.SCHEDULE;
 import static org.hisp.dhis.program.EnrollmentStatus.ACTIVE;
 import static org.hisp.dhis.program.EnrollmentStatus.COMPLETED;
-import static org.hisp.dhis.test.DhisConvenienceTest.createDataElement;
-import static org.hisp.dhis.test.DhisConvenienceTest.createOrganisationUnit;
-import static org.hisp.dhis.test.DhisConvenienceTest.createPeriod;
-import static org.hisp.dhis.test.DhisConvenienceTest.createProgram;
-import static org.hisp.dhis.test.DhisConvenienceTest.createProgramStage;
+import static org.hisp.dhis.test.TestBase.createDataElement;
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
+import static org.hisp.dhis.test.TestBase.createPeriod;
+import static org.hisp.dhis.test.TestBase.createProgram;
+import static org.hisp.dhis.test.TestBase.createProgramStage;
 import static org.mockito.Mockito.when;
 
 import java.util.LinkedHashSet;

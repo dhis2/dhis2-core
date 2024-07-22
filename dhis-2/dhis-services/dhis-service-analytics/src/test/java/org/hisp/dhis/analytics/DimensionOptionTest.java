@@ -42,14 +42,14 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-class DimensionOptionTest extends DhisConvenienceTest {
+class DimensionOptionTest extends TestBase {
   private DataElement deA;
 
   private Period peA;

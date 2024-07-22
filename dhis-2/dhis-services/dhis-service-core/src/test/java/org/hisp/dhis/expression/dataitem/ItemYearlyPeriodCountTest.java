@@ -37,7 +37,7 @@ import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionState;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -49,7 +49,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Jim Grace
  */
 @ExtendWith(MockitoExtension.class)
-class ItemYearlyPeriodCountTest extends DhisConvenienceTest {
+class ItemYearlyPeriodCountTest extends TestBase {
   @Mock private ExprContext ctx;
 
   @Mock private CommonExpressionVisitor visitor;

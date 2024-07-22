@@ -31,9 +31,9 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
-import static org.hisp.dhis.test.DhisConvenienceTest.createProgram;
-import static org.hisp.dhis.test.DhisConvenienceTest.createProgramIndicator;
-import static org.hisp.dhis.test.DhisConvenienceTest.getDate;
+import static org.hisp.dhis.test.TestBase.createProgram;
+import static org.hisp.dhis.test.TestBase.createProgramIndicator;
+import static org.hisp.dhis.test.TestBase.getDate;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;

@@ -71,7 +71,7 @@ import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.sms.parse.ParserType;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -86,7 +86,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Zubair Asghar.
  */
 @ExtendWith(MockitoExtension.class)
-class DataValueListenerTest extends DhisConvenienceTest {
+class DataValueListenerTest extends TestBase {
   private static final String FETCHED_DATA_VALUE = "fetchedDataValue";
 
   private static final String STORED_BY = "CGhost";

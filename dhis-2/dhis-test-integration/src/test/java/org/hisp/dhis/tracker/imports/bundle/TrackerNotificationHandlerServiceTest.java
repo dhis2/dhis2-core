@@ -31,7 +31,6 @@ import static org.awaitility.Awaitility.await;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 
-import java.io.IOException;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
@@ -48,30 +47,30 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Zubair Asghar
  */
-class TrackerNotificationHandlerServiceTest extends IntegrationTestBase {
+class TrackerNotificationHandlerServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackerImportService trackerImportService;
 
   @Autowired private IdentifiableObjectManager manager;
-  @Autowired protected UserService _userService;
 
   private Program programA;
 
@@ -90,10 +89,8 @@ class TrackerNotificationHandlerServiceTest extends IntegrationTestBase {
   private User user;
   private UserGroup userGroup;
 
-  @Override
-  protected void setUpTest() throws IOException {
-    userService = _userService;
-
+  @BeforeEach
+  void setUp() {
     orgUnitA = createOrganisationUnit('A');
     manager.save(orgUnitA, false);
 
@@ -155,8 +152,8 @@ class TrackerNotificationHandlerServiceTest extends IntegrationTestBase {
 
   @Test
   void shouldSendTrackerNotificationAtEnrollment() {
-    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
-        org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
+    Enrollment enrollment =
+        Enrollment.builder()
             .program(MetadataIdentifier.ofUid(programA.getUid()))
             .orgUnit(MetadataIdentifier.ofUid(orgUnitA.getUid()))
             .trackedEntity(trackedEntityA.getUid())
@@ -192,8 +189,8 @@ class TrackerNotificationHandlerServiceTest extends IntegrationTestBase {
   void shouldSendTrackerNotificationAtEnrollmentCompletionAndThenEventCompletion() {
     String eventUid = CodeGenerator.generateUid();
 
-    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
-        org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
+    Enrollment enrollment =
+        Enrollment.builder()
             .program(MetadataIdentifier.ofUid(programA.getUid()))
             .orgUnit(MetadataIdentifier.ofUid(orgUnitA.getUid()))
             .trackedEntity(trackedEntityA.getUid())
@@ -348,8 +345,8 @@ class TrackerNotificationHandlerServiceTest extends IntegrationTestBase {
   @Test
   void shouldSendEnrollmentCompletionNotificationOnlyOnce() {
     String uid = CodeGenerator.generateUid();
-    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
-        org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
+    Enrollment enrollment =
+        Enrollment.builder()
             .program(MetadataIdentifier.ofUid(programA.getUid()))
             .orgUnit(MetadataIdentifier.ofUid(orgUnitA.getUid()))
             .trackedEntity(trackedEntityA.getUid())

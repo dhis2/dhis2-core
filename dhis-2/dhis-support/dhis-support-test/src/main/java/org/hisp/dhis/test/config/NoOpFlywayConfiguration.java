@@ -25,49 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.integration;
+package org.hisp.dhis.test.config;
 
-import org.hisp.dhis.test.BaseSpringTest;
-import org.hisp.dhis.test.IntegrationTest;
-import org.hisp.dhis.test.config.IntegrationBaseConfiguration;
-import org.hisp.dhis.test.config.PostgresDhisConfiguration;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 /**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ * Creates a no operation flyway bean that can be used to disable flyway migrations when running
+ * tests.
  */
-@ContextConfiguration(
-    classes = {IntegrationBaseConfiguration.class, PostgresDhisConfiguration.class})
-@IntegrationTest
-@ActiveProfiles(profiles = {"test-postgres"})
-public abstract class IntegrationTestBase extends BaseSpringTest {
+@Profile("test-h2")
+@Configuration
+public class NoOpFlywayConfiguration {
 
-  @Autowired private UserService _userService;
+  public static class NoOpFlyway {}
 
-  private User adminUser;
-
-  @BeforeEach
-  public void before() throws Exception {
-    bindSession();
-
-    userService = _userService;
-    adminUser = preCreateInjectAdminUser();
-
-    integrationTestBeforeEach();
-  }
-
-  public User getAdminUser() {
-    return adminUser;
-  }
-
-  @AfterEach
-  public final void after() throws Exception {
-    nonTransactionalAfter();
+  @Bean
+  public NoOpFlyway flyway() {
+    return new NoOpFlyway();
   }
 }

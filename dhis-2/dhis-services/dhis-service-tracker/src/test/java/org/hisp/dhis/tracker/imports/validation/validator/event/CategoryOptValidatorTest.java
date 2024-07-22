@@ -45,7 +45,7 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.test.mock.MockI18nFormat;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -64,7 +64,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Jim Grace
  */
 @ExtendWith(MockitoExtension.class)
-class CategoryOptValidatorTest extends DhisConvenienceTest {
+class CategoryOptValidatorTest extends TestBase {
 
   @Mock private I18nManager i18nManager;
 

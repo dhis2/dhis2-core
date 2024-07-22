@@ -36,11 +36,12 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.common.Objects;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.reservedvalue.ReservedValue;
 import org.hisp.dhis.reservedvalue.ReservedValueStore;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternParser;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -49,10 +50,16 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
 import org.hisp.dhis.trackedentity.TrackedEntityStore;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueStore;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class HibernateReservedValueStoreTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
 
   private static final String teaUid = "tea";
 
@@ -82,8 +89,10 @@ class HibernateReservedValueStoreTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private TrackedEntityAttributeValueStore trackedEntityAttributeValueStore;
 
-  @Override
-  protected void setUpTest() {
+  @Autowired private DbmsManager dbmsManager;
+
+  @BeforeAll
+  void setUp() {
     Calendar future = Calendar.getInstance();
     future.add(Calendar.DATE, 10);
     futureDate = future.getTime();

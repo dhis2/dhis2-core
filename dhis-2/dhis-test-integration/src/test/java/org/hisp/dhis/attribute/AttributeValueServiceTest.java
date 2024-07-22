@@ -29,6 +29,7 @@ package org.hisp.dhis.attribute;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -47,23 +48,23 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementStore;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class AttributeValueServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class AttributeValueServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private AttributeService attributeService;
 
   @Autowired private DataElementStore dataElementStore;
-
-  @Autowired private UserService _userService;
 
   @Autowired private CategoryService _categoryService;
 
@@ -83,9 +84,8 @@ class AttributeValueServiceTest extends TransactionalIntegrationTest {
 
   private User currentUser;
 
-  @Override
-  protected void setUpTest() {
-    userService = _userService;
+  @BeforeEach
+  void setUp() {
     categoryService = _categoryService;
     createAndInjectAdminUser();
     currentUser = getCurrentUser();
@@ -345,6 +345,6 @@ class AttributeValueServiceTest extends TransactionalIntegrationTest {
     DataElement dataElement = dataElements.get(0);
     AttributeValue av = dataElement.getAttributeValues().iterator().next();
     GeoJsonObject geoJsonObject = new ObjectMapper().readValue(av.getValue(), GeoJsonObject.class);
-    assertTrue(geoJsonObject instanceof Feature);
+    assertInstanceOf(Feature.class, geoJsonObject);
   }
 }

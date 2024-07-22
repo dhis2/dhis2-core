@@ -67,17 +67,20 @@ import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class EnrollmentServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private EnrollmentService enrollmentService;
 
@@ -123,10 +126,8 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   private OrganisationUnit orgUnitChildA;
 
-  @Override
-  protected void setUpTest() throws Exception {
-    //    userService = _userService;
-    //    admin = preCreateInjectAdminUser();
+  @BeforeEach
+  void setUp() {
     admin = getAdminUser();
 
     orgUnitA = createOrganisationUnit('A');

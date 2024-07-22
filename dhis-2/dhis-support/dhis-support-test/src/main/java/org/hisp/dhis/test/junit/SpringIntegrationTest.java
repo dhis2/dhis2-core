@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,11 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.db.migration.helper;
+package org.hisp.dhis.test.junit;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
- * A no operation flyway that is used for unit tests. Disabling flyway migrations during unit tests.
- *
- * @author Ameen Mohamed
+ * SpringIntegration test groups JUnit annotations needed for our Spring integration tests. It also
+ * ensures that JUnit extensions are declared in the correct order as for example our {@link
+ * SpringIntegrationTestExtension} depends on the {@link SpringExtension}.
  */
-public class NoOpFlyway {}
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@ExtendWith({SpringExtension.class, SpringIntegrationTestExtension.class})
+public @interface SpringIntegrationTest {}

@@ -79,7 +79,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.quick.JdbcConfiguration;
 import org.hisp.quick.StatementDialect;
 import org.junit.jupiter.api.BeforeEach;
@@ -98,7 +98,7 @@ import org.springframework.jdbc.core.RowCallbackHandler;
  * @author Jim Grace
  */
 @ExtendWith(MockitoExtension.class)
-class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
+class JdbcOwnershipAnalyticsTableManagerTest extends TestBase {
   @Mock private IdentifiableObjectManager idObjectManager;
 
   @Mock private OrganisationUnitService organisationUnitService;

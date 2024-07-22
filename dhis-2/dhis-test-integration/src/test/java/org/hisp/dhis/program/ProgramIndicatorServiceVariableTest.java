@@ -39,10 +39,11 @@ import java.util.GregorianCalendar;
 import java.util.HashSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.util.DateUtils;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +51,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Jim Grace
  */
-class ProgramIndicatorServiceVariableTest extends IntegrationTestBase {
+class ProgramIndicatorServiceVariableTest extends PostgresIntegrationTestBase {
 
   @Autowired private ProgramIndicatorService programIndicatorService;
 
@@ -70,8 +71,8 @@ class ProgramIndicatorServiceVariableTest extends IntegrationTestBase {
 
   private Date endDate = new GregorianCalendar(2020, Calendar.JANUARY, 31).getTime();
 
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnit);
 
@@ -280,10 +281,6 @@ class ProgramIndicatorServiceVariableTest extends IntegrationTestBase {
         "coalesce(\"TEAttribute\",'') + nullif(cast((case when \"TEAttribute\" >= 0 then 1 else 0 end) as double),0)",
         getSqlEnrollment("A{TEAttribute} + V{zero_pos_value_count}"));
   }
-
-  // -------------------------------------------------------------------------
-  // Get description
-  // -------------------------------------------------------------------------
 
   @Test
   void testOrgUnitCountDescription() {

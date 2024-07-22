@@ -35,7 +35,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -60,7 +59,7 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttributeStore;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -68,13 +67,16 @@ import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.joda.time.DateTime;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Zubair Asghar
  */
-class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTest {
+@Transactional
+class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase {
 
   private String dataElementUid = CodeGenerator.generateUid();
 
@@ -153,12 +155,10 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
   @Autowired
   private ProgramStageNotificationMessageRenderer programStageNotificationMessageRenderer;
 
-  @Autowired private CategoryService categoryService;
-
   @Autowired private IdentifiableObjectManager manager;
 
-  @Override
-  protected void setUpTest() throws Exception {
+  @BeforeEach
+  void setUp() {
     DateTime testDate1 = DateTime.now();
     testDate1.withTimeAtStartOfDay();
     testDate1 = testDate1.minusDays(70);

@@ -34,13 +34,13 @@ import java.util.Set;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-class AggregatableDataElementFilterTest extends DhisConvenienceTest {
+class AggregatableDataElementFilterTest extends TestBase {
 
   @Test
   void filter() {

@@ -41,6 +41,7 @@ import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationType;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -49,7 +50,7 @@ import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.query.JpaQueryUtils;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
@@ -63,28 +64,25 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class AclServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class AclServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private AclService aclService;
-
-  //  @Autowired private UserService _userService;
 
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private JdbcTemplate jdbcTemplate;
 
-  //  @Override
-  //  protected void setUpTest() throws Exception {
-  //    userService = _userService;
-  //  }
+  @Autowired private DbmsManager dbmsManager;
 
   @Test
   void testUpdateObjectWithPublicRWFail() {
-    reLoginAdminUser();
+    injectSecurityContextUser(getAdminUser());
     User user = createAndAddAdminUser("F_OPTIONSET_PUBLIC_ADD");
     DataElement dataElement = createDataElement('A');
     dataElement.setPublicAccess(AccessStringHelper.READ_WRITE);
@@ -380,7 +378,7 @@ class AclServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void testDataElementSharingPrivateRW() {
-    reLoginAdminUser();
+    injectSecurityContextUser(getAdminUser());
     User user1 = createUserWithAuth("user1A9", "F_DATAELEMENT_PRIVATE_ADD");
     User user2 = createUserWithAuth("user2A9", "F_DATAELEMENT_PRIVATE_ADD");
     DataElement dataElement = createDataElement('A');

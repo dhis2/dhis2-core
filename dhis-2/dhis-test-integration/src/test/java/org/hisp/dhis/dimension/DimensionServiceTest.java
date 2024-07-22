@@ -91,17 +91,20 @@ import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.visualization.Visualization;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class DimensionServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class DimensionServiceTest extends PostgresIntegrationTestBase {
   private Attribute atA;
 
   private DataElement deA;
@@ -216,8 +219,8 @@ class DimensionServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private DimensionService dimensionService;
 
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     atA = createAttribute('A');
     atA.setUnique(true);
     atA.setDataElementAttribute(true);

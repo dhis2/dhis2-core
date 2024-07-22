@@ -27,56 +27,13 @@
  */
 package org.hisp.dhis.test.integration;
 
-import org.hisp.dhis.test.BaseSpringTest;
-import org.hisp.dhis.test.DhisConvenienceTest;
 import org.hisp.dhis.test.IntegrationTest;
-import org.hisp.dhis.test.config.IntegrationBaseConfiguration;
-import org.hisp.dhis.test.config.PostgresDhisConfiguration;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.test.SpringIntegrationTestBase;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@ContextConfiguration(
-    classes = {IntegrationBaseConfiguration.class, PostgresDhisConfiguration.class})
 @IntegrationTest
 @ActiveProfiles(profiles = {"test-postgres"})
-public abstract class CacheInvalidationIntegrationTestBase extends BaseSpringTest {
-
-  @Autowired private UserService _userService;
-
-  @BeforeEach
-  public final void before() throws Exception {
-    bindSession();
-
-    userService = _userService;
-
-    User admin = DhisConvenienceTest.createRandomAdminUserWithEntityManager(entityManager);
-    XinjectSecurityContextUser(admin);
-
-    integrationTestBeforeEach();
-  }
-
-  protected void XinjectSecurityContextUser(User user) {
-    if (user == null) {
-      clearSecurityContext();
-      return;
-    }
-    hibernateService.flushSession();
-    User user1 = entityManager.find(User.class, user.getId());
-    UserDetails currentUserDetails = UserDetails.fromUser(user1);
-    injectSecurityContext(currentUserDetails);
-  }
-
-  @AfterEach
-  public final void after() throws Exception {
-    nonTransactionalAfter();
-  }
-}
+public abstract class PostgresIntegrationTestBase extends SpringIntegrationTestBase {}

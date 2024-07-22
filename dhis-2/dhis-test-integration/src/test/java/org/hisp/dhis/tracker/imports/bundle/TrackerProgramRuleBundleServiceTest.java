@@ -45,7 +45,7 @@ import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -62,11 +62,8 @@ class TrackerProgramRuleBundleServiceTest extends TrackerTest {
 
   @Autowired private ProgramNotificationTemplateService notificationTemplateService;
 
-  @Autowired protected UserService _userService;
-
-  @Override
-  protected void initTest() throws IOException {
-
+  @BeforeAll
+  void setUp() throws IOException {
     ProgramNotificationTemplate pnt =
         createProgramNotificationTemplate(
             "test_pnt",
@@ -75,7 +72,6 @@ class TrackerProgramRuleBundleServiceTest extends TrackerTest {
             ProgramNotificationRecipient.USER_GROUP);
     notificationTemplateService.save(pnt);
 
-    userService = _userService;
     ObjectBundle bundle = setUpMetadata("tracker/event_metadata.json");
     ProgramRule programRule =
         createProgramRule(
