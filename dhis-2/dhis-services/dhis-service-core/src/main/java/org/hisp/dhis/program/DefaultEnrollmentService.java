@@ -62,14 +62,6 @@ public class DefaultEnrollmentService implements EnrollmentService {
 
   @Override
   @Transactional
-  public void deleteEnrollment(Enrollment enrollment) {
-    enrollment.setStatus(EnrollmentStatus.CANCELLED);
-    enrollmentStore.update(enrollment);
-    enrollmentStore.delete(enrollment);
-  }
-
-  @Override
-  @Transactional
   public void hardDeleteEnrollment(Enrollment enrollment) {
     enrollmentStore.hardDelete(enrollment);
   }

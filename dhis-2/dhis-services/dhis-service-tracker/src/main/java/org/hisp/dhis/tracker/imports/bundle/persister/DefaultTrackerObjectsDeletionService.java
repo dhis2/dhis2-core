@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
@@ -60,8 +62,6 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeletionService {
-  private final org.hisp.dhis.program.EnrollmentService apiEnrollmentService;
-
   private final TrackedEntityService teService;
 
   private final IdentifiableObjectManager manager;
@@ -113,7 +113,11 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
       TrackedEntity te = enrollment.getTrackedEntity();
       te.setLastUpdatedByUserInfo(userInfoSnapshot);
 
-      apiEnrollmentService.deleteEnrollment(enrollment);
+      enrollment.setStatus(EnrollmentStatus.CANCELLED);
+      enrollment.setDeleted(true);
+      enrollment.setLastUpdated(new Date());
+      manager.update(enrollment);
+
       teService.updateTrackedEntity(te);
 
       typeReport.getStats().incDeleted();

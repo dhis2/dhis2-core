@@ -197,20 +197,6 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testDeleteEnrollment() {
-    manager.save(enrollmentA);
-    manager.save(enrollmentB);
-    assertNotNull(manager.get(Enrollment.class, enrollmentA.getUid()));
-    assertNotNull(manager.get(Enrollment.class, enrollmentB.getUid()));
-    apiEnrollmentService.deleteEnrollment(enrollmentA);
-    assertNull(manager.get(Enrollment.class, enrollmentA.getUid()));
-    assertNotNull(manager.get(Enrollment.class, enrollmentB.getUid()));
-    apiEnrollmentService.deleteEnrollment(enrollmentB);
-    assertNull(manager.get(Enrollment.class, enrollmentA.getUid()));
-    assertNull(manager.get(Enrollment.class, enrollmentB.getUid()));
-  }
-
-  @Test
   void testSoftDeleteEnrollmentAndLinkedEvent() throws NotFoundException {
     manager.save(enrollmentA);
     manager.save(eventA);
@@ -312,10 +298,17 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     assertNotNull(enrollmentService.getEnrollment(enrollmentA.getUid()));
 
-    apiEnrollmentService.deleteEnrollment(enrollmentA);
+    deleteEnrollment(enrollmentA);
 
     Assertions.assertThrows(
         NotFoundException.class, () -> enrollmentService.getEnrollment(enrollmentA.getUid()));
     assertTrue(noteService.noteExists(note.getUid()));
+  }
+
+  private void deleteEnrollment(Enrollment enrollment) {
+    enrollment.setStatus(EnrollmentStatus.CANCELLED);
+    enrollment.setDeleted(true);
+    enrollment.setLastUpdated(new Date());
+    manager.update(enrollment);
   }
 }

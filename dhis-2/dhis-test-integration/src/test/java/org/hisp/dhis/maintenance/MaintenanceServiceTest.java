@@ -58,6 +58,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -92,8 +93,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * @author Enrico Colasante
  */
 class MaintenanceServiceTest extends PostgresIntegrationTestBase {
-  @Autowired private org.hisp.dhis.program.EnrollmentService apiEnrollmentService;
-
   @Autowired private EnrollmentService enrollmentService;
 
   @Autowired private ProgramMessageService programMessageService;
@@ -260,7 +259,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     manager.save(enrollment);
     programMessageService.saveProgramMessage(message);
     assertNotNull(manager.get(Enrollment.class, enrollment.getUid()));
-    apiEnrollmentService.deleteEnrollment(enrollment);
+    deleteEnrollment(enrollment);
     assertNull(manager.get(Enrollment.class, enrollment.getUid()));
     assertTrue(enrollmentExistsIncludingDeleted(enrollment));
 
@@ -339,7 +338,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
         trackedEntityDataValueChangeLog);
     manager.save(enrollment);
     assertNotNull(manager.get(Enrollment.class, enrollment.getUid()));
-    apiEnrollmentService.deleteEnrollment(enrollment);
+    deleteEnrollment(enrollment);
     assertNull(manager.get(Enrollment.class, enrollment.getUid()));
     assertTrue(enrollmentExistsIncludingDeleted(enrollment));
 
@@ -411,7 +410,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     relationshipService.addRelationship(r);
     assertNotNull(manager.get(Enrollment.class, enrollment.getId()));
     assertNotNull(getRelationship(r.getId()));
-    apiEnrollmentService.deleteEnrollment(enrollment);
+    deleteEnrollment(enrollment);
     assertNull(manager.get(Enrollment.class, enrollment.getId()));
     manager.delete(r);
     assertNull(getRelationship(r.getId()));
@@ -504,5 +503,12 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
             .build();
 
     return !enrollmentService.getEnrollments(params).isEmpty();
+  }
+
+  private void deleteEnrollment(Enrollment enrollment) {
+    enrollment.setStatus(EnrollmentStatus.CANCELLED);
+    enrollment.setDeleted(true);
+    enrollment.setLastUpdated(new Date());
+    manager.update(enrollment);
   }
 }
