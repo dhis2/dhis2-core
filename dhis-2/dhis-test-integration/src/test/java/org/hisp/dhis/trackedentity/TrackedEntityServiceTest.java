@@ -65,12 +65,12 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Chau Thu Tran
  */
 class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
-  private static final UID TE_A_UID = uidWithPrefix('A');
-  private static final UID TE_B_UID = uidWithPrefix('B');
-  private static final UID TE_C_UID = uidWithPrefix('C');
-  private static final UID TE_D_UID = uidWithPrefix('D');
-  private static final UID ENROLLMENT_A_UID = UID.of(CodeGenerator.generateUid());
-  private static final UID EVENT_A_UID = UID.of(CodeGenerator.generateUid());
+  private static final String TE_A_UID = uidWithPrefix('A');
+  private static final String TE_B_UID = uidWithPrefix('B');
+  private static final String TE_C_UID = uidWithPrefix('C');
+  private static final String TE_D_UID = uidWithPrefix('D');
+  private static final String ENROLLMENT_A_UID = UID.of(CodeGenerator.generateUid()).getValue();
+  private static final String EVENT_A_UID = UID.of(CodeGenerator.generateUid()).getValue();
 
   @Autowired private TrackedEntityService trackedEntityService;
 
@@ -140,10 +140,10 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     trackedEntityB1 = createTrackedEntity(organisationUnit);
     trackedEntityC1 = createTrackedEntity(organisationUnit);
     trackedEntityD1 = createTrackedEntity(organisationUnit);
-    trackedEntityA1.setUid(TE_A_UID.getValue());
-    trackedEntityB1.setUid(TE_B_UID.getValue());
-    trackedEntityC1.setUid(TE_C_UID.getValue());
-    trackedEntityD1.setUid(TE_D_UID.getValue());
+    trackedEntityA1.setUid(TE_A_UID);
+    trackedEntityB1.setUid(TE_B_UID);
+    trackedEntityC1.setUid(TE_C_UID);
+    trackedEntityD1.setUid(TE_D_UID);
     program = createProgram('A', new HashSet<>(), organisationUnit);
     programService.addProgram(program);
     ProgramStage stageA = createProgramStage('A', program);
@@ -160,10 +160,10 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     incidentDate.withTimeAtStartOfDay();
     enrollment =
         new Enrollment(enrollmentDate.toDate(), incidentDate.toDate(), trackedEntityA1, program);
-    enrollment.setUid(ENROLLMENT_A_UID.getValue());
+    enrollment.setUid(ENROLLMENT_A_UID);
     enrollment.setOrganisationUnit(organisationUnit);
     event = createEvent(stageA, enrollment, organisationUnit);
-    event.setUid(EVENT_A_UID.getValue());
+    event.setUid(EVENT_A_UID);
 
     trackedEntityType.setPublicAccess(AccessStringHelper.FULL);
     trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
@@ -686,10 +686,10 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     programService.updateProgram(program);
 
     enrollment = new Enrollment(enrollmentDate, DateTime.now().toDate(), trackedEntity, program);
-    enrollment.setUid(uidWithPrefix(programStage).getValue());
+    enrollment.setUid(uidWithPrefix(programStage));
     enrollment.setOrganisationUnit(organisationUnit);
     event = new Event(enrollment, stage);
-    enrollment.setUid(uidWithPrefix(programStage).getValue());
+    enrollment.setUid(uidWithPrefix(programStage));
     enrollment.setOrganisationUnit(organisationUnit);
 
     manager.save(enrollment);
@@ -735,8 +735,8 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     attributeValueService.addTrackedEntityAttributeValue(trackedEntityAttributeValueA1);
   }
 
-  private static UID uidWithPrefix(char prefix) {
+  private static String uidWithPrefix(char prefix) {
     String value = prefix + CodeGenerator.generateUid().substring(0, 10);
-    return UID.of(value);
+    return UID.of(value).getValue();
   }
 }

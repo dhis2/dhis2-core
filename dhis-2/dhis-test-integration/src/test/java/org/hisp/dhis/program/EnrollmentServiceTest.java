@@ -66,11 +66,11 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class EnrollmentServiceTest extends PostgresIntegrationTestBase {
-  private static final UID ENROLLMENT_A_UID = UID.of(CodeGenerator.generateUid());
-  private static final UID ENROLLMENT_B_UID = UID.of(CodeGenerator.generateUid());
-  private static final UID ENROLLMENT_C_UID = UID.of(CodeGenerator.generateUid());
-  private static final UID ENROLLMENT_D_UID = UID.of(CodeGenerator.generateUid());
-  private static final UID EVENT_UID = UID.of(CodeGenerator.generateUid());
+  private static final String ENROLLMENT_A_UID = UID.of(CodeGenerator.generateUid()).getValue();
+  private static final String ENROLLMENT_B_UID = UID.of(CodeGenerator.generateUid()).getValue();
+  private static final String ENROLLMENT_C_UID = UID.of(CodeGenerator.generateUid()).getValue();
+  private static final String ENROLLMENT_D_UID = UID.of(CodeGenerator.generateUid()).getValue();
+  private static final String EVENT_UID = UID.of(CodeGenerator.generateUid()).getValue();
 
   @Autowired private EnrollmentService apiEnrollmentService;
 
@@ -167,21 +167,21 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     testDate2.withTimeAtStartOfDay();
     enrollmentDate = testDate2.toDate();
     enrollmentA = new Enrollment(enrollmentDate, incidentDate, trackedEntityA, programA);
-    enrollmentA.setUid(ENROLLMENT_A_UID.getValue());
+    enrollmentA.setUid(ENROLLMENT_A_UID);
     enrollmentA.setOrganisationUnit(organisationUnitA);
     enrollmentB = new Enrollment(enrollmentDate, incidentDate, trackedEntityA, programB);
-    enrollmentB.setUid(ENROLLMENT_B_UID.getValue());
+    enrollmentB.setUid(ENROLLMENT_B_UID);
     enrollmentB.setStatus(EnrollmentStatus.CANCELLED);
     enrollmentB.setOrganisationUnit(organisationUnitB);
     enrollmentC = new Enrollment(enrollmentDate, incidentDate, trackedEntityA, programC);
-    enrollmentC.setUid(ENROLLMENT_C_UID.getValue());
+    enrollmentC.setUid(ENROLLMENT_C_UID);
     enrollmentC.setStatus(EnrollmentStatus.COMPLETED);
     enrollmentC.setOrganisationUnit(organisationUnitA);
     enrollmentD = new Enrollment(enrollmentDate, incidentDate, trackedEntityB, programA);
-    enrollmentD.setUid(ENROLLMENT_D_UID.getValue());
+    enrollmentD.setUid(ENROLLMENT_D_UID);
     enrollmentD.setOrganisationUnit(organisationUnitB);
     eventA = new Event(enrollmentA, stageA);
-    eventA.setUid(EVENT_UID.getValue());
+    eventA.setUid(EVENT_UID);
     eventA.setOrganisationUnit(organisationUnitA);
     eventA.setAttributeOptionCombo(coA);
 
@@ -248,12 +248,8 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   void testGetEnrollmentByUid() {
     manager.save(enrollmentA);
     manager.save(enrollmentB);
-    assertEquals(
-        ENROLLMENT_A_UID.getValue(),
-        manager.get(Enrollment.class, ENROLLMENT_A_UID.getValue()).getUid());
-    assertEquals(
-        ENROLLMENT_B_UID.getValue(),
-        manager.get(Enrollment.class, ENROLLMENT_B_UID.getValue()).getUid());
+    assertEquals(ENROLLMENT_A_UID, manager.get(Enrollment.class, ENROLLMENT_A_UID).getUid());
+    assertEquals(ENROLLMENT_B_UID, manager.get(Enrollment.class, ENROLLMENT_B_UID).getUid());
   }
 
   @Test
