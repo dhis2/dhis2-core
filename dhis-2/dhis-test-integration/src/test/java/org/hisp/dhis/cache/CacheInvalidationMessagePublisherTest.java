@@ -27,9 +27,14 @@
  */
 package org.hisp.dhis.cache;
 
+import static org.hisp.dhis.common.CodeGenerator.generateUid;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.ArrayList;
 import java.util.List;
+import lombok.Getter;
+import org.hisp.dhis.cacheinvalidation.redis.CacheInvalidationMessagePublisher;
+import org.hisp.dhis.cacheinvalidation.redis.CacheInvalidationPreStartupRoutine;
 import org.hisp.dhis.cacheinvalidation.redis.PostCacheEventPublisher;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -38,13 +43,59 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @ActiveProfiles("cache-invalidation-test")
+@ContextConfiguration(
+    classes = {
+      CacheInvalidationMessagePublisherTest.Configuration.class,
+    })
 class CacheInvalidationMessagePublisherTest extends PostgresIntegrationTestBase {
+
+  static class Configuration {
+    @Bean
+    public static SessionRegistry sessionRegistry() {
+      return new SessionRegistryImpl();
+    }
+
+    @Bean
+    public String cacheInvalidationServerId() {
+      return generateUid();
+    }
+
+    @Bean
+    public CacheInvalidationPreStartupRoutine redisCacheInvalidationPreStartupRoutine() {
+      CacheInvalidationPreStartupRoutine routine = new CacheInvalidationPreStartupRoutine();
+      routine.setName("redisPreStartupRoutine");
+      routine.setRunlevel(20);
+      routine.setSkipInTests(false);
+      return routine;
+    }
+
+    @Primary
+    @Bean
+    CacheInvalidationMessagePublisher messagePublisher() {
+      return new TestableMessagePublisher();
+    }
+  }
+
+  static class TestableMessagePublisher implements CacheInvalidationMessagePublisher {
+    @Getter private final List<String> messages = new ArrayList<>();
+
+    @Override
+    public void publish(String channel, String message) {
+      messages.add(message);
+    }
+  }
+
   @Autowired private PostCacheEventPublisher postCacheEventPublisher;
 
   @Autowired private IdentifiableObjectManager manager;
