@@ -37,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.collect.Sets;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
@@ -371,12 +372,12 @@ class DataApprovalServiceCategoryOptionGroupTest extends PostgresIntegrationTest
     chinaB2 = new CategoryOption("ChinaB2");
     indiaA1 = new CategoryOption("IndiaA1");
     worldwide = new CategoryOption("worldwide");
-    brazilA1.setOrganisationUnits(newHashSet(brazil));
-    chinaA1_1.setOrganisationUnits(newHashSet(china));
-    chinaA1_2.setOrganisationUnits(newHashSet(china));
-    chinaA2.setOrganisationUnits(newHashSet(china));
-    chinaB2.setOrganisationUnits(newHashSet(china));
-    indiaA1.setOrganisationUnits(newHashSet(india));
+    brazilA1.setOrganisationUnits(Sets.newHashSet(brazil));
+    chinaA1_1.setOrganisationUnits(Sets.newHashSet(china));
+    chinaA1_2.setOrganisationUnits(Sets.newHashSet(china));
+    chinaA2.setOrganisationUnits(Sets.newHashSet(china));
+    chinaB2.setOrganisationUnits(Sets.newHashSet(china));
+    indiaA1.setOrganisationUnits(Sets.newHashSet(india));
     // worldwide mechanism, unlike the others, is not limited by orgUnit
     categoryService.addCategoryOption(brazilA1);
     categoryService.addCategoryOption(chinaA1_1);

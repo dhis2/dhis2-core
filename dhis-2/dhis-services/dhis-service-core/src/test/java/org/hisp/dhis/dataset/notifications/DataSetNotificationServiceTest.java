@@ -70,7 +70,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.user.UserSettingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -86,7 +86,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Zubair Asghar.
  */
 @ExtendWith(MockitoExtension.class)
-class DataSetNotificationServiceTest extends DhisConvenienceTest {
+class DataSetNotificationServiceTest extends TestBase {
   public static final String TEMPALTE_A_UID = "smsTemplateA";
 
   public static final String TEMPALTE_B_UID = "emailTemplateB";

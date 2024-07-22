@@ -30,7 +30,7 @@ package org.hisp.dhis.outlierdetection.util;
 import static org.hisp.dhis.feedback.ErrorCode.E2208;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.hisp.dhis.outlierdetection.util.OutlierDetectionUtils.withExceptionHandling;
-import static org.hisp.dhis.test.DhisConvenienceTest.createOrganisationUnit;
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 

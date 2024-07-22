@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.trackedentity;
 
-import static org.hisp.dhis.test.DhisConvenienceTest.createTrackedEntityAttributeValue;
+import static org.hisp.dhis.test.TestBase.createTrackedEntityAttributeValue;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertNoErrors;

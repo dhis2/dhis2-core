@@ -41,7 +41,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSectionService;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -72,16 +72,16 @@ class ProgramStageObjectBundleHookTest {
   public void init() {
     this.subject = new ProgramStageObjectBundleHook(aclService, programStageSectionService);
 
-    program = DhisConvenienceTest.createProgram('A');
+    program = TestBase.createProgram('A');
     program.setUid("jGRqKgwvvb6");
 
-    programStage = DhisConvenienceTest.createProgramStage('A', program);
+    programStage = TestBase.createProgramStage('A', program);
     programStage.setUid("giQh4EFWKOk");
 
-    dataElement = DhisConvenienceTest.createDataElement('A');
+    dataElement = TestBase.createDataElement('A');
     dataElement.setUid("qtplcYVR1oO");
     programStage.addDataElement(dataElement, 0);
-    user = DhisConvenienceTest.makeUser("A");
+    user = TestBase.makeUser("A");
     user.setUid("WAoGUm593U7");
 
     preheat.put(PreheatIdentifier.UID, program);

@@ -44,7 +44,7 @@ import org.springframework.test.context.ContextConfiguration;
       PostgresDhisConfiguration.class,
     })
 @SpringIntegrationTest
-public abstract class SpringIntegrationTestBase extends DhisConvenienceTest {
+public abstract class SpringIntegrationTestBase extends TestBase {
 
   @Getter private User adminUser;
   public EntityManager entityManager;

@@ -42,7 +42,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -50,7 +50,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jim Grace
  */
-class PredictionDataFilterTest extends DhisConvenienceTest {
+class PredictionDataFilterTest extends TestBase {
   private final OrganisationUnit ouA = createOrganisationUnit('A');
 
   private final Period periodA = createPeriod("202201");

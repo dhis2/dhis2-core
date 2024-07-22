@@ -42,13 +42,13 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  */
-class SectionUtilsTest extends DhisConvenienceTest {
+class SectionUtilsTest extends TestBase {
   private static final long CAT_AB = 0;
 
   private static final long CAT_ABC = 1;
