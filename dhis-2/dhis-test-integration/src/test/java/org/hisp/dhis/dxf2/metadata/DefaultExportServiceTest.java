@@ -47,15 +47,21 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.test.DhisConvenienceTest;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author bobj
  */
-class DefaultExportServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class DefaultExportServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataElementService dataElementService;
 
@@ -89,8 +95,8 @@ class DefaultExportServiceTest extends SingleSetupIntegrationTestBase {
 
   private Period peB;
 
-  @Override
-  public void setUpTest() {
+  @BeforeAll
+  void setUp() {
     deA = createDataElement('A');
     deB = createDataElement('B');
     deC = createDataElement('C');

@@ -53,16 +53,22 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.UserInfoSnapshot;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogStore;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-class TrackedEntityDataValueChangeLogStoreTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class TrackedEntityDataValueChangeLogStoreTest extends PostgresIntegrationTestBase {
   private static final String USER_A = "userA";
 
   private static final UserInfoSnapshot USER_SNAP_A = UserInfoTestHelper.testUserInfo(USER_A);
@@ -127,8 +133,8 @@ class TrackedEntityDataValueChangeLogStoreTest extends SingleSetupIntegrationTes
 
   private EventDataValue dvE;
 
-  @Override
-  public void setUpTest() {
+  @BeforeAll
+  void setUp() {
     coc = categoryService.getDefaultCategoryOptionCombo();
     ouA = createOrganisationUnit('A');
     ouB = createOrganisationUnit('B', ouA);

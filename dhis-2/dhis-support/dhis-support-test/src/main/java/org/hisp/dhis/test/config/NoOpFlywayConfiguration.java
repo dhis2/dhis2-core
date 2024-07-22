@@ -25,11 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.db.migration.helper;
+package org.hisp.dhis.test.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 /**
- * A no operation flyway that is used for unit tests. Disabling flyway migrations during unit tests.
- *
- * @author Ameen Mohamed
+ * Creates a no operation flyway bean that can be used to disable flyway migrations when running
+ * tests.
  */
-public class NoOpFlyway {}
+@Profile("test-h2")
+@Configuration
+public class NoOpFlywayConfiguration {
+
+  public static class NoOpFlyway {}
+
+  @Bean
+  public NoOpFlyway flyway() {
+    return new NoOpFlyway();
+  }
+}

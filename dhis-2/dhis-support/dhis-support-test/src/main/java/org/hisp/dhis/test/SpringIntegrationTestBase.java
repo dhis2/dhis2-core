@@ -25,49 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.integration;
+package org.hisp.dhis.test;
 
-import org.hisp.dhis.test.BaseSpringTest;
-import org.hisp.dhis.test.IntegrationTest;
+import javax.persistence.EntityManager;
+import lombok.Getter;
 import org.hisp.dhis.test.config.IntegrationBaseConfiguration;
 import org.hisp.dhis.test.config.PostgresDhisConfiguration;
+import org.hisp.dhis.test.junit.SpringIntegrationTest;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @ContextConfiguration(
-    classes = {IntegrationBaseConfiguration.class, PostgresDhisConfiguration.class})
-@IntegrationTest
-@ActiveProfiles(profiles = {"test-postgres"})
-public abstract class IntegrationTestBase extends BaseSpringTest {
+    classes = {
+      IntegrationBaseConfiguration.class,
+      PostgresDhisConfiguration.class,
+    })
+@SpringIntegrationTest
+public abstract class SpringIntegrationTestBase extends DhisConvenienceTest {
 
-  @Autowired private UserService _userService;
-
-  private User adminUser;
-
-  @BeforeEach
-  public void before() throws Exception {
-    bindSession();
-
-    userService = _userService;
-    adminUser = preCreateInjectAdminUser();
-
-    integrationTestBeforeEach();
-  }
-
-  public User getAdminUser() {
-    return adminUser;
-  }
-
-  @AfterEach
-  public final void after() throws Exception {
-    nonTransactionalAfter();
-  }
+  @Getter private User adminUser;
+  public EntityManager entityManager;
 }

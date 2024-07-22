@@ -32,16 +32,22 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
-class DataStatisticsStoreTest extends TransactionalIntegrationTest {
+@Transactional
+class DataStatisticsStoreTest extends PostgresIntegrationTestBase {
   @Autowired private DataStatisticsStore dataStatisticsStore;
+
+  @Autowired private DbmsManager dbmsManager;
 
   private DataStatistics ds1;
 
@@ -59,8 +65,8 @@ class DataStatisticsStoreTest extends TransactionalIntegrationTest {
 
   private Date date;
 
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     ds1 = new DataStatistics();
     ds2 =
         new DataStatistics(

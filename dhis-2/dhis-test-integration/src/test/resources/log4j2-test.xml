@@ -72,5 +72,10 @@
         <!--<Logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE">
                <AppenderRef ref="console"/>
         </Logger>-->
+
+        <!-- Uncomment if you want to debug our JUnit extension -->
+        <!--<Logger name="org.hisp.dhis.test.junit" level="debug">
+               <AppenderRef ref="console"/>
+        </Logger>-->
     </Loggers>
 </Configuration>

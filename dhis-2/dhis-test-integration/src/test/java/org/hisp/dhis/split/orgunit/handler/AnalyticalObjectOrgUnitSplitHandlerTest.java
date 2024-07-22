@@ -35,15 +35,21 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.split.orgunit.OrgUnitSplitRequest;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.visualization.Visualization;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class AnalyticalObjectOrgUnitSplitHandlerTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class AnalyticalObjectOrgUnitSplitHandlerTest extends PostgresIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager idObjectManager;
 
@@ -59,8 +65,8 @@ class AnalyticalObjectOrgUnitSplitHandlerTest extends SingleSetupIntegrationTest
 
   private OrganisationUnit ouC;
 
-  @Override
-  public void setUpTest() {
+  @BeforeAll
+  void setUp() {
     deA = createDataElement('A');
     idObjectManager.save(deA);
     ouA = createOrganisationUnit('A');
