@@ -37,6 +37,7 @@ import java.util.HashSet;
 import java.util.Map;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
@@ -74,7 +75,8 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
   void shouldManualMergeWithAuthorityAll()
       throws PotentialDuplicateConflictException,
           PotentialDuplicateForbiddenException,
-          ForbiddenException {
+          ForbiddenException,
+          NotFoundException {
     OrganisationUnit ou = createOrganisationUnit("OU_A");
     organisationUnitService.addOrganisationUnit(ou);
     User user =
@@ -125,7 +127,8 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
   void shouldManualMergeWithUserGroupOfProgram()
       throws PotentialDuplicateConflictException,
           PotentialDuplicateForbiddenException,
-          ForbiddenException {
+          ForbiddenException,
+          NotFoundException {
     OrganisationUnit ou = createOrganisationUnit("OU_A");
     organisationUnitService.addOrganisationUnit(ou);
     User user = createAndAddUser(true, "userB", ou, "F_TRACKED_ENTITY_MERGE");

@@ -40,7 +40,6 @@ import javax.persistence.criteria.Root;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
@@ -54,11 +53,6 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.relationship.RelationshipStore")
 public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relationship>
     implements RelationshipStore {
-  private static final String TRACKED_ENTITY = "trackedEntity";
-
-  private static final String ENROLLMENT = "enrollment";
-
-  private static final String EVENT = "event";
 
   public HibernateRelationshipStore(
       EntityManager entityManager,
@@ -76,26 +70,6 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
         builder,
         newJpaParameters()
             .addPredicate(root -> builder.equal(root.join("relationshipType"), relationshipType)));
-  }
-
-  @Override
-  public Relationship getByRelationship(Relationship relationship) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-    CriteriaQuery<Relationship> criteriaQuery = builder.createQuery(Relationship.class);
-
-    Root<Relationship> root = criteriaQuery.from(Relationship.class);
-
-    criteriaQuery.where(
-        builder.and(
-            getFromOrToPredicate("from", builder, root, relationship),
-            getFromOrToPredicate("to", builder, root, relationship),
-            builder.equal(root.join("relationshipType"), relationship.getRelationshipType())));
-
-    try {
-      return getSession().createQuery(criteriaQuery).setMaxResults(1).getSingleResult();
-    } catch (NoResultException nre) {
-      return null;
-    }
   }
 
   @Override
@@ -148,31 +122,5 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
   @Override
   protected Relationship postProcessObject(Relationship relationship) {
     return (relationship == null || relationship.isDeleted()) ? null : relationship;
-  }
-
-  private Predicate getFromOrToPredicate(
-      String direction,
-      CriteriaBuilder builder,
-      Root<Relationship> root,
-      Relationship relationship) {
-    RelationshipItem relationshipItemDirection = getItem(direction, relationship);
-
-    if (relationshipItemDirection.getTrackedEntity() != null) {
-      return builder.equal(
-          root.join(direction).get(TRACKED_ENTITY),
-          getItem(direction, relationship).getTrackedEntity());
-    } else if (relationshipItemDirection.getEnrollment() != null) {
-      return builder.equal(
-          root.join(direction).get(ENROLLMENT), getItem(direction, relationship).getEnrollment());
-    } else if (relationshipItemDirection.getEvent() != null) {
-      return builder.equal(
-          root.join(direction).get(EVENT), getItem(direction, relationship).getEvent());
-    } else {
-      return null;
-    }
-  }
-
-  private RelationshipItem getItem(String direction, Relationship relationship) {
-    return (direction.equalsIgnoreCase("from") ? relationship.getFrom() : relationship.getTo());
   }
 }

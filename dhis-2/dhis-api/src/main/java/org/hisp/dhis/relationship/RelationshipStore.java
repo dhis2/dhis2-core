@@ -38,16 +38,6 @@ public interface RelationshipStore extends IdentifiableObjectStore<Relationship>
 
   List<Relationship> getByRelationshipType(RelationshipType relationshipType);
 
-  /**
-   * Fetches a {@link Relationship} based on a relationship identifying attributes: - relationship
-   * type - from - to
-   *
-   * @param relationship A valid Relationship
-   * @return a {@link Relationship} or null if no Relationship is found matching the identifying
-   *     criterias
-   */
-  Relationship getByRelationship(Relationship relationship);
-
   List<String> getUidsByRelationshipKeys(List<String> relationshipKeyList);
 
   List<Relationship> getByUidsIncludeDeleted(List<String> uids);
