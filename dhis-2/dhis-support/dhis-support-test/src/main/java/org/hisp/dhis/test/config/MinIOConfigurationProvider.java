@@ -37,7 +37,7 @@ import org.testcontainers.containers.MinIOContainer;
  * @author david mackessy
  */
 public class MinIOConfigurationProvider extends PostgresDhisConfigurationProvider {
-  private static final String MINIO_VERSION = "minio/minio:RELEASE.2023-09-04T19-57-37Z";
+  private static final String MINIO_VERSION = "minio/minio:RELEASE.2024-07-16T23-46-41Z";
   private static final MinIOContainer MINIO_CONTAINER;
   private static final String MINIO_USER = "testuser";
   private static final String MINIO_PASSWORD = "testpassword";

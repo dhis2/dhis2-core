@@ -30,6 +30,8 @@ package org.hisp.dhis.app;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import org.hisp.dhis.appmanager.App;
@@ -43,6 +45,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
@@ -76,7 +79,7 @@ class AppManagerTest extends TransactionalIntegrationTest {
     assertTrue(update.ok());
     assertEquals("ok", appStatus.getMessage());
 
-    // get 2nd version
+    // get app version & index.html
     App app = appManager.getApp("test minio");
     Resource resource = appManager.getAppResource(app, "index.html");
 
@@ -85,7 +88,7 @@ class AppManagerTest extends TransactionalIntegrationTest {
   }
 
   @Test
-  @DisplayName("Content size for File resource returns positive int")
+  @DisplayName("File resource content size is 38")
   void fileResourceContentLengthTest() {
     // given
     Resource resource =
@@ -96,5 +99,19 @@ class AppManagerTest extends TransactionalIntegrationTest {
 
     // then
     assertEquals(38, uriContentLength);
+  }
+
+  @Test
+  @DisplayName("File resource content size is -1 when exception thrown")
+  void fileResourceContentLengthUnknownTest() throws IOException {
+    // given
+    Resource mockResource = mock(UrlResource.class);
+    when(mockResource.getURL()).thenThrow(IOException.class);
+
+    // when
+    int uriContentLength = appManager.getUriContentLength(mockResource);
+
+    // then
+    assertEquals(-1, uriContentLength);
   }
 }
