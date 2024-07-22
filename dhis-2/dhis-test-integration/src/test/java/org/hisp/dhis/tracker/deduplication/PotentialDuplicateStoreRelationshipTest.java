@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.google.common.collect.Lists;
 import java.util.List;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.relationship.Relationship;
@@ -59,6 +60,8 @@ class PotentialDuplicateStoreRelationshipTest extends IntegrationTestBase {
   @Autowired private RelationshipTypeService relationshipTypeService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
+
+  @Autowired private IdentifiableObjectManager manager;
 
   private TrackedEntity original;
 
@@ -111,10 +114,10 @@ class PotentialDuplicateStoreRelationshipTest extends IntegrationTestBase {
     transactionTemplate.execute(
         status -> {
           dbmsManager.clearSession();
-          Relationship _bi1 = relationshipService.getRelationship(bi1.getUid());
-          Relationship _bi2 = relationshipService.getRelationship(bi2.getUid());
-          Relationship _bi3 = relationshipService.getRelationship(bi3.getUid());
-          Relationship _bi4 = relationshipService.getRelationship(bi4.getUid());
+          Relationship _bi1 = getRelationship(bi1.getUid());
+          Relationship _bi2 = getRelationship(bi2.getUid());
+          Relationship _bi3 = getRelationship(bi3.getUid());
+          Relationship _bi4 = getRelationship(bi4.getUid());
           assertNotNull(_bi1);
           assertEquals(original.getUid(), _bi1.getFrom().getTrackedEntity().getUid());
           assertEquals(extra2.getUid(), _bi1.getTo().getTrackedEntity().getUid());
@@ -147,10 +150,10 @@ class PotentialDuplicateStoreRelationshipTest extends IntegrationTestBase {
     potentialDuplicateStore.moveRelationships(original, duplicate, relationships);
     trackedEntityService.updateTrackedEntity(original);
     trackedEntityService.updateTrackedEntity(duplicate);
-    Relationship _uni1 = relationshipService.getRelationship(uni1.getUid());
-    Relationship _uni2 = relationshipService.getRelationship(uni2.getUid());
-    Relationship _uni3 = relationshipService.getRelationship(uni3.getUid());
-    Relationship _uni4 = relationshipService.getRelationship(uni4.getUid());
+    Relationship _uni1 = getRelationship(uni1.getUid());
+    Relationship _uni2 = getRelationship(uni2.getUid());
+    Relationship _uni3 = getRelationship(uni3.getUid());
+    Relationship _uni4 = getRelationship(uni4.getUid());
     assertNotNull(_uni1);
     assertEquals(original.getUid(), _uni1.getFrom().getTrackedEntity().getUid());
     assertEquals(extra2.getUid(), _uni1.getTo().getTrackedEntity().getUid());
@@ -184,10 +187,10 @@ class PotentialDuplicateStoreRelationshipTest extends IntegrationTestBase {
     transactionTemplate.execute(
         status -> {
           dbmsManager.clearSession();
-          Relationship _uni1 = relationshipService.getRelationship(uni1.getUid());
-          Relationship _uni2 = relationshipService.getRelationship(uni2.getUid());
-          Relationship _bi1 = relationshipService.getRelationship(bi1.getUid());
-          Relationship _bi2 = relationshipService.getRelationship(bi2.getUid());
+          Relationship _uni1 = getRelationship(uni1.getUid());
+          Relationship _uni2 = getRelationship(uni2.getUid());
+          Relationship _bi1 = getRelationship(bi1.getUid());
+          Relationship _bi2 = getRelationship(bi2.getUid());
           assertNotNull(_uni1);
           assertEquals(original.getUid(), _uni1.getFrom().getTrackedEntity().getUid());
           assertEquals(extra2.getUid(), _uni1.getTo().getTrackedEntity().getUid());
@@ -202,5 +205,9 @@ class PotentialDuplicateStoreRelationshipTest extends IntegrationTestBase {
           assertEquals(extra2.getUid(), _bi2.getTo().getTrackedEntity().getUid());
           return null;
         });
+  }
+
+  private Relationship getRelationship(String uid) {
+    return manager.get(Relationship.class, uid);
   }
 }

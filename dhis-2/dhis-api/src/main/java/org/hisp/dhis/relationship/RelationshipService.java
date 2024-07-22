@@ -50,22 +50,6 @@ public interface RelationshipService {
   long addRelationship(Relationship relationship);
 
   /**
-   * Returns a {@link Relationship}.
-   *
-   * @param id the id of the relationship to return.
-   * @return the relationship with the given identifier.
-   */
-  Relationship getRelationship(long id);
-
-  /**
-   * Checks if relationship for given UID exists (including deleted relationships).
-   *
-   * @param uid Relationship UID to check for.
-   * @return return true if relationship exists, false otherwise.
-   */
-  boolean relationshipExistsIncludingDeleted(String uid);
-
-  /**
    * Fetches a {@link Relationship} based on a relationship identifying attributes:
    *
    * <p>- relationship type - from - to
@@ -74,10 +58,6 @@ public interface RelationshipService {
    * @return an Optional Relationship
    */
   Optional<Relationship> getRelationshipByRelationship(Relationship relationship);
-
-  Relationship getRelationship(String uid);
-
-  Relationship getRelationshipIncludeDeleted(String uid);
 
   List<Relationship> getRelationships(@Nonnull List<String> uids);
 
