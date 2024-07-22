@@ -42,23 +42,25 @@ import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.transaction.annotation.Transactional;
 
-class TrackedEntityTypeValidationTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class TrackedEntityTypeValidationTest extends PostgresIntegrationTestBase {
   @Autowired private RenderService _renderService;
-
-  @Autowired private UserService _userService;
 
   @Autowired private MetadataImportService importService;
 
-  @Override
-  protected void setUpTest() throws Exception {
+  @BeforeAll
+  void setUp() {
     renderService = _renderService;
-    userService = _userService;
   }
 
   @Test

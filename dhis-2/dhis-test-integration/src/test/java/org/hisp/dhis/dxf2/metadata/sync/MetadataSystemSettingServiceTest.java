@@ -28,19 +28,26 @@
 package org.hisp.dhis.dxf2.metadata.sync;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.dxf2.metadata.systemsettings.DefaultMetadataSystemSettingService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author anilkumk
  */
-class MetadataSystemSettingServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class MetadataSystemSettingServiceTest extends PostgresIntegrationTestBase {
   @Autowired SystemSettingManager systemSettingManager;
 
   @Autowired DefaultMetadataSystemSettingService metadataSystemSettingService;
@@ -105,7 +112,7 @@ class MetadataSystemSettingServiceTest extends SingleSetupIntegrationTestBase {
   void testShouldGetStopMetadataSyncSettingValue() {
     Boolean stopMetadataSync = metadataSystemSettingService.getStopMetadataSyncSetting();
 
-    assertEquals(true, stopMetadataSync);
+    assertTrue(stopMetadataSync);
   }
 
   @Test
@@ -113,6 +120,6 @@ class MetadataSystemSettingServiceTest extends SingleSetupIntegrationTestBase {
     systemSettingManager.saveSystemSetting(SettingKey.STOP_METADATA_SYNC, null);
     Boolean stopMetadataSync = metadataSystemSettingService.getStopMetadataSyncSetting();
 
-    assertEquals(false, stopMetadataSync);
+    assertFalse(stopMetadataSync);
   }
 }

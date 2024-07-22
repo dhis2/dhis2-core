@@ -62,15 +62,21 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class EventAnalyticsServiceMetadataTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class EventAnalyticsServiceMetadataTest extends PostgresIntegrationTestBase {
   @Autowired private UserService _userService;
 
   private LegendSet lsA;
@@ -113,8 +119,8 @@ class EventAnalyticsServiceMetadataTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private EventAnalyticsService eventAnalyticsService;
 
-  @Override
-  public void setUpTest() {
+  @BeforeAll
+  void setUp() {
     userService = _userService;
     leA = createLegend('A', 0d, 10d);
     leB = createLegend('B', 11d, 20d);

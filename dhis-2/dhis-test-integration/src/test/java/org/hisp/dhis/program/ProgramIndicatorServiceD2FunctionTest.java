@@ -42,14 +42,20 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Jim Grace
  */
-class ProgramIndicatorServiceD2FunctionTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class ProgramIndicatorServiceD2FunctionTest extends PostgresIntegrationTestBase {
 
   @Autowired private ProgramIndicatorService programIndicatorService;
 
@@ -85,8 +91,8 @@ class ProgramIndicatorServiceD2FunctionTest extends SingleSetupIntegrationTestBa
 
   private Date newDate = new GregorianCalendar(2020, Calendar.JANUARY, 9).getTime();
 
-  @Override
-  public void setUpTest() {
+  @BeforeAll
+  void setUp() {
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnit);
     // ---------------------------------------------------------------------

@@ -35,16 +35,22 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.persistence.EntityManager;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Stian Sandvold
  */
-class MessageConversationStoreTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class MessageConversationStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private MessageConversationStore messageConversationStore;
 
@@ -62,11 +68,8 @@ class MessageConversationStoreTest extends SingleSetupIntegrationTestBase {
 
   private Collection<String> conversationIds;
 
-  // -------------------------------------------------------------------------
-  // Fixture
-  // -------------------------------------------------------------------------
-  @Override
-  public void setUpTest() {
+  @BeforeAll
+  void setUp() {
     userService = _userService;
     // 'A' used as currentUser
     setupUser("A");
