@@ -247,7 +247,7 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
         .when(jdbcTemplate)
         .query(anyString(), any(RowCallbackHandler.class));
 
-    // TEI uid:
+    // TE uid:
     when(resultSet1.getObject(1)).thenReturn(te1);
     when(resultSet2.getObject(1)).thenReturn(te2);
     when(resultSet3.getObject(1)).thenReturn(te2);

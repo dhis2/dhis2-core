@@ -57,9 +57,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.springframework.stereotype.Service;
 
 /**
- * This builder is responsible for building the SQL query for the TEI table. It will generate the
+ * This builder is responsible for building the SQL query for the TE table. It will generate the
  * relevant SQL parts related to dimensions/filters/sortingParameters having one the following
- * structure: - {teiField} - {programUid}.{programAttribute}
+ * structure: - {teField} - {programUid}.{programAttribute}
  */
 @Service
 @RequiredArgsConstructor
@@ -78,14 +78,14 @@ public class TrackedEntityQueryBuilder extends SqlQueryBuilderAdaptor {
       List.of(
           SqlQueryBuilders::isNotPeriodDimension,
           OrgUnitQueryBuilder::isNotOuDimension,
-          TrackedEntityQueryBuilder::isTeiRestriction);
+          TrackedEntityQueryBuilder::isTrackedEntityRestriction);
 
   @Getter
   private final List<Predicate<AnalyticsSortingParams>> sortingFilters =
       List.of(
           sortingParams -> SqlQueryBuilders.isNotPeriodDimension(sortingParams.getOrderBy()),
           sortingParams -> OrgUnitQueryBuilder.isNotOuDimension(sortingParams.getOrderBy()),
-          TrackedEntityQueryBuilder::isTeiOrder);
+          TrackedEntityQueryBuilder::isTrackedEntityOrder);
 
   @Override
   protected Stream<Field> getSelect(QueryContext queryContext) {
@@ -104,9 +104,9 @@ public class TrackedEntityQueryBuilder extends SqlQueryBuilderAdaptor {
                 .map(attr -> Field.of(TRACKED_ENTITY_ALIAS, () -> attr, attr)),
             // Static fields column.
             TrackedEntityFields.getStaticFields(),
-            // Tei/Program attributes.
+            // TrackedEntity/Program attributes.
             TrackedEntityFields.getDimensionFields(queryContext.getContextParams()),
-            // Enrollments
+            // Enrollments.
             Stream.of(aggregatedEnrollments))
         .flatMap(Function.identity());
   }
@@ -122,24 +122,25 @@ public class TrackedEntityQueryBuilder extends SqlQueryBuilderAdaptor {
   }
 
   /**
-   * Returns true if the given dimension identifier has restrictions and is either a TEI dimension
-   * or a Program indicator
+   * Returns true if the given dimension identifier has restrictions and is either a TE dimension or
+   * a Program indicator
    *
    * @param dimensionIdentifier the dimension identifier
-   * @return true if the given dimension identifier has restrictions and is either a TEI dimension
-   *     or a Program indicator
+   * @return true if the given dimension identifier has restrictions and is either a TE dimension or
+   *     a Program indicator
    */
-  private static boolean isTeiRestriction(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
-    return hasRestrictions(dimensionIdentifier) && isTei(dimensionIdentifier);
+  private static boolean isTrackedEntityRestriction(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+    return hasRestrictions(dimensionIdentifier) && isTrackedEntity(dimensionIdentifier);
   }
 
   /**
-   * Returns true if the given dimension identifier is either a TEI dimension or a Program indicator
+   * Returns true if the given dimension identifier is either a TE dimension or a Program indicator
    *
    * @param dimensionIdentifier the dimension identifier
-   * @return true if the given dimension identifier is either a TEI dimension or a Program indicator
+   * @return true if the given dimension identifier is either a TE dimension or a Program indicator
    */
-  private static boolean isTei(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+  private static boolean isTrackedEntity(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
     return
     // Will match all dimensionIdentifiers like {dimensionUid}.
     dimensionIdentifier.getDimensionIdentifierType() == TRACKED_ENTITY
@@ -157,13 +158,13 @@ public class TrackedEntityQueryBuilder extends SqlQueryBuilderAdaptor {
 
   private IndexedOrder toIndexedOrder(AnalyticsSortingParams param) {
     // Here, we can assume that param is either a static dimension or
-    // a TEI/Program attribute in the form asc=pUid.dimension (or desc=pUid.dimension)
+    // a TE/Program attribute in the form asc=pUid.dimension (or desc=pUid.dimension)
     // in both cases the column for the select is the same.
     String column = param.getOrderBy().getDimension().getUid();
     return IndexedOrder.of(param.getIndex(), Order.of(Field.of(column), param.getSortDirection()));
   }
 
-  private static boolean isTeiOrder(AnalyticsSortingParams analyticsSortingParams) {
-    return isTei(analyticsSortingParams.getOrderBy());
+  private static boolean isTrackedEntityOrder(AnalyticsSortingParams analyticsSortingParams) {
+    return isTrackedEntity(analyticsSortingParams.getOrderBy());
   }
 }

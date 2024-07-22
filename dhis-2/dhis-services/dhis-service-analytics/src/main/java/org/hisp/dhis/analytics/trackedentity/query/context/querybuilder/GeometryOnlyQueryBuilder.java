@@ -41,7 +41,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * This class is responsible for adding the where clause for the geometry only query. This happens
- * we want to return only TEI with geometry.
+ * we want to return only TE with geometry.
  */
 @Service
 public class GeometryOnlyQueryBuilder extends SqlQueryBuilderAdaptor {

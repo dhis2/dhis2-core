@@ -39,7 +39,7 @@ import org.hisp.dhis.analytics.trackedentity.query.context.sql.RenderableSqlQuer
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryBuilder;
 import org.springframework.stereotype.Service;
 
-/** This class is responsible for building the SQL statement for the main TEI table. */
+/** This class is responsible for building the SQL statement for the main TE table. */
 @Service
 public class MainTableQueryBuilder implements SqlQueryBuilder {
   @Override

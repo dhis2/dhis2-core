@@ -63,7 +63,7 @@ public class DimensionIdentifier<D extends UidObject> implements IdentifiableKey
   @With private final String groupId;
 
   /**
-   * Creates a dimension identifier for a TEI dimension with empty groupId.
+   * Creates a dimension identifier for a TE dimension with empty groupId.
    *
    * @param program the {@link ElementWithOffset<Program>}.
    * @param programStage the {@link ElementWithOffset<ProgramStage>}.

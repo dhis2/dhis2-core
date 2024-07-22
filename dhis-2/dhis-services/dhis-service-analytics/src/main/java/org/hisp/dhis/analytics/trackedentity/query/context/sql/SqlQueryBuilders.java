@@ -44,7 +44,7 @@ public class SqlQueryBuilders {
       """
       select json_agg(json_build_object(
           'programStageUid', ev.programstage,
-          'eventUid', ev.enrollment,
+          'eventUid', ev.event,
           'occurredDate', ev.occurreddate,
           'dueDate', ev.scheduleddate,
           'orgUnitUid', ev.ou,
@@ -54,7 +54,7 @@ public class SqlQueryBuilders {
           'eventStatus', ev.status,
           'eventDataValues', ev.eventdatavalues))
       from analytics_te_events_${trackedEntityType} ev
-      where ev.event = en.enrollment""";
+      where ev.enrollment = en.enrollment""";
 
   private static final String ENROLLMENT_QUERY =
       replace(

@@ -144,7 +144,7 @@ class ProgramIndicatorSubqueryBuilderTest {
   void verifyJoinWhenRelationshipTypeIsPresent() {
     ProgramIndicator pi = createProgramIndicator('A', program, DUMMY_EXPRESSION, "");
 
-    // Create a TEI to TEI relationship
+    // Create a TE to TE relationship
     RelationshipType relationshipType = rnd.nextObject(RelationshipType.class);
     relationshipType
         .getFromConstraint()

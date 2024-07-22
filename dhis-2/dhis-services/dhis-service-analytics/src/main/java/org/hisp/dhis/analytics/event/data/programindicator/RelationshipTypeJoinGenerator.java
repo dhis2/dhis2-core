@@ -46,7 +46,7 @@ public class RelationshipTypeJoinGenerator {
   static final String RELATIONSHIP_JOIN = " WHERE rty.relationshiptypeid = ${relationshipid}";
 
   /**
-   * Generate a sub query that joins an incoming Event/Enrollment/TEI UID to one or more related
+   * Generate a sub query that joins an incoming Event/Enrollment/TE UID to one or more related
    * entities, based on the selected relationship type
    *
    * @param alias the table alias to use for the main analytics table

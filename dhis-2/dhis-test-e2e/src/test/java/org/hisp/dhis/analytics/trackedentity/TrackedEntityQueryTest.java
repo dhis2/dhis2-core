@@ -364,14 +364,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
 
     // Validate headers
     validateHeader(
-        response,
-        0,
-        "trackedentity",
-        "Tracked entity instance",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
+        response, 0, "trackedentity", "Tracked entity", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response,
         1,

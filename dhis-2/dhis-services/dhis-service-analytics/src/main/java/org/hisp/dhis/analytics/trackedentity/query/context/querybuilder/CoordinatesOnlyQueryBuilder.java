@@ -41,7 +41,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * This class is responsible for adding the where clause for the coordinates only query. This
- * happens we want to return only TEI with coordinates.
+ * happens we want to return only TE with coordinates.
  */
 @Service
 public class CoordinatesOnlyQueryBuilder extends SqlQueryBuilderAdaptor {

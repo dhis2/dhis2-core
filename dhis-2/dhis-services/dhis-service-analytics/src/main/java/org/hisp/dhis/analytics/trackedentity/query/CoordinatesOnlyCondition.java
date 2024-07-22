@@ -36,8 +36,8 @@ import org.hisp.dhis.analytics.common.query.BaseRenderable;
 import org.hisp.dhis.analytics.common.query.Field;
 
 /**
- * A condition that checks if the given entity has coordinates. Renders to tei."latitude" is not
- * null and tei."longitude" is not null"
+ * A condition that checks if the given entity has coordinates. Renders to te."latitude" is not null
+ * and te."longitude" is not null"
  */
 public class CoordinatesOnlyCondition extends BaseRenderable {
   public static final CoordinatesOnlyCondition INSTANCE = new CoordinatesOnlyCondition();

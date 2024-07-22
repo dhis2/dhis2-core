@@ -86,7 +86,7 @@ public class PeriodQueryBuilder extends SqlQueryBuilderAdaptor {
     streamDimensions(acceptedHeaders, acceptedDimensions, acceptedSortingParams)
         .filter(not(DimensionIdentifier::isTeDimension))
         .map(PeriodQueryBuilder::asField)
-        // non TEI periods are virtual fields, since those will be extracted from JSON
+        // non TE periods are virtual fields, since those will be extracted from JSON
         .map(Field::asVirtual)
         .forEach(builder::selectField);
 
