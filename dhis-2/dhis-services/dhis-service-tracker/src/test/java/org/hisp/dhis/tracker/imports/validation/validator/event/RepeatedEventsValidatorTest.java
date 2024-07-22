@@ -41,7 +41,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -60,7 +60,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Enrico Colasante
  */
 @ExtendWith(MockitoExtension.class)
-class RepeatedEventsValidatorTest extends DhisConvenienceTest {
+class RepeatedEventsValidatorTest extends TestBase {
 
   private static final String NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION =
       "NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION";

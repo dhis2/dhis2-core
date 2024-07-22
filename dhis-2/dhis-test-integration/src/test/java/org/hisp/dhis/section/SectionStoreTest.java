@@ -39,12 +39,14 @@ import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.SectionStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class SectionStoreTest extends TransactionalIntegrationTest {
+@Transactional
+class SectionStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private SectionStore sectionStore;
   @Autowired private IdentifiableObjectManager manager;

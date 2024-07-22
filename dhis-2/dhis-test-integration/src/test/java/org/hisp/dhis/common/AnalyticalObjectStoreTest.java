@@ -45,18 +45,21 @@ import org.hisp.dhis.mapping.ThematicMapType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.visualization.Visualization;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class AnalyticalObjectStoreTest extends TransactionalIntegrationTest {
+@Transactional
+class AnalyticalObjectStoreTest extends PostgresIntegrationTestBase {
 
   private IndicatorType itA;
 
@@ -84,8 +87,8 @@ class AnalyticalObjectStoreTest extends TransactionalIntegrationTest {
   @Autowired private AnalyticalObjectStore<EventVisualization> eventVisualizationStore;
   @Autowired private AnalyticalObjectStore<MapView> analyticalMapViewStore;
 
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     itA = createIndicatorType('A');
     idObjectManager.save(itA);
     inA = createIndicator('A', itA);

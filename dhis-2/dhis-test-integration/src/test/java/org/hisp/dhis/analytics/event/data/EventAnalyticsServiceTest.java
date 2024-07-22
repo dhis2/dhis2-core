@@ -61,7 +61,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
@@ -119,7 +118,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
@@ -127,10 +126,14 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests event and enrollment analytics services.
@@ -138,7 +141,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Henning Haakonsen
  * @author Jim Grace (nearly complete rewrite)
  */
-class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   @Autowired private EventAnalyticsService eventTarget;
 
   @Autowired private EnrollmentAnalyticsService enrollmentTarget;
@@ -164,8 +169,6 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
   @Autowired private ProgramOwnershipHistoryService programOwnershipHistoryService;
 
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
-
-  @Autowired private UserService _userService;
 
   @Autowired private CategoryService categoryService;
 
@@ -239,29 +242,8 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
   private User userA;
 
-  // -------------------------------------------------------------------------
-  // Setup
-  // -------------------------------------------------------------------------
-
-  @Override
-  public void tearDownTest() {
-    for (AnalyticsTableService service : analyticsTableServices) {
-      service.dropTables();
-    }
-  }
-
-  @BeforeEach
-  public void beforeEach() {
-    // Reset the security context for each test.
-    clearSecurityContext();
-
-    reLoginAdminUser();
-  }
-
-  @Override
-  public void setUpTest() throws IOException, InterruptedException, ConflictException {
-    userService = _userService;
-
+  @BeforeAll
+  void setUp() throws ConflictException {
     // Organisation Units
     //
     // A -> B -> D,E,F,G
@@ -592,6 +574,14 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         JobProgress.noop());
   }
 
+  @BeforeEach
+  public void beforeEach() {
+    // Reset the security context for each test.
+    clearSecurityContext();
+
+    injectSecurityContextUser(getAdminUser());
+  }
+
   /** Adds a program ownership history entry. */
   private void addProgramOwnershipHistory(
       Program program, TrackedEntity te, OrganisationUnit ou, Date startDate, Date endDate) {
@@ -599,6 +589,13 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         new ProgramOwnershipHistory(program, te, ou, startDate, endDate, "admin");
 
     programOwnershipHistoryService.addProgramOwnershipHistory(poh);
+  }
+
+  @AfterAll
+  public void tearDown() {
+    for (AnalyticsTableService service : analyticsTableServices) {
+      service.dropTables();
+    }
   }
 
   // -------------------------------------------------------------------------
@@ -640,7 +637,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
   @Test
   void testDimensionRestrictionWhenUserCannotReadCategoryOptions() {
-    reLoginAdminUser();
+    injectSecurityContextUser(getAdminUser());
 
     // Given
     // The category options are not readable by the user

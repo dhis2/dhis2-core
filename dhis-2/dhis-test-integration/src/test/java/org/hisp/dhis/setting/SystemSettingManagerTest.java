@@ -45,20 +45,26 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Stian Strandli
  * @author Lars Helge Overland
  */
-class SystemSettingManagerTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class SystemSettingManagerTest extends PostgresIntegrationTestBase {
 
   @Autowired private SystemSettingManager systemSettingManager;
 
-  @Override
-  public void setUpTest() {
+  @BeforeAll
+  void setUp() {
     systemSettingManager.invalidateCache();
   }
 

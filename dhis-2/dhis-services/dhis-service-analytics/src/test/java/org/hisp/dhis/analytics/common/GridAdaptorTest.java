@@ -69,7 +69,7 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.junit.jupiter.api.BeforeEach;
@@ -85,7 +85,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
  * @author maikel arabori
  */
 @ExtendWith(MockitoExtension.class)
-class GridAdaptorTest extends DhisConvenienceTest {
+class GridAdaptorTest extends TestBase {
   private GridAdaptor gridAdaptor;
 
   private HeaderParamsHandler headerParamsHandler;

@@ -38,9 +38,10 @@ import org.hisp.dhis.audit.AuditQuery;
 import org.hisp.dhis.audit.AuditService;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.maintenance.jdbc.JdbcMaintenanceStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
@@ -48,10 +49,11 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @ActiveProfiles(profiles = {"test-audit"})
 @Disabled("until we can inject dhis.conf property overrides")
-class HardDeleteAuditTest extends IntegrationTestBase {
+class HardDeleteAuditTest extends PostgresIntegrationTestBase {
 
   private static final int TIMEOUT = 5;
 
@@ -62,6 +64,10 @@ class HardDeleteAuditTest extends IntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private JdbcMaintenanceStore jdbcMaintenanceStore;
+
+  @Autowired private TransactionTemplate transactionTemplate;
+
+  @Autowired private DbmsManager dbmsManager;
 
   @Test
   void testHardDeleteTrackedEntity() {

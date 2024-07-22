@@ -46,13 +46,16 @@ import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class ProgramRuleActionServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class ProgramRuleActionServiceTest extends PostgresIntegrationTestBase {
 
   private ProgramRule programRuleA;
 
@@ -82,8 +85,8 @@ class ProgramRuleActionServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private ProgramNotificationTemplateService programNotificationTemplateService;
 
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     programStageA = createProgramStage('A', 0);
     Set<ProgramStage> programStages = new HashSet<>();
     programStages.add(programStageA);

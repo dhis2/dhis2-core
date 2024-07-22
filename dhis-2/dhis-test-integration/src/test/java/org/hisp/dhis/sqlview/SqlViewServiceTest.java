@@ -40,13 +40,16 @@ import java.util.Map;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class SqlViewServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class SqlViewServiceTest extends PostgresIntegrationTestBase {
   @Autowired private SqlViewService sqlViewService;
 
   @Autowired private UserService internalUserService;
@@ -68,8 +71,8 @@ class SqlViewServiceTest extends TransactionalIntegrationTest {
 
   private String sqlE = "WITH foo as (SELECT * FROM organisationunit) SELECT * FROM foo LIMIT 2; ";
 
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     super.userService = internalUserService;
   }
 

@@ -37,19 +37,25 @@ import java.util.concurrent.TimeUnit;
 import org.awaitility.Awaitility;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class DeletedObjectServiceTest extends IntegrationTestBase {
+class DeletedObjectServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private DeletedObjectService deletedObjectService;
 
   @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private DbmsManager dbmsManager;
+
+  @Autowired private TransactionTemplate transactionTemplate;
 
   private DeletedObject elementA = new DeletedObject(createDataElement('A'));
 

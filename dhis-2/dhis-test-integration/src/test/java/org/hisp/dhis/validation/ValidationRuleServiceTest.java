@@ -51,15 +51,18 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.WeeklyPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  * @author Jim Grace
  */
-class ValidationRuleServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class ValidationRuleServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private ValidationRuleService validationRuleService;
 
@@ -127,11 +130,8 @@ class ValidationRuleServiceTest extends TransactionalIntegrationTest {
 
   private PeriodType periodTypeYearly;
 
-  // -------------------------------------------------------------------------
-  // Fixture
-  // -------------------------------------------------------------------------
-  @Override
-  public void setUpTest() throws Exception {
+  @BeforeEach
+  void setUp() {
     periodTypeWeekly = new WeeklyPeriodType();
     periodTypeMonthly = new MonthlyPeriodType();
     periodTypeYearly = new YearlyPeriodType();

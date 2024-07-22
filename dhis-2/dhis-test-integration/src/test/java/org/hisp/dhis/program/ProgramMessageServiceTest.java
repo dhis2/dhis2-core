@@ -49,16 +49,19 @@ import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.sms.config.BulkSmsGatewayConfig;
 import org.hisp.dhis.sms.config.SmsConfiguration;
 import org.hisp.dhis.sms.config.SmsConfigurationManager;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-class ProgramMessageServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class ProgramMessageServiceTest extends PostgresIntegrationTestBase {
   private OrganisationUnit ouA;
 
   private OrganisationUnit ouB;
@@ -118,11 +121,8 @@ class ProgramMessageServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private SmsConfigurationManager smsConfigurationManager;
 
-  // -------------------------------------------------------------------------
-  // Prerequisite
-  // -------------------------------------------------------------------------
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     ouA = createOrganisationUnit('A');
     ouA.setPhoneNumber(msisdn);
     ouB = createOrganisationUnit('B');

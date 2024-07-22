@@ -50,7 +50,7 @@ import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ProgramExpressionParams;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.test.random.BeanRandomizer;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,7 +63,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Luciano Fiandesio
  */
 @ExtendWith(MockitoExtension.class)
-class ProgramSqlGeneratorVariablesTest extends DhisConvenienceTest {
+class ProgramSqlGeneratorVariablesTest extends TestBase {
   private final String SQL_CASE_NOT_NULL = "case when \"%s\" is not null then 1 else 0 end";
 
   private final String SQL_CASE_VALUE = "case when \"%s\" >= 0 then 1 else 0 end";

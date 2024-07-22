@@ -55,13 +55,16 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class RelationshipStoreTest extends TransactionalIntegrationTest {
+@Transactional
+class RelationshipStoreTest extends PostgresIntegrationTestBase {
   @Autowired private RelationshipService relationshipService;
 
   @Autowired private RelationshipTypeService relationshipTypeService;
@@ -86,8 +89,8 @@ class RelationshipStoreTest extends TransactionalIntegrationTest {
 
   private OrganisationUnit organisationUnit;
 
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     relationshipType = createRelationshipType('A');
     relationshipTypeService.addRelationshipType(relationshipType);
     organisationUnit = createOrganisationUnit("testOU");

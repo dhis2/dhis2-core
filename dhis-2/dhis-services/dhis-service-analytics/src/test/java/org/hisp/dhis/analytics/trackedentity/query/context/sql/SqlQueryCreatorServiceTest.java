@@ -62,7 +62,7 @@ import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -72,7 +72,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Dusan Bernat
  */
-class SqlQueryCreatorServiceTest extends DhisConvenienceTest {
+class SqlQueryCreatorServiceTest extends TestBase {
   private SqlQueryCreatorService sqlQueryCreatorService;
 
   @BeforeEach
