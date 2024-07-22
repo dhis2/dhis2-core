@@ -47,7 +47,7 @@ import org.hisp.dhis.programrule.action.validation.HideOptionProgramRuleActionVa
 import org.hisp.dhis.programrule.action.validation.NotificationProgramRuleActionValidator;
 import org.hisp.dhis.programrule.action.validation.ProgramRuleActionValidationContext;
 import org.hisp.dhis.programrule.action.validation.ProgramRuleActionValidationService;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -56,7 +56,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class ProgramRuleActionValidatorTest extends DhisConvenienceTest {
+class ProgramRuleActionValidatorTest extends TestBase {
   @Mock private ProgramRuleActionValidationService programRuleActionValidationService;
   @Mock private ProgramService programService;
 

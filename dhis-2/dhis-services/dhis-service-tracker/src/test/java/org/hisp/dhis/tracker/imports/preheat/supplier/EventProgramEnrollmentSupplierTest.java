@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.test.random.BeanRandomizer;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -55,7 +55,7 @@ import org.mockito.quality.Strictness;
  */
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
-class EventProgramEnrollmentSupplierTest extends DhisConvenienceTest {
+class EventProgramEnrollmentSupplierTest extends TestBase {
 
   @InjectMocks private EventProgramEnrollmentSupplier supplier;
 

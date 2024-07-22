@@ -53,7 +53,7 @@ import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -61,7 +61,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jim Grace
  */
-class PredictionDisaggregatorTest extends DhisConvenienceTest {
+class PredictionDisaggregatorTest extends TestBase {
 
   // Data Element and Category structure:
   //

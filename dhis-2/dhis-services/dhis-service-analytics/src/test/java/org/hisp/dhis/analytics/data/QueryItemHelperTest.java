@@ -53,13 +53,13 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Dusan Bernat
  */
-class QueryItemHelperTest extends DhisConvenienceTest {
+class QueryItemHelperTest extends TestBase {
   private String UID_A = CodeGenerator.generateUid();
 
   private String UID_B = CodeGenerator.generateUid();

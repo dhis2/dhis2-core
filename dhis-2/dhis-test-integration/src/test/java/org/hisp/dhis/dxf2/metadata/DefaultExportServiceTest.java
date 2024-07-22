@@ -46,7 +46,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -100,15 +100,11 @@ class DefaultExportServiceTest extends PostgresIntegrationTestBase {
     deA = createDataElement('A');
     deB = createDataElement('B');
     deC = createDataElement('C');
-    dsA = DhisConvenienceTest.createDataSet('A', new MonthlyPeriodType());
-    ouA = DhisConvenienceTest.createOrganisationUnit('A');
-    ouB = DhisConvenienceTest.createOrganisationUnit('B');
-    peA =
-        DhisConvenienceTest.createPeriod(
-            DhisConvenienceTest.getDate(2012, 1, 1), DhisConvenienceTest.getDate(2012, 1, 31));
-    peB =
-        DhisConvenienceTest.createPeriod(
-            DhisConvenienceTest.getDate(2012, 2, 1), DhisConvenienceTest.getDate(2012, 2, 29));
+    dsA = TestBase.createDataSet('A', new MonthlyPeriodType());
+    ouA = TestBase.createOrganisationUnit('A');
+    ouB = TestBase.createOrganisationUnit('B');
+    peA = TestBase.createPeriod(TestBase.getDate(2012, 1, 1), TestBase.getDate(2012, 1, 31));
+    peB = TestBase.createPeriod(TestBase.getDate(2012, 2, 1), TestBase.getDate(2012, 2, 29));
     deA.setUid("f7n9E0hX8qk");
     deB.setUid("Ix2HsbDMLea");
     deC.setUid("eY5ehpbEsB7");

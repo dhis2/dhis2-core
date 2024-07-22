@@ -226,7 +226,7 @@ import org.xml.sax.InputSource;
  */
 @Slf4j
 @ActiveProfiles(profiles = {"test"})
-public abstract class DhisConvenienceTest {
+public abstract class TestBase {
   protected static final String BASE_UID = "abcdefghij";
 
   protected static final String BASE_IN_UID = "inabcdefgh";

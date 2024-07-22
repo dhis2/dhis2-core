@@ -39,13 +39,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Jim Grace
  */
-class PredictionFormatterTest extends DhisConvenienceTest {
+class PredictionFormatterTest extends TestBase {
 
   @Test
   void testFormatPredictionNumber() {

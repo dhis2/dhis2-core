@@ -86,13 +86,13 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-class AnalyticsUtilsTest extends DhisConvenienceTest {
+class AnalyticsUtilsTest extends TestBase {
   @Test
   void testGetByDataDimensionType() {
     Program prA = createProgram('A');
