@@ -68,7 +68,7 @@ import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.program.notification.template.snapshot.NotificationTemplateMapper;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -87,7 +87,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  */
 @SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
-class ProgramNotificationServiceTest extends DhisConvenienceTest {
+class ProgramNotificationServiceTest extends TestBase {
 
   private static final String SUBJECT = "subject";
 

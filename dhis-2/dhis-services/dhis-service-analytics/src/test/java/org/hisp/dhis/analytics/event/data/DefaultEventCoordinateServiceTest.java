@@ -28,7 +28,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_GEOMETRY_LIST;
-import static org.hisp.dhis.test.DhisConvenienceTest.createProgram;
+import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;

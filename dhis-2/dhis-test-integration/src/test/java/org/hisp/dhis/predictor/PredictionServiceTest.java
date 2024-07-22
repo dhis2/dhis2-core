@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.predictor;
 
-import static com.google.common.collect.Sets.newHashSet;
 import static org.hisp.dhis.common.OrganisationUnitDescendants.SELECTED;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
 import static org.hisp.dhis.expression.ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED;
@@ -35,6 +34,7 @@ import static org.hisp.dhis.expression.ExpressionValidationOutcome.VALID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -294,7 +294,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     summary = new PredictionSummary();
     dataValueBatchHandler =
         batchHandlerFactory.createBatchHandler(DataValueBatchHandler.class).init();
-    Set<OrganisationUnit> units = newHashSet(sourceA, sourceB, sourceG);
+    Set<OrganisationUnit> units = Sets.newHashSet(sourceA, sourceB, sourceG);
 
     User user = createAndAddUser(true, "mockUser", units, units);
     injectSecurityContextUser(user);
@@ -359,10 +359,10 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
       Period period) {
     DataExportParams params =
         new DataExportParams()
-            .setDataElementOperands(newHashSet(new DataElementOperand(dataElement, combo)))
-            .setAttributeOptionCombos(newHashSet(attributeOptionCombo))
-            .setOrganisationUnits(newHashSet(source))
-            .setPeriods(newHashSet(periodService.reloadPeriod(period)));
+            .setDataElementOperands(Sets.newHashSet(new DataElementOperand(dataElement, combo)))
+            .setAttributeOptionCombos(Sets.newHashSet(attributeOptionCombo))
+            .setOrganisationUnits(Sets.newHashSet(source))
+            .setPeriods(Sets.newHashSet(periodService.reloadPeriod(period)));
     List<DeflatedDataValue> values = dataValueService.getDeflatedDataValues(params);
     if (values != null && values.size() > 0) {
       return values.get(0).getValue();
@@ -676,7 +676,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testPredictSequentialStddevPopWithLimitedUser() {
     setupTestData();
-    Set<OrganisationUnit> units = newHashSet(sourceA);
+    Set<OrganisationUnit> units = Sets.newHashSet(sourceA);
 
     User user2 = createAndAddUser(true, "mockUser2", units, units);
     injectSecurityContextUser(user2);
@@ -818,7 +818,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
     useDataValue(dataElementA, makeMonth(2001, 7), sourceF, 8);
     dataValueBatchHandler.flush();
     Set<OrganisationUnitLevel> orgUnitLevels =
-        newHashSet(orgUnitLevel1, orgUnitLevel2, orgUnitLevel3);
+        Sets.newHashSet(orgUnitLevel1, orgUnitLevel2, orgUnitLevel3);
     Predictor p =
         createPredictor(
             dataElementX,
@@ -1748,7 +1748,8 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
                 + "}, 64)",
             "description",
             MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING);
-    Set<OrganisationUnitLevel> allLevels = newHashSet(orgUnitLevel1, orgUnitLevel2, orgUnitLevel3);
+    Set<OrganisationUnitLevel> allLevels =
+        Sets.newHashSet(orgUnitLevel1, orgUnitLevel2, orgUnitLevel3);
     Predictor predictor =
         createPredictor(
             dataElementX,
@@ -1791,7 +1792,8 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
                 + "}, 64)",
             "description",
             MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING);
-    Set<OrganisationUnitLevel> allLevels = newHashSet(orgUnitLevel1, orgUnitLevel2, orgUnitLevel3);
+    Set<OrganisationUnitLevel> allLevels =
+        Sets.newHashSet(orgUnitLevel1, orgUnitLevel2, orgUnitLevel3);
     Predictor predictor =
         createPredictor(
             dataElementX,
@@ -1844,7 +1846,8 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
                 + "}, 64)",
             "description",
             MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING);
-    Set<OrganisationUnitLevel> allLevels = newHashSet(orgUnitLevel1, orgUnitLevel2, orgUnitLevel3);
+    Set<OrganisationUnitLevel> allLevels =
+        Sets.newHashSet(orgUnitLevel1, orgUnitLevel2, orgUnitLevel3);
 
     Predictor predictor =
         createPredictor(
@@ -1899,7 +1902,8 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
                 + "}, 64)",
             "description",
             MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING);
-    Set<OrganisationUnitLevel> allLevels = newHashSet(orgUnitLevel1, orgUnitLevel2, orgUnitLevel3);
+    Set<OrganisationUnitLevel> allLevels =
+        Sets.newHashSet(orgUnitLevel1, orgUnitLevel2, orgUnitLevel3);
 
     Predictor predictor =
         createPredictor(

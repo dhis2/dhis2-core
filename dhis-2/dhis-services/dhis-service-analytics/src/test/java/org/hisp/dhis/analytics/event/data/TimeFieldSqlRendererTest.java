@@ -49,7 +49,7 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,7 +57,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Dusan Bernat
  */
-class TimeFieldSqlRendererTest extends DhisConvenienceTest {
+class TimeFieldSqlRendererTest extends TestBase {
   private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
   private final TimeFieldSqlRenderer eventTimeFieldSqlRenderer =

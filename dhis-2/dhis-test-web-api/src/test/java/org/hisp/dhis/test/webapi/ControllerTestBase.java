@@ -45,7 +45,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.test.config.H2DhisConfiguration;
 import org.hisp.dhis.test.config.PostgresDhisConfiguration;
 import org.hisp.dhis.test.utils.TestUtils;
@@ -108,7 +108,7 @@ import org.springframework.web.context.WebApplicationContext;
       WebTestConfiguration.class
     })
 @Transactional
-public abstract class ControllerTestBase extends DhisConvenienceTest implements WebClient {
+public abstract class ControllerTestBase extends TestBase implements WebClient {
 
   @Autowired protected WebApplicationContext webApplicationContext;
 

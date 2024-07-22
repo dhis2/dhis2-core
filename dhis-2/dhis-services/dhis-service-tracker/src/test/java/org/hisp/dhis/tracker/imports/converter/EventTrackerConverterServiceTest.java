@@ -47,7 +47,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
@@ -64,7 +64,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @ExtendWith(MockitoExtension.class)
-class EventTrackerConverterServiceTest extends DhisConvenienceTest {
+class EventTrackerConverterServiceTest extends TestBase {
 
   private static final String ENROLLMENT_UID = "enrollmentUid";
 

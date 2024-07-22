@@ -36,7 +36,7 @@ import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidatio
 import com.google.common.collect.Sets;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
@@ -53,7 +53,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Enrico Colasante
  */
 @ExtendWith(MockitoExtension.class)
-class AssignedUserValidatorTest extends DhisConvenienceTest {
+class AssignedUserValidatorTest extends TestBase {
 
   private static final String USER_NAME = "Username";
 
