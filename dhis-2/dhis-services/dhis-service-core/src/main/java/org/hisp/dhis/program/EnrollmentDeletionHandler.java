@@ -41,7 +41,6 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class EnrollmentDeletionHandler extends IdObjectDeletionHandler<Enrollment> {
-  private final EnrollmentService enrollmentService;
 
   @Override
   protected void registerHandler() {
@@ -57,6 +56,8 @@ public class EnrollmentDeletionHandler extends IdObjectDeletionHandler<Enrollmen
     return vetoIfExists(VETO, sql, Map.of("id", program.getId()));
   }
 
+  // This method deletes event program enrollments only, tracker program enrollments must be deleted
+  // via the tracker importer
   private void deleteProgram(Program program) {
     if (program.isRegistration()) {
       return;
