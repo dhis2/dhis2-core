@@ -685,6 +685,9 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
 
     String encodedPassword = passwordManager.encode("password");
 
-    userService.encodeAndSetPassword(user, encodedPassword);
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> userService.encodeAndSetPassword(user, encodedPassword),
+        "Raw password look like BCrypt encoded password, this is most certainly a bug");
   }
 }
