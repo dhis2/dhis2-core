@@ -41,13 +41,14 @@ import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceParam;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.export.relationship.RelationshipQueryParams;
+import org.hisp.dhis.tracker.export.relationship.RelationshipStore;
 import org.hisp.dhis.tracker.imports.report.Entity;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -65,7 +66,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
   private final IdentifiableObjectManager manager;
 
-  private final RelationshipService relationshipService;
+  private final RelationshipStore relationshipStore;
 
   private final TrackedEntityAttributeValueService attributeValueService;
 
@@ -95,8 +96,9 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
               .toList();
       deleteEvents(events);
 
+      RelationshipQueryParams params = RelationshipQueryParams.builder().entity(enrollment).build();
       List<String> relationships =
-          relationshipService.getRelationshipsByEnrollment(enrollment, false).stream()
+          relationshipStore.getByEnrollment(enrollment, params).stream()
               .map(BaseIdentifiableObject::getUid)
               .toList();
 
@@ -132,8 +134,9 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
       Event event = manager.get(Event.class, uid);
       event.setLastUpdatedByUserInfo(userInfoSnapshot);
 
+      RelationshipQueryParams params = RelationshipQueryParams.builder().entity(event).build();
       List<String> relationships =
-          relationshipService.getRelationshipsByEvent(event, false).stream()
+          relationshipStore.getByEvent(event, params).stream()
               .map(BaseIdentifiableObject::getUid)
               .toList();
 
@@ -189,10 +192,12 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
               .toList();
       deleteEnrollments(enrollments);
 
+      RelationshipQueryParams params = RelationshipQueryParams.builder().entity(entity).build();
       List<String> relationships =
-          relationshipService.getRelationshipsByTrackedEntity(entity, false).stream()
+          relationshipStore.getByTrackedEntity(entity, params).stream()
               .map(BaseIdentifiableObject::getUid)
               .toList();
+
       deleteRelationships(relationships);
 
       Collection<TrackedEntityAttributeValue> attributeValues =

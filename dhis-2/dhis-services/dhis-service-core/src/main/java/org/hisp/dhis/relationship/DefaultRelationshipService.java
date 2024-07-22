@@ -33,10 +33,6 @@ import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,35 +61,6 @@ public class DefaultRelationshipService implements RelationshipService {
   @Transactional(readOnly = true)
   public List<Relationship> getRelationships(@Nonnull List<String> uids) {
     return relationshipStore.getByUid(uids);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<Relationship> getRelationshipsByTrackedEntity(
-      TrackedEntity te,
-      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean includeDeleted) {
-    return relationshipStore.getByTrackedEntity(
-        te, pagingAndSortingCriteriaAdapter, includeDeleted);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<Relationship> getRelationshipsByEnrollment(
-      Enrollment enrollment,
-      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean includeDeleted) {
-    return relationshipStore.getByEnrollment(
-        enrollment, pagingAndSortingCriteriaAdapter, includeDeleted);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<Relationship> getRelationshipsByEvent(
-      Event event,
-      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean includeDeleted) {
-    return relationshipStore.getByEvent(event, pagingAndSortingCriteriaAdapter, includeDeleted);
   }
 
   @Override
