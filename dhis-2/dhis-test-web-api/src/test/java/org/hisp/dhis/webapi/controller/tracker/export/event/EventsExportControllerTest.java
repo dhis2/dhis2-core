@@ -32,8 +32,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -58,10 +60,22 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ContextConfiguration;
 
-@ContextConfiguration(classes = EventExportTestConfiguration.class)
+@ContextConfiguration(classes = EventsExportControllerTest.Configuration.class)
 class EventsExportControllerTest extends H2ControllerIntegrationTestBase {
+
+  static class Configuration {
+    @Bean
+    public EventService eventService() {
+      EventService eventService = mock(EventService.class);
+      // Orderable fields are checked within the controller constructor
+      when(eventService.getOrderableFields())
+          .thenReturn(new HashSet<>(EventMapper.ORDERABLE_FIELDS.values()));
+      return eventService;
+    }
+  }
 
   @Autowired private IdentifiableObjectManager manager;
 
