@@ -139,6 +139,33 @@ public @interface OpenApi {
   }
 
   /**
+   * Kind as a higher order type bucket to group objects of similar role. This is purely for display
+   * purposes showing types (schemas) of same kind in the same group.
+   */
+  @Inherited
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target(ElementType.TYPE)
+  @interface Kind {
+    /**
+     * @return name of the kind
+     */
+    String value();
+  }
+
+  @Inherited
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target(ElementType.TYPE)
+  @interface Team {
+
+    /**
+     * Names are case-insensitive, e.g. "Tracker" is the same as "tracker"
+     *
+     * @return name of the team that supports the annotated element
+     */
+    String value();
+  }
+
+  /**
    * Can be used to annotate endpoint methods to constraint which concrete {@link EntityType}s will
    * support the annotated endpoint method.
    */

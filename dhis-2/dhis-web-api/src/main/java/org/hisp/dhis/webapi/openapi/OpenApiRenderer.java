@@ -29,6 +29,8 @@ package org.hisp.dhis.webapi.openapi;
 
 import static java.util.Comparator.comparing;
 import static java.util.Map.entry;
+import static java.util.stream.Collectors.counting;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.webapi.openapi.OpenApiHtmlUtils.escapeHtml;
@@ -93,9 +95,9 @@ public class OpenApiRenderer {
        --percent-op-bg-aside: 10%;
        --p-op-bg: 15%;
        --color-delete: tomato;
-       --color-patch: darkolivegreen;
+       --color-patch: mediumorchid;
        --color-post: seagreen;
-       --color-put: chocolate;
+       --color-put: darkcyan;
        --color-options: rosybrown;
        --color-get: steelblue;
        --color-trace: palevioletred;
@@ -105,6 +107,7 @@ public class OpenApiRenderer {
        --color-tooltip: #444;
        --color-tooltiptext: #eee;
        --color-tooltipborder: lightgray;
+       --width-nav: 320px;
    }
   html {
     background-color: var(--bg-page);
@@ -121,23 +124,40 @@ public class OpenApiRenderer {
   }
   h1 { margin: 0.5rem; color: rgb(33, 41, 52); font-size: 110%; text-align: left; }
   h2 { display: inline; font-size: 110%; font-weight: normal; text-transform: capitalize; }
-  h3 { font-size: 105%; display: inline; text-transform: capitalize; font-weight: normal; }
+  h3 { font-size: 105%; display: inline-block; text-transform: capitalize; font-weight: normal; min-width: 21rem; margin: 0; }
+
   h4 { font-weight: normal; padding: 0 1em; }
   nav > summary { margin: 1em 0 0.5em 0; font-weight: normal; font-size: 85%; }
 
   h2 a[target="_blank"] { text-decoration: none; margin-left: 0.5em; }
   a[href^="#"] { text-decoration: none; }
   a[title="permalink"] { position: absolute;  right: 1em; display: inline-block; width: 24px; height: 24px;
-    text-align: center; vertical-align: middle; border-radius: 50%; line-height: 24px; color: dimgray; }
+    text-align: center; vertical-align: middle; border-radius: 50%; line-height: 24px; color: dimgray; margin-top: -0.125rem; }
+  #hotkeys a { display: block; margin-top: 2px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; font-size: 75%; }
 
-  pre, code { font-family: "Noto Sans Mono", "Liberation Mono", monospace; }
   pre { background-color: floralwhite; color: #222; margin-right: 2em; padding: 0.5rem; }
+  pre, code { font-family: "Noto Sans Mono", "Liberation Mono", monospace; }
+  code + b { padding: 0 0.5em; }
+
+  kbd {
+      background-color: #eee;
+      border-radius: 3px;
+      border: 1px solid #b4b4b4;
+      box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2), 0 2px 0 0 rgba(255, 255, 255, 0.7) inset;
+      color: #333;
+      display: inline-block;
+      font-size: 0.85em;
+      font-weight: 700;
+      line-height: 1;
+      padding: 2px 4px;
+      white-space: nowrap;
+  }
+
   summary {
       padding: 2px;
       margin-top: 0.5em;
   }
-  body > header:first-of-type {
-      position: fixed;
+  body > nav > header {
       width: 100%;
       height: 60px;
       box-sizing: border-box;
@@ -147,20 +167,18 @@ public class OpenApiRenderer {
       background-color: snow;
       background-image: url('/../favicon.ico');
       background-repeat: no-repeat;
-      padding-left: 100px;
+      padding-left: 60px;
       background-position: 5px 5px;
-      z-index: 100;
   }
   nav {
         position: fixed;
-        top: 60px;
-        width: 250px;
+        width: var(--width-nav);
         text-align: left;
         display: inline-block;
         padding-right: 1rem;
         box-sizing: border-box;
   }
-  body > section { margin-left: 250px; padding-top: 65px; padding-bottom: 1em; position: relative; }
+  body > section { margin-left: var(--width-nav); padding-top: 65px; padding-bottom: 1em; position: relative; }
   body > section > details { margin-top: 10px; }
   body > section > details > summary { padding: 0.5em 1em; }
   body > section h2:before { content: '⛁'; margin-right: 0.5rem; color: dimgray; }
@@ -239,14 +257,14 @@ public class OpenApiRenderer {
   .op:not([open]) code.url small > span { font-size: 2px; }
   .op:not([open]) code.url small:hover > span { font-size: inherit; }
 
-  .GET > summary, button.GET { background: color-mix(in srgb, var(--color-get) var(--percent-op-bg-summary), transparent); }
-  .POST > summary, button.POST { background: color-mix(in srgb, var(--color-post) var(--percent-op-bg-summary), transparent); }
-  .PUT > summary, button.PUT { background: color-mix(in srgb, var(--color-put) var(--percent-op-bg-summary), transparent); }
-  .PATCH > summary, button.PATCH { background: color-mix(in srgb, var(--color-patch) var(--percent-op-bg-summary), transparent); }
-  .DELETE > summary, button.DELETE { background: color-mix(in srgb, var(--color-delete) var(--percent-op-bg-summary), transparent); }
-  .OPTIONS > summary { background: color-mix(in srgb, var(--color-options) var(--percent-op-bg-summary), transparent); }
-  .HEAD > summary { background: color-mix(in srgb, var(--color-head) var(--percent-op-bg-summary), transparent); }
-  .TRACE > summary { background: color-mix(in srgb, var(--color-trace) var(--percent-op-bg-summary), transparent); }
+  .GET > summary, button.GET, code.GET { background: color-mix(in srgb, var(--color-get) var(--percent-op-bg-summary), transparent); }
+  .POST > summary, button.POST, code.POST { background: color-mix(in srgb, var(--color-post) var(--percent-op-bg-summary), transparent); }
+  .PUT > summary, button.PUT, code.PUT { background: color-mix(in srgb, var(--color-put) var(--percent-op-bg-summary), transparent); }
+  .PATCH > summary, button.PATCH, code.PATCH { background: color-mix(in srgb, var(--color-patch) var(--percent-op-bg-summary), transparent); }
+  .DELETE > summary, button.DELETE, code.DELETE { background: color-mix(in srgb, var(--color-delete) var(--percent-op-bg-summary), transparent); }
+  .OPTIONS > summary, code.OPTIONS { background: color-mix(in srgb, var(--color-options) var(--percent-op-bg-summary), transparent); }
+  .HEAD > summary, code.HEAD { background: color-mix(in srgb, var(--color-head) var(--percent-op-bg-summary), transparent); }
+  .TRACE > summary, code.TRACE { background: color-mix(in srgb, var(--color-trace) var(--percent-op-bg-summary), transparent); }
   .schema > summary { background: color-mix(in srgb, var(--color-schema) var(--percent-op-bg-summary), transparent); }
 
 
@@ -402,9 +420,9 @@ public class OpenApiRenderer {
   }
 
   function openRecursiveUp(element) {
-    while (element && element.tagName.toLowerCase() === 'details') {
+    while (element != null && element.tagName.toLowerCase() === 'details') {
       element.setAttribute('open', '');
-      element = target.closest('details');
+      element = element.parentElement.closest('details');
     }
   }
 
@@ -414,15 +432,49 @@ public class OpenApiRenderer {
     window.location.search = searchParams.toString()
   }
 
-  window.addEventListener('hashchange',
-    (event) => openRecursiveUp(document.getElementById(location.hash.substring(1))),
-    false,
-  );
+  function addHashHotkey() {
+    var id = 'hk_'+location.hash.substring(1);
+    if (document.getElementById(id) != null) return;
+    var a = document.createElement('a');
+    var ctrl = document.createElement('kbd');
+    ctrl.appendChild(document.createTextNode("Ctrl"));
+    a.appendChild(ctrl);
+    a.appendChild(document.createTextNode(" + "))
+    var hotkeys = document.getElementById("hotkeys");
+    hotkeys.appendChild(a);
+    var fn = document.createElement('kbd');
+    var n = hotkeys.childNodes.length-1;
+    if (n > 9) {
+      hotkeys.firstChild.nextSibling.remove();
+      n = 1;
+    }
+    fn.appendChild(document.createTextNode(""+ n));
+    fn.id = 'hk'+n;
+    a.appendChild(fn);
+    a.appendChild(document.createTextNode(" "+location.hash+" "));
+    a.href = location.hash;
+    a.id = id;
+    a.title = location.hash;
+  }
 
-  document.addEventListener("DOMContentLoaded", (event) => {
-    const hash = location.hash;
-    if (hash) {
-      openRecursiveUp(document.getElementById(hash.substring(1)));
+  window.addEventListener('hashchange', (e) => {
+      openRecursiveUp(document.getElementById(location.hash.substring(1)));
+      addHashHotkey();
+    }, false);
+
+  document.addEventListener("DOMContentLoaded", (e) => {
+    if (!location.hash) return;
+    openRecursiveUp(document.getElementById(location.hash.substring(1)));
+  });
+
+  window.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.key.match(/[0-9]/)) {
+      var t = document.getElementById("hk"+e.key);
+      if (t != null)  {
+        t.parentElement.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+        e.stopPropagation();
+        e.preventDefault();
+      }
     }
   });
   """;
@@ -518,7 +570,6 @@ public class OpenApiRenderer {
               "body",
               Map.of("id", "body"),
               () -> {
-                renderPageHeader();
                 renderPageMenu();
                 renderPaths();
                 renderComponentsSchemas();
@@ -538,7 +589,10 @@ public class OpenApiRenderer {
     appendTag(
         "nav",
         () -> {
+          renderPageHeader();
+          renderMenuGroup("hotkeys", "Hotkeys", () -> {});
           renderMenuGroup(
+              null,
               "Filters",
               () -> {
                 renderMenuItem(
@@ -587,6 +641,7 @@ public class OpenApiRenderer {
               });
 
           renderMenuGroup(
+              null,
               "View",
               () -> {
                 renderMenuItem(
@@ -604,9 +659,9 @@ public class OpenApiRenderer {
     // TODO bring back tags as actual tags usable as filters
   }
 
-  private void renderMenuGroup(String title, Runnable renderBody) {
+  private void renderMenuGroup(String id, String title, Runnable renderBody) {
     appendDetails(
-        null,
+        id,
         true,
         "",
         () -> {
@@ -644,18 +699,17 @@ public class OpenApiRenderer {
         false,
         "",
         () -> {
-          appendSummary(
-              id,
-              null,
-              () ->
-                  appendTag(
-                      "h2",
-                      () -> {
-                        appendRaw(toWords(pkg.domain()));
-                        appendA(
-                            "/api/openapi/openapi.html?domain=" + pkg.domain, true, "&#x1F5D7;");
-                      }));
+          appendSummary(id, null, () -> renderPathPackageSummary(pkg));
           pkg.groups().values().forEach(this::renderPathGroup);
+        });
+  }
+
+  private void renderPathPackageSummary(PackageItem pkg) {
+    appendTag(
+        "h2",
+        () -> {
+          appendRaw(toWords(pkg.domain()));
+          appendA("/api/openapi/openapi.html?domain=" + pkg.domain, true, "&#x1F5D7;");
         });
   }
 
@@ -666,10 +720,21 @@ public class OpenApiRenderer {
         true,
         "paths",
         () -> {
-          appendSummary(
-              id, null, () -> appendTag("h3", Map.of("class", group.group()), group.group()));
+          appendSummary(id, null, () -> renderPathGroupSummary(group));
           group.operations().forEach(this::renderOperation);
         });
+  }
+
+  private void renderPathGroupSummary(GroupItem group) {
+    appendTag("h3", Map.of("class", group.group()), group.group());
+
+    group.operations().stream()
+        .collect(groupingBy(OperationObject::operationMethod, counting()))
+        .forEach(
+            (method, count) -> {
+              appendCode(method.toUpperCase() + " http", method.toUpperCase());
+              appendTag("b", " x " + count);
+            });
   }
 
   private static String toWords(String camelCase) {
@@ -677,9 +742,14 @@ public class OpenApiRenderer {
         "(?<=[A-Z])(?=[A-Z][a-z])|(?<=[^A-Z])(?=[A-Z])|(?<=[A-Za-z])(?=[^A-Za-z])", " ");
   }
 
+  private static String toUrlHash(@CheckForNull String value) {
+    if (value == null) return null;
+    return stripHtml(value).replaceAll("[^-_.a-zA-Z0-9@]", "_");
+  }
+
   private void renderOperation(OperationObject op) {
     if (!op.exists()) return;
-    String id = stripHtml(op.operationId());
+    String id = toUrlHash(op.operationId());
     appendDetails(
         id,
         false,
@@ -796,7 +866,7 @@ public class OpenApiRenderer {
     String style = "param";
     if (p.deprecated()) style += " deprecated";
     if (p.required()) style += " required";
-    String id = stripHtml(op.operationId() + "-" + p.name());
+    String id = toUrlHash(op.operationId() + "-" + p.name());
     appendDetails(
         id,
         true,
@@ -820,28 +890,31 @@ public class OpenApiRenderer {
   }
 
   private void renderLabelledValue(String label, Object value) {
-    renderLabelledValue(label, value, false);
+    renderLabelledValue(label, value, "", 0);
   }
 
-  private void renderLabelledValue(String label, Object value, boolean block) {
+  private void renderLabelledValue(String label, Object value, String style, int limit) {
     if (value == null) return;
     if (value instanceof Collection<?> l && l.isEmpty()) return;
     if (value instanceof JsonValue json) value = jsonToDisplayValue(json);
     if (value == null) return;
     Object val = value;
-    String tag = "tag";
-    if (block) tag += " columns";
     appendCode(
-        tag,
+        style + " tag",
         () -> {
           appendSpan(label + ":");
           if (val instanceof Collection<?> c) {
-            appendSpan(c.stream().map(Object::toString).collect(joining("</span>, <span>")));
+            int maxSize = limit <= 0 ? Integer.MAX_VALUE : limit;
+            appendSpan(
+                c.stream()
+                    .limit(maxSize)
+                    .map(Object::toString)
+                    .collect(joining("</span>, <span>")));
+            if (c.size() > maxSize) appendRaw("...");
           } else {
             appendSpan(val.toString());
           }
         });
-    if (block) appendRaw("<br/>");
   }
 
   private String jsonToDisplayValue(JsonValue value) {
@@ -859,7 +932,7 @@ public class OpenApiRenderer {
     JsonMap<MediaTypeObject> content = requestBody.content();
     String style = "request";
     if (requestBody.required()) style += " required";
-    String id = stripHtml(op.operationId());
+    String id = toUrlHash(op.operationId());
     renderMediaTypes(id, style, content);
 
     renderMarkdown(requestBody.description(), op.parameterNames());
@@ -877,7 +950,7 @@ public class OpenApiRenderer {
   }
 
   private void renderMediaType(String idPrefix, String style, String mediaType, SchemaObject type) {
-    String id = idPrefix == null ? null : stripHtml(idPrefix + "-" + mediaType);
+    String id = idPrefix == null ? null : toUrlHash(idPrefix + "-" + mediaType);
     appendDetails(
         id,
         false,
@@ -904,7 +977,7 @@ public class OpenApiRenderer {
   }
 
   private void renderResponse(OperationObject op, String code, ResponseObject response) {
-    String id = stripHtml(op.operationId() + "!" + code);
+    String id = toUrlHash(op.operationId() + "-" + code);
     boolean open = code.charAt(0) == '2' || !response.isUniform();
     appendDetails(
         id,
@@ -1027,6 +1100,7 @@ public class OpenApiRenderer {
     appendRaw("object");
     if (schema.isMap()) {
       appendRaw("{*:");
+      // TODO allow x-keys - syntax is *(type) if x-keys is defined
       renderSchemaSignatureType(schema.additionalProperties());
       appendRaw("}");
     } else if (schema.isWrapper()) {
@@ -1036,7 +1110,7 @@ public class OpenApiRenderer {
       appendRaw(":");
       renderSchemaSignatureType(p0.getValue());
       appendRaw("}");
-    } else if (schema.isPaged()) {
+    } else if (schema.isEnvelope()) {
       Map.Entry<String, SchemaObject> values =
           schema
               .properties()
@@ -1045,9 +1119,9 @@ public class OpenApiRenderer {
               .findFirst()
               .orElse(null);
       if (values != null) {
-        appendRaw("{");
+        appendRaw("{#,"); // # short for the pager, comma for next property
         appendEscaped(values.getKey());
-        appendRaw("[#]:");
+        appendRaw(":");
         renderSchemaSignatureType(values.getValue());
         appendRaw("}");
       }
@@ -1066,30 +1140,31 @@ public class OpenApiRenderer {
                 "kind",
                 () -> {
                   appendSummary(id, "", () -> appendTag("h2", toWords(kind.kind) + "s"));
-                  kind.schemas.forEach(this::renderSchema);
+                  kind.schemas.forEach(this::renderComponentSchema);
                 });
           }
         });
   }
 
-  private void renderSchema(SchemaObject schema) {
-    String id = stripHtml(schema.getSharedName());
+  private void renderComponentSchema(SchemaObject schema) {
+    String id = toUrlHash(schema.getSharedName());
     appendDetails(
         id,
         false,
         "schema box " + schema.$type(),
         () -> {
-          appendSummary(
-              schema.getSharedName(),
-              "",
-              () -> {
-                appendCode("type", schema.getSharedName());
-                renderSchemaSummary(schema, true);
-              });
+          appendSummary(schema.getSharedName(), "", () -> renderComponentSchemaSummary(schema));
           renderBoxToolbar();
           renderSchemaDetails(schema, true, false);
           if (params.isSource()) renderSource("@" + id, schema);
         });
+  }
+
+  private void renderComponentSchemaSummary(SchemaObject schema) {
+    appendCode("type", schema.getSharedName());
+    renderSchemaSummary(schema, true);
+    if (schema.isObject()) renderLabelledValue("required", schema.required(), "", 5);
+    if (schema.isEnum()) renderLabelledValue("enum", schema.$enum(), "", 5);
   }
 
   private void renderSchemaSummary(SchemaObject schema, boolean isDeclaration) {
@@ -1110,8 +1185,8 @@ public class OpenApiRenderer {
       Set<String> names =
           schema.isObject() ? schema.properties().keys().collect(toUnmodifiableSet()) : Set.of();
       appendTag("header", markdownToHTML(schema.description(), names));
-      if (!skipDefault) renderLabelledValue("default", schema.$default(), true);
-      renderLabelledValue("enum", schema.$enum(), true);
+      if (!skipDefault) renderLabelledValue("default", schema.$default(), "columns", 0);
+      renderLabelledValue("enum", schema.$enum(), "columns", 0);
 
       if (schema.isObject()) {
         List<String> required = schema.required();
@@ -1149,7 +1224,7 @@ public class OpenApiRenderer {
 
   private void renderSchemaProperty(
       SchemaObject parent, String name, SchemaObject type, boolean required) {
-    String id = parent.isShared() ? stripHtml(parent.getSharedName() + "-" + name) : null;
+    String id = parent.isShared() ? toUrlHash(parent.getSharedName() + "-" + name) : null;
     String style = "property";
     if (required) style += " required";
     boolean open = type.isObject() || type.isArray() && type.items().isObject();

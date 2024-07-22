@@ -570,11 +570,17 @@ public interface OpenApiObject extends JsonObject {
       return properties().isUndefined() || properties().isEmpty();
     }
 
+    /**
+     * @return an object which only has a single property is called a wrapper
+     */
     default boolean isWrapper() {
       return isObject() && properties().exists() && properties().size() == 1;
     }
 
-    default boolean isPaged() {
+    /**
+     * @return an object which has a header object and a content list is consider an envelope
+     */
+    default boolean isEnvelope() {
       if (!isObject()) return false;
       JsonMap<SchemaObject> properties = properties();
       if (properties.isUndefined()) return false;
@@ -583,6 +589,9 @@ public interface OpenApiObject extends JsonObject {
       return properties.values().anyMatch(s -> s.isObject() || s.isRef() && s.resolve().isObject());
     }
 
+    /**
+     * @return a schema is flat if it can be printed without needed multiple lines
+     */
     default boolean isFlat() {
       if (isRef()) return true;
       String type = $type();

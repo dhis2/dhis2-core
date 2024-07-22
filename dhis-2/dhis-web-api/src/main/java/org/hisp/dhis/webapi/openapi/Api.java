@@ -456,6 +456,7 @@ public class Api {
 
     @ToString.Exclude @EqualsAndHashCode.Include Class<?> rawType;
 
+    /** Which UID type is used to refer to objects of this schema */
     @CheckForNull @ToString.Exclude Class<? extends IdentifiableObject> identifyAs;
 
     /** Is empty for primitive types */
@@ -489,6 +490,9 @@ public class Api {
      * #direction}.
      */
     Maybe<Schema> input = new Maybe<>();
+
+    /** A shared schema gets a kind from {@link OpenApi.Kind} if available */
+    Maybe<String> kind = new Maybe<>();
 
     public boolean isShared() {
       return sharedName.isPresent();
