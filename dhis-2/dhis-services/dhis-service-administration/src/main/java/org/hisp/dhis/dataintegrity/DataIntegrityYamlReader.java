@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.jsonschema.JsonSchemaValidator;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.core.io.AbstractFileResolvingResource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.UrlResource;
@@ -94,6 +95,15 @@ class DataIntegrityYamlReader {
     ObjectMapper yaml = new ObjectMapper(new YAMLFactory());
     ListYamlFile file;
 
+    file = getListYamlFile(dataIntegrityRecord, yaml);
+    if (file == null) return;
+
+    file.checks.forEach(
+        dataIntegrityCheckFile -> processFile(dataIntegrityCheckFile, yaml, dataIntegrityRecord));
+  }
+
+  public static @Nullable ListYamlFile getListYamlFile(DefaultDataIntegrityService.DataIntegrityRecord dataIntegrityRecord, ObjectMapper yaml) {
+    ListYamlFile file;
     AbstractFileResolvingResource resource =
         getResourceFromType(
             dataIntegrityRecord.resourceLocation(), dataIntegrityRecord.yamlFileChecks());
@@ -103,7 +113,7 @@ class DataIntegrityYamlReader {
           "Failed to get resource from location `{}` and with file`{}`",
           dataIntegrityRecord.resourceLocation(),
           dataIntegrityRecord.yamlFileChecks());
-      return;
+      return null;
     }
 
     try (InputStream is = resource.getInputStream()) {
@@ -111,11 +121,9 @@ class DataIntegrityYamlReader {
     } catch (Exception ex) {
       log.warn(
           "Failed to load data integrity check from YAML. Error message `{}`", ex.getMessage());
-      return;
+      return null;
     }
-
-    file.checks.forEach(
-        dataIntegrityCheckFile -> processFile(dataIntegrityCheckFile, yaml, dataIntegrityRecord));
+    return file;
   }
 
   /**
