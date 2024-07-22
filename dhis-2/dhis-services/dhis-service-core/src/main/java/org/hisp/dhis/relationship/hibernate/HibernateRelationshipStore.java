@@ -63,16 +63,6 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
   }
 
   @Override
-  public List<Relationship> getByRelationshipType(RelationshipType relationshipType) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    return getList(
-        builder,
-        newJpaParameters()
-            .addPredicate(root -> builder.equal(root.join("relationshipType"), relationshipType)));
-  }
-
-  @Override
   @SuppressWarnings("unchecked")
   public List<String> getUidsByRelationshipKeys(List<String> relationshipKeyList) {
     if (CollectionUtils.isEmpty(relationshipKeyList)) {
