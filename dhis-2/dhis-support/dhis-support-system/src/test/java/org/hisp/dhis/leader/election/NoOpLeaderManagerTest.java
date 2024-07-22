@@ -25,21 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system;
+package org.hisp.dhis.leader.election;
 
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.leader.election.LeaderManager;
-import org.hisp.dhis.leader.election.NoOpLeaderManager;
-import org.hisp.dhis.test.config.H2DhisConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@Configuration
-@Import(H2DhisConfiguration.class)
-public class SystemTestConfig {
-  @Bean
-  public LeaderManager leaderManager(DhisConfigurationProvider dhisConfigurationProvider) {
-    return new NoOpLeaderManager(dhisConfigurationProvider);
+import java.util.Properties;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.test.config.TestDhisConfigurationProvider;
+import org.junit.jupiter.api.Test;
+
+/**
+ * @author Ameen Mohamed
+ */
+class NoOpLeaderManagerTest {
+
+  @Test
+  void testNodeInfo() {
+    Properties properties = new Properties();
+    properties.put(ConfigurationKey.NODE_ID, "1");
+    TestDhisConfigurationProvider dhisConfigurationProvider =
+        new TestDhisConfigurationProvider(properties);
+    NoOpLeaderManager leaderManager = new NoOpLeaderManager(dhisConfigurationProvider);
+
+    assertNotNull(leaderManager.getCurrentNodeUuid());
+    assertNotNull(leaderManager.getLeaderNodeUuid());
+    assertEquals(leaderManager.getCurrentNodeUuid(), leaderManager.getLeaderNodeUuid());
+    assertTrue(leaderManager.isLeader());
   }
 }
