@@ -33,9 +33,8 @@ import java.util.List;
 import org.hisp.dhis.cacheinvalidation.redis.PostCacheEventPublisher;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.test.integration.CacheInvalidationIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,19 +43,16 @@ import org.springframework.test.context.ActiveProfiles;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@ActiveProfiles({"test-postgres", "cache-invalidation-test"})
-class CacheInvalidationMessagePublisherTest extends CacheInvalidationIntegrationTestBase {
+@ActiveProfiles("cache-invalidation-test")
+class CacheInvalidationMessagePublisherTest extends PostgresIntegrationTestBase {
   @Autowired private PostCacheEventPublisher postCacheEventPublisher;
 
   @Autowired private IdentifiableObjectManager manager;
-
-  @Autowired private UserService _userService;
 
   private TestableMessagePublisher messagePublisher;
 
   @BeforeEach
   void setUp() {
-    userService = _userService;
     messagePublisher = (TestableMessagePublisher) postCacheEventPublisher.getMessagePublisher();
   }
 

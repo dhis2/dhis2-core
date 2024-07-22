@@ -36,15 +36,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.RestoreOptions;
 import org.hisp.dhis.user.RestoreType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class SecurityServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class SecurityServiceTest extends PostgresIntegrationTestBase {
   @Autowired private UserService _userService;
 
   @Autowired private PasswordManager passwordManager;
@@ -55,8 +58,8 @@ class SecurityServiceTest extends TransactionalIntegrationTest {
 
   private User userB;
 
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     this.userService = _userService;
     userA = createAndAddUser("johndoe");
     userB = createAndAddUser("janesmith");

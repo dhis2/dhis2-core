@@ -55,21 +55,24 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * TODO Test delete with data set elements
  *
  * @author Lars Helge Overland
  */
-class DataSetServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class DataSetServiceTest extends PostgresIntegrationTestBase {
   private PeriodType periodType;
 
   private Period period;
@@ -112,11 +115,8 @@ class DataSetServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private AclService aclService;
 
-  // -------------------------------------------------------------------------
-  // Fixture
-  // -------------------------------------------------------------------------
-  @Override
-  public void setUpTest() throws Exception {
+  @BeforeEach
+  void setUp() {
     userService = _userService;
     //    preCreateInjectAdminUser();
 

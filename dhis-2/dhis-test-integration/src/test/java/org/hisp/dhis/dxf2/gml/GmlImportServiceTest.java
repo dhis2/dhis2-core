@@ -49,17 +49,20 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Halvdan Hoem Grelland
  */
-class GmlImportServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class GmlImportServiceTest extends PostgresIntegrationTestBase {
 
   private InputStream inputStream;
   private InputStream maliciousInputStream;
@@ -81,8 +84,8 @@ class GmlImportServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private UserService _userService;
 
-  @Override
-  public void setUpTest() throws IOException {
+  @BeforeEach
+  void setUp() throws IOException {
     inputStream = new ClassPathResource("dxf2/gml/testGmlPayload.gml").getInputStream();
     maliciousInputStream =
         new ClassPathResource("dxf2/gml/testMaliciousGmlPayload.gml").getInputStream();
