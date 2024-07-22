@@ -48,8 +48,6 @@ import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.user.UserService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -76,13 +74,6 @@ class CsvMetadataImportTest extends PostgresIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private OrganisationUnitService organisationUnitService;
-
-  @Autowired private UserService _userService;
-
-  @BeforeEach
-  void setUp() {
-    userService = _userService;
-  }
 
   @Test
   void testOrgUnitImport() throws Exception {

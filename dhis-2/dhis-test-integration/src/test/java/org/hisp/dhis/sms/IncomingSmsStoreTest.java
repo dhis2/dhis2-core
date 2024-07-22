@@ -40,7 +40,6 @@ import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
 import org.hisp.dhis.sms.outbound.OutboundSmsStore;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -59,13 +58,10 @@ class IncomingSmsStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private OutboundSmsStore outboundSmsStore;
 
-  @Autowired private UserService _userService;
-
   private User user;
 
   @BeforeAll
   void setUp() {
-    this.userService = _userService;
     user = makeUser("A");
     userService.addUser(user);
   }

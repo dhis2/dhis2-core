@@ -51,7 +51,6 @@ import org.hisp.dhis.dataelement.DataElementStore;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,8 +65,6 @@ class AttributeValueServiceTest extends PostgresIntegrationTestBase {
   @Autowired private AttributeService attributeService;
 
   @Autowired private DataElementStore dataElementStore;
-
-  @Autowired private UserService _userService;
 
   @Autowired private CategoryService _categoryService;
 
@@ -89,7 +86,6 @@ class AttributeValueServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   void setUp() {
-    userService = _userService;
     categoryService = _categoryService;
     createAndInjectAdminUser();
     currentUser = getCurrentUser();

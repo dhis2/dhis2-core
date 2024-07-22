@@ -72,7 +72,7 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -82,6 +82,7 @@ import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogServi
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.joda.time.DateTime;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,7 +91,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 /**
  * @author Enrico Colasante
  */
-class MaintenanceServiceTest extends IntegrationTestBase {
+class MaintenanceServiceTest extends PostgresIntegrationTestBase {
   @Autowired private org.hisp.dhis.program.EnrollmentService apiEnrollmentService;
 
   @Autowired private EnrollmentService enrollmentService;
@@ -145,8 +146,8 @@ class MaintenanceServiceTest extends IntegrationTestBase {
 
   private RelationshipType relationshipType;
 
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     coA = categoryService.getDefaultCategoryOptionCombo();
     organisationUnit = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnit);

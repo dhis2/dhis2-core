@@ -126,7 +126,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -170,8 +169,6 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   @Autowired private ProgramOwnershipHistoryService programOwnershipHistoryService;
 
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
-
-  @Autowired private UserService _userService;
 
   @Autowired private CategoryService categoryService;
 
@@ -245,25 +242,8 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
 
   private User userA;
 
-  @AfterAll
-  public void tearDown() {
-    for (AnalyticsTableService service : analyticsTableServices) {
-      service.dropTables();
-    }
-  }
-
-  @BeforeEach
-  public void beforeEach() {
-    // Reset the security context for each test.
-    clearSecurityContext();
-
-    injectSecurityContextUser(getAdminUser());
-  }
-
   @BeforeAll
   void setUp() throws ConflictException {
-    userService = _userService;
-
     // Organisation Units
     //
     // A -> B -> D,E,F,G
@@ -594,6 +574,14 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
         JobProgress.noop());
   }
 
+  @BeforeEach
+  public void beforeEach() {
+    // Reset the security context for each test.
+    clearSecurityContext();
+
+    injectSecurityContextUser(getAdminUser());
+  }
+
   /** Adds a program ownership history entry. */
   private void addProgramOwnershipHistory(
       Program program, TrackedEntity tei, OrganisationUnit ou, Date startDate, Date endDate) {
@@ -601,6 +589,13 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
         new ProgramOwnershipHistory(program, tei, ou, startDate, endDate, "admin");
 
     programOwnershipHistoryService.addProgramOwnershipHistory(poh);
+  }
+
+  @AfterAll
+  public void tearDown() {
+    for (AnalyticsTableService service : analyticsTableServices) {
+      service.dropTables();
+    }
   }
 
   // -------------------------------------------------------------------------

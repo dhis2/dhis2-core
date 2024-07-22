@@ -51,7 +51,6 @@ import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,8 +81,6 @@ class GmlImportServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
-  @Autowired private UserService _userService;
-
   @BeforeEach
   void setUp() throws IOException {
     inputStream = new ClassPathResource("dxf2/gml/testGmlPayload.gml").getInputStream();
@@ -98,7 +95,6 @@ class GmlImportServiceTest extends PostgresIntegrationTestBase {
      * Note: some of these are included to cover different coordinate
      * element schemes such as <posList>, <coordinates> and <pos>.
      */
-    userService = _userService;
     boOrgUnit = createOrganisationUnit('A');
     boOrgUnit.setName("Bo");
     organisationUnitService.addOrganisationUnit(boOrgUnit);

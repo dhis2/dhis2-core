@@ -58,7 +58,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -105,8 +104,6 @@ class DataSetServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private PeriodService periodService;
 
-  @Autowired protected UserService _userService;
-
   @Autowired private DataApprovalService approvalService;
 
   @Autowired private DataApprovalService dataApprovalService;
@@ -117,9 +114,6 @@ class DataSetServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   void setUp() {
-    userService = _userService;
-    //    preCreateInjectAdminUser();
-
     periodType = new MonthlyPeriodType();
     period = createPeriod(periodType, getDate(2000, 3, 1), getDate(2000, 3, 31));
     periodService.addPeriod(period);

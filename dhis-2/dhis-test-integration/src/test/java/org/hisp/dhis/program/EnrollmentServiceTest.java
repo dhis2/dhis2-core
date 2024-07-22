@@ -52,7 +52,6 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Assertions;
@@ -80,8 +79,6 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   @Autowired private ProgramService programService;
 
   @Autowired private ProgramStageService programStageService;
-
-  @Autowired protected UserService _userService;
 
   @Autowired private NoteService noteService;
 
@@ -121,8 +118,6 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   void setUp() {
-    userService = _userService;
-
     coA = categoryService.getDefaultCategoryOptionCombo();
 
     organisationUnitA = createOrganisationUnit('A');

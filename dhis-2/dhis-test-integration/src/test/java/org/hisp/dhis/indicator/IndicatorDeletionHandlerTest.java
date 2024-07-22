@@ -41,7 +41,6 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,14 +52,10 @@ class IndicatorDeletionHandlerTest extends PostgresIntegrationTestBase {
 
   @Autowired private PeriodService periodService;
 
-  @Autowired private UserService _userService;
-
   private Indicator indicator;
 
   @BeforeEach
   void setUp() {
-    userService = _userService;
-
     IndicatorType type = new IndicatorType("Type", 1, true);
     manager.save(type);
 

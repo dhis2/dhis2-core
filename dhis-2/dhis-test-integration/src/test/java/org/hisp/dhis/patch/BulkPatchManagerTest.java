@@ -51,7 +51,6 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -64,8 +63,6 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class BulkPatchManagerTest extends PostgresIntegrationTestBase {
-
-  @Autowired private UserService _userService;
 
   @Autowired private BulkPatchManager patchManager;
 
@@ -93,7 +90,6 @@ class BulkPatchManagerTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   void setUp() {
-    userService = _userService;
     userA = createUserWithId("A", "NOOF56dveaZ");
     userB = createUserWithId("B", "Kh68cDMwZsg");
     userC = createUserWithAuth("C");

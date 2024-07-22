@@ -56,7 +56,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -75,8 +74,6 @@ class AnalyticsSecurityManagerTest extends PostgresIntegrationTestBase {
   @Autowired private DataElementService dataElementService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
-
-  @Autowired private UserService _userService;
 
   private CategoryOption coA;
 
@@ -104,7 +101,6 @@ class AnalyticsSecurityManagerTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   void setUp() {
-    userService = _userService;
     createAndInjectAdminUser();
     coA = createCategoryOption('A');
     coB = createCategoryOption('B');

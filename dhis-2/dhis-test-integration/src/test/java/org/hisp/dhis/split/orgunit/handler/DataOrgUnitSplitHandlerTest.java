@@ -31,8 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Sets;
 import java.util.stream.Stream;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -76,8 +74,6 @@ class DataOrgUnitSplitHandlerTest extends PostgresIntegrationTestBase {
   @Autowired private DataApprovalService dataApprovalService;
 
   @Autowired private DataOrgUnitSplitHandler handler;
-
-  @PersistenceContext private EntityManager entityManager;
 
   private DataElement deA;
 

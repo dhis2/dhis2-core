@@ -50,7 +50,6 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,8 +72,6 @@ class TrackerPreheatServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Autowired private AttributeService attributeService;
 
-  @Autowired private UserService _userService;
-
   private User currentUser;
 
   private Program program;
@@ -83,7 +80,6 @@ class TrackerPreheatServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   void setUp() {
-    userService = _userService;
     currentUser = createAndInjectAdminUser("ALL");
     // Set up placeholder OU; We add Code for testing idScheme.
     OrganisationUnit orgUnit = createOrganisationUnit('A');

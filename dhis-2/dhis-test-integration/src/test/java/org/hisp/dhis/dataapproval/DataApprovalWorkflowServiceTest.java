@@ -39,7 +39,6 @@ import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,8 +52,6 @@ class DataApprovalWorkflowServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataApprovalService dataApprovalService;
 
   @Autowired private DataApprovalLevelService dataApprovalLevelService;
-
-  @Autowired private UserService _userService;
 
   private DataApprovalWorkflow workflowA;
 
@@ -72,7 +69,6 @@ class DataApprovalWorkflowServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   void setUp() {
-    userService = _userService;
     // ---------------------------------------------------------------------
     // Add supporting data
     // ---------------------------------------------------------------------

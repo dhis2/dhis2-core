@@ -53,7 +53,7 @@ import org.hisp.dhis.merge.MergeProcessor;
 import org.hisp.dhis.merge.MergeType;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.visualization.Visualization;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -62,7 +62,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author david mackessy
  */
-class IndicatorMergeProcessorTest extends IntegrationTestBase {
+class IndicatorMergeProcessorTest extends PostgresIntegrationTestBase {
   @Autowired private MergeProcessor indicatorMergeProcessor;
   @Autowired private IdentifiableObjectManager manager;
   @Autowired private ConfigurationService configService;

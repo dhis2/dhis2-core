@@ -37,7 +37,6 @@ import java.util.Set;
 import javax.persistence.EntityManager;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -56,8 +55,6 @@ class MessageConversationStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private MessageService messageService;
 
-  @Autowired private UserService _userService;
-
   @Autowired private EntityManager entityManager;
 
   private User userB;
@@ -70,7 +67,6 @@ class MessageConversationStoreTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() {
-    userService = _userService;
     // 'A' used as currentUser
     setupUser("A");
     userB = setupUser("B");

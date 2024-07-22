@@ -48,7 +48,6 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -72,8 +71,6 @@ class DataApprovalAuditStoreTest extends PostgresIntegrationTestBase {
   @Autowired private PeriodService periodService;
 
   @Autowired private CategoryService categoryService;
-
-  @Autowired private UserService _userService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -120,8 +117,6 @@ class DataApprovalAuditStoreTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() {
-    userService = _userService;
-    //    preCreateInjectAdminUser();
     // ---------------------------------------------------------------------
     // Add supporting data
     // ---------------------------------------------------------------------

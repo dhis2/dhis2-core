@@ -142,6 +142,6 @@ class AppTest {
     appWithoutPlugin.init("https://example.com");
     assertEquals(
         "https://example.com/api/apps/Test-App/index.html", appWithoutPlugin.getLaunchUrl());
-    assertEquals(null, appWithoutPlugin.getPluginLaunchUrl());
+    assertNull(appWithoutPlugin.getPluginLaunchUrl());
   }
 }
