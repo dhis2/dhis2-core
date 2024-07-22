@@ -33,7 +33,6 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.mappers.EnrollmentMapper;
 import org.hisp.dhis.tracker.imports.preheat.supplier.DetachUtils;
@@ -48,16 +47,12 @@ import org.springframework.stereotype.Component;
 @StrategyFor(
     value = org.hisp.dhis.tracker.imports.domain.Enrollment.class,
     mapper = EnrollmentMapper.class)
-public class EnrollmentStrategy extends HibernateGenericStore<Event>
+public class EnrollmentStrategy extends HibernateGenericStore<Enrollment>
     implements ClassBasedSupplierStrategy {
 
   public EnrollmentStrategy(
-      EntityManager entityManager,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      Class<Event> clazz,
-      boolean cacheable) {
-    super(entityManager, jdbcTemplate, publisher, clazz, cacheable);
+      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
+    super(entityManager, jdbcTemplate, publisher, Enrollment.class, false);
   }
 
   @Override
