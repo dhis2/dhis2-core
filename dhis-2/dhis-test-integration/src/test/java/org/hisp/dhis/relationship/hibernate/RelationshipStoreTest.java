@@ -30,8 +30,6 @@ package org.hisp.dhis.relationship.hibernate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import org.hisp.dhis.attribute.Attribute;
@@ -43,12 +41,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
@@ -95,61 +88,6 @@ class RelationshipStoreTest extends PostgresIntegrationTestBase {
     relationshipTypeService.addRelationshipType(relationshipType);
     organisationUnit = createOrganisationUnit("testOU");
     organisationUnitService.addOrganisationUnit(organisationUnit);
-  }
-
-  @Test
-  void testGetByTrackedEntity() {
-    Relationship teRelationship = addTeToTeRelationship();
-
-    List<Relationship> relationshipList =
-        relationshipService.getRelationshipsByTrackedEntity(trackedEntityA, false);
-
-    assertEquals(1, relationshipList.size());
-    assertTrue(relationshipList.contains(teRelationship));
-  }
-
-  @Test
-  void testGetByEvent() {
-    Program programA = addProgram();
-
-    Enrollment enrollment = addEnrollment(programA);
-
-    ProgramStage programStageA = addProgramStage(programA);
-
-    Event event = createEvent(programStageA, enrollment, organisationUnit);
-    manager.save(event);
-
-    trackedEntityA = createTrackedEntity(organisationUnit);
-    trackedEntityService.addTrackedEntity(trackedEntityA);
-
-    Relationship relationshipA = addTeToEventRelationship(trackedEntityA, event);
-
-    List<Relationship> relationshipList = relationshipService.getRelationshipsByEvent(event, false);
-
-    assertEquals(1, relationshipList.size());
-    assertTrue(relationshipList.contains(relationshipA));
-
-    assertTrue(relationshipService.getRelationshipByRelationship(relationshipA).isPresent());
-  }
-
-  @Test
-  void testGetByEnrollment() {
-    trackedEntityA = createTrackedEntity(organisationUnit);
-    trackedEntityService.addTrackedEntity(trackedEntityA);
-
-    Program programA = addProgram();
-
-    Enrollment enrollment = addEnrollment(programA);
-
-    Relationship relationshipA = addTeToEnrollmentRelationship(trackedEntityA, enrollment);
-
-    List<Relationship> relationshipList =
-        relationshipService.getRelationshipsByEnrollment(enrollment, false);
-
-    assertEquals(1, relationshipList.size());
-    assertTrue(relationshipList.contains(relationshipA));
-
-    assertTrue(relationshipService.getRelationshipByRelationship(relationshipA).isPresent());
   }
 
   @Test
@@ -210,65 +148,5 @@ class RelationshipStoreTest extends PostgresIntegrationTestBase {
         RelationshipUtils.generateRelationshipInvertedKey(teRelationship));
     relationshipService.addRelationship(teRelationship);
     return teRelationship;
-  }
-
-  private Relationship addTeToEventRelationship(TrackedEntity trackedEntity, Event event) {
-    RelationshipItem relationshipItemFrom = new RelationshipItem();
-    relationshipItemFrom.setTrackedEntity(trackedEntity);
-    RelationshipItem relationshipItemTo = new RelationshipItem();
-    relationshipItemTo.setEvent(event);
-
-    Relationship relationshipA = new Relationship();
-    relationshipA.setRelationshipType(relationshipType);
-    relationshipA.setFrom(relationshipItemFrom);
-    relationshipA.setTo(relationshipItemTo);
-    relationshipA.setKey(RelationshipUtils.generateRelationshipKey(relationshipA));
-    relationshipA.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(relationshipA));
-
-    relationshipService.addRelationship(relationshipA);
-    return relationshipA;
-  }
-
-  private Relationship addTeToEnrollmentRelationship(
-      TrackedEntity trackedEntity, Enrollment enrollment) {
-    RelationshipItem relationshipItemFrom = new RelationshipItem();
-    relationshipItemFrom.setTrackedEntity(trackedEntity);
-    RelationshipItem relationshipItemTo = new RelationshipItem();
-    relationshipItemTo.setEnrollment(enrollment);
-
-    Relationship relationshipA = new Relationship();
-    relationshipA.setRelationshipType(relationshipType);
-    relationshipA.setFrom(relationshipItemFrom);
-    relationshipA.setTo(relationshipItemTo);
-    relationshipA.setKey(RelationshipUtils.generateRelationshipKey(relationshipA));
-    relationshipA.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(relationshipA));
-
-    relationshipService.addRelationship(relationshipA);
-    return relationshipA;
-  }
-
-  private ProgramStage addProgramStage(Program programA) {
-    ProgramStage programStageA = createProgramStage('S', programA);
-    programStageA.setProgram(programA);
-    programStageService.saveProgramStage(programStageA);
-    programA.getProgramStages().add(programStageA);
-    return programStageA;
-  }
-
-  private Enrollment addEnrollment(Program programA) {
-    Enrollment enrollment = new Enrollment();
-    enrollment.setProgram(programA);
-    enrollment.setAutoFields();
-    enrollment.setEnrollmentDate(new Date());
-    enrollment.setOccurredDate(new Date());
-    enrollment.setStatus(EnrollmentStatus.ACTIVE);
-    manager.save(enrollment);
-    return enrollment;
-  }
-
-  private Program addProgram() {
-    Program programA = createProgram('A', new HashSet<>(), organisationUnit);
-    programService.addProgram(programA);
-    return programA;
   }
 }
