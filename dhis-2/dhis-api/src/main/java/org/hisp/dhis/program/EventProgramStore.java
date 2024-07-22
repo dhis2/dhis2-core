@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,43 +27,10 @@
  */
 package org.hisp.dhis.program;
 
-import java.util.Date;
-import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 
-/**
- * @author Abyot Asalefew
- */
-public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
-  String ID = EnrollmentStore.class.getName();
+public interface EventProgramStore extends IdentifiableObjectStore<Enrollment> {
 
-  /** Get enrollments into a program. */
-  List<Enrollment> get(Program program);
-
-  /** Get enrollments into a program that are in given status. */
-  List<Enrollment> get(Program program, EnrollmentStatus status);
-
-  /** Get a tracked entities enrollments into a program that are in given status. */
-  List<Enrollment> get(TrackedEntity trackedEntity, Program program, EnrollmentStatus status);
-
-  /**
-   * Fetches enrollments matching the given list of UIDs
-   *
-   * @param uids a List of UID
-   * @return a List containing the enrollments matching the given parameters list
-   */
-  List<Enrollment> getIncludingDeleted(List<String> uids);
-
-  /**
-   * Get all enrollments which have notifications with the given ProgramNotificationTemplate
-   * scheduled on the given date.
-   *
-   * @param template the template.
-   * @param notificationDate the Date for which the notification is scheduled.
-   * @return a list of enrollments.
-   */
-  List<Enrollment> getWithScheduledNotifications(
-      ProgramNotificationTemplate template, Date notificationDate);
+  /** Hard deletes a {@link Enrollment}. */
+  void hardDelete(Enrollment enrollment);
 }

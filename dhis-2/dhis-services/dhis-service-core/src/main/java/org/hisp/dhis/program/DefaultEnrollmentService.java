@@ -69,12 +69,6 @@ public class DefaultEnrollmentService implements EnrollmentService {
   }
 
   @Override
-  @Transactional
-  public void hardDeleteEnrollment(Enrollment enrollment) {
-    enrollmentStore.hardDelete(enrollment);
-  }
-
-  @Override
   @Transactional(readOnly = true)
   public List<Enrollment> getEnrollments(Program program) {
     return enrollmentStore.get(program);

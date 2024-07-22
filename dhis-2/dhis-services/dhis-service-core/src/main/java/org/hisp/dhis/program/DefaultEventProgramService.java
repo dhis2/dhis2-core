@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,48 +27,16 @@
  */
 package org.hisp.dhis.program;
 
-import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
-
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-/**
- * @author Quang Nguyen
- */
-@Component
 @RequiredArgsConstructor
-public class EnrollmentDeletionHandler extends IdObjectDeletionHandler<Enrollment> {
-  private final EnrollmentService enrollmentService;
+@Service("org.hisp.dhis.program.EventProgramService")
+public class DefaultEventProgramService implements EventProgramService {
+  private final EventProgramStore eventProgramStore;
 
   @Override
-  protected void registerHandler() {
-    whenVetoing(Program.class, this::allowDeleteProgram);
-    whenDeleting(Program.class, this::deleteProgram);
-  }
-
-  private DeletionVeto allowDeleteProgram(Program program) {
-    if (program.isWithoutRegistration()) {
-      return ACCEPT;
-    }
-    String sql = "select 1 from enrollment where programid = :id limit 1";
-    return vetoIfExists(VETO, sql, Map.of("id", program.getId()));
-  }
-
-  private void deleteProgram(Program program) {
-    Collection<Enrollment> enrollments = enrollmentService.getEnrollments(program);
-
-    if (enrollments != null) {
-      Iterator<Enrollment> iterator = enrollments.iterator();
-      while (iterator.hasNext()) {
-        Enrollment enrollment = iterator.next();
-        iterator.remove();
-        enrollmentService.hardDeleteEnrollment(enrollment);
-      }
-    }
+  public void hardDeleteEnrollment(Enrollment enrollment) {
+    eventProgramStore.hardDelete(enrollment);
   }
 }

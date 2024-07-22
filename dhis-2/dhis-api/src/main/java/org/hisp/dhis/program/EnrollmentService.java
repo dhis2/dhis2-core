@@ -44,13 +44,6 @@ public interface EnrollmentService {
    */
   void deleteEnrollment(Enrollment enrollment);
 
-  /**
-   * Hard deletes a {@link Enrollment}.
-   *
-   * @param enrollment the Enrollment to delete.
-   */
-  void hardDeleteEnrollment(Enrollment enrollment);
-
   /** Get enrollments into a program. */
   List<Enrollment> getEnrollments(Program program);
 

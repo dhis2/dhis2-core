@@ -27,43 +27,44 @@
  */
 package org.hisp.dhis.program;
 
-import java.util.Date;
-import java.util.List;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
+
+import java.util.Collection;
+import java.util.Iterator;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.system.deletion.DeletionVeto;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Abyot Asalefew
+ * @author Quang Nguyen
  */
-public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
-  String ID = EnrollmentStore.class.getName();
+@Component
+@RequiredArgsConstructor
+public class EventProgramEnrollmentDeletionHandler extends IdObjectDeletionHandler<Enrollment> {
+  private final EnrollmentService enrollmentService;
+  private final EventProgramService eventProgramService;
 
-  /** Get enrollments into a program. */
-  List<Enrollment> get(Program program);
+  @Override
+  protected void registerHandler() {
+    whenVetoing(Program.class, this::allowDeleteProgram);
+    whenDeleting(Program.class, this::deleteProgram);
+  }
 
-  /** Get enrollments into a program that are in given status. */
-  List<Enrollment> get(Program program, EnrollmentStatus status);
+  private DeletionVeto allowDeleteProgram(Program program) {
+    return program.isWithoutRegistration() ? ACCEPT : VETO;
+  }
 
-  /** Get a tracked entities enrollments into a program that are in given status. */
-  List<Enrollment> get(TrackedEntity trackedEntity, Program program, EnrollmentStatus status);
+  private void deleteProgram(Program program) {
+    Collection<Enrollment> enrollments = enrollmentService.getEnrollments(program);
 
-  /**
-   * Fetches enrollments matching the given list of UIDs
-   *
-   * @param uids a List of UID
-   * @return a List containing the enrollments matching the given parameters list
-   */
-  List<Enrollment> getIncludingDeleted(List<String> uids);
-
-  /**
-   * Get all enrollments which have notifications with the given ProgramNotificationTemplate
-   * scheduled on the given date.
-   *
-   * @param template the template.
-   * @param notificationDate the Date for which the notification is scheduled.
-   * @return a list of enrollments.
-   */
-  List<Enrollment> getWithScheduledNotifications(
-      ProgramNotificationTemplate template, Date notificationDate);
+    if (enrollments != null) {
+      Iterator<Enrollment> iterator = enrollments.iterator();
+      while (iterator.hasNext()) {
+        Enrollment enrollment = iterator.next();
+        iterator.remove();
+        eventProgramService.hardDeleteEnrollment(enrollment);
+      }
+    }
+  }
 }
