@@ -42,7 +42,6 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -63,8 +62,6 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
   @Autowired private TrackerObjectDeletionService trackerObjectDeletionService;
 
   @Autowired private TrackedEntityService trackedEntityService;
-
-  @Autowired private RelationshipService relationshipService;
 
   @Autowired private RelationshipTypeService relationshipTypeService;
 
@@ -127,22 +124,22 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
     Relationship relationship3 = createTeToTeRelationship(duplicate, control2, relationshipType);
     Relationship relationship4 = createTeToTeRelationship(control1, duplicate, relationshipType);
     Relationship relationship5 = createTeToTeRelationship(control1, original, relationshipType);
-    long relationShip1 = relationshipService.addRelationship(relationship1);
-    long relationShip2 = relationshipService.addRelationship(relationship2);
-    long relationShip3 = relationshipService.addRelationship(relationship3);
-    long relationShip4 = relationshipService.addRelationship(relationship4);
-    long relationShip5 = relationshipService.addRelationship(relationship5);
+    manager.save(relationship1);
+    manager.save(relationship2);
+    manager.save(relationship3);
+    manager.save(relationship4);
+    manager.save(relationship5);
     assertNotNull(trackedEntityService.getTrackedEntity(original.getUid()));
     assertNotNull(trackedEntityService.getTrackedEntity(duplicate.getUid()));
     assertNotNull(trackedEntityService.getTrackedEntity(control1.getUid()));
     assertNotNull(trackedEntityService.getTrackedEntity(control2.getUid()));
     dbmsManager.clearSession();
     removeTrackedEntity(duplicate);
-    assertNull(getRelationship(relationShip3));
-    assertNull(getRelationship(relationShip4));
-    assertNotNull(getRelationship(relationShip1));
-    assertNotNull(getRelationship(relationShip2));
-    assertNotNull(getRelationship(relationShip5));
+    assertNull(getRelationship(relationship3.getUid()));
+    assertNull(getRelationship(relationship4.getUid()));
+    assertNotNull(getRelationship(relationship1.getUid()));
+    assertNotNull(getRelationship(relationship2.getUid()));
+    assertNotNull(getRelationship(relationship5.getUid()));
     assertNull(trackedEntityService.getTrackedEntity(duplicate.getUid()));
   }
 
@@ -201,7 +198,7 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
     trackerObjectDeletionService.deleteTrackedEntities(List.of(trackedEntity.getUid()));
   }
 
-  private Relationship getRelationship(long id) {
-    return manager.get(Relationship.class, id);
+  private Relationship getRelationship(String uid) {
+    return manager.get(Relationship.class, uid);
   }
 }
