@@ -34,7 +34,9 @@ import org.hisp.dhis.program.EventProgramStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
 
+@Service("org.hisp.dhis.program.hibernate.HibernateEventProgramStore")
 public class HibernateEventProgramStore extends SoftDeleteHibernateObjectStore<Enrollment>
     implements EventProgramStore {
 
@@ -42,10 +44,8 @@ public class HibernateEventProgramStore extends SoftDeleteHibernateObjectStore<E
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      Class<Enrollment> clazz,
-      AclService aclService,
-      boolean cacheable) {
-    super(entityManager, jdbcTemplate, publisher, clazz, aclService, cacheable);
+      AclService aclService) {
+    super(entityManager, jdbcTemplate, publisher, Enrollment.class, aclService, true);
   }
 
   @Override
