@@ -40,7 +40,6 @@ import java.util.List;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.jsonschema.JsonSchemaValidator;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.core.io.AbstractFileResolvingResource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.UrlResource;
@@ -102,7 +101,8 @@ class DataIntegrityYamlReader {
         dataIntegrityCheckFile -> processFile(dataIntegrityCheckFile, yaml, dataIntegrityRecord));
   }
 
-  public static @Nullable ListYamlFile getListYamlFile(DefaultDataIntegrityService.DataIntegrityRecord dataIntegrityRecord, ObjectMapper yaml) {
+  public static ListYamlFile getListYamlFile(
+      DefaultDataIntegrityService.DataIntegrityRecord dataIntegrityRecord, ObjectMapper yaml) {
     ListYamlFile file;
     AbstractFileResolvingResource resource =
         getResourceFromType(

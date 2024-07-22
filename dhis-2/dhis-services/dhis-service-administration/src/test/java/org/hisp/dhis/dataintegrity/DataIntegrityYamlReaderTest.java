@@ -35,6 +35,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -42,9 +44,6 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue;
 import org.junit.jupiter.api.Test;
 
@@ -58,7 +57,8 @@ class DataIntegrityYamlReaderTest {
   void testReadDataIntegrityYaml() {
 
     List<DataIntegrityCheck> checks = new ArrayList<>();
-    DataIntegrityYamlReader.ListYamlFile check_files = readYaml(checks, "data-integrity-checks.yaml", "data-integrity-checks", CLASS_PATH);
+    DataIntegrityYamlReader.ListYamlFile check_files =
+        readYaml(checks, "data-integrity-checks.yaml", "data-integrity-checks", CLASS_PATH);
     assertEquals(check_files.checks.size(), checks.size());
 
     // Names should be unique
@@ -150,7 +150,8 @@ class DataIntegrityYamlReaderTest {
       String checksDirectory,
       DataIntegrityYamlReader.ResourceLocation resourceLocation) {
 
-    DefaultDataIntegrityService.DataIntegrityRecord dataIntegrityRecord = new DefaultDataIntegrityService.DataIntegrityRecord(
+    DefaultDataIntegrityService.DataIntegrityRecord dataIntegrityRecord =
+        new DefaultDataIntegrityService.DataIntegrityRecord(
             resourceLocation,
             fileChecks,
             checksDirectory,
@@ -158,16 +159,16 @@ class DataIntegrityYamlReaderTest {
             (property, defaultValue) -> defaultValue,
             sql -> check -> new DataIntegritySummary(check, new Date(), new Date(), null, 1, 100d),
             sql ->
-                    check ->
-                            new DataIntegrityDetails(
-                                    check,
-                                    new Date(),
-                                    new Date(),
-                                    null,
-                                    List.of(new DataIntegrityIssue("id", "name", sql, List.of()))));
+                check ->
+                    new DataIntegrityDetails(
+                        check,
+                        new Date(),
+                        new Date(),
+                        null,
+                        List.of(new DataIntegrityIssue("id", "name", sql, List.of()))));
     readDataIntegrityYaml(dataIntegrityRecord);
 
-    return DataIntegrityYamlReader.getListYamlFile(dataIntegrityRecord, new ObjectMapper(new YAMLFactory()));
-
+    return DataIntegrityYamlReader.getListYamlFile(
+        dataIntegrityRecord, new ObjectMapper(new YAMLFactory()));
   }
 }
