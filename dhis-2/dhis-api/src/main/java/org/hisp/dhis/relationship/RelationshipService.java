@@ -28,8 +28,6 @@
 package org.hisp.dhis.relationship;
 
 import java.util.List;
-import java.util.Optional;
-import javax.annotation.Nonnull;
 
 /**
  * @author Abyot Asalefew
@@ -44,18 +42,6 @@ public interface RelationshipService {
    * @return id of the added relationship.
    */
   long addRelationship(Relationship relationship);
-
-  /**
-   * Fetches a {@link Relationship} based on a relationship identifying attributes:
-   *
-   * <p>- relationship type - from - to
-   *
-   * @param relationship A valid Relationship
-   * @return an Optional Relationship
-   */
-  Optional<Relationship> getRelationshipByRelationship(Relationship relationship);
-
-  List<Relationship> getRelationships(@Nonnull List<String> uids);
 
   List<Relationship> getRelationshipsByRelationshipType(RelationshipType relationshipType);
 }

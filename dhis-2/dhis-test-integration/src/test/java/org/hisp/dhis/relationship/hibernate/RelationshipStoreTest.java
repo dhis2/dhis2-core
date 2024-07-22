@@ -31,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-import java.util.Optional;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -99,16 +98,6 @@ class RelationshipStoreTest extends PostgresIntegrationTestBase {
 
     assertEquals(1, relationshipList.size());
     assertTrue(relationshipList.contains(teRelationship));
-  }
-
-  @Test
-  void testGetByRelationship() {
-    Relationship teRelationship = addTeToTeRelationship();
-
-    Optional<Relationship> existing =
-        relationshipService.getRelationshipByRelationship(teRelationship);
-
-    assertTrue(existing.isPresent());
   }
 
   @Test
