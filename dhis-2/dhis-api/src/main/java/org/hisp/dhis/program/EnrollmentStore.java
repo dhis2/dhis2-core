@@ -66,11 +66,4 @@ public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
    */
   List<Enrollment> getWithScheduledNotifications(
       ProgramNotificationTemplate template, Date notificationDate);
-
-  /**
-   * Hard deletes a {@link Enrollment}.
-   *
-   * @param enrollment the enrollment to delete.
-   */
-  void hardDelete(Enrollment enrollment);
 }
