@@ -144,13 +144,11 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     @Language("hql")
     String hql =
         """
-            FROM Relationship R JOIN RelationshipType RT
-            WHERE R.deleted = false AND (R.key IN (:keys)
-            OR (R.invertedKey IN (:keys) AND RT.bidirectional = TRUE))
+            from Relationship r
+            where r.deleted = false and (r.key in (:keys)
+            or (r.invertedKey in (:keys) and r.relationshipType.bidirectional = true))
             """;
-    return getQuery(hql, Relationship.class)
-        .setParameter("keys", relationshipKeyList)
-        .getResultList();
+    return getQuery(hql, Relationship.class).setParameter("keys", relationshipKeyList).list();
   }
 
   /**
