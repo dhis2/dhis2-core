@@ -35,7 +35,6 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
@@ -48,12 +47,14 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentStore;
 import org.hisp.dhis.tracker.export.relationship.RelationshipQueryParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipStore;
 import org.hisp.dhis.tracker.imports.report.Entity;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Zubair Asghar
@@ -67,6 +68,8 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
   private final RelationshipStore relationshipStore;
 
+  private final EnrollmentStore enrollmentStore;
+
   private final TrackedEntityAttributeValueService attributeValueService;
 
   private final TrackedEntityDataValueChangeLogService dataValueChangeLogService;
@@ -74,6 +77,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
   private final ProgramNotificationInstanceService programNotificationInstanceService;
 
   @Override
+  @Transactional
   public TrackerTypeReport deleteEnrollments(List<String> enrollments) throws NotFoundException {
     UserInfoSnapshot userInfoSnapshot =
         UserInfoSnapshot.from(CurrentUserUtil.getCurrentUserDetails());
@@ -112,9 +116,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
       TrackedEntity te = enrollment.getTrackedEntity();
       te.setLastUpdatedByUserInfo(userInfoSnapshot);
 
-      enrollment.setStatus(EnrollmentStatus.CANCELLED);
-      manager.update(enrollment);
-      manager.delete(enrollment);
+      enrollmentStore.deleteEnrollment(enrollment);
 
       teService.updateTrackedEntity(te);
 

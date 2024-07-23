@@ -55,10 +55,10 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -82,6 +82,7 @@ import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
+import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -94,6 +95,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
  */
 class MaintenanceServiceTest extends PostgresIntegrationTestBase {
   @Autowired private EnrollmentService enrollmentService;
+
+  @Autowired private TrackerObjectDeletionService trackerObjectDeletionService;
 
   @Autowired private ProgramMessageService programMessageService;
 
@@ -242,7 +245,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testDeleteSoftDeletedEnrollmentWithAProgramMessage()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     ProgramMessageRecipients programMessageRecipients = new ProgramMessageRecipients();
     programMessageRecipients.setEmailAddresses(Sets.newHashSet("testemail"));
     programMessageRecipients.setPhoneNumbers(Sets.newHashSet("testphone"));
@@ -259,7 +262,8 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     manager.save(enrollment);
     programMessageService.saveProgramMessage(message);
     assertNotNull(manager.get(Enrollment.class, enrollment.getUid()));
-    deleteEnrollment(enrollment);
+
+    trackerObjectDeletionService.deleteEnrollments(List.of(enrollment.getUid()));
     assertNull(manager.get(Enrollment.class, enrollment.getUid()));
     assertTrue(enrollmentExistsIncludingDeleted(enrollment));
 
@@ -323,7 +327,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testDeleteSoftDeletedEnrollmentLinkedToATrackedEntityDataValueAudit()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     DataElement dataElement = createDataElement('A');
     dataElementService.addDataElement(dataElement);
     Event eventA = new Event(enrollment, program.getProgramStageByStage(1));
@@ -338,7 +342,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
         trackedEntityDataValueChangeLog);
     manager.save(enrollment);
     assertNotNull(manager.get(Enrollment.class, enrollment.getUid()));
-    deleteEnrollment(enrollment);
+    trackerObjectDeletionService.deleteEnrollments(List.of(enrollment.getUid()));
     assertNull(manager.get(Enrollment.class, enrollment.getUid()));
     assertTrue(enrollmentExistsIncludingDeleted(enrollment));
 
@@ -390,7 +394,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testDeleteSoftDeletedEnrollmentLinkedToARelationshipItem()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     RelationshipType rType = createRelationshipType('A');
     rType.getFromConstraint().setRelationshipEntity(RelationshipEntity.PROGRAM_INSTANCE);
     rType.getFromConstraint().setProgram(program);
@@ -410,7 +414,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     relationshipService.addRelationship(r);
     assertNotNull(manager.get(Enrollment.class, enrollment.getId()));
     assertNotNull(getRelationship(r.getId()));
-    deleteEnrollment(enrollment);
+    trackerObjectDeletionService.deleteEnrollments(List.of(enrollment.getUid()));
     assertNull(manager.get(Enrollment.class, enrollment.getId()));
     manager.delete(r);
     assertNull(getRelationship(r.getId()));
@@ -503,11 +507,5 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
             .build();
 
     return !enrollmentService.getEnrollments(params).isEmpty();
-  }
-
-  private void deleteEnrollment(Enrollment enrollment) {
-    enrollment.setStatus(EnrollmentStatus.CANCELLED);
-    manager.update(enrollment);
-    manager.delete(enrollment);
   }
 }

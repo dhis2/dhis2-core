@@ -102,6 +102,7 @@ import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams.TrackedEntityOperationParamsBuilder;
+import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -119,6 +120,8 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private EnrollmentService enrollmentService;
+
+  @Autowired private TrackerObjectDeletionService trackerObjectDeletionService;
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -1176,7 +1179,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .collect(Collectors.toSet());
     assertIsEmpty(deletedEvents);
 
-    deleteEnrollment(enrollmentA);
+    trackerObjectDeletionService.deleteEnrollments(List.of(enrollmentA.getUid()));
     manager.delete(eventA);
 
     trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
@@ -2084,11 +2087,5 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         .trackedEntityParams(new TrackedEntityParams(true, TRUE, false, false))
         .user(user)
         .build();
-  }
-
-  private void deleteEnrollment(Enrollment enrollment) {
-    enrollment.setStatus(EnrollmentStatus.CANCELLED);
-    manager.update(enrollment);
-    manager.delete(enrollment);
   }
 }
