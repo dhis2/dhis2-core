@@ -45,17 +45,22 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.visualization.Visualization;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class ObjectBundleServiceFavoritesTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class ObjectBundleServiceFavoritesTest extends PostgresIntegrationTestBase {
 
   @Autowired private ObjectBundleService objectBundleService;
 
@@ -65,12 +70,9 @@ class ObjectBundleServiceFavoritesTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private RenderService _renderService;
 
-  @Autowired private UserService _userService;
-
-  @Override
-  protected void setUpTest() throws Exception {
+  @BeforeAll
+  void setUp() {
     renderService = _renderService;
-    userService = _userService;
   }
 
   @Test

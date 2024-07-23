@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
-import static org.hisp.dhis.DhisConvenienceTest.injectSecurityContext;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.test.TestBase.injectSecurityContext;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -193,7 +193,7 @@ class EnrollmentOperationParamsMapperTest {
     EnrollmentQueryParams params = mapper.map(operationParams);
 
     assertEquals(DESCENDANTS, params.getOrganisationUnitMode());
-    assertEquals(user.getTeiSearchOrganisationUnitsWithFallback(), params.getOrganisationUnits());
+    assertEquals(user.getEffectiveSearchOrganisationUnits(), params.getOrganisationUnits());
   }
 
   @Test
@@ -212,10 +212,10 @@ class EnrollmentOperationParamsMapperTest {
   void shouldMapChildrenOrgUnitModeWhenChildrenProvided()
       throws ForbiddenException, BadRequestException {
     when(organisationUnitService.isInUserHierarchy(
-            orgUnit1.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
+            orgUnit1.getUid(), user.getEffectiveSearchOrganisationUnits()))
         .thenReturn(true);
     when(organisationUnitService.isInUserHierarchy(
-            orgUnit2.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
+            orgUnit2.getUid(), user.getEffectiveSearchOrganisationUnits()))
         .thenReturn(true);
 
     EnrollmentOperationParams operationParams =

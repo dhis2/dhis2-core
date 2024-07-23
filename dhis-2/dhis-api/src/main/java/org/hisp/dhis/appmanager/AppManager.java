@@ -70,7 +70,6 @@ public interface AppManager {
           "scheduler",
           "settings",
           "sms-configuration",
-          "tracker-capture",
           "translations",
           "usage-analytics",
           "user",

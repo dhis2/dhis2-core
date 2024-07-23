@@ -45,6 +45,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
@@ -52,7 +53,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
@@ -62,10 +63,11 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @ActiveProfiles(profiles = {"test-audit"})
 @Disabled("until we can inject dhis.conf property overrides")
-class AuditIntegrationTest extends IntegrationTestBase {
+class AuditIntegrationTest extends PostgresIntegrationTestBase {
 
   private static final int TIMEOUT = 5;
 
@@ -84,6 +86,10 @@ class AuditIntegrationTest extends IntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private ObjectMapper objectMapper;
+
+  @Autowired private TransactionTemplate transactionTemplate;
+
+  @Autowired private DbmsManager dbmsManager;
 
   @Test
   void testSaveMetadata() {

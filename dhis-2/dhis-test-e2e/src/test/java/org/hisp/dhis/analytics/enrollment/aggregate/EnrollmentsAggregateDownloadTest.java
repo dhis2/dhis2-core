@@ -32,9 +32,9 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.AnalyticsApiTest;
-import org.hisp.dhis.actions.analytics.AnalyticsEnrollmentsActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEnrollmentsActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.Test;
 
 public class EnrollmentsAggregateDownloadTest extends AnalyticsApiTest {

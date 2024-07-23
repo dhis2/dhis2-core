@@ -28,10 +28,11 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.emptySet;
-import static org.hisp.dhis.web.HttpStatus.Series.SUCCESSFUL;
-import static org.hisp.dhis.web.WebClient.Accept;
-import static org.hisp.dhis.web.WebClient.Body;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.web.HttpStatus.Series.SUCCESSFUL;
+import static org.hisp.dhis.test.web.WebClient.Accept;
+import static org.hisp.dhis.test.web.WebClient.Body;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -49,13 +50,20 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.message.FakeMessageSender;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.test.message.FakeMessageSender;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
+import org.hisp.dhis.test.webapi.json.domain.JsonImportSummary;
+import org.hisp.dhis.test.webapi.json.domain.JsonUser;
+import org.hisp.dhis.test.webapi.json.domain.JsonUserGroup;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.user.RestoreType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -64,13 +72,6 @@ import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
-import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
-import org.hisp.dhis.webapi.json.domain.JsonUser;
-import org.hisp.dhis.webapi.json.domain.JsonUserGroup;
-import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.jboss.aerogear.security.otp.api.Base32;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -83,7 +84,7 @@ import org.springframework.security.core.session.SessionRegistry;
  *
  * @author Jan Bernitt
  */
-class UserControllerTest extends DhisControllerConvenienceTest {
+class UserControllerTest extends H2ControllerIntegrationTestBase {
   @Autowired private MessageSender messageSender;
 
   @Autowired private SystemSettingManager systemSettingManager;

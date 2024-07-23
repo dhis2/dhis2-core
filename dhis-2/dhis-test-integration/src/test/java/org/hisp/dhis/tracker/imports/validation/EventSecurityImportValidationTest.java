@@ -46,7 +46,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
@@ -66,7 +65,7 @@ import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -78,8 +77,6 @@ class EventSecurityImportValidationTest extends TrackerTest {
   @Autowired protected TrackedEntityService trackedEntityService;
 
   @Autowired private TrackerImportService trackerImportService;
-
-  @Autowired private EventService programStageServiceInstance;
 
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
@@ -94,8 +91,6 @@ class EventSecurityImportValidationTest extends TrackerTest {
   @Autowired private EnrollmentService enrollmentService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
-
-  @Autowired private UserService _userService;
 
   private TrackedEntity maleA;
 
@@ -121,9 +116,8 @@ class EventSecurityImportValidationTest extends TrackerTest {
 
   private TrackedEntityType trackedEntityType;
 
-  @Override
-  protected void initTest() throws IOException {
-    userService = _userService;
+  @BeforeAll
+  void setUp() throws IOException {
     setUpMetadata("tracker/tracker_basic_metadata.json");
     injectAdminUser();
 
@@ -201,7 +195,7 @@ class EventSecurityImportValidationTest extends TrackerTest {
     Enrollment enrollment =
         enrollmentService.enrollTrackedEntity(
             maleA, programA, dateMar20, dateApr10, organisationUnitA, "MNWZ6hnuhSX");
-    enrollmentService.addEnrollment(enrollment);
+    manager.save(enrollment);
     trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
         maleA.getUid(), programA.getUid(), organisationUnitA.getUid());
     manager.update(programA);
@@ -242,7 +236,7 @@ class EventSecurityImportValidationTest extends TrackerTest {
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
     // Change just inserted Event to status COMPLETED...
-    Event zwwuwNp6gVd = programStageServiceInstance.getEvent("ZwwuwNp6gVd");
+    Event zwwuwNp6gVd = manager.get(Event.class, "ZwwuwNp6gVd");
     zwwuwNp6gVd.setStatus(EventStatus.COMPLETED);
     manager.update(zwwuwNp6gVd);
     programA.setPublicAccess(AccessStringHelper.FULL);

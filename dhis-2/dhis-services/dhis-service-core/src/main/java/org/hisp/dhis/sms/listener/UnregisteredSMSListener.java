@@ -27,16 +27,12 @@
  */
 package org.hisp.dhis.sms.listener;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Map;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.message.MessageType;
-import org.hisp.dhis.program.EnrollmentService;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
@@ -61,35 +57,18 @@ public class UnregisteredSMSListener extends CommandSMSListener {
   private final MessageService messageService;
 
   public UnregisteredSMSListener(
-      EnrollmentService enrollmentService,
       CategoryService dataElementCategoryService,
-      EventService eventService,
       UserService userService,
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
       SMSCommandService smsCommandService,
       UserService userService1,
       MessageService messageService) {
-    super(
-        enrollmentService,
-        dataElementCategoryService,
-        eventService,
-        userService,
-        incomingSmsService,
-        smsSender);
-
-    checkNotNull(smsCommandService);
-    checkNotNull(userService);
-    checkNotNull(messageService);
-
+    super(dataElementCategoryService, userService, incomingSmsService, smsSender);
     this.smsCommandService = smsCommandService;
     this.userService = userService1;
     this.messageService = messageService;
   }
-
-  // -------------------------------------------------------------------------
-  // IncomingSmsListener implementation
-  // -------------------------------------------------------------------------
 
   @Override
   protected SMSCommand getSMSCommand(IncomingSms sms) {

@@ -36,16 +36,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class FieldPathHelperTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class FieldPathHelperTest extends PostgresIntegrationTestBase {
   @Autowired private FieldPathHelper helper;
 
   @Test

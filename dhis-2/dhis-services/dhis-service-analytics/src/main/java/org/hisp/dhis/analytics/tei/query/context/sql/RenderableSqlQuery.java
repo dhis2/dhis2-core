@@ -34,6 +34,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import lombok.Builder;
@@ -52,6 +55,7 @@ import org.hisp.dhis.analytics.common.query.RootConditionRenderer;
 import org.hisp.dhis.analytics.common.query.Select;
 import org.hisp.dhis.analytics.common.query.Table;
 import org.hisp.dhis.analytics.common.query.Where;
+import org.springframework.lang.NonNull;
 
 /**
  * This class is responsible for rendering a SQL query. Each instance of this class will only render
@@ -100,7 +104,7 @@ public class RenderableSqlQuery implements Renderable {
   }
 
   @Override
-  public String render() {
+  public @NonNull String render() {
     if (countRequested) {
       return renderSqlCountQuery();
     }
@@ -137,7 +141,24 @@ public class RenderableSqlQuery implements Renderable {
   }
 
   private String select() {
-    return getIfPresentOrElse(SELECT, () -> Select.of(selectFields).render());
+    return getIfPresentOrElse(SELECT, () -> Select.of(nonVirtualSelectFields()).render());
+  }
+
+  private List<Field> nonVirtualSelectFields() {
+    return selectFields.stream()
+        .filter(Predicate.not(Field::isVirtual))
+        // We need to filter out fields that have already been rendered.
+        // It might happen that a field can be added multiple times (for example
+        // TE static fields, which are always added to the query, and TE period fields)
+        // see: DHIS2-17745
+        .filter(distinctByRendered())
+        .toList();
+  }
+
+  /** Returns a predicate that filters out fields that have already been rendered. */
+  private static Predicate<Field> distinctByRendered() {
+    Set<String> seen = ConcurrentHashMap.newKeySet();
+    return f -> seen.add(f.render());
   }
 
   private String getIfPresentOrElse(String key, Supplier<String> supplier) {

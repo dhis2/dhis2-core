@@ -29,21 +29,24 @@ package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static org.hisp.dhis.utils.Assertions.assertStartsWith;
-import static org.hisp.dhis.web.HttpStatus.Series.SUCCESSFUL;
-import static org.hisp.dhis.web.WebClient.Body;
-import static org.hisp.dhis.web.WebClient.ContentType;
-import static org.hisp.dhis.web.WebClientUtils.assertSeries;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.test.web.HttpStatus.Series.SUCCESSFUL;
+import static org.hisp.dhis.test.web.WebClient.Body;
+import static org.hisp.dhis.test.web.WebClient.ContentType;
+import static org.hisp.dhis.test.web.WebClientUtils.assertSeries;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataset.DataSet;
@@ -53,21 +56,21 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.web.snippets.SomeUserId;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonError;
+import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
+import org.hisp.dhis.test.webapi.json.domain.JsonGeoMap;
+import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
+import org.hisp.dhis.test.webapi.json.domain.JsonImportSummary;
+import org.hisp.dhis.test.webapi.json.domain.JsonStats;
+import org.hisp.dhis.test.webapi.json.domain.JsonTranslation;
+import org.hisp.dhis.test.webapi.json.domain.JsonTypeReport;
+import org.hisp.dhis.test.webapi.json.domain.JsonUser;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.web.snippets.SomeUserId;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.domain.JsonError;
-import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
-import org.hisp.dhis.webapi.json.domain.JsonGeoMap;
-import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
-import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
-import org.hisp.dhis.webapi.json.domain.JsonStats;
-import org.hisp.dhis.webapi.json.domain.JsonTranslation;
-import org.hisp.dhis.webapi.json.domain.JsonTypeReport;
-import org.hisp.dhis.webapi.json.domain.JsonUser;
-import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -78,7 +81,7 @@ import org.springframework.http.MediaType;
  *
  * @author Jan Bernitt
  */
-class AbstractCrudControllerTest extends DhisControllerConvenienceTest {
+class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testGetObjectList() {
@@ -1101,6 +1104,107 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest {
                 .formatted(dataElementGroup.getUid()))
             .content();
     assertFalse(response.getArray("dataElements").isEmpty());
+  }
+
+  @Test
+  void testFilterSharingEmptyTrue() {
+    String userId = getCurrentUser().getUid();
+    String programId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programs/",
+                "{'name':'test', 'shortName':'test', 'programType':'WITHOUT_REGISTRATION'}"));
+    String sharing =
+        TextUtils.replace(
+            """
+      {'owner':'${userId}', 'public':'rwrw----', 'external': true,'users':{},'userGroups':{}}}""",
+            Map.of("userId", userId));
+    assertStatus(HttpStatus.NO_CONTENT, PUT("/programs/" + programId + "/sharing", sharing));
+    JsonObject programs =
+        GET("/programs?filter=sharing.users:empty", programId).content().as(JsonObject.class);
+
+    assertFalse(programs.get("programs").as(JsonArray.class).isEmpty());
+  }
+
+  @Test
+  void testFilterSharingEmptyFalse() {
+    String userId = getCurrentUser().getUid();
+    String programId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programs/",
+                "{'name':'test', 'shortName':'test', 'programType':'WITHOUT_REGISTRATION'}"));
+    String sharing =
+        TextUtils.replace(
+            """
+      {'owner':'${userId}', 'public':'rwrw----', 'external': true,'users':{'${userId}':{'id':'${userId}','access':'rw------'}},'userGroups':{}}}""",
+            Map.of("userId", userId));
+    assertStatus(HttpStatus.NO_CONTENT, PUT("/programs/" + programId + "/sharing", sharing));
+    JsonObject programs =
+        GET("/programs?filter=sharing.users:empty", programId).content().as(JsonObject.class);
+    assertTrue(programs.get("programs").as(JsonArray.class).isEmpty());
+  }
+
+  @Test
+  void testFilterSharingEqTrue() {
+    String userId = getCurrentUser().getUid();
+    String programId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programs/",
+                "{'name':'test', 'shortName':'test', 'programType':'WITHOUT_REGISTRATION'}"));
+    String sharing =
+        TextUtils.replace(
+            """
+      {'owner':'${userId}', 'public':'rwrw----', 'external': true,'users':{'${userId}':{'id':'${userId}','access':'rw------'}},'userGroups':{}}}""",
+            Map.of("userId", userId));
+    assertStatus(HttpStatus.NO_CONTENT, PUT("/programs/" + programId + "/sharing", sharing));
+    JsonObject programs =
+        GET("/programs?filter=sharing.users:eq:2", programId).content().as(JsonObject.class);
+    assertTrue(programs.get("programs").as(JsonArray.class).isEmpty());
+  }
+
+  @Test
+  void testFilterSharingGt() {
+    String userId = getCurrentUser().getUid();
+    String programId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programs/",
+                "{'name':'test', 'shortName':'test', 'programType':'WITHOUT_REGISTRATION'}"));
+    String sharing =
+        TextUtils.replace(
+            """
+      {'owner':'${userId}', 'public':'rwrw----', 'external': true,'users':{'${userId}':{'id':'${userId}','access':'rw------'}},'userGroups':{}}}""",
+            Map.of("userId", userId));
+    assertStatus(HttpStatus.NO_CONTENT, PUT("/programs/" + programId + "/sharing", sharing));
+    JsonObject programs =
+        GET("/programs?filter=sharing.users:gt:0", programId).content().as(JsonObject.class);
+    assertEquals(1, programs.get("programs").as(JsonArray.class).size());
+  }
+
+  @Test
+  void testFilterSharingLt() {
+    String userId = getCurrentUser().getUid();
+    String programId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programs/",
+                "{'name':'test', 'shortName':'test', 'programType':'WITHOUT_REGISTRATION'}"));
+    String sharing =
+        TextUtils.replace(
+            """
+      {'owner':'${userId}', 'public':'rwrw----', 'external': true,'users':{'${userId}':{'id':'${userId}','access':'rw------'}},'userGroups':{}}}""",
+            Map.of("userId", userId));
+    assertStatus(HttpStatus.NO_CONTENT, PUT("/programs/" + programId + "/sharing", sharing));
+    JsonObject programs =
+        GET("/programs?filter=sharing.users:lt:2", programId).content().as(JsonObject.class);
+    assertEquals(1, programs.get("programs").as(JsonArray.class).size());
   }
 
   private void assertUserGroupHasOnlyUser(String groupId, String userId) {

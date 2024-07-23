@@ -351,10 +351,10 @@ public enum ConfigurationKey {
   /** EHCache replication members. */
   CLUSTER_MEMBERS("cluster.members", "", false),
 
-  /** EHCache replication port. */
+  /** DEPRECATED EHCache replication port. */
   CLUSTER_CACHE_PORT("cluster.cache.port", "4001", false),
 
-  /** EHCache replication remote object port. */
+  /** DEPRECATED EHCache replication remote object port. */
   CLUSTER_CACHE_REMOTE_OBJECT_PORT("cluster.cache.remote.object.port", "0", false),
 
   /** Enable redis cache. (default: false) */
@@ -658,7 +658,9 @@ public enum ConfigurationKey {
   LINKED_ACCOUNTS_RELOGIN_URL("linked_accounts.relogin_url", "", false),
   SWITCH_USER_FEATURE_ENABLED("switch_user_feature.enabled", Constants.OFF, false),
   SWITCH_USER_ALLOW_LISTED_IPS(
-      "switch_user_allow_listed_ips", "localhost,127.0.0.1,[0:0:0:0:0:0:0:1]", false);
+      "switch_user_allow_listed_ips", "localhost,127.0.0.1,[0:0:0:0:0:0:0:1]", false),
+
+  MAX_FILE_UPLOAD_SIZE_BYTES("max.file_upload_size", Integer.toString(10_000_000), false);
 
   private final String key;
 

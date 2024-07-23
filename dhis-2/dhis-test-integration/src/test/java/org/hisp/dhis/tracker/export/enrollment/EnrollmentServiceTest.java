@@ -34,12 +34,12 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+import static org.hisp.dhis.test.utils.Assertions.assertContains;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourAfter;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourBefore;
 import static org.hisp.dhis.tracker.TrackerTestUtils.uids;
-import static org.hisp.dhis.utils.Assertions.assertContains;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -58,9 +58,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
@@ -69,32 +67,30 @@ import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class EnrollmentServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
-  @Autowired private org.hisp.dhis.tracker.export.enrollment.EnrollmentService enrollmentService;
+  @Autowired private EnrollmentService enrollmentService;
 
   @Autowired protected UserService _userService;
 
-  @Autowired private EnrollmentService apiEnrollmentService;
-
-  @Autowired private EventService eventService;
+  @Autowired private org.hisp.dhis.program.EnrollmentService apiEnrollmentService;
 
   @Autowired private IdentifiableObjectManager manager;
 
-  private Date incidentDate = new Date();
-
-  private Date enrollmentDate = new Date();
+  private final Date incidentDate = new Date();
 
   private User admin;
 
@@ -130,10 +126,8 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   private OrganisationUnit orgUnitChildA;
 
-  @Override
-  protected void setUpTest() throws Exception {
-    //    userService = _userService;
-    //    admin = preCreateInjectAdminUser();
+  @BeforeEach
+  void setUp() {
     admin = getAdminUser();
 
     orgUnitA = createOrganisationUnit('A');
@@ -259,9 +253,9 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     enrollmentA =
         apiEnrollmentService.enrollTrackedEntity(
             trackedEntityA, programA, new Date(), new Date(), orgUnitA);
-    eventA =
-        eventService.createEvent(
-            enrollmentA, programStageA, enrollmentDate, incidentDate, orgUnitA);
+    eventA = createEvent(programStageA, enrollmentA, orgUnitA);
+    eventA.setOccurredDate(incidentDate);
+    manager.save(eventA);
     enrollmentA.setEvents(Set.of(eventA));
     enrollmentA.setRelationshipItems(Set.of(from, to));
     manager.save(enrollmentA, false);
@@ -389,6 +383,21 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
                 enrollmentService.getEnrollment(
                     enrollmentA.getUid(), EnrollmentParams.FALSE, false));
     assertContains("access to tracked entity type", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailGettingEnrollmentWhenDoesNotExist() {
+    trackedEntityTypeA.getSharing().setOwner(admin);
+    trackedEntityTypeA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    manager.updateNoAcl(trackedEntityTypeA);
+
+    NotFoundException exception =
+        assertThrows(
+            NotFoundException.class,
+            () ->
+                enrollmentService.getEnrollment("non existent UID", EnrollmentParams.FALSE, false));
+    assertContains(
+        "Enrollment with id non existent UID could not be found.", exception.getMessage());
   }
 
   @Test
@@ -666,9 +675,9 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
         EnrollmentOperationParams.builder().orgUnitMode(ALL).build();
 
     BadRequestException exception =
-        Assertions.assertThrows(
+        assertThrows(
             BadRequestException.class, () -> enrollmentService.getEnrollments(operationParams));
-    Assertions.assertEquals(
+    assertEquals(
         "Current user is not authorized to query across all organisation units",
         exception.getMessage());
   }
@@ -684,9 +693,9 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
             .build();
 
     ForbiddenException exception =
-        Assertions.assertThrows(
+        assertThrows(
             ForbiddenException.class, () -> enrollmentService.getEnrollments(operationParams));
-    Assertions.assertEquals(
+    assertEquals(
         String.format("Organisation unit is not part of the search scope: %s", orgUnitA.getUid()),
         exception.getMessage());
   }
@@ -764,6 +773,24 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     assertContainsOnly(
         List.of(enrollmentA.getUid(), enrollmentChildA.getUid(), enrollmentGrandchildA.getUid()),
         uids(enrollments));
+  }
+
+  @Test
+  void shouldFailWhenRequestingListOfEnrollmentsAndAtLeastOneNotAccessible() {
+    injectSecurityContextUser(admin);
+    programA.getSharing().setPublicAccess("rw------");
+    manager.update(programA);
+
+    injectSecurityContextUser(authorizedUser);
+    ForbiddenException exception =
+        assertThrows(
+            ForbiddenException.class,
+            () ->
+                enrollmentService.getEnrollments(
+                    List.of(enrollmentA.getUid(), enrollmentB.getUid())));
+    assertContains(
+        String.format("User has no data read access to program: %s", programA.getUid()),
+        exception.getMessage());
   }
 
   private static List<String> attributeUids(Enrollment enrollment) {

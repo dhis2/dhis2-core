@@ -35,7 +35,6 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.springframework.stereotype.Component;
 
 /**
@@ -48,15 +47,8 @@ public class EnrollmentDeletionHandler extends IdObjectDeletionHandler<Enrollmen
 
   @Override
   protected void registerHandler() {
-    whenDeleting(TrackedEntity.class, this::deleteTrackedEntity);
     whenVetoing(Program.class, this::allowDeleteProgram);
     whenDeleting(Program.class, this::deleteProgram);
-  }
-
-  private void deleteTrackedEntity(TrackedEntity trackedEntity) {
-    for (Enrollment enrollment : trackedEntity.getEnrollments()) {
-      enrollmentService.deleteEnrollment(enrollment);
-    }
   }
 
   private DeletionVeto allowDeleteProgram(Program program) {

@@ -30,7 +30,8 @@ package org.hisp.dhis.program;
 import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_ENROLLMENT_DATE;
 import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_INCIDENT_DATE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
@@ -47,18 +48,21 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.joda.time.DateTime;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Chau Thu Tran
  */
-class EnrollmentStoreTest extends TransactionalIntegrationTest {
+@Transactional
+class EnrollmentStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private EnrollmentStore enrollmentStore;
 
@@ -102,8 +106,8 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest {
 
   private Collection<Long> orgunitIds;
 
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     organisationUnitA = createOrganisationUnit('A');
     long idA = organisationUnitService.addOrganisationUnit(organisationUnitA);
     organisationUnitB = createOrganisationUnit('B');
@@ -156,10 +160,9 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest {
     enrollmentStore.save(enrollmentA);
     enrollmentStore.save(enrollmentB);
     dbmsManager.flushSession();
-    assertTrue(enrollmentStore.exists(enrollmentA.getUid()));
-    assertTrue(enrollmentStore.exists(enrollmentB.getUid()));
-    assertFalse(enrollmentStore.exists("aaaabbbbccc"));
-    assertFalse(enrollmentStore.exists(null));
+    assertNotNull(enrollmentStore.get(enrollmentA.getId()));
+    assertNotNull(enrollmentStore.get(enrollmentB.getId()));
+    assertNull(enrollmentStore.get(99999));
   }
 
   @Test

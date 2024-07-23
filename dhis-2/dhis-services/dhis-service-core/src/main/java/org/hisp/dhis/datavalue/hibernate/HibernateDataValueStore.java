@@ -130,6 +130,13 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
   }
 
   @Override
+  public void deleteDataValue(DataValue dataValue) {
+    getQuery("delete from DataValue dv where dv = :dataValue")
+        .setParameter("dataValue", dataValue)
+        .executeUpdate();
+  }
+
+  @Override
   public DataValue getDataValue(
       DataElement dataElement,
       Period period,
@@ -204,6 +211,13 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
     return getList(
         builder, newJpaParameters().addPredicate(root -> builder.equal(root.get(DELETED), false)));
+  }
+
+  @Override
+  public List<DataValue> getAllDataValuesByDataElement(List<DataElement> dataElements) {
+    return getQuery("from DataValue dv where dv.dataElement in :dataElements")
+        .setParameter("dataElements", dataElements)
+        .getResultList();
   }
 
   @Override

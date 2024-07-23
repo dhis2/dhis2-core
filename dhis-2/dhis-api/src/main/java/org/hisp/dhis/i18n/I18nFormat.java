@@ -38,6 +38,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.WeekFields;
 import java.util.Date;
+import java.util.List;
 import java.util.ResourceBundle;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
@@ -50,6 +51,10 @@ import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.period.SixMonthlyAbstractPeriodType;
 import org.hisp.dhis.period.WeeklyAbstractPeriodType;
 import org.hisp.dhis.period.WeeklyPeriodType;
+import org.hisp.dhis.period.WeeklySaturdayPeriodType;
+import org.hisp.dhis.period.WeeklySundayPeriodType;
+import org.hisp.dhis.period.WeeklyThursdayPeriodType;
+import org.hisp.dhis.period.WeeklyWednesdayPeriodType;
 import org.joda.time.DateTime;
 
 /**
@@ -76,6 +81,15 @@ public class I18nFormat {
   public static final String START_DATE_POSTFIX = ".startDate";
 
   public static final String END_DATE_POSTFIX = ".endDate";
+
+  /** List of weekly period types. Used to determine if a period type is a weekly period type. */
+  private static final List<Class<? extends WeeklyAbstractPeriodType>> WEEKLY_PERIOD_TYPES =
+      List.of(
+          WeeklyPeriodType.class,
+          WeeklySaturdayPeriodType.class,
+          WeeklyThursdayPeriodType.class,
+          WeeklyWednesdayPeriodType.class,
+          WeeklySundayPeriodType.class);
 
   private ResourceBundle resourceBundle;
 
@@ -266,7 +280,7 @@ public class I18nFormat {
       String year = String.valueOf(startDate.get(weekFields.weekBasedYear()));
       String week = String.valueOf(startDate.get(weekFields.weekOfWeekBasedYear()));
 
-      if (periodType instanceof WeeklyPeriodType) {
+      if (isWeeklyPeriodType(periodType)) {
         return String.format(
             "Week %s %d-%02d-%02d - %d-%02d-%02d",
             week,
@@ -354,6 +368,10 @@ public class I18nFormat {
     } catch (IllegalArgumentException ex) {
       return INVALID_DATE;
     }
+  }
+
+  private boolean isWeeklyPeriodType(PeriodType periodType) {
+    return WEEKLY_PERIOD_TYPES.stream().anyMatch(type -> type.isInstance(periodType));
   }
 
   private static String getEndDateFormat(String typeName, PeriodType periodType) {

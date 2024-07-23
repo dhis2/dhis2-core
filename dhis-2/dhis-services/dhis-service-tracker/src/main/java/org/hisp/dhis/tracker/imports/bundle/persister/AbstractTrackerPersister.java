@@ -61,7 +61,7 @@ import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
-import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
+import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.report.Entity;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
@@ -94,7 +94,7 @@ public abstract class AbstractTrackerPersister<
     //
     TrackerTypeReport typeReport = new TrackerTypeReport(getType());
 
-    List<TrackerSideEffectDataBundle> sideEffectDataBundles = new ArrayList<>();
+    List<TrackerNotificationDataBundle> notificationDataBundles = new ArrayList<>();
 
     //
     // Extract the entities to persist from the Bundle
@@ -147,7 +147,7 @@ public abstract class AbstractTrackerPersister<
         }
 
         if (!bundle.isSkipSideEffects()) {
-          sideEffectDataBundles.add(handleSideEffects(bundle, convertedDto));
+          notificationDataBundles.add(handleNotifications(bundle, convertedDto));
         }
 
         //
@@ -181,7 +181,7 @@ public abstract class AbstractTrackerPersister<
       }
     }
 
-    typeReport.getSideEffectDataBundles().addAll(sideEffectDataBundles);
+    typeReport.getNotificationDataBundles().addAll(notificationDataBundles);
 
     return typeReport;
   }
@@ -236,7 +236,8 @@ public abstract class AbstractTrackerPersister<
   protected abstract boolean isNew(TrackerPreheat preheat, String uid);
 
   /** TODO add comment */
-  protected abstract TrackerSideEffectDataBundle handleSideEffects(TrackerBundle bundle, V entity);
+  protected abstract TrackerNotificationDataBundle handleNotifications(
+      TrackerBundle bundle, V entity);
 
   /** Get the Tracker Type for which the current Persister is responsible for. */
   protected abstract TrackerType getType();

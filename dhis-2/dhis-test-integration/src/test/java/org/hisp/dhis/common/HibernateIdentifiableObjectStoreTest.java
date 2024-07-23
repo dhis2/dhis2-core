@@ -49,19 +49,19 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class HibernateIdentifiableObjectStoreTest extends TransactionalIntegrationTest {
+@Transactional
+class HibernateIdentifiableObjectStoreTest extends PostgresIntegrationTestBase {
   @Autowired private DataElementStore dataElementStore;
 
   @Autowired private DataValueStore dataValueStore;
@@ -70,14 +70,7 @@ class HibernateIdentifiableObjectStoreTest extends TransactionalIntegrationTest 
 
   @Autowired private IdentifiableObjectManager manager;
 
-  @Autowired private UserService _userService;
-
   @Autowired private CategoryService categoryService;
-
-  @BeforeEach
-  void init() {
-    userService = _userService;
-  }
 
   /**
    * Test Metadata Read access User and UserGroups mapping User1 | User2 | User3 | User 4 Group1 x |

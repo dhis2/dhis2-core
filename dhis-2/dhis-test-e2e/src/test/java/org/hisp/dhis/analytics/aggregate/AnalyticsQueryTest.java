@@ -36,9 +36,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.AnalyticsApiTest;
-import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.test.e2e.actions.RestApiActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
@@ -116,9 +116,9 @@ public class AnalyticsQueryTest extends AnalyticsApiTest {
 
     // Assert metaData.
     assertEquals(
-        response.extract("metaData").toString().replaceAll(" ", ""),
-        "{items={sB79w2hiLp8={name=ANC 3 Coverage}, jUb8gELQApl={name=Kailahun}, TEQlaapDQoK={name=Port Loko}, eIQbndfxQMb={name=Tonkolili}, Vth0fbpFcsO={name=Kono}, PMa2VCrupOd={name=Kambia}, ou={name=Organisation unit}, USER_ORGUNIT={organisationUnits=[ImspTQPwCqd]}, THIS_YEAR={name=This year}, O6uvpzGd5pu={name=Bo}, bL4ooGhyHRQ={name=Pujehun}, 2022={name=2022}, kJq2mPyFEHo={name=Kenema}, USER_ORGUNIT_CHILDREN={organisationUnits=[at6UHUQatSo,TEQlaapDQoK,PMa2VCrupOd,qhqAxPSTUXp,kJq2mPyFEHo,jmIPBj66vD6,Vth0fbpFcsO,jUb8gELQApl,fdc6uOvgoji,eIQbndfxQMb,O6uvpzGd5pu,lc3eMKXaEfw,bL4ooGhyHRQ]}, fdc6uOvgoji={name=Bombali}, ImspTQPwCqd={name=Sierra Leone}, at6UHUQatSo={name=Western Area}, dx={name=Data}, pe={name=Period}, Uvn6LCg7dVU={name=ANC 1 Coverage}, lc3eMKXaEfw={name=Bonthe}, qhqAxPSTUXp={name=Koinadugu}, jmIPBj66vD6={name=Moyamba}}, dimensions={dx=[Uvn6LCg7dVU,sB79w2hiLp8], pe=[2022], ou=[ImspTQPwCqd,O6uvpzGd5pu,fdc6uOvgoji,lc3eMKXaEfw,jUb8gELQApl,PMa2VCrupOd,kJq2mPyFEHo,qhqAxPSTUXp,Vth0fbpFcsO,jmIPBj66vD6,TEQlaapDQoK,bL4ooGhyHRQ,eIQbndfxQMb,at6UHUQatSo], co=[]}}"
-            .replaceAll(" ", ""));
+        "{items={sB79w2hiLp8={name=ANC 3 Coverage}, jUb8gELQApl={name=Kailahun}, TEQlaapDQoK={name=Port Loko}, eIQbndfxQMb={name=Tonkolili}, Vth0fbpFcsO={name=Kono}, PMa2VCrupOd={name=Kambia}, ou={name=Organisation unit}, USER_ORGUNIT={organisationUnits=[ImspTQPwCqd]}, THIS_YEAR={name=This year}, O6uvpzGd5pu={name=Bo}, bL4ooGhyHRQ={name=Pujehun}, 2022={name=2022}, kJq2mPyFEHo={name=Kenema}, USER_ORGUNIT_CHILDREN={organisationUnits=[at6UHUQatSo, TEQlaapDQoK, PMa2VCrupOd, qhqAxPSTUXp, kJq2mPyFEHo, jmIPBj66vD6, Vth0fbpFcsO, jUb8gELQApl, fdc6uOvgoji, eIQbndfxQMb, O6uvpzGd5pu, lc3eMKXaEfw, bL4ooGhyHRQ]}, fdc6uOvgoji={name=Bombali}, ImspTQPwCqd={name=Sierra Leone}, at6UHUQatSo={name=Western Area}, dx={name=Data}, pe={name=Period}, Uvn6LCg7dVU={name=ANC 1 Coverage}, lc3eMKXaEfw={name=Bonthe}, qhqAxPSTUXp={name=Koinadugu}, jmIPBj66vD6={name=Moyamba}}, dimensions={dx=[Uvn6LCg7dVU, sB79w2hiLp8], pe=[2022], ou=[ImspTQPwCqd, O6uvpzGd5pu, fdc6uOvgoji, lc3eMKXaEfw, jUb8gELQApl, PMa2VCrupOd, kJq2mPyFEHo, qhqAxPSTUXp, Vth0fbpFcsO, jmIPBj66vD6, TEQlaapDQoK, bL4ooGhyHRQ, eIQbndfxQMb, at6UHUQatSo], co=[]}}"
+            .replaceAll(" ", ""),
+        response.extract("metaData").toString().replaceAll(" ", ""));
     // Assert headers.
     validateHeader(response, 0, "dx", "Data", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 1, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true);

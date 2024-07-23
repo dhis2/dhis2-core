@@ -33,7 +33,7 @@ import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.program.ProgramIndicator.KEY_ATTRIBUTE;
 import static org.hisp.dhis.program.ProgramIndicator.KEY_DATAELEMENT;
 import static org.hisp.dhis.program.ProgramIndicator.KEY_PROGRAM_VARIABLE;
-import static org.hisp.dhis.utils.Assertions.assertMapEquals;
+import static org.hisp.dhis.test.utils.Assertions.assertMapEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -46,6 +46,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
@@ -55,7 +56,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -63,14 +64,17 @@ import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.util.DateUtils;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Chau Thu Tran
  */
-class ProgramIndicatorServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private ProgramIndicatorService programIndicatorService;
 
@@ -92,11 +96,11 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
-  @Autowired private EventService eventService;
-
   @Autowired private ConstantService constantService;
 
-  private Date incidentDate;
+  @Autowired private IdentifiableObjectManager manager;
+
+  private Date occurredDate;
 
   private Date enrollmentDate;
 
@@ -142,8 +146,8 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest {
 
   private ProgramIndicator indicatorF;
 
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnit);
     // ---------------------------------------------------------------------
@@ -236,16 +240,16 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest {
     // ---------------------------------------------------------------------
     TrackedEntity trackedEntity = createTrackedEntity(organisationUnit);
     trackedEntityService.addTrackedEntity(trackedEntity);
-    incidentDate = DateUtils.toMediumDate("2014-10-22");
+    occurredDate = DateUtils.toMediumDate("2014-10-22");
     enrollmentDate = DateUtils.toMediumDate("2014-12-31");
     enrollment =
         enrollmentService.enrollTrackedEntity(
-            trackedEntity, programA, enrollmentDate, incidentDate, organisationUnit);
-    incidentDate = DateUtils.toMediumDate("2014-10-22");
+            trackedEntity, programA, enrollmentDate, occurredDate, organisationUnit);
+    occurredDate = DateUtils.toMediumDate("2014-10-22");
     enrollmentDate = DateUtils.toMediumDate("2014-12-31");
     enrollment =
         enrollmentService.enrollTrackedEntity(
-            trackedEntity, programA, enrollmentDate, incidentDate, organisationUnit);
+            trackedEntity, programA, enrollmentDate, occurredDate, organisationUnit);
     // TODO enroll twice?
     // ---------------------------------------------------------------------
     // TrackedEntityAttribute
@@ -265,13 +269,13 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest {
     // ---------------------------------------------------------------------
     // TrackedEntityDataValue
     // ---------------------------------------------------------------------
-    Event eventA =
-        eventService.createEvent(enrollment, psA, enrollmentDate, incidentDate, organisationUnit);
-    Event eventB =
-        eventService.createEvent(enrollment, psB, enrollmentDate, incidentDate, organisationUnit);
+    Event eventA = createEvent(psA, enrollment, organisationUnit);
+    eventA.setOccurredDate(occurredDate);
+    manager.save(eventA);
+    Event eventB = createEvent(psB, enrollment, organisationUnit);
+    eventB.setOccurredDate(occurredDate);
+    manager.save(eventB);
     Set<Event> events = new HashSet<>();
-    events.add(eventA);
-    events.add(eventB);
     enrollment.setEvents(events);
     enrollment.setProgram(programA);
     // ---------------------------------------------------------------------

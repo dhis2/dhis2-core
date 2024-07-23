@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.export.enrollment;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -59,8 +60,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.tracker.export.enrollment.EnrollmentService")
-class DefaultEnrollmentService
-    implements org.hisp.dhis.tracker.export.enrollment.EnrollmentService {
+class DefaultEnrollmentService implements EnrollmentService {
   private final EnrollmentStore enrollmentStore;
 
   private final TrackerOwnershipManager trackerOwnershipAccessManager;
@@ -72,7 +72,24 @@ class DefaultEnrollmentService
   private final EnrollmentOperationParamsMapper paramsMapper;
 
   @Override
+  public Enrollment getEnrollment(String uid) throws ForbiddenException, NotFoundException {
+    return getEnrollment(uid, EnrollmentParams.FALSE, false);
+  }
+
+  @Override
+  public Enrollment getEnrollment(String uid, UserDetails currentUser)
+      throws ForbiddenException, NotFoundException {
+    return getEnrollment(uid, EnrollmentParams.FALSE, false, currentUser);
+  }
+
+  @Override
   public Enrollment getEnrollment(String uid, EnrollmentParams params, boolean includeDeleted)
+      throws NotFoundException, ForbiddenException {
+    return getEnrollment(uid, params, includeDeleted, getCurrentUserDetails());
+  }
+
+  private Enrollment getEnrollment(
+      String uid, EnrollmentParams params, boolean includeDeleted, UserDetails currentUser)
       throws NotFoundException, ForbiddenException {
     Enrollment enrollment = enrollmentStore.getByUid(uid);
 
@@ -80,7 +97,6 @@ class DefaultEnrollmentService
       throw new NotFoundException(Enrollment.class, uid);
     }
 
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     List<String> errors = trackerAccessManager.canRead(currentUser, enrollment, false);
 
     if (!errors.isEmpty()) {
@@ -90,8 +106,7 @@ class DefaultEnrollmentService
     return getEnrollment(enrollment, params, includeDeleted, currentUser);
   }
 
-  @Override
-  public Enrollment getEnrollment(
+  private Enrollment getEnrollment(
       @Nonnull Enrollment enrollment,
       EnrollmentParams params,
       boolean includeDeleted,
@@ -151,7 +166,7 @@ class DefaultEnrollmentService
       throw new NotFoundException(Enrollment.class, uid);
     }
 
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUser = getCurrentUserDetails();
     List<String> errors = trackerAccessManager.canRead(currentUser, enrollment, false);
     if (!errors.isEmpty()) {
       return null;
@@ -206,6 +221,25 @@ class DefaultEnrollmentService
   }
 
   @Override
+  public List<Enrollment> getEnrollments(@Nonnull List<String> uids) throws ForbiddenException {
+    List<Enrollment> enrollments = enrollmentStore.getByUid(uids);
+    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
+
+    List<String> errors =
+        enrollments.stream()
+            .flatMap(e -> trackerAccessManager.canRead(user, e, false).stream())
+            .toList();
+
+    if (!errors.isEmpty()) {
+      throw new ForbiddenException(errors.toString());
+    }
+
+    return enrollments.stream()
+        .map(e -> getEnrollment(e, EnrollmentParams.FALSE, false, user))
+        .toList();
+  }
+
+  @Override
   public List<Enrollment> getEnrollments(EnrollmentOperationParams params)
       throws ForbiddenException, BadRequestException {
     EnrollmentQueryParams queryParams = paramsMapper.map(params);
@@ -238,7 +272,7 @@ class DefaultEnrollmentService
       boolean includeDeleted,
       OrganisationUnitSelectionMode orgUnitMode) {
     List<Enrollment> enrollmentList = new ArrayList<>();
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUser = getCurrentUserDetails();
 
     for (Enrollment enrollment : enrollments) {
       if (enrollment != null

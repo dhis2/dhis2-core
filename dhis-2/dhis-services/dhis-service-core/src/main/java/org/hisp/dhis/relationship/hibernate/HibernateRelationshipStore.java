@@ -27,35 +27,22 @@
  */
 package org.hisp.dhis.relationship.hibernate;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
-import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import javax.persistence.criteria.Subquery;
 import org.apache.commons.collections4.CollectionUtils;
-import org.hibernate.query.Query;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
-import org.hisp.dhis.hibernate.JpaQueryParameters;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -66,11 +53,6 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.relationship.RelationshipStore")
 public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relationship>
     implements RelationshipStore {
-  private static final String TRACKED_ENTITY = "trackedEntity";
-
-  private static final String ENROLLMENT = "enrollment";
-
-  private static final String EVENT = "event";
 
   public HibernateRelationshipStore(
       EntityManager entityManager,
@@ -78,205 +60,6 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
       ApplicationEventPublisher publisher,
       AclService aclService) {
     super(entityManager, jdbcTemplate, publisher, Relationship.class, aclService, true);
-  }
-
-  @Override
-  public List<Relationship> getByTrackedEntity(
-      TrackedEntity trackedEntity,
-      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean includeDeleted) {
-    TypedQuery<Relationship> relationshipTypedQuery =
-        getRelationshipTypedQuery(trackedEntity, pagingAndSortingCriteriaAdapter, includeDeleted);
-
-    return getList(relationshipTypedQuery);
-  }
-
-  @Override
-  public List<Relationship> getByEnrollment(
-      Enrollment enrollment,
-      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean includeDeleted) {
-    TypedQuery<Relationship> relationshipTypedQuery =
-        getRelationshipTypedQuery(enrollment, pagingAndSortingCriteriaAdapter, includeDeleted);
-
-    return getList(relationshipTypedQuery);
-  }
-
-  @Override
-  public List<Relationship> getByEvent(
-      Event event,
-      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean includeDeleted) {
-    TypedQuery<Relationship> relationshipTypedQuery =
-        getRelationshipTypedQuery(event, pagingAndSortingCriteriaAdapter, includeDeleted);
-
-    return getList(relationshipTypedQuery);
-  }
-
-  private <T extends IdentifiableObject> TypedQuery<Relationship> getRelationshipTypedQuery(
-      T entity,
-      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean includeDeleted) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    CriteriaQuery<Relationship> relationshipItemCriteriaQuery =
-        builder.createQuery(Relationship.class);
-    Root<Relationship> root = relationshipItemCriteriaQuery.from(Relationship.class);
-
-    setRelationshipItemCriteriaQueryExistsCondition(
-        entity, builder, relationshipItemCriteriaQuery, root, includeDeleted);
-
-    return getRelationshipTypedQuery(
-        pagingAndSortingCriteriaAdapter, builder, relationshipItemCriteriaQuery, root);
-  }
-
-  private <T extends IdentifiableObject> void setRelationshipItemCriteriaQueryExistsCondition(
-      T entity,
-      CriteriaBuilder builder,
-      CriteriaQuery<Relationship> relationshipItemCriteriaQuery,
-      Root<Relationship> root,
-      boolean includeDeleted) {
-    Subquery<RelationshipItem> fromSubQuery =
-        relationshipItemCriteriaQuery.subquery(RelationshipItem.class);
-    Root<RelationshipItem> fromRoot = fromSubQuery.from(RelationshipItem.class);
-
-    String relationshipEntityType = getRelationshipEntityType(entity);
-
-    fromSubQuery.where(
-        builder.equal(root.get("from"), fromRoot.get("id")),
-        builder.equal(fromRoot.get(relationshipEntityType), entity.getId()));
-
-    fromSubQuery.select(fromRoot.get("id"));
-
-    Subquery<RelationshipItem> toSubQuery =
-        relationshipItemCriteriaQuery.subquery(RelationshipItem.class);
-    Root<RelationshipItem> toRoot = toSubQuery.from(RelationshipItem.class);
-
-    toSubQuery.where(
-        builder.equal(root.get("to"), toRoot.get("id")),
-        builder.equal(toRoot.get(relationshipEntityType), entity.getId()));
-
-    toSubQuery.select(toRoot.get("id"));
-
-    List<Predicate> predicates = new ArrayList<>();
-    predicates.add(builder.or(builder.exists(fromSubQuery), builder.exists(toSubQuery)));
-
-    if (!includeDeleted) {
-      predicates.add(builder.equal(root.get("deleted"), false));
-    }
-
-    relationshipItemCriteriaQuery.where(predicates.toArray(Predicate[]::new));
-
-    relationshipItemCriteriaQuery.select(root);
-  }
-
-  private <T extends IdentifiableObject> String getRelationshipEntityType(T entity) {
-    if (entity instanceof TrackedEntity) return TRACKED_ENTITY;
-    else if (entity instanceof Enrollment) return ENROLLMENT;
-    else if (entity instanceof Event) return EVENT;
-    else
-      throw new IllegalArgumentException(
-          entity.getClass().getSimpleName() + " not supported in relationship");
-  }
-
-  private TypedQuery<Relationship> getRelationshipTypedQuery(
-      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      CriteriaBuilder builder,
-      CriteriaQuery<Relationship> relationshipItemCriteriaQuery,
-      Root<Relationship> root) {
-    JpaQueryParameters<Relationship> jpaQueryParameters =
-        newJpaParameters(pagingAndSortingCriteriaAdapter, builder);
-
-    relationshipItemCriteriaQuery.orderBy(
-        jpaQueryParameters.getOrders().stream()
-            .map(o -> o.apply(root))
-            .collect(Collectors.toList()));
-
-    TypedQuery<Relationship> relationshipTypedQuery =
-        getSession().createQuery(relationshipItemCriteriaQuery);
-
-    if (jpaQueryParameters.hasFirstResult()) {
-      relationshipTypedQuery.setFirstResult(jpaQueryParameters.getFirstResult());
-    }
-
-    if (jpaQueryParameters.hasMaxResult()) {
-      relationshipTypedQuery.setMaxResults(jpaQueryParameters.getMaxResults());
-    }
-
-    return relationshipTypedQuery;
-  }
-
-  @Override
-  public List<Relationship> getByRelationshipType(RelationshipType relationshipType) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    return getList(
-        builder,
-        newJpaParameters()
-            .addPredicate(root -> builder.equal(root.join("relationshipType"), relationshipType)));
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  public boolean existsIncludingDeleted(String uid) {
-    Query<String> query =
-        nativeSynchronizedQuery("select uid from relationship where uid=:uid limit 1;");
-    query.setParameter("uid", uid);
-
-    return !query.list().isEmpty();
-  }
-
-  private JpaQueryParameters<Relationship> newJpaParameters(
-      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      CriteriaBuilder criteriaBuilder) {
-
-    JpaQueryParameters<Relationship> jpaQueryParameters = newJpaParameters();
-
-    if (Objects.nonNull(pagingAndSortingCriteriaAdapter)) {
-      if (pagingAndSortingCriteriaAdapter.isSortingRequest()) {
-        pagingAndSortingCriteriaAdapter
-            .getOrder()
-            .forEach(orderCriteria -> addOrder(jpaQueryParameters, orderCriteria, criteriaBuilder));
-      }
-
-      if (pagingAndSortingCriteriaAdapter.isPagingRequest()) {
-        jpaQueryParameters.setFirstResult(pagingAndSortingCriteriaAdapter.getFirstResult());
-        jpaQueryParameters.setMaxResults(pagingAndSortingCriteriaAdapter.getPageSize() + 1);
-      }
-    }
-
-    return jpaQueryParameters;
-  }
-
-  private void addOrder(
-      JpaQueryParameters<Relationship> jpaQueryParameters,
-      OrderCriteria orderCriteria,
-      CriteriaBuilder builder) {
-    jpaQueryParameters.addOrder(
-        relationshipRoot ->
-            orderCriteria.getDirection().isAscending()
-                ? builder.asc(relationshipRoot.get(orderCriteria.getField()))
-                : builder.desc(relationshipRoot.get(orderCriteria.getField())));
-  }
-
-  @Override
-  public Relationship getByRelationship(Relationship relationship) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-    CriteriaQuery<Relationship> criteriaQuery = builder.createQuery(Relationship.class);
-
-    Root<Relationship> root = criteriaQuery.from(Relationship.class);
-
-    criteriaQuery.where(
-        builder.and(
-            getFromOrToPredicate("from", builder, root, relationship),
-            getFromOrToPredicate("to", builder, root, relationship),
-            builder.equal(root.join("relationshipType"), relationship.getRelationshipType())));
-
-    try {
-      return getSession().createQuery(criteriaQuery).setMaxResults(1).getSingleResult();
-    } catch (NoResultException nre) {
-      return null;
-    }
   }
 
   @Override
@@ -329,31 +112,5 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
   @Override
   protected Relationship postProcessObject(Relationship relationship) {
     return (relationship == null || relationship.isDeleted()) ? null : relationship;
-  }
-
-  private Predicate getFromOrToPredicate(
-      String direction,
-      CriteriaBuilder builder,
-      Root<Relationship> root,
-      Relationship relationship) {
-    RelationshipItem relationshipItemDirection = getItem(direction, relationship);
-
-    if (relationshipItemDirection.getTrackedEntity() != null) {
-      return builder.equal(
-          root.join(direction).get(TRACKED_ENTITY),
-          getItem(direction, relationship).getTrackedEntity());
-    } else if (relationshipItemDirection.getEnrollment() != null) {
-      return builder.equal(
-          root.join(direction).get(ENROLLMENT), getItem(direction, relationship).getEnrollment());
-    } else if (relationshipItemDirection.getEvent() != null) {
-      return builder.equal(
-          root.join(direction).get(EVENT), getItem(direction, relationship).getEvent());
-    } else {
-      return null;
-    }
-  }
-
-  private RelationshipItem getItem(String direction, Relationship relationship) {
-    return (direction.equalsIgnoreCase("from") ? relationship.getFrom() : relationship.getTo());
   }
 }

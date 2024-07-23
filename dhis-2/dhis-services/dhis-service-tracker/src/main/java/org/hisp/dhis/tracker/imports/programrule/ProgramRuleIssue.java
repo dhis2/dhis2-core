@@ -27,11 +27,13 @@
  */
 package org.hisp.dhis.tracker.imports.programrule;
 
+import java.util.Arrays;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 
 /**
@@ -42,7 +44,7 @@ import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 @Getter
 @EqualsAndHashCode
 public class ProgramRuleIssue {
-  private final String ruleUid;
+  private final UID ruleUid;
 
   private final ValidationCode issueCode;
 
@@ -50,11 +52,11 @@ public class ProgramRuleIssue {
 
   private final IssueType issueType;
 
-  public static ProgramRuleIssue error(String ruleUid, ValidationCode issueCode, String... args) {
-    return new ProgramRuleIssue(ruleUid, issueCode, List.of(args), IssueType.ERROR);
+  public static ProgramRuleIssue error(UID ruleUid, ValidationCode issueCode, String... args) {
+    return new ProgramRuleIssue(ruleUid, issueCode, Arrays.asList(args), IssueType.ERROR);
   }
 
-  public static ProgramRuleIssue warning(String ruleUid, ValidationCode issueCode, String... args) {
-    return new ProgramRuleIssue(ruleUid, issueCode, List.of(args), IssueType.WARNING);
+  public static ProgramRuleIssue warning(UID ruleUid, ValidationCode issueCode, String... args) {
+    return new ProgramRuleIssue(ruleUid, issueCode, Arrays.asList(args), IssueType.WARNING);
   }
 }

@@ -39,9 +39,9 @@ import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 
 import com.google.gson.JsonObject;
 import java.util.Arrays;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.helpers.JsonObjectBuilder;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

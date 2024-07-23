@@ -48,7 +48,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.antlr.AntlrExprLiteral;
 import org.hisp.dhis.antlr.Parser;
@@ -67,6 +66,7 @@ import org.hisp.dhis.parser.expression.ExpressionItemMethod;
 import org.hisp.dhis.parser.expression.ProgramExpressionParams;
 import org.hisp.dhis.parser.expression.literal.SqlLiteral;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -78,7 +78,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Jim Grace
  */
 @ExtendWith(MockitoExtension.class)
-class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
+class ProgramSqlGeneratorFunctionsTest extends TestBase {
   private ProgramIndicator programIndicator;
 
   private Program programA;

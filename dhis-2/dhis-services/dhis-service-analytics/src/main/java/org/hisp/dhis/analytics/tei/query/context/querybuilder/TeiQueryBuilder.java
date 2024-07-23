@@ -32,6 +32,7 @@ import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObje
 import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.hasRestrictions;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.isOfType;
+import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 
 import java.util.List;
 import java.util.function.Function;
@@ -88,6 +89,12 @@ public class TeiQueryBuilder extends SqlQueryBuilderAdaptor {
 
   @Override
   protected Stream<Field> getSelect(QueryContext queryContext) {
+    String aggregationQuery =
+        SqlQueryBuilders.getJsonAggregationQuery(queryContext.getTetTableSuffix());
+
+    Field aggregatedEnrollments =
+        Field.ofUnquoted(EMPTY, () -> aggregationQuery, "enrollments").withUsedInHeaders(false);
+
     return Stream.of(
             // Organisation unit group set columns.
             identifiableObjectManager
@@ -95,12 +102,12 @@ public class TeiQueryBuilder extends SqlQueryBuilderAdaptor {
                 .stream()
                 .map(OrganisationUnitGroupSet::getUid)
                 .map(attr -> Field.of(TEI_ALIAS, () -> attr, attr)),
-
             // Static fields column.
             TeiFields.getStaticFields(),
-
             // Tei/Program attributes.
-            TeiFields.getDimensionFields(queryContext.getTeiQueryParams()))
+            TeiFields.getDimensionFields(queryContext.getContextParams()),
+            // Enrollments
+            Stream.of(aggregatedEnrollments))
         .flatMap(Function.identity());
   }
 

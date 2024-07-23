@@ -32,7 +32,6 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 
 import java.util.List;
 import java.util.Objects;
@@ -42,6 +41,7 @@ import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.QueryItem;
@@ -145,7 +145,7 @@ public class CommonParamsDelegator {
    * @return the list of {@link DimensionalItemObject}.
    */
   public List<DimensionalItemObject> getPeriodDimensionOrFilterItems() {
-    return getDimensionOptions(PERIOD_DIM_ID, getAllDimensionalObjects());
+    return getPeriodDimensionOptions(getAllDimensionalObjects());
   }
 
   /**
@@ -154,7 +154,7 @@ public class CommonParamsDelegator {
    *
    * @return the list of {@link DimensionalItemObject}.
    */
-  public List<DimensionalItemObject> getOrgUnitDimensionOrFilterItems() {
+  public List<DimensionalItemObject> getOrgUnitsInDimensionOrFilterItems() {
     return getDimensionOptions(ORGUNIT_DIM_ID, getAllDimensionalObjects());
   }
 
@@ -225,5 +225,20 @@ public class CommonParamsDelegator {
     int index = dimensions.indexOf(new BaseDimensionalObject(dimensionKey));
 
     return index != -1 ? dimensions.get(index).getItems() : emptyList();
+  }
+
+  /**
+   * Retrieves a list of {@link DimensionalItemObject} objects for the given list of {@link
+   * DimensionalObject}, of type PERIOD. Returns an empty list if the dimension is not present.
+   *
+   * @param dimensions the list of {@link DimensionalObject}.
+   * @return the list of {@link DimensionalItemObject} or empty list.
+   */
+  public List<DimensionalItemObject> getPeriodDimensionOptions(List<DimensionalObject> dimensions) {
+    return dimensions.stream()
+        .filter(d -> d.getDimensionType().equals(DimensionType.PERIOD))
+        .map(DimensionalObject::getItems)
+        .flatMap(List::stream)
+        .toList();
   }
 }

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
-import static org.hisp.dhis.utils.Assertions.assertNotEmpty;
+import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -56,6 +56,7 @@ import org.hisp.dhis.dataexchange.aggregate.Target;
 import org.hisp.dhis.dataexchange.aggregate.TargetType;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.eventreport.EventReport;
@@ -73,27 +74,29 @@ import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.visualization.Visualization;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
-class MetadataImportServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class MetadataImportServiceTest extends PostgresIntegrationTestBase {
   @Autowired private MetadataImportService importService;
 
-  @Autowired private RenderService _renderService;
+  @Autowired private DbmsManager dbmsManager;
 
-  @Autowired private UserService _userService;
+  @Autowired private RenderService _renderService;
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -101,10 +104,9 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private AclService aclService;
 
-  @Override
-  protected void setUpTest() throws Exception {
+  @BeforeEach
+  void setUp() {
     renderService = _renderService;
-    userService = _userService;
   }
 
   @Test
@@ -195,7 +197,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest {
   void testImportWithSkipSharingIsTrueAndNoPermission() {
     clearSecurityContext();
 
-    reLoginAdminUser();
+    injectSecurityContextUser(getAdminUser());
 
     User userA = createUserWithAuth("A");
     userService.addUser(userA);

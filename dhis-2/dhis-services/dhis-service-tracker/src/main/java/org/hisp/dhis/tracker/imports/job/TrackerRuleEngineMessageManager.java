@@ -45,7 +45,7 @@ public class TrackerRuleEngineMessageManager {
   private final ObjectFactory<TrackerRuleEngineThread> trackerRuleEngineThreadObjectFactory;
   private final AsyncTaskExecutor taskExecutor;
 
-  public void sendRuleEngineNotifications(TrackerSideEffectDataBundle bundle) {
+  public void sendRuleEngineNotifications(TrackerNotificationDataBundle bundle) {
     if (bundle == null) {
       return;
     }
@@ -57,7 +57,7 @@ public class TrackerRuleEngineMessageManager {
 
     TrackerRuleEngineThread notificationThread = trackerRuleEngineThreadObjectFactory.getObject();
 
-    notificationThread.setSideEffectDataBundle(bundle);
+    notificationThread.setNotificationDataBundle(bundle);
 
     taskExecutor.executeTask(notificationThread);
   }

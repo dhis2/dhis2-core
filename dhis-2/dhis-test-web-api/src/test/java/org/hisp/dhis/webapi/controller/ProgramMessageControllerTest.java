@@ -31,20 +31,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,15 +52,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Jan Bernitt
  */
-class ProgramMessageControllerTest extends DhisControllerConvenienceTest {
+class ProgramMessageControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private TrackedEntityService trackedEntityService;
-
-  @Autowired private EnrollmentService enrollmentService;
-
-  @Autowired private EventService eventService;
-
-  @Autowired private IdentifiableObjectManager idObjectManager;
 
   private Enrollment enrollmentA;
 
@@ -72,17 +63,17 @@ class ProgramMessageControllerTest extends DhisControllerConvenienceTest {
   @BeforeEach
   void setUp() {
     OrganisationUnit ouA = createOrganisationUnit('A');
-    idObjectManager.save(ouA);
+    manager.save(ouA);
     Program prA = createProgram('A', Sets.newHashSet(), ouA);
-    idObjectManager.save(prA);
+    manager.save(prA);
     ProgramStage psA = createProgramStage('A', prA);
-    idObjectManager.save(psA);
+    manager.save(psA);
     TrackedEntity trackedEntityA = createTrackedEntity('A', ouA);
     trackedEntityService.addTrackedEntity(trackedEntityA);
     enrollmentA = createEnrollment(prA, trackedEntityA, ouA);
-    enrollmentService.addEnrollment(enrollmentA);
+    manager.save(enrollmentA);
     eventA = createEvent(psA, enrollmentA, ouA);
-    eventService.addEvent(eventA);
+    manager.save(eventA);
   }
 
   @Test

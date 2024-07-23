@@ -66,16 +66,16 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-class DataValueSetServiceExportTest extends IntegrationTestBase {
+class DataValueSetServiceExportTest extends PostgresIntegrationTestBase {
   @Autowired private CategoryService categoryService;
 
   @Autowired private IdentifiableObjectManager idObjectManager;
@@ -93,8 +93,6 @@ class DataValueSetServiceExportTest extends IntegrationTestBase {
   @Autowired private AttributeService attributeService;
 
   @Autowired private PeriodService periodService;
-
-  @Autowired private UserService _userService;
 
   @Autowired private ObjectMapper jsonMapper;
 
@@ -142,9 +140,8 @@ class DataValueSetServiceExportTest extends IntegrationTestBase {
 
   private String peBUid;
 
-  @Override
-  public void setUpTest() {
-    userService = _userService;
+  @BeforeEach
+  void setUp() {
     peA =
         createPeriod(
             PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY),

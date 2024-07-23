@@ -29,10 +29,10 @@ package org.hisp.dhis.tracker.imports.validation.validator.event;
 
 import static org.hisp.dhis.organisationunit.FeatureType.MULTI_POLYGON;
 import static org.hisp.dhis.organisationunit.FeatureType.NONE;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1012;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1074;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 

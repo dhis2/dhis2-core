@@ -37,6 +37,7 @@ import java.util.HashSet;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
@@ -47,7 +48,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
@@ -59,7 +59,7 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttributeStore;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -67,13 +67,16 @@ import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.joda.time.DateTime;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Zubair Asghar
  */
-class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTest {
+@Transactional
+class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase {
 
   private String dataElementUid = CodeGenerator.generateUid();
 
@@ -143,8 +146,6 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
 
   @Autowired private EnrollmentService enrollmentService;
 
-  @Autowired private EventService eventService;
-
   @Autowired private ProgramNotificationTemplateStore programNotificationTemplateStore;
 
   @Autowired private OrganisationUnitService organisationUnitService;
@@ -154,8 +155,10 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
   @Autowired
   private ProgramStageNotificationMessageRenderer programStageNotificationMessageRenderer;
 
-  @Override
-  protected void setUpTest() throws Exception {
+  @Autowired private IdentifiableObjectManager manager;
+
+  @BeforeEach
+  void setUp() {
     DateTime testDate1 = DateTime.now();
     testDate1.withTimeAtStartOfDay();
     testDate1 = testDate1.minusDays(70);
@@ -216,10 +219,9 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
         enrollmentService.enrollTrackedEntity(
             trackedEntityA, programA, enrollmentDate, incidentDate, organisationUnitA);
     enrollmentA.setUid(enrollmentUid);
-    enrollmentService.updateEnrollment(enrollmentA);
+    manager.save(enrollmentA);
     // Event to be provided in message renderer
-    eventA = new Event(enrollmentA, programStageA);
-    eventA.setOrganisationUnit(organisationUnitA);
+    eventA = createEvent(programStageA, enrollmentA, organisationUnitA);
     eventA.setScheduledDate(enrollmentDate);
     eventA.setOccurredDate(new Date());
     eventA.setUid("PSI-UID");
@@ -232,9 +234,9 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
     eventDataValueB.setAutoFields();
     eventDataValueB.setValue("dataElementB-Text");
     eventA.setEventDataValues(Sets.newHashSet(eventDataValueA, eventDataValueB));
-    eventService.addEvent(eventA);
+    manager.save(eventA);
     enrollmentA.getEvents().add(eventA);
-    enrollmentService.updateEnrollment(enrollmentA);
+    manager.save(enrollmentA);
     programNotificationTemplate = new ProgramNotificationTemplate();
     programNotificationTemplate.setName("Test-PNT");
     programNotificationTemplate.setMessageTemplate("message_template");

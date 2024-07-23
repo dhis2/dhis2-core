@@ -27,14 +27,6 @@
  */
 package org.hisp.dhis.relationship;
 
-import java.util.List;
-import java.util.Optional;
-import javax.annotation.Nonnull;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
-
 /**
  * @author Abyot Asalefew
  */
@@ -48,74 +40,4 @@ public interface RelationshipService {
    * @return id of the added relationship.
    */
   long addRelationship(Relationship relationship);
-
-  /**
-   * Returns a {@link Relationship}.
-   *
-   * @param relationship the relationship.
-   */
-  void deleteRelationship(Relationship relationship);
-
-  /**
-   * Returns a {@link Relationship}.
-   *
-   * @param id the id of the relationship to return.
-   * @return the relationship with the given identifier.
-   */
-  Relationship getRelationship(long id);
-
-  /**
-   * Checks if relationship for given UID exists (including deleted relationships).
-   *
-   * @param uid Relationship UID to check for.
-   * @return return true if relationship exists, false otherwise.
-   */
-  boolean relationshipExistsIncludingDeleted(String uid);
-
-  /**
-   * Fetches a {@link Relationship} based on a relationship identifying attributes:
-   *
-   * <p>- relationship type - from - to
-   *
-   * @param relationship A valid Relationship
-   * @return an Optional Relationship
-   */
-  Optional<Relationship> getRelationshipByRelationship(Relationship relationship);
-
-  Relationship getRelationship(String uid);
-
-  Relationship getRelationshipIncludeDeleted(String uid);
-
-  List<Relationship> getRelationships(@Nonnull List<String> uids);
-
-  default List<Relationship> getRelationshipsByTrackedEntity(
-      TrackedEntity trackedEntity, boolean includeDeleted) {
-    return getRelationshipsByTrackedEntity(trackedEntity, null, includeDeleted);
-  }
-
-  List<Relationship> getRelationshipsByTrackedEntity(
-      TrackedEntity te,
-      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean includeDeleted);
-
-  default List<Relationship> getRelationshipsByEnrollment(
-      Enrollment enrollment, boolean includeDeleted) {
-    return getRelationshipsByEnrollment(enrollment, null, includeDeleted);
-  }
-
-  List<Relationship> getRelationshipsByEnrollment(
-      Enrollment enrollment,
-      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean includeDeleted);
-
-  default List<Relationship> getRelationshipsByEvent(Event event, boolean includeDeleted) {
-    return getRelationshipsByEvent(event, null, includeDeleted);
-  }
-
-  List<Relationship> getRelationshipsByEvent(
-      Event event,
-      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean includeDeleted);
-
-  List<Relationship> getRelationshipsByRelationshipType(RelationshipType relationshipType);
 }

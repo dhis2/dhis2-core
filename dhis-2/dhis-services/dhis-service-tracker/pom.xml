@@ -35,10 +35,6 @@
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-service-program-rule</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-node</artifactId>
     </dependency>
     <dependency>
@@ -64,6 +60,14 @@
     <dependency>
       <groupId>org.hisp.dhis.rules</groupId>
       <artifactId>rule-engine-jvm</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jetbrains.kotlinx</groupId>
+      <artifactId>kotlinx-datetime-jvm</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.github.dhis2</groupId>
+      <artifactId>sms-compression</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -126,6 +130,10 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-xml</artifactId>
     </dependency>
     <dependency>
       <groupId>org.locationtech.jts</groupId>

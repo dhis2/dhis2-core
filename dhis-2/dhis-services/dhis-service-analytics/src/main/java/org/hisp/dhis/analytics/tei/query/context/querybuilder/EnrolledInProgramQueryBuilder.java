@@ -52,17 +52,17 @@ public class EnrolledInProgramQueryBuilder extends SqlQueryBuilderAdaptor {
   protected Stream<GroupableCondition> getWhereClauses(
       QueryContext queryContext, List<DimensionIdentifier<DimensionParam>> unused) {
 
-    boolean programsFromRequest =
-        queryContext.getTeiQueryParams().getCommonParams().isProgramsFromRequest();
+    boolean hasProgramsFromRequest =
+        queryContext.getContextParams().getCommonRaw().getInternal().isRequestPrograms();
 
     Function<String, GroupableCondition> conditionMapper =
         EnrolledInProgramQueryBuilder::asGroupedEnrolledInProgramCondition;
 
-    if (programsFromRequest) {
+    if (hasProgramsFromRequest) {
       conditionMapper = EnrolledInProgramQueryBuilder::asUngroupedEnrolledInProgramCondition;
     }
 
-    return queryContext.getTeiQueryParams().getCommonParams().getPrograms().stream()
+    return queryContext.getContextParams().getCommonParsed().getPrograms().stream()
         .map(IdentifiableObject::getUid)
         .map(conditionMapper);
   }

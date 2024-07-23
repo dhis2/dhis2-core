@@ -28,8 +28,9 @@
 package org.hisp.dhis.webapi.controller.deduplication;
 
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.tracker.deduplication.PotentialDuplicate;
 
-/** Representation of {@link org.hisp.dhis.deduplication.PotentialDuplicate}. */
+/** Representation of {@link PotentialDuplicate}. */
 public interface JsonPotentialDuplicate extends JsonObject {
   default String getUid() {
     return getString("id").string();

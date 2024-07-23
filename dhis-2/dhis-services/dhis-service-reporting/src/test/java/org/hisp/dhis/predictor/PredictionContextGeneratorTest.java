@@ -33,7 +33,7 @@ import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 import static org.hisp.dhis.category.CategoryOption.DEFAULT_NAME;
 import static org.hisp.dhis.common.DataDimensionType.DISAGGREGATION;
 import static org.hisp.dhis.predictor.PredictionContextGenerator.getContexts;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Lists;
@@ -43,7 +43,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -59,6 +58,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.jupiter.api.Test;
 
@@ -67,7 +67,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jim Grace
  */
-class PredictionContextGeneratorTest extends DhisConvenienceTest {
+class PredictionContextGeneratorTest extends TestBase {
   private final OrganisationUnit ouA = createOrganisationUnit('A');
 
   private final Period periodA = createPeriod("202201");

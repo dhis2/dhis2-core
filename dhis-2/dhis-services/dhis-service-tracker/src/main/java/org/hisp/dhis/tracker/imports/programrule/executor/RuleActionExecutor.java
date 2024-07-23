@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.imports.programrule.executor;
 import java.util.Objects;
 import java.util.Optional;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.util.MathUtils;
@@ -80,7 +81,7 @@ public interface RuleActionExecutor<T> {
    *
    * @return the dataElement Uid the rule action is associated with.
    */
-  default String getDataElementUid() {
+  default UID getDataElementUid() {
     return null;
   }
 

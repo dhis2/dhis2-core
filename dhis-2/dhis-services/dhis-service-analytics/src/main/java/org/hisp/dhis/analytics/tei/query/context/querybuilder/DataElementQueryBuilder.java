@@ -30,27 +30,22 @@ package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.common.ValueTypeMapping.fromValueType;
-import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.DATA_ELEMENT;
 import static org.hisp.dhis.analytics.common.query.Field.ofUnquoted;
-import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.isOfType;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
-import static org.hisp.dhis.system.grid.ListGrid.EXISTS;
-import static org.hisp.dhis.system.grid.ListGrid.HAS_VALUE;
 import static org.hisp.dhis.system.grid.ListGrid.LEGEND;
-import static org.hisp.dhis.system.grid.ListGrid.STATUS;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.Getter;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.GroupableCondition;
@@ -59,7 +54,6 @@ import org.hisp.dhis.analytics.common.query.Order;
 import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.analytics.tei.query.DataElementCondition;
 import org.hisp.dhis.analytics.tei.query.RenderableDataValue;
-import org.hisp.dhis.analytics.tei.query.StageExistsRenderable;
 import org.hisp.dhis.analytics.tei.query.SuffixedRenderableDataValue;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery;
@@ -76,10 +70,10 @@ import org.springframework.stereotype.Service;
 public class DataElementQueryBuilder implements SqlQueryBuilder {
 
   private final List<Predicate<DimensionIdentifier<DimensionParam>>> headerFilters =
-      List.of(DataElementQueryBuilder::isDataElement);
+      List.of(DimensionIdentifierHelper::isDataElement);
 
   private final List<Predicate<DimensionIdentifier<DimensionParam>>> dimensionFilters =
-      List.of(DataElementQueryBuilder::isDataElement);
+      List.of(DimensionIdentifierHelper::isDataElement);
 
   private final List<Predicate<AnalyticsSortingParams>> sortingFilters =
       List.of(DataElementQueryBuilder::isDataElementOrder);
@@ -104,17 +98,7 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
     GroupedDimensions groupedDimensions =
         getGroupedDimensions(acceptedHeaders, acceptedDimensions, acceptedSortingParams);
 
-    Stream.of(
-            // Fields holding the value of data elements
-            getValueFields(groupedDimensions),
-            // Fields holding the "exists" flag of the stages
-            getExistsFields(groupedDimensions),
-            // Fields holding the status of the stages (SCHEDULED, COMPLETE, etc)
-            getStatusFields(groupedDimensions),
-            // Fields holding the "hasValue" flag of the data elements
-            getHasValueFields(groupedDimensions))
-        .flatMap(Function.identity())
-        .forEach(builder::selectField);
+    getValueFields(groupedDimensions).forEach(builder::selectField);
 
     // Groupable conditions comes from dimensions
     acceptedDimensions.stream()
@@ -122,7 +106,9 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
         .map(
             dimId ->
                 GroupableCondition.of(
-                    dimId.getGroupId(), DataElementCondition.of(queryContext, dimId)))
+                    dimId.getGroupId(),
+                    SqlQueryHelper.buildExistsValueSubquery(
+                        dimId, DataElementCondition.of(queryContext, dimId))))
         .forEach(builder::groupableCondition);
 
     // Order clause comes from sorting params
@@ -132,60 +118,19 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
                 IndexedOrder.of(
                     analyticsSortingParams.getIndex(),
                     Order.of(
-                        Field.of(analyticsSortingParams.getOrderBy().toString()),
+                        SqlQueryHelper.buildOrderSubQuery(
+                            analyticsSortingParams.getOrderBy(),
+                            RenderableDataValue.of(
+                                EMPTY,
+                                analyticsSortingParams.getOrderBy().getDimension().getUid(),
+                                fromValueType(
+                                    analyticsSortingParams
+                                        .getOrderBy()
+                                        .getDimension()
+                                        .getValueType()))),
                         analyticsSortingParams.getSortDirection()))));
 
     return builder.build();
-  }
-
-  /**
-   * Returns the fields holding the "hasValue" flag of the data elements.
-   *
-   * @param groupedDimensions the groupedDimensions.
-   * @return the stream of fields holding the "hasValue" flag of the data elements.
-   */
-  private Stream<Field> getHasValueFields(GroupedDimensions groupedDimensions) {
-    return groupedDimensions
-        .streamOfFirstDimensionInEachGroup()
-        .map(
-            dimensionIdentifier ->
-                ofUnquoted(
-                    EMPTY,
-                    () ->
-                        doubleQuote(dimensionIdentifier.getPrefix())
-                            + ".eventdatavalues :: jsonb ?? '"
-                            + dimensionIdentifier.getDimension().getUid()
-                            + "'",
-                    dimensionIdentifier + HAS_VALUE));
-  }
-
-  /**
-   * Returns the fields holding the status of the stages.
-   *
-   * @param groupedDimensions the groupedDimensions.
-   * @return the stream of fields holding the status of the stages.
-   */
-  private Stream<Field> getStatusFields(GroupedDimensions groupedDimensions) {
-    return groupedDimensions
-        .streamOfFirstDimensionInEachGroup()
-        .map(
-            dimensionIdentifier ->
-                ofUnquoted(
-                    EMPTY,
-                    () -> doubleQuote(dimensionIdentifier.getPrefix()) + STATUS,
-                    dimensionIdentifier.toString() + STATUS));
-  }
-
-  /**
-   * Returns the fields holding the "exists" flag of the stages.
-   *
-   * @param groupedDimensions the groupedDimensions.
-   * @return the stream of fields holding the "exists" flag of the stages.
-   */
-  private Stream<Field> getExistsFields(GroupedDimensions groupedDimensions) {
-    return groupedDimensions
-        .streamOfFirstDimensionInEachGroup()
-        .map(dim -> ofUnquoted(EMPTY, StageExistsRenderable.of(dim), dim.getKey() + EXISTS));
   }
 
   /**
@@ -199,7 +144,8 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
     return groupedDimensions.getGroupsByKey().stream()
         .map(DimensionGroup::dimensions)
         .flatMap(Collection::stream)
-        .map(DataElementQueryBuilder::toField);
+        .map(DataElementQueryBuilder::toField)
+        .map(Field::asVirtual);
   }
 
   /**
@@ -277,16 +223,6 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
    * @return true if the sorting parameter is of type data element, false otherwise.
    */
   private static boolean isDataElementOrder(AnalyticsSortingParams analyticsSortingParams) {
-    return isDataElement(analyticsSortingParams.getOrderBy());
-  }
-
-  /**
-   * Checks if the given dimension identifier is of type data element.
-   *
-   * @param dimensionIdentifier the dimension identifier to check.
-   * @return true if the dimension identifier is of type data element, false otherwise.
-   */
-  private static boolean isDataElement(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
-    return isOfType(dimensionIdentifier, DATA_ELEMENT) && dimensionIdentifier.isEventDimension();
+    return DimensionIdentifierHelper.isDataElement(analyticsSortingParams.getOrderBy());
   }
 }

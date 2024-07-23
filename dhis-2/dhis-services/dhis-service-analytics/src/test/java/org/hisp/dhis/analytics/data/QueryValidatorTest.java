@@ -27,21 +27,21 @@
  */
 package org.hisp.dhis.analytics.data;
 
-import static org.hisp.dhis.DhisConvenienceTest.createCategory;
-import static org.hisp.dhis.DhisConvenienceTest.createCategoryCombo;
-import static org.hisp.dhis.DhisConvenienceTest.createCategoryOption;
-import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionCombo;
-import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
-import static org.hisp.dhis.DhisConvenienceTest.createDataElementGroup;
-import static org.hisp.dhis.DhisConvenienceTest.createDataElementGroupSet;
-import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
-import static org.hisp.dhis.DhisConvenienceTest.createIndicator;
-import static org.hisp.dhis.DhisConvenienceTest.createIndicatorType;
-import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
-import static org.hisp.dhis.DhisConvenienceTest.createProgram;
-import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
+import static org.hisp.dhis.test.TestBase.createCategory;
+import static org.hisp.dhis.test.TestBase.createCategoryCombo;
+import static org.hisp.dhis.test.TestBase.createCategoryOption;
+import static org.hisp.dhis.test.TestBase.createCategoryOptionCombo;
+import static org.hisp.dhis.test.TestBase.createDataElement;
+import static org.hisp.dhis.test.TestBase.createDataElementGroup;
+import static org.hisp.dhis.test.TestBase.createDataElementGroupSet;
+import static org.hisp.dhis.test.TestBase.createDataSet;
+import static org.hisp.dhis.test.TestBase.createIndicator;
+import static org.hisp.dhis.test.TestBase.createIndicatorType;
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
+import static org.hisp.dhis.test.TestBase.createProgram;
+import static org.hisp.dhis.test.TestBase.getDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 

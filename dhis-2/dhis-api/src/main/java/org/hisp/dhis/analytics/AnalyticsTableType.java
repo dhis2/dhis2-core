@@ -38,10 +38,10 @@ public enum AnalyticsTableType {
   COMPLETENESS("analytics_completeness", true, true),
   COMPLETENESS_TARGET("analytics_completenesstarget", false, false),
   ORG_UNIT_TARGET("analytics_orgunittarget", false, false),
+  VALIDATION_RESULT("analytics_validationresult", true, false),
   EVENT("analytics_event", false, true),
   ENROLLMENT("analytics_enrollment", false, false),
   OWNERSHIP("analytics_ownership", false, false),
-  VALIDATION_RESULT("analytics_validationresult", true, false),
   TRACKED_ENTITY_INSTANCE_EVENTS("analytics_tei_events", false, true),
   TRACKED_ENTITY_INSTANCE_ENROLLMENTS("analytics_tei_enrollments", false, false),
   TRACKED_ENTITY_INSTANCE("analytics_tei", false, false);

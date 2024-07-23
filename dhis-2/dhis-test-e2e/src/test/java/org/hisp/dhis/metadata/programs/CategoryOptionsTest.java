@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.metadata.programs;
 
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.metadata.CategoryOptionActions;
+import org.hisp.dhis.test.e2e.actions.LoginActions;
+import org.hisp.dhis.test.e2e.actions.metadata.CategoryOptionActions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

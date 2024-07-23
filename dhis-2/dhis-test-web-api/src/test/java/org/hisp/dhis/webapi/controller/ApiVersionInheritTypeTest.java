@@ -33,18 +33,18 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import org.hisp.dhis.webapi.DhisWebSpringTest;
+import org.hisp.dhis.test.webapi.WebSpringTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpSession;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class ApiVersionInheritTypeTest extends DhisWebSpringTest {
+class ApiVersionInheritTypeTest extends WebSpringTestBase {
 
   @Test
   void testGetInherited() throws Exception {
-    MockHttpSession session = getSession("ALL");
+    MockHttpSession session = getMockHttpSession();
     String endpoint = "/type/testInheritedFromBase";
     mvc.perform(get(endpoint).session(session)).andExpect(status().isNotFound());
     mvc.perform(post(endpoint + "/abc").session(session)).andExpect(status().isNotFound());
