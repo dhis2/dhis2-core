@@ -28,14 +28,14 @@
 package org.hisp.dhis.analytics.common.processing;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
-import static org.hisp.dhis.analytics.tei.query.TeiFields.getGridHeaders;
+import static org.hisp.dhis.analytics.trackedentity.query.TrackedEntityFields.getGridHeaders;
 import static org.hisp.dhis.feedback.ErrorCode.E7230;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.analytics.common.query.Field;
-import org.hisp.dhis.analytics.tei.TeiQueryParams;
+import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -54,13 +54,14 @@ public class HeaderParamsHandler {
    * if any.
    *
    * @param grid the {@link Grid}.
-   * @param teiQueryParams all headers represent by a set of {@link GridHeader}.
+   * @param trackedEntityQueryParams all headers represent by a set of {@link GridHeader}.
    * @param fields the columns to retain, represented by {@link Field}.
    * @throws IllegalQueryException if header requested does not exist.
    */
-  public void handle(Grid grid, TeiQueryParams teiQueryParams, List<Field> fields) {
-    Set<GridHeader> headers = getGridHeaders(teiQueryParams, fields);
-    Set<String> paramHeaders = teiQueryParams.getCommonParams().getHeaders();
+  public void handle(
+      Grid grid, TrackedEntityQueryParams trackedEntityQueryParams, List<Field> fields) {
+    Set<GridHeader> headers = getGridHeaders(trackedEntityQueryParams, fields);
+    Set<String> paramHeaders = trackedEntityQueryParams.getCommonParams().getHeaders();
 
     if (isEmpty(paramHeaders)) {
       // Adds all headers.

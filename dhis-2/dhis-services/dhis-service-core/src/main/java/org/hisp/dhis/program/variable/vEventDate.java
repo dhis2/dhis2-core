@@ -66,7 +66,7 @@ public class vEventDate extends ProgramDateVariable {
     }
 
     return sqlStatement.substring(0, index)
-        + " and psistatus IN ('COMPLETED', 'ACTIVE') "
+        + " and eventstatus IN ('COMPLETED', 'ACTIVE') "
         + sqlStatement.substring(index);
   }
 }

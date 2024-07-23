@@ -35,7 +35,7 @@ import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.analytics.AnalyticsEnrollmentsActions;
 import org.hisp.dhis.actions.analytics.AnalyticsEventActions;
 import org.hisp.dhis.actions.analytics.AnalyticsOutlierDetectionActions;
-import org.hisp.dhis.actions.analytics.AnalyticsTeiActions;
+import org.hisp.dhis.actions.analytics.AnalyticsTrackedEntityActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
@@ -58,7 +58,8 @@ public class NoAnalyticsTablesErrorsScenariosTest {
   private final AnalyticsEnrollmentsActions analyticsEnrollmentsActions =
       new AnalyticsEnrollmentsActions();
   private final AnalyticsEventActions analyticsEventActions = new AnalyticsEventActions();
-  private final AnalyticsTeiActions analyticsTeiActions = new AnalyticsTeiActions();
+  private final AnalyticsTrackedEntityActions analyticsTrackedEntityActions =
+      new AnalyticsTrackedEntityActions();
   private final AnalyticsOutlierDetectionActions analyticsOutlierActions =
       new AnalyticsOutlierDetectionActions();
   private final RestApiActions analyticsAggregateActions = new RestApiActions("analytics");
@@ -135,7 +136,8 @@ public class NoAnalyticsTablesErrorsScenariosTest {
             .add("enrollmentDate=IpHINAT79UW.LAST_YEAR");
 
     // When
-    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+    ApiResponse response =
+        analyticsTrackedEntityActions.query().get("nEenWmSyUEp", JSON, JSON, params);
 
     // Then
     assertNoAnalyticsTableResponse(response);

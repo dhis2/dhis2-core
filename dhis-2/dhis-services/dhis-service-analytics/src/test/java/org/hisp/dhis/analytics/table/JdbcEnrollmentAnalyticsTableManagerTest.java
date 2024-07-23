@@ -143,7 +143,7 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
         format(
             """
         (select ou.%s from organisationunit ou where ou.uid = \
-        (select value from trackedentityattributevalue where trackedentityid=pi.trackedentityid and \
+        (select value from trackedentityattributevalue where trackedentityid=en.trackedentityid and \
         trackedentityattributeid=9999)) as %s""",
             "uid", quote(tea.getUid()));
 

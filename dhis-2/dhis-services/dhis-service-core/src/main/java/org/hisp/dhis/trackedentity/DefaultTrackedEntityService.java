@@ -234,7 +234,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
    * <p>For example, if attributes or filters don't have a specific trackedentityattribute uid, but
    * sorting has been requested for that tea uid, then we need to add them to the attribute list.
    *
-   * @param params The TEIQueryParams object
+   * @param params the {@link TrackedEntityQueryParams}.
    */
   private void handleSortAttributes(TrackedEntityQueryParams params) {
     List<TrackedEntityAttribute> sortAttributes =

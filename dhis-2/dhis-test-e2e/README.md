@@ -172,7 +172,7 @@ EnrollmentQueryTestGenerator.java -> /analytics/enrollments/query/{program}.json
 EnrollmentAggregatedTestGenerator.java -> /analytics/enrollments/aggregate/{program}.json?
 EventAggregatedTestGenerator.java -> /analytics/events/aggregate/{program}.json?
 EventQueryTestGenerator.java -> /analytics/events/query/{program}.json?
-TeiQueryTestGenerator.java -> /analytics/trackedEntities/query/{trackedEntityType}.json?
+TrackedEntityQueryTestGenerator.java -> /analytics/trackedEntities/query/{trackedEntityType}.json?
 ```
 _**NOTE**_: The `.json` extension in some URLs above. It's mandatory for all cases where we expect and `uid` of the respective entity/object.
 

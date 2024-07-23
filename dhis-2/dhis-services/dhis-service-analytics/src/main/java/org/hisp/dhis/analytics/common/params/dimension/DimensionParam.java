@@ -37,10 +37,10 @@ import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObje
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.DATE_FILTERS;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.DIMENSIONS;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.FILTERS;
-import static org.hisp.dhis.analytics.tei.query.context.TeiStaticField.ORG_UNIT_CODE;
-import static org.hisp.dhis.analytics.tei.query.context.TeiStaticField.ORG_UNIT_NAME;
-import static org.hisp.dhis.analytics.tei.query.context.TeiStaticField.ORG_UNIT_NAME_HIERARCHY;
-import static org.hisp.dhis.analytics.tei.query.context.TeiStaticField.TRACKED_ENTITY_INSTANCE;
+import static org.hisp.dhis.analytics.trackedentity.query.context.TrackedEntityStaticField.ORG_UNIT_CODE;
+import static org.hisp.dhis.analytics.trackedentity.query.context.TrackedEntityStaticField.ORG_UNIT_NAME;
+import static org.hisp.dhis.analytics.trackedentity.query.context.TrackedEntityStaticField.ORG_UNIT_NAME_HIERARCHY;
+import static org.hisp.dhis.analytics.trackedentity.query.context.TrackedEntityStaticField.TRACKED_ENTITY;
 import static org.hisp.dhis.common.DimensionType.PERIOD;
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.ValueType.COORDINATE;
@@ -59,8 +59,8 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.tei.query.context.TeiHeaderProvider;
-import org.hisp.dhis.analytics.tei.query.context.TeiStaticField;
+import org.hisp.dhis.analytics.trackedentity.query.context.TrackedEntityHeaderProvider;
+import org.hisp.dhis.analytics.trackedentity.query.context.TrackedEntityStaticField;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.QueryItem;
@@ -242,11 +242,11 @@ public class DimensionParam implements UidObject {
   }
 
   @RequiredArgsConstructor
-  public enum StaticDimension implements TeiHeaderProvider {
-    TRACKEDENTITYINSTANCEUID("Tracked entity instance UID", TEXT, STATIC, TRACKED_ENTITY_INSTANCE),
-    GEOMETRY(GEOJSON, STATIC, TeiStaticField.GEOMETRY),
-    LONGITUDE(COORDINATE, STATIC, TeiStaticField.LONGITUDE),
-    LATITUDE(COORDINATE, STATIC, TeiStaticField.LATITUDE),
+  public enum StaticDimension implements TrackedEntityHeaderProvider {
+    TRACKEDENTITY("Tracked entity", TEXT, STATIC, TRACKED_ENTITY),
+    GEOMETRY(GEOJSON, STATIC, TrackedEntityStaticField.GEOMETRY),
+    LONGITUDE(COORDINATE, STATIC, TrackedEntityStaticField.LONGITUDE),
+    LATITUDE(COORDINATE, STATIC, TrackedEntityStaticField.LATITUDE),
     OUNAME("Organisation Unit Name", TEXT, ORGANISATION_UNIT, ORG_UNIT_NAME),
     OUCODE("Organisation Unit Code", TEXT, ORGANISATION_UNIT, ORG_UNIT_CODE),
     OUNAMEHIERARCHY(
@@ -255,7 +255,7 @@ public class DimensionParam implements UidObject {
     ENDDATE("End Date", DATETIME, DimensionParamObjectType.PERIOD),
     INCIDENTDATE("Incident Date", DATETIME, DimensionParamObjectType.PERIOD),
     OCCURREDDATE("Execution Date", DATETIME, DimensionParamObjectType.PERIOD),
-    LASTUPDATED(DATETIME, DimensionParamObjectType.PERIOD, TeiStaticField.LAST_UPDATED),
+    LASTUPDATED(DATETIME, DimensionParamObjectType.PERIOD, TrackedEntityStaticField.LAST_UPDATED),
     LASTUPDATEDBYDISPLAYNAME("Last Updated By", TEXT, STATIC),
     CREATED("Created", DATETIME, DimensionParamObjectType.PERIOD),
     CREATEDBYDISPLAYNAME("Created By", TEXT, STATIC),
@@ -278,7 +278,7 @@ public class DimensionParam implements UidObject {
 
     @Getter private final DimensionParamObjectType dimensionParamObjectType;
 
-    private final TeiStaticField teiStaticField;
+    private final TrackedEntityStaticField teStaticField;
 
     @Getter private final String headerName;
 
@@ -293,7 +293,7 @@ public class DimensionParam implements UidObject {
         String headerColumnName,
         ValueType valueType,
         DimensionParamObjectType dimensionParamObjectType,
-        TeiStaticField teiStaticField) {
+        TrackedEntityStaticField teStaticField) {
       this.headerColumnName = headerColumnName;
 
       this.valueType = valueType;
@@ -303,7 +303,7 @@ public class DimensionParam implements UidObject {
 
       this.dimensionParamObjectType = dimensionParamObjectType;
 
-      this.teiStaticField = teiStaticField;
+      this.teStaticField = teStaticField;
 
       this.headerName = this.columnName;
     }
@@ -312,13 +312,13 @@ public class DimensionParam implements UidObject {
         String headerColumnName,
         ValueType valueType,
         DimensionParamObjectType dimensionParamObjectType,
-        TeiStaticField teiStaticField,
+        TrackedEntityStaticField teStaticField,
         String columnName) {
       this(
           headerColumnName,
           valueType,
           dimensionParamObjectType,
-          teiStaticField,
+          teStaticField,
           columnName,
           columnName);
     }
@@ -327,13 +327,13 @@ public class DimensionParam implements UidObject {
         String headerColumnName,
         ValueType valueType,
         DimensionParamObjectType dimensionParamObjectType,
-        TeiStaticField teiStaticField,
+        TrackedEntityStaticField teStaticField,
         String columnName,
         String headerName) {
       this.headerColumnName = headerColumnName;
       this.valueType = valueType;
       this.dimensionParamObjectType = dimensionParamObjectType;
-      this.teiStaticField = teiStaticField;
+      this.teStaticField = teStaticField;
       this.columnName = columnName;
       this.headerName = headerName;
     }
@@ -341,8 +341,8 @@ public class DimensionParam implements UidObject {
     StaticDimension(
         ValueType valueType,
         DimensionParamObjectType dimensionParamObjectType,
-        TeiStaticField teiStaticField) {
-      this("", valueType, dimensionParamObjectType, teiStaticField);
+        TrackedEntityStaticField teStaticField) {
+      this("", valueType, dimensionParamObjectType, teStaticField);
     }
 
     public String getHeaderColumnName() {
@@ -367,21 +367,21 @@ public class DimensionParam implements UidObject {
 
     @Override
     public String getAlias() {
-      return Optional.ofNullable(teiStaticField).map(TeiStaticField::getAlias).orElse(name());
+      return Optional.ofNullable(teStaticField)
+          .map(TrackedEntityStaticField::getAlias)
+          .orElse(name());
     }
 
     @Override
     public String getFullName() {
-      return Optional.ofNullable(teiStaticField).map(TeiStaticField::getFullName).orElse(name());
+      return Optional.ofNullable(teStaticField)
+          .map(TrackedEntityStaticField::getFullName)
+          .orElse(name());
     }
 
     @Override
     public ValueType getType() {
       return valueType;
-    }
-
-    public boolean isTeiStaticField() {
-      return nonNull(teiStaticField);
     }
   }
 }

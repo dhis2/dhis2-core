@@ -181,7 +181,7 @@ class EventDataQueryServiceTest extends SingleSetupIntegrationTestBase {
     assertEquals(1, params.getOrganisationUnits().size());
     assertEquals(1, params.getItems().size());
     assertEquals(2, params.getFilterPeriods().size());
-    assertEquals(List.of("psigeometry", "ougeometry"), params.getCoordinateFields());
+    assertEquals(List.of("evgeometry", "ougeometry"), params.getCoordinateFields());
   }
 
   @Test
@@ -245,7 +245,7 @@ class EventDataQueryServiceTest extends SingleSetupIntegrationTestBase {
     assertEquals(1, params.getFilterPeriods().size());
     assertEquals(deA, params.getValue());
     assertEquals(AnalyticsAggregationType.AVERAGE, params.getAggregationType());
-    assertEquals(List.of("psigeometry", "ougeometry"), params.getCoordinateFields());
+    assertEquals(List.of("evgeometry", "ougeometry"), params.getCoordinateFields());
   }
 
   @Test
@@ -492,16 +492,16 @@ class EventDataQueryServiceTest extends SingleSetupIntegrationTestBase {
   @Test
   void testGetCoordinateField() {
     assertEquals(
-        List.of("psigeometry"),
+        List.of("evgeometry"),
         dataQueryService.getCoordinateFields(
             prA.getUid(), EventQueryParams.EVENT_COORDINATE_FIELD, null, false));
     assertEquals(
-        List.of("pigeometry"),
+        List.of("engeometry"),
         dataQueryService.getCoordinateFields(
             prA.getUid(), EventQueryParams.ENROLLMENT_COORDINATE_FIELD, null, false));
     assertEquals(
-        List.of("psigeometry"),
-        dataQueryService.getCoordinateFields(prA.getUid(), null, "psigeometry", false));
+        List.of("evgeometry"),
+        dataQueryService.getCoordinateFields(prA.getUid(), null, "evgeometry", false));
     assertEquals(
         List.of(deC.getUid()),
         dataQueryService.getCoordinateFields(prA.getUid(), deC.getUid(), null, false));
@@ -528,7 +528,6 @@ class EventDataQueryServiceTest extends SingleSetupIntegrationTestBase {
     // Then
     assertThrows(
         IllegalQueryException.class,
-        () ->
-            dataQueryService.getCoordinateFields(programUid, "teigeometry", "badfallback", false));
+        () -> dataQueryService.getCoordinateFields(programUid, "tegeometry", "badfallback", false));
   }
 }

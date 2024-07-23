@@ -753,7 +753,11 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
                   true))
           .addHeader(
               new GridHeader(
-                  ColumnHeader.TEI.getItem(), ColumnHeader.TEI.getName(), TEXT, false, true))
+                  ColumnHeader.TRACKED_ENTITY.getItem(),
+                  ColumnHeader.TRACKED_ENTITY.getName(),
+                  TEXT,
+                  false,
+                  true))
           .addHeader(
               new GridHeader(
                   PROGRAM_INSTANCE.getItem(), PROGRAM_INSTANCE.getName(), TEXT, false, true));

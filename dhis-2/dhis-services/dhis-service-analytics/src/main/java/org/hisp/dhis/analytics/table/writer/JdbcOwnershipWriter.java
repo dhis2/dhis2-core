@@ -51,13 +51,13 @@ import org.hisp.dhis.jdbc.batchhandler.MappingBatchHandler;
 public class JdbcOwnershipWriter {
   private final MappingBatchHandler batchHandler;
 
-  /** Previous row for this TEI, if any. */
+  /** Previous row for this TRACKED ENTITY, if any. */
   private Map<String, Object> prevRow = null;
 
   /** Row of the current write, possibly modified. */
   private Map<String, Object> newRow;
 
-  public static final String TEIUID = "teiuid";
+  public static final String TRACKEDENTITY = "teuid";
 
   public static final String STARTDATE = "startdate";
 
@@ -78,7 +78,7 @@ public class JdbcOwnershipWriter {
    * Write a row to an analytics_ownership staging table. Work on a copy of the row, so we do not
    * change the original row. We cannot use immutable maps because the orgUnit levels contain nulls
    * when the orgUnit is not at the lowest level, and immutable maps do not allow null values. Also,
-   * the end date is null in the last record for each TEI.
+   * the end date is null in the last record for each TRACKED ENTITY.
    *
    * @param row map of values to write
    */
@@ -91,7 +91,7 @@ public class JdbcOwnershipWriter {
     }
 
     if (prevRow == null) {
-      startNewTei();
+      startNewTrackedEntity();
     } else if (sameValue(OU) || sameValue(ENDDATE)) {
       combineWithPreviousRow();
     } else {
@@ -104,10 +104,10 @@ public class JdbcOwnershipWriter {
   // -------------------------------------------------------------------------
 
   /**
-   * Process the first row for a TEI. Save it as the previous row and set the start date for far in
-   * the past. If the previous row does not have an "enddate", we enforce a default one.
+   * Process the first row for a TRACKED ENTITY. Save it as the previous row and set the start date
+   * for far in the past. If the previous row does not have an "enddate", we enforce a default one.
    */
-  private void startNewTei() {
+  private void startNewTrackedEntity() {
     prevRow = newRow;
 
     // Ensure a default "enddate" value.
@@ -121,10 +121,11 @@ public class JdbcOwnershipWriter {
    * the ENDDATE is the same this means there were multiple assignments during a day, and we want to
    * record only the last OU assignment for the day. If the OU is the same this means there were
    * successive assignments to the same OU (possibly after collapsing the same ENDDATE assignments
-   * such as if a TEI was switched during a day to a different OU and then switched back again.) In
-   * this case we can combine the two successive records for the same OU into a single record.
+   * such as if a TRACKED ENTITY was switched during a day to a different OU and then switched back
+   * again.) In this case we can combine the two successive records for the same OU into a single
+   * record.
    *
-   * <p>If this is the last (and not only) row for this TEI, write it out.
+   * <p>If this is the last (and not only) row for this TRACKED ENTITY, write it out.
    */
   private void combineWithPreviousRow() {
     prevRow.put(OU, newRow.get(OU));
@@ -134,9 +135,9 @@ public class JdbcOwnershipWriter {
   }
 
   /**
-   * The new row is for a different ownership period of the same TEI. So write out the old row and
-   * start the new row after the old row's end date. Then also write out the new row if it is the
-   * last for this TEI.
+   * The new row is for a different ownership period of the same TRACKED ENTITY. So write out the
+   * old row and start the new row after the old row's end date. Then also write out the new row if
+   * it is the last for this TRACKED ENTITY.
    */
   private void writePreviousRow() {
     batchHandler.addObject(prevRow);
@@ -149,12 +150,12 @@ public class JdbcOwnershipWriter {
   }
 
   /**
-   * If the passed row is the last for this TEI (no end date), then set the end date to far in the
-   * future and write it out. However, if this is the only row for this TEI (from the beginning of
-   * time to the end of time), then don't write it because the ownership never changed and analytics
-   * queries can always use the enrollment orgUnit.
+   * If the passed row is the last for this TRACKED ENTITY (no end date), then set the end date to
+   * far in the future and write it out. However, if this is the only row for this TRACKED ENTITY
+   * (from the beginning of time to the end of time), then don't write it because the ownership
+   * never changed and analytics queries can always use the enrollment orgUnit.
    *
-   * <p>After, there will be no previous row for this TEI.
+   * <p>After, there will be no previous row for this TRACKED ENTITY.
    */
   private void writeRowIfLast(Map<String, Object> row) {
     if (hasNullValue(row, ENDDATE)) // If the last row

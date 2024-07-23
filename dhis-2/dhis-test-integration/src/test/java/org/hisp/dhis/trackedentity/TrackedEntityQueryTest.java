@@ -58,7 +58,7 @@ class TrackedEntityQueryTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testTeiQueryParamsWithoutEitherProgramOrTrackedEntityType() {
+  void testTrackedEntityQueryParamsWithoutEitherProgramOrTrackedEntityType() {
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
     params.setOrgUnitMode(OrganisationUnitSelectionMode.ALL);
     IllegalQueryException exception =

@@ -36,7 +36,7 @@ import org.hisp.dhis.analytics.common.processing.HeaderParamsHandler;
 import org.hisp.dhis.analytics.common.processing.MetadataParamsHandler;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
-import org.hisp.dhis.analytics.tei.TeiQueryParams;
+import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
@@ -62,7 +62,7 @@ public class GridAdaptor {
    * Grid} will have empty rows.
    *
    * @param sqlQueryResult the optional of {@link SqlQueryResult}.
-   * @param teiQueryParams the {@link TeiQueryParams}.
+   * @param trackedEntityQueryParams the {@link TrackedEntityQueryParams}.
    * @return the {@link Grid} object.
    * @throws IllegalArgumentException if headers is null/empty or contain at least one null element,
    *     or if the queryResult is null.
@@ -70,26 +70,26 @@ public class GridAdaptor {
   public Grid createGrid(
       Optional<SqlQueryResult> sqlQueryResult,
       long rowsCount,
-      TeiQueryParams teiQueryParams,
+      TrackedEntityQueryParams trackedEntityQueryParams,
       List<Field> fields,
       User user) {
 
-    notNull(teiQueryParams, "The 'teiQueryParams' must not be null");
+    notNull(trackedEntityQueryParams, "The 'trackedEntityQueryParams' must not be null");
 
-    TeiListGrid grid = new TeiListGrid(teiQueryParams);
+    TrackedEntityListGrid grid = new TrackedEntityListGrid(trackedEntityQueryParams);
 
     // Adding headers.
-    headerParamsHandler.handle(grid, teiQueryParams, fields);
+    headerParamsHandler.handle(grid, trackedEntityQueryParams, fields);
 
     // Adding rows.
     sqlQueryResult.ifPresent(queryResult -> grid.addNamedRows(queryResult.result()));
 
     // Adding metadata info.
-    metadataParamsHandler.handle(grid, teiQueryParams.getCommonParams(), user, rowsCount);
+    metadataParamsHandler.handle(grid, trackedEntityQueryParams.getCommonParams(), user, rowsCount);
 
-    schemeIdResponseMapper.applyCustomIdScheme(teiQueryParams.getCommonParams(), grid);
+    schemeIdResponseMapper.applyCustomIdScheme(trackedEntityQueryParams.getCommonParams(), grid);
     schemeIdResponseMapper.applyOptionAndLegendSetMapping(
-        grid, teiQueryParams.getCommonParams().getDataIdScheme());
+        grid, trackedEntityQueryParams.getCommonParams().getDataIdScheme());
 
     return grid;
   }

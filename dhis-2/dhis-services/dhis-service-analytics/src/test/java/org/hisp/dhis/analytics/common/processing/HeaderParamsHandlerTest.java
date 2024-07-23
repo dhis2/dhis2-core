@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.analytics.common.params.CommonParams;
 import org.hisp.dhis.analytics.common.query.Field;
-import org.hisp.dhis.analytics.tei.TeiQueryParams;
+import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -66,12 +66,12 @@ class HeaderParamsHandlerTest {
     // Given
     String column = "oucode";
     Grid grid = new ListGrid();
-    TeiQueryParams teiQueryParams =
-        TeiQueryParams.builder().commonParams(CommonParams.builder().build()).build();
+    TrackedEntityQueryParams trackedEntityQueryParams =
+        TrackedEntityQueryParams.builder().commonParams(CommonParams.builder().build()).build();
     List<Field> fields = List.of(ofUnquoted("ev", of("anyName"), column));
 
     // When
-    headerParamsHandler.handle(grid, teiQueryParams, fields);
+    headerParamsHandler.handle(grid, trackedEntityQueryParams, fields);
 
     // Then
     assertEquals(1, grid.getHeaders().size());
@@ -82,12 +82,12 @@ class HeaderParamsHandlerTest {
   void testHandleWithNoFieldColumn() {
     // Given
     Grid grid = new ListGrid();
-    TeiQueryParams teiQueryParams =
-        TeiQueryParams.builder().commonParams(CommonParams.builder().build()).build();
+    TrackedEntityQueryParams trackedEntityQueryParams =
+        TrackedEntityQueryParams.builder().commonParams(CommonParams.builder().build()).build();
     List<Field> fields = List.of();
 
     // When
-    headerParamsHandler.handle(grid, teiQueryParams, fields);
+    headerParamsHandler.handle(grid, trackedEntityQueryParams, fields);
 
     // Then
     assertTrue(grid.getHeaders().isEmpty());
@@ -97,8 +97,8 @@ class HeaderParamsHandlerTest {
   void testHandleWithParamHeaders() {
     // Given
     Grid grid = new ListGrid();
-    TeiQueryParams teiQueryParams =
-        TeiQueryParams.builder().commonParams(stubCommonParamsWithHeaders()).build();
+    TrackedEntityQueryParams trackedEntityQueryParams =
+        TrackedEntityQueryParams.builder().commonParams(stubCommonParamsWithHeaders()).build();
     List<Field> fields =
         List.of(
             ofUnquoted("ev", of("anyName"), "oucode"),
@@ -106,7 +106,7 @@ class HeaderParamsHandlerTest {
             ofUnquoted("ev", of("anyName"), "lastupdated"));
 
     // When
-    headerParamsHandler.handle(grid, teiQueryParams, fields);
+    headerParamsHandler.handle(grid, trackedEntityQueryParams, fields);
 
     // Then
     assertEquals(3, grid.getHeaders().size());
@@ -122,7 +122,8 @@ class HeaderParamsHandlerTest {
     commonParams.getHeaders().add("non-existing");
 
     Grid grid = new ListGrid();
-    TeiQueryParams teiQueryParams = TeiQueryParams.builder().commonParams(commonParams).build();
+    TrackedEntityQueryParams trackedEntityQueryParams =
+        TrackedEntityQueryParams.builder().commonParams(commonParams).build();
     List<Field> fields =
         List.of(
             ofUnquoted("ev", of("anyName"), "oucode"),
@@ -133,7 +134,7 @@ class HeaderParamsHandlerTest {
     IllegalQueryException ex =
         assertThrows(
             IllegalQueryException.class,
-            () -> headerParamsHandler.handle(grid, teiQueryParams, fields),
+            () -> headerParamsHandler.handle(grid, trackedEntityQueryParams, fields),
             "Expected exception not thrown: handle()");
 
     // Then

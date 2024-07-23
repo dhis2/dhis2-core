@@ -37,7 +37,7 @@ import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.Sta
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension.OCCURREDDATE;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension.OUNAME;
 import static org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset.emptyElementWithOffset;
-import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_ALIAS;
+import static org.hisp.dhis.analytics.trackedentity.query.context.QueryContextConstants.TRACKED_ENTITY_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
@@ -187,7 +187,7 @@ public class DimensionIdentifierHelper {
         .map(DimensionIdentifier::getPrefix)
         .filter(StringUtils::isNotBlank)
         .map(s -> quote ? doubleQuote(s) : s)
-        .orElse(TEI_ALIAS);
+        .orElse(TRACKED_ENTITY_ALIAS);
   }
 
   public static boolean supportsCustomLabel(
