@@ -52,12 +52,8 @@ public class RelationshipStrategy extends HibernateGenericStore<Relationship>
     implements ClassBasedSupplierStrategy {
 
   public RelationshipStrategy(
-      EntityManager entityManager,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      Class<Relationship> clazz,
-      boolean cacheable) {
-    super(entityManager, jdbcTemplate, publisher, clazz, cacheable);
+      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
+    super(entityManager, jdbcTemplate, publisher, Relationship.class, false);
   }
 
   @Override
