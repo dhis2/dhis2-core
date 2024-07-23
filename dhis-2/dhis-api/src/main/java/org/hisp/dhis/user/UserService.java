@@ -561,6 +561,30 @@ public interface UserService {
   void disableTwoFa(User user, String code);
 
   /**
+   * Register a failed 2FA disable attempt for the given user account.
+   *
+   * @param username
+   */
+  void registerFailed2FADisableAttempt(String username);
+
+  /**
+   * If the user has a failed 2FA disable attempt more than 4 times in the last 15 minutes, return
+   * true.
+   *
+   * @param username
+   * @return
+   */
+  boolean twoFaDisableIsLocked(String username);
+
+  /**
+   * Register a successful 2FA disable attempt for the given user account, this will reset the
+   * attempt cache.
+   *
+   * @param username
+   */
+  void registerSuccess2FADisable(String username);
+
+  /**
    * If the user has a role with the 2FA authentication required restriction, return true.
    *
    * @param userDetails The user object that is being checked for the role.
