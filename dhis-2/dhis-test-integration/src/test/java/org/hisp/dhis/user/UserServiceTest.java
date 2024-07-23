@@ -59,6 +59,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
@@ -81,6 +82,8 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
   @Autowired private SystemSettingManager systemSettingManager;
 
   @Autowired private IdentifiableObjectManager idObjectManager;
+
+  @Autowired private PasswordManager passwordManager;
 
   @Autowired private DataElementService dataElementService;
   private OrganisationUnit unitA;
@@ -671,5 +674,20 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
   @Test
   void testGetDisplayNameNull() {
     assertNull(userService.getDisplayName("notExist"));
+  }
+
+  @Test
+  void testBCryptedPasswordOnInputError() {
+    User user = new User();
+    user.setUsername("test");
+    user.setPassword("password");
+    userService.addUser(user);
+
+    String encodedPassword = passwordManager.encode("password");
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> userService.encodeAndSetPassword(user, encodedPassword),
+        "Raw password look like BCrypt encoded password, this is most certainly a bug");
   }
 }
