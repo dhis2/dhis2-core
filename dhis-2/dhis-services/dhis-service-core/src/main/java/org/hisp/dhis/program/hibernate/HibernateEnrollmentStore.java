@@ -29,7 +29,6 @@ package org.hisp.dhis.program.hibernate;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -59,8 +58,6 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.program.EnrollmentStore")
 public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment>
     implements EnrollmentStore {
-  private static final String PI_HQL_BY_UIDS = "from Enrollment as en where en.uid in (:uids)";
-
   private static final String STATUS = "status";
 
   private static final Set<NotificationTrigger> SCHEDULED_ENROLLMENT_TRIGGERS =
@@ -107,24 +104,6 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
             .addPredicate(root -> builder.equal(root.get("trackedEntity"), trackedEntity))
             .addPredicate(root -> builder.equal(root.get("program"), program))
             .addPredicate(root -> builder.equal(root.get(STATUS), status)));
-  }
-
-  @Override
-  public List<Enrollment> getIncludingDeleted(List<String> uids) {
-    List<Enrollment> enrollments = new ArrayList<>();
-    List<List<String>> uidsPartitions = Lists.partition(Lists.newArrayList(uids), 20000);
-
-    for (List<String> uidsPartition : uidsPartitions) {
-      if (!uidsPartition.isEmpty()) {
-        enrollments.addAll(
-            getSession()
-                .createQuery(PI_HQL_BY_UIDS, Enrollment.class)
-                .setParameter("uids", uidsPartition)
-                .list());
-      }
-    }
-
-    return enrollments;
   }
 
   @Override
