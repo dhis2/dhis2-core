@@ -25,56 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.config;
+package org.hisp.dhis.leader.election;
 
-import static org.mockito.Mockito.mock;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.test.config.H2DhisConfiguration;
-import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
-import org.hisp.dhis.user.UserService;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import java.util.Properties;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.test.config.TestDhisConfigurationProvider;
+import org.junit.jupiter.api.Test;
 
-@Configuration
-@Import({H2DhisConfiguration.class})
-@ComponentScan("org.hisp.dhis.tracker.imports.validation")
-@ExtendWith(MockitoExtension.class)
-public class TrackerTestConfig {
-  @Bean
-  public UserService userService() {
-    return mock(UserService.class);
-  }
+/**
+ * @author Ameen Mohamed
+ */
+class NoOpLeaderManagerTest {
 
-  @Bean
-  public FileResourceService fileResourceService() {
-    return mock(FileResourceService.class);
-  }
+  @Test
+  void testNodeInfo() {
+    Properties properties = new Properties();
+    properties.put(ConfigurationKey.NODE_ID, "1");
+    TestDhisConfigurationProvider dhisConfigurationProvider =
+        new TestDhisConfigurationProvider(properties);
+    NoOpLeaderManager leaderManager = new NoOpLeaderManager(dhisConfigurationProvider);
 
-  @Bean
-  public AclService aclService() {
-    return mock(AclService.class);
-  }
-
-  @Bean
-  public TrackerOwnershipManager trackerOwnershipManager() {
-    return mock(TrackerOwnershipManager.class);
-  }
-
-  @Bean
-  public OrganisationUnitService organisationUnitService() {
-    return mock(OrganisationUnitService.class);
-  }
-
-  @Bean
-  public I18nManager i18nManager() {
-    return mock(I18nManager.class);
+    assertNotNull(leaderManager.getCurrentNodeUuid());
+    assertNotNull(leaderManager.getLeaderNodeUuid());
+    assertEquals(leaderManager.getCurrentNodeUuid(), leaderManager.getLeaderNodeUuid());
+    assertTrue(leaderManager.isLeader());
   }
 }
