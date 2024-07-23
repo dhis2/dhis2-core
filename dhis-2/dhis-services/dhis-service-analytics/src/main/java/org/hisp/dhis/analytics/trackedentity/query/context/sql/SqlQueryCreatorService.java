@@ -49,7 +49,7 @@ public class SqlQueryCreatorService {
   private final List<SqlQueryBuilder> providers;
 
   /**
-   * Builds a SqlQueryCreator from the given TeiQueryParams.
+   * Builds a SqlQueryCreator from the given TrackedEntityQueryParams.
    *
    * @param contextParams the {@link ContextParams} to build the SqlQueryCreator from.
    * @return a SqlQueryCreator

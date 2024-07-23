@@ -123,7 +123,7 @@ public class CommonParamsSecurityManager {
     Set<IdentifiableObject> objects = new HashSet<>();
     objects.addAll(extraObjects);
 
-    // DimensionalObjects from TeiQueryParams.
+    // DimensionalObjects from TrackedEntityQueryParams.
     objects.addAll(
         commonParams.getDimensionIdentifiers().stream()
             .filter(not(OrgUnitQueryBuilder::isOu))
@@ -136,7 +136,7 @@ public class CommonParamsSecurityManager {
             .flatMap(List::stream)
             .collect(toSet()));
 
-    // DimensionalItemObjects from TeiQueryParams -> QueryItems.
+    // DimensionalItemObjects from TrackedEntityQueryParams -> QueryItems.
     objects.addAll(
         commonParams.getDimensionIdentifiers().stream()
             // We don't want to add the org units to the objects since they are

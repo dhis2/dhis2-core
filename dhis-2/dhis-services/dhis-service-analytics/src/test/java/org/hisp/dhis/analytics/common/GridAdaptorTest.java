@@ -212,7 +212,7 @@ class GridAdaptorTest extends TestBase {
   }
 
   @Test
-  void testCreateGridWithNullTeiQueryParams() {
+  void testCreateGridWithNullTrackedEntityQueryParams() {
     // Given
     Optional<SqlQueryResult> anySqlResult = Optional.empty();
     ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> nullContextParams = null;

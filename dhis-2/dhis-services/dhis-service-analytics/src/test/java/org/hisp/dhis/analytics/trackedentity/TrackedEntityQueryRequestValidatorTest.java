@@ -39,7 +39,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author maikel arabori
  */
-class TrackedEntityRequestParamsValidatorTest {
+class TrackedEntityQueryRequestValidatorTest {
 
   @Test
   void testValidateWhenTrackedEntityTypeIsInvalid() {

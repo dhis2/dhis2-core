@@ -48,9 +48,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.springframework.stereotype.Component;
 
 /**
- * This component maps creates a @{TeiQueryParams} query params objects. The query params objects
- * represents the preparation of dimensions and elements that are ready to be queried at database
- * level.
+ * This component maps creates a @{TrackedEntityQueryParams} query params objects. The query params
+ * objects represents the preparation of dimensions and elements that are ready to be queried at
+ * database level.
  */
 @Component
 @RequiredArgsConstructor
