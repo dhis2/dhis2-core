@@ -37,7 +37,6 @@ import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -56,8 +55,6 @@ class PotentialDuplicateStoreRelationshipTest extends PostgresIntegrationTestBas
   @Autowired private HibernatePotentialDuplicateStore potentialDuplicateStore;
 
   @Autowired private TrackedEntityService trackedEntityService;
-
-  @Autowired private RelationshipService relationshipService;
 
   @Autowired private RelationshipTypeService relationshipTypeService;
 
@@ -107,10 +104,10 @@ class PotentialDuplicateStoreRelationshipTest extends PostgresIntegrationTestBas
     Relationship bi2 = createTeToTeRelationship(duplicate, extra1, relationshipTypeBiDirectional);
     Relationship bi3 = createTeToTeRelationship(duplicate, extra2, relationshipTypeBiDirectional);
     Relationship bi4 = createTeToTeRelationship(extra1, extra2, relationshipTypeBiDirectional);
-    relationshipService.addRelationship(bi1);
-    relationshipService.addRelationship(bi2);
-    relationshipService.addRelationship(bi3);
-    relationshipService.addRelationship(bi4);
+    manager.save(bi1);
+    manager.save(bi2);
+    manager.save(bi3);
+    manager.save(bi4);
     transactionTemplate.execute(
         status -> {
           List<String> relationships = Lists.newArrayList(bi2.getUid());
@@ -146,10 +143,10 @@ class PotentialDuplicateStoreRelationshipTest extends PostgresIntegrationTestBas
     Relationship uni2 = createTeToTeRelationship(duplicate, extra1, relationshipTypeUniDirectional);
     Relationship uni3 = createTeToTeRelationship(extra2, duplicate, relationshipTypeUniDirectional);
     Relationship uni4 = createTeToTeRelationship(extra1, extra2, relationshipTypeUniDirectional);
-    relationshipService.addRelationship(uni1);
-    relationshipService.addRelationship(uni2);
-    relationshipService.addRelationship(uni3);
-    relationshipService.addRelationship(uni4);
+    manager.save(uni1);
+    manager.save(uni2);
+    manager.save(uni3);
+    manager.save(uni4);
     original = trackedEntityService.getTrackedEntity(original.getUid());
     duplicate = trackedEntityService.getTrackedEntity(duplicate.getUid());
     List<String> relationships = Lists.newArrayList(uni3.getUid());
@@ -180,10 +177,10 @@ class PotentialDuplicateStoreRelationshipTest extends PostgresIntegrationTestBas
     Relationship uni2 = createTeToTeRelationship(duplicate, extra1, relationshipTypeUniDirectional);
     Relationship bi1 = createTeToTeRelationship(extra2, duplicate, relationshipTypeUniDirectional);
     Relationship bi2 = createTeToTeRelationship(extra1, extra2, relationshipTypeUniDirectional);
-    relationshipService.addRelationship(uni1);
-    relationshipService.addRelationship(uni2);
-    relationshipService.addRelationship(bi1);
-    relationshipService.addRelationship(bi2);
+    manager.save(uni1);
+    manager.save(uni2);
+    manager.save(bi1);
+    manager.save(bi2);
     transactionTemplate.execute(
         status -> {
           List<String> relationships = Lists.newArrayList(uni2.getUid(), bi1.getUid());

@@ -37,6 +37,4 @@ public interface RelationshipStore extends IdentifiableObjectStore<Relationship>
   String ID = RelationshipStore.class.getName();
 
   List<String> getUidsByRelationshipKeys(List<String> relationshipKeyList);
-
-  List<Relationship> getByUidsIncludeDeleted(List<String> uids);
 }
