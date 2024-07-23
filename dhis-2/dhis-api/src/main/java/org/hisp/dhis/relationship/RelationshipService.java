@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.relationship;
 
-import java.util.List;
-
 /**
  * @author Abyot Asalefew
  */
@@ -42,6 +40,4 @@ public interface RelationshipService {
    * @return id of the added relationship.
    */
   long addRelationship(Relationship relationship);
-
-  List<Relationship> getRelationshipsByRelationshipType(RelationshipType relationshipType);
 }

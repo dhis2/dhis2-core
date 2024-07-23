@@ -195,7 +195,12 @@ public class TwoFactorController {
       throw new WebMessageException(conflict(ErrorCode.E3031.getMessage(), ErrorCode.E3031));
     }
 
+    if (defaultUserService.twoFaDisableIsLocked(currentUser.getUsername())) {
+      throw new WebMessageException(conflict(ErrorCode.E3042.getMessage(), ErrorCode.E3042));
+    }
+
     if (!verifyCode(code, currentUser)) {
+      defaultUserService.registerFailed2FADisableAttempt(currentUser.getUsername());
       return unauthorized(ErrorCode.E3023.getMessage());
     }
 

@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.relationship;
 
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,11 +50,5 @@ public class DefaultRelationshipService implements RelationshipService {
     relationshipStore.save(relationship);
 
     return relationship.getId();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<Relationship> getRelationshipsByRelationshipType(RelationshipType relationshipType) {
-    return relationshipStore.getByRelationshipType(relationshipType);
   }
 }

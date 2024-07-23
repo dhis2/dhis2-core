@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,21 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system;
+package org.hisp.dhis.webapi.controller;
 
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.leader.election.LeaderManager;
-import org.hisp.dhis.leader.election.NoOpLeaderManager;
-import org.hisp.dhis.test.config.H2DhisConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@Configuration
-@Import(H2DhisConfiguration.class)
-public class SystemTestConfig {
-  @Bean
-  public LeaderManager leaderManager(DhisConfigurationProvider dhisConfigurationProvider) {
-    return new NoOpLeaderManager(dhisConfigurationProvider);
+import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.sms.incoming.IncomingSmsService;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.user.User;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+class SmsCommandControllerTest extends H2ControllerIntegrationTestBase {
+
+  @Autowired private IncomingSmsService incomingSMSService;
+
+  @Test
+  void testGetSmsCommandsNoAuthority() {
+    User guestUser = createUserWithAuth("guestuser", "NONE");
+    injectSecurityContextUser(guestUser);
+
+    assertWebMessage(
+        "Forbidden",
+        403,
+        "ERROR",
+        "You don't have the proper permissions to read objects of this type.",
+        GET("/smsCommands").content(HttpStatus.FORBIDDEN));
+  }
+
+  @Test
+  void testGetSmsCommands() {
+    JsonMixed content = GET("/smsCommands").content(HttpStatus.OK);
+    assertNotNull(content);
   }
 }
