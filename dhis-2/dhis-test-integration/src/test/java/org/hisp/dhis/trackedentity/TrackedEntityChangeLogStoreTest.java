@@ -46,7 +46,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @TestInstance(Lifecycle.PER_CLASS)
 @Transactional
-class TrackedEntityAuditStoreTest extends PostgresIntegrationTestBase {
+class TrackedEntityChangeLogStoreTest extends PostgresIntegrationTestBase {
   private final Date CREATED = getDate(2022, 3, 1);
 
   @Autowired private TrackedEntityChangeLogStore store;

@@ -146,7 +146,7 @@ class DatastoreControllerIntegrationTest extends PostgresControllerIntegrationTe
 
   @Test
   void testUpdateKeyJsonValue_ProtectedNamespaceWithSharing() {
-    switchContextToUser(superUser);
+    switchContextToUser(getAdminUser());
 
     setUpNamespaceProtectionWithSharing(
         "pets", DatastoreNamespaceProtection.ProtectionType.HIDDEN, "pets-admin");

@@ -35,11 +35,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import javax.servlet.http.Cookie;
 import lombok.Getter;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dbms.DbmsManager;
@@ -48,13 +46,10 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.test.SpringIntegrationTestBase;
 import org.hisp.dhis.test.config.H2DhisConfiguration;
 import org.hisp.dhis.test.config.PostgresDhisConfiguration;
-import org.hisp.dhis.test.utils.TestUtils;
 import org.hisp.dhis.test.web.HttpMethod;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.web.WebClient;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserRole;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
@@ -110,10 +105,6 @@ public abstract class ControllerTestBase extends SpringIntegrationTestBase imple
 
   @Autowired private TransactionTemplate txTemplate;
 
-  @Getter protected User adminUser;
-
-  @Getter protected User superUser;
-
   @Getter protected User currentUser;
 
   protected MockMvc mvc;
@@ -121,56 +112,22 @@ public abstract class ControllerTestBase extends SpringIntegrationTestBase imple
   protected MockHttpSession session;
 
   protected final String getSuperuserUid() {
-    return superUser.getUid();
+    return getAdminUser().getUid();
+  }
+
+  protected final User getSuperUser() {
+    return getAdminUser();
   }
 
   @BeforeEach
   void setup() {
     renderService = _renderService;
-    clearSecurityContext();
-
-    this.adminUser = _preCreateInjectAdminUserWithoutPersistence();
-    manager.persist(adminUser);
-    _injectSecurityContextUser(adminUser);
-
-    superUser = createAndAddAdminUser("ALL");
 
     mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
 
-    switchContextToUser(superUser);
-    currentUser = superUser;
-
-    TestUtils.executeStartupRoutines(webApplicationContext);
-
+    // TODO(ivo) do we need this?
     dbmsManager.flushSession();
     dbmsManager.clearSession();
-  }
-
-  private void _injectSecurityContextUser(User user) {
-    if (user == null) {
-      clearSecurityContext();
-      return;
-    }
-    hibernateService.flushSession();
-    User user1 = manager.find(User.class, user.getId());
-    injectSecurityContext(UserDetails.fromUser(user1));
-  }
-
-  private User _preCreateInjectAdminUserWithoutPersistence() {
-    UserRole role = createUserRole("Superuser_Test_" + CodeGenerator.generateUid(), "ALL");
-    role.setUid(CodeGenerator.generateUid());
-    manager.persist(role);
-    User user = new User();
-    String uid = CodeGenerator.generateUid();
-    user.setUid(uid);
-    user.setFirstName("Firstname_" + uid);
-    user.setSurname("Surname_" + uid);
-    user.setUsername(DEFAULT_USERNAME + "_test_" + CodeGenerator.generateUid());
-    user.setPassword(DEFAULT_ADMIN_PASSWORD);
-    user.getUserRoles().add(role);
-    user.setLastUpdated(new Date());
-    user.setCreated(new Date());
-    return user;
   }
 
   protected final void doInTransaction(Runnable operation) {
@@ -186,8 +143,8 @@ public abstract class ControllerTestBase extends SpringIntegrationTestBase imple
   }
 
   protected final User switchToSuperuser() {
-    switchContextToUser(userService.getUser(superUser.getUid()));
-    return superUser;
+    switchContextToUser(getAdminUser());
+    return getAdminUser();
   }
 
   /**
@@ -204,9 +161,9 @@ public abstract class ControllerTestBase extends SpringIntegrationTestBase imple
   }
 
   protected final User switchToNewUser(String username, String... authorities) {
-    if (superUser != null) {
+    if (getAdminUser() != null) {
       // we need to be an admin to be allowed to create user groups
-      switchContextToUser(superUser);
+      switchContextToUser(getAdminUser());
     }
 
     currentUser = createUserWithAuth(username, authorities);

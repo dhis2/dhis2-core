@@ -97,7 +97,8 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
         409,
         "ERROR",
         "User account does not have a valid email address",
-        POST("/account/recovery?username=" + superUser.getUsername()).content(HttpStatus.CONFLICT));
+        POST("/account/recovery?username=" + getAdminUser().getUsername())
+            .content(HttpStatus.CONFLICT));
   }
 
   @Test

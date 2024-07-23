@@ -98,7 +98,9 @@ class TrackedEntitiesExportControllerPostgresTest extends PostgresControllerInte
     this.renderService = _renderService;
     setUpMetadata("tracker/simple_metadata.json");
 
-    TrackerImportParams params = TrackerImportParams.builder().userId(superUser.getUid()).build();
+    injectSecurityContextUser(getAdminUser());
+    TrackerImportParams params =
+        TrackerImportParams.builder().userId(getAdminUser().getUid()).build();
     assertNoDataErrors(
         trackerImportService.importTracker(params, fromJson("tracker/single_te.json")));
 

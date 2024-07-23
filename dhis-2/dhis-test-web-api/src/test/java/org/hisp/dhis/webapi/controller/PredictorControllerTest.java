@@ -35,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.Test;
 
@@ -78,8 +77,7 @@ class PredictorControllerTest extends H2ControllerIntegrationTestBase {
   void testRunPredictor() {
     String pId = postNewPredictor();
 
-    User actingUser = superUser;
-    UserDetails currentUserDetails = UserDetails.fromUser(actingUser);
+    UserDetails currentUserDetails = UserDetails.fromUser(getAdminUser());
     currentUserDetails.setId(0L);
     injectSecurityContext(currentUserDetails);
 

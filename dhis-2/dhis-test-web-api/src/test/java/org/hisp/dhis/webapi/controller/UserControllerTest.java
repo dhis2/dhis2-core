@@ -118,7 +118,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void updateRolesShouldInvalidateUserSessions() {
-    UserDetails sessionPrincipal = userService.createUserDetails(superUser);
+    UserDetails sessionPrincipal = userService.createUserDetails(getAdminUser());
     sessionRegistry.registerNewSession("session1", sessionPrincipal);
     assertFalse(sessionRegistry.getAllSessions(sessionPrincipal, false).isEmpty());
 
@@ -128,7 +128,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
     String roleBID = userService.getUserRoleByName("ROLE_B").getUid();
 
     PATCH(
-            "/users/" + superUser.getUid(),
+            "/users/" + getAdminUser().getUid(),
             "[{'op':'add','path':'/userRoles','value':[{'id':'" + roleBID + "'}]}]")
         .content(HttpStatus.OK);
 
@@ -137,13 +137,13 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void updateRolesAuthoritiesShouldInvalidateUserSessions() {
-    UserDetails sessionPrincipal = userService.createUserDetails(superUser);
+    UserDetails sessionPrincipal = userService.createUserDetails(getAdminUser());
 
     UserRole roleB = createUserRole("ROLE_B", "ALL");
     userService.addUserRole(roleB);
 
     PATCH(
-            "/users/" + superUser.getUid(),
+            "/users/" + getAdminUser().getUid(),
             "[{'op':'add','path':'/userRoles','value':[{'id':'" + roleB.getUid() + "'}]}]")
         .content(HttpStatus.OK);
 
@@ -271,7 +271,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
     JsonImportSummary response =
         PATCH(
-                "/users/" + superUser.getUid(),
+                "/users/" + getAdminUser().getUid(),
                 "[{'op':'add','path':'/userRoles','value':[{'id':'" + roleBID + "'}]}]")
             .content(HttpStatus.CONFLICT)
             .get("response")
@@ -768,7 +768,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
         GET("/userGroups/" + newGroupUid).content(HttpStatus.OK).as(JsonUserGroup.class);
     JsonUser updatedByAdminAgain = userGroupUserRemoved.getLastUpdatedBy();
     assertTrue(userGroupUserRemoved.getUsers().isEmpty());
-    assertEquals(superUser.getUid(), updatedByAdminAgain.getId());
+    assertEquals(getAdminUser().getUid(), updatedByAdminAgain.getId());
     assertEquals("admin", updatedByAdminAgain.getUsername());
   }
 
