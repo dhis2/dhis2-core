@@ -92,7 +92,7 @@ class EventChangeLogServiceTest extends TrackerTest {
   }
 
   @Test
-  void shouldFailWhenEventIsSoftDeleted() {
+  void shouldFailWhenEventIsSoftDeleted() throws NotFoundException {
     trackerObjectDeletionService.deleteEvents(List.of("D9PbzJY8bJM"));
     assertThrows(
         NotFoundException.class,
