@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.analytics.generator;
 
-import org.hisp.dhis.analytics.generator.impl.TeiQueryGenerator;
+import org.hisp.dhis.analytics.generator.impl.TrackedEntityQueryGenerator;
 
 /** This class simply hold the generator implementation to be used during the code generation. */
 public class TestGenerator {
   static Generator get() {
-    return new TeiQueryGenerator(
+    return new TrackedEntityQueryGenerator(
         "multiOrgUnitProgramStatusFilterMultipleInBoolean", "singleOrgUnitInBooleanFilter");
 
     // To generate all e2e tests just return the default constructor.

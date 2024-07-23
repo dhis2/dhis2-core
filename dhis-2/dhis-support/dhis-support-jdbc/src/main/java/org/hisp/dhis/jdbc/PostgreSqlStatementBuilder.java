@@ -141,9 +141,9 @@ public class PostgreSqlStatementBuilder implements StatementBuilder {
         + eventTableName
         + " where "
         + eventTableName
-        + ".pi = "
+        + ".enrollment = "
         + AnalyticsConstants.ANALYTICS_TBL_ALIAS
-        + ".pi and "
+        + ".enrollment and "
         + columnName
         + " is not null "
         + (programIndicator.getEndEventBoundary() != null

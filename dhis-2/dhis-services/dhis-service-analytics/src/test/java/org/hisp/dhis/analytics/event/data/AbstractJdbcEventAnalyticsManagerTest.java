@@ -324,7 +324,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     String aggregateClause = eventSubject.getAggregateClause(params);
 
-    assertEquals("count(ax.\"psi\")", aggregateClause);
+    assertEquals("count(ax.\"event\")", aggregateClause);
   }
 
   @Test
@@ -343,7 +343,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     String aggregateClause = eventSubject.getAggregateClause(params);
 
-    assertEquals("count(distinct ax.\"pi\")", aggregateClause);
+    assertEquals("count(distinct ax.\"enrollment\")", aggregateClause);
   }
 
   @Test
@@ -543,54 +543,54 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   void testValidCoordinatesFieldInSqlWhereClauseForEvent() {
     EventQueryParams params =
         getEventQueryParamsForCoordinateFieldsTest(
-            List.of("pigeometry", "psigeometry", "teigeometry", "ougeometry"));
+            List.of("engeometry", "evgeometry", "tegeometry", "ougeometry"));
 
     String whereClause = this.eventSubject.getWhereClause(params);
 
     assertThat(
         whereClause,
         containsString(
-            "coalesce(ax.\"pigeometry\",ax.\"psigeometry\",ax.\"teigeometry\",ax.\"ougeometry\") is not null"));
+            "coalesce(ax.\"engeometry\",ax.\"evgeometry\",ax.\"tegeometry\",ax.\"ougeometry\") is not null"));
   }
 
   @Test
   void testMissingPsiGeometryInDefaultCoordinatesFieldInSqlSelectClause() {
     EventQueryParams params =
         getEventQueryParamsForCoordinateFieldsTest(
-            List.of("pigeometry", "teigeometry", "ougeometry"));
+            List.of("engeometry", "tegeometry", "ougeometry"));
 
     String whereClause = this.eventSubject.getSelectClause(params);
 
     assertThat(
         whereClause,
-        containsString("coalesce(ax.\"pigeometry\",ax.\"teigeometry\",ax.\"ougeometry\")"));
+        containsString("coalesce(ax.\"engeometry\",ax.\"tegeometry\",ax.\"ougeometry\")"));
   }
 
   @Test
   void testValidExplicitCoordinatesFieldInSqlSelectClause() {
     EventQueryParams params =
-        getEventQueryParamsForCoordinateFieldsTest(List.of("ougeometry", "psigeometry"));
+        getEventQueryParamsForCoordinateFieldsTest(List.of("ougeometry", "evgeometry"));
 
     String whereClause = this.eventSubject.getSelectClause(params);
 
-    assertThat(whereClause, containsString("coalesce(ax.\"ougeometry\",ax.\"psigeometry\")"));
+    assertThat(whereClause, containsString("coalesce(ax.\"ougeometry\",ax.\"evgeometry\")"));
   }
 
   @Test
   void testGetCoalesceReturnsDefaultColumnNameWhenCoordinateFieldIsEmpty() {
     String sql =
         this.eventSubject.getCoalesce(
-            List.of(), FallbackCoordinateFieldType.PSI_GEOMETRY.getValue());
+            List.of(), FallbackCoordinateFieldType.EVENT_GEOMETRY.getValue());
 
-    assertEquals(FallbackCoordinateFieldType.PSI_GEOMETRY.getValue(), sql);
+    assertEquals(FallbackCoordinateFieldType.EVENT_GEOMETRY.getValue(), sql);
   }
 
   @Test
   void testGetCoalesceReturnsDefaultColumnNameWhenCoordinateFieldCollectionIsNull() {
     String sqlSnippet =
-        this.eventSubject.getCoalesce(null, FallbackCoordinateFieldType.PSI_GEOMETRY.getValue());
+        this.eventSubject.getCoalesce(null, FallbackCoordinateFieldType.EVENT_GEOMETRY.getValue());
 
-    assertEquals(FallbackCoordinateFieldType.PSI_GEOMETRY.getValue(), sqlSnippet);
+    assertEquals(FallbackCoordinateFieldType.EVENT_GEOMETRY.getValue(), sqlSnippet);
   }
 
   @Test
@@ -598,7 +598,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     String sqlSnippet =
         this.eventSubject.getCoalesce(
             List.of("coorA", "coorB", "coorC"),
-            FallbackCoordinateFieldType.PSI_GEOMETRY.getValue());
+            FallbackCoordinateFieldType.EVENT_GEOMETRY.getValue());
 
     assertEquals("coalesce(ax.\"coorA\",ax.\"coorB\",ax.\"coorC\")", sqlSnippet);
   }
@@ -857,7 +857,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     // When
     String select = enrollmentSubject.getSelectClause(params);
     // Then
-    assertEquals("select pi,Yearly ", select);
+    assertEquals("select enrollment,Yearly ", select);
   }
 
   @Test
@@ -876,7 +876,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     String select = enrollmentSubject.getSelectClause(params);
     // Then
     assertEquals(
-        "select pi,tei,enrollmentdate,incidentdate,storedby,createdbydisplayname,lastupdatedbydisplayname,lastupdated,ST_AsGeoJSON(pigeometry),longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus,ax.\"yearly\" ",
+        "select enrollment,trackedentity,enrollmentdate,incidentdate,storedby,createdbydisplayname,lastupdatedbydisplayname,lastupdated,ST_AsGeoJSON(engeometry),longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus,ax.\"yearly\" ",
         select);
   }
 

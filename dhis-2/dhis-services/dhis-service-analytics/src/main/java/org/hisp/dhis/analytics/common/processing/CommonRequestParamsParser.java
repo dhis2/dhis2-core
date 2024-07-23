@@ -36,7 +36,7 @@ import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.FILTERS;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.HEADERS;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.SORTING;
-import static org.hisp.dhis.analytics.tei.query.TeiFields.getProgramAttributes;
+import static org.hisp.dhis.analytics.trackedentity.query.TrackedEntityFields.getProgramAttributes;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
 import static org.hisp.dhis.common.EventDataQueryRequest.ExtendedEventDataQueryRequestBuilder.DIMENSION_OR_SEPARATOR;
@@ -75,7 +75,7 @@ import org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamType;
 import org.hisp.dhis.analytics.common.params.dimension.StringUid;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
-import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders;
+import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryBuilders;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;

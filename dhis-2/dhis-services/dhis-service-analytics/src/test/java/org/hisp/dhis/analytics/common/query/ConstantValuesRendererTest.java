@@ -32,8 +32,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
-import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
-import org.hisp.dhis.analytics.tei.query.context.sql.SqlParameterManager;
+import org.hisp.dhis.analytics.trackedentity.query.context.sql.QueryContext;
+import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlParameterManager;
 import org.junit.jupiter.api.Test;
 
 class ConstantValuesRendererTest {

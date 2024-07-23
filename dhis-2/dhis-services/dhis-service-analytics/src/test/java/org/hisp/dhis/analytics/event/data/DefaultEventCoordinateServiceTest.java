@@ -62,7 +62,7 @@ class DefaultEventCoordinateServiceTest {
   @Mock private TrackedEntityAttributeService attributeService;
 
   @ParameterizedTest
-  @ValueSource(strings = {"psigeometry", "pigeometry", "ougeometry"})
+  @ValueSource(strings = {"evgeometry", "engeometry", "ougeometry"})
   void testGetCoordinateFieldOrFail(String geometry) {
     when(programService.getProgram(any(String.class))).thenReturn(createProgram('A'));
 
@@ -83,7 +83,7 @@ class DefaultEventCoordinateServiceTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"psigeometry", "pigeometry", "teigeometry", "ougeometry"})
+  @ValueSource(strings = {"engeometry", "evgeometry", "tegeometry", "ougeometry"})
   void testGetFallbackCoordinateFieldsWithoutFallbackCoordinateFieldParam(String geometry) {
     when(programService.getProgram(any(String.class))).thenReturn(createProgram('A'));
 
@@ -94,7 +94,7 @@ class DefaultEventCoordinateServiceTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"psigeometry", "pigeometry", "teigeometry", "ougeometry"})
+  @ValueSource(strings = {"engeometry", "evgeometry", "tegeometry", "ougeometry"})
   void testVerifyFallbackCoordinateFieldWithRegistrationProgram(String geometry) {
     EventCoordinateService service =
         new DefaultEventCoordinateService(programService, dataElementService, attributeService);
@@ -103,7 +103,7 @@ class DefaultEventCoordinateServiceTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"psigeometry", "pigeometry", "ougeometry"})
+  @ValueSource(strings = {"engeometry", "evgeometry", "ougeometry"})
   void testVerifyFallbackCoordinateFieldWithoutRegistrationProgram(String geometry) {
     EventCoordinateService service =
         new DefaultEventCoordinateService(programService, dataElementService, attributeService);
@@ -112,7 +112,7 @@ class DefaultEventCoordinateServiceTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"badpsigeometry", "badpigeometry", "badteigeometry", "badougeometry"})
+  @ValueSource(strings = {"badevgeometry", "badengeometry", "badtegeometry", "badougeometry"})
   void testVerifyBadFallbackCoordinateField(String geometry) {
     when(dataElementService.getDataElement(any(String.class))).thenReturn(null);
 
