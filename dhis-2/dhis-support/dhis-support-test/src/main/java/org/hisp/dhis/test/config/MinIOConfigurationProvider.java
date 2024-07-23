@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,43 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fileresource;
+package org.hisp.dhis.test.config;
 
-import static org.jclouds.ContextBuilder.newBuilder;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
-import java.util.NoSuchElementException;
-import org.junit.jupiter.api.Test;
+import java.util.Properties;
+import org.testcontainers.containers.MinIOContainer;
 
 /**
- * Verify that the supported jclouds providers can be selected.
+ * Config provider for MinIO store usage (overriding the default file system storage).
  *
- * @author Jim Grace
+ * @author david mackessy
  */
-class JCloudsProviderTest {
-  @Test
-  void verifyFilesystem() {
-    assertDoesNotThrow(() -> newBuilder("filesystem"));
+public class MinIOConfigurationProvider extends TestDhisConfigurationProvider {
+
+  private static final String S3_URL;
+  private static final String MINIO_USER = "testuser";
+  private static final String MINIO_PASSWORD = "testpassword";
+  private static final MinIOContainer MIN_IO_CONTAINER;
+
+  static {
+    MIN_IO_CONTAINER =
+        new MinIOContainer("minio/minio:RELEASE.2024-07-16T23-46-41Z")
+            .withUserName(MINIO_USER)
+            .withPassword(MINIO_PASSWORD);
+    MIN_IO_CONTAINER.start();
+    S3_URL = MIN_IO_CONTAINER.getS3URL();
   }
 
-  @Test
-  void verifyAwsS3() {
-    assertDoesNotThrow(() -> newBuilder("aws-s3"));
+  public MinIOConfigurationProvider(Properties dhisConfig) {
+    setMinIOProperties(dhisConfig);
   }
 
-  @Test
-  void verifyS3() {
-    assertDoesNotThrow(() -> newBuilder("s3"));
-  }
-
-  @Test
-  void verifyInvalidProvider() {
-    assertThrows(NoSuchElementException.class, () -> newBuilder("s4"));
-  }
-
-  @Test
-  void verifyTransient() {
-    assertDoesNotThrow(() -> newBuilder("transient"));
+  public void setMinIOProperties(Properties properties) {
+    properties.put("filestore.provider", "s3");
+    properties.put("filestore.container", "dhis2");
+    properties.put("filestore.location", "eu-west-1");
+    properties.put("filestore.endpoint", S3_URL);
+    properties.put("filestore.identity", MINIO_USER);
+    properties.put("filestore.secret", MINIO_PASSWORD);
+    this.properties = properties;
   }
 }
