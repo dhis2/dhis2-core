@@ -35,6 +35,7 @@ import javax.persistence.EntityManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
@@ -119,33 +120,15 @@ public class EnrollmentPersister
 
   @Override
   protected TrackerNotificationDataBundle handleNotifications(
-      TrackerBundle bundle, Enrollment enrollment) {
+      TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Enrollment enrollment) {
     TrackerPreheat preheat = bundle.getPreheat();
-    List<NotificationTrigger> triggers = new ArrayList<>();
+    Enrollment persistedEnrollment = preheat.getEnrollment(enrollment.getUid());
 
-    if (isNew(preheat, enrollment.getUid())) {
-      triggers.add(NotificationTrigger.ENROLLMENT);
-      if (enrollment.isCompleted()) {
-        triggers.add(NotificationTrigger.ENROLLMENT_COMPLETION);
-      }
-    } else {
-      Enrollment exitingEnrollment = preheat.getEnrollment(enrollment.getUid());
-      if (exitingEnrollment.getStatus() != enrollment.getStatus() && enrollment.isCompleted()) {
-        triggers.add(NotificationTrigger.ENROLLMENT_COMPLETION);
-      }
-    }
+    // Determine the notification triggers based on enrollment status changes
+    List<NotificationTrigger> triggers = getNotificationTriggers(persistedEnrollment, enrollment);
 
-    return TrackerNotificationDataBundle.builder()
-        .klass(Enrollment.class)
-        .enrollmentNotifications(
-            bundle.getEnrollmentNotifications().get(UID.of(enrollment.getUid())))
-        .object(enrollment.getUid())
-        .importStrategy(bundle.getImportStrategy())
-        .accessedBy(bundle.getUsername())
-        .enrollment(enrollment)
-        .program(enrollment.getProgram())
-        .triggers(triggers)
-        .build();
+    // Build and return the TrackerNotificationDataBundle
+    return buildNotificationDataBundle(bundle, enrollment, preheat, triggers);
   }
 
   @Override
@@ -177,5 +160,54 @@ public class EnrollmentPersister
   @Override
   protected String getUpdatedTrackedEntity(Enrollment entity) {
     return entity.getTrackedEntity().getUid();
+  }
+
+  /**
+   * Determines the notification triggers based on the enrollment status.
+   *
+   * @param persistedEnrollment the enrollment fetched from the database
+   * @param enrollment the enrollment event coming from the request payload
+   * @return a list of NotificationTriggers
+   */
+  private List<NotificationTrigger> getNotificationTriggers(
+      Enrollment persistedEnrollment, org.hisp.dhis.tracker.imports.domain.Enrollment enrollment) {
+    List<NotificationTrigger> triggers = new ArrayList<>();
+
+    if (persistedEnrollment == null) {
+      // New enrollment
+      triggers.add(NotificationTrigger.ENROLLMENT);
+
+      // New enrollment that is completed
+      if (enrollment.getStatus() == EnrollmentStatus.COMPLETED) {
+        triggers.add(NotificationTrigger.ENROLLMENT_COMPLETION);
+      }
+    } else {
+      // Existing enrollment that has changed to completed
+      if (persistedEnrollment.getStatus() != enrollment.getStatus()
+          && enrollment.getStatus() == EnrollmentStatus.COMPLETED) {
+        triggers.add(NotificationTrigger.ENROLLMENT_COMPLETION);
+      }
+    }
+
+    return triggers;
+  }
+
+  private TrackerNotificationDataBundle buildNotificationDataBundle(
+      TrackerBundle bundle,
+      org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
+      TrackerPreheat preheat,
+      List<NotificationTrigger> triggers) {
+    Enrollment convertedEnrollment = enrollmentConverter.from(preheat, enrollment);
+    return TrackerNotificationDataBundle.builder()
+        .klass(Enrollment.class)
+        .enrollmentNotifications(
+            bundle.getEnrollmentNotifications().get(UID.of(enrollment.getUid())))
+        .object(enrollment.getUid())
+        .importStrategy(bundle.getImportStrategy())
+        .accessedBy(bundle.getUsername())
+        .enrollment(convertedEnrollment)
+        .program(convertedEnrollment.getProgram())
+        .triggers(triggers)
+        .build();
   }
 }

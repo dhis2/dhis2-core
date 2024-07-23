@@ -108,6 +108,11 @@ public abstract class AbstractTrackerPersister<
       Entity objectReport = new Entity(getType(), trackerDto.getUid());
 
       try {
+
+        if (!bundle.isSkipSideEffects()) {
+          notificationDataBundles.add(handleNotifications(bundle, trackerDto));
+        }
+
         //
         // Convert the TrackerDto into an Hibernate-managed entity
         //
@@ -144,10 +149,6 @@ public abstract class AbstractTrackerPersister<
           } else {
             typeReport.getStats().incIgnored();
           }
-        }
-
-        if (!bundle.isSkipSideEffects()) {
-          notificationDataBundles.add(handleNotifications(bundle, convertedDto));
         }
 
         //
@@ -237,7 +238,7 @@ public abstract class AbstractTrackerPersister<
 
   /** TODO add comment */
   protected abstract TrackerNotificationDataBundle handleNotifications(
-      TrackerBundle bundle, V entity);
+      TrackerBundle bundle, T entity);
 
   /** Get the Tracker Type for which the current Persister is responsible for. */
   protected abstract TrackerType getType();

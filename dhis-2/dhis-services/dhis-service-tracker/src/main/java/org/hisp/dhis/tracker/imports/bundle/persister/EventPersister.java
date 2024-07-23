@@ -48,6 +48,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Event;
@@ -108,19 +109,15 @@ public class EventPersister
   }
 
   @Override
-  protected TrackerNotificationDataBundle handleNotifications(TrackerBundle bundle, Event event) {
+  protected TrackerNotificationDataBundle handleNotifications(
+      TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Event event) {
     TrackerPreheat preheat = bundle.getPreheat();
+    Event persistedEvent = preheat.getEvent(event.getUid());
+
     List<NotificationTrigger> triggers = new ArrayList<>();
 
-    if (isNew(preheat, event.getUid())) {
-      if (event.isCompleted()) {
-        triggers.add(NotificationTrigger.EVENT_COMPLETION);
-      }
-    } else {
-      Event existingEvent = preheat.getEvent(event.getUid());
-      if (existingEvent.getStatus() != event.getStatus() && event.isCompleted()) {
-        triggers.add(NotificationTrigger.EVENT_COMPLETION);
-      }
+    if (isEventCompletion(persistedEvent, event)) {
+      triggers.add(NotificationTrigger.EVENT_COMPLETION);
     }
 
     return TrackerNotificationDataBundle.builder()
@@ -129,8 +126,8 @@ public class EventPersister
         .object(event.getUid())
         .importStrategy(bundle.getImportStrategy())
         .accessedBy(bundle.getUsername())
-        .event(event)
-        .program(event.getProgramStage().getProgram())
+        .event(eventConverter.from(preheat, event))
+        .program(preheat.getProgram(event.getProgram()))
         .triggers(triggers)
         .build();
   }
@@ -296,6 +293,19 @@ public class EventPersister
         .changeLogType(changeLogType)
         .eventDataValue(eventDataValue)
         .build();
+  }
+
+  private boolean isEventCompletion(
+      Event persistedEvent, org.hisp.dhis.tracker.imports.domain.Event event) {
+    // If the event is new and has been completed
+    if (persistedEvent == null && event.getStatus() == EventStatus.COMPLETED) {
+      return true;
+    }
+
+    // If the event is existing and its status has changed to completed
+    return persistedEvent != null
+        && persistedEvent.getStatus() != event.getStatus()
+        && event.getStatus() == EventStatus.COMPLETED;
   }
 
   @Data

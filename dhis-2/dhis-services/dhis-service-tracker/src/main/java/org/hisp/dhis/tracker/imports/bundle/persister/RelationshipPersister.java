@@ -119,7 +119,7 @@ public class RelationshipPersister
 
   @Override
   protected TrackerNotificationDataBundle handleNotifications(
-      TrackerBundle bundle, org.hisp.dhis.relationship.Relationship entity) {
+      TrackerBundle bundle, Relationship entity) {
     return TrackerNotificationDataBundle.builder().build();
   }
 
