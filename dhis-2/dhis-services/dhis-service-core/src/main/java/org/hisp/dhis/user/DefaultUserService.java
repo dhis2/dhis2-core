@@ -32,6 +32,7 @@ import static java.time.ZoneId.systemDefault;
 import static java.time.ZonedDateTime.now;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.security.DefaultSecurityService.LOGIN_MAX_FAILED_ATTEMPTS;
 import static org.hisp.dhis.system.util.ValidationUtils.usernameIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
 
@@ -111,6 +112,8 @@ public class DefaultUserService implements UserService {
 
   private final OrganisationUnitService organisationUnitService;
 
+  private final Cache<Integer> twoFaDisableFailedAttemptCache;
+
   public DefaultUserService(
       UserStore userStore,
       UserGroupService userGroupService,
@@ -141,6 +144,7 @@ public class DefaultUserService implements UserService {
     this.userDisplayNameCache = cacheProvider.createUserDisplayNameCache();
     this.aclService = aclService;
     this.organisationUnitService = organisationUnitService;
+    this.twoFaDisableFailedAttemptCache = cacheProvider.createDisable2FAFailedAttemptCache(0);
   }
 
   @Override
@@ -755,6 +759,23 @@ public class DefaultUserService implements UserService {
     approveTwoFactorSecret(user);
   }
 
+  @Override
+  public void registerFailed2FADisableAttempt(String username) {
+    Integer attempts = twoFaDisableFailedAttemptCache.get(username).orElse(0);
+    attempts++;
+    twoFaDisableFailedAttemptCache.put(username, attempts);
+  }
+
+  @Override
+  public void registerSuccess2FADisable(String username) {
+    twoFaDisableFailedAttemptCache.invalidate(username);
+  }
+
+  @Override
+  public boolean twoFaDisableIsLocked(String username) {
+    return twoFaDisableFailedAttemptCache.get(username).orElse(0) >= LOGIN_MAX_FAILED_ATTEMPTS;
+  }
+
   @Transactional
   @Override
   public void disableTwoFa(User user, String code) {
@@ -762,11 +783,18 @@ public class DefaultUserService implements UserService {
       throw new IllegalStateException("Two factor is not enabled, enable first");
     }
 
+    if (twoFaDisableIsLocked(user.getUsername())) {
+      throw new IllegalStateException("Too many failed attempts, try again later");
+    }
+
     if (!TwoFactoryAuthenticationUtils.verify(code, user.getSecret())) {
+      registerFailed2FADisableAttempt(user.getUsername());
       throw new IllegalStateException("Invalid code");
     }
 
     resetTwoFactor(user);
+
+    registerSuccess2FADisable(user.getUsername());
   }
 
   @Override
