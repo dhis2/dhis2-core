@@ -47,7 +47,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.export.enrollment.EnrollmentStore;
 import org.hisp.dhis.tracker.export.relationship.RelationshipQueryParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipStore;
 import org.hisp.dhis.tracker.imports.report.Entity;
@@ -66,8 +65,6 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
   private final IdentifiableObjectManager manager;
 
   private final RelationshipStore relationshipStore;
-
-  private final EnrollmentStore enrollmentStore;
 
   private final TrackedEntityAttributeValueService attributeValueService;
 
@@ -114,7 +111,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
       TrackedEntity te = enrollment.getTrackedEntity();
       te.setLastUpdatedByUserInfo(userInfoSnapshot);
 
-      enrollmentStore.deleteEnrollment(enrollment);
+      manager.delete(enrollment);
 
       teService.updateTrackedEntity(te);
 
