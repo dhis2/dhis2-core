@@ -70,7 +70,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
-import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
@@ -124,17 +123,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Order(10)
 public class WebTestConfiguration {
-  @Bean
-  public static SessionRegistry sessionRegistry() {
-    return new org.springframework.security.core.session.SessionRegistryImpl();
-  }
+  @Autowired private DhisConfigurationProvider dhisConfigurationProvider;
 
   @Bean
   public RequestCache requestCache() {
     return new HttpSessionRequestCache();
   }
-
-  @Autowired private DhisConfigurationProvider dhisConfigurationProvider;
 
   @Bean(name = {"namedParameterJdbcTemplate", "analyticsNamedParameterJdbcTemplate"})
   @Primary

@@ -45,8 +45,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
-import org.springframework.security.core.session.SessionRegistry;
-import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -61,11 +59,6 @@ import org.springframework.test.context.ContextConfiguration;
 class CacheInvalidationMessagePublisherTest extends PostgresIntegrationTestBase {
 
   static class Configuration {
-    @Bean
-    public static SessionRegistry sessionRegistry() {
-      return new SessionRegistryImpl();
-    }
-
     @Bean
     public String cacheInvalidationServerId() {
       return generateUid();
