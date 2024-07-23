@@ -31,37 +31,37 @@ import java.util.Properties;
 import org.testcontainers.containers.MinIOContainer;
 
 /**
- * Config provider for MinIO store usage. It extends the Postgres config, resulting in Postgres
- * setup + MinIO storage (overriding the default file system storage).
+ * Config provider for MinIO store usage (overriding the default file system storage).
  *
  * @author david mackessy
  */
-public class MinIOConfigurationProvider extends PostgresDhisConfigurationProvider {
-  private static final String MINIO_VERSION = "minio/minio:RELEASE.2024-07-16T23-46-41Z";
-  private static final MinIOContainer MINIO_CONTAINER;
+public class MinIOConfigurationProvider extends TestDhisConfigurationProvider {
+
+  private static final String S3_URL;
   private static final String MINIO_USER = "testuser";
   private static final String MINIO_PASSWORD = "testpassword";
+  private static final MinIOContainer MIN_IO_CONTAINER;
 
   static {
-    MINIO_CONTAINER =
-        new MinIOContainer(MINIO_VERSION).withUserName(MINIO_USER).withPassword(MINIO_PASSWORD);
-    MINIO_CONTAINER.start();
+    MIN_IO_CONTAINER =
+        new MinIOContainer("minio/minio:RELEASE.2024-07-16T23-46-41Z")
+            .withUserName(MINIO_USER)
+            .withPassword(MINIO_PASSWORD);
+    MIN_IO_CONTAINER.start();
+    S3_URL = MIN_IO_CONTAINER.getS3URL();
   }
 
-  public MinIOConfigurationProvider() {
-    Properties dhisConfig = super.getProperties();
-    dhisConfig.putAll(getMinIOProperties());
-    this.properties = dhisConfig;
+  public MinIOConfigurationProvider(Properties dhisConfig) {
+    setMinIOProperties(dhisConfig);
   }
 
-  private static Properties getMinIOProperties() {
-    Properties properties = new Properties();
+  public void setMinIOProperties(Properties properties) {
     properties.put("filestore.provider", "s3");
     properties.put("filestore.container", "dhis2");
     properties.put("filestore.location", "eu-west-1");
-    properties.put("filestore.endpoint", MINIO_CONTAINER.getS3URL());
+    properties.put("filestore.endpoint", S3_URL);
     properties.put("filestore.identity", MINIO_USER);
     properties.put("filestore.secret", MINIO_PASSWORD);
-    return properties;
+    this.properties = properties;
   }
 }

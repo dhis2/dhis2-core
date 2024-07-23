@@ -39,8 +39,14 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class MinIOConfiguration {
+
+  /**
+   * Config class for MinIO setup, which reuses the existing Postgres properties.
+   *
+   * @return dhisConfigurationProvider
+   */
   @Bean
   public DhisConfigurationProvider dhisConfigurationProvider() {
-    return new MinIOConfigurationProvider();
+    return new MinIOConfigurationProvider(new PostgresDhisConfigurationProvider().getProperties());
   }
 }
