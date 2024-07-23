@@ -27,9 +27,7 @@
  */
 package org.hisp.dhis.program.hibernate;
 
-import com.google.common.collect.Sets;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -40,7 +38,6 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.EnrollmentStore;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.springframework.context.ApplicationEventPublisher;
@@ -55,11 +52,6 @@ import org.springframework.stereotype.Repository;
 public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment>
     implements EnrollmentStore {
   private static final String STATUS = "status";
-
-  private static final Set<NotificationTrigger> SCHEDULED_ENROLLMENT_TRIGGERS =
-      Sets.intersection(
-          NotificationTrigger.getAllApplicableToEnrollment(),
-          NotificationTrigger.getAllScheduledTriggers());
 
   public HibernateEnrollmentStore(
       EntityManager entityManager,
@@ -105,16 +97,6 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
   @Override
   public void hardDelete(Enrollment enrollment) {
     getSession().delete(enrollment);
-  }
-
-  private String toDateProperty(NotificationTrigger trigger) {
-    if (trigger == NotificationTrigger.SCHEDULED_DAYS_ENROLLMENT_DATE) {
-      return "enrollmentDate";
-    } else if (trigger == NotificationTrigger.SCHEDULED_DAYS_INCIDENT_DATE) {
-      return "occurredDate";
-    }
-
-    return null;
   }
 
   @Override
