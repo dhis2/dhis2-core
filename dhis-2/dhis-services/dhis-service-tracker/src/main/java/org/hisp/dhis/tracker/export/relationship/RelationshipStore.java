@@ -56,7 +56,7 @@ public interface RelationshipStore extends IdentifiableObjectStore<Relationship>
   Page<Relationship> getByEvent(
       Event event, RelationshipQueryParams queryParams, PageParams pageParams);
 
-  public List<Relationship> getUidsByRelationshipKeys(List<String> relationshipKeyList);
+  List<Relationship> getUidsByRelationshipKeys(List<String> relationshipKeyList);
 
   /**
    * Fields the store can order relationships by. Ordering by fields other than these is considered
