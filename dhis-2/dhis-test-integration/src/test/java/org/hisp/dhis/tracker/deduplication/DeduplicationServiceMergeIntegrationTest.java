@@ -37,6 +37,7 @@ import java.util.HashSet;
 import java.util.Map;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
@@ -44,23 +45,21 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase {
+class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBase {
   @Autowired private DeduplicationService deduplicationService;
-
-  @Autowired private UserService userService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -72,16 +71,12 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
 
-  @Override
-  public void setUpTest() {
-    super.userService = this.userService;
-  }
-
   @Test
   void shouldManualMergeWithAuthorityAll()
       throws PotentialDuplicateConflictException,
           PotentialDuplicateForbiddenException,
-          ForbiddenException {
+          ForbiddenException,
+          NotFoundException {
     OrganisationUnit ou = createOrganisationUnit("OU_A");
     organisationUnitService.addOrganisationUnit(ou);
     User user =
@@ -132,7 +127,8 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase {
   void shouldManualMergeWithUserGroupOfProgram()
       throws PotentialDuplicateConflictException,
           PotentialDuplicateForbiddenException,
-          ForbiddenException {
+          ForbiddenException,
+          NotFoundException {
     OrganisationUnit ou = createOrganisationUnit("OU_A");
     organisationUnitService.addOrganisationUnit(ou);
     User user = createAndAddUser(true, "userB", ou, "F_TRACKED_ENTITY_MERGE");
@@ -188,9 +184,8 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase {
     UserGroup userGroup = new UserGroup();
     userGroup.setName("UserGroupA");
     user.getGroups().add(userGroup);
-    Map<String, org.hisp.dhis.user.sharing.UserAccess> userSharing = new HashMap<>();
-    userSharing.put(
-        user.getUid(), new org.hisp.dhis.user.sharing.UserAccess(user, AccessStringHelper.DEFAULT));
+    Map<String, UserAccess> userSharing = new HashMap<>();
+    userSharing.put(user.getUid(), new UserAccess(user, AccessStringHelper.DEFAULT));
     Map<String, UserGroupAccess> userGroupSharing = new HashMap<>();
     userGroupSharing.put(userGroup.getUid(), new UserGroupAccess(userGroup, accessStringHelper));
     return Sharing.builder()

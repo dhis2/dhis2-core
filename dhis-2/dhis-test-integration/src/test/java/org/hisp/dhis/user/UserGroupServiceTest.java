@@ -37,18 +37,22 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Dang Duy Hieu
  */
-class UserGroupServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class UserGroupServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private UserGroupService userGroupService;
-
-  @Autowired private UserService userService;
 
   private User user1;
 
@@ -56,8 +60,8 @@ class UserGroupServiceTest extends SingleSetupIntegrationTestBase {
 
   private User user3;
 
-  @Override
-  public void setUpTest() throws Exception {
+  @BeforeAll
+  void setUp() {
     user1 = makeUser("A");
     user2 = makeUser("B");
     user3 = makeUser("C");
@@ -99,7 +103,7 @@ class UserGroupServiceTest extends SingleSetupIntegrationTestBase {
     userGroup = userGroupService.getUserGroupByName("UserGroupA").get(0);
     long id = userGroup.getId();
     assertEq('A', userGroup);
-    assertTrue(members.size() == userGroup.getMembers().size());
+    assertEquals(members.size(), userGroup.getMembers().size());
     userGroupService.deleteUserGroup(userGroup);
     assertNull(userGroupService.getUserGroup(id));
   }

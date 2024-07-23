@@ -55,7 +55,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
@@ -67,7 +67,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class TrackerPreheatTest extends DhisConvenienceTest {
+class TrackerPreheatTest extends TestBase {
 
   private TrackerPreheat preheat;
 

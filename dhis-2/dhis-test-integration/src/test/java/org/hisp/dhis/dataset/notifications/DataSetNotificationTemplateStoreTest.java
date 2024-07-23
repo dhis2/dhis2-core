@@ -33,12 +33,16 @@ import java.util.Set;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetStore;
 import org.hisp.dhis.notification.SendStrategy;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
-import org.junit.jupiter.api.Assertions;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class DataSetNotificationTemplateStoreTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class DataSetNotificationTemplateStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataSetNotificationTemplateStore store;
   @Autowired private DataSetStore dataSetStore;
@@ -76,7 +80,7 @@ class DataSetNotificationTemplateStoreTest extends SingleSetupIntegrationTestBas
             SendStrategy.SINGLE_NOTIFICATION);
     store.save(template);
 
-    Assertions.assertEquals(
+    assertEquals(
         1, store.getScheduledNotifications(DataSetNotificationTrigger.DATA_SET_COMPLETION).size());
   }
 
@@ -91,7 +95,7 @@ class DataSetNotificationTemplateStoreTest extends SingleSetupIntegrationTestBas
             SendStrategy.SINGLE_NOTIFICATION);
     store.save(template);
 
-    Assertions.assertEquals(
+    assertEquals(
         0, store.getScheduledNotifications(DataSetNotificationTrigger.SCHEDULED_DAYS).size());
   }
 }

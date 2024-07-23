@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,27 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.event;
+package org.hisp.dhis.webapi.controller;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import java.util.HashSet;
-import org.hisp.dhis.tracker.export.event.EventService;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
+import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.sms.incoming.IncomingSmsService;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.user.User;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
-@Configuration
-public class EventExportTestConfiguration {
+class SmsCommandControllerTest extends H2ControllerIntegrationTestBase {
 
-  @Primary
-  @Bean
-  public EventService eventService() {
-    EventService eventService = mock(EventService.class);
-    // Orderable fields are checked within the controller constructor
-    when(eventService.getOrderableFields())
-        .thenReturn(new HashSet<>(EventMapper.ORDERABLE_FIELDS.values()));
-    return eventService;
+  @Autowired private IncomingSmsService incomingSMSService;
+
+  @Test
+  void testGetSmsCommandsNoAuthority() {
+    User guestUser = createUserWithAuth("guestuser", "NONE");
+    injectSecurityContextUser(guestUser);
+
+    assertWebMessage(
+        "Forbidden",
+        403,
+        "ERROR",
+        "You don't have the proper permissions to read objects of this type.",
+        GET("/smsCommands").content(HttpStatus.FORBIDDEN));
+  }
+
+  @Test
+  void testGetSmsCommands() {
+    JsonMixed content = GET("/smsCommands").content(HttpStatus.OK);
+    assertNotNull(content);
   }
 }

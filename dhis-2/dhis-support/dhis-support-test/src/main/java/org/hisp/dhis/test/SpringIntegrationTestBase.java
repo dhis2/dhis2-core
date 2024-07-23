@@ -25,11 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.db.migration.helper;
+package org.hisp.dhis.test;
+
+import javax.persistence.EntityManager;
+import lombok.Getter;
+import org.hisp.dhis.test.config.IntegrationBaseConfiguration;
+import org.hisp.dhis.test.config.PostgresDhisConfiguration;
+import org.hisp.dhis.test.junit.SpringIntegrationTest;
+import org.hisp.dhis.user.User;
+import org.springframework.test.context.ContextConfiguration;
 
 /**
- * A no operation flyway that is used for unit tests. Disabling flyway migrations during unit tests.
- *
- * @author Ameen Mohamed
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class NoOpFlyway {}
+@ContextConfiguration(
+    classes = {
+      IntegrationBaseConfiguration.class,
+      PostgresDhisConfiguration.class,
+    })
+@SpringIntegrationTest
+public abstract class SpringIntegrationTestBase extends TestBase {
+
+  @Getter private User adminUser;
+  public EntityManager entityManager;
+}

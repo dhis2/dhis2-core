@@ -47,7 +47,7 @@ import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
@@ -69,7 +69,7 @@ import org.mockito.quality.Strictness;
  */
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
-class DateValidatorTest extends DhisConvenienceTest {
+class DateValidatorTest extends TestBase {
 
   private static final String PROGRAM_WITH_REGISTRATION_ID = "ProgramWithRegistration";
 

@@ -25,48 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.relationship;
+package org.hisp.dhis.leader.election;
 
-import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.hisp.dhis.common.DeleteNotAllowedException;
-import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
-import org.hisp.dhis.system.deletion.DefaultDeletionManager;
-import org.hisp.dhis.system.deletion.DeletionManager;
-import org.junit.jupiter.api.BeforeEach;
+import java.util.Properties;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.test.config.TestDhisConfigurationProvider;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith(MockitoExtension.class)
-class RelationshipDeletionHandlerTest {
-
-  @Mock private RelationshipService relationshipService;
-
-  private final DeletionManager deletionManager = new DefaultDeletionManager();
-
-  @BeforeEach
-  public void setUp() {
-    RelationshipDeletionHandler handler = new RelationshipDeletionHandler(relationshipService);
-    handler.setManager(deletionManager);
-    handler.init();
-  }
+/**
+ * @author Ameen Mohamed
+ */
+class NoOpLeaderManagerTest {
 
   @Test
-  void allowDeleteRelationshipTypeWithData() {
-    when(relationshipService.getRelationshipsByRelationshipType(any()))
-        .thenReturn(singletonList(new Relationship()));
+  void testNodeInfo() {
+    Properties properties = new Properties();
+    properties.put(ConfigurationKey.NODE_ID, "1");
+    TestDhisConfigurationProvider dhisConfigurationProvider =
+        new TestDhisConfigurationProvider(properties);
+    NoOpLeaderManager leaderManager = new NoOpLeaderManager(dhisConfigurationProvider);
 
-    ObjectDeletionRequestedEvent event = new ObjectDeletionRequestedEvent(new RelationshipType());
-    Exception ex =
-        assertThrows(DeleteNotAllowedException.class, () -> deletionManager.onDeletion(event));
-    assertEquals(
-        "Object could not be deleted because it is associated with another object: Relationship",
-        ex.getMessage());
+    assertNotNull(leaderManager.getCurrentNodeUuid());
+    assertNotNull(leaderManager.getLeaderNodeUuid());
+    assertEquals(leaderManager.getCurrentNodeUuid(), leaderManager.getLeaderNodeUuid());
+    assertTrue(leaderManager.isLeader());
   }
 }

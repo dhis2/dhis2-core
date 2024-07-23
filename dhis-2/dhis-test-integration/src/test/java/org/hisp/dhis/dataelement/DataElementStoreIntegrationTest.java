@@ -30,11 +30,13 @@ package org.hisp.dhis.dataelement;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class DataElementStoreIntegrationTest extends TransactionalIntegrationTest {
+@Transactional
+class DataElementStoreIntegrationTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataElementStore dataElementStore;
 

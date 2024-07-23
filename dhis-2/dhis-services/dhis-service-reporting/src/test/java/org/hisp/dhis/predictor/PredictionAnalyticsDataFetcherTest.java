@@ -55,7 +55,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -67,7 +67,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Jim Grace
  */
 @ExtendWith(MockitoExtension.class)
-class PredictionAnalyticsDataFetcherTest extends DhisConvenienceTest {
+class PredictionAnalyticsDataFetcherTest extends TestBase {
   @Mock private AnalyticsService analyticsService;
 
   @Mock private CategoryService categoryService;

@@ -41,28 +41,27 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen
  */
-class ObjectBundleServiceImportReportModeTest extends TransactionalIntegrationTest {
+@Transactional
+class ObjectBundleServiceImportReportModeTest extends PostgresIntegrationTestBase {
   @Autowired private ObjectBundleService objectBundleService;
 
   @Autowired private ObjectBundleValidationService objectBundleValidationService;
 
   @Autowired private RenderService _renderService;
 
-  @Autowired private UserService _userService;
-
-  @Override
-  protected void setUpTest() throws Exception {
+  @BeforeEach
+  void setUp() {
     renderService = _renderService;
-    userService = _userService;
   }
 
   @Test

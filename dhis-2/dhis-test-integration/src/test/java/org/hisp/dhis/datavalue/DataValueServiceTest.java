@@ -44,14 +44,17 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Kristian Nordal
  */
-class DataValueServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class DataValueServiceTest extends PostgresIntegrationTestBase {
   @Autowired private CategoryService categoryService;
 
   @Autowired private DataElementService dataElementService;
@@ -59,10 +62,6 @@ class DataValueServiceTest extends TransactionalIntegrationTest {
   @Autowired private DataValueService dataValueService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
-
-  // -------------------------------------------------------------------------
-  // Supporting data
-  // -------------------------------------------------------------------------
 
   private DataElement deA;
 
@@ -90,12 +89,8 @@ class DataValueServiceTest extends TransactionalIntegrationTest {
 
   private OrganisationUnit ouD;
 
-  // -------------------------------------------------------------------------
-  // Set up/tear down
-  // -------------------------------------------------------------------------
-
-  @Override
-  public void setUpTest() throws Exception {
+  @BeforeEach
+  void setUp() {
     deA = createDataElement('A');
     deB = createDataElement('B');
     deC = createDataElement('C');

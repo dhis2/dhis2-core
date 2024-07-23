@@ -36,11 +36,17 @@ import java.util.List;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class EventFilterTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class EventFilterTest extends PostgresIntegrationTestBase {
 
   @Autowired private EventFilterService eventFilterService;
 
@@ -50,8 +56,8 @@ class EventFilterTest extends SingleSetupIntegrationTestBase {
 
   private Program programB;
 
-  @Override
-  public void setUpTest() {
+  @BeforeAll
+  void setUp() {
     programA = createProgram('A');
     programB = createProgram('B');
     programService.addProgram(programA);

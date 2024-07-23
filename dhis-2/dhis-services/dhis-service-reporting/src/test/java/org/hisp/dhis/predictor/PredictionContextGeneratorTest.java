@@ -58,7 +58,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.jupiter.api.Test;
 
@@ -67,7 +67,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jim Grace
  */
-class PredictionContextGeneratorTest extends DhisConvenienceTest {
+class PredictionContextGeneratorTest extends TestBase {
   private final OrganisationUnit ouA = createOrganisationUnit('A');
 
   private final Period periodA = createPeriod("202201");

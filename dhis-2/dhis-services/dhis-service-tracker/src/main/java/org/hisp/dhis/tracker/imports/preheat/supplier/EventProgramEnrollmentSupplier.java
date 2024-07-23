@@ -25,57 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.integration;
+package org.hisp.dhis.tracker.imports.preheat.supplier;
 
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.test.BaseSpringTest;
-import org.hisp.dhis.test.IntegrationTest;
-import org.hisp.dhis.test.config.IntegrationBaseConfiguration;
-import org.hisp.dhis.test.config.PostgresDhisConfiguration;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.transaction.annotation.Transactional;
+import java.util.List;
+import javax.annotation.Nonnull;
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.imports.preheat.mappers.EnrollmentMapper;
+import org.springframework.stereotype.Component;
 
-/*
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+/**
+ * This supplier adds to the pre-heat a list of all enrollments that are part of an event program
+ * and are not soft-deleted.
+ *
+ * @author Luciano Fiandesio
  */
-@ContextConfiguration(
-    classes = {IntegrationBaseConfiguration.class, PostgresDhisConfiguration.class})
-@IntegrationTest
-@ActiveProfiles(profiles = {"test-postgres"})
-@Transactional
-@Slf4j
-public abstract class TransactionalIntegrationTest extends BaseSpringTest {
+@RequiredArgsConstructor
+@Component
+public class EventProgramEnrollmentSupplier extends AbstractPreheatSupplier {
+  @Nonnull private final EntityManager entityManager;
 
-  @Autowired private UserService _userService;
+  @Override
+  public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
+    List<Enrollment> enrollments =
+        DetachUtils.detach(EnrollmentMapper.INSTANCE, getEventProgramEnrollments());
 
-  private User adminUser;
-
-  @BeforeEach
-  public final void before() throws Exception {
-    userService = _userService;
-    adminUser = preCreateInjectAdminUser();
-
-    integrationTestBeforeEach();
+    enrollments.forEach(
+        e -> {
+          preheat.putEnrollment(e.getUid(), e);
+          preheat.putEnrollmentsWithoutRegistration(e.getProgram().getUid(), e);
+        });
   }
 
-  public User getAdminUser() {
-    return adminUser;
-  }
-
-  public void reLoginAdminUser() {
-    injectSecurityContextUser(getAdminUser());
-  }
-
-  @AfterEach
-  public final void after() throws Exception {
-    clearSecurityContext();
-
-    tearDownTest();
+  private List<Enrollment> getEventProgramEnrollments() {
+    TypedQuery<Enrollment> query =
+        entityManager.createQuery(
+            "select e from Enrollment e inner join e.program p where e.deleted = false and p.programType ='WITHOUT_REGISTRATION'",
+            Enrollment.class);
+    return query.getResultList();
   }
 }

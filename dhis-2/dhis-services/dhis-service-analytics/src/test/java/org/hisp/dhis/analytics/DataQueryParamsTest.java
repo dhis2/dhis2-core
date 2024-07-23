@@ -79,7 +79,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -87,7 +87,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Lars Helge Overland
  */
-class DataQueryParamsTest extends DhisConvenienceTest {
+class DataQueryParamsTest extends TestBase {
   private IndicatorType it;
 
   private Indicator inA;

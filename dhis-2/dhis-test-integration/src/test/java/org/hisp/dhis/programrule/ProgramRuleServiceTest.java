@@ -50,13 +50,14 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageSectionService;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class ProgramRuleServiceTest extends IntegrationTestBase {
+class ProgramRuleServiceTest extends PostgresIntegrationTestBase {
 
   private Program programA;
 
@@ -98,8 +99,8 @@ class ProgramRuleServiceTest extends IntegrationTestBase {
 
   @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
 
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     programA = createProgram('A', null, null);
     programB = createProgram('B', null, null);
     programC = createProgram('C', null, null);

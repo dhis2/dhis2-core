@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.export.relationship;
 
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.relationship.Relationship;
@@ -54,4 +55,11 @@ public interface RelationshipService {
   Set<String> getOrderableFields();
 
   Relationship getRelationship(String id) throws ForbiddenException, NotFoundException;
+
+  /**
+   * Get relationships matching given {@code UID}s under the privileges of the currently
+   * authenticated user.
+   */
+  List<Relationship> getRelationships(@Nonnull List<String> uids)
+      throws ForbiddenException, NotFoundException;
 }

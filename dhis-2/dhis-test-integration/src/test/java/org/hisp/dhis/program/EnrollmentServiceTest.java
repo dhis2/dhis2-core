@@ -41,30 +41,38 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.note.NoteService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Chau Thu Tran
  */
-class EnrollmentServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class EnrollmentServiceTest extends PostgresIntegrationTestBase {
+  private static final String ENROLLMENT_A_UID = UID.of(CodeGenerator.generateUid()).getValue();
+  private static final String ENROLLMENT_B_UID = UID.of(CodeGenerator.generateUid()).getValue();
+  private static final String ENROLLMENT_C_UID = UID.of(CodeGenerator.generateUid()).getValue();
+  private static final String ENROLLMENT_D_UID = UID.of(CodeGenerator.generateUid()).getValue();
+  private static final String EVENT_UID = UID.of(CodeGenerator.generateUid()).getValue();
 
-  @Autowired private org.hisp.dhis.program.EnrollmentService apiEnrollmentService;
+  @Autowired private EnrollmentService apiEnrollmentService;
 
   @Autowired private TrackerObjectDeletionService trackerObjectDeletionService;
 
@@ -77,8 +85,6 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   @Autowired private ProgramService programService;
 
   @Autowired private ProgramStageService programStageService;
-
-  @Autowired protected UserService _userService;
 
   @Autowired private NoteService noteService;
 
@@ -116,10 +122,8 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
 
   private User user;
 
-  @Override
-  public void setUpTest() {
-    userService = _userService;
-
+  @BeforeEach
+  void setUp() {
     coA = categoryService.getDefaultCategoryOptionCombo();
 
     organisationUnitA = createOrganisationUnit('A');
@@ -163,21 +167,21 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     testDate2.withTimeAtStartOfDay();
     enrollmentDate = testDate2.toDate();
     enrollmentA = new Enrollment(enrollmentDate, incidentDate, trackedEntityA, programA);
-    enrollmentA.setUid("UID-A");
+    enrollmentA.setUid(ENROLLMENT_A_UID);
     enrollmentA.setOrganisationUnit(organisationUnitA);
     enrollmentB = new Enrollment(enrollmentDate, incidentDate, trackedEntityA, programB);
-    enrollmentB.setUid("UID-B");
+    enrollmentB.setUid(ENROLLMENT_B_UID);
     enrollmentB.setStatus(EnrollmentStatus.CANCELLED);
     enrollmentB.setOrganisationUnit(organisationUnitB);
     enrollmentC = new Enrollment(enrollmentDate, incidentDate, trackedEntityA, programC);
-    enrollmentC.setUid("UID-C");
+    enrollmentC.setUid(ENROLLMENT_C_UID);
     enrollmentC.setStatus(EnrollmentStatus.COMPLETED);
     enrollmentC.setOrganisationUnit(organisationUnitA);
     enrollmentD = new Enrollment(enrollmentDate, incidentDate, trackedEntityB, programA);
-    enrollmentD.setUid("UID-D");
+    enrollmentD.setUid(ENROLLMENT_D_UID);
     enrollmentD.setOrganisationUnit(organisationUnitB);
     eventA = new Event(enrollmentA, stageA);
-    eventA.setUid("UID-PSI-A");
+    eventA.setUid(EVENT_UID);
     eventA.setOrganisationUnit(organisationUnitA);
     eventA.setAttributeOptionCombo(coA);
 
@@ -244,8 +248,8 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   void testGetEnrollmentByUid() {
     manager.save(enrollmentA);
     manager.save(enrollmentB);
-    assertEquals("UID-A", manager.get(Enrollment.class, "UID-A").getUid());
-    assertEquals("UID-B", manager.get(Enrollment.class, "UID-B").getUid());
+    assertEquals(ENROLLMENT_A_UID, manager.get(Enrollment.class, ENROLLMENT_A_UID).getUid());
+    assertEquals(ENROLLMENT_B_UID, manager.get(Enrollment.class, ENROLLMENT_B_UID).getUid());
   }
 
   @Test

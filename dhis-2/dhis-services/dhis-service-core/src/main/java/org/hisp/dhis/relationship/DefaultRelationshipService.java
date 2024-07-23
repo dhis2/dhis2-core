@@ -27,16 +27,7 @@
  */
 package org.hisp.dhis.relationship;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.List;
-import java.util.Optional;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,25 +42,6 @@ public class DefaultRelationshipService implements RelationshipService {
   // -------------------------------------------------------------------------
   // Implementation methods
   // -------------------------------------------------------------------------
-
-  @Override
-  @Transactional
-  public void deleteRelationship(Relationship relationship) {
-    relationshipStore.delete(relationship);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Relationship getRelationship(long id) {
-    return relationshipStore.get(id);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean relationshipExistsIncludingDeleted(String uid) {
-    return relationshipStore.existsIncludingDeleted(uid);
-  }
-
   @Override
   @Transactional
   public long addRelationship(Relationship relationship) {
@@ -78,68 +50,5 @@ public class DefaultRelationshipService implements RelationshipService {
     relationshipStore.save(relationship);
 
     return relationship.getId();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Relationship getRelationship(String uid) {
-    return relationshipStore.getByUid(uid);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Relationship getRelationshipIncludeDeleted(String uid) {
-    return relationshipStore.getByUidsIncludeDeleted(List.of(uid)).stream().findAny().orElse(null);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<Relationship> getRelationships(@Nonnull List<String> uids) {
-    return relationshipStore.getByUid(uids);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<Relationship> getRelationshipsByTrackedEntity(
-      TrackedEntity te,
-      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean includeDeleted) {
-    return relationshipStore.getByTrackedEntity(
-        te, pagingAndSortingCriteriaAdapter, includeDeleted);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<Relationship> getRelationshipsByEnrollment(
-      Enrollment enrollment,
-      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean includeDeleted) {
-    return relationshipStore.getByEnrollment(
-        enrollment, pagingAndSortingCriteriaAdapter, includeDeleted);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<Relationship> getRelationshipsByEvent(
-      Event event,
-      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean includeDeleted) {
-    return relationshipStore.getByEvent(event, pagingAndSortingCriteriaAdapter, includeDeleted);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<Relationship> getRelationshipsByRelationshipType(RelationshipType relationshipType) {
-    return relationshipStore.getByRelationshipType(relationshipType);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Optional<Relationship> getRelationshipByRelationship(Relationship relationship) {
-    checkNotNull(relationship.getFrom());
-    checkNotNull(relationship.getTo());
-    checkNotNull(relationship.getRelationshipType());
-
-    return Optional.ofNullable(relationshipStore.getByRelationship(relationship));
   }
 }

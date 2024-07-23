@@ -54,7 +54,7 @@ import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -67,7 +67,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Jim Grace
  */
 @ExtendWith(MockitoExtension.class)
-class PredictionDataValueFetcherTest extends DhisConvenienceTest {
+class PredictionDataValueFetcherTest extends TestBase {
   @Mock private DataValueService dataValueService;
 
   @Mock private CategoryService categoryService;

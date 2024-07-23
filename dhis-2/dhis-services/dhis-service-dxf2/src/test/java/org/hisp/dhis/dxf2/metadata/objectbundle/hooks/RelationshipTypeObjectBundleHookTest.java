@@ -49,7 +49,7 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
@@ -66,7 +66,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Zubair Asghar
  */
 @ExtendWith(MockitoExtension.class)
-public class RelationshipTypeObjectBundleHookTest extends DhisConvenienceTest {
+public class RelationshipTypeObjectBundleHookTest extends TestBase {
   @InjectMocks private RelationshipTypeObjectBundleHook subject;
 
   @Mock private TrackedEntityTypeService trackedEntityTypeService;

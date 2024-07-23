@@ -37,10 +37,12 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.sharing.Sharing;
+import org.springframework.transaction.annotation.Transactional;
 
-abstract class CascadeSharingTest extends TransactionalIntegrationTest {
+@Transactional
+abstract class CascadeSharingTest extends PostgresIntegrationTestBase {
   protected DimensionalItemObject baseDimensionalItemObject(
       final String dimensionItem, DimensionItemType type) {
     final BaseDimensionalItemObject baseDimensionalItemObject =

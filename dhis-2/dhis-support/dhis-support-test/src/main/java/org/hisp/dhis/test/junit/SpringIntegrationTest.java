@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,21 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system;
+package org.hisp.dhis.test.junit;
 
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.leader.election.LeaderManager;
-import org.hisp.dhis.leader.election.NoOpLeaderManager;
-import org.hisp.dhis.test.config.H2DhisConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@Configuration
-@Import(H2DhisConfiguration.class)
-public class SystemTestConfig {
-  @Bean
-  public LeaderManager leaderManager(DhisConfigurationProvider dhisConfigurationProvider) {
-    return new NoOpLeaderManager(dhisConfigurationProvider);
-  }
-}
+/**
+ * SpringIntegration test groups JUnit annotations needed for our Spring integration tests. It also
+ * ensures that JUnit extensions are declared in the correct order as for example our {@link
+ * SpringIntegrationTestExtension} depends on the {@link SpringExtension}.
+ */
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@ExtendWith({SpringExtension.class, SpringIntegrationTestExtension.class})
+public @interface SpringIntegrationTest {}

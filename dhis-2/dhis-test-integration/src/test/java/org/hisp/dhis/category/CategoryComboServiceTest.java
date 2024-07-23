@@ -40,14 +40,17 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DeleteNotAllowedException;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class CategoryComboServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class CategoryComboServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private CategoryService categoryService;
 
@@ -81,11 +84,8 @@ class CategoryComboServiceTest extends TransactionalIntegrationTest {
 
   private List<Category> categories;
 
-  // -------------------------------------------------------------------------
-  // Fixture
-  // -------------------------------------------------------------------------
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     categories = new ArrayList<>();
     categoryOptionA = new CategoryOption("OptionA");
     categoryOptionB = new CategoryOption("OptionB");
