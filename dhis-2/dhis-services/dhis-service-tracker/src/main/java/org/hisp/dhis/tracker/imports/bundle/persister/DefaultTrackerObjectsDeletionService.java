@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -114,9 +113,8 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
       te.setLastUpdatedByUserInfo(userInfoSnapshot);
 
       enrollment.setStatus(EnrollmentStatus.CANCELLED);
-      enrollment.setDeleted(true);
-      enrollment.setLastUpdated(new Date());
       manager.update(enrollment);
+      manager.delete(enrollment);
 
       teService.updateTrackedEntity(te);
 

@@ -2088,8 +2088,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   private void deleteEnrollment(Enrollment enrollment) {
     enrollment.setStatus(EnrollmentStatus.CANCELLED);
-    enrollment.setDeleted(true);
-    enrollment.setLastUpdated(new Date());
     manager.update(enrollment);
+    manager.delete(enrollment);
   }
 }
