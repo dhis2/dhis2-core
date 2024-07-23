@@ -32,9 +32,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
 import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import org.apache.commons.collections4.CollectionUtils;
@@ -84,23 +82,6 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
             .getResultList();
 
     return c.stream().map(String::valueOf).collect(Collectors.toList());
-  }
-
-  @Override
-  public List<Relationship> getByUidsIncludeDeleted(List<String> uids) {
-    CriteriaBuilder criteriaBuilder = getCriteriaBuilder();
-
-    CriteriaQuery<Relationship> query = criteriaBuilder.createQuery(Relationship.class);
-
-    Root<Relationship> root = query.from(Relationship.class);
-
-    query.where(criteriaBuilder.in(root.get("uid")).value(uids));
-
-    try {
-      return getSession().createQuery(query).getResultList();
-    } catch (NoResultException nre) {
-      return null;
-    }
   }
 
   @Override
