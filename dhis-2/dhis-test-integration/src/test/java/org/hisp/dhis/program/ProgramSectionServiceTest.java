@@ -58,7 +58,7 @@ class ProgramSectionServiceTest extends PostgresIntegrationTestBase {
   @BeforeEach
   final void setup() throws Exception {
     categoryService = _categoryService;
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
   }
 
   @Test

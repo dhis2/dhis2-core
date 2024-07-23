@@ -129,7 +129,7 @@ class EventExporterTest extends TrackerTest {
   void setUpUserAndParams() {
     // needed as some tests are run using another user (injectSecurityContext) while most tests
     // expect to be run by admin
-    injectAdminUser();
+    injectAdminIntoSecurityContext();
 
     operationParamsBuilder = EventOperationParams.builder().eventParams(EventParams.FALSE);
     operationParamsBuilder.orgUnitUid(orgUnit.getUid()).orgUnitMode(SELECTED);

@@ -107,7 +107,7 @@ class ProgramRuleTest extends TrackerTest {
     programRuleVariableService.addProgramRuleVariable(programRuleVariable);
     constantService.saveConstant(constant());
 
-    injectAdminUser();
+    injectAdminIntoSecurityContext();
   }
 
   @Test

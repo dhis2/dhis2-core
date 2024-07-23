@@ -68,7 +68,7 @@ class EnrollmentImportValidationTest extends TrackerTest {
   @BeforeAll
   void setUp() throws IOException {
     setUpMetadata("tracker/tracker_basic_metadata.json");
-    injectAdminUser();
+    injectAdminIntoSecurityContext();
     assertNoErrors(
         trackerImportService.importTracker(
             new TrackerImportParams(),
@@ -96,7 +96,7 @@ class EnrollmentImportValidationTest extends TrackerTest {
         fromJson("tracker/validations/enrollments_te_enrollments-data.json");
     TrackerPreheat preheat =
         trackerPreheatService.preheat(
-            secondTrackerObjects, new TrackerIdSchemeParams(), userService.getUser(ADMIN_USER_UID));
+            secondTrackerObjects, new TrackerIdSchemeParams(), getAdminUser());
     secondTrackerObjects
         .getEnrollments()
         .forEach(

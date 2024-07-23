@@ -47,7 +47,7 @@ class TeTaEncryptionValidationTest extends TrackerTest {
   @BeforeAll
   void setUp() throws IOException {
     setUpMetadata("tracker/validations/te-program_with_tea_encryption_metadata.json");
-    injectAdminUser();
+    injectAdminIntoSecurityContext();
   }
 
   @Test

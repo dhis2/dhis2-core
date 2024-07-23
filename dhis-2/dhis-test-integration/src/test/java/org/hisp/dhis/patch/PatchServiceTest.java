@@ -71,7 +71,7 @@ class PatchServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   void setup() {
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
   }
 
   @Test

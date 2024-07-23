@@ -77,7 +77,7 @@ class EventImportValidationTest extends TrackerTest {
   @BeforeAll
   void setUp() throws IOException {
     setUpMetadata("tracker/tracker_basic_metadata.json");
-    injectAdminUser();
+    injectAdminIntoSecurityContext();
     assertNoErrors(
         trackerImportService.importTracker(
             new TrackerImportParams(),

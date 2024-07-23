@@ -109,7 +109,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
   @BeforeAll
   void setUp() throws IOException {
     setUpMetadata("tracker/tracker_basic_metadata.json");
-    injectAdminUser();
+    injectAdminIntoSecurityContext();
     assertNoErrors(
         trackerImportService.importTracker(
             new TrackerImportParams(),
@@ -117,7 +117,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
   }
 
   private void setup() {
-    injectAdminUser();
+    injectAdminIntoSecurityContext();
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitB = createOrganisationUnit('B');
     manager.save(organisationUnitA);

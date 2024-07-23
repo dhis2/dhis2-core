@@ -66,7 +66,7 @@ class TrackedEntityProgramAttributeFileResourceTest extends TrackerTest {
   @BeforeAll
   void setUp() throws IOException {
     setUpMetadata("tracker/te_program_with_tea_fileresource_metadata.json");
-    injectAdminUser();
+    injectAdminIntoSecurityContext();
   }
 
   @Test

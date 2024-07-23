@@ -67,7 +67,7 @@ class TrackedEntityAttributeValueChangeLogTest extends TrackerTest {
   @BeforeAll
   void setUp() throws IOException {
     setUpMetadata("tracker/te_program_with_tea_allow_audit_metadata.json");
-    injectAdminUser();
+    injectAdminIntoSecurityContext();
   }
 
   @Test

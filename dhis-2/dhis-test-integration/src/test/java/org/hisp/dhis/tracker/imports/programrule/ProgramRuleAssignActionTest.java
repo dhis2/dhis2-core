@@ -95,7 +95,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     programRuleVariableService.addProgramRuleVariable(programRuleVariable);
     programRuleVariableService.addProgramRuleVariable(programRuleVariableAttribute);
 
-    injectAdminUser();
+    injectAdminIntoSecurityContext();
 
     assignProgramRule();
     trackerImportService.importTracker(

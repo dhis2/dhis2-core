@@ -198,6 +198,10 @@ public abstract class ControllerTestBase extends TestBase implements WebClient {
     txTemplate.setPropagationBehavior(defaultPropagationBehaviour);
   }
 
+  protected final void injectAdminIntoSecurityContext() {
+    injectSecurityContextUser(getAdminUser());
+  }
+
   protected final User switchToSuperuser() {
     switchContextToUser(userService.getUser(superUser.getUid()));
     return superUser;

@@ -135,7 +135,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   final void setup() {
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
   }
 
   private UserQueryParams getDefaultParams() {

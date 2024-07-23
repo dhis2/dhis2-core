@@ -228,7 +228,7 @@ class ObjectBundleServiceUserTest extends PostgresIntegrationTestBase {
     manager.update(userManagerRole);
     SecurityContextHolder.clearContext();
     userA.setPassword("passwordUserA");
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
     manager.update(userA);
     injectSecurityContextUser(userA);
     params =

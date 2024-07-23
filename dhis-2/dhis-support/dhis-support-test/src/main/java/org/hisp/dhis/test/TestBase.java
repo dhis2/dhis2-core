@@ -2653,10 +2653,6 @@ public abstract class TestBase {
     return user;
   }
 
-  protected void injectAdminUser() {
-    injectSecurityContextUser(userService.getUser(ADMIN_USER_UID));
-  }
-
   protected void injectSecurityContextUser(User user) {
     if (user == null) {
       clearSecurityContext();
@@ -2941,7 +2937,7 @@ public abstract class TestBase {
     return user;
   }
 
-  protected User preCreateInjectAdminUserWithoutPersistence() {
+  private User preCreateInjectAdminUserWithoutPersistence() {
     String uid = CodeGenerator.generateUid();
 
     UserRole role = createUserRole("Superuser_Test_" + uid, "ALL");

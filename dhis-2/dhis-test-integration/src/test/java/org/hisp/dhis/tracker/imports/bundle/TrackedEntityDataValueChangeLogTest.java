@@ -74,7 +74,7 @@ public class TrackedEntityDataValueChangeLogTest extends TrackerTest {
   @BeforeAll
   void setUp() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
-    injectAdminUser();
+    injectAdminIntoSecurityContext();
   }
 
   @Test

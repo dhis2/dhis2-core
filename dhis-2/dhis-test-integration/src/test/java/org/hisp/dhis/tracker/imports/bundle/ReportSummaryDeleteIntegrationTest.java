@@ -67,7 +67,7 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest {
   @BeforeAll
   void setUp() throws IOException {
     setUpMetadata("tracker/tracker_basic_metadata.json");
-    injectAdminUser();
+    injectAdminIntoSecurityContext();
     TrackerObjects trackerObjects = fromJson("tracker/tracker_basic_data_before_deletion.json");
     assertEquals(13, trackerObjects.getTrackedEntities().size());
     assertEquals(2, trackerObjects.getEnrollments().size());

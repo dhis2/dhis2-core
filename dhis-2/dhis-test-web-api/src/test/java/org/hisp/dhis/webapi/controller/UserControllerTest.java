@@ -669,7 +669,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
     manager.flush();
     manager.clear();
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
 
     // assert lastUpdated has been updated by new user & users not empty
     JsonUserGroup userGroupUserAdded =

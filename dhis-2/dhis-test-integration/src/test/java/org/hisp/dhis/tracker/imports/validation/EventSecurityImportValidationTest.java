@@ -119,7 +119,7 @@ class EventSecurityImportValidationTest extends TrackerTest {
   @BeforeAll
   void setUp() throws IOException {
     setUpMetadata("tracker/tracker_basic_metadata.json");
-    injectAdminUser();
+    injectAdminIntoSecurityContext();
 
     assertNoErrors(
         trackerImportService.importTracker(
@@ -203,7 +203,7 @@ class EventSecurityImportValidationTest extends TrackerTest {
     OrganisationUnit qfUVllTs6cS = organisationUnitService.getOrganisationUnit("QfUVllTs6cS");
     user.addOrganisationUnit(qfUVllTs6cS);
     user.addOrganisationUnit(organisationUnitA);
-    User adminUser = userService.getUser(ADMIN_USER_UID);
+    User adminUser = getAdminUser();
     adminUser.addOrganisationUnit(organisationUnitA);
     Program p = programService.getProgram("prabcdefghA");
     p.addOrganisationUnit(qfUVllTs6cS);

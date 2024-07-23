@@ -197,7 +197,7 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
   void testImportWithSkipSharingIsTrueAndNoPermission() {
     clearSecurityContext();
 
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
 
     User userA = createUserWithAuth("A");
     userService.addUser(userA);

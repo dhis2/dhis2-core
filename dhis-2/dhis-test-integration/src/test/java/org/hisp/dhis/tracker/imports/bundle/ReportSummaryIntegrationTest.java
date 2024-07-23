@@ -54,7 +54,7 @@ class ReportSummaryIntegrationTest extends TrackerTest {
   @BeforeAll
   void setUp() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
-    injectAdminUser();
+    injectAdminIntoSecurityContext();
     userA = userService.getUser("M5zQapPyTZI");
     //    injectSecurityContextUser(userA);
   }

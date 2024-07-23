@@ -1842,7 +1842,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldFailWhenRequestingSingleTEAndNoDataAccessToProvidedProgram() {
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
     Program inaccessibleProgram = createProgram('U', new HashSet<>(), orgUnitA);
     manager.save(inaccessibleProgram, false);
     makeProgramMetadataAccessibleOnly(inaccessibleProgram);
@@ -1887,7 +1887,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldFailWhenRequestingSingleTEAndNoMetadataAccessToAnyProgram() {
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
     makeProgramMetadataInaccessible(programA);
     makeProgramMetadataInaccessible(programB);
     makeProgramMetadataInaccessible(programC);
@@ -1906,7 +1906,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldFailWhenRequestingSingleTEAndOnlyEventProgramAccessible() {
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
     makeProgramMetadataInaccessible(programA);
     makeProgramMetadataInaccessible(programB);
     makeProgramMetadataInaccessible(programC);
@@ -1928,7 +1928,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldFailWhenRequestingSingleTEAndTETDoesNotMatchAnyProgram() {
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
     TrackedEntityType trackedEntityType = createTrackedEntityType('T');
     manager.save(trackedEntityType, false);
     programA.setTrackedEntityType(trackedEntityType);
@@ -1953,7 +1953,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldFailWhenRequestingSingleTEAndNoDataAccessToAnyProgram() {
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
     makeProgramMetadataAccessibleOnly(programA);
     makeProgramMetadataAccessibleOnly(programB);
     makeProgramMetadataAccessibleOnly(programC);
@@ -1973,7 +1973,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldFailWhenRequestingSingleTEAndNoAccessToTET() {
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
     trackedEntityTypeA.setSharing(Sharing.builder().publicAccess("rw------").build());
     manager.update(trackedEntityA);
 
@@ -2021,7 +2021,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   void
       shouldFindTrackedEntityWhenCaptureScopeIndependentFromSearchScopeAndCaptureScopeOrgUnitRequested()
           throws ForbiddenException, NotFoundException, BadRequestException {
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
     programA.setAccessLevel(AccessLevel.OPEN);
     manager.update(programA);
 

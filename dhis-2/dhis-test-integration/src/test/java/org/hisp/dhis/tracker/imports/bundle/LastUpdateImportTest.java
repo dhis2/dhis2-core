@@ -76,7 +76,7 @@ class LastUpdateImportTest extends TrackerTest {
   void setUp() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
 
-    injectAdminUser();
+    injectAdminIntoSecurityContext();
 
     TrackerObjects trackerObjects = fromJson("tracker/single_te.json");
     assertNoErrors(trackerImportService.importTracker(new TrackerImportParams(), trackerObjects));
@@ -99,7 +99,7 @@ class LastUpdateImportTest extends TrackerTest {
 
   @Test
   void shouldUpdateTrackedEntityWhenTrackedEntityIsUpdated() throws IOException {
-    injectAdminUser();
+    injectAdminIntoSecurityContext();
     TrackedEntity entityBeforeUpdate = getTrackedEntity();
 
     clearSession();
@@ -223,7 +223,7 @@ class LastUpdateImportTest extends TrackerTest {
 
   @Test
   void shouldUpdateAndDeleteTrackedEntityCascadeWhenTeWithEnrollmentIsDeleted() {
-    injectAdminUser();
+    injectAdminIntoSecurityContext();
     TrackedEntity entityBeforeUpdate = getTrackedEntity();
 
     Enrollment enrollmentBeforeDelete = getEnrollment();
@@ -275,7 +275,7 @@ class LastUpdateImportTest extends TrackerTest {
     Enrollment enrollmentBeforeDeletion = getEnrollment();
 
     Event eventBeforeDeletion = getEvent();
-    injectAdminUser();
+    injectAdminIntoSecurityContext();
     User user = createAndAddUser("userDelete", organisationUnit, "F_ENROLLMENT_CASCADE_DELETE");
     injectSecurityContextUser(user);
 
@@ -419,7 +419,7 @@ class LastUpdateImportTest extends TrackerTest {
 
   @Test
   void shouldUpdatedEventProgramWhenEventIsDeleted() throws IOException {
-    injectAdminUser();
+    injectAdminIntoSecurityContext();
     org.hisp.dhis.tracker.imports.domain.Event ev = importEventProgram();
 
     Event eventBeforeDeletion = getEvent(ev.getUid());
@@ -459,7 +459,7 @@ class LastUpdateImportTest extends TrackerTest {
   }
 
   private User user() {
-    injectAdminUser();
+    injectAdminIntoSecurityContext();
     User user = createAndAddUser(CodeGenerator.generateUid(), organisationUnit);
     injectSecurityContextUser(user);
     return user;

@@ -60,7 +60,7 @@ class TrackedEntityProgramAttributeTest extends TrackerTest {
   @BeforeAll
   void setUp() throws IOException {
     setUpMetadata("tracker/te_program_with_tea_metadata.json");
-    injectAdminUser();
+    injectAdminIntoSecurityContext();
   }
 
   @Test

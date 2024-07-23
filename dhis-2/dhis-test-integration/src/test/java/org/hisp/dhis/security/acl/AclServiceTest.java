@@ -82,7 +82,7 @@ class AclServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testUpdateObjectWithPublicRWFail() {
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
     User user = createAndAddAdminUser("F_OPTIONSET_PUBLIC_ADD");
     DataElement dataElement = createDataElement('A');
     dataElement.setPublicAccess(AccessStringHelper.READ_WRITE);
@@ -378,7 +378,7 @@ class AclServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testDataElementSharingPrivateRW() {
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
     User user1 = createUserWithAuth("user1A9", "F_DATAELEMENT_PRIVATE_ADD");
     User user2 = createUserWithAuth("user2A9", "F_DATAELEMENT_PRIVATE_ADD");
     DataElement dataElement = createDataElement('A');

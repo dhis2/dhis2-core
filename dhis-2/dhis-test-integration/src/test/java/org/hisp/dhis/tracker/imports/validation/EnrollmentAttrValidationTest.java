@@ -53,7 +53,7 @@ class EnrollmentAttrValidationTest extends TrackerTest {
   @BeforeAll
   void setUp() throws IOException {
     setUpMetadata("tracker/tracker_basic_metadata_mandatory_attr.json");
-    injectAdminUser();
+    injectAdminIntoSecurityContext();
     assertNoErrors(
         trackerImportService.importTracker(
             new TrackerImportParams(),

@@ -73,7 +73,7 @@ class TrackedEntityFilterServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   void setup() {
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
   }
 
   @BeforeAll
