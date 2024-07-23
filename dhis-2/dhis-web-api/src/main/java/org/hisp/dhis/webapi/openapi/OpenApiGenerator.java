@@ -411,12 +411,7 @@ public class OpenApiGenerator extends JsonGenerator {
       generateUidSchema(schema);
       return;
     }
-    if (schemaType == Api.Schema.Type.UNSUPPORTED) {
-      addStringMultilineMember(
-          "description",
-          "The exact type is unknown.  \n(Java type was: `"
-              + schema.getSource().getTypeName()
-              + "`)");
+    if (schemaType == Api.Schema.Type.ANY) {
       return;
     }
     if (schemaType == Api.Schema.Type.ONE_OF) {

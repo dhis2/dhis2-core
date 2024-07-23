@@ -482,6 +482,10 @@ public interface OpenApiObject extends JsonObject {
       return getString("type").string();
     }
 
+    default boolean isAny() {
+      return "any".equalsIgnoreCase($type());
+    }
+
     default boolean isObject() {
       return "object".equalsIgnoreCase($type());
     }

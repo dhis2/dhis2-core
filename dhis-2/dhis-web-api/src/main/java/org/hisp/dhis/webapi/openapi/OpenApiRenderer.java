@@ -1033,9 +1033,25 @@ public class OpenApiRenderer {
 
     appendCode("mime", "=");
 
-    // TODO if there is one show like in details
-    // if there are more show all the mime types
-    // and only if all of them are uniform also show their schema
+    if (content.size() == 1) {
+      Map.Entry<String, MediaTypeObject> common = content.entries().toList().get(0);
+      appendCode("mime secondary", common.getKey());
+      appendCode("mime secondary", ":");
+      renderSchemaSignature(common.getValue().schema());
+    } else if (response.isUniform()) {
+      // they all share the same schema
+      appendCode("mime secondary", "*");
+      appendCode("mime secondary", ":");
+      SchemaObject common = content.values().limit(1).toList().get(0).schema();
+      renderSchemaSignature(common);
+    } else {
+      // they are different, only list media types in summary
+      List<String> mediaTypes = content.keys().toList();
+      for (int i = 0; i < mediaTypes.size(); i++) {
+        if (i > 0) appendCode("mime secondary", "|");
+        appendCode("mime secondary", mediaTypes.get(i));
+      }
+    }
   }
 
   private void renderSchemaSignature(List<SchemaObject> oneOf) {
@@ -1082,6 +1098,10 @@ public class OpenApiRenderer {
   private void renderSchemaSignatureTypeAny(SchemaObject schema) {
     if (schema.isRef()) {
       renderSchemaSignatureType(schema.resolve());
+      return;
+    }
+    if (schema.isAny()) {
+      appendRaw("*");
       return;
     }
     if (schema.isArray()) {

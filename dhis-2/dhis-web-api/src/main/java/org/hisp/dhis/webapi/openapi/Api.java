@@ -55,6 +55,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.Value;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Maturity;
@@ -75,6 +76,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
  * @author Jan Bernitt
  */
 @Value
+@Slf4j
 public class Api {
   /**
    * Can be used in {@link OpenApi.Param#value()} to point not to the type to use but the generator
@@ -383,8 +385,9 @@ public class Api {
   @EqualsAndHashCode(onlyExplicitlyIncluded = true)
   public static class Schema {
 
-    public static Schema ofUnsupported(java.lang.reflect.Type source) {
-      return new Schema(Type.UNSUPPORTED, source, Object.class, null);
+    public static Schema ofAny(java.lang.reflect.Type source) {
+      if (source != Object.class) log.warn("OpenAPI failed to analyse the type: " + source);
+      return new Schema(Type.ANY, source, Object.class, null);
     }
 
     public static Schema ofUID(Class<?> of) {
@@ -441,7 +444,7 @@ public class Api {
     public enum Type {
       // Note that schemas are generated in the order of types given here
       // each type group being sorted alphabetically by shared name
-      UNSUPPORTED,
+      ANY,
       SIMPLE,
       ARRAY,
       OBJECT,

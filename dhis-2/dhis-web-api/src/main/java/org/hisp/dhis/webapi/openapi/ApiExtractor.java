@@ -802,16 +802,16 @@ final class ApiExtractor {
         // just unpack, presents of ResponseEntity is hidden
         return extractTypeSchema(endpoint, typeArg0);
       }
-      return Api.Schema.ofUnsupported(source);
+      return Api.Schema.ofAny(source);
     }
     if (source instanceof WildcardType wt) {
       if (wt.getLowerBounds().length == 0
           && Arrays.equals(wt.getUpperBounds(), new Type[] {Object.class}))
-        return Api.Schema.ofUnsupported(wt);
+        return Api.Schema.ofAny(wt);
       // simplification: <? extends X> => <X>
       return extractTypeSchema(endpoint, wt.getUpperBounds()[0]);
     }
-    return Api.Schema.ofUnsupported(source);
+    return Api.Schema.ofAny(source);
   }
 
   /*
