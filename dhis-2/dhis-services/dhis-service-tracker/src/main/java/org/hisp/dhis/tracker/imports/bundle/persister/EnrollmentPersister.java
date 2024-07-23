@@ -197,7 +197,6 @@ public class EnrollmentPersister
       org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
       TrackerPreheat preheat,
       List<NotificationTrigger> triggers) {
-    Enrollment convertedEnrollment = enrollmentConverter.from(preheat, enrollment);
     return TrackerNotificationDataBundle.builder()
         .klass(Enrollment.class)
         .enrollmentNotifications(
@@ -205,8 +204,8 @@ public class EnrollmentPersister
         .object(enrollment.getUid())
         .importStrategy(bundle.getImportStrategy())
         .accessedBy(bundle.getUsername())
-        .enrollment(convertedEnrollment)
-        .program(convertedEnrollment.getProgram())
+        .enrollment(enrollmentConverter.from(preheat, enrollment))
+        .program(preheat.getProgram(enrollment.getProgram()))
         .triggers(triggers)
         .build();
   }
