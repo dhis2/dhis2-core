@@ -64,10 +64,12 @@ class RenderableSqlQueryTest {
                 .build()),
         Arguments.of(
             """
-            select t1."field1" as "alias1" from table1 t1 where condition1 order by orderField nulls last limit 10 offset 20""",
+            select t1."field1" as "alias1", t2."field1" as "alias1", t1."field2" as "alias1", t1."field1" as "alias2" from table1 t1 where condition1 order by orderField nulls last limit 10 offset 20""",
             RenderableSqlQuery.builder()
                 .selectField(Field.of("t1", () -> "field1", "alias1"))
-                .selectField(Field.of("t1", () -> "field1", "alias1"))
+                .selectField(Field.of("t2", () -> "field1", "alias1"))
+                .selectField(Field.of("t1", () -> "field2", "alias1"))
+                .selectField(Field.of("t1", () -> "field1", "alias2"))
                 .mainTable(Table.of(() -> "table1", () -> "t1"))
                 .limitOffset(LimitOffset.of(10, 20, false))
                 .orderClause(IndexedOrder.of(1, Order.of(() -> "orderField", SortDirection.ASC)))
