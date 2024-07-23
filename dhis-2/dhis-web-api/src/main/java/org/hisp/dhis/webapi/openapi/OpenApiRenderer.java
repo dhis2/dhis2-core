@@ -102,11 +102,12 @@ public class OpenApiRenderer {
        --color-get: steelblue;
        --color-trace: palevioletred;
        --color-head: thistle;
-       --color-dep: lemonchiffon;
+       --color-dep: khaki;
        --color-schema: slategray;
        --color-tooltip: #444;
        --color-tooltiptext: #eee;
        --color-tooltipborder: lightgray;
+       --color-target: black;
        --width-nav: 320px;
    }
   html {
@@ -133,7 +134,8 @@ public class OpenApiRenderer {
   a[href^="#"] { text-decoration: none; }
   a[title="permalink"] { position: absolute;  right: 1em; display: inline-block; width: 24px; height: 24px;
     text-align: center; vertical-align: middle; border-radius: 50%; line-height: 24px; color: dimgray; margin-top: -0.125rem; }
-  #hotkeys a { display: block; margin-top: 2px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; font-size: 75%; }
+  #hotkeys a { color: black; display: block; margin-top: 2px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; font-size: 75%; }
+  #hotkeys a:visited { color: black; }
 
   pre { background-color: floralwhite; color: #222; margin-right: 2em; padding: 0.5rem; }
   pre, code { font-family: "Noto Sans Mono", "Liberation Mono", monospace; }
@@ -196,14 +198,14 @@ public class OpenApiRenderer {
       margin-left: -1rem;
       padding-left: 1rem;
   }
-  body > section details > summary:before {
+  body > section details:not(.button) > summary:before {
       content: '⊕';
       float: left;
       margin-left: calc(-1rem - 10px);
   }
   body > section details > summary:last-child:before { content: ''; }
 
-  body > section details[open] > summary:before { content: '⊝'; }
+  body > section details[open]:not(.button) > summary:before { content: '⊝'; }
 
   body > section > details[open] > summary {
        margin-top: 0;
@@ -269,13 +271,16 @@ public class OpenApiRenderer {
 
 
   /* target highlighting */
-  details.op:target > summary > code.url.path { background-color: gold; }
-  details.schema:target > summary { background-color: gold; }
-  details.param:target > summary > code:first-of-type { background-color: gold; }
-  details.property:target > summary > code:first-of-type { background-color: gold; }
-  details.response:target > summary > code:first-of-type { background-color: gold; color: inherit; }
-  details:target > summary > a[title="permalink"] { background-color: gold; color: black; border: 2px solid snow;
-    animation: spin 2s linear 0s infinite reverse; }
+  details.op:target > summary,
+  details.schema:target > summary,
+  details.param:target > summary > code:first-of-type,
+  details.property:target > summary > code:first-of-type,
+  details.request:target > summary > code:first-of-type,
+  details.response:target > summary > code:first-of-type,
+  details.source:target > pre {  border: 2px solid var(--color-target); font-weight: bold; }
+
+  details:target > summary > a[title="permalink"] { background-color: var(--color-target); color: snow; border: 2px solid snow;
+    animation: spin 2s linear 0s infinite reverse; font-weight: bold; }
 
   /* operation background colors */
   details[open].GET { background: color-mix(in srgb, var(--color-get) var(--p-op-bg), transparent); }
@@ -326,9 +331,15 @@ public class OpenApiRenderer {
       margin: 2px;
   }
   nav button:before { content: '🞕'; margin-right: 0.5rem;font-weight: normal; }
-  nav button.deprecated { background-color: var(--color-dep); }
 
-  details.box aside button { background-color: #444; color: white; border: none; cursor: pointer; }
+  details.box aside button,
+  details.box aside .button { background-color: #444; color: white; border: none; display: inline-block;
+    cursor: pointer; margin: 0 1em 0 0; padding: 0.25em 0.5em; font-size: 90%;
+    box-shadow: 1px 1px 0 0, 2px 2px 0 0, 3px 3px 0 0, 4px 4px 0 0, 5px 5px 0 0;}
+  details.box aside .button > summary { display: inline-block; margin: 0; padding: 0; }
+  details.box aside .button a { display: block; }
+  details.box aside .button div { position: absolute; background-color: floralwhite; padding: 0.5em 1em; margin-top: 3px;
+    box-shadow: 5px 5px #444444aa; max-height: 20em; overflow-y: scroll; }
 
   #body[get-] button.GET:before,
   #body[post-] button.POST:before,
@@ -366,7 +377,7 @@ public class OpenApiRenderer {
   .deprecated > summary > code:first-of-type:before { content: '⚠️'; font-family: sans-serif; display: inline-block; padding-right: 0.25rem; }
   /* +/- buttons for expand/collapse */
   .box aside > button.toggle { pointer-events: none; opacity: 0.65; }
-  .box aside > button.toggle:after { content: '⊝'; padding-left: 0.5rem; font-size: 16px; }
+  .box aside > button.toggle:after { content: '⊝'; padding-left: 0.5rem; }
   .box:has(details[data-open]) aside > button.toggle:after { content: '⊕'; }
   .box:has(details[open]) aside > button.toggle, .box:has(details[data-open]) aside > button.toggle { pointer-events: inherit; opacity: inherit; }
   /* schema type markers */
@@ -407,7 +418,7 @@ public class OpenApiRenderer {
   private static final String GLOBAL_JS =
       """
   function openToggleDown1(element) {
-    let allDetails = element.closest('details.box').querySelectorAll('details');
+    const allDetails = element.closest('details.box').querySelectorAll('details');
     const isRestore = Array.from(allDetails.values()).some(e => e.hasAttribute('data-open'));
     const set = isRestore ? 'open' : 'data-open';
     const remove = isRestore ? 'data-open' : 'open';
@@ -427,23 +438,20 @@ public class OpenApiRenderer {
   }
 
   function addUrlParameter(name, value) {
-    var searchParams = new URLSearchParams(window.location.search)
+    const searchParams = new URLSearchParams(window.location.search)
     searchParams.set(name, value)
     window.location.search = searchParams.toString()
   }
 
   function addHashHotkey() {
-    var id = 'hk_'+location.hash.substring(1);
+    const id = 'hk_'+location.hash.substring(1);
     if (document.getElementById(id) != null) return;
-    var a = document.createElement('a');
-    var ctrl = document.createElement('kbd');
-    ctrl.appendChild(document.createTextNode("Ctrl"));
-    a.appendChild(ctrl);
+    const a = document.createElement('a');
     a.appendChild(document.createTextNode(" + "))
-    var hotkeys = document.getElementById("hotkeys");
+    const hotkeys = document.getElementById("hotkeys");
     hotkeys.appendChild(a);
-    var fn = document.createElement('kbd');
-    var n = hotkeys.childNodes.length-1;
+    const fn = document.createElement('kbd');
+    let n = hotkeys.childNodes.length-1;
     if (n > 9) {
       hotkeys.firstChild.nextSibling.remove();
       n = 1;
@@ -455,6 +463,27 @@ public class OpenApiRenderer {
     a.href = location.hash;
     a.id = id;
     a.title = location.hash;
+  }
+
+  function schemaUsages(details) {
+    if (details.getElementsByTagName('div').length > 0) {
+      return;
+    }
+    // fill...
+    const id = details.parentNode.closest('details').id;
+    const links = document.querySelectorAll('section a[href="#'+id+'"]');
+    const box = document.createElement('div');
+    details.appendChild(box);
+    const targets = Array.from(links).map(node => node.closest('[id]'));
+    const uniqueTargets = targets.filter((t, index) => targets.indexOf(t) === index);
+    uniqueTargets.forEach(target => {
+      if (target.id !== id) {
+        const a = document.createElement('a');
+        a.appendChild(document.createTextNode(target.id));
+        a.href = '#'+target.id;
+        box.appendChild(a);
+      }
+    });
   }
 
   window.addEventListener('hashchange', (e) => {
@@ -590,10 +619,16 @@ public class OpenApiRenderer {
         "nav",
         () -> {
           renderPageHeader();
-          renderMenuGroup("hotkeys", "Hotkeys", () -> {});
+          renderMenuGroup(
+              "hotkeys",
+              () -> {
+                appendTag("kbd", "Ctrl");
+                appendRaw(" Hotkeys");
+              },
+              () -> {});
           renderMenuGroup(
               null,
-              "Filters",
+              () -> appendRaw("Filters"),
               () -> {
                 renderMenuItem(
                     "HTTP Methods",
@@ -631,18 +666,13 @@ public class OpenApiRenderer {
                       renderToggleButton("&#128295; Beta", "beta", "beta-", false);
                       renderToggleButton("&#128737;&#65039; Stable", "stable", "stable-", false);
                       renderToggleButton("Unspecified", "open", "open-", false);
-                    });
-
-                renderMenuItem(
-                    "Content",
-                    () -> {
                       renderToggleButton("@Deprecated", "deprecated", "deprecated-", true);
                     });
               });
 
           renderMenuGroup(
               null,
-              "View",
+              () -> appendRaw("View"),
               () -> {
                 renderMenuItem(
                     "Summaries",
@@ -659,13 +689,13 @@ public class OpenApiRenderer {
     // TODO bring back tags as actual tags usable as filters
   }
 
-  private void renderMenuGroup(String id, String title, Runnable renderBody) {
+  private void renderMenuGroup(String id, Runnable renderSummary, Runnable renderBody) {
     appendDetails(
         id,
         true,
         "",
         () -> {
-          appendSummary(null, "", () -> appendRaw(title));
+          appendSummary(null, "", renderSummary::run);
           renderBody.run();
         });
   }
@@ -756,7 +786,7 @@ public class OpenApiRenderer {
         operationStyle(op),
         () -> {
           appendSummary(id, op.summary(), () -> renderOperationSummary(op));
-          renderBoxToolbar();
+          renderBoxToolbar(null);
           appendTag("header", markdownToHTML(op.description(), op.parameterNames()));
           renderParameters(op);
           renderRequestBody(op);
@@ -776,13 +806,18 @@ public class OpenApiRenderer {
     return style.toString();
   }
 
-  private void renderBoxToolbar() {
+  private void renderBoxToolbar(Runnable renderButtons) {
     Map<String, String> attrs =
         Map.ofEntries(
             entry("onclick", "openToggleDown1(this)"),
             entry("title", "remembering expand/collapse"),
             entry("class", "toggle"));
-    appendTag("aside", () -> appendTag("button", attrs, "All &bbrktbrk;"));
+    appendTag(
+        "aside",
+        () -> {
+          appendTag("button", attrs, "All");
+          if (renderButtons != null) renderButtons.run();
+        });
   }
 
   private void renderOperationSummary(OperationObject op) {
@@ -866,7 +901,7 @@ public class OpenApiRenderer {
     String style = "param";
     if (p.deprecated()) style += " deprecated";
     if (p.required()) style += " required";
-    String id = toUrlHash(op.operationId() + "-" + p.name());
+    String id = toUrlHash(op.operationId() + "." + p.name());
     appendDetails(
         id,
         true,
@@ -932,8 +967,7 @@ public class OpenApiRenderer {
     JsonMap<MediaTypeObject> content = requestBody.content();
     String style = "request";
     if (requestBody.required()) style += " required";
-    String id = toUrlHash(op.operationId());
-    renderMediaTypes(id, style, content);
+    renderMediaTypes(op.operationId(), style, content);
 
     renderMarkdown(requestBody.description(), op.parameterNames());
   }
@@ -1139,7 +1173,9 @@ public class OpenApiRenderer {
                 false,
                 "kind",
                 () -> {
-                  appendSummary(id, "", () -> appendTag("h2", toWords(kind.kind) + "s"));
+                  String words = toWords(kind.kind);
+                  String plural = words.endsWith("s") ? words : words + "s";
+                  appendSummary(id, "", () -> appendTag("h2", plural));
                   kind.schemas.forEach(this::renderComponentSchema);
                 });
           }
@@ -1154,7 +1190,17 @@ public class OpenApiRenderer {
         "schema box " + schema.$type(),
         () -> {
           appendSummary(schema.getSharedName(), "", () -> renderComponentSchemaSummary(schema));
-          renderBoxToolbar();
+          renderBoxToolbar(
+              () -> {
+                Map<String, String> attrs =
+                    Map.of("class", "button", "ontoggle", "schemaUsages(this)");
+                appendTag(
+                    "details",
+                    attrs,
+                    () -> {
+                      appendTag("summary", "Usages");
+                    });
+              });
           renderSchemaDetails(schema, true, false);
           if (params.isSource()) renderSource("@" + id, schema);
         });
@@ -1224,7 +1270,7 @@ public class OpenApiRenderer {
 
   private void renderSchemaProperty(
       SchemaObject parent, String name, SchemaObject type, boolean required) {
-    String id = parent.isShared() ? toUrlHash(parent.getSharedName() + "-" + name) : null;
+    String id = parent.isShared() ? toUrlHash(parent.getSharedName() + "." + name) : null;
     String style = "property";
     if (required) style += " required";
     boolean open = type.isObject() || type.isArray() && type.items().isObject();
