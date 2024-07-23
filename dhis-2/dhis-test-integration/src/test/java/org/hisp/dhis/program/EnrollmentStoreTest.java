@@ -47,6 +47,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
+import org.hisp.dhis.program.notification.ProgramNotificationService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -65,6 +66,8 @@ import org.springframework.transaction.annotation.Transactional;
 class EnrollmentStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private EnrollmentStore enrollmentStore;
+
+  @Autowired private ProgramNotificationService programNotificationService;
 
   @Autowired private TrackedEntityService trackedEntityService;
 
@@ -244,16 +247,16 @@ class EnrollmentStoreTest extends PostgresIntegrationTestBase {
     // Queries
     List<Enrollment> results;
     // A
-    results = enrollmentStore.getWithScheduledNotifications(a1, today);
+    results = programNotificationService.getEnrollmentsWithScheduledNotifications(a1, today);
     assertEquals(1, results.size());
     assertEquals(enrollmentA, results.get(0));
-    results = enrollmentStore.getWithScheduledNotifications(a2, today);
+    results = programNotificationService.getEnrollmentsWithScheduledNotifications(a2, today);
     assertEquals(1, results.size());
     assertEquals(enrollmentB, results.get(0));
-    results = enrollmentStore.getWithScheduledNotifications(a3, today);
+    results = programNotificationService.getEnrollmentsWithScheduledNotifications(a3, today);
     assertEquals(1, results.size());
     assertEquals(enrollmentB, results.get(0));
-    results = enrollmentStore.getWithScheduledNotifications(a3, yesterday);
+    results = programNotificationService.getEnrollmentsWithScheduledNotifications(a3, yesterday);
     assertEquals(0, results.size());
   }
 
