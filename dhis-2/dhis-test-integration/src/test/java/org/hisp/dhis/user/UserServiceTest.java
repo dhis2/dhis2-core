@@ -588,7 +588,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
     assertEquals(1, userService.disableUsersInactiveSince(twoMonthsAgo));
     // being a super-user is the simplest way to filter purely on the set
     // parameters
-    createAndInjectAdminUser();
+    injectAdminIntoSecurityContext();
     UserQueryParams params = getDefaultParams().setDisabled(true);
     List<User> users = userService.getUsers(params);
     assertEquals(

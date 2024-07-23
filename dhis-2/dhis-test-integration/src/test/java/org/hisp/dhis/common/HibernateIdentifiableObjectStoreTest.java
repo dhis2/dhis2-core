@@ -81,8 +81,6 @@ class HibernateIdentifiableObjectStoreTest extends PostgresIntegrationTestBase {
    */
   @Test
   void testMetadataRead() {
-    User admin = createAndInjectAdminUser();
-
     User user1 = createAndAddUser("A");
     User user2 = createAndAddUser("B");
     User user3 = createAndAddUser("C");
@@ -114,7 +112,7 @@ class HibernateIdentifiableObjectStoreTest extends PostgresIntegrationTestBase {
     DataElement dataElement = createDataElement('A');
     String dataElementUid = "deabcdefghA";
     dataElement.setUid(dataElementUid);
-    dataElement.setCreatedBy(admin);
+    dataElement.setCreatedBy(getAdminUser());
     dataElement.setSharing(
         Sharing.builder()
             .external(false)

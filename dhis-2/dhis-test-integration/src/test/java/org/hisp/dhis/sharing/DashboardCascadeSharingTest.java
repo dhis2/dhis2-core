@@ -83,7 +83,6 @@ class DashboardCascadeSharingTest extends CascadeSharingTest {
 
   @BeforeEach
   void setUp() {
-    createAndInjectAdminUser();
     userGroupA = createUserGroup('A', new HashSet<>());
     objectManager.save(userGroupA);
     userA = makeUser("A");

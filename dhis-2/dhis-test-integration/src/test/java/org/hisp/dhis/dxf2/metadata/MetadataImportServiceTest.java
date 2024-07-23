@@ -1047,7 +1047,7 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
   /** Test to make sure createdBy field is immutable. */
   @Test
   void testUpdateCreatedBy() throws IOException {
-    User createdByUser = createAndInjectAdminUser();
+    User createdByUser = getAdminUser();
 
     Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
         renderService.fromMetadata(

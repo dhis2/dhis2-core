@@ -92,7 +92,6 @@ class OrgUnitProfileServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() {
-    createAndInjectAdminUser();
     mockAnalyticsService = Mockito.mock(AnalyticsService.class);
     mockService =
         new DefaultOrgUnitProfileService(

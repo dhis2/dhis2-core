@@ -2610,23 +2610,31 @@ public abstract class TestBase {
     return user;
   }
 
-  protected User createAndAddAdminUserWithAuth(Authorities... authorities) {
-    return createAndAddAdminUser(Authorities.toStringArray(authorities));
+  /**
+   * Creates and persists an admin with a random UID and injects it into the Spring security
+   * context.
+   */
+  protected final User createAndInjectAdminUser(String... authorities) {
+    User user = createAndAddAdminUser(authorities);
+    injectSecurityContextUser(user);
+    return user;
   }
 
+  /** Creates and persists an admin with a random UID. */
   protected User createAndAddAdminUser(String... authorities) {
     checkUserServiceWasInjected();
 
-    UserRole role = createUserRole("Superuser", authorities);
-    role.setUid("yrB6vc5Ip3r");
+    String uid = CodeGenerator.generateUid();
+    UserRole role = createUserRole("Superuser_Test_" + uid, authorities);
+    role.setUid(uid);
 
-    String username = DEFAULT_USERNAME;
+    String username = DEFAULT_USERNAME + "_" + uid;
     String password = DEFAULT_ADMIN_PASSWORD;
 
     User user = createUser(username);
-    user.setUuid(UUID.fromString("6507f586-f154-4ec1-a25e-d7aa51de5216"));
-    user.setUid(ADMIN_USER_UID);
-    user.setName("Admin");
+    user.setUuid(UUID.randomUUID());
+    user.setUid(uid);
+    user.setName("Admin" + "_" + uid);
     user.setUsername(username);
     user.setPassword(password);
     user.getUserRoles().add(role);
@@ -2640,16 +2648,6 @@ public abstract class TestBase {
 
     userService.addUserRole(role);
 
-    return user;
-  }
-
-  protected final User createAndInjectAdminUser() {
-    return createAndInjectAdminUser("ALL");
-  }
-
-  protected final User createAndInjectAdminUser(String... authorities) {
-    User user = createAndAddAdminUser(authorities);
-    injectSecurityContextUser(user);
     return user;
   }
 
@@ -2938,18 +2936,33 @@ public abstract class TestBase {
   }
 
   private User preCreateInjectAdminUserWithoutPersistence() {
-    String uid = CodeGenerator.generateUid();
 
-    UserRole role = createUserRole("Superuser_Test_" + uid, "ALL");
-    role.setUid(uid);
+    //    UserRole role = createUserRole("Superuser_Test_" + uid, "ALL");
+    UserRole role = createUserRole("Superuser", "ALL");
+    //    role.setUid(uid);
+    role.setUid("yrB6vc5Ip3r");
 
     User user = new User();
-    user.setUid(uid);
-    user.setFirstName("Admin");
-    user.setSurname("User");
-    user.setUsername(DEFAULT_USERNAME + "_test");
+    // code was not set
+    user.setCode("Code" + DEFAULT_USERNAME);
+    // uuid was not set
+    user.setUuid(UUID.fromString("6507f586-f154-4ec1-a25e-d7aa51de5216"));
+    //    String uid = CodeGenerator.generateUid();
+    //    user.setUid(uid);
+    user.setUid(ADMIN_USER_UID);
+    //    user.setFirstName("Admin");
+    user.setFirstName(FIRST_NAME + DEFAULT_USERNAME);
+    //    user.setSurname("User");
+    user.setSurname(SURNAME + DEFAULT_USERNAME);
+    //    user.setUsername(DEFAULT_USERNAME + "_test");
+    user.setUsername(DEFAULT_USERNAME);
     user.setPassword(DEFAULT_ADMIN_PASSWORD);
     user.getUserRoles().add(role);
+
+    // user createdBy was not set
+    user.setCreatedBy(user);
+    // role createdBy was not set
+    role.setCreatedBy(user);
 
     UserDetails currentUserDetails = userService.createUserDetails(user);
     Authentication authentication =

@@ -182,7 +182,7 @@ class ObjectBundleServiceUserTest extends PostgresIntegrationTestBase {
 
   @Test
   void testUpdateAdminUser() throws IOException {
-    createAndInjectAdminUser();
+    injectAdminIntoSecurityContext();
     ObjectBundleParams params =
         createBundleParams(
             ObjectBundleMode.COMMIT, ImportStrategy.UPDATE, AtomicMode.ALL, "dxf2/user_admin.json");

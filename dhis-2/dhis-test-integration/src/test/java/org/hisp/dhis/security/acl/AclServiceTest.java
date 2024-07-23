@@ -763,7 +763,7 @@ class AclServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testShouldBlockUpdatesForNoAuthorityUser() {
-    User adminUser = createAndInjectAdminUser();
+    User adminUser = getAdminUser();
     assertEquals(adminUser, getCurrentUser());
     User userNoAuthorities = createUserWithAuth("user1A2");
     manager.save(userNoAuthorities);
@@ -784,7 +784,7 @@ class AclServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testShouldBlockUpdatesForNoAuthorityUserEvenWithNonPublicObject() {
-    User adminUser = createAndInjectAdminUser();
+    User adminUser = getAdminUser();
     assertEquals(adminUser, getCurrentUser());
     User user1 = createUserWithAuth("user1A3");
     User user2 = createUserWithAuth("user2A3");
@@ -808,7 +808,7 @@ class AclServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testNotShouldBlockAdminUpdatesForNoAuthorityUserEvenWithNonPublicObject() {
-    User adminUser = createAndInjectAdminUser();
+    User adminUser = getAdminUser();
     assertEquals(adminUser, getCurrentUser());
     User user1 = createUserWithAuth("user1A4");
     injectSecurityContextUser(user1);

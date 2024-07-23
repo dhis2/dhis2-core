@@ -112,8 +112,6 @@ class DataValueSetExportAccessControlTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   void setUp() {
-    createAndInjectAdminUser();
-
     // Metadata
     PeriodType ptA = PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY);
     deA = createDataElement('A');

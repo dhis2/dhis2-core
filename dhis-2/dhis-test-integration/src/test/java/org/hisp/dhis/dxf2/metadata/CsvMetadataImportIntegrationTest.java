@@ -80,7 +80,7 @@ class CsvMetadataImportIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   void testOrgUnitImport_MoveLacksMoveAuthority() throws Exception {
-    createAndInjectAdminUser(new String[0]);
+    createAndInjectAdminUser();
     ImportReport report =
         runImport(
             "dxf2/metadata/organisationUnits_move.csv",

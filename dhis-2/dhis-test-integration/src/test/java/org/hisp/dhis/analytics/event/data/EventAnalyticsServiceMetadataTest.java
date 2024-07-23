@@ -144,7 +144,6 @@ class EventAnalyticsServiceMetadataTest extends PostgresIntegrationTestBase {
     prA = createProgram('A');
     psA = createProgramStage('A', prA);
     prA.getProgramStages().add(psA);
-    createAndInjectAdminUser("ALL");
   }
 
   // -------------------------------------------------------------------------
