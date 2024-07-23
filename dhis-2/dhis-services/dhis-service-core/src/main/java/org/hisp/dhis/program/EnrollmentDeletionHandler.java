@@ -60,6 +60,10 @@ public class EnrollmentDeletionHandler extends IdObjectDeletionHandler<Enrollmen
   }
 
   private void deleteProgram(Program program) {
+    if (program.isRegistration()) {
+      return;
+    }
+
     Collection<Enrollment> enrollments = enrollmentService.getEnrollments(program);
 
     if (enrollments != null) {
@@ -67,7 +71,7 @@ public class EnrollmentDeletionHandler extends IdObjectDeletionHandler<Enrollmen
       while (iterator.hasNext()) {
         Enrollment enrollment = iterator.next();
         iterator.remove();
-        enrollmentService.hardDeleteEnrollment(enrollment);
+        idObjectManager.delete(enrollment);
       }
     }
   }
