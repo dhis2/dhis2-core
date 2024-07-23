@@ -1740,6 +1740,11 @@
         <artifactId>jdbc</artifactId>
         <version>${testcontainers.version}</version>
       </dependency>
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>minio</artifactId>
+        <version>${testcontainers.version}</version>
+      </dependency>
 
       <!-- Monitoring -->
       <dependency>
