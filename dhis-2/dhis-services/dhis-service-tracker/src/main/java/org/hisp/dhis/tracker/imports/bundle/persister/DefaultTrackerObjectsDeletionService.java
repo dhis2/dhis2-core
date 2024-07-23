@@ -54,7 +54,6 @@ import org.hisp.dhis.tracker.imports.report.Entity;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Zubair Asghar
@@ -77,7 +76,6 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
   private final ProgramNotificationInstanceService programNotificationInstanceService;
 
   @Override
-  @Transactional
   public TrackerTypeReport deleteEnrollments(List<String> enrollments) throws NotFoundException {
     UserInfoSnapshot userInfoSnapshot =
         UserInfoSnapshot.from(CurrentUserUtil.getCurrentUserDetails());
