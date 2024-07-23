@@ -32,15 +32,12 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
 import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
@@ -54,11 +51,6 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.relationship.RelationshipStore")
 public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relationship>
     implements RelationshipStore {
-  private static final String TRACKED_ENTITY = "trackedEntity";
-
-  private static final String ENROLLMENT = "enrollment";
-
-  private static final String EVENT = "event";
 
   public HibernateRelationshipStore(
       EntityManager entityManager,
@@ -66,36 +58,6 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
       ApplicationEventPublisher publisher,
       AclService aclService) {
     super(entityManager, jdbcTemplate, publisher, Relationship.class, aclService, true);
-  }
-
-  @Override
-  public List<Relationship> getByRelationshipType(RelationshipType relationshipType) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    return getList(
-        builder,
-        newJpaParameters()
-            .addPredicate(root -> builder.equal(root.join("relationshipType"), relationshipType)));
-  }
-
-  @Override
-  public Relationship getByRelationship(Relationship relationship) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-    CriteriaQuery<Relationship> criteriaQuery = builder.createQuery(Relationship.class);
-
-    Root<Relationship> root = criteriaQuery.from(Relationship.class);
-
-    criteriaQuery.where(
-        builder.and(
-            getFromOrToPredicate("from", builder, root, relationship),
-            getFromOrToPredicate("to", builder, root, relationship),
-            builder.equal(root.join("relationshipType"), relationship.getRelationshipType())));
-
-    try {
-      return getSession().createQuery(criteriaQuery).setMaxResults(1).getSingleResult();
-    } catch (NoResultException nre) {
-      return null;
-    }
   }
 
   @Override
@@ -123,23 +85,6 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
   }
 
   @Override
-  public List<Relationship> getByUidsIncludeDeleted(List<String> uids) {
-    CriteriaBuilder criteriaBuilder = getCriteriaBuilder();
-
-    CriteriaQuery<Relationship> query = criteriaBuilder.createQuery(Relationship.class);
-
-    Root<Relationship> root = query.from(Relationship.class);
-
-    query.where(criteriaBuilder.in(root.get("uid")).value(uids));
-
-    try {
-      return getSession().createQuery(query).getResultList();
-    } catch (NoResultException nre) {
-      return null;
-    }
-  }
-
-  @Override
   protected void preProcessPredicates(
       CriteriaBuilder builder, List<Function<Root<Relationship>, Predicate>> predicates) {
     predicates.add(root -> builder.equal(root.get("deleted"), false));
@@ -148,31 +93,5 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
   @Override
   protected Relationship postProcessObject(Relationship relationship) {
     return (relationship == null || relationship.isDeleted()) ? null : relationship;
-  }
-
-  private Predicate getFromOrToPredicate(
-      String direction,
-      CriteriaBuilder builder,
-      Root<Relationship> root,
-      Relationship relationship) {
-    RelationshipItem relationshipItemDirection = getItem(direction, relationship);
-
-    if (relationshipItemDirection.getTrackedEntity() != null) {
-      return builder.equal(
-          root.join(direction).get(TRACKED_ENTITY),
-          getItem(direction, relationship).getTrackedEntity());
-    } else if (relationshipItemDirection.getEnrollment() != null) {
-      return builder.equal(
-          root.join(direction).get(ENROLLMENT), getItem(direction, relationship).getEnrollment());
-    } else if (relationshipItemDirection.getEvent() != null) {
-      return builder.equal(
-          root.join(direction).get(EVENT), getItem(direction, relationship).getEvent());
-    } else {
-      return null;
-    }
-  }
-
-  private RelationshipItem getItem(String direction, Relationship relationship) {
-    return (direction.equalsIgnoreCase("from") ? relationship.getFrom() : relationship.getTo());
   }
 }
