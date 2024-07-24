@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import java.util.Collections;
+import java.util.List;
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
@@ -36,6 +37,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChan
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
+import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.springframework.stereotype.Component;
@@ -108,7 +110,7 @@ public class TrackedEntityPersister
 
   @Override
   protected TrackerNotificationDataBundle handleNotifications(
-      TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.TrackedEntity entity) {
+      TrackerBundle bundle, TrackedEntity entity, List<NotificationTrigger> triggers) {
     return TrackerNotificationDataBundle.builder().build();
   }
 
@@ -122,5 +124,11 @@ public class TrackedEntityPersister
   protected String getUpdatedTrackedEntity(TrackedEntity entity) {
     return null; // We don't need to keep track, Tei has already been
     // updated
+  }
+
+  @Override
+  protected List<NotificationTrigger> determineNotificationTriggers(
+      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.TrackedEntity entity) {
+    return List.of();
   }
 }

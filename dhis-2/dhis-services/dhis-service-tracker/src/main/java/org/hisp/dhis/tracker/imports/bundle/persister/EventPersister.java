@@ -110,15 +110,7 @@ public class EventPersister
 
   @Override
   protected TrackerNotificationDataBundle handleNotifications(
-      TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Event event) {
-    TrackerPreheat preheat = bundle.getPreheat();
-    Event persistedEvent = preheat.getEvent(event.getUid());
-
-    List<NotificationTrigger> triggers = new ArrayList<>();
-
-    if (isEventCompletion(persistedEvent, event)) {
-      triggers.add(NotificationTrigger.EVENT_COMPLETION);
-    }
+      TrackerBundle bundle, Event event, List<NotificationTrigger> triggers) {
 
     return TrackerNotificationDataBundle.builder()
         .klass(Event.class)
@@ -126,10 +118,32 @@ public class EventPersister
         .object(event.getUid())
         .importStrategy(bundle.getImportStrategy())
         .accessedBy(bundle.getUsername())
-        .event(eventConverter.from(preheat, event))
-        .program(preheat.getProgram(event.getProgram()))
+        .event(event)
+        .program(event.getProgramStage().getProgram())
         .triggers(triggers)
         .build();
+  }
+
+  @Override
+  protected List<NotificationTrigger> determineNotificationTriggers(
+      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Event entity) {
+    Event persistedEvent = preheat.getEvent(entity.getUid());
+    List<NotificationTrigger> triggers = new ArrayList<>();
+    // If the event is new and has been completed
+    if (persistedEvent == null && entity.getStatus() == EventStatus.COMPLETED) {
+      triggers.add(NotificationTrigger.EVENT_COMPLETION);
+      return triggers;
+    }
+
+    // If the event is existing and its status has changed to completed
+    if (persistedEvent != null
+        && persistedEvent.getStatus() != entity.getStatus()
+        && entity.getStatus() == EventStatus.COMPLETED) {
+      triggers.add(NotificationTrigger.EVENT_COMPLETION);
+      return triggers;
+    }
+
+    return triggers;
   }
 
   @Override
@@ -293,19 +307,6 @@ public class EventPersister
         .changeLogType(changeLogType)
         .eventDataValue(eventDataValue)
         .build();
-  }
-
-  private boolean isEventCompletion(
-      Event persistedEvent, org.hisp.dhis.tracker.imports.domain.Event event) {
-    // If the event is new and has been completed
-    if (persistedEvent == null && event.getStatus() == EventStatus.COMPLETED) {
-      return true;
-    }
-
-    // If the event is existing and its status has changed to completed
-    return persistedEvent != null
-        && persistedEvent.getStatus() != event.getStatus()
-        && event.getStatus() == EventStatus.COMPLETED;
   }
 
   @Data

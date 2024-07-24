@@ -120,15 +120,44 @@ public class EnrollmentPersister
 
   @Override
   protected TrackerNotificationDataBundle handleNotifications(
-      TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Enrollment enrollment) {
-    TrackerPreheat preheat = bundle.getPreheat();
-    Enrollment persistedEnrollment = preheat.getEnrollment(enrollment.getUid());
+      TrackerBundle bundle, Enrollment enrollment, List<NotificationTrigger> triggers) {
 
-    // Determine the notification triggers based on enrollment status changes
-    List<NotificationTrigger> triggers = getNotificationTriggers(persistedEnrollment, enrollment);
+    return TrackerNotificationDataBundle.builder()
+        .klass(Enrollment.class)
+        .enrollmentNotifications(
+            bundle.getEnrollmentNotifications().get(UID.of(enrollment.getUid())))
+        .object(enrollment.getUid())
+        .importStrategy(bundle.getImportStrategy())
+        .accessedBy(bundle.getUsername())
+        .enrollment(enrollment)
+        .program(enrollment.getProgram())
+        .triggers(triggers)
+        .build();
+  }
 
-    // Build and return the TrackerNotificationDataBundle
-    return buildNotificationDataBundle(bundle, enrollment, preheat, triggers);
+  @Override
+  protected List<NotificationTrigger> determineNotificationTriggers(
+      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Enrollment entity) {
+    Enrollment persistedEnrollment = preheat.getEnrollment(entity.getUid());
+    List<NotificationTrigger> triggers = new ArrayList<>();
+
+    if (persistedEnrollment == null) {
+      // New enrollment
+      triggers.add(NotificationTrigger.ENROLLMENT);
+
+      // New enrollment that is completed
+      if (entity.getStatus() == EnrollmentStatus.COMPLETED) {
+        triggers.add(NotificationTrigger.ENROLLMENT_COMPLETION);
+      }
+    } else {
+      // Existing enrollment that has changed to completed
+      if (persistedEnrollment.getStatus() != entity.getStatus()
+          && entity.getStatus() == EnrollmentStatus.COMPLETED) {
+        triggers.add(NotificationTrigger.ENROLLMENT_COMPLETION);
+      }
+    }
+
+    return triggers;
   }
 
   @Override
@@ -160,53 +189,5 @@ public class EnrollmentPersister
   @Override
   protected String getUpdatedTrackedEntity(Enrollment entity) {
     return entity.getTrackedEntity().getUid();
-  }
-
-  /**
-   * Determines the notification triggers based on the enrollment status.
-   *
-   * @param persistedEnrollment the enrollment fetched from the database
-   * @param enrollment the enrollment event coming from the request payload
-   * @return a list of NotificationTriggers
-   */
-  private List<NotificationTrigger> getNotificationTriggers(
-      Enrollment persistedEnrollment, org.hisp.dhis.tracker.imports.domain.Enrollment enrollment) {
-    List<NotificationTrigger> triggers = new ArrayList<>();
-
-    if (persistedEnrollment == null) {
-      // New enrollment
-      triggers.add(NotificationTrigger.ENROLLMENT);
-
-      // New enrollment that is completed
-      if (enrollment.getStatus() == EnrollmentStatus.COMPLETED) {
-        triggers.add(NotificationTrigger.ENROLLMENT_COMPLETION);
-      }
-    } else {
-      // Existing enrollment that has changed to completed
-      if (persistedEnrollment.getStatus() != enrollment.getStatus()
-          && enrollment.getStatus() == EnrollmentStatus.COMPLETED) {
-        triggers.add(NotificationTrigger.ENROLLMENT_COMPLETION);
-      }
-    }
-
-    return triggers;
-  }
-
-  private TrackerNotificationDataBundle buildNotificationDataBundle(
-      TrackerBundle bundle,
-      org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
-      TrackerPreheat preheat,
-      List<NotificationTrigger> triggers) {
-    return TrackerNotificationDataBundle.builder()
-        .klass(Enrollment.class)
-        .enrollmentNotifications(
-            bundle.getEnrollmentNotifications().get(UID.of(enrollment.getUid())))
-        .object(enrollment.getUid())
-        .importStrategy(bundle.getImportStrategy())
-        .accessedBy(bundle.getUsername())
-        .enrollment(enrollmentConverter.from(preheat, enrollment))
-        .program(preheat.getProgram(enrollment.getProgram()))
-        .triggers(triggers)
-        .build();
   }
 }

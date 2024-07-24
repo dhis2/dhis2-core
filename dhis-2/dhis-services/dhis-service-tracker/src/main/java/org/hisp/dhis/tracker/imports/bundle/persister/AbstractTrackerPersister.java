@@ -61,6 +61,7 @@ import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
+import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.report.Entity;
@@ -106,13 +107,10 @@ public abstract class AbstractTrackerPersister<
     for (T trackerDto : dtos) {
 
       Entity objectReport = new Entity(getType(), trackerDto.getUid());
+      List<NotificationTrigger> triggers =
+          determineNotificationTriggers(bundle.getPreheat(), trackerDto);
 
       try {
-
-        if (!bundle.isSkipSideEffects()) {
-          notificationDataBundles.add(handleNotifications(bundle, trackerDto));
-        }
-
         //
         // Convert the TrackerDto into an Hibernate-managed entity
         //
@@ -149,6 +147,10 @@ public abstract class AbstractTrackerPersister<
           } else {
             typeReport.getStats().incIgnored();
           }
+        }
+
+        if (!bundle.isSkipSideEffects()) {
+          notificationDataBundles.add(handleNotifications(bundle, convertedDto, triggers));
         }
 
         //
@@ -238,7 +240,17 @@ public abstract class AbstractTrackerPersister<
 
   /** TODO add comment */
   protected abstract TrackerNotificationDataBundle handleNotifications(
-      TrackerBundle bundle, T entity);
+      TrackerBundle bundle, V entity, List<NotificationTrigger> triggers);
+
+  /**
+   * Determines the notification triggers based on the enrollment status.
+   *
+   * @param preheat the enrollment fetched from the database
+   * @param entity the enrollment or event coming from the request payload
+   * @return a list of NotificationTriggers
+   */
+  protected abstract List<NotificationTrigger> determineNotificationTriggers(
+      TrackerPreheat preheat, T entity);
 
   /** Get the Tracker Type for which the current Persister is responsible for. */
   protected abstract TrackerType getType();
