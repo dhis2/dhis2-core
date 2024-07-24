@@ -487,6 +487,8 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
             RenderFormat.JSON);
     MetadataImportParams params = createParams(ImportStrategy.CREATE);
     ImportReport report = importService.importMetadata(params, new MetadataObjects(metadata));
+
+    report.forEachErrorReport(errorReport -> log.error("Error report:" + errorReport));
     assertEquals(Status.OK, report.getStatus());
     Visualization visualization = manager.get(Visualization.class, "gyYXi0rXAIc");
     assertNotNull(visualization);
@@ -541,6 +543,8 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
     MetadataImportParams params = createParams(ImportStrategy.CREATE);
     params.setSkipSharing(false);
     ImportReport report = importService.importMetadata(params, new MetadataObjects(metadata));
+
+    report.forEachErrorReport(errorReport -> log.error("Error report:" + errorReport));
     assertEquals(Status.OK, report.getStatus());
     dbmsManager.clearSession();
     Visualization visualization = manager.get(Visualization.class, "gyYXi0rXAIc");
@@ -932,6 +936,8 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
     params.setSkipSharing(false);
     params.setUser(UID.of(user));
     ImportReport report = importService.importMetadata(params, new MetadataObjects(metadata));
+
+    report.forEachErrorReport(errorReport -> log.error("Error report:" + errorReport));
     assertEquals(Status.OK, report.getStatus());
     ProgramStage programStage = programStageService.getProgramStage("oORy3Rg9hLE");
     assertEquals(1, programStage.getSharing().getUserGroups().size());
@@ -946,7 +952,10 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
             new ClassPathResource("dxf2/eventreport_with_program_indicator.json").getInputStream(),
             RenderFormat.JSON);
     MetadataImportParams params = createParams(ImportStrategy.CREATE);
+
     ImportReport report = importService.importMetadata(params, new MetadataObjects(metadata));
+
+    report.forEachErrorReport(errorReport -> log.error("Error report:" + errorReport));
     assertEquals(Status.OK, report.getStatus());
     EventReport eventReport = manager.get(EventReport.class, "pCSijMNjMcJ");
     assertNotNull(eventReport.getProgramIndicatorDimensions());
@@ -963,6 +972,8 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
             RenderFormat.JSON);
     MetadataImportParams params = createParams(ImportStrategy.CREATE);
     ImportReport report = importService.importMetadata(params, new MetadataObjects(metadata));
+
+    report.forEachErrorReport(errorReport -> log.error("Error report:" + errorReport));
     assertEquals(Status.OK, report.getStatus());
 
     Visualization visualization = manager.get(Visualization.class, "gyYXi0rXAIc");

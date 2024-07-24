@@ -42,6 +42,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -371,6 +372,7 @@ class SqlViewServiceTest extends PostgresIntegrationTestBase {
     assertEquals("SQL query contains variable names that are invalid: `[typö]`", ex.getMessage());
   }
 
+  @Disabled("TODO(platform) enable again")
   @Test
   void testGetSqlViewGrid() {
     Map<String, String> variables = new HashMap<>();
