@@ -69,7 +69,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.jboss.aerogear.security.otp.api.Base32;
@@ -93,14 +92,15 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private SessionRegistry sessionRegistry;
 
-  @Autowired private UserService userService;
-
   private User peter;
 
   @Autowired ObjectMapper objectMapper;
 
   @BeforeEach
   void setUp() {
+    // TODO(platform) intentional? you are creating 2 users with username `peter` and `Peter` and
+    // assigning it to field peter
+    // also why switch to the user and then immediately back to the admin user?
     peter = createUserWithAuth("peter");
 
     this.peter = switchToNewUser("Peter");
