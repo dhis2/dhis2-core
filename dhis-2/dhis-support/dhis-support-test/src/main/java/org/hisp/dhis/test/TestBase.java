@@ -2536,13 +2536,14 @@ public abstract class TestBase {
       authorities.addAll(Lists.newArrayList(auths));
     }
 
+    String username = CodeGenerator.generateCode(16);
     UserRole group = new UserRole();
-    group.setName("Superuser");
+    group.setName(username);
     group.getAuthorities().addAll(authorities);
     userService.addUserRole(group);
 
     User user = makeUser(getNextUniqueChar());
-    user.setUsername(CodeGenerator.generateCode(16));
+    user.setUsername(username);
     user.getUserRoles().add(group);
 
     if (organisationUnits != null) {

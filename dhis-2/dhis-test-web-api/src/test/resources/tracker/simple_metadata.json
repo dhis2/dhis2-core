@@ -32,7 +32,7 @@
       "featureType": "NONE",
       "minAttributesRequiredToSearch": 1,
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "sharing": {
         "external": false,
@@ -69,7 +69,7 @@
       "featureType": "NONE",
       "minAttributesRequiredToSearch": 1,
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "sharing": {
         "external": false,
@@ -79,14 +79,14 @@
   ],
   "users": [
     {
-      "code": "admin",
-      "id": "M5zQapPyTZI",
+      "code": "tracker admin",
+      "id": "tTgjgobT1oS",
       "password": "Test123###...",
-      "surname": "Surnameadmin",
-      "firstName": "FirstNameadmin",
-      "name": "admin admin",
+      "surname": "tracker Surnameadmin",
+      "firstName": "tracker FirstNameadmin",
+      "name": "tracker admin",
       "lastLogin": "2020-05-31T08:55:38.571",
-      "displayName": "admin admin",
+      "displayName": "tracker admin",
       "externalAuth": false,
       "externalAccess": false,
       "disabled": false,
@@ -95,7 +95,7 @@
       "invitation": false,
       "selfRegistered": false,
       "favorite": false,
-      "username": "admin",
+      "username": "trackeradmin",
       "access": {
         "read": true,
         "update": true,
@@ -106,7 +106,7 @@
       },
       "userRoles": [
         {
-          "id": "yrB6vc5Ip3r"
+          "id": "nJ4Ml8ads4M"
         }
       ],
       "teiSearchOrganisationUnits": [
@@ -133,7 +133,7 @@
       "path": "/h4w96yEMlzO",
       "openingDate": "2020-05-31T00:00:00.000",
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       }
     }
   ],
@@ -165,7 +165,7 @@
         "id": "ja8NY4PW7Xm"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "organisationUnits": [
         {
@@ -176,13 +176,13 @@
   ],
   "userRoles": [
     {
-      "code": "Superuser",
-      "name": "Superuser",
-      "id": "yrB6vc5Ip3r",
+      "code": "tracker Superuser",
+      "name": "tracker Superuser",
+      "id": "nJ4Ml8ads4M",
       "publicAccess": "--------",
-      "description": "Superuser",
+      "description": "tracker Superuser",
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "authorities": [
         "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
@@ -209,7 +209,7 @@
       "unique": false,
       "inherit": false,
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       }
     }
   ]

@@ -56,6 +56,7 @@ import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,6 +81,10 @@ class ProgramRuleAssignActionTest extends TrackerTest {
   @BeforeAll
   void setUp() throws IOException {
     ObjectBundle bundle = setUpMetadata("tracker/simple_metadata.json");
+
+    User importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
+
     program = bundle.getPreheat().get(PreheatIdentifier.UID, Program.class, "BFcipDERJnf");
     dataElement1 = bundle.getPreheat().get(PreheatIdentifier.UID, DataElement.class, "DATAEL00001");
     DataElement dataElement2 =
@@ -94,8 +99,6 @@ class ProgramRuleAssignActionTest extends TrackerTest {
         createProgramRuleVariableWithTEA('B', program, attribute2);
     programRuleVariableService.addProgramRuleVariable(programRuleVariable);
     programRuleVariableService.addProgramRuleVariable(programRuleVariableAttribute);
-
-    injectAdminIntoSecurityContext();
 
     assignProgramRule();
     trackerImportService.importTracker(

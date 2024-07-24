@@ -142,11 +142,12 @@ public abstract class ControllerTestBase extends TestBase implements WebClient {
     renderService = _renderService;
     clearSecurityContext();
 
-    this.adminUser = _preCreateInjectAdminUserWithoutPersistence();
-    manager.persist(adminUser);
-    _injectSecurityContextUser(adminUser);
-
-    superUser = createAndAddAdminUser("ALL");
+    adminUser = preCreateInjectAdminUser();
+    superUser = adminUser;
+    //    this.adminUser = _preCreateInjectAdminUserWithoutPersistence();
+    //    manager.persist(adminUser);
+    //    _injectSecurityContextUser(adminUser);
+    //    superUser = createAndAddAdminUser("ALL");
 
     mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
 

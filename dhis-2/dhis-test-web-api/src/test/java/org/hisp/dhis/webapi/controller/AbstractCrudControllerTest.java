@@ -87,7 +87,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
   void testGetObjectList() {
     JsonList<JsonUser> users =
         GET("/users/").content(HttpStatus.OK).getList("users", JsonUser.class);
-    assertEquals(2, users.size());
+    assertEquals(1, users.size());
     JsonUser user = users.get(0);
     assertStartsWith("First", user.getDisplayName());
   }

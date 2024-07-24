@@ -65,6 +65,7 @@ import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage.JsonPager;
@@ -98,7 +99,10 @@ class TrackedEntitiesExportControllerPostgresTest extends PostgresControllerInte
     this.renderService = _renderService;
     setUpMetadata("tracker/simple_metadata.json");
 
-    TrackerImportParams params = TrackerImportParams.builder().userId(superUser.getUid()).build();
+    User importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
+
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     assertNoDataErrors(
         trackerImportService.importTracker(params, fromJson("tracker/single_te.json")));
 

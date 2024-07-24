@@ -76,7 +76,8 @@ class LastUpdateImportTest extends TrackerTest {
   void setUp() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
 
-    injectAdminIntoSecurityContext();
+    User importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
 
     TrackerObjects trackerObjects = fromJson("tracker/single_te.json");
     assertNoErrors(trackerImportService.importTracker(new TrackerImportParams(), trackerObjects));
@@ -194,7 +195,6 @@ class LastUpdateImportTest extends TrackerTest {
 
   @Test
   void shouldUpdateAndDeleteTrackedEntityWhenTeIsDeleted() {
-
     TrackedEntity entityBeforeUpdate = getTrackedEntity();
 
     clearSession();
@@ -223,7 +223,6 @@ class LastUpdateImportTest extends TrackerTest {
 
   @Test
   void shouldUpdateAndDeleteTrackedEntityCascadeWhenTeWithEnrollmentIsDeleted() {
-    injectAdminIntoSecurityContext();
     TrackedEntity entityBeforeUpdate = getTrackedEntity();
 
     Enrollment enrollmentBeforeDelete = getEnrollment();
@@ -419,7 +418,6 @@ class LastUpdateImportTest extends TrackerTest {
 
   @Test
   void shouldUpdatedEventProgramWhenEventIsDeleted() throws IOException {
-    injectAdminIntoSecurityContext();
     org.hisp.dhis.tracker.imports.domain.Event ev = importEventProgram();
 
     Event eventBeforeDeletion = getEvent(ev.getUid());

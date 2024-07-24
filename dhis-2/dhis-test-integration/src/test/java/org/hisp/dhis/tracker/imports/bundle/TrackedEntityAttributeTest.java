@@ -74,6 +74,7 @@ class TrackedEntityAttributeTest extends TrackerTest {
   @Test
   void testTrackedAttributePreheater() throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/te_with_tea_data.json");
+
     TrackerPreheat preheat =
         trackerPreheatService.preheat(
             trackerObjects, new TrackerIdSchemeParams(), userService.getUser(ADMIN_USER_UID));

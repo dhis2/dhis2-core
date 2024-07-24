@@ -63,8 +63,10 @@ class EventDataValueTest extends TrackerTest {
   @BeforeAll
   void setUp() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
-    final User userA = userService.getUser("M5zQapPyTZI");
+
+    final User userA = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(userA);
+
     TrackerImportParams params = TrackerImportParams.builder().userId(userA.getUid()).build();
     TrackerObjects trackerObjects = fromJson("tracker/single_te.json");
     assertNoErrors(trackerImportService.importTracker(params, trackerObjects));

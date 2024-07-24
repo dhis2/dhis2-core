@@ -49,7 +49,7 @@ class GistTransformControllerTest extends AbstractGistControllerTest {
                 "/users/{uid}/gist?fields=surname~rename(name),username~rename(alias)",
                 getSuperuserUid())
             .content();
-    assertEquals("Surnameadmin", user.getString("name").string());
+    assertEquals(getSuperUser().getSurname(), user.getString("name").string());
     assertEquals(2, user.size());
   }
 
@@ -69,7 +69,7 @@ class GistTransformControllerTest extends AbstractGistControllerTest {
             .content();
     assertHasPager(gist, 1, 50);
     assertEquals(
-        "Surnameadmin",
+        getSuperUser().getSurname(),
         gist.getArray("userGroups").getObject(0).getArray("users").getString(0).string());
   }
 
