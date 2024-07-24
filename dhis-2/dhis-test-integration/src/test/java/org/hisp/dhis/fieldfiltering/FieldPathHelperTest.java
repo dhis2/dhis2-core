@@ -28,6 +28,7 @@
 package org.hisp.dhis.fieldfiltering;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -130,6 +131,37 @@ class FieldPathHelperTest extends PostgresIntegrationTestBase {
             .map(FieldPath::getName)
             .toList()
             .containsAll(List.of("username", "userRoles")));
+  }
+
+  @Test
+  @DisplayName("nameable field filter for DataElement returns expected fields")
+  void nameableFieldFilterTest() {
+    // given
+    FieldPath fieldPath = new FieldPath(Preset.NAMEABLE.getName(), List.of());
+    Map<String, FieldPath> fieldPathMap = new HashMap<>();
+
+    // when
+    helper.applyPresets(List.of(fieldPath), fieldPathMap, DataElement.class);
+
+    // then
+    assertEquals(8, fieldPathMap.size());
+    assertTrue(
+        List.of("id", "name", "shortName", "description", "code", "created", "lastUpdated", "href")
+            .containsAll(fieldPathMap.values().stream().map(FieldPath::getName).toList()));
+  }
+
+  @Test
+  @DisplayName("persisted field filter for DataElement returns fields")
+  void persistedFieldFilterTest() {
+    // given
+    FieldPath fieldPath = new FieldPath(FieldPreset.PERSISTED, List.of());
+    Map<String, FieldPath> fieldPathMap = new HashMap<>();
+
+    // when
+    helper.applyPresets(List.of(fieldPath), fieldPathMap, DataElement.class);
+
+    // then
+    assertFalse(fieldPathMap.isEmpty());
   }
 
   private void assertPropertyExists(String propertyName, Map<String, FieldPath> fieldMapPath) {

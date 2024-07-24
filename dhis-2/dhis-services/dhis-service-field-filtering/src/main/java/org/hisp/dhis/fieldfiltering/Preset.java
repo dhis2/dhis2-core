@@ -25,29 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.node;
+package org.hisp.dhis.fieldfiltering;
 
-import com.google.common.collect.Lists;
 import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public enum Preset {
-  ID("id", Lists.newArrayList("id")),
-  CODE("code", Lists.newArrayList("code")),
-  ID_NAME("idName", Lists.newArrayList("id", "displayName")),
-  ALL("all", Lists.newArrayList("*")),
-  IDENTIFIABLE(
-      "identifiable", Lists.newArrayList("id", "name", "code", "created", "lastUpdated", "href")),
+  ID("id", List.of("id")),
+  CODE("code", List.of("code")),
+  ID_NAME("idName", List.of("id", "displayName")),
+  ALL("all", List.of("*")),
+  IDENTIFIABLE("identifiable", List.of("id", "name", "code", "created", "lastUpdated")),
   NAMEABLE(
       "nameable",
-      Lists.newArrayList(
-          "id", "name", "shortName", "description", "code", "created", "lastUpdated", "href"));
+      List.of("id", "name", "shortName", "description", "code", "created", "lastUpdated"));
 
-  private String name;
+  private final String name;
 
-  private List<String> fields;
+  private final List<String> fields;
 
   Preset(String name, List<String> fields) {
     this.name = name;
