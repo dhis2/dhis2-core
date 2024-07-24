@@ -2615,14 +2615,14 @@ public abstract class TestBase {
    * Creates and persists a user with a random UID and given authorities and injects it into the
    * Spring security context.
    */
-  protected final User createAndInjectUser(String... authorities) {
-    User user = createAndAddUser(authorities);
+  protected final User createAndInjectRandomUser(String... authorities) {
+    User user = createAndAddRandomUser(authorities);
     injectSecurityContextUser(user);
     return user;
   }
 
   /** Creates and persists a user with a random UID and given authorities. */
-  protected User createAndAddUser(String... authorities) {
+  protected User createAndAddRandomUser(String... authorities) {
     checkUserServiceWasInjected();
 
     String uid = CodeGenerator.generateUid();

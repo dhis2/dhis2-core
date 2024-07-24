@@ -80,7 +80,7 @@ class CsvMetadataImportIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   void testOrgUnitImport_MoveLacksMoveAuthority() throws Exception {
-    createAndInjectUser();
+    createAndInjectRandomUser();
     ImportReport report =
         runImport(
             "dxf2/metadata/organisationUnits_move.csv",
@@ -93,7 +93,7 @@ class CsvMetadataImportIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   void testOrgUnitImport_MoveLacksWriteAuthority() throws Exception {
-    createAndInjectUser("F_ORGANISATIONUNIT_MOVE");
+    createAndInjectRandomUser("F_ORGANISATIONUNIT_MOVE");
     ImportReport report =
         runImport(
             "dxf2/metadata/organisationUnits_move.csv",
@@ -106,7 +106,7 @@ class CsvMetadataImportIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   void testOrgUnitImport_MoveFromParentNotInHierarchy() throws Exception {
-    User user = createAndInjectUser("F_ORGANISATIONUNIT_MOVE", "F_ORGANISATIONUNIT_ADD");
+    User user = createAndInjectRandomUser("F_ORGANISATIONUNIT_MOVE", "F_ORGANISATIONUNIT_ADD");
     HashSet<OrganisationUnit> orgUnits = new HashSet<>();
     orgUnits.add(organisationUnitService.getOrganisationUnitByCode("L2b"));
     user.setOrganisationUnits(orgUnits);
@@ -124,7 +124,7 @@ class CsvMetadataImportIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   void testOrgUnitImport_MoveToParentNotInHierarchy() throws Exception {
-    User user = createAndInjectUser("F_ORGANISATIONUNIT_MOVE", "F_ORGANISATIONUNIT_ADD");
+    User user = createAndInjectRandomUser("F_ORGANISATIONUNIT_MOVE", "F_ORGANISATIONUNIT_ADD");
     HashSet<OrganisationUnit> orgUnits = new HashSet<>();
     orgUnits.add(organisationUnitService.getOrganisationUnitByCode("L2a"));
     user.setOrganisationUnits(orgUnits);
@@ -142,7 +142,7 @@ class CsvMetadataImportIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   void testOrgUnitImport_Success() throws Exception {
-    User user = createAndInjectUser("F_ORGANISATIONUNIT_MOVE", "F_ORGANISATIONUNIT_ADD");
+    User user = createAndInjectRandomUser("F_ORGANISATIONUNIT_MOVE", "F_ORGANISATIONUNIT_ADD");
     HashSet<OrganisationUnit> orgUnits = new HashSet<>();
     orgUnits.add(organisationUnitService.getOrganisationUnitByCode("L1"));
     user.setOrganisationUnits(orgUnits);

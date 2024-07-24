@@ -82,8 +82,7 @@ class AclServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testUpdateObjectWithPublicRWFail() {
-    injectAdminIntoSecurityContext();
-    User user = this.createAndAddUser("F_OPTIONSET_PUBLIC_ADD");
+    User user = createAndAddRandomUser("F_OPTIONSET_PUBLIC_ADD");
     DataElement dataElement = createDataElement('A');
     dataElement.setPublicAccess(AccessStringHelper.READ_WRITE);
     assertFalse(aclService.canUpdate(user, dataElement));
@@ -91,7 +90,7 @@ class AclServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testUpdateObjectWithPublicWFail() {
-    User user = this.createAndAddUser("F_OPTIONSET_PUBLIC_ADD");
+    User user = createAndAddRandomUser("F_OPTIONSET_PUBLIC_ADD");
     DataElement dataElement = createDataElement('A');
     dataElement.setPublicAccess(AccessStringHelper.WRITE);
     assertFalse(aclService.canUpdate(user, dataElement));
@@ -99,7 +98,7 @@ class AclServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testUpdateObjectWithPublicRFail() {
-    User user = this.createAndAddUser("F_OPTIONSET_PUBLIC_ADD");
+    User user = createAndAddRandomUser("F_OPTIONSET_PUBLIC_ADD");
     DataElement dataElement = createDataElement('A');
     dataElement.setPublicAccess(AccessStringHelper.READ);
     assertFalse(aclService.canUpdate(user, dataElement));
@@ -107,7 +106,7 @@ class AclServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testUpdateObjectWithPublicRUserOwner() {
-    User user = this.createAndAddUser("F_DATAELEMENT_PUBLIC_ADD");
+    User user = createAndAddRandomUser("F_DATAELEMENT_PUBLIC_ADD");
     DataElement dataElement = createDataElement('A');
     dataElement.setCreatedBy(user);
     dataElement.getSharing().setOwner(user);
@@ -117,7 +116,7 @@ class AclServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testUpdateObjectWithPublicRWSuccessPublic() {
-    User user = this.createAndAddUser("F_DATAELEMENT_PUBLIC_ADD");
+    User user = createAndAddRandomUser("F_DATAELEMENT_PUBLIC_ADD");
     DataElement dataElement = createDataElement('A');
     dataElement.setPublicAccess(AccessStringHelper.READ_WRITE);
     assertTrue(aclService.canUpdate(user, dataElement));
@@ -125,7 +124,7 @@ class AclServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testUpdateObjectWithPublicRWSuccessPrivate1() {
-    User user = this.createAndAddUser("F_DATAELEMENT_PRIVATE_ADD");
+    User user = createAndAddRandomUser("F_DATAELEMENT_PRIVATE_ADD");
     DataElement dataElement = createDataElement('A');
     dataElement.setCreatedBy(user);
     dataElement.getSharing().setOwner(user);
@@ -135,7 +134,7 @@ class AclServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testUpdateObjectWithPublicRWSuccessPrivate2() {
-    User user = this.createAndAddUser("F_DATAELEMENT_PRIVATE_ADD");
+    User user = createAndAddRandomUser("F_DATAELEMENT_PRIVATE_ADD");
     DataElement dataElement = createDataElement('A');
     dataElement.setPublicAccess(AccessStringHelper.READ_WRITE);
     assertFalse(aclService.canUpdate(user, dataElement));
@@ -143,14 +142,14 @@ class AclServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testCanCreatePrivatePublicDashboard() {
-    User user = this.createAndAddUser("F_DATAELEMENT_PRIVATE_ADD");
+    User user = createAndAddRandomUser("F_DATAELEMENT_PRIVATE_ADD");
     assertFalse(aclService.canMakeClassPublic(user, Dashboard.class));
     assertTrue(aclService.canMakeClassPrivate(user, Dashboard.class));
   }
 
   @Test
   void testCanUpdatePrivateDashboard() {
-    User user = this.createAndAddUser("F_DATAELEMENT_PRIVATE_ADD");
+    User user = createAndAddRandomUser("F_DATAELEMENT_PRIVATE_ADD");
     Dashboard dashboard = new Dashboard("Dashboard");
     dashboard.setAutoFields();
     dashboard.setCreatedBy(user);
@@ -161,14 +160,14 @@ class AclServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testCanCreatePrivatePublicVisualization() {
-    User user = this.createAndAddUser("F_DATAELEMENT_PRIVATE_ADD");
+    User user = createAndAddRandomUser("F_DATAELEMENT_PRIVATE_ADD");
     assertFalse(aclService.canMakeClassPublic(user, Visualization.class));
     assertTrue(aclService.canMakeClassPrivate(user, Visualization.class));
   }
 
   @Test
   void testCanUpdatePrivateVisualization() {
-    User user = this.createAndAddUser("F_DATAELEMENT_PRIVATE_ADD");
+    User user = createAndAddRandomUser("F_DATAELEMENT_PRIVATE_ADD");
     Visualization visualization = new Visualization("Visualization");
     visualization.setAutoFields();
     visualization.setCreatedBy(user);
@@ -181,7 +180,7 @@ class AclServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testCanCreatePrivatePublicEventVisualization() {
     // Given
-    User user = this.createAndAddUser("F_DATAELEMENT_PRIVATE_ADD");
+    User user = createAndAddRandomUser("F_DATAELEMENT_PRIVATE_ADD");
     // Then
     assertFalse(aclService.canMakeClassPublic(user, EventVisualization.class));
     assertTrue(aclService.canMakeClassPrivate(user, EventVisualization.class));
@@ -190,7 +189,7 @@ class AclServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testCanUpdatePrivateEventVisualization() {
     // Given
-    User user = this.createAndAddUser("F_DATAELEMENT_PRIVATE_ADD");
+    User user = createAndAddRandomUser("F_DATAELEMENT_PRIVATE_ADD");
     EventVisualization eventVisualization = new EventVisualization("any");
     eventVisualization.setAutoFields();
     eventVisualization.setCreatedBy(user);
@@ -203,14 +202,14 @@ class AclServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testCanCreatePrivatePublicMap() {
-    User user = this.createAndAddUser("F_DATAELEMENT_PRIVATE_ADD");
+    User user = createAndAddRandomUser("F_DATAELEMENT_PRIVATE_ADD");
     assertFalse(aclService.canMakeClassPublic(user, Map.class));
     assertTrue(aclService.canMakeClassPrivate(user, Map.class));
   }
 
   @Test
   void testCanUpdatePrivateMap() {
-    User user = this.createAndAddUser("F_DATAELEMENT_PRIVATE_ADD");
+    User user = createAndAddRandomUser("F_DATAELEMENT_PRIVATE_ADD");
     Map map = new Map();
     map.setAutoFields();
     map.setCreatedBy(user);
@@ -221,14 +220,14 @@ class AclServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testCanCreatePrivatePublicLegendSet() {
-    User user = this.createAndAddUser("F_LEGEND_SET_PRIVATE_ADD");
+    User user = createAndAddRandomUser("F_LEGEND_SET_PRIVATE_ADD");
     assertFalse(aclService.canMakeClassPublic(user, LegendSet.class));
     assertTrue(aclService.canMakeClassPrivate(user, LegendSet.class));
   }
 
   @Test
   void testCanUpdatePrivateLegendSet() {
-    User user = this.createAndAddUser("F_LEGEND_SET_PRIVATE_ADD");
+    User user = createAndAddRandomUser("F_LEGEND_SET_PRIVATE_ADD");
     LegendSet legendSet = new LegendSet();
     legendSet.setAutoFields();
     legendSet.setCreatedBy(user);
@@ -239,7 +238,7 @@ class AclServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testVerifyDataElementPrivateRW() {
-    User user = this.createAndAddUser("F_DATAELEMENT_PRIVATE_ADD");
+    User user = createAndAddRandomUser("F_DATAELEMENT_PRIVATE_ADD");
     DataElement dataElement = createDataElement('A');
     dataElement.setPublicAccess(AccessStringHelper.READ_WRITE);
     assertFalse(aclService.verifySharing(dataElement, user).isEmpty());
@@ -247,7 +246,7 @@ class AclServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testVerifyDataElementPrivate() {
-    User user = this.createAndAddUser("F_DATAELEMENT_PRIVATE_ADD");
+    User user = createAndAddRandomUser("F_DATAELEMENT_PRIVATE_ADD");
     DataElement dataElement = createDataElement('A');
     dataElement.setPublicAccess(AccessStringHelper.DEFAULT);
     assertTrue(aclService.verifySharing(dataElement, user).isEmpty());
@@ -255,7 +254,7 @@ class AclServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testVerifyDataElementPublicRW() {
-    User user = this.createAndAddUser("F_DATAELEMENT_PUBLIC_ADD");
+    User user = createAndAddRandomUser("F_DATAELEMENT_PUBLIC_ADD");
     DataElement dataElement = createDataElement('A');
     dataElement.setPublicAccess(AccessStringHelper.READ_WRITE);
     assertTrue(aclService.verifySharing(dataElement, user).isEmpty());
@@ -263,7 +262,7 @@ class AclServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testVerifyDataElementPublic() {
-    User user = this.createAndAddUser("F_DATAELEMENT_PUBLIC_ADD");
+    User user = createAndAddRandomUser("F_DATAELEMENT_PUBLIC_ADD");
     DataElement dataElement = createDataElement('A');
     dataElement.setPublicAccess(AccessStringHelper.DEFAULT);
     assertTrue(aclService.verifySharing(dataElement, user).isEmpty());
@@ -271,7 +270,7 @@ class AclServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testVerifyVisualizationCantExternalize() {
-    User user = this.createAndAddUser("F_VISUALIZATION_PUBLIC_ADD");
+    User user = createAndAddRandomUser("F_VISUALIZATION_PUBLIC_ADD");
     Visualization visualization = new Visualization();
     visualization.setAutoFields();
     visualization.setPublicAccess(AccessStringHelper.DEFAULT);
@@ -283,7 +282,7 @@ class AclServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testVerifyEventVisualizationCantExternalize() {
     // Given
-    User user = this.createAndAddUser("F_EVENT_VISUALIZATION_PUBLIC_ADD");
+    User user = createAndAddRandomUser("F_EVENT_VISUALIZATION_PUBLIC_ADD");
     EventVisualization eventVisualization = new EventVisualization();
     eventVisualization.setAutoFields();
     eventVisualization.setPublicAccess(AccessStringHelper.DEFAULT);
@@ -295,7 +294,7 @@ class AclServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testResetSharingPropsPrivate() {
-    User user = createAndAddUser();
+    User user = createAndAddRandomUser();
     Visualization visualization = new Visualization();
     visualization.setAutoFields();
     visualization.setPublicAccess(AccessStringHelper.DEFAULT);
@@ -312,7 +311,7 @@ class AclServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testResetSharingEventVisualizationPropsPrivate() {
     // Given
-    User user = createAndAddUser();
+    User user = createAndAddRandomUser();
     EventVisualization eventVisualization = new EventVisualization();
     eventVisualization.setAutoFields();
     eventVisualization.setPublicAccess(AccessStringHelper.DEFAULT);
@@ -330,7 +329,7 @@ class AclServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testResetSharingPropsPublic() {
-    User user = this.createAndAddUser("F_VISUALIZATION_PUBLIC_ADD");
+    User user = createAndAddRandomUser("F_VISUALIZATION_PUBLIC_ADD");
     Visualization visualization = new Visualization();
     visualization.setAutoFields();
     visualization.setPublicAccess(AccessStringHelper.DEFAULT);
@@ -347,7 +346,7 @@ class AclServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testResetSharingEventVisualizationPropsPublic() {
     // Given
-    User user = this.createAndAddUser("F_EVENT_VISUALIZATION_PUBLIC_ADD");
+    User user = createAndAddRandomUser("F_EVENT_VISUALIZATION_PUBLIC_ADD");
     EventVisualization eventVisualization = new EventVisualization();
     eventVisualization.setAutoFields();
     eventVisualization.setPublicAccess(AccessStringHelper.DEFAULT);
@@ -365,13 +364,13 @@ class AclServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testCreateNoSharingObject() {
-    User user = createAndAddUser();
+    User user = createAndAddRandomUser();
     assertFalse(aclService.canCreate(user, OrganisationUnit.class));
   }
 
   @Test
   void testUpdateNoSharingObject() {
-    User user = createAndAddUser();
+    User user = createAndAddRandomUser();
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
     assertFalse(aclService.canUpdate(user, organisationUnit));
   }
@@ -1132,7 +1131,7 @@ class AclServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testOwnerDataReadFail() {
-    User admin = this.createAndAddUser("ALL");
+    User admin = createAndAddRandomUser("ALL");
     CategoryOption categoryOption = createCategoryOption('A');
     categoryOption.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     categoryOption.getSharing().setOwner(admin);
@@ -1157,7 +1156,7 @@ class AclServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testOwnerMetadataReadFail() {
-    User admin = this.createAndAddUser("ALL");
+    User admin = createAndAddRandomUser("ALL");
     CategoryOption categoryOption = createCategoryOption('A');
     categoryOption.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     categoryOption.getSharing().setOwner(admin);
