@@ -39,8 +39,10 @@ import lombok.RequiredArgsConstructor;
  * This is a simplified markdown to HTML helper used in {@link OpenApiRenderer} to render
  * descriptions where markdown is allowed.
  *
- * <p>The syntax supported is minimal only supporting inline markup, paragraphs, hashtag headers and
- * lists and rulers.
+ * <p>The syntax supported is minimal only supporting inline markup, paragraphs, hashtag headers,
+ * blockquotes, lists and rulers. Lists and blockquotes can only contain inline markup but not other
+ * block elements. List items always end on blank lines. Blank lines between items start a new
+ * listing.
  *
  * <p>This means no embedded HTML is supported. HTML will be escaped.
  *
@@ -56,7 +58,7 @@ final class OpenApiMarkdown {
 
   private record MarkupText(List<MarkdownBlock> content) implements MarkdownBlock {}
 
-  private record MarkupListing(MarkupListType type, List<MarkupText> items)
+  private record MarkupListing(MarkupListType type, List<List<MarkupLine>> items)
       implements MarkdownBlock {}
 
   private record MarkupRuler() implements MarkdownBlock {}
@@ -64,6 +66,8 @@ final class OpenApiMarkdown {
   private record MarkupHeading(int level, MarkupLine text) implements MarkdownBlock {}
 
   private record MarkupCodeBlock(String language, String verbatim) implements MarkdownBlock {}
+
+  private record MarkdownBlockQuote(List<MarkupLine> quoted) implements MarkdownBlock {}
 
   private record MarkupLine(List<MarkupSpan> spans) implements MarkdownBlock {}
 
@@ -88,19 +92,12 @@ final class OpenApiMarkdown {
   private final StringBuilder html;
   private final Set<String> keywords;
 
-  /**
-   * Is markdown which is just plain text as it does not have any characters that would trigger
-   * markdown syntax. This must also exclude any character that cannot occur in HTML unescaped.
-   */
-  private static final Pattern PLAIN_TEXT = Pattern.compile("^[-a-zA-Z0-9 \t.,;:?#'~+/%()^°|]*$");
-
   public static String markdownToHTML(String markdown) {
     return markdownToHTML(markdown, Set.of());
   }
 
   public static String markdownToHTML(String markdown, Set<String> keywords) {
     if (markdown == null || markdown.isBlank()) return null;
-    if (PLAIN_TEXT.matcher(markdown).matches()) return markdown;
     OpenApiMarkdown renderer = new OpenApiMarkdown(new StringBuilder(markdown.length()), keywords);
     renderer.renderText(MarkdownParser.parse(markdown));
     return renderer.html.toString();
@@ -121,11 +118,22 @@ final class OpenApiMarkdown {
       renderListing(l);
     } else if (block instanceof MarkupCodeBlock b) {
       renderCodeBlock(b);
+    } else if (block instanceof MarkdownBlockQuote q) {
+      renderBlockQuote(q);
     } else throw new UnsupportedOperationException("Can't happen");
   }
 
   private void renderCodeBlock(MarkupCodeBlock block) {
-    html.append("<pre>\n").append(escapeHtml(block.verbatim)).append("\n</pre>\n");
+    html.append("<pre");
+    if (!block.language.isEmpty())
+      html.append(" lang='").append(escapeHtml(block.language)).append("'");
+    html.append(">\n").append(escapeHtml(block.verbatim)).append("</pre>\n");
+  }
+
+  private void renderBlockQuote(MarkdownBlockQuote block) {
+    html.append("<blockquote>");
+    renderLines(block.quoted);
+    html.append("</blockquote>\n");
   }
 
   private void renderSpacer(MarkupSpacer spacer) {
@@ -137,9 +145,9 @@ final class OpenApiMarkdown {
     html.append("<").append(tag).append(">\n");
     listing.items.forEach(
         li -> {
-          html.append("<li>");
-          renderText(li);
-          html.append("</li>");
+          html.append("  <li>");
+          renderLines(li);
+          html.append("</li>\n");
         });
     html.append("</").append(tag).append(">\n");
   }
@@ -150,7 +158,7 @@ final class OpenApiMarkdown {
         () -> {
           if (!lines.isEmpty()) {
             html.append("<p>");
-            lines.forEach(this::renderLine);
+            renderLines(lines);
             html.append("</p>");
             lines.clear();
           }
@@ -174,6 +182,13 @@ final class OpenApiMarkdown {
     html.append("<h").append(heading.level).append(">");
     renderLine(heading.text);
     html.append("</h").append(heading.level).append(">\n");
+  }
+
+  private void renderLines(List<MarkupLine> lines) {
+    for (int i = 0; i < lines.size(); i++) {
+      if (i > 0) html.append('\n');
+      renderLine(lines.get(i));
+    }
   }
 
   private void renderLine(MarkupLine line) {
@@ -205,9 +220,9 @@ final class OpenApiMarkdown {
       }
       case PLAIN -> html.append(escapeHtml(span.value));
       case CODE -> {
-        html.append("<code class=\"md");
-        if (keywords.contains(span.value)) html.append(" url");
-        html.append("\">").append(escapeHtml(span.value)).append("</code>");
+        html.append("<code");
+        if (keywords.contains(span.value)) html.append(" class=\"keyword\"");
+        html.append(">").append(escapeHtml(span.value)).append("</code>");
       }
     }
   }
@@ -232,8 +247,9 @@ final class OpenApiMarkdown {
 
     private static final Pattern REGEX_SPACER = Pattern.compile("^\\s*$");
     private static final Pattern REGEX_RULER = Pattern.compile("^\\s*[-_*]{3,}\\s*$");
-    private static final Pattern REGEX_HEADING = Pattern.compile("^\\s*(#{1,6}) ");
-    private static final Pattern REGEX_LISTING = Pattern.compile("^\\s*(?:-|\\*|\\d+\\.) ");
+    private static final Pattern REGEX_HEADING = Pattern.compile("^\\s*(#{1,6}) .*$");
+    private static final Pattern REGEX_LISTING = Pattern.compile("^\\s*(?:-|\\*|#\\.|\\d+\\.) .*$");
+    private static final Pattern REGEX_BLOCK_QUOTE = Pattern.compile("^\\s*> .*$");
     private static final Pattern REGEX_CODE_BLOCK =
         Pattern.compile("^\\s*```(?:[-_a-zA-Z0-9]+)?\\s*$");
 
@@ -244,6 +260,7 @@ final class OpenApiMarkdown {
       if (REGEX_HEADING.matcher(line).matches()) return parseHeading();
       if (REGEX_LISTING.matcher(line).matches()) return parseListing();
       if (REGEX_CODE_BLOCK.matcher(line).matches()) return parseCodeBlock();
+      if (REGEX_BLOCK_QUOTE.matcher(line).matches()) return parseBlockQuote();
       return parseLine();
     }
 
@@ -269,15 +286,55 @@ final class OpenApiMarkdown {
     }
 
     private MarkupListing parseListing() {
+      String line = lines[lineNo];
+      int indent = leadingIndent(line);
+      MarkupListType type =
+          switch (line.charAt(indent)) {
+            case '-', '*' -> MarkupListType.BULLET;
+            default -> MarkupListType.NUMBERED;
+          };
+      List<MarkupLine> itemLines = new ArrayList<>();
+      List<List<MarkupLine>> items = new ArrayList<>();
+      while (line != null) {
+        // first line with item marker...
+        itemLines.add(parseLine(line.substring(line.indexOf(' ', indent) + 1)));
+        lineNo++;
+        // potential further indented lines...
+        while (lineNo < lines.length && leadingIndent(lines[lineNo]) > indent) {
+          itemLines.add(parseLine(lines[lineNo++].trim()));
+        }
+        // next marker...
+        items.add(itemLines);
+        itemLines = new ArrayList<>();
+        line = lineNo < lines.length ? lines[lineNo] : null;
+        if (line != null && !REGEX_LISTING.matcher(line).matches()) line = null;
+      }
+      return new MarkupListing(type, items);
+    }
 
-      return null;
+    private static int leadingIndent(String line) {
+      int indent = 0;
+      while (indent < line.length() && isIndent(line.charAt(indent))) indent++;
+      return indent;
+    }
+
+    private MarkdownBlockQuote parseBlockQuote() {
+      List<MarkupLine> quoted = new ArrayList<>();
+      String line = lines[lineNo].trim();
+      while (line != null && line.startsWith("> ")) {
+        quoted.add(parseLine(line.substring(2)));
+        ++lineNo;
+        line = lineNo >= lines.length ? null : lines[lineNo].trim();
+      }
+      return new MarkdownBlockQuote(quoted);
     }
 
     private MarkupHeading parseHeading() {
       String line = lines[lineNo++];
-      String type = REGEX_HEADING.matcher(line).group(1);
-      int level = type.length();
-      String inline = line.substring(line.indexOf(type) + level);
+      int firstHash = line.indexOf('#');
+      int spaceAfterHash = line.indexOf(' ', firstHash);
+      int level = spaceAfterHash - firstHash;
+      String inline = line.substring(spaceAfterHash + 1);
       return new MarkupHeading(level, parseLine(inline));
     }
 

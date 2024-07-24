@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.openapi;
 import static org.hisp.dhis.webapi.openapi.OpenApiMarkdown.markdownToHTML;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -41,57 +42,211 @@ class OpenApiMarkdownTest {
 
   @Test
   void testPlain() {
-    assertEquals("hello", markdownToHTML("hello"));
-    assertEquals("hello world", markdownToHTML("hello world"));
-    assertEquals("hello world!", markdownToHTML("hello world!"));
+    assertRenders("<p>hello</p>", "hello");
+    assertRenders("<p>hello world</p>", "hello world");
+    assertRenders("<p>hello world!</p>", "hello world!");
   }
 
   @Test
   void testItalic() {
-    assertEquals("<em>hello</em>", markdownToHTML("_hello_"));
-    assertEquals("hello <em>world</em>", markdownToHTML("hello _world_"));
-    assertEquals("hello <em>world</em>!", markdownToHTML("hello _world_!"));
+    assertRenders("<p><em>hello</em></p>", "_hello_");
+    assertRenders("<p>hello <em>world</em></p>", "hello _world_");
+    assertRenders("<p>hello <em>world</em>!</p>", "hello _world_!");
   }
 
   @Test
   void testItalic2() {
-    assertEquals("<em>hello</em>", markdownToHTML("*hello*"));
-    assertEquals("hello <em>world</em>", markdownToHTML("hello *world*"));
-    assertEquals("hello <em>world</em>!", markdownToHTML("hello *world*!"));
+    assertRenders("<p><em>hello</em></p>", "*hello*");
+    assertRenders("<p>hello <em>world</em></p>", "hello *world*");
+    assertRenders("<p>hello <em>world</em>!</p>", "hello *world*!");
   }
 
   @Test
   void testBold() {
-    assertEquals("<strong>hello</strong>", markdownToHTML("__hello__"));
-    assertEquals("hello <strong>world</strong>", markdownToHTML("hello __world__"));
-    assertEquals("hello <strong>world</strong>!", markdownToHTML("hello __world__!"));
+    assertRenders("<p><strong>hello</strong></p>", "__hello__");
+    assertRenders("<p>hello <strong>world</strong></p>", "hello __world__");
+    assertRenders("<p>hello <strong>world</strong>!</p>", "hello __world__!");
   }
 
   @Test
   void testBold2() {
-    assertEquals("<strong>hello</strong>", markdownToHTML("**hello**"));
-    assertEquals("hello <strong>world</strong>", markdownToHTML("hello **world**"));
-    assertEquals("hello <strong>world</strong>!", markdownToHTML("hello **world**!"));
+    assertRenders("<p><strong>hello</strong></p>", "**hello**");
+    assertRenders("<p>hello <strong>world</strong></p>", "hello **world**");
+    assertRenders("<p>hello <strong>world</strong>!</p>", "hello **world**!");
   }
 
   @Test
   void testItalicAndBold() {
-    assertEquals("<em><strong>hello</strong></em>", markdownToHTML("___hello___"));
-    assertEquals("hello <em><strong>world</strong></em>", markdownToHTML("hello ___world___"));
-    assertEquals("hello <em><strong>world</strong></em>!", markdownToHTML("hello ___world___!"));
+    assertRenders("<p><em><strong>hello</strong></em></p>", "___hello___");
+    assertRenders("<p>hello <em><strong>world</strong></em></p>", "hello ___world___");
+    assertRenders("<p>hello <em><strong>world</strong></em>!</p>", "hello ___world___!");
   }
 
   @Test
   void testItalicAndBold2() {
-    assertEquals("<em><strong>hello</strong></em>", markdownToHTML("***hello***"));
-    assertEquals("hello <em><strong>world</strong></em>", markdownToHTML("hello ***world***"));
-    assertEquals("hello <em><strong>world</strong></em>!", markdownToHTML("hello ***world***!"));
+    assertRenders("<p><em><strong>hello</strong></em></p>", "***hello***");
+    assertRenders("<p>hello <em><strong>world</strong></em></p>", "hello ***world***");
+    assertRenders("<p>hello <em><strong>world</strong></em>!</p>", "hello ***world***!");
   }
 
   @Test
   void testCode() {
-    assertEquals("<code>hello</code>", markdownToHTML("`hello`"));
-    assertEquals("hello <code>world</code>", markdownToHTML("hello `world`"));
-    assertEquals("hello <code>world</code>!", markdownToHTML("hello `world`!"));
+    assertRenders("<p><code>hello</code></p>", "`hello`");
+    assertRenders("<p>hello <code>world</code></p>", "hello `world`");
+    assertRenders("<p>hello <code>world</code>!</p>", "hello `world`!");
+  }
+
+  @Test
+  void testHeading() {
+    assertRenders("<h1>hello</h1>\n", "# hello");
+    assertRenders("<h2>hello <code>world</code></h2>\n", "## hello `world`");
+    assertRenders("<h3>hello <code>world</code>!</h3>\n", "### hello `world`!");
+  }
+
+  @Test
+  void testBlockquote() {
+    assertRenders("<blockquote>hello</blockquote>\n", "> hello");
+    assertRenders("<blockquote>hello\nworld</blockquote>\n", "> hello\n> world");
+    assertRenders(
+        "<blockquote>hello\n<strong>strong</strong>\nworld</blockquote>\n",
+        """
+      > hello
+      > **strong**\s
+      > world""");
+  }
+
+  @Test
+  void testListing_Star() {
+    assertRenders("<ul>\n  <li>hello</li>\n  <li>world</li>\n</ul>\n", "* hello\n* world");
+    assertRenders(
+        """
+      <ul>
+        <li>hello
+      world</li>
+        <li>this is
+      the second
+      item</li>
+      </ul>
+      """,
+        "* hello\n  world\n* this is\n  the second\n  item");
+  }
+
+  @Test
+  void testListing_Dash() {
+    assertRenders("<ul>\n  <li>hello</li>\n  <li>world</li>\n</ul>\n", "- hello\n- world");
+    assertRenders(
+        """
+      <ul>
+        <li>hello
+      world</li>
+        <li>this is
+      the second
+      item</li>
+      </ul>
+      """,
+        "- hello\n  world\n- this is\n  the second\n  item");
+  }
+
+  @Test
+  void testListing_Hash() {
+    assertRenders("<ol>\n  <li>hello</li>\n  <li>world</li>\n</ol>\n", "#. hello\n#. world");
+    assertRenders(
+        """
+      <ol>
+        <li>hello
+      world</li>
+        <li>this is
+      the second
+      item</li>
+      </ol>
+      """,
+        "#. hello\n  world\n#. this is\n  the second\n  item");
+  }
+
+  @Test
+  void testListing_Numbered() {
+    assertRenders("<ol>\n  <li>hello</li>\n  <li>world</li>\n</ol>\n", "1. hello\n2. world");
+    assertRenders(
+        """
+      <ol>
+        <li>hello
+      world</li>
+        <li>this is
+      the second
+      item</li>
+      </ol>
+      """,
+        "1. hello\n  world\n2. this is\n  the second\n  item");
+  }
+
+  @Test
+  void testRuler() {
+    assertRenders("<hr/>\n", "***");
+    assertRenders("<hr/>\n", "  ***");
+    assertRenders("<hr/>\n", "  ********   ");
+    assertRenders("<hr/>\n", "---  ");
+    assertRenders("<hr/>\n", " --------------------------- ");
+    assertRenders("<hr/>\n", "_____________");
+    assertRenders("<hr/>\n", "            ___        ");
+  }
+
+  @Test
+  void testCodeBlock() {
+    assertRenders("<pre>\n code\n</pre>\n", "```\n code\n```");
+    assertRenders(
+        "<pre lang='json'>\n&quot;indeed&quot;\n</pre>\n",
+        """
+         ```json
+         "indeed"
+         ```
+         """);
+  }
+
+  @Test
+  void testMixed() {
+    assertRenders(
+        """
+        <h2>A section in markdown</h2>
+        <p>First we start with a paragraph, <em>highlighting</em> some stuff,
+        and it has <code>code</code> too.</p>
+
+        <blockquote>not to forget we also quote something here</blockquote>
+
+
+        <ul>
+          <li>and make a <strong>list</strong></li>
+          <li>with a couple of <code>items</code></li>
+        </ul>
+
+
+        <hr/>
+        <h3>Subsection</h3>
+        <pre>
+          and some code block
+          lets see how it goes
+        </pre>
+        """,
+        """
+        ## A section in markdown
+        First we start with a paragraph, _highlighting_ some stuff,
+        and it has `code` too.
+
+        > not to forget we also quote something here
+
+        * and make a **list**
+        * with a couple of `items`
+
+            ---------------
+        ### Subsection
+        ```
+          and some code block
+          lets see how it goes
+        ```
+        """);
+  }
+
+  private static void assertRenders(
+      @Language("html") String expected, @Language("markdown") String actual) {
+    assertEquals(expected, markdownToHTML(actual));
   }
 }

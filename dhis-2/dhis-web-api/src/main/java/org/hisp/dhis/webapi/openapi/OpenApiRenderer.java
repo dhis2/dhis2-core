@@ -230,10 +230,10 @@ public class OpenApiRenderer {
   code.http.content > span.status2xx { background: color-mix(in srgb, seagreen 75%, transparent); color: snow; }
   code.http.content .on { color: black; }
   code.http.method { width: 4rem; text-align: right; color: dimgray; }
-  code.md { background: color-mix(in srgb, snow 70%, transparent); padding: 0.125em 0.25em; }
+  .desc code { background: color-mix(in srgb, snow 70%, transparent); padding: 0.125em 0.25em; }
   code.property { padding: 0.25em 0.5em; background: color-mix(in srgb, powderblue 70%, transparent); }
   code.property.secondary, code.property.secondary ~ code.type { background: color-mix(in srgb, lemonchiffon 70%, transparent); }
-  code.url { padding: 0.25em 0.5em; background-color: snow; }
+  code.url, .desc code.keyword { padding: 0.25em 0.5em; background-color: snow; }
   code.url.path { font-weight: bold; }
   code.url em, code.url.secondary, code.url.secondary + code.type { color: darkslateblue; font-style: normal; font-weight: normal; background: color-mix(in srgb, snow 70%, transparent); }
   code.url small { color: gray; }
