@@ -60,13 +60,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class PeriodTypeController {
   private final FieldFilterService fieldFilterService;
 
-  @GetMapping
   @OpenApi.Response(
       status = Status.OK,
       object = {
         @OpenApi.Property(name = "pager", value = Pager.class),
         @OpenApi.Property(name = "periodTypes", value = PeriodType[].class)
       })
+  @GetMapping
   public ResponseEntity<JsonRoot> getPeriodTypes(
       @RequestParam(defaultValue = "*") List<String> fields) {
     var periodTypes =
