@@ -1939,10 +1939,10 @@
     },
     {
       "created": "2019-03-25T13:58:35.567",
-      "code": "Superuser",
-      "description": "Superuser",
+      "code": "tracker Superuser",
+      "description": "tracker Superuser",
       "lastUpdated": "2019-03-25T13:58:35.567",
-      "name": "Superuser",
+      "name": "tracker Superuser",
       "translations": [],
       "authorities": [
         "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",

@@ -72,25 +72,29 @@ class LastUpdateImportTest extends TrackerTest {
 
   private OrganisationUnit organisationUnit;
 
+  private User importUser;
+
   @BeforeAll
   void setUp() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
 
-    User importUser = userService.getUser("tTgjgobT1oS");
+    importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+
     TrackerObjects trackerObjects = fromJson("tracker/single_te.json");
-    assertNoErrors(trackerImportService.importTracker(new TrackerImportParams(), trackerObjects));
+    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
 
     trackedEntity = trackerObjects.getTrackedEntities().get(0);
 
     trackerObjects = fromJson("tracker/single_enrollment.json");
-    assertNoErrors(trackerImportService.importTracker(new TrackerImportParams(), trackerObjects));
+    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
 
     enrollment = trackerObjects.getEnrollments().get(0);
 
     trackerObjects = fromJson("tracker/single_event.json");
-    assertNoErrors(trackerImportService.importTracker(new TrackerImportParams(), trackerObjects));
+    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
 
     event = trackerObjects.getEvents().get(0);
 
@@ -105,11 +109,12 @@ class LastUpdateImportTest extends TrackerTest {
 
     clearSession();
 
-    TrackerObjects trackerObjects = fromJson("tracker/single_te.json");
-    TrackerImportParams trackerImportParams = new TrackerImportParams();
-    trackerImportParams.setImportStrategy(TrackerImportStrategy.UPDATE);
-
-    assertNoErrors(trackerImportService.importTracker(trackerImportParams, trackerObjects));
+    TrackerImportParams params =
+        TrackerImportParams.builder()
+            .userId(importUser.getUid())
+            .importStrategy(TrackerImportStrategy.UPDATE)
+            .build();
+    assertNoErrors(trackerImportService.importTracker(params, fromJson("tracker/single_te.json")));
 
     Date lastUpdateAfter = getTrackedEntity().getLastUpdated();
 
@@ -124,19 +129,21 @@ class LastUpdateImportTest extends TrackerTest {
   void shouldUpdateTrackedEntityWhenEventIsUpdated() throws IOException {
     TrackedEntity entityBeforeUpdate = getTrackedEntity();
 
-    User user = user();
-
     clearSession();
 
-    TrackerObjects trackerObjects = fromJson("tracker/event_with_data_values.json");
-    TrackerImportParams trackerImportParams = new TrackerImportParams();
-    assertNoErrors(trackerImportService.importTracker(trackerImportParams, trackerObjects));
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
+    assertNoErrors(
+        trackerImportService.importTracker(
+            params, fromJson("tracker/event_with_data_values.json")));
 
-    trackerObjects = fromJson("tracker/event_with_updated_data_values.json");
-    trackerImportParams.setImportStrategy(TrackerImportStrategy.UPDATE);
-    trackerImportParams.setUserId(user.getUid());
-
-    assertNoErrors(trackerImportService.importTracker(trackerImportParams, trackerObjects));
+    params =
+        TrackerImportParams.builder()
+            .userId(importUser.getUid())
+            .importStrategy(TrackerImportStrategy.UPDATE)
+            .build();
+    assertNoErrors(
+        trackerImportService.importTracker(
+            params, fromJson("tracker/event_with_updated_data_values.json")));
 
     clearSession();
 
@@ -150,7 +157,7 @@ class LastUpdateImportTest extends TrackerTest {
             trackedEntity.getUid()));
     assertEquals(
         entityAfterUpdate.getLastUpdatedByUserInfo().getUid(),
-        UserInfoSnapshot.from(user).getUid(),
+        UserInfoSnapshot.from(importUser).getUid(),
         String.format(
             "Data integrity error for tracked entity %s. The lastUpdatedByUserinfo has not been saved during the import",
             trackedEntity.getUid()));
@@ -158,22 +165,20 @@ class LastUpdateImportTest extends TrackerTest {
 
   @Test
   void shouldUpdateTrackedEntityWhenEnrollmentIsUpdated() {
-
     TrackedEntity entityBeforeUpdate = getTrackedEntity();
-
-    User user = user();
 
     clearSession();
 
-    TrackerImportParams trackerImportParams = new TrackerImportParams();
-    trackerImportParams.setUserId(user.getUid());
+    TrackerImportParams params =
+        TrackerImportParams.builder()
+            .userId(importUser.getUid())
+            .importStrategy(TrackerImportStrategy.UPDATE)
+            .build();
     enrollment.setStatus(EnrollmentStatus.COMPLETED);
-    trackerImportParams.setImportStrategy(TrackerImportStrategy.UPDATE);
 
     assertNoErrors(
         trackerImportService.importTracker(
-            trackerImportParams,
-            TrackerObjects.builder().enrollments(List.of(enrollment)).build()));
+            params, TrackerObjects.builder().enrollments(List.of(enrollment)).build()));
 
     clearSession();
 
@@ -187,7 +192,7 @@ class LastUpdateImportTest extends TrackerTest {
             trackedEntity.getUid()));
     assertEquals(
         entityAfterUpdate.getLastUpdatedByUserInfo().getUid(),
-        UserInfoSnapshot.from(user).getUid(),
+        UserInfoSnapshot.from(importUser).getUid(),
         String.format(
             "Data integrity error for tracked entity %s. The lastUpdatedByUserinfo has not been saved during the import",
             trackedEntity.getUid()));
@@ -199,9 +204,11 @@ class LastUpdateImportTest extends TrackerTest {
 
     clearSession();
 
-    TrackerImportParams params = new TrackerImportParams();
-    params.setImportStrategy(TrackerImportStrategy.DELETE);
-
+    TrackerImportParams params =
+        TrackerImportParams.builder()
+            .userId(importUser.getUid())
+            .importStrategy(TrackerImportStrategy.DELETE)
+            .build();
     ImportReport importReport =
         trackerImportService.importTracker(
             params, TrackerObjects.builder().trackedEntities(List.of(trackedEntity)).build());
@@ -232,9 +239,11 @@ class LastUpdateImportTest extends TrackerTest {
     clearSession();
 
     // delete cascade
-    TrackerImportParams params = new TrackerImportParams();
-    params.setImportStrategy(TrackerImportStrategy.DELETE);
-
+    TrackerImportParams params =
+        TrackerImportParams.builder()
+            .userId(importUser.getUid())
+            .importStrategy(TrackerImportStrategy.DELETE)
+            .build();
     ImportReport importReport =
         trackerImportService.importTracker(
             params, TrackerObjects.builder().trackedEntities(List.of(trackedEntity)).build());
@@ -280,10 +289,11 @@ class LastUpdateImportTest extends TrackerTest {
 
     clearSession();
 
-    TrackerImportParams params = new TrackerImportParams();
-    params.setImportStrategy(TrackerImportStrategy.DELETE);
-    params.setUserId(user.getUid());
-
+    TrackerImportParams params =
+        TrackerImportParams.builder()
+            .userId(user.getUid())
+            .importStrategy(TrackerImportStrategy.DELETE)
+            .build();
     ImportReport importReport =
         trackerImportService.importTracker(
             params, TrackerObjects.builder().enrollments(List.of(enrollment)).build());
@@ -355,9 +365,11 @@ class LastUpdateImportTest extends TrackerTest {
 
     clearSession();
 
-    TrackerImportParams params = new TrackerImportParams();
-    params.setImportStrategy(TrackerImportStrategy.DELETE);
-    params.setUserId(user.getUid());
+    TrackerImportParams params =
+        TrackerImportParams.builder()
+            .userId(user.getUid())
+            .importStrategy(TrackerImportStrategy.DELETE)
+            .build();
 
     assertNoErrors(
         trackerImportService.importTracker(
@@ -426,9 +438,11 @@ class LastUpdateImportTest extends TrackerTest {
 
     clearSession();
 
-    TrackerImportParams params = new TrackerImportParams();
-    params.setImportStrategy(TrackerImportStrategy.DELETE);
-    params.setUserId(user.getUid());
+    TrackerImportParams params =
+        TrackerImportParams.builder()
+            .userId(user.getUid())
+            .importStrategy(TrackerImportStrategy.DELETE)
+            .build();
 
     assertNoErrors(
         trackerImportService.importTracker(
