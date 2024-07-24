@@ -220,7 +220,7 @@ class EventImportValidationTest extends TrackerTest {
 
   @Test
   void testWrongScheduledDateString() {
-    // TODO(tracker) what are we testing here? should we not call the importer?
+    // TODO(DHIS2-17768 tracker) what are we testing here? should we not call the importer?
     assertThrows(
         IOException.class, () -> fromJson("tracker/validations/events_error-no-wrong-date.json"));
   }

@@ -41,7 +41,7 @@ import org.springframework.http.MediaType;
  *
  * @author Jan Bernitt
  */
-@Disabled("TODO(platform): adjust user setup so tests are less brittle")
+@Disabled("TODO(DHIS2-17768 platform): adjust user setup so tests are less brittle")
 class GistCsvControllerTest extends AbstractGistControllerTest {
   private static final MediaType TEXT_CSV = new MediaType("text", "csv");
 

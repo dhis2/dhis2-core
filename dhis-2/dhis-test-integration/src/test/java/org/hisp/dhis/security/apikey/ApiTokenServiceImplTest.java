@@ -56,7 +56,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Disabled("TODO(platform) enable again")
+@Disabled("TODO(DHIS2-17768 platform) enable again")
 @Transactional
 class ApiTokenServiceImplTest extends PostgresIntegrationTestBase {
   @Autowired private ApiTokenStore apiTokenStore;

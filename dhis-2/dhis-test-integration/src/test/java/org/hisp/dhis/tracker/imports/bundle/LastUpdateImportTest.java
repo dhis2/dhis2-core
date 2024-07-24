@@ -61,7 +61,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Disabled(
-    "TODO(tracker) failed to lazily initialize a collection of role: org.hisp.dhis.user.User.dataViewOrganisationUnits")
+    "TODO(DHIS2-17768 tracker) failed to lazily initialize a collection of role: org.hisp.dhis.user.User.dataViewOrganisationUnits")
 class LastUpdateImportTest extends TrackerTest {
   @Autowired private TrackerImportService trackerImportService;
 

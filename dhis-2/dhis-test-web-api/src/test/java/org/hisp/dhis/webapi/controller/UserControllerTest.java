@@ -98,7 +98,8 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
   @BeforeEach
   void setUp() {
-    // TODO(platform) intentional? you are creating 2 users with username `peter` and `Peter` and
+    // TODO(DHIS2-17768 platform) intentional? you are creating 2 users with username `peter` and
+    // `Peter` and
     // assigning it to field peter
     // also why switch to the user and then immediately back to the admin user?
     peter = createUserWithAuth("peter");

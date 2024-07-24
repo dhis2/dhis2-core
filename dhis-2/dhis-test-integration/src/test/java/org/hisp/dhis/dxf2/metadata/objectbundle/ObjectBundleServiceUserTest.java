@@ -58,7 +58,8 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Disabled("TODO(platform) update fixture to accommodate for getAdminUser() being created")
+@Disabled(
+    "TODO(DHIS2-17768 platform) update fixture to accommodate for getAdminUser() being created")
 @Transactional
 class ObjectBundleServiceUserTest extends PostgresIntegrationTestBase {
 

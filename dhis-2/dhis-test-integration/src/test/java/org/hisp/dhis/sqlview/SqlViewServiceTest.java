@@ -372,7 +372,7 @@ class SqlViewServiceTest extends PostgresIntegrationTestBase {
     assertEquals("SQL query contains variable names that are invalid: `[typö]`", ex.getMessage());
   }
 
-  @Disabled("TODO(platform) enable again")
+  @Disabled("TODO(DHIS2-17768 platform) enable again")
   @Test
   void testGetSqlViewGrid() {
     Map<String, String> variables = new HashMap<>();
