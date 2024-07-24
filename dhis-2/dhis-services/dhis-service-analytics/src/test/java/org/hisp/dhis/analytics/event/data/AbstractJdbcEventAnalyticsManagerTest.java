@@ -857,7 +857,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     // When
     String select = enrollmentSubject.getSelectClause(params);
     // Then
-    assertEquals("select en,Yearly ", select);
+    assertEquals("select enrollment,Yearly ", select);
   }
 
   @Test

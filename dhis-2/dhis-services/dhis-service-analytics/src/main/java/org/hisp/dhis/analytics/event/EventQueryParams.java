@@ -205,8 +205,8 @@ public class EventQueryParams extends DataQueryParams {
   /** Indicates whether to include underlying points for each cluster. */
   private boolean includeClusterPoints;
 
-  /** Indicates the program status. */
-  private Set<ProgramStatus> programStatus = new LinkedHashSet<>();
+  /** Indicates the enrollment status. */
+  private Set<ProgramStatus> enrollmentStatus = new LinkedHashSet<>();
 
   /** flag to enable row context in grid response */
   private boolean rowContext = false;
@@ -292,7 +292,7 @@ public class EventQueryParams extends DataQueryParams {
     params.coordinateFields = this.coordinateFields;
     params.bbox = this.bbox;
     params.includeClusterPoints = this.includeClusterPoints;
-    params.programStatus = new LinkedHashSet<>(this.programStatus);
+    params.enrollmentStatus = new LinkedHashSet<>(this.enrollmentStatus);
     params.includeMetadataDetails = this.includeMetadataDetails;
     params.dataIdScheme = this.dataIdScheme;
     params.periodType = this.periodType;
@@ -411,7 +411,7 @@ public class EventQueryParams extends DataQueryParams {
         .addIgnoreNull("coordinateFields", coordinateFields)
         .addIgnoreNull("bbox", bbox)
         .addIgnoreNull("includeClusterPoints", includeClusterPoints)
-        .addIgnoreNull("programStatus", programStatus)
+        .addIgnoreNull("enrollmentStatus", enrollmentStatus)
         .addIgnoreNull("includeMetadataDetails", includeMetadataDetails)
         .addIgnoreNull("dataIdScheme", dataIdScheme)
         .build();
@@ -614,9 +614,9 @@ public class EventQueryParams extends DataQueryParams {
     return false;
   }
 
-  /** Gets program status */
-  public Set<ProgramStatus> getProgramStatus() {
-    return programStatus;
+  /** Gets enrollment statuses */
+  public Set<ProgramStatus> getEnrollmentStatuses() {
+    return enrollmentStatus;
   }
 
   /**
@@ -824,8 +824,8 @@ public class EventQueryParams extends DataQueryParams {
     return clusterSize != null;
   }
 
-  public boolean hasProgramStatus() {
-    return isNotEmpty(programStatus);
+  public boolean hasEnrollmentStatuses() {
+    return isNotEmpty(enrollmentStatus);
   }
 
   public boolean hasBbox() {
@@ -1285,9 +1285,9 @@ public class EventQueryParams extends DataQueryParams {
       return this;
     }
 
-    public Builder withProgramStatuses(Set<ProgramStatus> programStatuses) {
+    public Builder withEnrollmentStatuses(Set<ProgramStatus> programStatuses) {
       if (isNotEmpty(programStatuses)) {
-        this.params.programStatus.addAll(programStatuses);
+        this.params.enrollmentStatus.addAll(programStatuses);
       }
 
       return this;

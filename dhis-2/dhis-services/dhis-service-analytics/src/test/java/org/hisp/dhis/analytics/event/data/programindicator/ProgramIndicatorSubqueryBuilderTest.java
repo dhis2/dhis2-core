@@ -167,14 +167,14 @@ class ProgramIndicatorSubqueryBuilderTest {
             "(SELECT avg (distinct event) FROM analytics_event_"
                 + program.getUid().toLowerCase()
                 + " as subax WHERE  subax.trackedentity in (select te.uid from trackedentity te "
-                + "LEFT JOIN relationshipitem ri on tei.trackedentityid = ri.trackedentityid  "
+                + "LEFT JOIN relationshipitem ri on te.trackedentityid = ri.trackedentityid  "
                 + "LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid "
                 + "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
                 + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
                 + "LEFT JOIN trackedentity te on te.trackedentityid = ri2.trackedentityid "
                 + "WHERE rty.relationshiptypeid = "
                 + relationshipType.getId()
-                + " AND te.uid = ax.tei ))"));
+                + " AND te.uid = ax.trackedentity ))"));
   }
 
   @Test
@@ -196,7 +196,7 @@ class ProgramIndicatorSubqueryBuilderTest {
     assertThat(
         sql,
         is(
-            "(SELECT avg (distinct psi) FROM analytics_event_"
+            "(SELECT avg (distinct event) FROM analytics_event_"
                 + program.getUid().toLowerCase()
                 + " as subax WHERE enrollment = ax.enrollment AND (a = b))"));
   }

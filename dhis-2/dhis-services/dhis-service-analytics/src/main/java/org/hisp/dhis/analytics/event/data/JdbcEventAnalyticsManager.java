@@ -192,7 +192,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
             "count(event) as count", "ST_Extent(" + sqlClusterFields + ") as extent");
 
     columns.add(
-        "case when count(psi) = 1 then ST_AsGeoJSON(array_to_string(array_agg("
+        "case when count(event) = 1 then ST_AsGeoJSON(array_to_string(array_agg("
             + sqlClusterFields
             + "), ','), 6) "
             + "else ST_AsGeoJSON(ST_Centroid(ST_Collect("
@@ -318,7 +318,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     ImmutableList.Builder<String> cols =
         new ImmutableList.Builder<String>()
             .add(
-                "psi",
+                "event",
                 "ps",
                 "occurreddate",
                 "storedby",
@@ -542,11 +542,11 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     // Various filters
     // ---------------------------------------------------------------------
 
-    if (params.hasProgramStatus()) {
+    if (params.hasEnrollmentStatuses()) {
       sql +=
           hlp.whereAnd()
               + " enrollmentstatus in ("
-              + params.getProgramStatus().stream()
+              + params.getEnrollmentStatuses().stream()
                   .map(p -> singleQuote(p.name()))
                   .collect(joining(","))
               + ") ";

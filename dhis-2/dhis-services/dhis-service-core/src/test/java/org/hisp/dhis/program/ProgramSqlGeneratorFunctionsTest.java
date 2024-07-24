@@ -643,7 +643,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
   @Test
   void testLog() {
     String sql = test("log(V{enrollment_count})");
-    assertThat(sql, is("ln(distinct pi)"));
+    assertThat(sql, is("ln(distinct enrollment)"));
 
     sql = test("log(V{event_count},3)");
     assertThat(sql, is("log(3,case " + DEFAULT_COUNT_CONDITION + " end)"));

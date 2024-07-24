@@ -60,7 +60,7 @@ class SqlQueryHelperTest {
 
     // Then
     assertEquals(
-        "select innermost_enr.* from (select *, row_number() over (partition by trackedentity order by enrollmentdate asc) as rn  from analytics_te_enrollments_uid2 where programuid = :1) innermost_enr where innermost_enr.rn = 1",
+        "select innermost_enr.* from (select *, row_number() over (partition by trackedentity order by enrollmentdate asc) as rn  from analytics_te_enrollments_uid2 where program = :1) innermost_enr where innermost_enr.rn = 1",
         statement);
   }
 
@@ -85,7 +85,7 @@ class SqlQueryHelperTest {
 
     // Then
     assertEquals(
-        "select innermost_enr.* from (select *, row_number() over (partition by trackedentity order by enrollmentdate desc) as rn  from analytics_te_enrollments_uid2 where programuid = :1) innermost_enr where innermost_enr.rn = 2",
+        "select innermost_enr.* from (select *, row_number() over (partition by trackedentity order by enrollmentdate desc) as rn  from analytics_te_enrollments_uid2 where program = :1) innermost_enr where innermost_enr.rn = 2",
         statement);
   }
 

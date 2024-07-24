@@ -60,7 +60,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
 
   private QueryParamsBuilder withDefaultHeaders(QueryParamsBuilder queryParamsBuilder) {
     return queryParamsBuilder.add(
-        "headers=trackedentityinstanceuid,"
+        "headers=trackedentity,"
             + "lastupdated,"
             + "createdbydisplayname,"
             + "lastupdatedbydisplayname,"
@@ -481,8 +481,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             .add("hierarchyMeta=true")
             .add("dimension=cejWyOfXge6")
             .add("lastUpdated=LAST_10_YEARS")
-            .add(
-                "headers=ouname,cejWyOfXge6,w75KJ2mc4zz,trackedentityinstanceuid,lastupdated,oucode")
+            .add("headers=ouname,cejWyOfXge6,w75KJ2mc4zz,trackedentity,lastupdated,oucode")
             .add("desc=lastupdated")
             .add("relativePeriodDate=2022-09-27");
 

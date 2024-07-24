@@ -737,7 +737,7 @@ class JdbcEventAnalyticsTableManagerTest {
     String ouEnrollmentLeftJoin =
         "left join organisationunit enrollmentou on en.organisationunitid=enrollmentou.organisationunitid";
     String ouRegistrationLeftJoin =
-        "left join organisationunit registrationou on tei.organisationunitid=registrationou.organisationunitid";
+        "left join organisationunit registrationou on te.organisationunitid=registrationou.organisationunitid";
 
     assertThat(sql.getValue(), containsString(ouEnrollmentLeftJoin));
     assertThat(sql.getValue(), containsString(ouRegistrationLeftJoin));

@@ -31,8 +31,8 @@ import static java.lang.Math.abs;
 import static lombok.AccessLevel.PRIVATE;
 import static org.hisp.dhis.analytics.trackedentity.query.context.QueryContextConstants.ANALYTICS_TE_ENR;
 import static org.hisp.dhis.analytics.trackedentity.query.context.QueryContextConstants.ANALYTICS_TE_EVT;
-import static org.hisp.dhis.analytics.trackedentity.query.context.QueryContextConstants.PS_UID;
-import static org.hisp.dhis.analytics.trackedentity.query.context.QueryContextConstants.P_UID;
+import static org.hisp.dhis.analytics.trackedentity.query.context.QueryContextConstants.PROGRAM_STAGE_UID;
+import static org.hisp.dhis.analytics.trackedentity.query.context.QueryContextConstants.PROGRAM_UID;
 
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
@@ -63,7 +63,7 @@ class SqlQueryHelper {
         + ANALYTICS_TE_ENR
         + trackedEntityType.getUid().toLowerCase()
         + " where "
-        + P_UID
+        + PROGRAM_UID
         + " = "
         + sqlParameterManager.bindParamAndGetIndex(program.getElement().getUid())
         + ") innermost_enr"
@@ -93,11 +93,11 @@ class SqlQueryHelper {
         + " where status != '"
         + EventStatus.SCHEDULE
         + "' and "
-        + P_UID
+        + PROGRAM_UID
         + " = "
         + sqlParameterManager.bindParamAndGetIndex(program.getElement().getUid())
         + " and "
-        + PS_UID
+        + PROGRAM_STAGE_UID
         + " = "
         + sqlParameterManager.bindParamAndGetIndex(programStage.getElement().getUid())
         + ") innermost_evt"

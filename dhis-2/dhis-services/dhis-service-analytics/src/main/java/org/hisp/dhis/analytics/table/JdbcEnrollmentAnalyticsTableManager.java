@@ -318,7 +318,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
     if (program.isRegistration()) {
       columns.add(
           AnalyticsTableColumn.builder()
-              .name("te")
+              .name("trackedentity")
               .dataType(CHARACTER_11)
               .selectExpression("te.uid")
               .build());
