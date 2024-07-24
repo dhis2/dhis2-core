@@ -31,6 +31,8 @@ import static java.lang.Math.min;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 /**
  * A OpenAPI specific utility for generating HTML.
@@ -46,6 +48,7 @@ import javax.annotation.Nonnull;
  * @author Jan Bernitt
  * @since 2.42
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 final class OpenApiHtmlUtils {
 
   /**

@@ -78,7 +78,7 @@ public class OpenApiRenderer {
     /** Include the JSON source in the operations and schemas? */
     boolean source = false;
 
-    /** A shared enum with less than the limit values is shown in the summary //TODO implement */
+    /** A shared enum with less than the limit values is shown in the summary */
     int inlineEnumsLimit = 0;
   }
 
@@ -607,11 +607,7 @@ public class OpenApiRenderer {
   }
 
   private void renderPageHeader() {
-    appendTag(
-        "header",
-        () -> {
-          appendTag("h1", api.info().title() + " " + api.info().version());
-        });
+    appendTag("header", () -> appendTag("h1", api.info().title() + " " + api.info().version()));
   }
 
   private void renderPageMenu() {
@@ -788,6 +784,7 @@ public class OpenApiRenderer {
           appendSummary(id, op.summary(), () -> renderOperationSummary(op));
           renderBoxToolbar(null);
           appendTag("header", markdownToHTML(op.description(), op.parameterNames()));
+          if (!op.tags().isEmpty()) renderLabelledValue("tags", op.tags(), "columns", 0);
           renderParameters(op);
           renderRequestBody(op);
           renderResponses(op);
@@ -879,8 +876,8 @@ public class OpenApiRenderer {
   }
 
   private void renderParameters(OperationObject op) {
-    JsonList<ParameterObject> params = op.parameters();
-    if (params.isUndefined() || params.isEmpty()) return;
+    JsonList<ParameterObject> opParams = op.parameters();
+    if (opParams.isUndefined() || opParams.isEmpty()) return;
 
     // TODO header and cookie (if we need it)
     renderParameters(op, ParameterObject.In.path, "/.../");
@@ -888,11 +885,11 @@ public class OpenApiRenderer {
   }
 
   private void renderParameters(OperationObject op, ParameterObject.In in, String text) {
-    List<ParameterObject> params = op.parameters(in);
-    if (params.isEmpty()) return;
+    List<ParameterObject> opParams = op.parameters(in);
+    if (opParams.isEmpty()) return;
     renderOperationSectionHeader(text, "Parameters in " + in.name().toLowerCase());
     Set<String> parameterNames = op.parameterNames();
-    params.stream()
+    opParams.stream()
         .map(ParameterObject::resolve)
         .forEach(p -> renderParameter(op, p, parameterNames));
   }
@@ -1100,21 +1097,21 @@ public class OpenApiRenderer {
       renderSchemaSignatureType(schema.resolve());
       return;
     }
-    if (schema.isAny()) {
+    if (schema.isAnyType()) {
       appendRaw("*");
       return;
     }
-    if (schema.isArray()) {
+    if (schema.isArrayType()) {
       appendRaw("array[");
       renderSchemaSignatureType(schema.items());
       appendRaw("]");
       return;
     }
-    if (schema.isObject()) {
+    if (schema.isObjectType()) {
       renderSchemaSignatureTypeObject(schema);
       return;
     }
-    if (schema.isString() && schema.isEnum()) {
+    if (schema.isStringType() && schema.isEnum()) {
       appendRaw("enum");
       return;
     }
@@ -1169,7 +1166,7 @@ public class OpenApiRenderer {
           schema
               .properties()
               .entries()
-              .filter(e -> e.getValue().isArray())
+              .filter(e -> e.getValue().isArrayType())
               .findFirst()
               .orElse(null);
       if (values != null) {
@@ -1214,12 +1211,7 @@ public class OpenApiRenderer {
               () -> {
                 Map<String, String> attrs =
                     Map.of("class", "button", "ontoggle", "schemaUsages(this)");
-                appendTag(
-                    "details",
-                    attrs,
-                    () -> {
-                      appendTag("summary", "Usages");
-                    });
+                appendTag("details", attrs, () -> appendTag("summary", "Usages"));
               });
           renderSchemaDetails(schema, true, false);
           if (params.isSource()) renderSource("@" + id, schema);
@@ -1229,13 +1221,17 @@ public class OpenApiRenderer {
   private void renderComponentSchemaSummary(SchemaObject schema) {
     appendCode("type", schema.getSharedName());
     renderSchemaSummary(schema, true);
-    if (schema.isObject()) renderLabelledValue("required", schema.required(), "", 5);
+    if (schema.isObjectType()) renderLabelledValue("required", schema.required(), "", 5);
     if (schema.isEnum()) renderLabelledValue("enum", schema.$enum(), "", 5);
   }
 
   private void renderSchemaSummary(SchemaObject schema, boolean isDeclaration) {
     if (!isDeclaration) renderSchemaSignature(schema);
-    if (schema.isRef() || (!isDeclaration && schema.isShared())) return;
+    if (schema.isRef() || (!isDeclaration && schema.isShared())) {
+      if (params.inlineEnumsLimit > 0 && schema.isEnum())
+        renderLabelledValue("enum", schema.$enum(), "", params.inlineEnumsLimit);
+      return;
+    }
     renderLabelledValue("format", schema.format());
     renderLabelledValue("minLength", schema.minLength());
     renderLabelledValue("maxLength", schema.maxLength());
@@ -1249,12 +1245,14 @@ public class OpenApiRenderer {
     if (schema.isFlat()) return;
     if (schema.$type() != null) {
       Set<String> names =
-          schema.isObject() ? schema.properties().keys().collect(toUnmodifiableSet()) : Set.of();
+          schema.isObjectType()
+              ? schema.properties().keys().collect(toUnmodifiableSet())
+              : Set.of();
       appendTag("header", markdownToHTML(schema.description(), names));
       if (!skipDefault) renderLabelledValue("default", schema.$default(), "columns", 0);
       renderLabelledValue("enum", schema.$enum(), "columns", 0);
 
-      if (schema.isObject()) {
+      if (schema.isObjectType()) {
         List<String> required = schema.required();
         schema
             .properties()
@@ -1265,9 +1263,8 @@ public class OpenApiRenderer {
         }
         return;
       }
-      if (schema.isArray()) {
+      if (schema.isArrayType()) {
         renderSchemaProperty(schema, "<items>", schema.items(), false);
-        return;
       }
       return;
     }
@@ -1293,7 +1290,7 @@ public class OpenApiRenderer {
     String id = parent.isShared() ? toUrlHash(parent.getSharedName() + "." + name) : null;
     String style = "property";
     if (required) style += " required";
-    boolean open = type.isObject() || type.isArray() && type.items().isObject();
+    boolean open = type.isObjectType() || type.isArrayType() && type.items().isObjectType();
     appendDetails(
         id,
         open,
@@ -1318,11 +1315,7 @@ public class OpenApiRenderer {
         "source",
         () -> {
           appendSummary(id, "", () -> appendRaw("&#128435; Source"));
-          appendTag(
-              "pre",
-              () -> {
-                appendEscaped(op.toJson());
-              });
+          appendTag("pre", () -> appendEscaped(op.toJson()));
         });
   }
 

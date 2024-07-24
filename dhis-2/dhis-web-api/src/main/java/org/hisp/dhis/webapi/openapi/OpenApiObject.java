@@ -482,19 +482,19 @@ public interface OpenApiObject extends JsonObject {
       return getString("type").string();
     }
 
-    default boolean isAny() {
+    default boolean isAnyType() {
       return "any".equalsIgnoreCase($type());
     }
 
-    default boolean isObject() {
+    default boolean isObjectType() {
       return "object".equalsIgnoreCase($type());
     }
 
-    default boolean isArray() {
+    default boolean isArrayType() {
       return "array".equalsIgnoreCase($type());
     }
 
-    default boolean isString() {
+    default boolean isStringType() {
       return "string".equalsIgnoreCase($type());
     }
 
@@ -569,7 +569,7 @@ public interface OpenApiObject extends JsonObject {
      *     #additionalProperties()} {@link SchemaObject} values.
      */
     default boolean isMap() {
-      if (!isObject()) return false;
+      if (!isObjectType()) return false;
       if (additionalProperties().isUndefined()) return false;
       return properties().isUndefined() || properties().isEmpty();
     }
@@ -578,19 +578,21 @@ public interface OpenApiObject extends JsonObject {
      * @return an object which only has a single property is called a wrapper
      */
     default boolean isWrapper() {
-      return isObject() && properties().exists() && properties().size() == 1;
+      return isObjectType() && properties().exists() && properties().size() == 1;
     }
 
     /**
      * @return an object which has a header object and a content list is consider an envelope
      */
     default boolean isEnvelope() {
-      if (!isObject()) return false;
+      if (!isObjectType()) return false;
       JsonMap<SchemaObject> properties = properties();
       if (properties.isUndefined()) return false;
       if (properties.size() != 2) return false;
-      if (properties.values().noneMatch(SchemaObject::isArray)) return false;
-      return properties.values().anyMatch(s -> s.isObject() || s.isRef() && s.resolve().isObject());
+      if (properties.values().noneMatch(SchemaObject::isArrayType)) return false;
+      return properties
+          .values()
+          .anyMatch(s -> s.isObjectType() || s.isRef() && s.resolve().isObjectType());
     }
 
     /**

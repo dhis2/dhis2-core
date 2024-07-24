@@ -352,7 +352,7 @@ final class OpenApiMarkdown {
       if (line.isEmpty() || from >= line.length() || from >= to) return List.of();
       int i = from;
       List<MarkupSpan> res = new ArrayList<>();
-      int from0 = i;
+      int from0;
       StringBuilder plain = new StringBuilder();
       Runnable addPlain =
           () -> {

@@ -44,6 +44,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -54,7 +55,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @OpenApi.Document(domain = OpenApi.class)
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/openapi")
 @AllArgsConstructor
 public class OpenApiController {
   private static final String APPLICATION_X_YAML = "application/x-yaml";
@@ -65,30 +66,8 @@ public class OpenApiController {
    * HTML
    */
 
+  @OpenApi.Response(String.class)
   @GetMapping(value = "/openapi.html", produces = TEXT_HTML_VALUE)
-  public void getFullOpenApiHtml(
-      OpenApiRenderer.OpenApiRenderingParams params,
-      @RequestParam(required = false, defaultValue = "false") boolean failOnNameClash,
-      @RequestParam(required = false, defaultValue = "false") boolean failOnInconsistency,
-      HttpServletRequest request,
-      HttpServletResponse response) {
-
-    StringWriter json = new StringWriter();
-    writeDocument(
-        request,
-        Set.of(),
-        Set.of(),
-        failOnNameClash,
-        failOnInconsistency,
-        () -> new PrintWriter(json),
-        OpenApiGenerator::generateJson);
-
-    getWriter(response, TEXT_HTML_VALUE)
-        .get()
-        .write(OpenApiRenderer.render(json.toString(), params));
-  }
-
-  @GetMapping(value = "/openapi/openapi.html", produces = TEXT_HTML_VALUE)
   public void getOpenApiHtml(
       OpenApiRenderer.OpenApiRenderingParams params,
       @RequestParam(required = false) Set<String> path,
@@ -113,6 +92,7 @@ public class OpenApiController {
         .write(OpenApiRenderer.render(json.toString(), params));
   }
 
+  @OpenApi.Response(String.class)
   @GetMapping(value = "/{path}/openapi.html", produces = TEXT_HTML_VALUE)
   public void getPathOpenApiHtml(
       @PathVariable String path,
@@ -141,22 +121,7 @@ public class OpenApiController {
    * YAML
    */
 
-  @GetMapping(value = "/openapi.yaml", produces = APPLICATION_X_YAML)
-  public void getFullOpenApiYaml(
-      @RequestParam(required = false, defaultValue = "false") boolean failOnNameClash,
-      @RequestParam(required = false, defaultValue = "false") boolean failOnInconsistency,
-      HttpServletRequest request,
-      HttpServletResponse response) {
-    writeDocument(
-        request,
-        Set.of(),
-        Set.of(),
-        failOnNameClash,
-        failOnInconsistency,
-        getYamlWriter(response),
-        OpenApiGenerator::generateYaml);
-  }
-
+  @OpenApi.Response(String.class)
   @GetMapping(value = "/{path}/openapi.yaml", produces = APPLICATION_X_YAML)
   public void getPathOpenApiYaml(
       @PathVariable String path,
@@ -174,7 +139,8 @@ public class OpenApiController {
         OpenApiGenerator::generateYaml);
   }
 
-  @GetMapping(value = "/openapi/openapi.yaml", produces = APPLICATION_X_YAML)
+  @OpenApi.Response(String.class)
+  @GetMapping(value = "/openapi.yaml", produces = APPLICATION_X_YAML)
   public void getOpenApiYaml(
       @RequestParam(required = false) Set<String> path,
       @RequestParam(required = false) Set<String> domain,
@@ -196,22 +162,7 @@ public class OpenApiController {
    * JSON
    */
 
-  @GetMapping(value = "/openapi.json", produces = APPLICATION_JSON_VALUE)
-  public void getFullOpenApiJson(
-      @RequestParam(required = false, defaultValue = "false") boolean failOnNameClash,
-      @RequestParam(required = false, defaultValue = "false") boolean failOnInconsistency,
-      HttpServletRequest request,
-      HttpServletResponse response) {
-    writeDocument(
-        request,
-        Set.of(),
-        Set.of(),
-        failOnNameClash,
-        failOnInconsistency,
-        getJsonWriter(response),
-        OpenApiGenerator::generateJson);
-  }
-
+  @OpenApi.Response(String.class)
   @GetMapping(value = "/{path}/openapi.json", produces = APPLICATION_JSON_VALUE)
   public void getPathOpenApiJson(
       @PathVariable String path,
@@ -229,7 +180,8 @@ public class OpenApiController {
         OpenApiGenerator::generateJson);
   }
 
-  @GetMapping(value = "/openapi/openapi.json", produces = APPLICATION_JSON_VALUE)
+  @OpenApi.Response(JsonObject.class)
+  @GetMapping(value = "/openapi.json", produces = APPLICATION_JSON_VALUE)
   public void getOpenApiJson(
       @RequestParam(required = false) Set<String> path,
       @RequestParam(required = false) Set<String> domain,
