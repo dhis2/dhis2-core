@@ -134,9 +134,7 @@ class EventSecurityImportValidationTest extends TrackerTest {
         trackerImportService.importTracker(
             params, fromJson("tracker/validations/enrollments_te_enrollments-data.json")));
     manager.flush();
-  }
 
-  private void setupMetadata() {
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitB = createOrganisationUnit('B');
     manager.save(organisationUnitA);
@@ -217,7 +215,6 @@ class EventSecurityImportValidationTest extends TrackerTest {
 
   @Test
   void testNoWriteAccessToProgramStage() throws IOException {
-    setupMetadata();
     TrackerObjects trackerObjects =
         fromJson("tracker/validations/events_error-no-programStage-access.json");
     TrackerImportParams params = new TrackerImportParams();
@@ -233,7 +230,6 @@ class EventSecurityImportValidationTest extends TrackerTest {
 
   @Test
   void testNoUncompleteEventAuth() throws IOException {
-    setupMetadata();
     TrackerObjects trackerObjects = fromJson("tracker/validations/events_error-no-uncomplete.json");
     TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     params.setImportStrategy(TrackerImportStrategy.CREATE);
