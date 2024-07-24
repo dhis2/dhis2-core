@@ -277,7 +277,7 @@ public class OpenApiRenderer {
   details.property:target > summary > code:first-of-type,
   details.request:target > summary > code:first-of-type,
   details.response:target > summary > code:first-of-type,
-  details.source:target > pre {  border: 2px solid var(--color-target); font-weight: bold; }
+  details.source:target > pre {  border: 2px solid var(--color-target); }
 
   details:target > summary > a[title="permalink"] { background-color: var(--color-target); color: snow; border: 2px solid snow;
     animation: spin 2s linear 0s infinite reverse; font-weight: bold; }
@@ -1427,6 +1427,7 @@ public class OpenApiRenderer {
       case 204 -> "No Content";
       case 205 -> "Reset Content";
       case 206 -> "Partial Content";
+      case 302 -> "Found";
       case 400 -> "Bad Request";
       case 401 -> "Unauthorized";
       case 402 -> "Payment Required";

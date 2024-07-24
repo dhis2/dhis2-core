@@ -385,6 +385,7 @@ public @interface OpenApi {
       OK(200),
       CREATED(201),
       NO_CONTENT(204),
+      FOUND(302),
       BAD_REQUEST(400),
       FORBIDDEN(403),
       NOT_FOUND(404),
@@ -439,6 +440,15 @@ public @interface OpenApi {
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
   @interface Shared {
+
+    /**
+     * Marker annotation to use on properties of a shared parameter object that cannot be shared as
+     * their type is dynamic (varying).
+     */
+    @Target({ElementType.FIELD, ElementType.METHOD})
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface Inline {}
+
     boolean value() default true;
 
     /**

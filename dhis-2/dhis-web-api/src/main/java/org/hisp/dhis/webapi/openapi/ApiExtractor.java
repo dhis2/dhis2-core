@@ -95,6 +95,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.view.RedirectView;
 
 /**
  * Given a set of controller {@link Class}es this creates a {@link Api} model that describes all
@@ -300,12 +301,14 @@ final class ApiExtractor {
     }
 
     HttpStatus signatureStatus =
-        getAnnotated(
-            source,
-            ResponseStatus.class,
-            a -> firstNonEqual(HttpStatus.INTERNAL_SERVER_ERROR, a.value(), a.code()),
-            s -> s != HttpStatus.INTERNAL_SERVER_ERROR,
-            () -> HttpStatus.OK);
+        source.getReturnType() == RedirectView.class
+            ? HttpStatus.FOUND
+            : getAnnotated(
+                source,
+                ResponseStatus.class,
+                a -> firstNonEqual(HttpStatus.INTERNAL_SERVER_ERROR, a.value(), a.code()),
+                s -> s != HttpStatus.INTERNAL_SERVER_ERROR,
+                () -> HttpStatus.OK);
 
     Map<HttpStatus, Api.Response> res = new LinkedHashMap<>();
     // response(s) declared via annotation(s)
@@ -335,10 +338,13 @@ final class ApiExtractor {
       Api.Endpoint endpoint, Method source, HttpStatus status, Set<MediaType> produces) {
     Class<?> type = source.getReturnType();
     Api.Response response = new Api.Response(status);
-    if (type != void.class && type != Void.class && type != ModelAndView.class) {
+    if (type != void.class
+        && type != Void.class
+        && type != ModelAndView.class
+        && type != RedirectView.class) {
       response.add(produces, extractResponseSchema(endpoint, source.getGenericReturnType()));
+      response.getDescription().setIfAbsent(extractDescription(source.getAnnotatedReturnType()));
     }
-    response.getDescription().setIfAbsent(extractDescription(source.getAnnotatedReturnType()));
     return response;
   }
 
@@ -549,9 +555,13 @@ final class ApiExtractor {
       properties.forEach(
           property -> {
             Api.Parameter parameter = extractParameter(endpoint, property);
-            parameter.getSharedName().setValue(sharedName);
-            sharedParameters.computeIfAbsent(paramsObject, e -> new ArrayList<>()).add(parameter);
-            endpoint.getParameters().put(parameter.getName(), parameter);
+            if (!parameter.getSource().isAnnotationPresent(OpenApi.Shared.Inline.class)) {
+              parameter.getSharedName().setValue(sharedName);
+              sharedParameters
+                  .computeIfAbsent(paramsObject, key -> new ArrayList<>())
+                  .add(parameter);
+            }
+            endpoint.getParameters().putIfAbsent(parameter.getName(), parameter);
           });
     } else {
       properties.forEach(

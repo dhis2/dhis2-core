@@ -75,6 +75,7 @@ public final class GistParams {
 
   Junction.Type rootJunction = Junction.Type.AND;
 
+  @OpenApi.Shared.Inline
   @OpenApi.Property(OpenApi.PropertyNames[].class)
   String fields;
 
