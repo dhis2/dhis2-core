@@ -65,7 +65,7 @@ import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -92,8 +92,6 @@ class EventSecurityImportValidationTest extends TrackerTest {
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
-  @Autowired private UserService _userService;
-
   private TrackedEntity maleA;
 
   private TrackedEntity maleB;
@@ -118,9 +116,8 @@ class EventSecurityImportValidationTest extends TrackerTest {
 
   private TrackedEntityType trackedEntityType;
 
-  @Override
-  protected void initTest() throws IOException {
-    userService = _userService;
+  @BeforeAll
+  void setUp() throws IOException {
     setUpMetadata("tracker/tracker_basic_metadata.json");
     injectAdminUser();
 

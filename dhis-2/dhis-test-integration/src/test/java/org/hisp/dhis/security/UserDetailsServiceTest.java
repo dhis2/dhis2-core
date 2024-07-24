@@ -32,13 +32,14 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the effects of {@link User#setDisabled(boolean)} or {@link User#setAccountExpiry(Date)} on
@@ -46,16 +47,15 @@ import org.springframework.security.core.userdetails.UserDetailsService;
  *
  * @author Jan Bernitt
  */
-class UserDetailsServiceTest extends TransactionalIntegrationTest {
-
-  @Autowired private UserService userService;
+@Transactional
+class UserDetailsServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private UserDetailsService userDetailsService;
 
   private User user;
 
-  @Override
-  protected void setUpTest() throws Exception {
+  @BeforeEach
+  void setUp() {
     user = makeUser("A");
     userService.addUser(user);
   }

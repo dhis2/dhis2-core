@@ -27,12 +27,10 @@
  */
 package org.hisp.dhis.relationship;
 
-import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
-
-import java.util.Collection;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
+import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
@@ -40,20 +38,16 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class RelationshipDeletionHandler extends DeletionHandler {
-  private static final DeletionVeto VETO = new DeletionVeto(Relationship.class);
-
-  private final RelationshipService relationshipService;
-
+public class RelationshipDeletionHandler extends IdObjectDeletionHandler<Relationship> {
   @Override
-  protected void register() {
+  protected void registerHandler() {
     whenVetoing(RelationshipType.class, this::allowDeleteRelationshipType);
   }
 
   private DeletionVeto allowDeleteRelationshipType(RelationshipType relationshipType) {
-    Collection<Relationship> relationships =
-        relationshipService.getRelationshipsByRelationshipType(relationshipType);
-
-    return relationships.isEmpty() ? ACCEPT : VETO;
+    return vetoIfExists(
+        VETO,
+        "select 1 from relationship where relationshiptypeid = :id limit 1",
+        Map.of("id", relationshipType.getId()));
   }
 }

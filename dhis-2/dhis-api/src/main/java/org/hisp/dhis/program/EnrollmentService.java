@@ -37,20 +37,6 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
  */
 public interface EnrollmentService {
 
-  /**
-   * Soft deletes a {@link Enrollment}.
-   *
-   * @param enrollment the Enrollment to delete.
-   */
-  void deleteEnrollment(Enrollment enrollment);
-
-  /**
-   * Hard deletes a {@link Enrollment}.
-   *
-   * @param enrollment the Enrollment to delete.
-   */
-  void hardDeleteEnrollment(Enrollment enrollment);
-
   /** Get enrollments into a program. */
   List<Enrollment> getEnrollments(Program program);
 

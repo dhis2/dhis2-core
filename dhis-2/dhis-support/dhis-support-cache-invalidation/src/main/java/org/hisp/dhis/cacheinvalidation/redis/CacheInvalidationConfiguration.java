@@ -41,7 +41,6 @@ import org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -54,7 +53,6 @@ import org.springframework.core.annotation.Order;
  */
 @Order(10002)
 @Configuration
-@ComponentScan(basePackages = {"org.hisp.dhis"})
 @Profile({"!test", "!test-h2"})
 @Conditional(value = CacheInvalidationEnabledConditionNotTestable.class)
 public class CacheInvalidationConfiguration {

@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics.common;
 
 /** Keeps the association between an "item" abbreviation and its respective name. */
 public enum ColumnHeader {
-  TEI("tei", "Tracked entity instance"),
+  TRACKED_ENTITY("tei", "Tracked entity"),
   ENROLLMENT("pi", "Enrollment"),
   GEOMETRY("geometry", "Geometry"),
   ENROLLMENT_DATE("enrollmentdate", "Enrollment date"),

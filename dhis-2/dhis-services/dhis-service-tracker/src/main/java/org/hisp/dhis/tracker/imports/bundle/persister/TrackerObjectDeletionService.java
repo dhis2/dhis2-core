@@ -39,7 +39,7 @@ public interface TrackerObjectDeletionService {
 
   TrackerTypeReport deleteEnrollments(List<String> enrollments) throws NotFoundException;
 
-  TrackerTypeReport deleteEvents(List<String> events);
+  TrackerTypeReport deleteEvents(List<String> events) throws NotFoundException;
 
-  TrackerTypeReport deleteRelationships(List<String> relationships);
+  TrackerTypeReport deleteRelationships(List<String> relationships) throws NotFoundException;
 }

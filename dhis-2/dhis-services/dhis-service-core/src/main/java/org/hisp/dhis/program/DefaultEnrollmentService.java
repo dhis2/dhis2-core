@@ -61,20 +61,6 @@ public class DefaultEnrollmentService implements EnrollmentService {
   private final IdentifiableObjectManager manager;
 
   @Override
-  @Transactional
-  public void deleteEnrollment(Enrollment enrollment) {
-    enrollment.setStatus(EnrollmentStatus.CANCELLED);
-    enrollmentStore.update(enrollment);
-    enrollmentStore.delete(enrollment);
-  }
-
-  @Override
-  @Transactional
-  public void hardDeleteEnrollment(Enrollment enrollment) {
-    enrollmentStore.hardDelete(enrollment);
-  }
-
-  @Override
   @Transactional(readOnly = true)
   public List<Enrollment> getEnrollments(Program program) {
     return enrollmentStore.get(program);

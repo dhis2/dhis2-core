@@ -28,8 +28,8 @@
 package org.hisp.dhis.analytics.resolver;
 
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
-import static org.hisp.dhis.test.DhisConvenienceTest.createCategoryOptionCombo;
-import static org.hisp.dhis.test.DhisConvenienceTest.createCategoryOptionGroup;
+import static org.hisp.dhis.test.TestBase.createCategoryOptionCombo;
+import static org.hisp.dhis.test.TestBase.createCategoryOptionGroup;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;

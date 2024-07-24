@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.deduplication;
 
 import java.util.List;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 
 public interface DeduplicationService {
   PotentialDuplicate getPotentialDuplicateById(long id);
@@ -49,10 +50,12 @@ public interface DeduplicationService {
   void autoMerge(DeduplicationMergeParams deduplicationRequest)
       throws PotentialDuplicateConflictException,
           PotentialDuplicateForbiddenException,
-          ForbiddenException;
+          ForbiddenException,
+          NotFoundException;
 
   void manualMerge(DeduplicationMergeParams deduplicationRequest)
       throws PotentialDuplicateConflictException,
           PotentialDuplicateForbiddenException,
-          ForbiddenException;
+          ForbiddenException,
+          NotFoundException;
 }

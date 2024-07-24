@@ -49,14 +49,6 @@ public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
   List<Enrollment> get(TrackedEntity trackedEntity, Program program, EnrollmentStatus status);
 
   /**
-   * Fetches enrollments matching the given list of UIDs
-   *
-   * @param uids a List of UID
-   * @return a List containing the enrollments matching the given parameters list
-   */
-  List<Enrollment> getIncludingDeleted(List<String> uids);
-
-  /**
    * Get all enrollments which have notifications with the given ProgramNotificationTemplate
    * scheduled on the given date.
    *
@@ -66,19 +58,4 @@ public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
    */
   List<Enrollment> getWithScheduledNotifications(
       ProgramNotificationTemplate template, Date notificationDate);
-
-  /**
-   * Return all enrollment linked to programs.
-   *
-   * @param programs Programs to fetch by
-   * @return List of all enrollments that are linked to programs
-   */
-  List<Enrollment> getByPrograms(List<Program> programs);
-
-  /**
-   * Hard deletes a {@link Enrollment}.
-   *
-   * @param enrollment the enrollment to delete.
-   */
-  void hardDelete(Enrollment enrollment);
 }

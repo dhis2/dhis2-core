@@ -47,7 +47,6 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
-import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
@@ -106,8 +105,6 @@ class RelationshipSMSListenerTest extends CompressionSMSListenerTest {
 
   private IncomingSms incomingSmsRelationship;
 
-  @Mock private RelationshipService relationshipService;
-
   @Mock private RelationshipTypeService relationshipTypeService;
 
   @Mock private EnrollmentService enrollmentService;
@@ -133,7 +130,6 @@ class RelationshipSMSListenerTest extends CompressionSMSListenerTest {
             dataElementService,
             identifiableObjectManager,
             eventService,
-            relationshipService,
             relationshipTypeService,
             trackedEntityService,
             enrollmentService);

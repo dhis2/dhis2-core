@@ -90,20 +90,26 @@ import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.visualization.Visualization;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class DataQueryServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class DataQueryServiceTest extends PostgresIntegrationTestBase {
   private Attribute atA;
 
   private Program prA;
@@ -192,8 +198,8 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private UserService internalUserService;
 
-  @Override
-  public void setUpTest() {
+  @BeforeAll
+  void setUp() {
     super.userService = internalUserService;
     atA = createAttribute('A');
     atA.setUnique(true);
@@ -313,10 +319,6 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase {
 
     injectSecurityContextUser(user);
   }
-
-  // -------------------------------------------------------------------------
-  // Tests
-  // -------------------------------------------------------------------------
 
   @Test
   void testGetDimensionalObjects() {

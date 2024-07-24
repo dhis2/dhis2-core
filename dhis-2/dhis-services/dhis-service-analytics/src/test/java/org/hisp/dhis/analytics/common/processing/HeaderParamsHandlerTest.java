@@ -40,8 +40,8 @@ import org.hisp.dhis.analytics.common.CommonRequestParams;
 import org.hisp.dhis.analytics.common.ContextParams;
 import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 import org.hisp.dhis.analytics.common.query.Field;
-import org.hisp.dhis.analytics.tei.TeiQueryParams;
-import org.hisp.dhis.analytics.tei.TeiRequestParams;
+import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
+import org.hisp.dhis.analytics.trackedentity.TrackedEntityRequestParams;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -69,8 +69,8 @@ class HeaderParamsHandlerTest {
     // Given
     String column = "oucode";
     Grid grid = new ListGrid();
-    ContextParams<TeiRequestParams, TeiQueryParams> contextParams =
-        ContextParams.<TeiRequestParams, TeiQueryParams>builder()
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
             .commonRaw(new CommonRequestParams())
             .commonParsed(CommonParsedParams.builder().build())
             .build();
@@ -88,8 +88,8 @@ class HeaderParamsHandlerTest {
   void testHandleWithNoFieldColumn() {
     // Given
     Grid grid = new ListGrid();
-    ContextParams<TeiRequestParams, TeiQueryParams> contextParams =
-        ContextParams.<TeiRequestParams, TeiQueryParams>builder()
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
             .commonRaw(new CommonRequestParams())
             .build();
     List<Field> fields = List.of();
@@ -105,8 +105,8 @@ class HeaderParamsHandlerTest {
   void testHandleWithParamHeaders() {
     // Given
     Grid grid = new ListGrid();
-    ContextParams<TeiRequestParams, TeiQueryParams> contextParams =
-        ContextParams.<TeiRequestParams, TeiQueryParams>builder()
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
             .commonRaw(stubCommonParamsWithHeaders())
             .commonParsed(CommonParsedParams.builder().build())
             .build();
@@ -131,8 +131,8 @@ class HeaderParamsHandlerTest {
     // Given
     CommonRequestParams commonParams = stubCommonParamsWithHeaders();
     commonParams.getHeaders().add("non-existing");
-    ContextParams<TeiRequestParams, TeiQueryParams> contextParams =
-        ContextParams.<TeiRequestParams, TeiQueryParams>builder()
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
             .commonRaw(commonParams)
             .commonParsed(CommonParsedParams.builder().build())
             .build();

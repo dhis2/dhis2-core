@@ -39,12 +39,18 @@ import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class ProgramRuleActionStoreTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class ProgramRuleActionStoreTest extends PostgresIntegrationTestBase {
 
   private ProgramRule programRuleA;
 
@@ -62,8 +68,8 @@ class ProgramRuleActionStoreTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private ProgramNotificationTemplateService programNotificationTemplateService;
 
-  @Override
-  public void setUpTest() {
+  @BeforeAll
+  void setUp() {
     programA = createProgram('A', null, null);
     programRuleA = createProgramRule('A', programA);
     dataElementA = createDataElement('A');

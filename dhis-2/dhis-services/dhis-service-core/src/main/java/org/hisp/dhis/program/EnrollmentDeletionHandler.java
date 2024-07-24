@@ -29,8 +29,6 @@ package org.hisp.dhis.program;
 
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.system.deletion.DeletionVeto;
@@ -60,15 +58,10 @@ public class EnrollmentDeletionHandler extends IdObjectDeletionHandler<Enrollmen
   }
 
   private void deleteProgram(Program program) {
-    Collection<Enrollment> enrollments = enrollmentService.getEnrollments(program);
-
-    if (enrollments != null) {
-      Iterator<Enrollment> iterator = enrollments.iterator();
-      while (iterator.hasNext()) {
-        Enrollment enrollment = iterator.next();
-        iterator.remove();
-        enrollmentService.hardDeleteEnrollment(enrollment);
-      }
+    if (program.isRegistration()) {
+      return;
     }
+
+    delete("delete from enrollment where programid = :id", Map.of("id", program.getId()));
   }
 }

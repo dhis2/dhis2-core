@@ -38,16 +38,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Nguyen Hong Duc
  */
-class UserStoreTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class UserStoreTest extends PostgresIntegrationTestBase {
   public static final String AUTH_A = "AuthA";
 
   public static final String AUTH_B = "AuthB";
@@ -62,7 +69,7 @@ class UserStoreTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private UserGroupService userGroupService;
 
-  @Autowired private UserService _userService;
+  @Autowired private DbmsManager dbmsManager;
 
   private OrganisationUnit unit1;
 
@@ -74,14 +81,13 @@ class UserStoreTest extends SingleSetupIntegrationTestBase {
 
   private UserRole roleC;
 
-  @Override
-  public void setUpTest() throws Exception {
+  @BeforeAll
+  void setUp() {
     unit1 = createOrganisationUnit('A');
     unit2 = createOrganisationUnit('B');
     organisationUnitService.addOrganisationUnit(unit1);
     organisationUnitService.addOrganisationUnit(unit2);
 
-    this.userService = _userService;
     roleA = createUserRole('A');
     roleB = createUserRole('B');
     roleC = createUserRole('C');

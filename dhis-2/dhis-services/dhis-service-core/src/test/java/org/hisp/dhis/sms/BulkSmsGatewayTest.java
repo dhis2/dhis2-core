@@ -49,7 +49,7 @@ import org.hisp.dhis.sms.config.GenericHttpGatewayConfig;
 import org.hisp.dhis.sms.config.SmsGateway;
 import org.hisp.dhis.sms.config.SmsGatewayConfig;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -68,7 +68,7 @@ import org.springframework.web.client.RestTemplate;
  * @author Zubair Asghar.
  */
 @ExtendWith(MockitoExtension.class)
-class BulkSmsGatewayTest extends DhisConvenienceTest {
+class BulkSmsGatewayTest extends TestBase {
 
   private static final String MESSAGE = "text-MESSAGE";
 

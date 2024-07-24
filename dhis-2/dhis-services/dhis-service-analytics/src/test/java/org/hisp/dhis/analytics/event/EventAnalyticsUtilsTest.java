@@ -41,14 +41,14 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Henning Håkonsen
  */
-class EventAnalyticsUtilsTest extends DhisConvenienceTest {
+class EventAnalyticsUtilsTest extends TestBase {
   @Test
   void testGetAggregatedDataValueMapping() {
     Grid grid = new ListGrid();

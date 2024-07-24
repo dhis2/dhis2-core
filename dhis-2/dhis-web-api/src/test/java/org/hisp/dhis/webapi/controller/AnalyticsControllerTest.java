@@ -60,7 +60,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -115,7 +115,7 @@ class AnalyticsControllerTest {
               when(period.getItems())
                   .thenReturn(
                       ((List<String>) invocation.getArguments()[0])
-                          .stream().map(DhisConvenienceTest::createPeriod).collect(toList()));
+                          .stream().map(TestBase::createPeriod).collect(toList()));
 
               return period;
             });

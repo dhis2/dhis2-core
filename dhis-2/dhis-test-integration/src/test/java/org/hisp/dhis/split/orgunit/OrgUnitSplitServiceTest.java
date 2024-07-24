@@ -43,14 +43,17 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class OrgUnitSplitServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class OrgUnitSplitServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private OrgUnitSplitService service;
 
@@ -66,8 +69,8 @@ class OrgUnitSplitServiceTest extends TransactionalIntegrationTest {
 
   private OrganisationUnit ouC;
 
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     ptA = periodService.getPeriodTypeByClass(MonthlyPeriodType.class);
     ouA = createOrganisationUnit('A');
     ouB = createOrganisationUnit('B');
