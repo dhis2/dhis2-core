@@ -61,7 +61,6 @@ import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
-import org.hisp.dhis.tracker.export.enrollment.EnrollmentStore;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -91,8 +90,6 @@ class ProgramNotificationServiceTest extends PostgresIntegrationTestBase {
   @Autowired private CategoryService categoryService;
 
   @Autowired private EventStore eventStore;
-
-  @Autowired private EnrollmentStore enrollmentStore;
 
   @Autowired
   @Qualifier("org.hisp.dhis.program.notification.ProgramNotificationStore")
@@ -420,22 +417,22 @@ class ProgramNotificationServiceTest extends PostgresIntegrationTestBase {
     cal.add(Calendar.DATE, -6);
     Date aWeekAgo = cal.getTime();
     // Enrollments
-    Enrollment enrollmentA = new Enrollment(today, tomorrow, trackedEntityX, programA);
-    enrollmentStore.save(enrollmentA);
-    Enrollment enrollmentB = new Enrollment(aWeekAgo, yesterday, trackedEntityY, programA);
-    enrollmentStore.save(enrollmentB);
+    Enrollment enrollmentC = new Enrollment(today, tomorrow, trackedEntityX, programA);
+    manager.save(enrollmentC);
+    Enrollment enrollmentD = new Enrollment(aWeekAgo, yesterday, trackedEntityY, programA);
+    manager.save(enrollmentD);
     // Queries
     List<Enrollment> results;
     // A
     results = programNotificationService.getEnrollmentsWithScheduledNotifications(a1, today);
     assertEquals(1, results.size());
-    assertEquals(enrollmentA, results.get(0));
+    assertEquals(enrollmentC, results.get(0));
     results = programNotificationService.getEnrollmentsWithScheduledNotifications(a2, today);
     assertEquals(1, results.size());
-    assertEquals(enrollmentB, results.get(0));
+    assertEquals(enrollmentD, results.get(0));
     results = programNotificationService.getEnrollmentsWithScheduledNotifications(a3, today);
     assertEquals(1, results.size());
-    assertEquals(enrollmentB, results.get(0));
+    assertEquals(enrollmentD, results.get(0));
     results = programNotificationService.getEnrollmentsWithScheduledNotifications(a3, yesterday);
     assertEquals(0, results.size());
   }
