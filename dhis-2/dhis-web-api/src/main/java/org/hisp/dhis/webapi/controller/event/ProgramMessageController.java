@@ -98,10 +98,22 @@ public class ProgramMessageController extends AbstractCrudController<ProgramMess
     UID eventUid =
         validateDeprecatedParameter("programStageInstance", programStageInstance, "event", event);
 
+
+
+
     if (enrollmentUid == null && eventUid == null) {
       throw new ConflictException("Enrollment or Event must be specified.");
     }
+    if (enrollmentUid != null && eventUid != null) {
+      throw new ConflictException("Enrollment and Event cannot be processed together.");
+    }
+    // TODO use RequestParamsValidator
 
+
+
+    
+
+    // TODO use builder for making ProgramMessageRequestParam
     ProgramMessageQueryParams params =
         programMessageService.getFromUrl(
             ou,

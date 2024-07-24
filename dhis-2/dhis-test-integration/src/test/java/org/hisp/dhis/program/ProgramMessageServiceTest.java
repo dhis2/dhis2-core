@@ -214,24 +214,6 @@ class ProgramMessageServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testExists() {
-    programMessageService.saveProgramMessage(pmsgA);
-    boolean exists = programMessageService.exists(uidA);
-    assertTrue(exists);
-  }
-
-  @Test
-  void testGetAllProgramMessages() {
-    programMessageService.saveProgramMessage(pmsgA);
-    programMessageService.saveProgramMessage(pmsgB);
-    programMessageService.saveProgramMessage(pmsgC);
-    List<ProgramMessage> programMessages = programMessageService.getAllProgramMessages();
-    assertNotNull(programMessages);
-    assertTrue(!programMessages.isEmpty());
-    assertTrue(equals(programMessages, pmsgA, pmsgB, pmsgC));
-  }
-
-  @Test
   void testGetProgramMessageById() {
     long pmsgAId = programMessageService.saveProgramMessage(pmsgA);
     ProgramMessage programMessage = programMessageService.getProgramMessage(pmsgAId);

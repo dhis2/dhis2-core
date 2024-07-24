@@ -48,27 +48,12 @@ public interface ProgramMessageService {
       Date beforeDate);
 
   /**
-   * To check if {@link ProgramMessage message} exists against the given uid.
-   *
-   * @param uid the uid of ProgramMessage.
-   */
-  boolean exists(String uid);
-
-  void currentUserHasAccess(ProgramMessageQueryParams params);
-
-  void validateQueryParameters(ProgramMessageQueryParams params);
-
-  /**
    * To validate {@link ProgramMessage message} payload in order to make sure prerequisite values
    * exist before message can be processed.
    *
    * @param message the ProgramMessage.
    */
   void validatePayload(ProgramMessage message);
-
-  // -------------------------------------------------------------------------
-  // Transport Service methods
-  // -------------------------------------------------------------------------
 
   /**
    * Send message batch based on their {@link DeliveryChannel channel}. If the DeliveryChannel is
@@ -78,8 +63,6 @@ public interface ProgramMessageService {
    */
   BatchResponseStatus sendMessages(List<ProgramMessage> programMessages);
 
-  void sendMessagesAsync(List<ProgramMessage> programMessages);
-
   // -------------------------------------------------------------------------
   // GET
   // -------------------------------------------------------------------------
@@ -87,8 +70,6 @@ public interface ProgramMessageService {
   ProgramMessage getProgramMessage(long id);
 
   ProgramMessage getProgramMessage(String uid);
-
-  List<ProgramMessage> getAllProgramMessages();
 
   List<ProgramMessage> getProgramMessages(ProgramMessageQueryParams params);
 

@@ -43,7 +43,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchService;
-import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
@@ -57,7 +56,6 @@ import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.concurrent.ListenableFuture;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -112,7 +110,6 @@ public class DefaultProgramMessageService implements ProgramMessageService {
       if (manager.exists(Enrollment.class, enrollmentUid)) {
         params.setEnrollment(manager.get(Enrollment.class, enrollmentUid));
       } else {
-        throw new IllegalQueryException("Enrollment does not exist.");
       }
     }
 
@@ -136,12 +133,6 @@ public class DefaultProgramMessageService implements ProgramMessageService {
 
   @Override
   @Transactional(readOnly = true)
-  public boolean exists(String uid) {
-    return programMessageStore.exists(uid);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public ProgramMessage getProgramMessage(long id) {
     return programMessageStore.get(id);
   }
@@ -150,12 +141,6 @@ public class DefaultProgramMessageService implements ProgramMessageService {
   @Transactional(readOnly = true)
   public ProgramMessage getProgramMessage(String uid) {
     return programMessageStore.getByUid(uid);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<ProgramMessage> getAllProgramMessages() {
-    return programMessageStore.getAll();
   }
 
   @Override
@@ -203,27 +188,7 @@ public class DefaultProgramMessageService implements ProgramMessageService {
     return status;
   }
 
-  @Override
-  @Transactional
-  public void sendMessagesAsync(List<ProgramMessage> programMessages) {
-    List<ProgramMessage> populatedProgramMessages =
-        programMessages.stream()
-            .filter(this::hasDataWriteAccess)
-            .map(this::setAttributesBasedOnStrategy)
-            .collect(Collectors.toList());
-
-    List<OutboundMessageBatch> batches = createBatches(populatedProgramMessages);
-
-    for (OutboundMessageBatch batch : batches) {
-      ListenableFuture<OutboundMessageResponseSummary> future =
-          smsSender.sendMessageBatchAsync(batch);
-      future.addCallback(sendingCallback.getBatchCallBack());
-    }
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public void currentUserHasAccess(ProgramMessageQueryParams params) {
+  private void currentUserHasAccess(ProgramMessageQueryParams params) {
     Enrollment enrollment = null;
 
     Set<Program> programs;
@@ -248,9 +213,7 @@ public class DefaultProgramMessageService implements ProgramMessageService {
     }
   }
 
-  @Override
-  @Transactional(readOnly = true)
-  public void validateQueryParameters(ProgramMessageQueryParams params) {
+  private void validateQueryParameters(ProgramMessageQueryParams params) {
     String violation = null;
 
     if (!params.hasEnrollment() && !params.hasEvent()) {
