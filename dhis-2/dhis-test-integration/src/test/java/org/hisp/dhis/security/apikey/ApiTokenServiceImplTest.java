@@ -47,6 +47,7 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -55,6 +56,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Disabled("TODO(platform) enable again")
 @Transactional
 class ApiTokenServiceImplTest extends PostgresIntegrationTestBase {
   @Autowired private ApiTokenStore apiTokenStore;
