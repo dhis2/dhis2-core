@@ -48,7 +48,6 @@ import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
@@ -56,7 +55,6 @@ import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.converter.NotesConverterService;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
@@ -75,32 +73,15 @@ public class EventPersister
       eventConverter;
 
   private final TrackedEntityDataValueChangeLogService trackedEntityDataValueAuditService;
-  private final NotesConverterService notesConverterService;
 
   public EventPersister(
       ReservedValueService reservedValueService,
       TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event> eventConverter,
       TrackedEntityAttributeValueChangeLogService trackedEntityAttributeValueChangeLogService,
-      TrackedEntityDataValueChangeLogService trackedEntityDataValueChangeLogService,
-      NotesConverterService notesConverterService) {
+      TrackedEntityDataValueChangeLogService trackedEntityDataValueChangeLogService) {
     super(reservedValueService, trackedEntityAttributeValueChangeLogService);
     this.eventConverter = eventConverter;
     this.trackedEntityDataValueAuditService = trackedEntityDataValueChangeLogService;
-    this.notesConverterService = notesConverterService;
-  }
-
-  @Override
-  protected void persistNotes(
-      EntityManager entityManager,
-      TrackerPreheat preheat,
-      org.hisp.dhis.tracker.imports.domain.Event event) {
-    List<Note> notes = notesConverterService.from(preheat, event.getNotes());
-
-    for (Note note : notes) {
-      if (!preheat.noteExists(note.getUid())) {
-        entityManager.persist(note);
-      }
-    }
   }
 
   @Override

@@ -64,12 +64,6 @@ public class RelationshipPersister
   }
 
   @Override
-  protected void persistNotes(
-      EntityManager entityManager, TrackerPreheat preheat, Relationship entity) {
-    // NOTHING TO DO
-  }
-
-  @Override
   protected void updateAttributes(
       EntityManager entityManager,
       TrackerPreheat preheat,
