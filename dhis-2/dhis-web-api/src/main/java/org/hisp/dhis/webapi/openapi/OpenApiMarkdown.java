@@ -50,6 +50,7 @@ import lombok.RequiredArgsConstructor;
  * with another block element or indentation level change. A heading can only be a single line.
  *
  * @author Jan Bernitt
+ * @since 2.42
  */
 @RequiredArgsConstructor
 final class OpenApiMarkdown {
@@ -210,7 +211,7 @@ final class OpenApiMarkdown {
       case IMAGE ->
           html.append("<img src=\"")
               .append(escapeHtml(span.value))
-              .append("\" title=\"")
+              .append("\" alt=\"")
               .append(escapeHtml(span.inner.get(0).value))
               .append(" />");
       case LINK -> {
@@ -248,7 +249,8 @@ final class OpenApiMarkdown {
     private static final Pattern REGEX_SPACER = Pattern.compile("^\\s*$");
     private static final Pattern REGEX_RULER = Pattern.compile("^\\s*[-_*]{3,}\\s*$");
     private static final Pattern REGEX_HEADING = Pattern.compile("^\\s*(#{1,6}) .*$");
-    private static final Pattern REGEX_LISTING = Pattern.compile("^\\s*(?:-|\\*|#\\.|\\d+\\.) .*$");
+    private static final Pattern REGEX_LISTING =
+        Pattern.compile("^\\s*(?:-|\\+|\\*|#\\.|\\d+\\.) .*$");
     private static final Pattern REGEX_BLOCK_QUOTE = Pattern.compile("^\\s*> .*$");
     private static final Pattern REGEX_CODE_BLOCK =
         Pattern.compile("^\\s*```(?:[-_a-zA-Z0-9]+)?\\s*$");
@@ -290,7 +292,7 @@ final class OpenApiMarkdown {
       int indent = leadingIndent(line);
       MarkupListType type =
           switch (line.charAt(indent)) {
-            case '-', '*' -> MarkupListType.BULLET;
+            case '-', '*', '+' -> MarkupListType.BULLET;
             default -> MarkupListType.NUMBERED;
           };
       List<MarkupLine> itemLines = new ArrayList<>();
@@ -355,7 +357,7 @@ final class OpenApiMarkdown {
       Runnable addPlain =
           () -> {
             if (!plain.isEmpty()) {
-              res.add(new MarkupSpan(MarkupSpanType.PLAIN, plain.toString(), List.of()));
+              res.add(newPlainSpan(plain.toString()));
               plain.setLength(0);
             }
           };
@@ -374,11 +376,7 @@ final class OpenApiMarkdown {
           if (closeAt > 0 && closeAt < to) {
             addPlain.run();
             String url = line.substring(openAt + 1, closeAt);
-            res.add(
-                new MarkupSpan(
-                    MarkupSpanType.LINK,
-                    url,
-                    List.of(new MarkupSpan(MarkupSpanType.PLAIN, url, List.of()))));
+            res.add(new MarkupSpan(MarkupSpanType.LINK, url, List.of(newPlainSpan(url))));
             i = closeAt + 1;
           }
         } else if (open == '`') {
@@ -400,11 +398,7 @@ final class OpenApiMarkdown {
               int startOfText = line.indexOf('[', openAt) + 1;
               List<MarkupSpan> text =
                   type == MarkupSpanType.IMAGE
-                      ? List.of(
-                          new MarkupSpan(
-                              MarkupSpanType.PLAIN,
-                              line.substring(startOfText, endOfText),
-                              List.of()))
+                      ? List.of(newPlainSpan(line.substring(startOfText, endOfText)))
                       : parseSpans(line, startOfText, endOfText);
               addPlain.run();
               res.add(new MarkupSpan(type, url, text));
@@ -448,6 +442,15 @@ final class OpenApiMarkdown {
       }
       addPlain.run();
       return List.copyOf(res);
+    }
+
+    private static MarkupSpan newPlainSpan(String text) {
+      return new MarkupSpan(MarkupSpanType.PLAIN, unescape(text), List.of());
+    }
+
+    private static String unescape(String markdown) {
+      if (markdown.indexOf('\\') < 0) return markdown;
+      return markdown.replaceAll("\\\\([-\\\\`*_{}\\[\\]<>()#+.!|])", "$1");
     }
 
     private static boolean isSpanOpen(char c) {

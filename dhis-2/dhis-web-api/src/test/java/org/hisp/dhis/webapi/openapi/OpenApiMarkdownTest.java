@@ -148,6 +148,22 @@ class OpenApiMarkdownTest {
   }
 
   @Test
+  void testListing_Plus() {
+    assertRenders("<ul>\n  <li>hello</li>\n  <li>world</li>\n</ul>\n", "+ hello\n+ world");
+    assertRenders(
+        """
+      <ul>
+        <li>hello
+      world</li>
+        <li>this is
+      the second
+      item</li>
+      </ul>
+      """,
+        "+ hello\n  world\n+ this is\n  the second\n  item");
+  }
+
+  @Test
   void testListing_Hash() {
     assertRenders("<ol>\n  <li>hello</li>\n  <li>world</li>\n</ol>\n", "#. hello\n#. world");
     assertRenders(
@@ -180,6 +196,12 @@ class OpenApiMarkdownTest {
   }
 
   @Test
+  void testListing_Escape() {
+    assertRenders("<ol>\n  <li>A great year!</li>\n</ol>\n", "1968. A great year!");
+    assertRenders("<p>1968. A great year!</p>", "1968\\. A great year!");
+  }
+
+  @Test
   void testRuler() {
     assertRenders("<hr/>\n", "***");
     assertRenders("<hr/>\n", "  ***");
@@ -200,6 +222,37 @@ class OpenApiMarkdownTest {
          "indeed"
          ```
          """);
+  }
+
+  @Test
+  void testLink() {
+    assertRenders(
+        "<p>I love supporting the <strong><a target=\"_blank\" href=\"https://eff.org\">EFF</a></strong>.</p>",
+        "I love supporting the **[EFF](https://eff.org)**.");
+    assertRenders(
+        "<p>See the section on <a target=\"_blank\" href=\"#code\"><code>code</code></a>.</p>",
+        "See the section on [`code`](#code).");
+  }
+
+  @Test
+  void testLinkShorthand() {
+    assertRenders(
+        "<p>More info at <a target=\"_blank\" href=\"https://www.markdownguide.org\">https://www.markdownguide.org</a> ;)</p>",
+        "More info at <https://www.markdownguide.org> ;)");
+  }
+
+  @Test
+  void testImage() {
+    assertRenders(
+        "<p>Look! The <img src=\"/assets/images/san-juan-mountains.jpg\" alt=\"The San Juan Mountains are beautiful! /> indeed.</p>",
+        "Look! The ![The San Juan Mountains are beautiful!](/assets/images/san-juan-mountains.jpg) indeed.");
+  }
+
+  @Test
+  void testHtmlEntities() {
+    assertRenders(
+        "<p>This is a simple text that has &amp; but also an entity &amp; and &#128049; in it</p>",
+        "This is a simple text that has & but also an entity &amp; and &#128049; in it");
   }
 
   @Test

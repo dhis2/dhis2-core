@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.openapi;
 
+import static java.lang.Math.min;
+
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
@@ -111,20 +113,22 @@ final class OpenApiHtmlUtils {
     int j = i + 1;
     // scan for HTML entity to preserve it
     if (chars[j] == '#') {
-      int k = j + 6;
-      if (chars[j + 1] == 'x') {
+      j++; // skip beyond the #
+      int k = min(j + 6, len);
+      if (chars[j] == 'x') {
         // &#x[0-9A-Fa-f]{1,5};
-        while (j < len && j < k && isHexDigit(chars[j])) j++;
+        j++; // skip the x
+        while (j < k && isHexDigit(chars[j])) j++;
       } else {
         // &#[0-9]{1,5};
-        while (j < len && j < k && isDigit(chars[j])) j++;
+        while (j < k && isDigit(chars[j])) j++;
       }
     } else {
       // &[a-zA-Z]{1,24};
-      int k = j + 24; // maximum name length is 24
-      while (j < len && j < k && isLetter(chars[j])) j++;
+      int k = min(j + 24, len); // maximum name length is 24
+      while (j < k && isLetter(chars[j])) j++;
     }
-    if (chars[j] == ';') return j + 1;
+    if (chars[j] == ';' && j - i > 3) return j + 1;
     return -1;
   }
 
