@@ -371,7 +371,7 @@ final class OpenApiMarkdown {
         }
         int openAt = i;
         char open = line.charAt(openAt);
-        if (open == '<' && line.startsWith("<http", openAt)) {
+        if (open == '<' && (line.startsWith("<http", openAt) || line.startsWith("<#", openAt))) {
           int closeAt = line.indexOf('>', openAt + 1);
           if (closeAt > 0 && closeAt < to) {
             addPlain.run();

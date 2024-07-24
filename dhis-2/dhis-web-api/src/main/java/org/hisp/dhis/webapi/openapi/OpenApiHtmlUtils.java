@@ -57,6 +57,7 @@ final class OpenApiHtmlUtils {
   @Nonnull
   static String stripHtml(@CheckForNull String value) {
     if (value == null) return "";
+    if (value.isBlank()) return value;
     StringBuilder escaped = new StringBuilder(value.length());
     value
         .chars()
@@ -80,6 +81,7 @@ final class OpenApiHtmlUtils {
   @Nonnull
   public static String escapeHtml(@CheckForNull String text) {
     if (text == null) return "";
+    if (text.isBlank()) return text;
     if (text.indexOf('&') < 0) return escapeHtmlFast(text);
     char[] chars = text.toCharArray();
     int len = chars.length;
@@ -125,7 +127,7 @@ final class OpenApiHtmlUtils {
       }
     } else {
       // &[a-zA-Z]{1,24};
-      int k = min(j + 24, len); // maximum name length is 24
+      int k = min(j + 31, len); // maximum name length is 24
       while (j < k && isLetter(chars[j])) j++;
     }
     if (chars[j] == ';' && j - i > 3) return j + 1;

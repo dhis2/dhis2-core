@@ -48,6 +48,12 @@ class OpenApiMarkdownTest {
   }
 
   @Test
+  void testPlain_Escape() {
+    assertRenders(
+        "<p>Plain text &amp; others are HTML escaped</p>", "Plain text & others are HTML escaped");
+  }
+
+  @Test
   void testItalic() {
     assertRenders("<p><em>hello</em></p>", "_hello_");
     assertRenders("<p>hello <em>world</em></p>", "hello _world_");
@@ -59,6 +65,16 @@ class OpenApiMarkdownTest {
     assertRenders("<p><em>hello</em></p>", "*hello*");
     assertRenders("<p>hello <em>world</em></p>", "hello *world*");
     assertRenders("<p>hello <em>world</em>!</p>", "hello *world*!");
+  }
+
+  @Test
+  void testItalic_Escape() {
+    assertRenders(
+        "<p>Text inside a <em>italic &amp; others</em> is HTML escaped</p>",
+        "Text inside a _italic & others_ is HTML escaped");
+    assertRenders(
+        "<p>Text inside a <em>italic &amp; others</em> is HTML escaped</p>",
+        "Text inside a *italic & others* is HTML escaped");
   }
 
   @Test
@@ -76,6 +92,16 @@ class OpenApiMarkdownTest {
   }
 
   @Test
+  void testBold_Escape() {
+    assertRenders(
+        "<p>Text inside a <strong>bold &amp; others</strong> is HTML escaped</p>",
+        "Text inside a __bold & others__ is HTML escaped");
+    assertRenders(
+        "<p>Text inside a <strong>bold &amp; others</strong> is HTML escaped</p>",
+        "Text inside a **bold & others** is HTML escaped");
+  }
+
+  @Test
   void testItalicAndBold() {
     assertRenders("<p><em><strong>hello</strong></em></p>", "___hello___");
     assertRenders("<p>hello <em><strong>world</strong></em></p>", "hello ___world___");
@@ -90,10 +116,27 @@ class OpenApiMarkdownTest {
   }
 
   @Test
+  void testItalicAndBold_Escape() {
+    assertRenders(
+        "<p>Text inside a <em><strong>bold &amp; italic</strong></em> is HTML escaped</p>",
+        "Text inside a ___bold & italic___ is HTML escaped");
+    assertRenders(
+        "<p>Text inside a <em><strong>bold &amp; italic</strong></em> is HTML escaped</p>",
+        "Text inside a ***bold & italic*** is HTML escaped");
+  }
+
+  @Test
   void testCode() {
     assertRenders("<p><code>hello</code></p>", "`hello`");
     assertRenders("<p>hello <code>world</code></p>", "hello `world`");
     assertRenders("<p>hello <code>world</code>!</p>", "hello `world`!");
+  }
+
+  @Test
+  void testCode_Escape() {
+    assertRenders(
+        "<p>Text inside a <code>code &amp; others</code> is HTML escaped</p>",
+        "Text inside a `code & others` is HTML escaped");
   }
 
   @Test
@@ -235,10 +278,24 @@ class OpenApiMarkdownTest {
   }
 
   @Test
+  void testLink_Escape() {
+    assertRenders(
+        "<p>The <a target=\"_blank\" href=\"#yeah&#039;\">text &amp; more</a> is HTML escaped</p>",
+        "The [text & more](#yeah') is HTML escaped");
+  }
+
+  @Test
   void testLinkShorthand() {
     assertRenders(
         "<p>More info at <a target=\"_blank\" href=\"https://www.markdownguide.org\">https://www.markdownguide.org</a> ;)</p>",
         "More info at <https://www.markdownguide.org> ;)");
+  }
+
+  @Test
+  void testLinkShorthand_Escape() {
+    assertRenders(
+        "<p>The <a target=\"_blank\" href=\"#yeah&#039;\">#yeah&#039;</a> is HTML escaped</p>",
+        "The <#yeah'> is HTML escaped");
   }
 
   @Test
