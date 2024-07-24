@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.imports.bundle.persister;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import javax.persistence.EntityManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.note.Note;
@@ -96,7 +95,7 @@ public class EnrollmentPersister
       EntityManager entityManager, TrackerPreheat preheat, Enrollment enrollment) {
     if (!enrollment.getNotes().isEmpty()) {
       for (Note note : enrollment.getNotes()) {
-        if (Objects.isNull(preheat.getNote(note.getUid()))) {
+        if (!preheat.noteExists(note.getUid())) {
           entityManager.persist(note);
         }
       }

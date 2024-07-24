@@ -36,7 +36,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -90,7 +89,7 @@ public class EventPersister
   protected void persistNotes(EntityManager entityManager, TrackerPreheat preheat, Event event) {
     if (!event.getNotes().isEmpty()) {
       for (Note note : event.getNotes()) {
-        if (Objects.isNull(preheat.getNote(note.getUid()))) {
+        if (!preheat.noteExists(note.getUid())) {
           entityManager.persist(note);
         }
       }

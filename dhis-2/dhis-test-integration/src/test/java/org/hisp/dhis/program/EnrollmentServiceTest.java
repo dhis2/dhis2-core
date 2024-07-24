@@ -45,7 +45,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.note.Note;
-import org.hisp.dhis.note.NoteService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -85,8 +84,6 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   @Autowired private ProgramService programService;
 
   @Autowired private ProgramStageService programStageService;
-
-  @Autowired private NoteService noteService;
 
   @Autowired private CategoryService categoryService;
 
@@ -304,7 +301,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     Note note = new Note();
     note.setCreator(CodeGenerator.generateUid());
     note.setNoteText("text");
-    noteService.addNote(note);
+    manager.save(note);
 
     enrollmentA.setNotes(List.of(note));
 
@@ -316,6 +313,6 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     Assertions.assertThrows(
         NotFoundException.class, () -> enrollmentService.getEnrollment(enrollmentA.getUid()));
-    assertTrue(noteService.noteExists(note.getUid()));
+    assertTrue(manager.exists(Note.class, note.getUid()));
   }
 }
