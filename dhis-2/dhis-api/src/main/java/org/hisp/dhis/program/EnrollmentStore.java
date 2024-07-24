@@ -47,9 +47,13 @@ public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
   List<Enrollment> get(TrackedEntity trackedEntity, Program program, EnrollmentStatus status);
 
   /**
-   * Hard deletes a {@link Enrollment}.
+   * Get all enrollments which have notifications with the given ProgramNotificationTemplate
+   * scheduled on the given date.
    *
-   * @param enrollment the enrollment to delete.
+   * @param template the template.
+   * @param notificationDate the Date for which the notification is scheduled.
+   * @return a list of enrollments.
    */
-  void hardDelete(Enrollment enrollment);
+  List<Enrollment> getWithScheduledNotifications(
+      ProgramNotificationTemplate template, Date notificationDate);
 }

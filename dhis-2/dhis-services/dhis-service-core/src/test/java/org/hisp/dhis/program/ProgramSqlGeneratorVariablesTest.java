@@ -121,7 +121,7 @@ class ProgramSqlGeneratorVariablesTest extends TestBase {
                 + enrollmentIndicator.getProgram().getUid()
                 + " where analytics_event_"
                 + enrollmentIndicator.getProgram().getUid()
-                + ".pi = ax.pi and created is not null order by occurreddate desc limit 1 )"));
+                + ".enrollment = ax.enrollment and created is not null order by occurreddate desc limit 1 )"));
   }
 
   @Test
@@ -159,7 +159,7 @@ class ProgramSqlGeneratorVariablesTest extends TestBase {
   @Test
   void testEnrollmentCount() {
     String sql = castString(test("V{enrollment_count}", new DefaultLiteral(), eventIndicator));
-    assertThat(sql, is("distinct pi"));
+    assertThat(sql, is("distinct enrollment"));
   }
 
   @Test
@@ -238,7 +238,7 @@ class ProgramSqlGeneratorVariablesTest extends TestBase {
   @Test
   void testTeiCount() {
     String sql = castString(test("V{tei_count}", new DefaultLiteral(), eventIndicator));
-    assertThat(sql, is("distinct tei"));
+    assertThat(sql, is("distinct trackedentity"));
   }
 
   @Test

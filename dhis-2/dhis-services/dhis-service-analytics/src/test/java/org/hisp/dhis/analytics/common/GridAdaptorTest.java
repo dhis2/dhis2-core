@@ -62,8 +62,8 @@ import org.hisp.dhis.analytics.common.processing.MetadataParamsHandler;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.jsonextractor.SqlRowSetJsonExtractorDelegator;
 import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
-import org.hisp.dhis.analytics.tei.TeiQueryParams;
-import org.hisp.dhis.analytics.tei.TeiRequestParams;
+import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
+import org.hisp.dhis.analytics.trackedentity.TrackedEntityRequestParams;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.Grid;
@@ -113,8 +113,8 @@ class GridAdaptorTest extends TestBase {
     metaData.setColumnName(1, "anyFakeCol-1");
     metaData.setColumnName(2, "oucode");
 
-    ContextParams<TeiRequestParams, TeiQueryParams> contextParams =
-        ContextParams.<TeiRequestParams, TeiQueryParams>builder()
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
             .commonParsed(stubCommonParsedParams())
             .commonRaw(new CommonRequestParams())
             .build();
@@ -151,12 +151,14 @@ class GridAdaptorTest extends TestBase {
     metaData.setColumnName(1, "anyFakeCol-1");
     metaData.setColumnName(2, "anyFakeCol-2");
 
-    ContextParams<TeiRequestParams, TeiQueryParams> contextParams =
-        ContextParams.<TeiRequestParams, TeiQueryParams>builder()
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
             .commonParsed(stubCommonParsedParams())
             .commonRaw(new CommonRequestParams())
             .typedParsed(
-                TeiQueryParams.builder().trackedEntityType(stubTrackedEntityType()).build())
+                TrackedEntityQueryParams.builder()
+                    .trackedEntityType(stubTrackedEntityType())
+                    .build())
             .build();
 
     List<Field> fields = emptyList();
@@ -186,12 +188,14 @@ class GridAdaptorTest extends TestBase {
     // Given
     Optional<SqlQueryResult> emptySqlResult = Optional.empty();
 
-    ContextParams<TeiRequestParams, TeiQueryParams> contextParams =
-        ContextParams.<TeiRequestParams, TeiQueryParams>builder()
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
             .commonParsed(stubCommonParsedParams())
             .commonRaw(new CommonRequestParams())
             .typedParsed(
-                TeiQueryParams.builder().trackedEntityType(stubTrackedEntityType()).build())
+                TrackedEntityQueryParams.builder()
+                    .trackedEntityType(stubTrackedEntityType())
+                    .build())
             .build();
 
     List<Field> fields = List.of(ofUnquoted("ev", null, "oucode"));
@@ -208,10 +212,10 @@ class GridAdaptorTest extends TestBase {
   }
 
   @Test
-  void testCreateGridWithNullTeiQueryParams() {
+  void testCreateGridWithNullTrackedEntityQueryParams() {
     // Given
     Optional<SqlQueryResult> anySqlResult = Optional.empty();
-    ContextParams<TeiRequestParams, TeiQueryParams> nullContextParams = null;
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> nullContextParams = null;
     long anyCount = 0;
 
     // When

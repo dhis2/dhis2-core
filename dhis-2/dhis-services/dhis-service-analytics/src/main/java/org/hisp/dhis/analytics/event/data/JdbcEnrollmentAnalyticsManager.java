@@ -102,15 +102,15 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   private static final List<String> COLUMNS =
       List.of(
-          "pi",
-          "tei",
+          "enrollment",
+          "trackedentity",
           "enrollmentdate",
           "incidentdate",
           "storedby",
           "createdbydisplayname",
           "lastupdatedbydisplayname",
           "lastupdated",
-          "ST_AsGeoJSON(pigeometry)",
+          "ST_AsGeoJSON(engeometry)",
           "longitude",
           "latitude",
           "ouname",
@@ -464,7 +464,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       sql +=
           "and "
               + getCoalesce(
-                  params.getCoordinateFields(), FallbackCoordinateFieldType.PI_GEOMETRY.getValue())
+                  params.getCoordinateFields(),
+                  FallbackCoordinateFieldType.ENROLLMENT_GEOMETRY.getValue())
               + IS_NOT_NULL;
     }
 
@@ -476,7 +477,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       sql +=
           "and "
               + getCoalesce(
-                  params.getCoordinateFields(), FallbackCoordinateFieldType.PI_GEOMETRY.getValue())
+                  params.getCoordinateFields(),
+                  FallbackCoordinateFieldType.ENROLLMENT_GEOMETRY.getValue())
               + " && ST_MakeEnvelope("
               + params.getBbox()
               + ",4326) ";
@@ -489,7 +491,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   protected String getSelectClause(EventQueryParams params) {
     List<String> selectCols =
         ListUtils.distinctUnion(
-            params.isAggregatedEnrollments() ? List.of("pi") : COLUMNS,
+            params.isAggregatedEnrollments() ? List.of("enrollment") : COLUMNS,
             getSelectColumns(params, false));
 
     return "select " + StringUtils.join(selectCols, ",") + " ";
@@ -554,9 +556,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
               + eventTableName
               + " where "
               + eventTableName
-              + ".pi = "
+              + ".enrollment = "
               + ANALYTICS_TBL_ALIAS
-              + ".pi "
+              + ".enrollment "
               + "and "
               + colName
               + IS_NOT_NULL
@@ -596,7 +598,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
       String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
       String excludingScheduledCondition =
-          eventTableName + ".psistatus != '" + EventStatus.SCHEDULE + "' and ";
+          eventTableName + ".eventstatus != '" + EventStatus.SCHEDULE + "' and ";
 
       if (item.getProgramStage().getRepeatable()
           && item.hasRepeatableStageParams()
@@ -609,9 +611,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             + " where "
             + excludingScheduledCondition
             + eventTableName
-            + ".pi = "
+            + ".enrollment = "
             + ANALYTICS_TBL_ALIAS
-            + ".pi "
+            + ".enrollment "
             + "and ps = '"
             + item.getProgramStage().getUid()
             + "'"
@@ -634,9 +636,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             + " where "
             + excludingScheduledCondition
             + eventTableName
-            + ".pi = "
+            + ".enrollment = "
             + ANALYTICS_TBL_ALIAS
-            + ".pi "
+            + ".enrollment "
             + "and ps = '"
             + item.getProgramStage().getUid()
             + "' "
@@ -663,9 +665,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
           + " where "
           + excludingScheduledCondition
           + eventTableName
-          + ".pi = "
+          + ".enrollment = "
           + ANALYTICS_TBL_ALIAS
-          + ".pi "
+          + ".enrollment "
           + "and "
           + colName
           + IS_NOT_NULL

@@ -189,7 +189,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
           replace(
               """
               (select ${select} from trackedentityattributevalue \
-              where trackedentityid=pi.trackedentityid \
+              where trackedentityid=en.trackedentityid \
               and trackedentityattributeid=${attributeId}\
               ${dataClause})${closingParentheses} as ${attributeUid}""",
               Map.of(
@@ -242,7 +242,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     return replace(
         """
             (select ${fromType} from trackedentityattributevalue \
-            where trackedentityid=pi.trackedentityid \
+            where trackedentityid=en.trackedentityid \
             and trackedentityattributeid=${attributeId}\
             ${dataClause})\
             ${closingParentheses} as ${attributeUid}""",
