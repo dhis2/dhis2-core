@@ -47,11 +47,4 @@ public class HibernateNoteStore extends HibernateIdentifiableObjectStore<Note> {
       AclService aclService) {
     super(entityManager, jdbcTemplate, publisher, Note.class, aclService, false);
   }
-
-  public boolean exists(String uid) {
-    return (boolean)
-        nativeSynchronizedQuery("select exists(select 1 from note where uid=:uid)")
-            .setParameter("uid", uid)
-            .getSingleResult();
-  }
 }
