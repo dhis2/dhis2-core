@@ -2612,17 +2612,17 @@ public abstract class TestBase {
   }
 
   /**
-   * Creates and persists an admin with a random UID and injects it into the Spring security
-   * context.
+   * Creates and persists a user with a random UID and given authorities and injects it into the
+   * Spring security context.
    */
-  protected final User createAndInjectAdminUser(String... authorities) {
-    User user = createAndAddAdminUser(authorities);
+  protected final User createAndInjectUser(String... authorities) {
+    User user = createAndAddUser(authorities);
     injectSecurityContextUser(user);
     return user;
   }
 
-  /** Creates and persists an admin with a random UID. */
-  protected User createAndAddAdminUser(String... authorities) {
+  /** Creates and persists a user with a random UID and given authorities. */
+  protected User createAndAddUser(String... authorities) {
     checkUserServiceWasInjected();
 
     String uid = CodeGenerator.generateUid();
@@ -2924,45 +2924,20 @@ public abstract class TestBase {
   }
 
   protected User preCreateInjectAdminUser() {
-    User user = preCreateInjectAdminUserWithoutPersistence();
-
-    userService.addUser(user);
-
-    user.getUserRoles().forEach(userRole -> userService.addUserRole(userRole));
-
-    userService.encodeAndSetPassword(user, user.getPassword());
-    userService.updateUser(user);
-
-    return user;
-  }
-
-  private User preCreateInjectAdminUserWithoutPersistence() {
-
-    //    UserRole role = createUserRole("Superuser_Test_" + uid, "ALL");
     UserRole role = createUserRole("Superuser", "ALL");
-    //    role.setUid(uid);
     role.setUid("yrB6vc5Ip3r");
 
     User user = new User();
-    // code was not set
     user.setCode("Code" + DEFAULT_USERNAME);
-    // uuid was not set
     user.setUuid(UUID.fromString("6507f586-f154-4ec1-a25e-d7aa51de5216"));
-    //    String uid = CodeGenerator.generateUid();
-    //    user.setUid(uid);
     user.setUid(ADMIN_USER_UID);
-    //    user.setFirstName("Admin");
     user.setFirstName(FIRST_NAME + DEFAULT_USERNAME);
-    //    user.setSurname("User");
     user.setSurname(SURNAME + DEFAULT_USERNAME);
-    //    user.setUsername(DEFAULT_USERNAME + "_test");
     user.setUsername(DEFAULT_USERNAME);
     user.setPassword(DEFAULT_ADMIN_PASSWORD);
     user.getUserRoles().add(role);
 
-    // user createdBy was not set
     user.setCreatedBy(user);
-    // role createdBy was not set
     role.setCreatedBy(user);
 
     UserDetails currentUserDetails = userService.createUserDetails(user);
@@ -2973,6 +2948,13 @@ public abstract class TestBase {
     SecurityContext context = SecurityContextHolder.createEmptyContext();
     context.setAuthentication(authentication);
     SecurityContextHolder.setContext(context);
+
+    userService.addUser(user);
+
+    user.getUserRoles().forEach(userRole -> userService.addUserRole(userRole));
+
+    userService.encodeAndSetPassword(user, user.getPassword());
+    userService.updateUser(user);
 
     return user;
   }

@@ -79,14 +79,16 @@ class OwnershipTest extends TrackerTest {
   void setUp() throws IOException {
     setUpMetadata("tracker/ownership_metadata.json");
 
-    nonSuperUser = userService.getUser("Tu9fv8ezgHl");
+    User importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
 
-    TrackerImportParams params =
-        TrackerImportParams.builder().userId(getAdminUser().getUid()).build();
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     assertNoErrors(
         trackerImportService.importTracker(params, fromJson("tracker/ownership_te.json")));
     assertNoErrors(
         trackerImportService.importTracker(params, fromJson("tracker/ownership_enrollment.json")));
+
+    nonSuperUser = userService.getUser("Tu9fv8ezgHl");
   }
 
   @Test

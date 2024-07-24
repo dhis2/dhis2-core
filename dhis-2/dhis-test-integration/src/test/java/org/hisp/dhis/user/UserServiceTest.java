@@ -638,7 +638,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
     userService.generateTwoFactorOtpSecretForApproval(userToModify);
     userService.updateUser(userToModify);
 
-    User admin = createAndAddAdminUser("ALL");
+    User admin = this.createAndAddUser("ALL");
     List<ErrorReport> errors = new ArrayList<>();
     userService.privilegedTwoFactorDisable(admin, userToModify.getUid(), errors::add);
     assertTrue(errors.isEmpty());

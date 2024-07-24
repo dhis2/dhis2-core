@@ -131,7 +131,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
     userB = createUserWithAuth("userB");
     userB.addOrganisationUnit(organisationUnitB);
     userService.updateUser(userB);
-    superUser = createAndAddAdminUser(Authorities.ALL.name());
+    superUser = this.createAndAddUser(Authorities.ALL.name());
     superUser.setOrganisationUnits(Set.of(organisationUnitA));
     userService.updateUser(superUser);
 

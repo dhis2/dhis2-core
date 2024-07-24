@@ -207,13 +207,12 @@ class EventSecurityImportValidationTest extends TrackerTest {
     OrganisationUnit qfUVllTs6cS = organisationUnitService.getOrganisationUnit("QfUVllTs6cS");
     user.addOrganisationUnit(qfUVllTs6cS);
     user.addOrganisationUnit(organisationUnitA);
-    User adminUser = getAdminUser();
-    adminUser.addOrganisationUnit(organisationUnitA);
+    importUser.addOrganisationUnit(organisationUnitA);
     Program p = programService.getProgram("prabcdefghA");
     p.addOrganisationUnit(qfUVllTs6cS);
     programService.updateProgram(p);
     manager.update(user);
-    manager.update(adminUser);
+    manager.update(importUser);
   }
 
   @Test
