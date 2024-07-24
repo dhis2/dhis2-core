@@ -119,16 +119,14 @@ public abstract class ControllerTestBase extends TestBase implements WebClient {
 
   @Getter protected User adminUser;
 
-  @Getter protected User superUser;
-
-  @Getter protected User currentUser;
+  @Getter private User currentUser;
 
   protected MockMvc mvc;
 
   protected MockHttpSession session;
 
-  protected final String getSuperuserUid() {
-    return superUser.getUid();
+  protected final String getAdminUid() {
+    return adminUser.getUid();
   }
 
   @BeforeEach
@@ -138,12 +136,11 @@ public abstract class ControllerTestBase extends TestBase implements WebClient {
     clearSecurityContext();
 
     adminUser = preCreateInjectAdminUser();
-    superUser = adminUser;
 
     mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
 
-    switchContextToUser(superUser);
-    currentUser = superUser;
+    switchContextToUser(adminUser);
+    currentUser = adminUser;
 
     TestUtils.executeStartupRoutines(webApplicationContext);
 
@@ -167,15 +164,15 @@ public abstract class ControllerTestBase extends TestBase implements WebClient {
     injectSecurityContextUser(getAdminUser());
   }
 
-  protected final User switchToSuperuser() {
-    switchContextToUser(userService.getUser(superUser.getUid()));
-    return superUser;
+  protected final User switchToAdminUser() {
+    switchContextToUser(userService.getUser(adminUser.getUid()));
+    return adminUser;
   }
 
   protected final User switchToNewUser(String username, String... authorities) {
-    if (superUser != null) {
+    if (adminUser != null) {
       // we need to be an admin to be allowed to create user groups
-      switchContextToUser(superUser);
+      switchContextToUser(adminUser);
     }
 
     currentUser = createUserWithAuth(username, authorities);

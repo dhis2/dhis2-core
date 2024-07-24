@@ -55,7 +55,7 @@ class GistCsvControllerTest extends AbstractGistControllerTest {
   void testObject() {
     assertUserCsv(
         GET(
-            "/users/" + getSuperuserUid() + "/gist?fields=id,code,education,twitter,employer",
+            "/users/" + getAdminUid() + "/gist?fields=id,code,education,twitter,employer",
             Accept(TEXT_CSV)));
   }
 

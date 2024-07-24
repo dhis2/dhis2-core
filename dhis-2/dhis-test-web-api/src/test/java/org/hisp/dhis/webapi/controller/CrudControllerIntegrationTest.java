@@ -201,7 +201,7 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
   }
 
   private void setUpTranslation() {
-    injectSecurityContextUser(getSuperUser());
+    injectSecurityContextUser(getAdminUser());
 
     String id =
         assertStatus(

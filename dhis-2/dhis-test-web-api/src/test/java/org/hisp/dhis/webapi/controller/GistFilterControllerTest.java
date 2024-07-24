@@ -290,8 +290,8 @@ class GistFilterControllerTest extends AbstractGistControllerTest {
     // filter asks: does the user's have a user role which
     // name is equal to "Superuser"
     assertEquals(
-        getSuperuserUid(),
-        GET("/users/{id}/gist?fields=id&filter=userRoles.name:eq:Superuser", getSuperuserUid())
+        getAdminUid(),
+        GET("/users/{id}/gist?fields=id&filter=userRoles.name:eq:Superuser", getAdminUid())
             .content()
             .string());
   }

@@ -237,7 +237,7 @@ class ApiTokenControllerTest extends H2ControllerIntegrationTestBase {
     final ApiToken token = createNewEmptyToken();
     switchToNewUser("anonymous");
     assertStatus(HttpStatus.NOT_FOUND, GET("/apiTokens/{uid}", token.getUid()));
-    switchToSuperuser();
+    switchToAdminUser();
     fetchAsEntity(token.getUid());
   }
 
