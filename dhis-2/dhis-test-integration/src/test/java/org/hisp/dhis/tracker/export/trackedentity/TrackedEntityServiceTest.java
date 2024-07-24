@@ -1176,7 +1176,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .collect(Collectors.toSet());
     assertIsEmpty(deletedEvents);
 
-    enrollmentService.deleteEnrollment(enrollmentA);
+    manager.delete(enrollmentA);
     manager.delete(eventA);
 
     trackedEntities = trackedEntityService.getTrackedEntities(operationParams);

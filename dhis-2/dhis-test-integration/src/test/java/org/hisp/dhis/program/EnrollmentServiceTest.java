@@ -51,7 +51,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
-import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.joda.time.DateTime;
@@ -72,11 +72,9 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   private static final String ENROLLMENT_D_UID = UID.of(CodeGenerator.generateUid()).getValue();
   private static final String EVENT_UID = UID.of(CodeGenerator.generateUid()).getValue();
 
-  @Autowired private EnrollmentService apiEnrollmentService;
+  @Autowired private org.hisp.dhis.program.EnrollmentService apiEnrollmentService;
 
-  @Autowired private TrackerObjectDeletionService trackerObjectDeletionService;
-
-  @Autowired private org.hisp.dhis.tracker.export.enrollment.EnrollmentService enrollmentService;
+  @Autowired private EnrollmentService enrollmentService;
 
   @Autowired private TrackedEntityService trackedEntityService;
 
@@ -197,21 +195,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testDeleteEnrollment() {
-    manager.save(enrollmentA);
-    manager.save(enrollmentB);
-    assertNotNull(manager.get(Enrollment.class, enrollmentA.getUid()));
-    assertNotNull(manager.get(Enrollment.class, enrollmentB.getUid()));
-    apiEnrollmentService.deleteEnrollment(enrollmentA);
-    assertNull(manager.get(Enrollment.class, enrollmentA.getUid()));
-    assertNotNull(manager.get(Enrollment.class, enrollmentB.getUid()));
-    apiEnrollmentService.deleteEnrollment(enrollmentB);
-    assertNull(manager.get(Enrollment.class, enrollmentA.getUid()));
-    assertNull(manager.get(Enrollment.class, enrollmentB.getUid()));
-  }
-
-  @Test
-  void testSoftDeleteEnrollmentAndLinkedEvent() throws NotFoundException {
+  void testSoftDeleteEnrollmentAndLinkedEvent() {
     manager.save(enrollmentA);
     manager.save(eventA);
     long eventIdA = eventA.getId();
@@ -220,7 +204,8 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     assertNotNull(manager.get(Enrollment.class, enrollmentA.getUid()));
     assertNotNull(manager.get(Event.class, eventIdA));
 
-    trackerObjectDeletionService.deleteEnrollments(List.of(enrollmentA.getUid()));
+    manager.delete(enrollmentA);
+    manager.delete(eventA);
 
     assertNull(manager.get(Enrollment.class, enrollmentA.getUid()));
     assertNull(manager.get(Event.class, eventIdA));
@@ -312,7 +297,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     assertNotNull(enrollmentService.getEnrollment(enrollmentA.getUid()));
 
-    apiEnrollmentService.deleteEnrollment(enrollmentA);
+    manager.delete(enrollmentA);
 
     Assertions.assertThrows(
         NotFoundException.class, () -> enrollmentService.getEnrollment(enrollmentA.getUid()));

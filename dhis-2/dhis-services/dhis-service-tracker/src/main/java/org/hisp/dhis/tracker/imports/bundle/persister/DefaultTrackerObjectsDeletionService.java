@@ -60,8 +60,6 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeletionService {
-  private final org.hisp.dhis.program.EnrollmentService apiEnrollmentService;
-
   private final TrackedEntityService teService;
 
   private final IdentifiableObjectManager manager;
@@ -113,7 +111,8 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
       TrackedEntity te = enrollment.getTrackedEntity();
       te.setLastUpdatedByUserInfo(userInfoSnapshot);
 
-      apiEnrollmentService.deleteEnrollment(enrollment);
+      manager.delete(enrollment);
+
       teService.updateTrackedEntity(te);
 
       typeReport.getStats().incDeleted();
