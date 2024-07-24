@@ -37,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.test.web.HttpStatus;
@@ -75,7 +76,7 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
 
   @Test
   void testGetAccessibleObject() {
-    User testUser = createAndAddUser("test", null, "F_DATASET_PRIVATE_ADD");
+    User testUser = createAndAddUser("test", (OrganisationUnit) null, "F_DATASET_PRIVATE_ADD");
     injectSecurityContextUser(testUser);
     String id =
         assertStatus(
@@ -96,7 +97,7 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
   @DisplayName("Search by token should use translations column instead of default columns")
   void testSearchByToken() {
     setUpTranslation();
-    User userA = createAndAddUser("userA", null, "ALL");
+    User userA = createAndAddUser("userA", (OrganisationUnit) null, "ALL");
     userSettingService.saveUserSetting(UserSettingKey.DB_LOCALE, Locale.FRENCH, userA);
 
     injectSecurityContextUser(userService.getUserByUsername(userA.getUsername()));
@@ -120,7 +121,7 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
   @DisplayName("Search by token should use default properties instead of translations column")
   void testSearchTokenDefaultLocale() {
     setUpTranslation();
-    User userA = createAndAddUser("userA", null, "ALL");
+    User userA = createAndAddUser("userA", (OrganisationUnit) null, "ALL");
 
     JsonArray dataSets =
         GET("/dataSets?filter=identifiable:token:testToken").content().getArray("dataSets");
@@ -152,7 +153,7 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
         Locale.ENGLISH,
         systemSettingManager.getSystemSetting(SettingKey.DB_LOCALE, LocaleManager.DEFAULT_LOCALE));
 
-    User userA = createAndAddUser("userA", null, "ALL");
+    User userA = createAndAddUser("userA", (OrganisationUnit) null, "ALL");
     injectSecurityContextUser(userA);
     userSettingService.saveUserSetting(UserSettingKey.DB_LOCALE, null);
 
@@ -181,7 +182,7 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
       "Search by token should use default properties if the translation value does not exist or does not match the search token")
   void testSearchTokenWithFallback() {
     setUpTranslation();
-    User userA = createAndAddUser("userA", null, "ALL");
+    User userA = createAndAddUser("userA", (OrganisationUnit) null, "ALL");
     userSettingService.saveUserSetting(UserSettingKey.DB_LOCALE, Locale.FRENCH, userA);
 
     injectSecurityContextUser(userService.getUserByUsername(userA.getUsername()));

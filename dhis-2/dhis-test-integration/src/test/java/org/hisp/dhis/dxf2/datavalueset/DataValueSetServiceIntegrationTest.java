@@ -162,9 +162,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   void setUp() {
-    superUser = userService.getUserByUsername("admin_test");
-    injectSecurityContextUser(superUser);
-
+    superUser = getAdminUser();
     CategoryOptionCombo categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
     Attribute attribute = new Attribute("CUSTOM_ID", ValueType.TEXT);
     attribute.setUid(ATTRIBUTE_UID);

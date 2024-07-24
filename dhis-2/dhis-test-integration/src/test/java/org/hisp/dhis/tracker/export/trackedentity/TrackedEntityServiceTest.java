@@ -214,8 +214,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     orgUnitChildA.setChildren(Set.of(orgUnitGrandchildA));
     manager.update(orgUnitChildA);
 
-    //    superuser = preCreateInjectAdminUser();
-    superuser = userService.getUserByUsername("admin_test");
+    superuser = getAdminUser();
     superuser.setOrganisationUnits(Set.of(orgUnitA, orgUnitB));
     manager.save(superuser);
 
