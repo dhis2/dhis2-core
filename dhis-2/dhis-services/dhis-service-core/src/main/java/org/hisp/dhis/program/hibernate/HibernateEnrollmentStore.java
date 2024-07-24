@@ -140,11 +140,6 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
         .list();
   }
 
-  @Override
-  public void hardDelete(Enrollment enrollment) {
-    getSession().delete(enrollment);
-  }
-
   private String toDateProperty(NotificationTrigger trigger) {
     if (trigger == NotificationTrigger.SCHEDULED_DAYS_ENROLLMENT_DATE) {
       return "enrollmentDate";
