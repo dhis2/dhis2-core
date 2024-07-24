@@ -144,9 +144,9 @@ class FieldPathHelperTest extends PostgresIntegrationTestBase {
     helper.applyPresets(List.of(fieldPath), fieldPathMap, DataElement.class);
 
     // then
-    assertEquals(8, fieldPathMap.size());
+    assertEquals(7, fieldPathMap.size());
     assertTrue(
-        List.of("id", "name", "shortName", "description", "code", "created", "lastUpdated", "href")
+        List.of("id", "name", "shortName", "description", "code", "created", "lastUpdated")
             .containsAll(fieldPathMap.values().stream().map(FieldPath::getName).toList()));
   }
 
