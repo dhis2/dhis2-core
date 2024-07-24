@@ -444,9 +444,8 @@ public class OpenApiGenerator extends JsonGenerator {
       addObjectMember("items", () -> generateSchemaOrRef(elements, direction));
       return;
     }
-    // best guess: it is an object type
-    addStringMember("type", "object");
     if (!schema.getProperties().isEmpty()) {
+      addStringMember("type", "object");
       if (Map.class.isAssignableFrom(type)) {
         Api.Property key = schema.getProperties().get(0);
         Api.Property value = schema.getProperties().get(1);
@@ -471,6 +470,7 @@ public class OpenApiGenerator extends JsonGenerator {
                         "description", property.getDescription().orElse(NO_DESCRIPTION));
                   }));
     } else {
+      addStringMember("type", "any");
       addStringMultilineMember(
           "description", "The actual type is unknown.  \n(Java type was: `" + type + "`)");
       if (type != Object.class) {

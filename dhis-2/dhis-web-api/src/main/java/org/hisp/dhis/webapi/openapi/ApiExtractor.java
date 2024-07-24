@@ -29,9 +29,7 @@ package org.hisp.dhis.webapi.openapi;
 
 import static java.util.Arrays.copyOfRange;
 import static java.util.Arrays.stream;
-import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.webapi.openapi.ApiDescriptions.toMarkdown;
@@ -56,6 +54,7 @@ import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -414,22 +413,19 @@ final class ApiExtractor {
                     new Api.Header(
                         header.name(),
                         header.description(),
-                        extractParamSchema(endpoint, null, response.value())))
+                        extractParamSchema(endpoint, null, header.type())))
             .collect(toSet());
     Set<MediaType> produces =
         response.mediaTypes().length == 0
             ? defaultProduces
             : stream(response.mediaTypes()).map(MediaType::valueOf).collect(toUnmodifiableSet());
-    return statuses.stream()
-        .collect(
-            toMap(
-                identity(),
-                status ->
-                    new Api.Response(status)
-                        .add(
-                            produces,
-                            extractResponseSchema(endpoint, defaultResponseType, response.value()))
-                        .add(headers)));
+    Map<HttpStatus, Api.Response> map = new HashMap<>();
+    for (HttpStatus status : statuses) {
+      Api.Schema schema = extractResponseSchema(endpoint, defaultResponseType, response.value());
+      Api.Response res = new Api.Response(status).add(headers).add(produces, schema);
+      map.put(status, res);
+    }
+    return map;
   }
 
   private static void extractParameters(Api.Endpoint endpoint, Set<MediaType> consumes) {

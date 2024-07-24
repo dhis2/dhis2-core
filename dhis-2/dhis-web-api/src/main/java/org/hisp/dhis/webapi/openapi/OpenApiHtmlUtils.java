@@ -133,7 +133,7 @@ final class OpenApiHtmlUtils {
       int k = min(j + 31, len); // maximum name length is 24
       while (j < k && isLetter(chars[j])) j++;
     }
-    if (chars[j] == ';' && j - i > 3) return j + 1;
+    if (j < chars.length && chars[j] == ';' && j - i > 3) return j + 1;
     return -1;
   }
 

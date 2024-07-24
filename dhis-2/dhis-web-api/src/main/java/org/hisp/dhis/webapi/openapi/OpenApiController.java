@@ -43,6 +43,7 @@ import javax.annotation.CheckForNull;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
+import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.springframework.context.ApplicationContext;
@@ -53,6 +54,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Maturity.Beta
 @OpenApi.Document(domain = OpenApi.class)
 @RestController
 @RequestMapping("/api/openapi")

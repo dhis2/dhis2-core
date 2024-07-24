@@ -395,12 +395,22 @@ public @interface OpenApi {
     }
 
     /**
-     * None (length zero) uses the actual type of the method. More than one use a {@code oneOf}
-     * union type of all the type schemas.
+     * No value (length zero) uses the actual type of the method unless {@link #object()} is
+     * non-empty.
+     *
+     * <p>More than one use a {@code oneOf} union type of all the type schemas.
      *
      * @return body type of the response.
      */
-    Class<?>[] value();
+    Class<?>[] value() default {};
+
+    /**
+     * When used together with {@link #value()} it is assumed that the {@link #value()} type is
+     * object and that the given properties are in addition to that type's properties.
+     *
+     * @return the properties of the declared object
+     */
+    Property[] object() default {};
 
     /**
      * If status is left empty the {@link #value()} applies to the status inferred from the method
@@ -530,8 +540,6 @@ public @interface OpenApi {
      */
     boolean ignoreFileDescription() default false;
   }
-
-  // TODO @Since
 
   /*
    * Repeater annotations (not for direct use)

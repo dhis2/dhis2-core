@@ -34,9 +34,7 @@ import static org.springframework.http.CacheControl.noCache;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -348,8 +346,11 @@ public class SharingController {
     return ok("Access control set");
   }
 
+  public record SharingSearchResult(
+      List<SharingUserAccess> users, List<SharingUserGroupAccess> userGroups) {}
+
   @GetMapping(value = "/search", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<Map<String, Object>> searchUserGroups(
+  public ResponseEntity<SharingSearchResult> searchUserGroups(
       @RequestParam String key, @RequestParam(required = false) Integer pageSize)
       throws WebMessageException {
     if (key == null) {
@@ -361,9 +362,7 @@ public class SharingController {
     List<SharingUserGroupAccess> userGroupAccesses = getSharingUserGroups(key, max);
     List<SharingUserAccess> userAccesses = getSharingUser(key, max);
 
-    Map<String, Object> output = new HashMap<>();
-    output.put("userGroups", userGroupAccesses);
-    output.put("users", userAccesses);
+    SharingSearchResult output = new SharingSearchResult(userAccesses, userGroupAccesses);
 
     return ResponseEntity.ok().cacheControl(noCache()).body(output);
   }
