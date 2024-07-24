@@ -95,50 +95,6 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
   }
 
   @Override
-  public List<Enrollment> getWithScheduledNotifications(
-      ProgramNotificationTemplate template, Date notificationDate) {
-    if (notificationDate == null
-        || !SCHEDULED_ENROLLMENT_TRIGGERS.contains(template.getNotificationTrigger())) {
-      return Lists.newArrayList();
-    }
-
-    String dateProperty = toDateProperty(template.getNotificationTrigger());
-
-    if (dateProperty == null) {
-      return Lists.newArrayList();
-    }
-
-    Date targetDate = DateUtils.addDays(notificationDate, template.getRelativeScheduledDays() * -1);
-
-    String hql =
-        "select distinct en from Enrollment as en "
-            + "inner join en.program as p "
-            + "where :notificationTemplate in elements(p.notificationTemplates) "
-            + "and en."
-            + dateProperty
-            + " is not null "
-            + "and en.status = :activeEnrollmentStatus "
-            + "and cast(:targetDate as date) = en."
-            + dateProperty;
-
-    return getQuery(hql)
-        .setParameter("notificationTemplate", template)
-        .setParameter("activeEnrollmentStatus", EnrollmentStatus.ACTIVE)
-        .setParameter("targetDate", targetDate)
-        .list();
-  }
-
-  private String toDateProperty(NotificationTrigger trigger) {
-    if (trigger == NotificationTrigger.SCHEDULED_DAYS_ENROLLMENT_DATE) {
-      return "enrollmentDate";
-    } else if (trigger == NotificationTrigger.SCHEDULED_DAYS_INCIDENT_DATE) {
-      return "occurredDate";
-    }
-
-    return null;
-  }
-
-  @Override
   protected void preProcessPredicates(
       CriteriaBuilder builder, List<Function<Root<Enrollment>, Predicate>> predicates) {
     predicates.add(root -> builder.equal(root.get("deleted"), false));
