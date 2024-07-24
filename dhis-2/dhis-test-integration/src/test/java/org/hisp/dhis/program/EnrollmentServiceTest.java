@@ -74,6 +74,8 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private org.hisp.dhis.program.EnrollmentService apiEnrollmentService;
 
+  @Autowired private EventProgramEnrollmentService eventProgramEnrollmentService;
+
   @Autowired private EnrollmentService enrollmentService;
 
   @Autowired private TrackedEntityService trackedEntityService;
@@ -242,11 +244,11 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     manager.save(enrollmentA);
     manager.save(enrollmentB);
     manager.save(enrollmentD);
-    List<Enrollment> enrollments = apiEnrollmentService.getEnrollments(programA);
+    List<Enrollment> enrollments = eventProgramEnrollmentService.getEnrollments(programA);
     assertEquals(2, enrollments.size());
     assertTrue(enrollments.contains(enrollmentA));
     assertTrue(enrollments.contains(enrollmentD));
-    enrollments = apiEnrollmentService.getEnrollments(programB);
+    enrollments = eventProgramEnrollmentService.getEnrollments(programB);
     assertEquals(1, enrollments.size());
     assertTrue(enrollments.contains(enrollmentB));
   }
