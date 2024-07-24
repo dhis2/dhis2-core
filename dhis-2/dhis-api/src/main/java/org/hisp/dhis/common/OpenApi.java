@@ -312,19 +312,19 @@ public @interface OpenApi {
      *
      * @return type of the parameter, should be a simple type for a path parameter.
      */
-    Class<?>[] value();
+    Class<?>[] value() default {};
+
+    /**
+     * When used together with {@link #value()} it is assumed that the {@link #value()} type is
+     * object and that the given properties are in addition to that type's properties.
+     *
+     * @return the properties of the declared object
+     */
+    Property[] object() default {};
 
     boolean required() default false;
 
     boolean deprecated() default false;
-
-    /**
-     * When not empty the parameter is wrapped in an object having a single member with the provided
-     * property name.
-     *
-     * @return name of the property to use
-     */
-    String asProperty() default "";
 
     /**
      * If given, this values takes precedence over the actual initial value of a field that might be

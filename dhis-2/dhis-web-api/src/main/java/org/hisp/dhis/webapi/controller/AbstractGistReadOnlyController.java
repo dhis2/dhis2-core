@@ -33,7 +33,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
@@ -59,6 +58,7 @@ import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.gist.GistQuery.Owner;
 import org.hisp.dhis.gist.GistService;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -153,7 +153,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
             .build());
   }
 
-  @OpenApi.Response({ObjectNode.class, ArrayNode.class})
+  @OpenApi.Response(JsonValue.class)
   @GetMapping(value = "/{uid}/{property}/gist", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody ResponseEntity<JsonNode> getObjectPropertyGist(
       @OpenApi.Param(UID.class) @PathVariable("uid") String uid,

@@ -513,7 +513,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     return webMessage;
   }
 
-  @OpenApi.Param(value = Translation[].class, asProperty = "translations")
+  @OpenApi.Param(object = @OpenApi.Property(name = "translations", value = Translation[].class))
   @PutMapping(value = "/{uid}/translations")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @ResponseBody
