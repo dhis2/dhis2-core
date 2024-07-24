@@ -229,8 +229,6 @@ class OrganisationUnitControllerTest extends H2ControllerIntegrationTestBase {
         HttpStatus.CREATED,
         POST(
             "/organisationUnits",
-            //            "{'name':'" + name + "', 'shortName':'" + name + "',
-            // 'openingDate':'2021'}"));
             """
               {
                 'name':'%s',
