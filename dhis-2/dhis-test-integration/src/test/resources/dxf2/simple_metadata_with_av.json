@@ -154,7 +154,7 @@
     {
       "lastUpdated": "2016-02-17T06:14:12.260+0000",
       "created": "2016-02-17T06:14:12.260+0000",
-      "name": "Superuser",
+      "name": "metadata Superuser",
       "id": "rKLtmQLRMU8",
       "authorities": [
         "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
@@ -363,7 +363,7 @@
   "users": [
     {
       "id": "ueKaFVdR8Fz",
-      "firstName": "admin",
+      "firstName": "metadata admin",
       "created": "2016-02-17T06:14:12.250+0000",
       "dataViewOrganisationUnits": [],
       "attributeValues": [
@@ -384,7 +384,7 @@
           "created": "2016-02-27T03:17:51.892+0000"
         }
       ],
-      "surname": "admin",
+      "surname": "metadata admin",
       "organisationUnits": [
         {
           "id": "PdWlltZnVZe"
@@ -394,7 +394,7 @@
       "cogsDimensionConstraints": [],
       "catDimensionConstraints": [],
       "invitation": false,
-      "username": "admin",
+      "username": "metadataadmin",
       "selfRegistered": false,
       "disabled": false,
       "passwordLastUpdated": "2016-02-17T06:14:12.274+0000",
