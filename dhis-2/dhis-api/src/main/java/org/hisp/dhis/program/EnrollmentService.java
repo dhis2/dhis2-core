@@ -43,10 +43,6 @@ public interface EnrollmentService {
   /** Get enrollments into a program that are in given status. */
   List<Enrollment> getEnrollments(Program program, EnrollmentStatus status);
 
-  /** Get a tracked entities enrollments into a program that are in given status. */
-  List<Enrollment> getEnrollments(
-      TrackedEntity trackedEntity, Program program, EnrollmentStatus status);
-
   /**
    * Enroll a TrackedEntity into a program. Must be run inside a transaction.
    *

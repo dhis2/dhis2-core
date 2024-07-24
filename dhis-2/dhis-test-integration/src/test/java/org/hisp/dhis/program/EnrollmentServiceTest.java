@@ -42,6 +42,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.note.Note;
@@ -252,7 +253,8 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetEnrollmentsByTrackedEntityProgramAndEnrollmentStatus() {
+  void testGetEnrollmentsByTrackedEntityProgramAndEnrollmentStatus()
+      throws ForbiddenException, BadRequestException {
     manager.save(enrollmentA);
     Enrollment enrollment1 =
         apiEnrollmentService.enrollTrackedEntity(
@@ -264,13 +266,15 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
             trackedEntityA, programA, enrollmentDate, incidentDate, organisationUnitA);
     enrollment2.setStatus(EnrollmentStatus.COMPLETED);
     manager.update(enrollment2);
+
     List<Enrollment> enrollments =
-        apiEnrollmentService.getEnrollments(trackedEntityA, programA, EnrollmentStatus.COMPLETED);
+        enrollmentService.getEnrollments(trackedEntityA, programA, EnrollmentStatus.COMPLETED);
     assertEquals(2, enrollments.size());
     assertTrue(enrollments.contains(enrollment1));
     assertTrue(enrollments.contains(enrollment2));
+
     enrollments =
-        apiEnrollmentService.getEnrollments(trackedEntityA, programA, EnrollmentStatus.ACTIVE);
+        enrollmentService.getEnrollments(trackedEntityA, programA, EnrollmentStatus.ACTIVE);
     assertEquals(1, enrollments.size());
     assertTrue(enrollments.contains(enrollmentA));
   }

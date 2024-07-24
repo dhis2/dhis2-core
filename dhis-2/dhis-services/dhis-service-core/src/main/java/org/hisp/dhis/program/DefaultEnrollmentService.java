@@ -72,13 +72,6 @@ public class DefaultEnrollmentService implements EnrollmentService {
     return enrollmentStore.get(program, status);
   }
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<Enrollment> getEnrollments(
-      TrackedEntity trackedEntity, Program program, EnrollmentStatus status) {
-    return enrollmentStore.get(trackedEntity, program, status);
-  }
-
   private Enrollment prepareEnrollment(
       TrackedEntity trackedEntity,
       Program program,
