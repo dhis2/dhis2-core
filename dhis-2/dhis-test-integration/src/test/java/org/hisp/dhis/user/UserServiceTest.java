@@ -55,7 +55,6 @@ import java.util.Set;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -89,7 +88,6 @@ class UserServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private PasswordManager passwordManager;
 
-  @Autowired private DataElementService dataElementService;
   private OrganisationUnit unitA;
 
   private OrganisationUnit unitB;
@@ -446,13 +444,13 @@ class UserServiceTest extends PostgresIntegrationTestBase {
             });
     UserQueryParams params = getDefaultParams().addOrganisationUnit(unitA);
     List<User> allUsersA = userService.getUsers(params, singletonList("email:idesc"));
-    assertEquals(allUsersA, asList(getAdminUser(), userA, userB, userC));
+    assertEquals(asList(getAdminUser(), userA, userB, userC), allUsersA);
 
     List<User> allUsersB = userService.getUsers(params, null);
-    assertEquals(allUsersB, asList(userB, userC, getAdminUser(), userA));
+    assertEquals(asList(userB, userC, getAdminUser(), userA), allUsersB);
 
     List<User> allUserC = userService.getUsers(params, singletonList("firstName:asc"));
-    assertEquals(allUserC, asList(getAdminUser(), userA, userC, userB));
+    assertEquals(asList(userA, getAdminUser(), userC, userB), allUserC);
   }
 
   @Test
@@ -489,14 +487,14 @@ class UserServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetManagedGroupsSearch() {
-    User userA = addUser("A");
-    addUser("B");
+    addUser("A");
+    User userB = addUser("B");
     addUser("C");
     addUser("D");
     addUser("E");
     addUser("F");
-    UserQueryParams params = getDefaultParams().setQuery("rstnameA");
-    assertContainsOnly(List.of(userA), userService.getUsers(params));
+    UserQueryParams params = getDefaultParams().setQuery("rstnameB");
+    assertContainsOnly(List.of(userB), userService.getUsers(params));
     assertEquals(1, userService.getUserCount(params));
   }
 
@@ -638,9 +636,8 @@ class UserServiceTest extends PostgresIntegrationTestBase {
     userService.generateTwoFactorOtpSecretForApproval(userToModify);
     userService.updateUser(userToModify);
 
-    User admin = this.createAndAddUser("ALL");
     List<ErrorReport> errors = new ArrayList<>();
-    userService.privilegedTwoFactorDisable(admin, userToModify.getUid(), errors::add);
+    userService.privilegedTwoFactorDisable(getAdminUser(), userToModify.getUid(), errors::add);
     assertTrue(errors.isEmpty());
   }
 
