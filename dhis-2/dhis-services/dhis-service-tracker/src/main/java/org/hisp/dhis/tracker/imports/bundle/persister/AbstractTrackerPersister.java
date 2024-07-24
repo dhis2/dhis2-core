@@ -116,7 +116,7 @@ public abstract class AbstractTrackerPersister<
         //
         // Handle notes persistence, if required
         //
-        persistNotes(entityManager, bundle.getPreheat(), convertedDto);
+        persistNotes(entityManager, bundle.getPreheat(), trackerDto);
 
         //
         // Handle ownership records, if required
@@ -203,7 +203,7 @@ public abstract class AbstractTrackerPersister<
 
   /** Persists the notes for the given entity, if the entity has notes */
   protected abstract void persistNotes(
-      EntityManager entityManager, TrackerPreheat preheat, V entity);
+      EntityManager entityManager, TrackerPreheat preheat, T trackerDto);
 
   /** Persists ownership records for the given entity */
   protected abstract void persistOwnership(TrackerPreheat preheat, V entity);

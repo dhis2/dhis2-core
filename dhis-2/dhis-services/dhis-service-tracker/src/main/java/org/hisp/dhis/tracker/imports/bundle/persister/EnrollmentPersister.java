@@ -39,6 +39,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.imports.converter.NotesConverterService;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
@@ -55,17 +56,20 @@ public class EnrollmentPersister
       enrollmentConverter;
 
   private final TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
+  private NotesConverterService notesConverterService;
 
   public EnrollmentPersister(
       ReservedValueService reservedValueService,
       TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Enrollment, Enrollment>
           enrollmentConverter,
       TrackedEntityProgramOwnerService trackedEntityProgramOwnerService,
-      TrackedEntityAttributeValueChangeLogService trackedEntityAttributeValueChangeLogService) {
+      TrackedEntityAttributeValueChangeLogService trackedEntityAttributeValueChangeLogService,
+      NotesConverterService notesConverterService) {
     super(reservedValueService, trackedEntityAttributeValueChangeLogService);
 
     this.enrollmentConverter = enrollmentConverter;
     this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
+    this.notesConverterService = notesConverterService;
   }
 
   @Override
@@ -92,12 +96,14 @@ public class EnrollmentPersister
 
   @Override
   protected void persistNotes(
-      EntityManager entityManager, TrackerPreheat preheat, Enrollment enrollment) {
-    if (!enrollment.getNotes().isEmpty()) {
-      for (Note note : enrollment.getNotes()) {
-        if (!preheat.noteExists(note.getUid())) {
-          entityManager.persist(note);
-        }
+      EntityManager entityManager,
+      TrackerPreheat preheat,
+      org.hisp.dhis.tracker.imports.domain.Enrollment enrollment) {
+    List<Note> notes = notesConverterService.from(preheat, enrollment.getNotes());
+
+    for (Note note : notes) {
+      if (!preheat.noteExists(note.getUid())) {
+        entityManager.persist(note);
       }
     }
   }

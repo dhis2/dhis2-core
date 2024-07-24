@@ -56,6 +56,7 @@ import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.imports.converter.NotesConverterService;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
@@ -74,24 +75,30 @@ public class EventPersister
       eventConverter;
 
   private final TrackedEntityDataValueChangeLogService trackedEntityDataValueAuditService;
+  private final NotesConverterService notesConverterService;
 
   public EventPersister(
       ReservedValueService reservedValueService,
       TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event> eventConverter,
       TrackedEntityAttributeValueChangeLogService trackedEntityAttributeValueChangeLogService,
-      TrackedEntityDataValueChangeLogService trackedEntityDataValueChangeLogService) {
+      TrackedEntityDataValueChangeLogService trackedEntityDataValueChangeLogService,
+      NotesConverterService notesConverterService) {
     super(reservedValueService, trackedEntityAttributeValueChangeLogService);
     this.eventConverter = eventConverter;
     this.trackedEntityDataValueAuditService = trackedEntityDataValueChangeLogService;
+    this.notesConverterService = notesConverterService;
   }
 
   @Override
-  protected void persistNotes(EntityManager entityManager, TrackerPreheat preheat, Event event) {
-    if (!event.getNotes().isEmpty()) {
-      for (Note note : event.getNotes()) {
-        if (!preheat.noteExists(note.getUid())) {
-          entityManager.persist(note);
-        }
+  protected void persistNotes(
+      EntityManager entityManager,
+      TrackerPreheat preheat,
+      org.hisp.dhis.tracker.imports.domain.Event event) {
+    List<Note> notes = notesConverterService.from(preheat, event.getNotes());
+
+    for (Note note : notes) {
+      if (!preheat.noteExists(note.getUid())) {
+        entityManager.persist(note);
       }
     }
   }

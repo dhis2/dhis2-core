@@ -81,7 +81,9 @@ public class TrackedEntityPersister
 
   @Override
   protected void persistNotes(
-      EntityManager entityManager, TrackerPreheat preheat, TrackedEntity trackedEntity) {
+      EntityManager entityManager,
+      TrackerPreheat preheat,
+      org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity) {
     // DO NOTHING - TE HAVE NO NOTES
   }
 

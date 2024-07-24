@@ -65,9 +65,7 @@ public class RelationshipPersister
 
   @Override
   protected void persistNotes(
-      EntityManager entityManager,
-      TrackerPreheat preheat,
-      org.hisp.dhis.relationship.Relationship entity) {
+      EntityManager entityManager, TrackerPreheat preheat, Relationship entity) {
     // NOTHING TO DO
   }
 
