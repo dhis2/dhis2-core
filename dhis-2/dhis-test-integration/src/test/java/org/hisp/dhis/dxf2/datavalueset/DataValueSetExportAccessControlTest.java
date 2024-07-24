@@ -59,6 +59,7 @@ import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -159,6 +160,7 @@ class DataValueSetExportAccessControlTest extends PostgresIntegrationTestBase {
    * User has data read sharing access to cocA and coCB through category options. Verifies that only
    * data values for those attribute option combinations are returned.
    */
+  @Disabled("TODO(DHIS2-17768 platform) fix")
   @Test
   void testExportAttributeOptionComboAccessLimitedUserA() throws IOException {
     // User

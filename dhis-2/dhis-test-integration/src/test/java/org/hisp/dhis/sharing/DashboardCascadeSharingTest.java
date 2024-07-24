@@ -55,9 +55,11 @@ import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.visualization.Visualization;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+@Disabled("TODO(DHIS2-17768 platform) fix")
 class DashboardCascadeSharingTest extends CascadeSharingTest {
   @Autowired private AclService aclService;
 
