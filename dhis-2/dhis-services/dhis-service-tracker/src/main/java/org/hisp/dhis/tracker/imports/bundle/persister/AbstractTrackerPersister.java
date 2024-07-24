@@ -243,10 +243,10 @@ public abstract class AbstractTrackerPersister<
       TrackerBundle bundle, V entity, List<NotificationTrigger> triggers);
 
   /**
-   * Determines the notification triggers based on the enrollment status.
+   * Determines the notification triggers based on the enrollment/event status.
    *
-   * @param preheat the enrollment fetched from the database
-   * @param entity the enrollment or event coming from the request payload
+   * @param preheat the enrollment/event fetched from the database
+   * @param entity the enrollment/event coming from the request payload
    * @return a list of NotificationTriggers
    */
   protected abstract List<NotificationTrigger> determineNotificationTriggers(
