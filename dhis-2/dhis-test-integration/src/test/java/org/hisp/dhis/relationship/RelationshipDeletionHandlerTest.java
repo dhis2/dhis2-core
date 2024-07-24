@@ -48,8 +48,6 @@ class RelationshipDeletionHandlerTest extends PostgresIntegrationTestBase {
 
   private RelationshipType deletableRelationshipType;
 
-  private Relationship relationship;
-
   @Autowired private IdentifiableObjectManager manager;
 
   @BeforeAll
@@ -64,7 +62,8 @@ class RelationshipDeletionHandlerTest extends PostgresIntegrationTestBase {
     manager.save(trackedEntityFrom);
     TrackedEntity trackedEntityTo = createTrackedEntity(orgUnit);
     manager.save(trackedEntityTo);
-    relationship = createTeToTeRelationship(trackedEntityFrom, trackedEntityTo, relationshipType);
+    Relationship relationship =
+        createTeToTeRelationship(trackedEntityFrom, trackedEntityTo, relationshipType);
     manager.save(relationship);
   }
 

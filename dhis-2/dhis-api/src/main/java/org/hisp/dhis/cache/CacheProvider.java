@@ -65,6 +65,8 @@ public interface CacheProvider {
 
   <V> Cache<V> createUserFailedLoginAttemptCache(V defaultValue);
 
+  <V> Cache<V> createDisable2FAFailedAttemptCache(V defaultValue);
+
   <V> Cache<V> createUserAccountRecoverAttemptCache(V defaultValue);
 
   <V> Cache<V> createProgramOwnerCache();

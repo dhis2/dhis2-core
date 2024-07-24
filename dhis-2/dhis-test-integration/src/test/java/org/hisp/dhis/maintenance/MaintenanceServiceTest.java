@@ -70,7 +70,6 @@ import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -109,8 +108,6 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
   @Autowired private ProgramService programService;
 
   @Autowired private ProgramStageService programStageService;
-
-  @Autowired private RelationshipService relationshipService;
 
   @Autowired private RelationshipTypeService relationshipTypeService;
 
@@ -227,16 +224,18 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     r.setRelationshipType(rType);
     r.setKey(RelationshipUtils.generateRelationshipKey(r));
     r.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(r));
-    relationshipService.addRelationship(r);
+    manager.save(r);
     assertNotNull(trackedEntityService.getTrackedEntity(trackedEntity.getId()));
     assertNotNull(getRelationship(r.getId()));
     trackedEntityService.deleteTrackedEntity(trackedEntity);
     assertNull(trackedEntityService.getTrackedEntity(trackedEntity.getId()));
     manager.delete(r);
+    manager.delete(enrollment);
     assertNull(getRelationship(r.getId()));
     assertTrue(trackedEntityService.trackedEntityExistsIncludingDeleted(trackedEntity.getUid()));
     assertTrue(relationshipExistsIncludingDeleted(r.getUid()));
 
+    maintenanceService.deleteSoftDeletedEnrollments();
     maintenanceService.deleteSoftDeletedTrackedEntities();
 
     assertFalse(trackedEntityService.trackedEntityExistsIncludingDeleted(trackedEntity.getUid()));
@@ -376,7 +375,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     r.setRelationshipType(rType);
     r.setKey(RelationshipUtils.generateRelationshipKey(r));
     r.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(r));
-    relationshipService.addRelationship(r);
+    manager.save(r);
     assertNotNull(getEvent(idA));
     assertNotNull(getRelationship(r.getId()));
     manager.delete(eventA);
@@ -411,7 +410,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     r.setRelationshipType(rType);
     r.setKey(RelationshipUtils.generateRelationshipKey(r));
     r.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(r));
-    relationshipService.addRelationship(r);
+    manager.save(r);
     assertNotNull(manager.get(Enrollment.class, enrollment.getId()));
     assertNotNull(getRelationship(r.getId()));
     trackerObjectDeletionService.deleteEnrollments(List.of(enrollment.getUid()));
@@ -462,7 +461,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
   void testDeleteSoftDeletedRelationship() {
     Relationship relationship =
         createTeToTeRelationship(trackedEntity, trackedEntityB, relationshipType);
-    relationshipService.addRelationship(relationship);
+    manager.save(relationship);
     assertNotNull(getRelationship(relationship.getUid()));
 
     manager.delete(relationship);
