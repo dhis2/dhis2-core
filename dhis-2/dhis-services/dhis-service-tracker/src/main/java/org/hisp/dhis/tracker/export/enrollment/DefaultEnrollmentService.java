@@ -244,7 +244,7 @@ class DefaultEnrollmentService implements EnrollmentService {
 
   // TODO(tracker) This method should be removed as soon as we move the org unit validation into the
   // service layer
-  @Deprecated
+  @Deprecated(since = "2.42")
   @Override
   public List<Enrollment> getEnrollments(
       TrackedEntity trackedEntity, Program program, EnrollmentStatus enrollmentStatus)
