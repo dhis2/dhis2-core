@@ -32,6 +32,7 @@ import java.sql.SQLException;
 import java.util.Map;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.artemis.config.ArtemisConfig;
 import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationStoreConfiguration;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.commons.util.DebugUtils;
@@ -52,7 +53,10 @@ import org.hisp.dhis.jdbc.config.JdbcConfig;
 import org.hisp.dhis.leader.election.LeaderElectionConfiguration;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.SystemAuthoritiesProvider;
+import org.hisp.dhis.test.config.NoOpFlywayConfiguration;
 import org.hisp.dhis.test.h2.H2SqlFunction;
+import org.hisp.dhis.tracker.imports.config.TrackerPreheatConfig;
+import org.hisp.dhis.webapi.security.config.PasswordEncoderConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -61,14 +65,12 @@ import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
 import org.springframework.security.core.session.SessionRegistry;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
@@ -81,7 +83,6 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com
  */
 @Configuration
-@ImportResource(locations = {"classpath*:/META-INF/dhis/beans.xml"})
 @ComponentScan(
     basePackages = {"org.hisp.dhis"},
     useDefaultFilters = false,
@@ -92,10 +93,13 @@ import org.springframework.transaction.annotation.Transactional;
     },
     excludeFilters = @Filter(Configuration.class))
 @Import({
+  ArtemisConfig.class,
+  PasswordEncoderConfig.class,
   HibernateConfig.class,
   DataSourceConfig.class,
   AnalyticsDataSourceConfig.class,
   JdbcConfig.class,
+  NoOpFlywayConfiguration.class,
   FlywayConfig.class,
   HibernateEncryptionConfig.class,
   ServiceConfig.class,
@@ -111,6 +115,7 @@ import org.springframework.transaction.annotation.Transactional;
   org.hisp.dhis.validation.config.StoreConfig.class,
   org.hisp.dhis.reporting.config.StoreConfig.class,
   org.hisp.dhis.analytics.config.ServiceConfig.class,
+  TrackerPreheatConfig.class,
   JacksonObjectMapperConfig.class,
   JdbcOrgUnitAssociationStoreConfiguration.class,
   StartupConfig.class
@@ -168,11 +173,6 @@ public class WebTestConfiguration {
 
       throw new IllegalStateException(message, e);
     }
-  }
-
-  @Bean
-  public BCryptPasswordEncoder bCryptPasswordEncoder() {
-    return new BCryptPasswordEncoder();
   }
 
   @Bean

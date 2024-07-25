@@ -39,21 +39,22 @@ import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
+import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
@@ -68,7 +69,7 @@ import org.mockito.quality.Strictness;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith({MockitoExtension.class})
-class DeduplicationHelperTest extends DhisConvenienceTest {
+class DeduplicationHelperTest extends TestBase {
   @InjectMocks private DeduplicationHelper deduplicationHelper;
   @Mock private AclService aclService;
 
@@ -103,7 +104,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest {
   private UserDetails currentUserDetails;
 
   @BeforeEach
-  public void setUp() throws ForbiddenException {
+  public void setUp() throws ForbiddenException, NotFoundException {
     List<String> relationshipUids = Lists.newArrayList("REL_A", "REL_B");
     List<String> attributeUids = Lists.newArrayList("ATTR_A", "ATTR_B");
     List<String> enrollmentUids = Lists.newArrayList("PI_A", "PI_B");
@@ -144,7 +145,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldHaveUserAccess() throws ForbiddenException {
+  void shouldHaveUserAccess() throws ForbiddenException, NotFoundException {
     when(userService.getUserByUsername(user.getUsername())).thenReturn(user);
 
     String hasUserAccess =
@@ -155,7 +156,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldNotHaveUserAccessWhenUserIsNull() throws ForbiddenException {
+  void shouldNotHaveUserAccessWhenUserIsNull() throws ForbiddenException, NotFoundException {
     clearSecurityContext();
 
     String hasUserAccess =
@@ -167,7 +168,8 @@ class DeduplicationHelperTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldNotHaveUserAccessWhenUserHasNoMergeRoles() throws ForbiddenException {
+  void shouldNotHaveUserAccessWhenUserHasNoMergeRoles()
+      throws ForbiddenException, NotFoundException {
     injectSecurityContext(UserDetails.fromUser(getNoMergeAuthsUser()));
 
     String hasUserAccess =
@@ -179,7 +181,8 @@ class DeduplicationHelperTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldNotHaveUserAccessWhenUserHasNoAccessToOriginalTEType() throws ForbiddenException {
+  void shouldNotHaveUserAccessWhenUserHasNoAccessToOriginalTEType()
+      throws ForbiddenException, NotFoundException {
     when(aclService.canDataWrite(currentUserDetails, trackedEntityTypeA)).thenReturn(false);
 
     String hasUserAccess =
@@ -191,7 +194,8 @@ class DeduplicationHelperTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldNotHaveUserAccessWhenUserHasNoAccessToDuplicateTEType() throws ForbiddenException {
+  void shouldNotHaveUserAccessWhenUserHasNoAccessToDuplicateTEType()
+      throws ForbiddenException, NotFoundException {
 
     when(aclService.canDataWrite(currentUserDetails, trackedEntityTypeB)).thenReturn(false);
     when(userService.getUserByUsername(user.getUsername())).thenReturn(user);
@@ -205,7 +209,8 @@ class DeduplicationHelperTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldNotHaveUserAccessWhenUserHasNoAccessToRelationshipType() throws ForbiddenException {
+  void shouldNotHaveUserAccessWhenUserHasNoAccessToRelationshipType()
+      throws ForbiddenException, NotFoundException {
     when(aclService.canDataWrite(currentUserDetails, relationshipType)).thenReturn(false);
 
     String hasUserAccess =
@@ -217,7 +222,8 @@ class DeduplicationHelperTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldNotHaveUserAccessWhenUserHasNoWriteAccessToEnrollment() throws ForbiddenException {
+  void shouldNotHaveUserAccessWhenUserHasNoWriteAccessToEnrollment()
+      throws ForbiddenException, NotFoundException {
     when(aclService.canDataWrite(currentUserDetails, enrollment.getProgram())).thenReturn(false);
 
     String hasUserAccess =
@@ -230,7 +236,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest {
 
   @Test
   void shouldNotHaveUserAccessWhenUserHasNoCaptureScopeAccessToOriginalOrgUnit()
-      throws ForbiddenException {
+      throws ForbiddenException, NotFoundException {
     when(organisationUnitService.isInUserHierarchyCached(user, organisationUnitA))
         .thenReturn(false);
 
@@ -244,7 +250,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest {
 
   @Test
   void shouldNotHaveUserAccessWhenUserHasNoCaptureScopeAccessToDuplicateOrgUnit()
-      throws ForbiddenException {
+      throws ForbiddenException, NotFoundException {
     when(organisationUnitService.isInUserHierarchyCached(user, organisationUnitB))
         .thenReturn(false);
 

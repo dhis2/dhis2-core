@@ -46,7 +46,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -60,10 +60,11 @@ import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog.TrackedEntityAttributeChange;
 import org.hisp.dhis.user.User;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
+class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackedEntityChangeLogService trackedEntityChangeLogService;
 
@@ -100,8 +101,8 @@ class TrackedEntityChangeLogServiceTest extends IntegrationTestBase {
 
   private final PageParams defaultPageParams = new PageParams(null, null, false);
 
-  @Override
-  protected void setUpTest() {
+  @BeforeEach
+  void setUp() {
     orgUnitA = createOrganisationUnit('A');
     manager.save(orgUnitA, false);
 

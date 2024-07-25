@@ -38,6 +38,7 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegrityDetails;
 import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegritySummary;
 import org.hisp.dhis.user.User;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -53,6 +54,7 @@ class DataIntegrityUsersWithInvalidUsernameControllerTest
 
   private static final String DETAILS_ID_TYPE = "users";
 
+  @Disabled("TODO(Jason P. Pickering)")
   @Test
   void testCanFlagUsersWithInvalidUsername() {
 

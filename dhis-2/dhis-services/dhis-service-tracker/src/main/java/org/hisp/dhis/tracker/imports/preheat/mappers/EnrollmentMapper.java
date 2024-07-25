@@ -60,6 +60,7 @@ public interface EnrollmentMapper extends PreheatMapper<Enrollment> {
   @Mapping(target = "deleted")
   @Mapping(target = "createdByUserInfo")
   @Mapping(target = "lastUpdatedByUserInfo")
+  @Mapping(target = "status")
   Enrollment map(Enrollment enrollment);
 
   @Named("program")

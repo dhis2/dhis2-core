@@ -47,15 +47,18 @@ import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeRequest;
 import org.hisp.dhis.merge.MergeService;
 import org.hisp.dhis.merge.MergeType;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author david mackessy
  */
-class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class IndicatorTypeMergeServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private MergeService indicatorTypeMergeService;
 
@@ -70,8 +73,8 @@ class IndicatorTypeMergeServiceTest extends TransactionalIntegrationTest {
   private final UID uidC = UID.of(BASE_IN_TYPE_UID + 'C');
   private final UID uidX = UID.of(BASE_IN_TYPE_UID + 'X');
 
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     itA = createIndicatorType('A');
     itA.setFactor(99);
     itA.setNumber(true);

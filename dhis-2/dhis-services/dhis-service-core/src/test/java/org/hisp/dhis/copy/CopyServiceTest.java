@@ -59,7 +59,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.EventProgramEnrollmentService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -77,7 +77,7 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -90,7 +90,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 
 @ExtendWith(MockitoExtension.class)
-class CopyServiceTest extends DhisConvenienceTest {
+class CopyServiceTest extends TestBase {
 
   @Mock private ProgramService programService;
 
@@ -106,7 +106,7 @@ class CopyServiceTest extends DhisConvenienceTest {
 
   @Mock private ProgramRuleVariableService programRuleVariableService;
 
-  @Mock private EnrollmentService enrollmentService;
+  @Mock private EventProgramEnrollmentService eventProgramEnrollmentService;
 
   @Mock private AclService aclService;
 
@@ -139,7 +139,7 @@ class CopyServiceTest extends DhisConvenienceTest {
     when(aclService.canWrite(UserDetails.fromUser(user), original)).thenReturn(true);
     injectSecurityContext(UserDetails.fromUser(user));
 
-    when(enrollmentService.getEnrollments(original)).thenReturn(originalEnrollments);
+    when(eventProgramEnrollmentService.getEnrollments(original)).thenReturn(originalEnrollments);
 
     Program programCopy = copyService.copyProgram(VALID_PROGRAM_UID, Map.of());
 
@@ -305,7 +305,7 @@ class CopyServiceTest extends DhisConvenienceTest {
   void testCopyProgramFromUidWithValidProgramAndNullEnrollments()
       throws NotFoundException, ForbiddenException {
     when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
-    when(enrollmentService.getEnrollments(original)).thenReturn(null);
+    when(eventProgramEnrollmentService.getEnrollments(original)).thenReturn(null);
 
     when(aclService.canWrite(UserDetails.fromUser(user), original)).thenReturn(true);
     injectSecurityContext(UserDetails.fromUser(user));

@@ -42,8 +42,8 @@ import org.hisp.dhis.analytics.common.scheme.SchemeInfo;
 import org.hisp.dhis.analytics.common.scheme.SchemeInfo.Data;
 import org.hisp.dhis.analytics.common.scheme.SchemeInfo.Settings;
 import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
-import org.hisp.dhis.analytics.tei.TeiQueryParams;
-import org.hisp.dhis.analytics.tei.TeiRequestParams;
+import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
+import org.hisp.dhis.analytics.trackedentity.TrackedEntityRequestParams;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
@@ -78,12 +78,12 @@ public class GridAdaptor {
   public Grid createGrid(
       Optional<SqlQueryResult> sqlQueryResult,
       long rowsCount,
-      ContextParams<TeiRequestParams, TeiQueryParams> contextParams,
+      ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams,
       List<Field> fields,
       User user) {
     notNull(contextParams, "The 'contextParams' must not be null");
 
-    TeiListGrid grid = new TeiListGrid(contextParams);
+    TrackedEntityListGrid grid = new TrackedEntityListGrid(contextParams);
 
     // Adding headers.
     headerParamsHandler.handle(grid, contextParams, fields);

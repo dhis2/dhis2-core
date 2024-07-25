@@ -41,14 +41,17 @@ import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class CategoryServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class CategoryServiceTest extends PostgresIntegrationTestBase {
 
   private DataElement deA;
 
@@ -78,12 +81,8 @@ class CategoryServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private CategoryManager categoryManager;
 
-  // -------------------------------------------------------------------------
-  // Fixture
-  // -------------------------------------------------------------------------
-
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     categoryOptionA = createCategoryOption('A');
     categoryOptionB = createCategoryOption('B');
     categoryOptionC = createCategoryOption('C');
@@ -95,10 +94,6 @@ class CategoryServiceTest extends TransactionalIntegrationTest {
     categoryOptions.add(categoryOptionB);
     categoryOptions.add(categoryOptionC);
   }
-
-  // -------------------------------------------------------------------------
-  // Category
-  // -------------------------------------------------------------------------
 
   @Test
   void testAddGet() {
@@ -181,10 +176,6 @@ class CategoryServiceTest extends TransactionalIntegrationTest {
     assertTrue(categories.contains(categoryC));
   }
 
-  // -------------------------------------------------------------------------
-  // CategoryOptionGroup
-  // -------------------------------------------------------------------------
-
   @Test
   void testAddGetCategoryGroup() {
     CategoryOptionGroup groupA = createCategoryOptionGroup('A');
@@ -203,10 +194,6 @@ class CategoryServiceTest extends TransactionalIntegrationTest {
     assertEquals(1, categoryService.getCategoryOptionGroup(idB).getMembers().size());
     assertEquals(0, categoryService.getCategoryOptionGroup(idC).getMembers().size());
   }
-
-  // -------------------------------------------------------------------------
-  // CategoryOptionGroupSet
-  // -------------------------------------------------------------------------
 
   @Test
   void testAddGetCategoryGroupSet() {
@@ -235,10 +222,6 @@ class CategoryServiceTest extends TransactionalIntegrationTest {
     assertEquals(1, categoryService.getCategoryOptionGroupSet(idB).getMembers().size());
     assertEquals(0, categoryService.getCategoryOptionGroupSet(idC).getMembers().size());
   }
-
-  // -------------------------------------------------------------------------
-  // DataElementOperand
-  // -------------------------------------------------------------------------
 
   @Test
   void testGetOperands() {

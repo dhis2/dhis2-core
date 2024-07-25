@@ -34,14 +34,19 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.changelog.ChangeLogType;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class TrackedEntityAuditStoreTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class TrackedEntityAuditStoreTest extends PostgresIntegrationTestBase {
   private final Date CREATED = getDate(2022, 3, 1);
 
   @Autowired private TrackedEntityChangeLogStore store;

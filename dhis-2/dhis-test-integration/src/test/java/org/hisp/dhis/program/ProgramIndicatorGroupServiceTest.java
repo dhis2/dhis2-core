@@ -30,21 +30,27 @@ package org.hisp.dhis.program;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-class ProgramIndicatorGroupServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class ProgramIndicatorGroupServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private ProgramIndicatorService service;
 
   private ProgramIndicatorGroup programIndicatorGroupA;
 
-  @Override
-  public void setUpTest() {
+  @BeforeAll
+  void setUp() {
     programIndicatorGroupA = new ProgramIndicatorGroup("A");
   }
 

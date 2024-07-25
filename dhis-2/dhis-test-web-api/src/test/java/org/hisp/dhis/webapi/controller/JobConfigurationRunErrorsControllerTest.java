@@ -75,7 +75,7 @@ class JobConfigurationRunErrorsControllerTest extends PostgresControllerIntegrat
   @Test
   void testGetJobRunErrors_ListFilterUser() {
     // note that the superuser created the job with errors that is tested with
-    JsonArray list = GET("/jobConfigurations/errors?user={user}", getSuperuserUid()).content();
+    JsonArray list = GET("/jobConfigurations/errors?user={user}", getAdminUid()).content();
     assertEquals(1, list.size());
     assertEquals(0, GET("/jobConfigurations/errors?user=abcde123456").content().size());
   }

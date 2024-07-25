@@ -32,15 +32,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author david mackessy
  */
-class ProgramIndicatorStoreTest extends TransactionalIntegrationTest {
+@Transactional
+class ProgramIndicatorStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private ProgramIndicatorStore programIndicatorStore;
   @Autowired private IdentifiableObjectManager identifiableObjectManager;

@@ -100,7 +100,7 @@ class DeduplicationServiceTest {
   private static final String teavSexFirstName = "John";
 
   @BeforeEach
-  void setUp() throws ForbiddenException {
+  void setUp() throws ForbiddenException, NotFoundException {
     PotentialDuplicate potentialDuplicate = new PotentialDuplicate("original", "duplicate");
     deduplicationMergeParams =
         DeduplicationMergeParams.builder()
@@ -270,7 +270,8 @@ class DeduplicationServiceTest {
   void shouldNotBeAutoMergeableNoUserAccess()
       throws PotentialDuplicateConflictException,
           PotentialDuplicateForbiddenException,
-          ForbiddenException {
+          ForbiddenException,
+          NotFoundException {
     MergeObject mergeObject = MergeObject.builder().build();
     when(deduplicationHelper.generateMergeObject(trackedEntityA, trackedEntityB))
         .thenReturn(mergeObject);
@@ -337,7 +338,8 @@ class DeduplicationServiceTest {
   void shouldThrowManualMergeableHasInvalidReference()
       throws PotentialDuplicateConflictException,
           PotentialDuplicateForbiddenException,
-          ForbiddenException {
+          ForbiddenException,
+          NotFoundException {
     when(deduplicationHelper.getInvalidReferenceErrors(deduplicationMergeParams))
         .thenReturn("Error");
     assertThrows(

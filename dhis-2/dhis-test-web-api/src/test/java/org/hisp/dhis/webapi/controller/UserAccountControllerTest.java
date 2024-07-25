@@ -78,7 +78,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   private String superUserRoleUid;
 
   @BeforeEach
-  final void setupHere() throws Exception {
+  final void setupHere() {
     ((FakeMessageSender) messageSender).clearMessages();
     configurationProvider
         .getProperties()
@@ -132,7 +132,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   void testResetPasswordNonUniqueEmail() {
     systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
 
-    switchContextToUser(superUser);
+    switchToAdminUser();
     User userA = createUserWithAuth("userA");
     userA.setEmail("same@email.no");
     User userB = createUserWithAuth("userB");
@@ -247,7 +247,8 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
         "Username is not specified or invalid",
         POST(
                 "/auth/registration",
-                renderService.toJsonAsString(getRegParamsWithUsername(superUser.getUsername())))
+                renderService.toJsonAsString(
+                    getRegParamsWithUsername(getAdminUser().getUsername())))
             .content(HttpStatus.BAD_REQUEST));
   }
 
@@ -587,9 +588,9 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   private OrganisationUnit enableSelfRegistration() {
     OrganisationUnit selfRegOrgUnit = createOrganisationUnit("test org 123");
     manager.save(selfRegOrgUnit);
-    superUser.addOrganisationUnit(selfRegOrgUnit);
+    getAdminUser().addOrganisationUnit(selfRegOrgUnit);
 
-    superUserRoleUid = superUser.getUserRoles().iterator().next().getUid();
+    superUserRoleUid = getAdminUser().getUserRoles().iterator().next().getUid();
     POST("/configuration/selfRegistrationRole", superUserRoleUid).content(HttpStatus.NO_CONTENT);
     POST("/configuration/selfRegistrationOrgUnit", selfRegOrgUnit.getUid())
         .content(HttpStatus.NO_CONTENT);
@@ -699,7 +700,7 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
     user.setFirstName("samwise");
     user.setSurname("gamgee");
     user.setPassword("Test123!");
-    user.setUserRoles(superUser.getUserRoles());
+    user.setUserRoles(getAdminUser().getUserRoles());
     user.setIdToken("idToken");
     // This hashed string (when matched with raw password) needs to match the password that the
     // invited user will pass when completing their invited registration.

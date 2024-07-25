@@ -42,7 +42,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.EventProgramEnrollmentService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -91,7 +91,7 @@ public class CopyService {
 
   private final ProgramRuleVariableService programRuleVariableService;
 
-  private final EnrollmentService enrollmentService;
+  private final EventProgramEnrollmentService eventProgramEnrollmentService;
 
   private final AclService aclService;
 
@@ -210,7 +210,7 @@ public class CopyService {
 
   private void copyEnrollments(Program original, Program copy) {
     List<Enrollment> enrollments =
-        copyList(copy, enrollmentService.getEnrollments(original), Enrollment.copyOf);
+        copyList(copy, eventProgramEnrollmentService.getEnrollments(original), Enrollment.copyOf);
     enrollments.forEach(identifiableObjectManager::save);
   }
 

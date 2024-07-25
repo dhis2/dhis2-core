@@ -100,7 +100,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.test.random.BeanRandomizer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -112,7 +112,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Luciano Fiandesio
  */
 @ExtendWith(MockitoExtension.class)
-class ExpressionService2Test extends DhisConvenienceTest {
+class ExpressionService2Test extends TestBase {
   @Mock private HibernateGenericStore<Expression> hibernateGenericStore;
 
   @Mock private ConstantService constantService;

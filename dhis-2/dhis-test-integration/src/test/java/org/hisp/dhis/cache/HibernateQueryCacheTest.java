@@ -37,27 +37,24 @@ import javax.persistence.TypedQuery;
 import org.hibernate.FlushMode;
 import org.hibernate.SessionFactory;
 import org.hibernate.jpa.QueryHints;
+import org.hisp.dhis.cache.HibernateQueryCacheTest.DhisConfiguration;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.scheduling.HousekeepingJob;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.test.config.PostgresDhisConfigurationProvider;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.orm.jpa.EntityManagerHolder;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-@ContextConfiguration(classes = {HibernateQueryCacheTest.DhisConfiguration.class})
-class HibernateQueryCacheTest extends IntegrationTestBase {
+@ContextConfiguration(classes = {DhisConfiguration.class})
+class HibernateQueryCacheTest extends PostgresIntegrationTestBase {
 
   static class DhisConfiguration {
     @Bean
@@ -73,25 +70,17 @@ class HibernateQueryCacheTest extends IntegrationTestBase {
   }
 
   private @Autowired EntityManagerFactory entityManagerFactory;
-  private @Autowired UserService _userService;
   private @Autowired HousekeepingJob housekeepingJob;
 
   private SessionFactory sessionFactory;
 
   @BeforeEach
-  @Override
-  public void before() throws Exception {
-    this.entityManager = entityManagerFactory.createEntityManager();
+  void setUp() {
     this.sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
 
     this.entityManager.setProperty(org.hibernate.annotations.QueryHints.FLUSH_MODE, FlushMode.AUTO);
-    TransactionSynchronizationManager.bindResource(
-        entityManagerFactory, new EntityManagerHolder(entityManager));
 
-    userService = _userService;
-    User adminUser = preCreateInjectAdminUser();
-    injectSecurityContextUser(adminUser);
-    integrationTestBeforeEach();
+    injectAdminIntoSecurityContext();
     sessionFactory.getStatistics().setStatisticsEnabled(true);
     sessionFactory.getStatistics().clear();
   }

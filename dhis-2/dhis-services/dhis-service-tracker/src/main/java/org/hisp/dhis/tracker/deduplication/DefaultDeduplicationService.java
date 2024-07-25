@@ -99,7 +99,8 @@ public class DefaultDeduplicationService implements DeduplicationService {
   public void autoMerge(DeduplicationMergeParams params)
       throws PotentialDuplicateConflictException,
           PotentialDuplicateForbiddenException,
-          ForbiddenException {
+          ForbiddenException,
+          NotFoundException {
     String autoMergeConflicts =
         getAutoMergeConflictErrors(params.getOriginal(), params.getDuplicate());
 
@@ -119,7 +120,8 @@ public class DefaultDeduplicationService implements DeduplicationService {
   public void manualMerge(DeduplicationMergeParams deduplicationMergeParams)
       throws PotentialDuplicateConflictException,
           PotentialDuplicateForbiddenException,
-          ForbiddenException {
+          ForbiddenException,
+          NotFoundException {
     String invalidReference =
         deduplicationHelper.getInvalidReferenceErrors(deduplicationMergeParams);
     if (invalidReference != null) {
@@ -155,7 +157,7 @@ public class DefaultDeduplicationService implements DeduplicationService {
   }
 
   private void merge(DeduplicationMergeParams params)
-      throws PotentialDuplicateForbiddenException, ForbiddenException {
+      throws PotentialDuplicateForbiddenException, ForbiddenException, NotFoundException {
     TrackedEntity original = params.getOriginal();
     TrackedEntity duplicate = params.getDuplicate();
     MergeObject mergeObject = params.getMergeObject();

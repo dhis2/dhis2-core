@@ -42,15 +42,17 @@ import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.MissingValueStrategy;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class ValidationRuleStoreTest extends TransactionalIntegrationTest {
+@Transactional
+class ValidationRuleStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private ValidationRuleStore validationRuleStore;
 

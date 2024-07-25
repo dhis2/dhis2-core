@@ -58,8 +58,8 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -72,24 +72,23 @@ class OwnershipTest extends TrackerTest {
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private TrackerOwnershipManager trackerOwnershipManager;
-  @Autowired protected UserService _userService;
-  private User superUser;
 
   private User nonSuperUser;
 
-  @Override
-  protected void initTest() throws IOException {
-    userService = _userService;
+  @BeforeAll
+  void setUp() throws IOException {
     setUpMetadata("tracker/ownership_metadata.json");
-    superUser = userService.getUser("M5zQapPyTZI");
-    injectSecurityContextUser(superUser);
 
-    nonSuperUser = userService.getUser("Tu9fv8ezgHl");
-    TrackerImportParams params = TrackerImportParams.builder().userId(superUser.getUid()).build();
+    User importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
+
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     assertNoErrors(
         trackerImportService.importTracker(params, fromJson("tracker/ownership_te.json")));
     assertNoErrors(
         trackerImportService.importTracker(params, fromJson("tracker/ownership_enrollment.json")));
+
+    nonSuperUser = userService.getUser("Tu9fv8ezgHl");
   }
 
   @Test

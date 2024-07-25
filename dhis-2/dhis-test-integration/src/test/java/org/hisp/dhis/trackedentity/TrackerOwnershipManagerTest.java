@@ -51,29 +51,26 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
-import org.hisp.dhis.test.utils.Assertions;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityEnrollmentParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
-class TrackerOwnershipManagerTest extends IntegrationTestBase {
+class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackerOwnershipManager trackerOwnershipAccessManager;
 
   @Autowired private TrackerAccessManager trackerAccessManager;
-
-  @Autowired private UserService _userService;
 
   @Autowired private TrackedEntityService trackedEntityService1;
 
@@ -109,11 +106,8 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
 
   private TrackedEntityParams defaultParams;
 
-  @Override
-  protected void setUpTest() throws Exception {
-    //    userService = _userService;
-    //    preCreateInjectAdminUser();
-
+  @BeforeEach
+  void setUp() {
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnitA);
     organisationUnitB = createOrganisationUnit('B');
@@ -137,9 +131,8 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     userB = createUserWithAuth("userB");
     userB.addOrganisationUnit(organisationUnitB);
     userService.updateUser(userB);
-    superUser = createAndAddAdminUser(Authorities.ALL.name());
-    superUser.setOrganisationUnits(Set.of(organisationUnitA));
-    userService.updateUser(superUser);
+    superUser =
+        createAndAddUserWithAuth("trackertestownership", organisationUnitA, Authorities.ALL);
 
     programA = createProgram('A');
     programA.setAccessLevel(AccessLevel.PROTECTED);
@@ -486,7 +479,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     transferOwnership(trackedEntityA1, programA, organisationUnitB);
 
     TrackedEntityOperationParams operationParams = createOperationParams(userA, null);
-    Assertions.assertIsEmpty(getTrackedEntities(operationParams));
+    assertIsEmpty(getTrackedEntities(operationParams));
   }
 
   @Test

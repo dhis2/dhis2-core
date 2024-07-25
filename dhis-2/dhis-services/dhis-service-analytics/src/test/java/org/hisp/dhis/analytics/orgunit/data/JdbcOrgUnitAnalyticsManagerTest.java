@@ -28,7 +28,7 @@
 package org.hisp.dhis.analytics.orgunit.data;
 
 import static org.hisp.dhis.feedback.ErrorCode.E7302;
-import static org.hisp.dhis.test.DhisConvenienceTest.createOrganisationUnitGroupSet;
+import static org.hisp.dhis.test.TestBase.createOrganisationUnitGroupSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;

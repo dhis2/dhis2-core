@@ -55,22 +55,26 @@ import java.util.Set;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class UserServiceTest extends SingleSetupIntegrationTestBase {
-
-  @Autowired private UserService _userService;
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class UserServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private UserGroupService userGroupService;
 
@@ -82,7 +86,8 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager idObjectManager;
 
-  @Autowired private DataElementService dataElementService;
+  @Autowired private PasswordManager passwordManager;
+
   private OrganisationUnit unitA;
 
   private OrganisationUnit unitB;
@@ -99,11 +104,8 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
 
   private UserRole roleC;
 
-  private User adminUser;
-
-  @Override
-  public void setUpTest() throws Exception {
-    super.userService = _userService;
+  @BeforeAll
+  void setUp() {
     unitA = createOrganisationUnit('A');
     unitB = createOrganisationUnit('B');
     unitC = createOrganisationUnit('C', unitA);
@@ -130,11 +132,8 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @BeforeEach
-  final void setup() throws Exception {
-    String adminUsername = this.adminUsername;
-    User adminUser = userService.getUserByUsername(adminUsername);
-    injectSecurityContextUser(adminUser);
-    this.adminUser = adminUser;
+  final void setup() {
+    injectAdminIntoSecurityContext();
   }
 
   private UserQueryParams getDefaultParams() {
@@ -445,13 +444,13 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
             });
     UserQueryParams params = getDefaultParams().addOrganisationUnit(unitA);
     List<User> allUsersA = userService.getUsers(params, singletonList("email:idesc"));
-    assertEquals(allUsersA, asList(this.adminUser, userA, userB, userC));
+    assertEquals(asList(getAdminUser(), userA, userB, userC), allUsersA);
 
     List<User> allUsersB = userService.getUsers(params, null);
-    assertEquals(allUsersB, asList(userB, userC, this.adminUser, userA));
+    assertEquals(asList(userB, userC, getAdminUser(), userA), allUsersB);
 
     List<User> allUserC = userService.getUsers(params, singletonList("firstName:asc"));
-    assertEquals(allUserC, asList(this.adminUser, userA, userC, userB));
+    assertEquals(asList(userA, getAdminUser(), userC, userB), allUserC);
   }
 
   @Test
@@ -488,14 +487,14 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
 
   @Test
   void testGetManagedGroupsSearch() {
-    User userA = addUser("A");
-    addUser("B");
+    addUser("A");
+    User userB = addUser("B");
     addUser("C");
     addUser("D");
     addUser("E");
     addUser("F");
-    UserQueryParams params = getDefaultParams().setQuery("rstnameA");
-    assertContainsOnly(List.of(userA), userService.getUsers(params));
+    UserQueryParams params = getDefaultParams().setQuery("rstnameB");
+    assertContainsOnly(List.of(userB), userService.getUsers(params));
     assertEquals(1, userService.getUserCount(params));
   }
 
@@ -587,7 +586,7 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
     assertEquals(1, userService.disableUsersInactiveSince(twoMonthsAgo));
     // being a super-user is the simplest way to filter purely on the set
     // parameters
-    createAndInjectAdminUser();
+    injectAdminIntoSecurityContext();
     UserQueryParams params = getDefaultParams().setDisabled(true);
     List<User> users = userService.getUsers(params);
     assertEquals(
@@ -637,9 +636,8 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
     userService.generateTwoFactorOtpSecretForApproval(userToModify);
     userService.updateUser(userToModify);
 
-    User admin = createAndAddAdminUser("ALL");
     List<ErrorReport> errors = new ArrayList<>();
-    userService.privilegedTwoFactorDisable(admin, userToModify.getUid(), errors::add);
+    userService.privilegedTwoFactorDisable(getAdminUser(), userToModify.getUid(), errors::add);
     assertTrue(errors.isEmpty());
   }
 
@@ -671,5 +669,20 @@ class UserServiceTest extends SingleSetupIntegrationTestBase {
   @Test
   void testGetDisplayNameNull() {
     assertNull(userService.getDisplayName("notExist"));
+  }
+
+  @Test
+  void testBCryptedPasswordOnInputError() {
+    User user = new User();
+    user.setUsername("test");
+    user.setPassword("password");
+    userService.addUser(user);
+
+    String encodedPassword = passwordManager.encode("password");
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> userService.encodeAndSetPassword(user, encodedPassword),
+        "Raw password look like BCrypt encoded password, this is most certainly a bug");
   }
 }

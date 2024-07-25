@@ -62,7 +62,7 @@ import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -82,13 +82,13 @@ class AclEventExporterTest extends TrackerTest {
 
   private EventOperationParams.EventOperationParamsBuilder operationParamsBuilder;
 
-  @Autowired protected UserService _userService;
-
-  @Override
-  protected void initTest() throws IOException {
-    userService = _userService;
+  @BeforeAll
+  void setUp() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
-    User userA = userService.getUser("M5zQapPyTZI");
+
+    User userA = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(userA);
+
     TrackerImportParams params = TrackerImportParams.builder().userId(userA.getUid()).build();
     assertNoErrors(
         trackerImportService.importTracker(params, fromJson("tracker/event_and_enrollment.json")));
@@ -105,10 +105,10 @@ class AclEventExporterTest extends TrackerTest {
   }
 
   @BeforeEach
-  void setUp() {
+  void setUpUserAndParams() {
     // needed as some tests are run using another user (injectSecurityContext) while most tests
     // expect to be run by admin
-    injectAdminUser();
+    injectAdminIntoSecurityContext();
     operationParamsBuilder = EventOperationParams.builder().eventParams(EventParams.FALSE);
   }
 

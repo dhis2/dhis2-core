@@ -39,11 +39,11 @@ import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.merge.MergeType;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-class DataElementMergeValidatorTest extends DhisConvenienceTest {
+class DataElementMergeValidatorTest extends TestBase {
 
   @Test
   @DisplayName("when all value types match then there are no report errors")

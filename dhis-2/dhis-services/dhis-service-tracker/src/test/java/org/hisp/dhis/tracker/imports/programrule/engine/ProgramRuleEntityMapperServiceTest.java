@@ -74,7 +74,7 @@ import org.hisp.dhis.rules.models.RuleEventStatus;
 import org.hisp.dhis.rules.models.RuleVariable;
 import org.hisp.dhis.rules.models.RuleVariableAttribute;
 import org.hisp.dhis.rules.models.RuleVariableCalculatedValue;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -89,7 +89,7 @@ import org.mockito.Mock;
  * @author Zubair Asghar.
  */
 @ExtendWith(org.mockito.junit.jupiter.MockitoExtension.class)
-class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
+class ProgramRuleEntityMapperServiceTest extends TestBase {
 
   private static final String SAMPLE_VALUE_A = "textValueA";
 

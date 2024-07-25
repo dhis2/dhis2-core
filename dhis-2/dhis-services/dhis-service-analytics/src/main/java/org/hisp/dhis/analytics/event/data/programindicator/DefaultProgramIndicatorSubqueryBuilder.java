@@ -148,11 +148,11 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
   /**
    * Determine the join after the WHERE condition. The rules are:
    *
-   * <p>1) outer = event | inner = enrollment -> pi = ax.pi (enrollment is the enrollmennt linked to
-   * the inline event) 2) outer = enrollment | inner = event -> pi = ax.pi 3) outer = event | inner
-   * = event -> psi = ax.psi (inner operate on same event as outer) 4) outer = enrollemnt | inner =
-   * enrollment -> pi = ax.pi (enrollment operates on the same enrollment as outer) 5) if
-   * RelationshipType, call the RelationshipTypeJoinGenerator
+   * <p>1) outer = event | inner = enrollment -> en = ax.enrollment (enrollment is the enrollment
+   * linked to the inline event) 2) outer = enrollment | inner = event -> en = ax.enrollment 3)
+   * outer = event | inner = event -> ev = ax.event (inner operate on same event as outer) 4) outer
+   * = enrollment | inner = enrollment -> en = ax.enrollment (enrollment operates on the same
+   * enrollment as outer) 5) if RelationshipType, call the RelationshipTypeJoinGenerator
    *
    * @param outerSqlEntity the outer {@link AnalyticsType}.
    * @param programIndicator the {@link ProgramIndicator}.
@@ -170,10 +170,10 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
               SUBQUERY_TABLE_ALIAS, relationshipType, programIndicator.getAnalyticsType());
     } else {
       if (AnalyticsType.ENROLLMENT == outerSqlEntity) {
-        condition = "pi = ax.pi";
+        condition = "enrollment = ax.enrollment";
       } else {
         if (AnalyticsType.EVENT == programIndicator.getAnalyticsType()) {
-          condition = "psi = ax.psi";
+          condition = "event = ax.event";
         }
       }
     }

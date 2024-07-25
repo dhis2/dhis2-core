@@ -40,6 +40,8 @@ import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.user.User;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -53,9 +55,12 @@ class ProgramRuleVariableIntegrationTest extends TrackerTest {
 
   @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
 
-  @Override
-  public void initTest() throws IOException {
+  @BeforeAll
+  void setUp() throws IOException {
     setUpMetadata("tracker/tracker_metadata_with_program_rules_variables.json");
+
+    User importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
   }
 
   @Test

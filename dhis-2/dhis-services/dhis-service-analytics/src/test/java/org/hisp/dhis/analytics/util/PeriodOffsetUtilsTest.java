@@ -48,7 +48,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.period.WeeklyPeriodType;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 
@@ -159,7 +159,7 @@ class PeriodOffsetUtilsTest {
   }
 
   private DataElement createDataElement(int offset) {
-    DataElement de = DhisConvenienceTest.createDataElement('A');
+    DataElement de = TestBase.createDataElement('A');
     de.setQueryMods(QueryModifiers.builder().periodOffset(offset).build());
     return de;
   }

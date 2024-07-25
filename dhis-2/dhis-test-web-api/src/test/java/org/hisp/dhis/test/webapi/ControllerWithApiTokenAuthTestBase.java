@@ -30,7 +30,7 @@ package org.hisp.dhis.test.webapi;
 import static org.hisp.dhis.test.web.WebClientUtils.failOnException;
 
 import javax.persistence.EntityManager;
-import org.hisp.dhis.test.DhisConvenienceTest;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.test.config.H2DhisConfiguration;
 import org.hisp.dhis.test.utils.TestUtils;
 import org.hisp.dhis.user.User;
@@ -69,11 +69,10 @@ public abstract class ControllerWithApiTokenAuthTestBase extends H2ControllerInt
     userService = _userService;
     clearSecurityContext();
 
-    User randomAdminUser =
-        DhisConvenienceTest.createRandomAdminUserWithEntityManager(entityManager);
+    User randomAdminUser = TestBase.createRandomAdminUserWithEntityManager(entityManager);
     injectSecurityContextUser(randomAdminUser);
 
-    adminUser = createAndAddAdminUser("ALL");
+    adminUser = preCreateInjectAdminUser();
 
     mvc =
         MockMvcBuilders.webAppContextSetup(webApplicationContext)

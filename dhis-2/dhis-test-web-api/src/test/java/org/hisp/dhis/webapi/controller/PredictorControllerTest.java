@@ -78,7 +78,7 @@ class PredictorControllerTest extends H2ControllerIntegrationTestBase {
   void testRunPredictor() {
     String pId = postNewPredictor();
 
-    User actingUser = superUser;
+    User actingUser = getAdminUser();
     UserDetails currentUserDetails = UserDetails.fromUser(actingUser);
     currentUserDetails.setId(0L);
     injectSecurityContext(currentUserDetails);

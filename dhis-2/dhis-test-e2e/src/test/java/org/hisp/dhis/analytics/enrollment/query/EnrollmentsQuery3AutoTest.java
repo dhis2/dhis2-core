@@ -301,8 +301,7 @@ public class EnrollmentsQuery3AutoTest extends AnalyticsApiTest {
 
     // Assert headers.
     validateHeader(response, 0, "pi", "Enrollment", "TEXT", "java.lang.String", false, true);
-    validateHeader(
-        response, 1, "tei", "Tracked entity instance", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 1, "tei", "Tracked entity", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response,
         2,

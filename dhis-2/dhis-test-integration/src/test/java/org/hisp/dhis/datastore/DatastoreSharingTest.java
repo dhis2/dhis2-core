@@ -41,40 +41,38 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
-import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author david mackessy
  */
-class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class DatastoreSharingTest extends PostgresIntegrationTestBase {
 
   @Autowired private DatastoreService datastoreService;
-  @Autowired private UserService _userService;
   @Autowired private UserGroupService userGroupService;
   @Autowired private ObjectMapper jsonMapper;
 
   private static final String NAMESPACE = "FOOTBALL";
 
-  @Override
-  protected void setUpTest() throws Exception {
-    userService = _userService;
-  }
-
   @BeforeEach
   final void setup() {
     clearSecurityContext();
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
   }
 
   @Test
@@ -221,8 +219,8 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
     User userWithUserGroupAccess = createAndAddUser(false, "userWithUserGroupAccess", null);
     UserGroup userGroup = createUserGroup('a', Set.of(userWithUserGroupAccess));
     userWithUserGroupAccess.getGroups().add(userGroup);
-    reLoginAdminUser();
-    _userService.updateUser(userWithUserGroupAccess);
+    injectAdminIntoSecurityContext();
+    userService.updateUser(userWithUserGroupAccess);
     userGroupService.addUserGroup(userGroup);
 
     String arsenal = jsonMapper.writeValueAsString(club("arsenal"));
@@ -340,9 +338,8 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
     User userWithUserGroupAccess = createAndAddUser(false, "userWithUserGroupAccess", null);
     UserGroup userGroup = createUserGroup('a', Set.of(userWithUserGroupAccess));
     userWithUserGroupAccess.getGroups().add(userGroup);
-    //    injectAdminUser();
-    reLoginAdminUser();
-    _userService.updateUser(userWithUserGroupAccess);
+    injectAdminIntoSecurityContext();
+    userService.updateUser(userWithUserGroupAccess);
     userGroupService.addUserGroup(userGroup);
     injectSecurityContextUser(basicUser);
 
@@ -379,7 +376,7 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
     // given
     // 2 existing namespace entries with sharing set to a specific user group only & no public
     // access
-    reLoginAdminUser();
+    injectAdminIntoSecurityContext();
     User basicUser = createAndAddUser(false, "basicUser", null);
     User userWithNoAccess = createAndAddUser(false, "userWithNoAccess", null);
     UserGroup userGroup = createUserGroup('a', Set.of(basicUser));
@@ -425,9 +422,8 @@ class DatastoreSharingTest extends SingleSetupIntegrationTestBase {
     User userWithSomeAccess = createAndAddUser(false, "userWithSomeAccess", null);
     UserGroup userGroup = createUserGroup('a', Set.of(userWithSomeAccess));
     userWithSomeAccess.getGroups().add(userGroup);
-    //    injectAdminUser();
-    reLoginAdminUser();
-    _userService.updateUser(userWithSomeAccess);
+    injectAdminIntoSecurityContext();
+    userService.updateUser(userWithSomeAccess);
     userGroupService.addUserGroup(userGroup);
     injectSecurityContextUser(basicUser);
 
