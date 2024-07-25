@@ -62,12 +62,6 @@ public class DefaultEnrollmentService implements EnrollmentService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<Enrollment> getEnrollments(Program program) {
-    return enrollmentStore.get(program);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public List<Enrollment> getEnrollments(Program program, EnrollmentStatus status) {
     return enrollmentStore.get(program, status);
   }
