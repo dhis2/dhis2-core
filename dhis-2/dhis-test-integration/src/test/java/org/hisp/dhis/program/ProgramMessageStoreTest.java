@@ -28,7 +28,6 @@
 package org.hisp.dhis.program;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -184,8 +183,7 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
     pmsgA.setUid(uidA);
     pmsgB.setUid(uidB);
     pmsgC.setUid(uidC);
-    params = new ProgramMessageQueryParams();
-    params.setOrganisationUnit(orgUnits);
+    params = ProgramMessageQueryParams.builder().organisationUnit(orgUnits).build();
   }
 
   @Test
@@ -215,23 +213,13 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testProgramMessageExists() {
-    programMessageStore.save(pmsgA);
-    programMessageStore.save(pmsgB);
-    assertTrue(programMessageStore.exists(pmsgA.getUid()));
-    assertTrue(programMessageStore.exists(pmsgB.getUid()));
-    assertFalse(programMessageStore.exists("22343"));
-    assertFalse(programMessageStore.exists(null));
-  }
-
-  @Test
   void testGetProgramMessageByEnrollment() {
     enrollmentStore.save(enrollmentA);
     pmsgA.setEnrollment(enrollmentA);
     pmsgB.setEnrollment(enrollmentA);
     programMessageStore.save(pmsgA);
     programMessageStore.save(pmsgB);
-    params.setEnrollment(enrollmentA);
+    params = ProgramMessageQueryParams.builder().enrollment(enrollmentA).build();
     List<ProgramMessage> programMessages = programMessageStore.getProgramMessages(params);
     assertNotNull(programMessages);
     assertTrue(equals(programMessages, pmsgA, pmsgB));
@@ -247,7 +235,7 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
     pmsgB.setEvent(eventA);
     programMessageStore.save(pmsgA);
     programMessageStore.save(pmsgB);
-    params.setEvent(eventA);
+    params = ProgramMessageQueryParams.builder().event(eventA).build();
     List<ProgramMessage> programMessages = programMessageStore.getProgramMessages(params);
     assertNotNull(programMessages);
     assertTrue(equals(programMessages, pmsgA, pmsgB));
@@ -259,7 +247,7 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
   void testGetProgramMessageByMessageStatus() {
     programMessageStore.save(pmsgA);
     programMessageStore.save(pmsgB);
-    params.setMessageStatus(messageStatus);
+    params = ProgramMessageQueryParams.builder().messageStatus(messageStatus).build();
     List<ProgramMessage> programMessages = programMessageStore.getProgramMessages(params);
     assertNotNull(programMessages);
     assertTrue(equals(programMessages, pmsgA, pmsgB));
@@ -274,8 +262,11 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
     pmsgB.setEnrollment(enrollmentA);
     programMessageStore.save(pmsgA);
     programMessageStore.save(pmsgB);
-    params.setEnrollment(enrollmentA);
-    params.setMessageStatus(messageStatus);
+    params =
+        ProgramMessageQueryParams.builder()
+            .enrollment(enrollmentA)
+            .messageStatus(messageStatus)
+            .build();
     List<ProgramMessage> programMessages = programMessageStore.getProgramMessages(params);
     assertNotNull(programMessages);
     assertTrue(equals(programMessages, pmsgA, pmsgB));

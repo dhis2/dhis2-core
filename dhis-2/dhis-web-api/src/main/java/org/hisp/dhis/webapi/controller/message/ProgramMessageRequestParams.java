@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,31 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.message;
+package org.hisp.dhis.webapi.controller.message;
 
 import java.util.Date;
 import java.util.Set;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.program.message.ProgramMessageStatus;
 
 /**
- * @author Zubair <rajazubair.asghar@gmail.com>
+ * @author Zubair Asghar
  */
-@Getter
-@Builder(toBuilder = true)
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public class ProgramMessageQueryParams {
+@Data
+@NoArgsConstructor
+public class ProgramMessageRequestParams {
   private Set<String> organisationUnit;
 
   private ProgramMessageStatus messageStatus;
 
-  private Enrollment enrollment;
+  @Deprecated(since = "2.41")
+  private UID programInstance;
 
-  private Event event;
+  private UID enrollment;
+
+  @Deprecated(since = "2.41")
+  private UID programStageInstance;
+
+  private UID event;
 
   private Date afterDate;
 
@@ -58,24 +61,4 @@ public class ProgramMessageQueryParams {
   private Integer page;
 
   private Integer pageSize;
-
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  public boolean hasOrganisationUnit() {
-    return organisationUnit != null;
-  }
-
-  public boolean hasEnrollment() {
-    return enrollment != null;
-  }
-
-  public boolean hasEvent() {
-    return event != null;
-  }
-
-  public boolean hasPaging() {
-    return page != null && pageSize != null;
-  }
 }

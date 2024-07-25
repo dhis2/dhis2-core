@@ -186,10 +186,12 @@ class ProgramMessageServiceTest extends PostgresIntegrationTestBase {
     pmsgA.setUid(uidA);
     pmsgB.setUid(uidB);
     pmsgC.setUid(uidC);
-    params = new ProgramMessageQueryParams();
-    params.setOrganisationUnit(ouUids);
-    params.setEnrollment(enrollmentA);
-    params.setMessageStatus(messageStatus);
+    params =
+        ProgramMessageQueryParams.builder()
+            .organisationUnit(ouUids)
+            .enrollment(enrollmentA)
+            .messageStatus(messageStatus)
+            .build();
     bulkSmsConfig = new BulkSmsGatewayConfig();
     bulkSmsConfig.setDefault(true);
     bulkSmsConfig.setName("bulk");

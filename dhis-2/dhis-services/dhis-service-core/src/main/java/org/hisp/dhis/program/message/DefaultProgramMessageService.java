@@ -95,44 +95,6 @@ public class DefaultProgramMessageService implements ProgramMessageService {
 
   @Override
   @Transactional(readOnly = true)
-  public ProgramMessageQueryParams getFromUrl(
-      Set<String> ou,
-      String enrollmentUid,
-      String eventUid,
-      ProgramMessageStatus messageStatus,
-      Integer page,
-      Integer pageSize,
-      Date afterDate,
-      Date beforeDate) {
-    ProgramMessageQueryParams params = new ProgramMessageQueryParams();
-
-    if (enrollmentUid != null) {
-      if (manager.exists(Enrollment.class, enrollmentUid)) {
-        params.setEnrollment(manager.get(Enrollment.class, enrollmentUid));
-      } else {
-      }
-    }
-
-    if (eventUid != null) {
-      if (manager.exists(Event.class, eventUid)) {
-        params.setEvent(manager.get(Event.class, eventUid));
-      } else {
-        throw new IllegalQueryException("Event does not exist.");
-      }
-    }
-
-    params.setOrganisationUnit(ou);
-    params.setMessageStatus(messageStatus);
-    params.setPage(page);
-    params.setPageSize(pageSize);
-    params.setAfterDate(afterDate);
-    params.setBeforeDate(beforeDate);
-
-    return params;
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public ProgramMessage getProgramMessage(long id) {
     return programMessageStore.get(id);
   }
