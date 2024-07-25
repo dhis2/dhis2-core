@@ -482,7 +482,7 @@ public class TrackerPreheat {
     events.put(uid, event);
   }
 
-  public void putNotes(Set<String> notes) {
+  public void addNotes(Set<String> notes) {
     this.notes.addAll(notes);
   }
 

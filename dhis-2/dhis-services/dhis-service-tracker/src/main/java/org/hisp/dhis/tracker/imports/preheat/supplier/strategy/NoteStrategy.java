@@ -64,7 +64,7 @@ public class NoteStrategy extends HibernateGenericStore<Note>
             .filter(CodeGenerator::isValidUid)
             .collect(Collectors.toSet());
 
-    preheat.putNotes(getExistingNotes(uids));
+    preheat.addNotes(getExistingNotes(uids));
   }
 
   private Set<String> getExistingNotes(Set<String> uids) {
