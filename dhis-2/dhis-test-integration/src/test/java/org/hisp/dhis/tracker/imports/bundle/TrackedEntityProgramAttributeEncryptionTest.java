@@ -41,6 +41,7 @@ import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,18 +61,22 @@ class TrackedEntityProgramAttributeEncryptionTest extends TrackerTest {
 
   @Autowired private JdbcTemplate jdbcTemplate;
 
+  private User importUser;
+
   @BeforeAll
   void setUp() throws IOException {
     setUpMetadata("tracker/te_program_with_tea_encryption_metadata.json", getAdminUser());
-    injectAdminUser();
+
+    importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
   }
 
   @Test
   void testTrackedEntityProgramAttributeEncryptedValue() throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     ImportReport importReport =
         trackerImportService.importTracker(
-            new TrackerImportParams(),
-            fromJson("tracker/te_program_with_tea_encryption_data.json"));
+            params, fromJson("tracker/te_program_with_tea_encryption_data.json"));
     assertNoErrors(importReport);
 
     List<TrackedEntity> trackedEntities = manager.getAll(TrackedEntity.class);

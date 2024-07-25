@@ -155,7 +155,7 @@ class ProgramControllerIntegrationTest extends PostgresControllerIntegrationTest
     User userWithPublicAuths =
         switchToNewUser("test1", "F_PROGRAM_PUBLIC_ADD", "F_PROGRAM_INDICATOR_PUBLIC_ADD");
 
-    switchToSuperuser();
+    switchToAdminUser();
     manager.save(userWithPublicAuths);
     PUT(
             "/programs/" + PROGRAM_UID,
@@ -192,7 +192,7 @@ class ProgramControllerIntegrationTest extends PostgresControllerIntegrationTest
     User userWithPublicAuths =
         switchToNewUser("test1", "F_PROGRAM_PUBLIC_ADD", "F_PROGRAM_INDICATOR_PUBLIC_ADD");
 
-    switchToSuperuser();
+    switchToAdminUser();
     manager.save(userWithPublicAuths);
     PUT(
             "/programs/" + PROGRAM_UID,
@@ -229,7 +229,7 @@ class ProgramControllerIntegrationTest extends PostgresControllerIntegrationTest
     User userWithPublicAuths =
         switchToNewUser("test1", "F_PROGRAM_PUBLIC_ADD", "F_PROGRAM_INDICATOR_PUBLIC_ADD");
 
-    switchToSuperuser();
+    switchToAdminUser();
     manager.save(userWithPublicAuths);
     PUT(
             "/programs/" + PROGRAM_UID,

@@ -70,7 +70,7 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testGetCurrentUser() {
-    switchToSuperuser();
+    switchToAdminUser();
     assertEquals(getCurrentUser().getUid(), GET("/me").content().as(JsonUser.class).getId());
   }
 

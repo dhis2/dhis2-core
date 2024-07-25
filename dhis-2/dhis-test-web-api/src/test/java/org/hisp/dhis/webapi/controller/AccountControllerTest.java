@@ -55,7 +55,7 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void testRecoverAccount_NotEnabled() {
     User test = switchToNewUser("test");
-    switchToSuperuser();
+    switchToAdminUser();
     clearSecurityContext();
     assertWebMessage(
         "Conflict",
@@ -97,7 +97,8 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
         409,
         "ERROR",
         "User account does not have a valid email address",
-        POST("/account/recovery?username=" + superUser.getUsername()).content(HttpStatus.CONFLICT));
+        POST("/account/recovery?username=" + getAdminUser().getUsername())
+            .content(HttpStatus.CONFLICT));
   }
 
   @Test
@@ -210,7 +211,7 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
 
     JsonMixed response = GET("/account/linkedAccounts").content(HttpStatus.OK);
     JsonList<JsonObject> users = response.getList("users", JsonObject.class);
-    assertEquals(2, users.size());
+    assertEquals(1, users.size());
   }
 
   private static void assertMessage(String key, String value, String message, JsonMixed response) {

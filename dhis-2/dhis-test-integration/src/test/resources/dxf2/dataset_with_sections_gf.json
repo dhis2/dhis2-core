@@ -203,7 +203,7 @@
         "F_APPROVE_DATA_LOWER_LEVELS",
         "F_TRACKED_ENTITY_DATAVALUE_DELETE"
       ],
-      "name": "Superuser",
+      "name": "metadata Superuser",
       "dataSets": [],
       "lastUpdated": "2016-03-08T07:26:51.925+0000",
       "programs": [],
@@ -271,11 +271,11 @@
           "id": "x3gVvpbVgqy"
         }
       ],
-      "firstName": "admin",
+      "firstName": "metadata admin",
       "cogsDimensionConstraints": [],
       "lastLogin": "2016-03-08T07:26:51.942+0000",
       "invitation": false,
-      "username": "admin",
+      "username": "metadataadmin",
       "passwordLastUpdated": "2016-03-08T07:26:51.942+0000",
       "selfRegistered": false,
       "externalAuth": false,
@@ -290,7 +290,7 @@
       "created": "2016-03-08T07:26:51.909+0000",
       "teiSearchOrganisationUnits": [],
       "dataViewOrganisationUnits": [],
-      "surname": "admin"
+      "surname": "metadata admin"
     }
   ],
   "categories": [

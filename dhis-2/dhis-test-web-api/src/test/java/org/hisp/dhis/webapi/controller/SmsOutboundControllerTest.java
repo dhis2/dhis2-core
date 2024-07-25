@@ -67,7 +67,7 @@ class SmsOutboundControllerTest extends H2ControllerIntegrationTestBase {
         500,
         "ERROR",
         "No default gateway configured",
-        POST("/sms/outbound?recipient=" + getSuperuserUid() + "&message=text")
+        POST("/sms/outbound?recipient=" + getAdminUid() + "&message=text")
             .content(HttpStatus.INTERNAL_SERVER_ERROR));
   }
 
@@ -100,12 +100,7 @@ class SmsOutboundControllerTest extends H2ControllerIntegrationTestBase {
         "No default gateway configured",
         POST(
                 "/sms/outbound",
-                "{"
-                    + "'recipients':[{'id':'"
-                    + getSuperuserUid()
-                    + "'}],"
-                    + "'message':'text'"
-                    + "}")
+                "{" + "'recipients':[{'id':'" + getAdminUid() + "'}]," + "'message':'text'" + "}")
             .content(HttpStatus.INTERNAL_SERVER_ERROR));
   }
 

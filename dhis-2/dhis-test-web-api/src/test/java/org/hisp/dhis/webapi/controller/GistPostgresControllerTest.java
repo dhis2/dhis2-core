@@ -59,13 +59,12 @@ class GistPostgresControllerTest extends PostgresControllerIntegrationTestBase {
     String userGroupId =
         assertStatus(
             HttpStatus.CREATED,
-            POST(
-                "/userGroups/", "{'name':'groupX', 'users':[{'id':'" + getSuperuserUid() + "'}]}"));
+            POST("/userGroups/", "{'name':'groupX', 'users':[{'id':'" + getAdminUid() + "'}]}"));
     assertStatus(
         HttpStatus.OK,
         PATCH(
             "/users/{id}?importReportMode=ERRORS",
-            getSuperuserUid(),
+            getAdminUid(),
             Body("[{'op': 'add', 'path': '/birthday', 'value': '1980-12-12'}]")));
     orgUnitId =
         assertStatus(
@@ -86,11 +85,11 @@ class GistPostgresControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void testTransform_Pluck_Multi() {
     JsonObject gist =
-        GET("/users/{uid}/userGroups/gist?fields=name,users::pluck(id,surname)", getSuperuserUid())
+        GET("/users/{uid}/userGroups/gist?fields=name,users::pluck(id,surname)", getAdminUid())
             .content();
     JsonArray users = gist.getArray("userGroups").getObject(0).getArray("users");
     JsonObject user0 = users.getObject(0);
     assertEquals("Surnameadmin", user0.getString("surname").string());
-    assertEquals(getSuperuserUid(), user0.getString("id").string());
+    assertEquals(getAdminUid(), user0.getString("id").string());
   }
 }

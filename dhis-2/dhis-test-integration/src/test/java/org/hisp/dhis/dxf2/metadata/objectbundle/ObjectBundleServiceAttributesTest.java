@@ -135,7 +135,7 @@ class ObjectBundleServiceAttributesTest extends PostgresIntegrationTestBase {
     assertEquals(2, dataSet.getDataSetElements().size());
     assertEquals(PeriodType.getPeriodTypeByName("Monthly"), dataSet.getPeriodType());
     assertNotNull(user);
-    assertEquals("admin", user.getUsername());
+    assertEquals("metadataadmin", user.getUsername());
     assertFalse(user.getUserRoles().isEmpty());
     assertFalse(user.getOrganisationUnits().isEmpty());
     assertEquals("PdWlltZnVZe", user.getOrganisationUnit().getUid());

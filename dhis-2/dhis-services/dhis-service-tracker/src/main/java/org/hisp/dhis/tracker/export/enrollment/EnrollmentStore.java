@@ -49,4 +49,6 @@ public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
    * names should occur before calling {@link #getEnrollments(EnrollmentQueryParams)}.
    */
   Set<String> getOrderableFields();
+
+  void deleteEnrollment(Enrollment enrollment);
 }

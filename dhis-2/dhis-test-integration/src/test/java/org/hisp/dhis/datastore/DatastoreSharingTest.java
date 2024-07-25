@@ -72,7 +72,7 @@ class DatastoreSharingTest extends PostgresIntegrationTestBase {
   @BeforeEach
   final void setup() {
     clearSecurityContext();
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
   }
 
   @Test
@@ -219,7 +219,7 @@ class DatastoreSharingTest extends PostgresIntegrationTestBase {
     User userWithUserGroupAccess = createAndAddUser(false, "userWithUserGroupAccess", null);
     UserGroup userGroup = createUserGroup('a', Set.of(userWithUserGroupAccess));
     userWithUserGroupAccess.getGroups().add(userGroup);
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
     userService.updateUser(userWithUserGroupAccess);
     userGroupService.addUserGroup(userGroup);
 
@@ -338,8 +338,7 @@ class DatastoreSharingTest extends PostgresIntegrationTestBase {
     User userWithUserGroupAccess = createAndAddUser(false, "userWithUserGroupAccess", null);
     UserGroup userGroup = createUserGroup('a', Set.of(userWithUserGroupAccess));
     userWithUserGroupAccess.getGroups().add(userGroup);
-    //    injectAdminUser();
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
     userService.updateUser(userWithUserGroupAccess);
     userGroupService.addUserGroup(userGroup);
     injectSecurityContextUser(basicUser);
@@ -377,7 +376,7 @@ class DatastoreSharingTest extends PostgresIntegrationTestBase {
     // given
     // 2 existing namespace entries with sharing set to a specific user group only & no public
     // access
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
     User basicUser = createAndAddUser(false, "basicUser", null);
     User userWithNoAccess = createAndAddUser(false, "userWithNoAccess", null);
     UserGroup userGroup = createUserGroup('a', Set.of(basicUser));
@@ -423,8 +422,7 @@ class DatastoreSharingTest extends PostgresIntegrationTestBase {
     User userWithSomeAccess = createAndAddUser(false, "userWithSomeAccess", null);
     UserGroup userGroup = createUserGroup('a', Set.of(userWithSomeAccess));
     userWithSomeAccess.getGroups().add(userGroup);
-    //    injectAdminUser();
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
     userService.updateUser(userWithSomeAccess);
     userGroupService.addUserGroup(userGroup);
     injectSecurityContextUser(basicUser);

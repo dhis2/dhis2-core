@@ -464,7 +464,7 @@ class JobConfigurationControllerTest extends H2ControllerIntegrationTestBase {
     String jobId = config.getId();
     switchToNewUser("no-auth");
     assertStatus(HttpStatus.FORBIDDEN, POST("/jobConfigurations/" + jobId + "/revert"));
-    switchToSuperuser();
+    switchToAdminUser();
     assertStatus(HttpStatus.CONFLICT, POST("/jobConfigurations/" + jobId + "/revert"));
   }
 

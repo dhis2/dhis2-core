@@ -99,7 +99,7 @@ class TrackedEntityQueryLimitTest extends PostgresIntegrationTestBase {
 
     TrackedEntityType trackedEntityType;
 
-    user = createAndInjectAdminUser();
+    user = getAdminUser();
 
     orgUnitA = createOrganisationUnit("A");
     organisationUnitService.addOrganisationUnit(orgUnitA);
