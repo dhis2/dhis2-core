@@ -80,7 +80,6 @@ class HibernateQueryCacheTest extends PostgresIntegrationTestBase {
 
     this.entityManager.setProperty(org.hibernate.annotations.QueryHints.FLUSH_MODE, FlushMode.AUTO);
 
-    injectAdminIntoSecurityContext();
     sessionFactory.getStatistics().setStatisticsEnabled(true);
     sessionFactory.getStatistics().clear();
   }

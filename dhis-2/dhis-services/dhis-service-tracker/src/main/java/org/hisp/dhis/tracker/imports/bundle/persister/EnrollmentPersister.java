@@ -30,10 +30,8 @@ package org.hisp.dhis.tracker.imports.bundle.persister;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import javax.persistence.EntityManager;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
@@ -90,18 +88,6 @@ public class EnrollmentPersister
       org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
       Enrollment enrollmentToPersist) {
     // DO NOTHING - TE HAVE NO DATA VALUES
-  }
-
-  @Override
-  protected void persistNotes(
-      EntityManager entityManager, TrackerPreheat preheat, Enrollment enrollment) {
-    if (!enrollment.getNotes().isEmpty()) {
-      for (Note note : enrollment.getNotes()) {
-        if (Objects.isNull(preheat.getNote(note.getUid()))) {
-          entityManager.persist(note);
-        }
-      }
-    }
   }
 
   @Override

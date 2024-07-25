@@ -82,12 +82,6 @@ public class TrackedEntityPersister
   }
 
   @Override
-  protected void persistNotes(
-      EntityManager entityManager, TrackerPreheat preheat, TrackedEntity trackedEntity) {
-    // DO NOTHING - TE HAVE NO NOTES
-  }
-
-  @Override
   protected void updatePreheat(TrackerPreheat preheat, TrackedEntity dto) {
     preheat.putTrackedEntities(Collections.singletonList(dto));
   }

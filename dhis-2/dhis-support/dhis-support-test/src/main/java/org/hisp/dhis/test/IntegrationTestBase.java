@@ -25,33 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.note;
+package org.hisp.dhis.test;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import javax.persistence.EntityManager;
+import lombok.Getter;
+import org.hisp.dhis.test.config.IntegrationBaseConfiguration;
+import org.hisp.dhis.test.config.PostgresDhisConfiguration;
+import org.hisp.dhis.test.junit.SpringIntegrationTest;
+import org.hisp.dhis.user.User;
+import org.springframework.test.context.ContextConfiguration;
 
 /**
- * @author Chau Thu Tran
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.trackedentitycomment.NoteService")
-public class DefaultNoteService implements NoteService {
-  private final NoteStore commentStore;
+@ContextConfiguration(
+    classes = {
+      IntegrationBaseConfiguration.class,
+      PostgresDhisConfiguration.class,
+    })
+@SpringIntegrationTest
+public abstract class IntegrationTestBase extends TestBase {
 
-  // -------------------------------------------------------------------------
-  // Implementation methods
-  // -------------------------------------------------------------------------
+  @Getter private User adminUser;
+  public EntityManager entityManager;
 
-  @Override
-  @Transactional
-  public void addNote(Note comment) {
-    commentStore.save(comment);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean noteExists(String uid) {
-    return commentStore.exists(uid);
+  protected final void injectAdminIntoSecurityContext() {
+    injectSecurityContextUser(getAdminUser());
   }
 }
