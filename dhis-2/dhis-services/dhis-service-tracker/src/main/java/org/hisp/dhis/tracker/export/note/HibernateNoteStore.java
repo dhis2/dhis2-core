@@ -25,33 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.note;
+package org.hisp.dhis.tracker.export.note;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import javax.persistence.EntityManager;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.note.Note;
+import org.hisp.dhis.security.acl.AclService;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
- * @author Chau Thu Tran
+ * @author David Katuscak
  */
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.trackedentitycomment.NoteService")
-public class DefaultNoteService implements NoteService {
-  private final NoteStore commentStore;
-
-  // -------------------------------------------------------------------------
-  // Implementation methods
-  // -------------------------------------------------------------------------
-
-  @Override
-  @Transactional
-  public void addNote(Note comment) {
-    commentStore.save(comment);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean noteExists(String uid) {
-    return commentStore.exists(uid);
+@Repository("org.hisp.dhis.tracker.export.note.NoteStore")
+class HibernateNoteStore extends HibernateIdentifiableObjectStore<Note> {
+  public HibernateNoteStore(
+      EntityManager entityManager,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      AclService aclService) {
+    super(entityManager, jdbcTemplate, publisher, Note.class, aclService, false);
   }
 }
