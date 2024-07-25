@@ -42,17 +42,14 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.test.TestBase;
+import org.hisp.dhis.test.IntegrationTestBase;
 import org.hisp.dhis.test.config.H2DhisConfiguration;
 import org.hisp.dhis.test.config.PostgresDhisConfiguration;
-import org.hisp.dhis.test.utils.TestUtils;
 import org.hisp.dhis.test.web.HttpMethod;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.web.WebClient;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -62,7 +59,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -93,9 +89,9 @@ import org.springframework.web.context.WebApplicationContext;
  *
  * @author Viet Nguyen
  */
-@ExtendWith(SpringExtension.class)
 @WebAppConfiguration
 @ContextConfiguration(
+    inheritLocations = false,
     classes = {
       H2DhisConfiguration.class,
       PostgresDhisConfiguration.class,
@@ -103,11 +99,10 @@ import org.springframework.web.context.WebApplicationContext;
       WebTestConfiguration.class
     })
 @Transactional
-public abstract class ControllerTestBase extends TestBase implements WebClient {
+public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
+    implements WebClient {
 
   @Autowired protected WebApplicationContext webApplicationContext;
-
-  @Autowired private UserService _userService;
 
   @Autowired private RenderService _renderService;
 
@@ -117,8 +112,6 @@ public abstract class ControllerTestBase extends TestBase implements WebClient {
 
   @Autowired private TransactionTemplate txTemplate;
 
-  @Getter protected User adminUser;
-
   @Getter private User currentUser;
 
   protected MockMvc mvc;
@@ -126,26 +119,17 @@ public abstract class ControllerTestBase extends TestBase implements WebClient {
   protected MockHttpSession session;
 
   protected final String getAdminUid() {
-    return adminUser.getUid();
+    return getAdminUser().getUid();
   }
 
   @BeforeEach
   void setup() {
-    userService = _userService;
     renderService = _renderService;
-    clearSecurityContext();
-
-    adminUser = preCreateInjectAdminUser();
 
     mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
 
-    switchContextToUser(adminUser);
-    currentUser = adminUser;
-
-    TestUtils.executeStartupRoutines(webApplicationContext);
-
-    dbmsManager.flushSession();
-    dbmsManager.clearSession();
+    switchContextToUser(getAdminUser());
+    currentUser = getAdminUser();
   }
 
   protected final void doInTransaction(Runnable operation) {
@@ -160,19 +144,15 @@ public abstract class ControllerTestBase extends TestBase implements WebClient {
     txTemplate.setPropagationBehavior(defaultPropagationBehaviour);
   }
 
-  protected final void injectAdminIntoSecurityContext() {
-    injectSecurityContextUser(getAdminUser());
-  }
-
   protected final User switchToAdminUser() {
-    switchContextToUser(userService.getUser(adminUser.getUid()));
-    return adminUser;
+    switchContextToUser(userService.getUser(getAdminUser().getUid()));
+    return getAdminUser();
   }
 
   protected final User switchToNewUser(String username, String... authorities) {
-    if (adminUser != null) {
+    if (getAdminUser() != null) {
       // we need to be an admin to be allowed to create user groups
-      switchContextToUser(adminUser);
+      switchContextToUser(getAdminUser());
     }
 
     currentUser = createUserWithAuth(username, authorities);

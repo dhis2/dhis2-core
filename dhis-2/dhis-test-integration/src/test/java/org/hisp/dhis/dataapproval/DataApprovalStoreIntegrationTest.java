@@ -373,7 +373,6 @@ class DataApprovalStoreIntegrationTest extends PostgresIntegrationTestBase {
 
     dataSetA.setOpenPeriodsAfterCoEndDate(1);
 
-    clearSecurityContext();
     injectAdminIntoSecurityContext();
     dataSetService.updateDataSet(dataSetA);
 

@@ -129,7 +129,7 @@ class JwtBearerTokenTest extends ControllerWithJwtTokenAuthTestBase {
   }
 
   @Test
-  void testJwkEncodeEndDecode() throws JOSEException {
+  void testJwkEncodeEndDecode() {
     Jwt encodedJws =
         createJwt(TEST_PROVIDER_ONE_URI, CLIENT_ID_1, DEFAULT_MAPPING_CLAIM, DEFAULT_EMAIL);
     assertEquals("JWT", encodedJws.getHeaders().get(JoseHeaderNames.TYP));
