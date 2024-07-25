@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.bundle.persister;
 
+import java.util.List;
 import org.hibernate.Session;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
@@ -34,6 +35,7 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.job.SideEffectTrigger;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.springframework.stereotype.Component;
@@ -117,8 +119,16 @@ public class RelationshipPersister
 
   @Override
   protected TrackerSideEffectDataBundle handleSideEffects(
-      TrackerBundle bundle, org.hisp.dhis.relationship.Relationship entity) {
+      TrackerBundle bundle,
+      org.hisp.dhis.relationship.Relationship entity,
+      List<SideEffectTrigger> triggerList) {
     return TrackerSideEffectDataBundle.builder().build();
+  }
+
+  @Override
+  protected List<SideEffectTrigger> determineSideEffectTriggers(
+      TrackerPreheat preheat, Relationship entity) {
+    return List.of();
   }
 
   @Override

@@ -61,6 +61,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackerDto;
+import org.hisp.dhis.tracker.job.SideEffectTrigger;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.Entity;
@@ -105,6 +106,9 @@ public abstract class AbstractTrackerPersister<
     for (T trackerDto : dtos) {
       Entity objectReport = new Entity(getType(), trackerDto.getUid(), dtos.indexOf(trackerDto));
 
+      List<SideEffectTrigger> triggers =
+          determineSideEffectTriggers(bundle.getPreheat(), trackerDto);
+
       try {
         //
         // Convert the TrackerDto into an Hibernate-managed entity
@@ -145,7 +149,7 @@ public abstract class AbstractTrackerPersister<
         }
 
         if (!bundle.isSkipSideEffects()) {
-          sideEffectDataBundles.add(handleSideEffects(bundle, convertedDto));
+          sideEffectDataBundles.add(handleSideEffects(bundle, convertedDto, triggers));
         }
 
         //
@@ -233,7 +237,18 @@ public abstract class AbstractTrackerPersister<
   protected abstract boolean isNew(TrackerPreheat preheat, String uid);
 
   /** TODO add comment */
-  protected abstract TrackerSideEffectDataBundle handleSideEffects(TrackerBundle bundle, V entity);
+  protected abstract TrackerSideEffectDataBundle handleSideEffects(
+      TrackerBundle bundle, V entity, List<SideEffectTrigger> triggers);
+
+  /**
+   * Determines the side effect triggers based on the enrollment/event status.
+   *
+   * @param preheat the enrollment/event fetched from the database
+   * @param entity the enrollment/event coming from the request payload
+   * @return a list of NotificationTriggers
+   */
+  protected abstract List<SideEffectTrigger> determineSideEffectTriggers(
+      TrackerPreheat preheat, T entity);
 
   /** Get the Tracker Type for which the current Persister is responsible for. */
   protected abstract TrackerType getType();
