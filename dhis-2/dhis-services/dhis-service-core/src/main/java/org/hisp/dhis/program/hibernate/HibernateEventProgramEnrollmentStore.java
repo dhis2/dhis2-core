@@ -32,6 +32,7 @@ import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.EventProgramEnrollmentStore;
 import org.hisp.dhis.program.Program;
 import org.springframework.stereotype.Repository;
@@ -49,6 +50,20 @@ public class HibernateEventProgramEnrollmentStore implements EventProgramEnrollm
       return session
           .createQuery("from Enrollment e where e.program.uid = :programUid", Enrollment.class)
           .setParameter("programUid", program.getUid())
+          .list();
+    }
+  }
+
+  @Override
+  public List<Enrollment> get(Program program, EnrollmentStatus enrollmentStatus) {
+    try (Session session = entityManager.unwrap(Session.class)) {
+
+      return session
+          .createQuery(
+              "from Enrollment e where e.program.uid = :programUid and status = :enrollmentStatus",
+              Enrollment.class)
+          .setParameter("programUid", program.getUid())
+          .setParameter("enrollmentStatus", enrollmentStatus)
           .list();
     }
   }

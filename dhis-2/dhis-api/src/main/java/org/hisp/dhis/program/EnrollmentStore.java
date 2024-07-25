@@ -40,9 +40,6 @@ public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
   /** Get enrollments into a program. */
   List<Enrollment> get(Program program);
 
-  /** Get enrollments into a program that are in given status. */
-  List<Enrollment> get(Program program, EnrollmentStatus status);
-
   /** Get a tracked entities enrollments into a program that are in given status. */
   List<Enrollment> get(TrackedEntity trackedEntity, Program program, EnrollmentStatus status);
 }
