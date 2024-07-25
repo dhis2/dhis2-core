@@ -247,11 +247,11 @@ class DefaultEnrollmentService implements EnrollmentService {
   @Deprecated(since = "2.42")
   @Override
   public List<Enrollment> getEnrollments(
-      TrackedEntity trackedEntity, Program program, EnrollmentStatus enrollmentStatus)
+      String trackedEntityUid, Program program, EnrollmentStatus enrollmentStatus)
       throws ForbiddenException, BadRequestException {
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
-            .trackedEntityUid(trackedEntity.getUid())
+            .trackedEntityUid(trackedEntityUid)
             .programUid(program.getUid())
             .enrollmentStatus(enrollmentStatus)
             .orgUnitMode(ACCESSIBLE)
