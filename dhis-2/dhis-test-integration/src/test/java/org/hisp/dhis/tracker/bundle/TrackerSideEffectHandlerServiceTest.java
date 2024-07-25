@@ -234,6 +234,100 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
   }
 
   @Test
+  void shouldSendTrackerNotificationAtEnrollmentCompletionAndThenEventStatusChangedToCompletion() {
+    String eventUid = CodeGenerator.generateUid();
+    org.hisp.dhis.tracker.domain.Enrollment enrollment =
+        org.hisp.dhis.tracker.domain.Enrollment.builder()
+            .program(MetadataIdentifier.ofUid(programA.getUid()))
+            .orgUnit(MetadataIdentifier.ofUid(orgUnitA.getUid()))
+            .trackedEntity(trackedEntityA.getUid())
+            .status(EnrollmentStatus.COMPLETED)
+            .enrolledAt(Instant.now())
+            .occurredAt(Instant.now())
+            .enrollment(CodeGenerator.generateUid())
+            .build();
+
+    org.hisp.dhis.tracker.domain.Event event =
+        org.hisp.dhis.tracker.domain.Event.builder()
+            .program(MetadataIdentifier.ofUid(programA.getUid()))
+            .orgUnit(MetadataIdentifier.ofUid(orgUnitA.getUid()))
+            .enrollment(enrollment.getEnrollment())
+            .event(eventUid)
+            .programStage(MetadataIdentifier.ofUid(programStageA.getUid()))
+            .status(EventStatus.ACTIVE)
+            .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
+            .completedAt(Instant.now())
+            .occurredAt(Instant.now())
+            .build();
+
+    TrackerImportReport importReport =
+        trackerImportService.importTracker(
+            TrackerImportParams.builder()
+                .userId(user.getUid())
+                .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
+                .enrollments(List.of(enrollment))
+                .events(List.of(event))
+                .build());
+
+    assertNoErrors(importReport);
+
+    await()
+        .atMost(3, TimeUnit.SECONDS)
+        .until(() -> manager.getAll(MessageConversation.class).size() > 1);
+
+    List<MessageConversation> messageConversations = manager.getAll(MessageConversation.class);
+
+    List<String> subjectMessages = new ArrayList<>();
+    for (MessageConversation messageConversation : messageConversations) {
+      String subject = messageConversation.getSubject();
+      subjectMessages.add(subject);
+    }
+
+    assertContainsOnly(
+        List.of("enrollment_subject", "enrollment_completion_subject"), subjectMessages);
+
+    org.hisp.dhis.tracker.domain.Event updatedEvent =
+        org.hisp.dhis.tracker.domain.Event.builder()
+            .program(MetadataIdentifier.ofUid(programA.getUid()))
+            .orgUnit(MetadataIdentifier.ofUid(orgUnitA.getUid()))
+            .enrollment(enrollment.getEnrollment())
+            .event(eventUid)
+            .programStage(MetadataIdentifier.ofUid(programStageA.getUid()))
+            .status(EventStatus.COMPLETED)
+            .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
+            .completedAt(Instant.now())
+            .occurredAt(Instant.now())
+            .build();
+
+    importReport =
+        trackerImportService.importTracker(
+            TrackerImportParams.builder()
+                .userId(user.getUid())
+                .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
+                .events(List.of(updatedEvent))
+                .build());
+
+    assertNoErrors(importReport);
+
+    await()
+        .atMost(3, TimeUnit.SECONDS)
+        .until(() -> manager.getAll(MessageConversation.class).size() > 2);
+
+    messageConversations = manager.getAll(MessageConversation.class);
+
+    List<String> list = new ArrayList<>();
+    for (MessageConversation messageConversation : messageConversations) {
+      String subject = messageConversation.getSubject();
+      list.add(subject);
+    }
+    subjectMessages = list;
+
+    assertContainsOnly(
+        List.of("enrollment_subject", "enrollment_completion_subject", "event_completion_subject"),
+        subjectMessages);
+  }
+
+  @Test
   void shouldSendEnrollmentCompletionNotificationOnlyOnce() {
     String uid = CodeGenerator.generateUid();
     org.hisp.dhis.tracker.domain.Enrollment enrollment =
