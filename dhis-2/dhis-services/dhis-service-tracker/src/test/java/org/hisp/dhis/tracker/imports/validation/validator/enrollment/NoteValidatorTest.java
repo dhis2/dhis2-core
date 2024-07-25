@@ -85,7 +85,7 @@ class NoteValidatorTest {
     // Given
     final Note note = rnd.nextObject(Note.class);
 
-    when(preheat.noteExists(note.getNote())).thenReturn(true);
+    when(preheat.hasNote(note.getNote())).thenReturn(true);
     enrollment.setNotes(Collections.singletonList(note));
 
     // When

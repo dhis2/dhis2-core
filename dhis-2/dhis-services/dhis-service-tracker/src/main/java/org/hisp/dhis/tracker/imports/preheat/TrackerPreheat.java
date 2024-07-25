@@ -486,7 +486,7 @@ public class TrackerPreheat {
     this.notes.addAll(notes);
   }
 
-  public boolean noteExists(String uid) {
+  public boolean hasNote(String uid) {
     return notes.contains(uid);
   }
 

@@ -32,7 +32,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
@@ -58,18 +57,15 @@ public class NoteStrategy extends HibernateGenericStore<Note>
 
   @Override
   public void add(List<List<String>> splitList, TrackerPreheat preheat) {
-    Set<String> uids =
-        splitList.stream()
-            .flatMap(Collection::stream)
-            .filter(CodeGenerator::isValidUid)
-            .collect(Collectors.toSet());
+    List<String> uids =
+        splitList.stream().flatMap(Collection::stream).filter(CodeGenerator::isValidUid).toList();
 
     preheat.addNotes(getExistingNotes(uids));
   }
 
-  private Set<String> getExistingNotes(Set<String> uids) {
+  private Set<String> getExistingNotes(List<String> uids) {
     Set<String> notes = new HashSet<>();
-    List<List<String>> uidsPartitions = Lists.partition(Lists.newArrayList(uids), 20000);
+    List<List<String>> uidsPartitions = Lists.partition(uids, 20000);
 
     for (List<String> uidsPartition : uidsPartitions) {
       if (!uidsPartition.isEmpty()) {

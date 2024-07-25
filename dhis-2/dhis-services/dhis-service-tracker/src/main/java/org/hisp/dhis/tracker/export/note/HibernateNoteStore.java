@@ -39,7 +39,7 @@ import org.springframework.stereotype.Repository;
  * @author David Katuscak
  */
 @Repository("org.hisp.dhis.tracker.export.note.NoteStore")
-public class HibernateNoteStore extends HibernateIdentifiableObjectStore<Note> {
+class HibernateNoteStore extends HibernateIdentifiableObjectStore<Note> {
   public HibernateNoteStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
