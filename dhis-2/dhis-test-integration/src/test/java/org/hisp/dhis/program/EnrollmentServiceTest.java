@@ -239,7 +239,8 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetEnrollmentsByTrackedEntityProgramAndEnrollmentStatus() {
+  void testGetEnrollmentsByTrackedEntityProgramAndEnrollmentStatus()
+      throws ForbiddenException, BadRequestException {
     manager.save(enrollmentA);
     Enrollment enrollment1 =
         apiEnrollmentService.enrollTrackedEntity(

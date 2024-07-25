@@ -242,6 +242,8 @@ class DefaultEnrollmentService implements EnrollmentService {
         .toList();
   }
 
+  // TODO(tracker) This method should be removed as soon as we move the org unit validation into the
+  // service layer
   @Override
   public List<Enrollment> getEnrollments(
       TrackedEntity trackedEntity, Program program, EnrollmentStatus enrollmentStatus)
