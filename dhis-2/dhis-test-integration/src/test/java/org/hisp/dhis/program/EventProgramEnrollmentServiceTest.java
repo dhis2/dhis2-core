@@ -27,8 +27,7 @@
  */
 package org.hisp.dhis.program;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 
 import java.util.HashSet;
 import java.util.List;
@@ -110,12 +109,9 @@ class EventProgramEnrollmentServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testGetEnrollmentsByProgram() {
     List<Enrollment> enrollments = eventProgramEnrollmentService.getEnrollments(programA);
-    assertEquals(2, enrollments.size());
-    assertTrue(enrollments.contains(enrollmentA));
-    assertTrue(enrollments.contains(enrollmentC));
+    assertContainsOnly(List.of(enrollmentA, enrollmentC), enrollments);
 
     enrollments = eventProgramEnrollmentService.getEnrollments(programB);
-    assertEquals(1, enrollments.size());
-    assertTrue(enrollments.contains(enrollmentB));
+    assertContainsOnly(List.of(enrollmentB), enrollments);
   }
 }
