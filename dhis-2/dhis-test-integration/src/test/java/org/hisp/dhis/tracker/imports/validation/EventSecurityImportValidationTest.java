@@ -116,23 +116,25 @@ class EventSecurityImportValidationTest extends TrackerTest {
 
   private TrackedEntityType trackedEntityType;
 
+  private User importUser;
+
   @BeforeAll
   void setUp() throws IOException {
     setUpMetadata("tracker/tracker_basic_metadata.json");
-    injectAdminUser();
+
+    importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
+
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
 
     assertNoErrors(
         trackerImportService.importTracker(
-            new TrackerImportParams(),
-            fromJson("tracker/validations/enrollments_te_te-data.json")));
+            params, fromJson("tracker/validations/enrollments_te_te-data.json")));
     assertNoErrors(
         trackerImportService.importTracker(
-            new TrackerImportParams(),
-            fromJson("tracker/validations/enrollments_te_enrollments-data.json")));
+            params, fromJson("tracker/validations/enrollments_te_enrollments-data.json")));
     manager.flush();
-  }
 
-  private void setupMetadata() {
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitB = createOrganisationUnit('B');
     manager.save(organisationUnitA);
@@ -203,18 +205,16 @@ class EventSecurityImportValidationTest extends TrackerTest {
     OrganisationUnit qfUVllTs6cS = organisationUnitService.getOrganisationUnit("QfUVllTs6cS");
     user.addOrganisationUnit(qfUVllTs6cS);
     user.addOrganisationUnit(organisationUnitA);
-    User adminUser = userService.getUser(ADMIN_USER_UID);
-    adminUser.addOrganisationUnit(organisationUnitA);
+    importUser.addOrganisationUnit(organisationUnitA);
     Program p = programService.getProgram("prabcdefghA");
     p.addOrganisationUnit(qfUVllTs6cS);
     programService.updateProgram(p);
     manager.update(user);
-    manager.update(adminUser);
+    manager.update(importUser);
   }
 
   @Test
   void testNoWriteAccessToProgramStage() throws IOException {
-    setupMetadata();
     TrackerObjects trackerObjects =
         fromJson("tracker/validations/events_error-no-programStage-access.json");
     TrackerImportParams params = new TrackerImportParams();
@@ -222,6 +222,7 @@ class EventSecurityImportValidationTest extends TrackerTest {
     params.setUserId(user.getUid());
     user.addOrganisationUnit(organisationUnitA);
     manager.update(user);
+
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertHasOnlyErrors(importReport, ValidationCode.E1095, ValidationCode.E1096);
@@ -229,12 +230,14 @@ class EventSecurityImportValidationTest extends TrackerTest {
 
   @Test
   void testNoUncompleteEventAuth() throws IOException {
-    setupMetadata();
     TrackerObjects trackerObjects = fromJson("tracker/validations/events_error-no-uncomplete.json");
-    TrackerImportParams params = new TrackerImportParams();
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     params.setImportStrategy(TrackerImportStrategy.CREATE);
+
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+
     assertNoErrors(importReport);
+
     // Change just inserted Event to status COMPLETED...
     Event zwwuwNp6gVd = manager.get(Event.class, "ZwwuwNp6gVd");
     zwwuwNp6gVd.setStatus(EventStatus.COMPLETED);

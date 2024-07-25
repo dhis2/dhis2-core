@@ -62,7 +62,10 @@ class RelationshipImportTest extends TrackerTest {
   @BeforeAll
   void setUp() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
-    userA = userService.getUser("M5zQapPyTZI");
+
+    userA = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(userA);
+
     TrackerImportParams params = TrackerImportParams.builder().userId(userA.getUid()).build();
     assertNoErrors(trackerImportService.importTracker(params, fromJson("tracker/single_te.json")));
     assertNoErrors(

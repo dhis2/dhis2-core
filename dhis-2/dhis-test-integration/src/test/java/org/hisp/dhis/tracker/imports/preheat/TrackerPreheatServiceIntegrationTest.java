@@ -80,7 +80,7 @@ class TrackerPreheatServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   void setUp() {
-    currentUser = createAndInjectAdminUser("ALL");
+    currentUser = getAdminUser();
     // Set up placeholder OU; We add Code for testing idScheme.
     OrganisationUnit orgUnit = createOrganisationUnit('A');
     orgUnit.setCode("OUA");

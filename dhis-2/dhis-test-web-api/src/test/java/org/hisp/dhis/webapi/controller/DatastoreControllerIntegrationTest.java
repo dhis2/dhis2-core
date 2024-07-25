@@ -146,7 +146,7 @@ class DatastoreControllerIntegrationTest extends PostgresControllerIntegrationTe
 
   @Test
   void testUpdateKeyJsonValue_ProtectedNamespaceWithSharing() {
-    switchContextToUser(superUser);
+    switchToAdminUser();
 
     setUpNamespaceProtectionWithSharing(
         "pets", DatastoreNamespaceProtection.ProtectionType.HIDDEN, "pets-admin");
@@ -164,7 +164,7 @@ class DatastoreControllerIntegrationTest extends PostgresControllerIntegrationTe
     assertEquals(
         "Access denied for key 'cat' in namespace 'pets'",
         PUT("/dataStore/pets/cat", "[]").error(HttpStatus.FORBIDDEN).getMessage());
-    switchToSuperuser();
+    switchToAdminUser();
     assertStatus(HttpStatus.OK, PUT("/dataStore/pets/cat", "[]"));
   }
 

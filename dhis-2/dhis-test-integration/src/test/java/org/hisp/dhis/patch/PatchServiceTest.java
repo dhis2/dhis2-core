@@ -71,7 +71,7 @@ class PatchServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   void setup() {
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
   }
 
   @Test
@@ -156,7 +156,6 @@ class PatchServiceTest extends PostgresIntegrationTestBase {
   void testUpdateUserOnDataElement() {
     User user = makeUser("A");
     manager.save(user);
-    createAndInjectAdminUser();
     DataElement dataElement = createDataElement('A');
     manager.save(dataElement);
     Patch patch =
@@ -187,7 +186,7 @@ class PatchServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testUpdateUser() {
-    User user = createAndInjectAdminUser();
+    User user = getAdminUser();
     assertEquals("admin", user.getUsername());
     Patch patch = new Patch().addMutation(new Mutation("username", "dhis"));
     patchService.apply(patch, user);
@@ -253,7 +252,7 @@ class PatchServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testEmbeddedObjectEquality() {
-    User adminUser = createAndInjectAdminUser();
+    User adminUser = getAdminUser();
     UserGroup userGroup = createUserGroup('A', Sets.newHashSet(adminUser));
     manager.save(userGroup);
 
@@ -288,7 +287,7 @@ class PatchServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testEmbeddedObjectCollectionDiff() {
-    User adminUser = createAndInjectAdminUser();
+    User adminUser = getAdminUser();
     UserGroup userGroup = createUserGroup('A', Sets.newHashSet(adminUser));
     manager.save(userGroup);
 

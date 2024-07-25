@@ -68,13 +68,12 @@ abstract class AbstractGistControllerTest extends H2ControllerIntegrationTestBas
     userGroupId =
         assertStatus(
             HttpStatus.CREATED,
-            POST(
-                "/userGroups/", "{'name':'groupX', 'users':[{'id':'" + getSuperuserUid() + "'}]}"));
+            POST("/userGroups/", "{'name':'groupX', 'users':[{'id':'" + getAdminUid() + "'}]}"));
     assertStatus(
         HttpStatus.OK,
         PATCH(
             "/users/{id}?importReportMode=ERRORS",
-            getSuperuserUid(),
+            getAdminUid(),
             Body("[{'op': 'add', 'path': '/birthday', 'value': '1980-12-12'}]")));
     orgUnitId =
         assertStatus(

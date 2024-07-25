@@ -135,7 +135,7 @@
   ],
   "userRoles": [
     {
-      "name": "Superuser",
+      "name": "metadata Superuser",
       "created": "2016-03-08T07:26:51.925+0000",
       "lastUpdated": "2016-03-08T07:26:51.925+0000",
       "id": "wSdzlWUHmEu",
@@ -225,7 +225,7 @@
     {
       "sortOrder": 0,
       "id": "JwcV2ZifEQf",
-      "indicators": [ ],
+      "indicators": [],
       "lastUpdated": "2016-03-08T07:32:29.362+0000",
       "created": "2016-03-08T07:32:29.361+0000",
       "name": "Section Default",
@@ -237,21 +237,21 @@
           "id": "nHwIqKAudKN"
         }
       ],
-      "greyedFields": [ ]
+      "greyedFields": []
     },
     {
       "lastUpdated": "2016-03-08T07:32:42.140+0000",
       "created": "2016-03-08T07:32:42.140+0000",
       "name": "Section Gender",
       "id": "C50M0WxaI7y",
-      "indicators": [ ],
+      "indicators": [],
       "sortOrder": 0,
       "dataElements": [
         {
           "id": "VolAzjFe5zP"
         }
       ],
-      "greyedFields": [ ],
+      "greyedFields": [],
       "dataSet": {
         "id": "em8Bg4LCr5k"
       }
@@ -320,7 +320,7 @@
           }
         }
       ],
-      "compulsoryDataElementOperands": [ ],
+      "compulsoryDataElementOperands": [],
       "timelyDays": 15,
       "fieldCombinationRequired": false,
       "version": 4,
@@ -332,7 +332,7 @@
       "validCompleteOnly": false,
       "noValueRequiresComment": false,
       "shortName": "Data Set",
-      "attributeValues": [ ],
+      "attributeValues": [],
       "id": "em8Bg4LCr5k",
       "indicators": [],
       "periodType": "Monthly",
@@ -366,28 +366,28 @@
           "id": "x3gVvpbVgqy"
         }
       ],
-      "dataViewOrganisationUnits": [ ],
-        "catDimensionConstraints": [ ],
-        "disabled": false,
-        "username": "admin",
-        "selfRegistered": false,
-        "cogsDimensionConstraints": [ ],
-        "passwordLastUpdated": "2016-03-08T07:26:51.942+0000",
-        "userRoles": [
-          {
-            "id": "wSdzlWUHmEu"
-          }
-        ],
-        "invitation": false,
-        "externalAuth": false,
-        "lastLogin": "2016-03-08T07:26:51.942+0000",
-      "surname": "admin",
-      "attributeValues": [ ],
+      "dataViewOrganisationUnits": [],
+      "catDimensionConstraints": [],
+      "disabled": false,
+      "username": "metadataadmin",
+      "selfRegistered": false,
+      "cogsDimensionConstraints": [],
+      "passwordLastUpdated": "2016-03-08T07:26:51.942+0000",
+      "userRoles": [
+        {
+          "id": "wSdzlWUHmEu"
+        }
+      ],
+      "invitation": false,
+      "externalAuth": false,
+      "lastLogin": "2016-03-08T07:26:51.942+0000",
+      "surname": "metadata admin",
+      "attributeValues": [],
       "id": "T12jeH7KPzk",
       "created": "2016-03-08T07:26:51.909+0000",
-      "firstName": "admin",
+      "firstName": "metadata admin",
       "lastUpdated": "2016-03-08T07:26:51.909+0000",
-      "teiSearchOrganisationUnits": [ ]
+      "teiSearchOrganisationUnits": []
     }
   ],
   "date": "2016-03-08T07:34:13.552+0000"
