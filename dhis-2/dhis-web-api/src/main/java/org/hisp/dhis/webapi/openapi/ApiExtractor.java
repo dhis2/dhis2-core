@@ -54,7 +54,7 @@ import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -419,7 +419,7 @@ final class ApiExtractor {
         response.mediaTypes().length == 0
             ? defaultProduces
             : stream(response.mediaTypes()).map(MediaType::valueOf).collect(toUnmodifiableSet());
-    Map<HttpStatus, Api.Response> byStatus = new HashMap<>();
+    Map<HttpStatus, Api.Response> byStatus = new EnumMap<>(HttpStatus.class);
     for (HttpStatus status : statuses) {
       Api.Schema schema =
           response.object().length > 0

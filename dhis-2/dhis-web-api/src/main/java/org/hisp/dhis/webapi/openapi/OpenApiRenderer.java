@@ -736,6 +736,11 @@ public class OpenApiRenderer {
         () -> {
           appendRaw(toWords(pkg.domain()));
           appendA("/api/openapi/openapi.html?domain=" + pkg.domain, true, "&#x1F5D7;");
+          appendRaw(" | ");
+          appendA(
+              "/api/openapi/openapi.html?source=true&domain=" + pkg.domain,
+              true,
+              "&#x1F5D7; + &#128435;");
         });
   }
 
@@ -1421,6 +1426,7 @@ public class OpenApiRenderer {
       case 205 -> "Reset Content";
       case 206 -> "Partial Content";
       case 302 -> "Found";
+      case 304 -> "Not Modified";
       case 400 -> "Bad Request";
       case 401 -> "Unauthorized";
       case 402 -> "Payment Required";

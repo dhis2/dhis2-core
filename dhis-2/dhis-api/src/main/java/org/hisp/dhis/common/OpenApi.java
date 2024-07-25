@@ -386,6 +386,7 @@ public @interface OpenApi {
       CREATED(201),
       NO_CONTENT(204),
       FOUND(302),
+      NOT_MODIFIED(304),
       BAD_REQUEST(400),
       FORBIDDEN(403),
       NOT_FOUND(404),
