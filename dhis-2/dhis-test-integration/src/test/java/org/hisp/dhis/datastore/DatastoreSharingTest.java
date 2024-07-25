@@ -71,7 +71,6 @@ class DatastoreSharingTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   final void setup() {
-    clearSecurityContext();
     injectAdminIntoSecurityContext();
   }
 
