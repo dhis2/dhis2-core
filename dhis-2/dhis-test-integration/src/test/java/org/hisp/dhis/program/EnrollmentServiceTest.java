@@ -239,22 +239,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetEnrollmentsByProgram() {
-    manager.save(enrollmentA);
-    manager.save(enrollmentB);
-    manager.save(enrollmentD);
-    List<Enrollment> enrollments = apiEnrollmentService.getEnrollments(programA);
-    assertEquals(2, enrollments.size());
-    assertTrue(enrollments.contains(enrollmentA));
-    assertTrue(enrollments.contains(enrollmentD));
-    enrollments = apiEnrollmentService.getEnrollments(programB);
-    assertEquals(1, enrollments.size());
-    assertTrue(enrollments.contains(enrollmentB));
-  }
-
-  @Test
-  void testGetEnrollmentsByTrackedEntityProgramAndEnrollmentStatus()
-      throws ForbiddenException, BadRequestException {
+  void testGetEnrollmentsByTrackedEntityProgramAndEnrollmentStatus() {
     manager.save(enrollmentA);
     Enrollment enrollment1 =
         apiEnrollmentService.enrollTrackedEntity(

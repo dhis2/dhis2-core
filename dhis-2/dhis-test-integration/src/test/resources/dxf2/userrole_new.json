@@ -27,7 +27,7 @@
     },
     {
       "dataSets": [],
-      "name": "Superuser",
+      "name": "metadata Superuser",
       "programs": [],
       "lastUpdated": "2016-03-12T06:18:41.386+0000",
       "created": "2016-03-12T06:18:41.386+0000",
@@ -104,8 +104,8 @@
   ],
   "users": [
     {
-      "surname": "admin",
-      "firstName": "admin",
+      "surname": "metadata admin",
+      "firstName": "metadata admin",
       "organisationUnits": [
         {
           "id": "inVD5SdytkT"
@@ -124,7 +124,7 @@
           "id": "tHEWGwIMsJk"
         }
       ],
-      "username": "admin",
+      "username": "metadataadmin",
       "passwordLastUpdated": "2016-03-12T06:18:41.403+0000",
       "lastLogin": "2016-03-12T06:18:41.401+0000",
       "catDimensionConstraints": [],

@@ -35,6 +35,7 @@ import javax.persistence.EntityManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
@@ -119,21 +120,7 @@ public class EnrollmentPersister
 
   @Override
   protected TrackerNotificationDataBundle handleNotifications(
-      TrackerBundle bundle, Enrollment enrollment) {
-    TrackerPreheat preheat = bundle.getPreheat();
-    List<NotificationTrigger> triggers = new ArrayList<>();
-
-    if (isNew(preheat, enrollment.getUid())) {
-      triggers.add(NotificationTrigger.ENROLLMENT);
-      if (enrollment.isCompleted()) {
-        triggers.add(NotificationTrigger.ENROLLMENT_COMPLETION);
-      }
-    } else {
-      Enrollment exitingEnrollment = preheat.getEnrollment(enrollment.getUid());
-      if (exitingEnrollment.getStatus() != enrollment.getStatus() && enrollment.isCompleted()) {
-        triggers.add(NotificationTrigger.ENROLLMENT_COMPLETION);
-      }
-    }
+      TrackerBundle bundle, Enrollment enrollment, List<NotificationTrigger> triggers) {
 
     return TrackerNotificationDataBundle.builder()
         .klass(Enrollment.class)
@@ -146,6 +133,31 @@ public class EnrollmentPersister
         .program(enrollment.getProgram())
         .triggers(triggers)
         .build();
+  }
+
+  @Override
+  protected List<NotificationTrigger> determineNotificationTriggers(
+      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Enrollment entity) {
+    Enrollment persistedEnrollment = preheat.getEnrollment(entity.getUid());
+    List<NotificationTrigger> triggers = new ArrayList<>();
+
+    if (persistedEnrollment == null) {
+      // New enrollment
+      triggers.add(NotificationTrigger.ENROLLMENT);
+
+      // New enrollment that is completed
+      if (entity.getStatus() == EnrollmentStatus.COMPLETED) {
+        triggers.add(NotificationTrigger.ENROLLMENT_COMPLETION);
+      }
+    } else {
+      // Existing enrollment that has changed to completed
+      if (persistedEnrollment.getStatus() != entity.getStatus()
+          && entity.getStatus() == EnrollmentStatus.COMPLETED) {
+        triggers.add(NotificationTrigger.ENROLLMENT_COMPLETION);
+      }
+    }
+
+    return triggers;
   }
 
   @Override

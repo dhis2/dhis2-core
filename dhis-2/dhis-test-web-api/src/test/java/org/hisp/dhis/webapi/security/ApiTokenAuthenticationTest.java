@@ -130,7 +130,7 @@ class ApiTokenAuthenticationTest extends ControllerWithApiTokenAuthTestBase {
 
     token.addIpToAllowedList("127.0.0.1");
 
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
     UserDetails currentUserDetails2 = CurrentUserUtil.getCurrentUserDetails();
     apiTokenService.update(token);
 
@@ -152,7 +152,7 @@ class ApiTokenAuthenticationTest extends ControllerWithApiTokenAuthTestBase {
         GET(URI, ApiTokenHeader(plaintext)).error(HttpStatus.UNAUTHORIZED).getMessage());
     token.addMethodToAllowedList("GET");
 
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
     apiTokenService.update(token);
 
     JsonUser user = GET(URI, ApiTokenHeader(plaintext)).content().as(JsonUser.class);
@@ -173,7 +173,7 @@ class ApiTokenAuthenticationTest extends ControllerWithApiTokenAuthTestBase {
         GET(URI, ApiTokenHeader(plaintext)).error(HttpStatus.UNAUTHORIZED).getMessage());
     token.addReferrerToAllowedList("https://two.io");
 
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
     apiTokenService.update(token);
 
     JsonUser user =

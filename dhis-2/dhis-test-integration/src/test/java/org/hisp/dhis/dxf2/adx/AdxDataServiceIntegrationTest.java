@@ -296,7 +296,7 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
     ougA.addOrganisationUnit(ouB);
     organisationUnitGroupService.addOrganisationUnitGroup(ougA);
     // User & Current User Service
-    user = createAndInjectAdminUser();
+    user = getAdminUser();
     user.setOrganisationUnits(Sets.newHashSet(ouA, ouB));
     userService.addUser(user);
     injectSecurityContextUser(user);

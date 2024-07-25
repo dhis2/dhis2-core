@@ -335,7 +335,7 @@ class DataApprovalStoreIntegrationTest extends PostgresIntegrationTestBase {
           clearSecurityContext();
 
           hibernateService.flushSession();
-          injectSecurityContextUser(getAdminUser());
+          injectAdminIntoSecurityContext();
 
           categoryService.updateCategoryOption(categoryOptionA);
           categoryService.updateCategoryOption(categoryOptionB);
@@ -374,7 +374,7 @@ class DataApprovalStoreIntegrationTest extends PostgresIntegrationTestBase {
     dataSetA.setOpenPeriodsAfterCoEndDate(1);
 
     clearSecurityContext();
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
     dataSetService.updateDataSet(dataSetA);
 
     injectSecurityContextUser(userA);

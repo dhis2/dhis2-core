@@ -101,7 +101,6 @@ class AnalyticsSecurityManagerTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   void setUp() {
-    createAndInjectAdminUser();
     coA = createCategoryOption('A');
     coB = createCategoryOption('B');
     coNotReadable = createCategoryOption('N');

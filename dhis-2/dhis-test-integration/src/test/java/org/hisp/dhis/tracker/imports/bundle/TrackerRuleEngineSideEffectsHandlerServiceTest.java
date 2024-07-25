@@ -52,6 +52,7 @@ import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,15 +66,19 @@ class TrackerRuleEngineSideEffectsHandlerServiceTest extends PostgresIntegration
   @Autowired private ObjectBundleValidationService objectBundleValidationService;
   @Autowired private RenderService _renderService;
 
+  private User importUser;
+
   @BeforeEach
   void setUp() throws IOException {
     renderService = _renderService;
     setUpMetadata("tracker/tracker_metadata_with_program_rules.json");
+
+    importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
   }
 
   @Test
   void testRuleEngineSideEffectHandlerService() throws IOException {
-
     TrackerObjects trackerObjects =
         renderService.fromJson(
             new ClassPathResource("tracker/enrollment_data_with_program_rule_side_effects.json")
@@ -81,7 +86,7 @@ class TrackerRuleEngineSideEffectsHandlerServiceTest extends PostgresIntegration
             TrackerObjects.class);
     ImportReport importReport =
         trackerImportService.importTracker(
-            TrackerImportParams.builder().userId(("M5zQapPyTZI")).build(), trackerObjects);
+            TrackerImportParams.builder().userId(importUser.getUid()).build(), trackerObjects);
     assertNoErrors(importReport);
 
     await()

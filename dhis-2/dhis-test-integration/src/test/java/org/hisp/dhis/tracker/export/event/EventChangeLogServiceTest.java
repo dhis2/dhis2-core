@@ -75,7 +75,10 @@ class EventChangeLogServiceTest extends TrackerTest {
   @BeforeAll
   void setUp() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
-    importUser = userService.getUser("M5zQapPyTZI");
+
+    importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
+
     importParams = TrackerImportParams.builder().userId(importUser.getUid()).build();
     assertNoErrors(
         trackerImportService.importTracker(

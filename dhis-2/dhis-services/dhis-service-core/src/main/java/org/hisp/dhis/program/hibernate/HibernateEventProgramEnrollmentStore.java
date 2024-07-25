@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,33 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.program.hibernate;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import java.util.List;
+import javax.persistence.EntityManager;
+import lombok.RequiredArgsConstructor;
+import org.hibernate.Session;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EventProgramEnrollmentStore;
+import org.hisp.dhis.program.Program;
+import org.springframework.stereotype.Repository;
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.test.webapi.WebSpringTestBase;
-import org.hisp.dhis.user.User;
-import org.junit.jupiter.api.Test;
-import org.springframework.mock.web.MockHttpSession;
+@RequiredArgsConstructor
+@Repository("org.hisp.dhis.program.EventProgramEnrollmentStore")
+public class HibernateEventProgramEnrollmentStore implements EventProgramEnrollmentStore {
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-class PrePostSecurityAnnotationsTest extends WebSpringTestBase {
+  private final EntityManager entityManager;
 
-  @Test
-  void authorityAllCanAccessApps() throws Exception {
-    MockHttpSession session = getMockHttpSession();
-    mvc.perform(put("/api/apps").session(session)).andExpect(status().isNoContent());
-  }
+  @Override
+  public List<Enrollment> get(Program program) {
+    try (Session session = entityManager.unwrap(Session.class)) {
 
-  @Test
-  void authorityNoAuthorityCantAccessApps() throws Exception {
-    User noAuthUser = createAndAddUser("A", (OrganisationUnit) null, "NO_AUTHORITY");
-    injectSecurityContextUser(noAuthUser);
-    MockHttpSession session = getMockHttpSession();
-    mvc.perform(put("/api/apps").session(session)).andExpect(status().isForbidden());
+      return session
+          .createQuery("from Enrollment e where e.program.uid = :programUid", Enrollment.class)
+          .setParameter("programUid", program.getUid())
+          .list();
+    }
   }
 }

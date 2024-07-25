@@ -48,6 +48,7 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheatService;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,15 +66,20 @@ class TrackedEntityAttributeTest extends TrackerTest {
 
   @Autowired private IdentifiableObjectManager manager;
 
+  private User importUser;
+
   @BeforeAll
   void setUp() throws IOException {
     setUpMetadata("tracker/te_with_tea_metadata.json");
-    injectAdminUser();
+
+    importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
   }
 
   @Test
   void testTrackedAttributePreheater() throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/te_with_tea_data.json");
+
     TrackerPreheat preheat =
         trackerPreheatService.preheat(
             trackerObjects, new TrackerIdSchemeParams(), userService.getUser(ADMIN_USER_UID));
@@ -86,8 +92,9 @@ class TrackedEntityAttributeTest extends TrackerTest {
 
   @Test
   void testTrackedAttributeValueBundleImporter() throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     TrackerObjects trackerObjects = fromJson("tracker/te_with_tea_data.json");
-    TrackerImportParams params = TrackerImportParams.builder().build();
+
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
 

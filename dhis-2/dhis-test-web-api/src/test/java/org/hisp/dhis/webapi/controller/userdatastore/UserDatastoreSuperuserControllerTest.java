@@ -62,7 +62,7 @@ class UserDatastoreSuperuserControllerTest extends H2ControllerIntegrationTestBa
   void testDeleteKeys() {
     assertStatus(HttpStatus.CREATED, POST("/userDataStore/test/key1", "true"));
 
-    switchToSuperuser();
+    switchToAdminUser();
     assertWebMessage(
         "OK",
         200,
@@ -88,7 +88,7 @@ class UserDatastoreSuperuserControllerTest extends H2ControllerIntegrationTestBa
 
   @Test
   void testAddUserKeyJsonValue() {
-    switchToSuperuser();
+    switchToAdminUser();
     assertWebMessage(
         "Created",
         201,
@@ -106,7 +106,7 @@ class UserDatastoreSuperuserControllerTest extends H2ControllerIntegrationTestBa
 
   @Test
   void testAddUserKeyJsonValue_MalformedValue() {
-    switchToSuperuser();
+    switchToAdminUser();
     assertWebMessage(
         "Bad Request",
         400,
@@ -121,7 +121,7 @@ class UserDatastoreSuperuserControllerTest extends H2ControllerIntegrationTestBa
   void testAddUserKeyJsonValue_AlreadyExists() {
     assertStatus(HttpStatus.CREATED, POST("/userDataStore/test/key1", "true"));
 
-    switchToSuperuser();
+    switchToAdminUser();
     assertWebMessage(
         "Conflict",
         409,
@@ -146,7 +146,7 @@ class UserDatastoreSuperuserControllerTest extends H2ControllerIntegrationTestBa
 
   @Test
   void testPutNewUserKeyJsonValue() {
-    switchToSuperuser();
+    switchToAdminUser();
     assertWebMessage(
         "Created",
         201,
@@ -159,7 +159,7 @@ class UserDatastoreSuperuserControllerTest extends H2ControllerIntegrationTestBa
   void testUpdateUserKeyJsonValue_MalformedValue() {
     assertStatus(HttpStatus.CREATED, POST("/userDataStore/test/key1", "true"));
 
-    switchToSuperuser();
+    switchToAdminUser();
     assertWebMessage(
         "Bad Request",
         400,
@@ -189,7 +189,7 @@ class UserDatastoreSuperuserControllerTest extends H2ControllerIntegrationTestBa
     assertStatus(HttpStatus.CREATED, POST("/userDataStore/test/key1", "true"));
     assertStatus(HttpStatus.CREATED, POST("/userDataStore/test/key2", "42"));
 
-    switchToSuperuser();
+    switchToAdminUser();
     assertWebMessage(
         "OK",
         200,
@@ -203,7 +203,7 @@ class UserDatastoreSuperuserControllerTest extends H2ControllerIntegrationTestBa
 
   @Test
   void testDeleteUserKeyJsonValue_UnknownKey() {
-    switchToSuperuser();
+    switchToAdminUser();
     assertWebMessage(
         "Not Found",
         404,
@@ -229,7 +229,7 @@ class UserDatastoreSuperuserControllerTest extends H2ControllerIntegrationTestBa
     assertStatus(HttpStatus.CREATED, POST("/userDataStore/test/key1", "true"));
     assertStatus(HttpStatus.CREATED, POST("/userDataStore/test2/key1", "42"));
 
-    switchToSuperuser();
+    switchToAdminUser();
     assertContainsOnly(
         List.of("test", "test2"), GET("/userDataStore?username=Paul").content().stringValues());
   }

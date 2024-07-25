@@ -75,7 +75,7 @@ class MetadataWorkflowControllerTest extends H2ControllerIntegrationTestBase {
     // make sure a system user exist that can add/update/delete OUs
     system = switchToNewUser("system", "F_ORGANISATIONUNIT_ADD", "F_ORGANISATIONUNIT_DELETE");
     // and back to being SU for further setup in the test scenarios
-    switchToSuperuser();
+    switchToAdminUser();
   }
 
   @Test

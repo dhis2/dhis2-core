@@ -234,7 +234,7 @@ class DatastoreControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(
         "Access denied for key 'cat' in namespace 'pets'",
         DELETE("/dataStore/pets").error(HttpStatus.FORBIDDEN).getMessage());
-    switchToSuperuser();
+    switchToAdminUser();
     assertStatus(HttpStatus.OK, DELETE("/dataStore/pets"));
   }
 
@@ -288,7 +288,7 @@ class DatastoreControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(
         "Access denied for key 'cat' in namespace 'pets'",
         GET("/dataStore/pets/cat").error(HttpStatus.FORBIDDEN).getMessage());
-    switchToSuperuser();
+    switchToAdminUser();
     assertStatus(HttpStatus.OK, GET("/dataStore/pets/cat"));
   }
 
@@ -343,7 +343,7 @@ class DatastoreControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(
         "Access denied for key 'cat' in namespace 'pets'",
         GET("/dataStore/pets/cat/metaData").error(HttpStatus.FORBIDDEN).getMessage());
-    switchToSuperuser();
+    switchToAdminUser();
     assertStatus(HttpStatus.OK, GET("/dataStore/pets/cat/metaData"));
   }
 
@@ -465,7 +465,7 @@ class DatastoreControllerTest extends H2ControllerIntegrationTestBase {
         "Access denied for key 'cat' in namespace 'pets'",
         DELETE("/dataStore/pets/cat").error(HttpStatus.FORBIDDEN).getMessage());
     // but the owner still can
-    switchToSuperuser();
+    switchToAdminUser();
     assertStatus(HttpStatus.OK, DELETE("/dataStore/pets/cat"));
   }
 
@@ -486,7 +486,7 @@ class DatastoreControllerTest extends H2ControllerIntegrationTestBase {
     assertStatus(HttpStatus.CREATED, PUT("/dataStore/pets/emu", "{\"name\":\"james\"}"));
 
     // switch back to user with permission and check that original value has not been changed
-    switchToSuperuser();
+    switchToAdminUser();
     JsonDatastoreValue emu = GET("/dataStore/pets/emu").content().as(JsonDatastoreValue.class);
     assertEquals("harry", emu.getString("name").string());
   }
@@ -500,7 +500,7 @@ class DatastoreControllerTest extends H2ControllerIntegrationTestBase {
     assertStatus(HttpStatus.CREATED, POST("/dataStore/pets/emu", "{\"name\":\"james\"}"));
 
     // switch back to user with permission and check that no entry exists in the namespace
-    switchToSuperuser();
+    switchToAdminUser();
     assertEquals(
         "Key 'emu' not found in namespace 'pets'",
         GET("/dataStore/pets/emu").error(HttpStatus.NOT_FOUND).getMessage());

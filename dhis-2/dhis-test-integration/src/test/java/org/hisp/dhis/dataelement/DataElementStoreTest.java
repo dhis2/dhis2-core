@@ -381,7 +381,7 @@ class DataElementStoreTest extends PostgresIntegrationTestBase {
   @Test
   void testExistsByUser() {
     User userA = createAndAddUser("userA");
-    User userB = createAndAddAdminUser("ALL");
+    User userB = getAdminUser();
     DataElement dataElementA = createDataElement('A');
     dataElementA.setCreatedBy(userA);
     dataElementStore.save(dataElementA);

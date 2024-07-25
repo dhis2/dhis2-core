@@ -72,7 +72,7 @@ public abstract class ControllerWithApiTokenAuthTestBase extends H2ControllerInt
     User randomAdminUser = TestBase.createRandomAdminUserWithEntityManager(entityManager);
     injectSecurityContextUser(randomAdminUser);
 
-    adminUser = createAndAddAdminUser("ALL");
+    adminUser = preCreateInjectAdminUser();
 
     mvc =
         MockMvcBuilders.webAppContextSetup(webApplicationContext)

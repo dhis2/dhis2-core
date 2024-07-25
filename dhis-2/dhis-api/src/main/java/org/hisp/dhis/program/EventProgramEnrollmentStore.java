@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,33 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.program;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.test.webapi.WebSpringTestBase;
-import org.hisp.dhis.user.User;
-import org.junit.jupiter.api.Test;
-import org.springframework.mock.web.MockHttpSession;
+import java.util.List;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * This store is intended as a temporary solution until we separate event programs from tracker
+ * programs. Once they become distinct entities and event programs no longer require a placeholder
+ * enrollment, this store should be discontinued.
  */
-class PrePostSecurityAnnotationsTest extends WebSpringTestBase {
+public interface EventProgramEnrollmentStore {
 
-  @Test
-  void authorityAllCanAccessApps() throws Exception {
-    MockHttpSession session = getMockHttpSession();
-    mvc.perform(put("/api/apps").session(session)).andExpect(status().isNoContent());
-  }
-
-  @Test
-  void authorityNoAuthorityCantAccessApps() throws Exception {
-    User noAuthUser = createAndAddUser("A", (OrganisationUnit) null, "NO_AUTHORITY");
-    injectSecurityContextUser(noAuthUser);
-    MockHttpSession session = getMockHttpSession();
-    mvc.perform(put("/api/apps").session(session)).andExpect(status().isForbidden());
-  }
+  List<Enrollment> get(Program program);
 }
