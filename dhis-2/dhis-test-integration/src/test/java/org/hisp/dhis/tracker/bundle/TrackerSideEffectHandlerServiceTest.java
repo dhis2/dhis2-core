@@ -260,7 +260,7 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
             .occurredAt(Instant.now())
             .build();
 
-    ImportReport importReport =
+    TrackerImportReport importReport =
         trackerImportService.importTracker(
             TrackerImportParams.builder()
                 .userId(user.getUid())
