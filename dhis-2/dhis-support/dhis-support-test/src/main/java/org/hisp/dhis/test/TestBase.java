@@ -2940,11 +2940,11 @@ public abstract class TestBase {
     user.setCreatedBy(user);
     role.setCreatedBy(user);
 
+    // I assume this is needed so we can save the user
     UserDetails currentUserDetails = userService.createUserDetails(user);
     Authentication authentication =
         new UsernamePasswordAuthenticationToken(
             currentUserDetails, DEFAULT_ADMIN_PASSWORD, List.of(new SimpleGrantedAuthority("ALL")));
-
     SecurityContext context = SecurityContextHolder.createEmptyContext();
     context.setAuthentication(authentication);
     SecurityContextHolder.setContext(context);
@@ -2955,6 +2955,10 @@ public abstract class TestBase {
 
     userService.encodeAndSetPassword(user, user.getPassword());
     userService.updateUser(user);
+
+    // needed by tests like ControllerWithApiTokenAuthTestBase
+    UserDetails userDetails = userService.createUserDetails(user);
+    injectSecurityContext(userDetails);
 
     return user;
   }

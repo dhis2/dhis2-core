@@ -51,9 +51,6 @@ class DataIntegrityUsersWithNoRoleControllerTest extends AbstractDataIntegrityIn
   @Test
   void testCanFlagUserWithNoRoles() {
 
-    Integer initialUserCount = userService.getUserCount();
-    assertEquals(1, initialUserCount);
-
     // Use the service layer, as the API will refuse to create a user with no role.
     User user = new User();
     user.setUid(CodeGenerator.generateUid());

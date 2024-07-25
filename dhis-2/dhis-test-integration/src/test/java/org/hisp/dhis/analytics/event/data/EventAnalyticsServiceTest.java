@@ -576,9 +576,6 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   public void beforeEach() {
-    // Reset the security context for each test.
-    clearSecurityContext();
-
     injectAdminIntoSecurityContext();
   }
 

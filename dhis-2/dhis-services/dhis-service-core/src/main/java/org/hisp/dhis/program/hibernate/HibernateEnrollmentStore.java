@@ -27,24 +27,17 @@
  */
 package org.hisp.dhis.program.hibernate;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import java.util.Date;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.EnrollmentStore;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.notification.NotificationTrigger;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.springframework.context.ApplicationEventPublisher;
@@ -60,26 +53,12 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
     implements EnrollmentStore {
   private static final String STATUS = "status";
 
-  private static final Set<NotificationTrigger> SCHEDULED_ENROLLMENT_TRIGGERS =
-      Sets.intersection(
-          NotificationTrigger.getAllApplicableToEnrollment(),
-          NotificationTrigger.getAllScheduledTriggers());
-
   public HibernateEnrollmentStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService) {
     super(entityManager, jdbcTemplate, publisher, Enrollment.class, aclService, true);
-  }
-
-  @Override
-  public List<Enrollment> get(Program program) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    return getList(
-        builder,
-        newJpaParameters().addPredicate(root -> builder.equal(root.get("program"), program)));
   }
 
   @Override
@@ -104,50 +83,6 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
             .addPredicate(root -> builder.equal(root.get("trackedEntity"), trackedEntity))
             .addPredicate(root -> builder.equal(root.get("program"), program))
             .addPredicate(root -> builder.equal(root.get(STATUS), status)));
-  }
-
-  @Override
-  public List<Enrollment> getWithScheduledNotifications(
-      ProgramNotificationTemplate template, Date notificationDate) {
-    if (notificationDate == null
-        || !SCHEDULED_ENROLLMENT_TRIGGERS.contains(template.getNotificationTrigger())) {
-      return Lists.newArrayList();
-    }
-
-    String dateProperty = toDateProperty(template.getNotificationTrigger());
-
-    if (dateProperty == null) {
-      return Lists.newArrayList();
-    }
-
-    Date targetDate = DateUtils.addDays(notificationDate, template.getRelativeScheduledDays() * -1);
-
-    String hql =
-        "select distinct en from Enrollment as en "
-            + "inner join en.program as p "
-            + "where :notificationTemplate in elements(p.notificationTemplates) "
-            + "and en."
-            + dateProperty
-            + " is not null "
-            + "and en.status = :activeEnrollmentStatus "
-            + "and cast(:targetDate as date) = en."
-            + dateProperty;
-
-    return getQuery(hql)
-        .setParameter("notificationTemplate", template)
-        .setParameter("activeEnrollmentStatus", EnrollmentStatus.ACTIVE)
-        .setParameter("targetDate", targetDate)
-        .list();
-  }
-
-  private String toDateProperty(NotificationTrigger trigger) {
-    if (trigger == NotificationTrigger.SCHEDULED_DAYS_ENROLLMENT_DATE) {
-      return "enrollmentDate";
-    } else if (trigger == NotificationTrigger.SCHEDULED_DAYS_INCIDENT_DATE) {
-      return "occurredDate";
-    }
-
-    return null;
   }
 
   @Override

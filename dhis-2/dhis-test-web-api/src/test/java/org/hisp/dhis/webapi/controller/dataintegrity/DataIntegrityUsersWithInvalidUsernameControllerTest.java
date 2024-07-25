@@ -56,9 +56,6 @@ class DataIntegrityUsersWithInvalidUsernameControllerTest
   @Test
   void testCanFlagUsersWithInvalidUsername() {
 
-    Integer userCount = userService.getUserCount();
-    assertEquals(1, userCount);
-
     Set<String> badUsers =
         Set.of(
             "_foo", // Leading underscore
@@ -84,6 +81,9 @@ class DataIntegrityUsersWithInvalidUsernameControllerTest
     assertEquals(badUsers, badUsernames);
     assertEquals(DETAILS_ID_TYPE, details.getIssuesIdType());
     assertEquals(CHECK_NAME, details.getName());
+
+    // There are already two existing users as part of the test setup, thus 5/7 users have bad
+    // usernames
     JsonDataIntegritySummary summary = getSummary(CHECK_NAME);
     assertTrue(
         almostEqual(

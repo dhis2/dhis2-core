@@ -117,11 +117,6 @@ public abstract class AbstractTrackerPersister<
         V convertedDto = convert(bundle, trackerDto);
 
         //
-        // Handle notes persistence, if required
-        //
-        persistNotes(entityManager, bundle.getPreheat(), convertedDto);
-
-        //
         // Handle ownership records, if required
         //
         persistOwnership(bundle.getPreheat(), convertedDto);
@@ -203,10 +198,6 @@ public abstract class AbstractTrackerPersister<
    * Hibernate-managed object
    */
   protected abstract V convert(TrackerBundle bundle, T trackerDto);
-
-  /** Persists the notes for the given entity, if the entity has notes */
-  protected abstract void persistNotes(
-      EntityManager entityManager, TrackerPreheat preheat, V entity);
 
   /** Persists ownership records for the given entity */
   protected abstract void persistOwnership(TrackerPreheat preheat, V entity);

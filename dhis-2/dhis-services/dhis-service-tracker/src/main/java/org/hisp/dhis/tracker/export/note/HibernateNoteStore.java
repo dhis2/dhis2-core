@@ -25,27 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.note;
+package org.hisp.dhis.tracker.export.note;
+
+import javax.persistence.EntityManager;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.note.Note;
+import org.hisp.dhis.security.acl.AclService;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
- * @author Chau Thu Tran
+ * @author David Katuscak
  */
-public interface NoteService {
-  String ID = NoteService.class.getName();
-
-  /**
-   * Adds an {@link Note}
-   *
-   * @param note The Note to add.
-   * @return A generated unique id of the added {@link Note}.
-   */
-  void addNote(Note note);
-
-  /**
-   * Checks for the existence of a Note by UID.
-   *
-   * @param uid Note UID to check for
-   * @return true/false depending on result
-   */
-  boolean noteExists(String uid);
+@Repository("org.hisp.dhis.tracker.export.note.NoteStore")
+class HibernateNoteStore extends HibernateIdentifiableObjectStore<Note> {
+  public HibernateNoteStore(
+      EntityManager entityManager,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      AclService aclService) {
+    super(entityManager, jdbcTemplate, publisher, Note.class, aclService, false);
+  }
 }
