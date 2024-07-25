@@ -47,6 +47,7 @@ public class DefaultAdminUserPopulator extends TransactionContextStartupRoutine 
   public static final Set<String> ALL_AUTHORITIES =
       ImmutableSet.of(
           "ALL",
+          "F_CAPTURE_DATASTORE_UPDATE",
           "F_VIEW_EVENT_ANALYTICS",
           "F_METADATA_EXPORT",
           "F_METADATA_IMPORT",
