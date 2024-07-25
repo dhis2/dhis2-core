@@ -67,8 +67,16 @@ public class OpenApiController {
 
   private final ApplicationContext context;
 
-  private static SoftReference<Api> FULL_API;
-  private static SoftReference<String> FULL_HTML;
+  private static SoftReference<Api> fullApi;
+  private static SoftReference<String> fullHtml;
+
+  private static synchronized void updateFullHtml(String html) {
+    fullHtml = new SoftReference<>(html);
+  }
+
+  private static synchronized void updateFullApi(Api api) {
+    fullApi = new SoftReference<>(api);
+  }
 
   /**
    * As long as the server is the same the response will be for the same request, so we just create
@@ -109,8 +117,8 @@ public class OpenApiController {
       HttpServletResponse response) {
     if (notModified(request, response)) return;
 
-    if (scope.isFull() && FULL_HTML != null) {
-      String fullHtml = FULL_HTML.get();
+    if (scope.isFull() && fullHtml != null) {
+      String fullHtml = OpenApiController.fullHtml.get();
       if (fullHtml != null) {
         getWriter(response, TEXT_HTML_VALUE).get().write(fullHtml);
         return;
@@ -122,7 +130,7 @@ public class OpenApiController {
         request, generation, scope, () -> new PrintWriter(json), OpenApiGenerator::generateJson);
 
     String html = OpenApiRenderer.render(json.toString(), rendering);
-    if (scope.isFull()) FULL_HTML = new SoftReference<>(html);
+    if (scope.isFull()) updateFullHtml(html);
     getWriter(response, TEXT_HTML_VALUE).get().write(html);
   }
 
@@ -250,10 +258,10 @@ public class OpenApiController {
   @Nonnull
   private Api getApiCached(OpenApiGenerationParams params, OpenApiScopeParams scope) {
     if (scope.isFull()) {
-      Api api = FULL_API == null ? null : FULL_API.get();
+      Api api = fullApi == null ? null : fullApi.get();
       if (api == null) {
         api = getApiUncached(params, scope);
-        FULL_API = new SoftReference<>(api);
+        updateFullApi(api);
       }
       return api;
     }
