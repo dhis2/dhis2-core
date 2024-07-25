@@ -51,6 +51,9 @@ class DataIntegrityUsersWithNoRoleControllerTest extends AbstractDataIntegrityIn
   @Test
   void testCanFlagUserWithNoRoles() {
 
+    Integer initialUserCount = userService.getUserCount();
+    assertEquals(1, initialUserCount);
+
     // Use the service layer, as the API will refuse to create a user with no role.
     User user = new User();
     user.setUid(CodeGenerator.generateUid());
@@ -65,8 +68,17 @@ class DataIntegrityUsersWithNoRoleControllerTest extends AbstractDataIntegrityIn
 
     // Note that there is already one user which exists due to the overall test setup, thus, two
     // users in total.
+    Integer userCount = userService.getUserCount();
+    assertEquals(2, userCount);
+
     assertHasDataIntegrityIssues(
-        DETAILS_ID_TYPE, CHECK_NAME, 50, user.getUid(), user.getUsername(), "disabled:false", true);
+        DETAILS_ID_TYPE,
+        CHECK_NAME,
+        100 / userCount,
+        user.getUid(),
+        user.getUsername(),
+        "disabled:false",
+        true);
 
     JsonDataIntegrityDetails details = getDetails(CHECK_NAME);
     JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
