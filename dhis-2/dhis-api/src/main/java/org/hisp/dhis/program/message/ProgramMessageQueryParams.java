@@ -43,21 +43,21 @@ import org.hisp.dhis.program.Event;
 @Builder(toBuilder = true)
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class ProgramMessageQueryParams {
-  private Set<String> organisationUnit;
+  private final Set<String> organisationUnit;
 
-  private ProgramMessageStatus messageStatus;
+  private final ProgramMessageStatus messageStatus;
 
-  private Enrollment enrollment;
+  private final Enrollment enrollment;
 
-  private Event event;
+  private final Event event;
 
-  private Date afterDate;
+  private final Date afterDate;
 
-  private Date beforeDate;
+  private final Date beforeDate;
 
-  private Integer page;
+  private final Integer page;
 
-  private Integer pageSize;
+  private final Integer pageSize;
 
   // -------------------------------------------------------------------------
   // Logic
