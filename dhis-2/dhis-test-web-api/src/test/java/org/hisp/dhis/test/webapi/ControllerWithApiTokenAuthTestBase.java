@@ -55,7 +55,7 @@ public abstract class ControllerWithApiTokenAuthTestBase extends H2ControllerInt
   @Autowired private FilterChainProxy springSecurityFilterChain;
 
   @BeforeEach
-  void setup() {
+  void setupMockMvc() {
     mvc =
         MockMvcBuilders.webAppContextSetup(webApplicationContext)
             .addFilter(springSecurityFilterChain)
