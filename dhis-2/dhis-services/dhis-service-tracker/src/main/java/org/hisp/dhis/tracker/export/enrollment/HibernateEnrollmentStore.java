@@ -54,7 +54,6 @@ import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.Page;
@@ -305,11 +304,5 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
   @Override
   public Set<String> getOrderableFields() {
     return ORDERABLE_FIELDS;
-  }
-
-  @Override
-  public void deleteEnrollment(Enrollment enrollment) {
-    enrollment.setStatus(EnrollmentStatus.CANCELLED);
-    super.delete(enrollment);
   }
 }

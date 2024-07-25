@@ -39,7 +39,6 @@ import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.EnrollmentStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -77,19 +76,6 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
     return getList(
         builder,
         newJpaParameters()
-            .addPredicate(root -> builder.equal(root.get("program"), program))
-            .addPredicate(root -> builder.equal(root.get(STATUS), status)));
-  }
-
-  @Override
-  public List<Enrollment> get(
-      TrackedEntity trackedEntity, Program program, EnrollmentStatus status) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    return getList(
-        builder,
-        newJpaParameters()
-            .addPredicate(root -> builder.equal(root.get("trackedEntity"), trackedEntity))
             .addPredicate(root -> builder.equal(root.get("program"), program))
             .addPredicate(root -> builder.equal(root.get(STATUS), status)));
   }

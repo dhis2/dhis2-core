@@ -174,21 +174,6 @@ class EnrollmentStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetEnrollmentsByTrackedEntityProgramAndEnrollmentStatus() {
-    enrollmentStore.save(enrollmentA);
-    enrollmentStore.save(enrollmentB);
-    enrollmentStore.save(enrollmentC);
-    enrollmentStore.save(enrollmentD);
-    List<Enrollment> enrollments =
-        enrollmentStore.get(trackedEntityA, programC, EnrollmentStatus.COMPLETED);
-    assertEquals(1, enrollments.size());
-    assertTrue(enrollments.contains(enrollmentC));
-    enrollments = enrollmentStore.get(trackedEntityA, programA, EnrollmentStatus.ACTIVE);
-    assertEquals(1, enrollments.size());
-    assertTrue(enrollments.contains(enrollmentA));
-  }
-
-  @Test
   void testGetExcludeDeletedEnrollment() {
     enrollmentStore.save(enrollmentA);
     enrollmentStore.save(enrollmentB);

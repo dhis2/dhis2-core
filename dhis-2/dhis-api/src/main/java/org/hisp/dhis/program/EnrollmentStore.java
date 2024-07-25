@@ -29,7 +29,6 @@ package org.hisp.dhis.program;
 
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 
 /**
  * @author Abyot Asalefew
@@ -42,7 +41,4 @@ public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
 
   /** Get enrollments into a program that are in given status. */
   List<Enrollment> get(Program program, EnrollmentStatus status);
-
-  /** Get a tracked entities enrollments into a program that are in given status. */
-  List<Enrollment> get(TrackedEntity trackedEntity, Program program, EnrollmentStatus status);
 }
