@@ -52,7 +52,6 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjects;
-import org.hisp.dhis.common.Maturity.Alpha;
 import org.hisp.dhis.common.Maturity.Beta;
 import org.hisp.dhis.common.Maturity.Stable;
 import org.hisp.dhis.common.OpenApi;
@@ -246,7 +245,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     return patchedObject;
   }
 
-  @Alpha // TOOO just a test
   @OpenApi.Params(WebOptions.class)
   @OpenApi.Params(MetadataImportParams.class)
   @OpenApi.Param(BulkJsonPatch.class)

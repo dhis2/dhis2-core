@@ -48,6 +48,7 @@ import java.util.function.Consumer;
 import javax.annotation.CheckForNull;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonNodeType;
@@ -72,13 +73,18 @@ import org.intellij.lang.annotations.Language;
 public class OpenApiRenderer {
 
   @Data
+  @OpenApi.Shared
   public static class OpenApiRenderingParams {
     boolean sortEndpointsByMethod = true; // make this a sortEndpointsBy=method,path,id thing?
 
-    /** Include the JSON source in the operations and schemas? */
+    @OpenApi.Description(
+        "Include the JSON source in the operations and schemas (for debug purposes)")
     boolean source = false;
 
-    /** A shared enum with less than the limit values is shown in the summary */
+    @OpenApi.Description(
+        """
+      Values of a shared enum with less than the limit values will show the first n values up to limit
+      directly where the type is used""")
     int inlineEnumsLimit = 0;
   }
 
@@ -789,7 +795,8 @@ public class OpenApiRenderer {
           appendSummary(id, op.summary(), () -> renderOperationSummary(op));
           renderBoxToolbar(null);
           appendTag("header", markdownToHTML(op.description(), op.parameterNames()));
-          if (!op.tags().isEmpty()) renderLabelledValue("tags", op.tags(), "columns", 0);
+          renderLabelledValue("operationId", op.operationId());
+          if (!op.tags().isEmpty()) renderLabelledValue("tags", op.tags(), "", 0);
           renderParameters(op);
           renderRequestBody(op);
           renderResponses(op);

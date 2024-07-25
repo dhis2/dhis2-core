@@ -85,8 +85,12 @@ public class OpenApiController {
   private static final String E_TAG = "v" + System.currentTimeMillis();
 
   @Data
+  @OpenApi.Shared
   public static class OpenApiScopeParams {
+    @OpenApi.Description("When specified only operations matching the path are included.")
     Set<String> path = Set.of();
+
+    @OpenApi.Description("When specified only operations matching the domain are included.")
     Set<String> domain = Set.of();
 
     @OpenApi.Ignore
@@ -96,8 +100,24 @@ public class OpenApiController {
   }
 
   @Data
+  @OpenApi.Shared
   public static class OpenApiGenerationParams {
+    @OpenApi.Description(
+        """
+      Regenerate the response even if a cached response is available.
+      Mainly used during development to see effects of hot-swap code changes.""")
+    boolean skipCache = false;
+
+    @OpenApi.Description(
+        """
+      Shared schema names must be unique.
+      To ensure this either a unique name is picked (`false`) or the generation fails (`true`)""")
     boolean failOnNameClash = false;
+
+    @OpenApi.Description(
+        """
+      Declarations can be logically inconsistent; for example a parameter that is both required and has a default value.
+      Either this is ignored and only logs a warning (`false`) or the generation fails (`true`)""")
     boolean failOnInconsistency = false;
   }
 
@@ -105,6 +125,10 @@ public class OpenApiController {
    * HTML
    */
 
+  @OpenApi.Description(
+      """
+    The HTML to browse (view) the DHIS2 API specification based on OpenAPI JSON
+    either in its entirety or scoped to the path(s) or domain(s) requested.""")
   @OpenApi.Response(status = Status.OK, value = String.class)
   @GetMapping(
       value = {"/openapi.html", "/openapi/openapi.html"},
@@ -115,9 +139,9 @@ public class OpenApiController {
       OpenApiRenderer.OpenApiRenderingParams rendering,
       HttpServletRequest request,
       HttpServletResponse response) {
-    if (notModified(request, response)) return;
+    if (notModified(request, response, generation)) return;
 
-    if (scope.isFull() && fullHtml != null) {
+    if (scope.isFull() && !generation.isSkipCache() && fullHtml != null) {
       String fullHtml = OpenApiController.fullHtml.get();
       if (fullHtml != null) {
         getWriter(response, TEXT_HTML_VALUE).get().write(fullHtml);
@@ -134,6 +158,9 @@ public class OpenApiController {
     getWriter(response, TEXT_HTML_VALUE).get().write(html);
   }
 
+  @OpenApi.Description(
+      """
+    The HTML to browse (view) the DHIS2 API specification based on OpenAPI JSON for the path""")
   @OpenApi.Response(String.class)
   @GetMapping(value = "/{path}/openapi.html", produces = TEXT_HTML_VALUE)
   public void getPathOpenApiHtml(
@@ -142,7 +169,7 @@ public class OpenApiController {
       OpenApiRenderer.OpenApiRenderingParams rendering,
       HttpServletRequest request,
       HttpServletResponse response) {
-    if (notModified(request, response)) return;
+    if (notModified(request, response, generation)) return;
 
     StringWriter json = new StringWriter();
     OpenApiScopeParams scope = new OpenApiScopeParams();
@@ -166,7 +193,7 @@ public class OpenApiController {
       OpenApiGenerationParams generation,
       HttpServletRequest request,
       HttpServletResponse response) {
-    if (notModified(request, response)) return;
+    if (notModified(request, response, generation)) return;
 
     OpenApiScopeParams scope = new OpenApiScopeParams();
     scope.setPath(Set.of("/" + path));
@@ -183,7 +210,7 @@ public class OpenApiController {
       OpenApiScopeParams scope,
       HttpServletRequest request,
       HttpServletResponse response) {
-    if (notModified(request, response)) return;
+    if (notModified(request, response, generation)) return;
 
     writeDocument(
         request, generation, scope, getYamlWriter(response), OpenApiGenerator::generateYaml);
@@ -200,7 +227,7 @@ public class OpenApiController {
       OpenApiGenerationParams generation,
       HttpServletRequest request,
       HttpServletResponse response) {
-    if (notModified(request, response)) return;
+    if (notModified(request, response, generation)) return;
 
     OpenApiScopeParams scope = new OpenApiScopeParams();
     scope.setPath(Set.of("/" + path));
@@ -217,7 +244,7 @@ public class OpenApiController {
       OpenApiScopeParams scope,
       HttpServletRequest request,
       HttpServletResponse response) {
-    if (notModified(request, response)) return;
+    if (notModified(request, response, generation)) return;
 
     writeDocument(
         request, generation, scope, getJsonWriter(response), OpenApiGenerator::generateJson);
@@ -256,16 +283,16 @@ public class OpenApiController {
   }
 
   @Nonnull
-  private Api getApiCached(OpenApiGenerationParams params, OpenApiScopeParams scope) {
-    if (scope.isFull()) {
+  private Api getApiCached(OpenApiGenerationParams generation, OpenApiScopeParams scope) {
+    if (scope.isFull() && !generation.isSkipCache()) {
       Api api = fullApi == null ? null : fullApi.get();
       if (api == null) {
-        api = getApiUncached(params, scope);
+        api = getApiUncached(generation, scope);
         updateFullApi(api);
       }
       return api;
     }
-    return getApiUncached(params, scope);
+    return getApiUncached(generation, scope);
   }
 
   @Nonnull
@@ -320,8 +347,12 @@ public class OpenApiController {
     return root + "/" + servletPath;
   }
 
-  private static boolean notModified(HttpServletRequest request, HttpServletResponse response) {
+  private static boolean notModified(
+      HttpServletRequest request,
+      HttpServletResponse response,
+      OpenApiGenerationParams generation) {
     String etag = request.getHeader("If-None-Match");
+    if (generation.isSkipCache()) return false;
     if (E_TAG.equals(etag)) {
       response.setStatus(304);
       return true;
