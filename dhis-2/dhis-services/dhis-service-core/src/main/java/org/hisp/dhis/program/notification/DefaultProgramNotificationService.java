@@ -67,6 +67,7 @@ import org.hisp.dhis.notification.NotificationMessageRenderer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.EnrollmentStore;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.message.ProgramMessage;
@@ -101,6 +102,11 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
   private static final Set<NotificationTrigger> SCHEDULED_EVENT_TRIGGERS =
       Sets.intersection(
           NotificationTrigger.getAllApplicableToEvent(),
+          NotificationTrigger.getAllScheduledTriggers());
+
+  private static final Set<NotificationTrigger> SCHEDULED_ENROLLMENT_TRIGGERS =
+      Sets.intersection(
+          NotificationTrigger.getAllApplicableToEnrollment(),
           NotificationTrigger.getAllScheduledTriggers());
 
   private final ProgramMessageService programMessageService;
@@ -368,12 +374,59 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
       ProgramNotificationTemplate template, Date day) {
     List<Event> events = getWithScheduledNotifications(template, day);
 
-    List<Enrollment> enrollments = enrollmentStore.getWithScheduledNotifications(template, day);
+    List<Enrollment> enrollments = getEnrollmentsWithScheduledNotifications(template, day);
 
     MessageBatch eventBatch = createEventMessageBatch(template, events);
     MessageBatch psBatch = createEnrollmentMessageBatch(template, enrollments);
 
     return new MessageBatch(eventBatch, psBatch);
+  }
+
+  @Override
+  public List<Enrollment> getEnrollmentsWithScheduledNotifications(
+      ProgramNotificationTemplate template, Date notificationDate) {
+    if (notificationDate == null
+        || !SCHEDULED_ENROLLMENT_TRIGGERS.contains(template.getNotificationTrigger())) {
+      return Lists.newArrayList();
+    }
+
+    String dateProperty = toDateProperty(template.getNotificationTrigger());
+
+    if (dateProperty == null) {
+      return Lists.newArrayList();
+    }
+
+    Date targetDate =
+        org.apache.commons.lang3.time.DateUtils.addDays(
+            notificationDate, template.getRelativeScheduledDays() * -1);
+
+    String hql =
+        "select distinct en from Enrollment as en "
+            + "inner join en.program as p "
+            + "where :notificationTemplate in elements(p.notificationTemplates) "
+            + "and en."
+            + dateProperty
+            + " is not null "
+            + "and en.status = :activeEnrollmentStatus "
+            + "and cast(:targetDate as date) = en."
+            + dateProperty;
+
+    return getSession()
+        .createQuery(hql, Enrollment.class)
+        .setParameter("notificationTemplate", template)
+        .setParameter("activeEnrollmentStatus", EnrollmentStatus.ACTIVE)
+        .setParameter("targetDate", targetDate)
+        .list();
+  }
+
+  private String toDateProperty(NotificationTrigger trigger) {
+    if (trigger == NotificationTrigger.SCHEDULED_DAYS_ENROLLMENT_DATE) {
+      return "enrollmentDate";
+    } else if (trigger == NotificationTrigger.SCHEDULED_DAYS_INCIDENT_DATE) {
+      return "occurredDate";
+    }
+
+    return null;
   }
 
   private List<ProgramNotificationTemplate> getScheduledTemplates() {
