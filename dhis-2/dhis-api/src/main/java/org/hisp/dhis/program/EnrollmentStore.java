@@ -39,9 +39,6 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
   String ID = EnrollmentStore.class.getName();
 
-  /** Get enrollments into a program. */
-  List<Enrollment> get(Program program);
-
   /** Get enrollments into a program that are in given status. */
   List<Enrollment> get(Program program, EnrollmentStatus status);
 
