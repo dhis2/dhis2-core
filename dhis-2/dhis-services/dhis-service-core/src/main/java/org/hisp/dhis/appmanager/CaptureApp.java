@@ -33,10 +33,9 @@ import org.hisp.dhis.datastore.DatastoreService;
 import org.springframework.stereotype.Component;
 
 /**
- * The main purpose (so far) of the {@link CaptureApp} component is to establish the
- * protected {@link #NAMESPACE} in the {@link DatastoreService} so that only the app can write to it
- * using a role having the {@link #AUTHORITY}.
- *
+ * The main purpose (so far) of the {@link CaptureApp} component is to establish the protected
+ * {@link #NAMESPACE} in the {@link DatastoreService} so that only the app can write to it using a
+ * role having the {@link #AUTHORITY}.
  */
 @Component
 public class CaptureApp {
