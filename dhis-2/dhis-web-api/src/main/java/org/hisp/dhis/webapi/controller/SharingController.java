@@ -33,6 +33,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.springframework.http.CacheControl.noCache;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -347,7 +348,8 @@ public class SharingController {
   }
 
   public record SharingSearchResult(
-      List<SharingUserAccess> users, List<SharingUserGroupAccess> userGroups) {}
+      @JsonProperty List<SharingUserAccess> users,
+      @JsonProperty List<SharingUserGroupAccess> userGroups) {}
 
   @GetMapping(value = "/search", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<SharingSearchResult> searchUserGroups(
