@@ -61,15 +61,6 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
   }
 
   @Override
-  public List<Enrollment> get(Program program) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    return getList(
-        builder,
-        newJpaParameters().addPredicate(root -> builder.equal(root.get("program"), program)));
-  }
-
-  @Override
   public List<Enrollment> get(Program program, EnrollmentStatus status) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
