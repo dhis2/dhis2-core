@@ -33,6 +33,7 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
+import org.jetbrains.annotations.NotNull;
 
 public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
   String ID = EnrollmentStore.class.getName();
@@ -49,4 +50,6 @@ public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
    * names should occur before calling {@link #getEnrollments(EnrollmentQueryParams)}.
    */
   Set<String> getOrderableFields();
+
+  void delete(@NotNull Enrollment enrollment);
 }
