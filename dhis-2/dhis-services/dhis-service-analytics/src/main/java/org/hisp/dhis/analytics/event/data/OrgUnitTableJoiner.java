@@ -101,9 +101,9 @@ public final class OrgUnitTableJoiner {
         + " as "
         + OWNERSHIP_TBL_ALIAS
         + " on "
-        + quote(ANALYTICS_TBL_ALIAS, "tei")
+        + quote(ANALYTICS_TBL_ALIAS, "trackedentity")
         + " = "
-        + quote(OWNERSHIP_TBL_ALIAS, "teiuid")
+        + quote(OWNERSHIP_TBL_ALIAS, "teuid")
         + " and '"
         + toMediumDate(compareDate)
         + "' between "

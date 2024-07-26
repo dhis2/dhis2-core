@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.web.WebClient.Body;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.web.WebClient.Body;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -37,9 +37,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -48,7 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Jan Bernitt
  */
-abstract class AbstractGistControllerTest extends DhisControllerConvenienceTest {
+abstract class AbstractGistControllerTest extends H2ControllerIntegrationTestBase {
   @Autowired protected OrganisationUnitService organisationUnitService;
 
   protected String userGroupId;
@@ -68,13 +68,12 @@ abstract class AbstractGistControllerTest extends DhisControllerConvenienceTest 
     userGroupId =
         assertStatus(
             HttpStatus.CREATED,
-            POST(
-                "/userGroups/", "{'name':'groupX', 'users':[{'id':'" + getSuperuserUid() + "'}]}"));
+            POST("/userGroups/", "{'name':'groupX', 'users':[{'id':'" + getAdminUid() + "'}]}"));
     assertStatus(
         HttpStatus.OK,
         PATCH(
             "/users/{id}?importReportMode=ERRORS",
-            getSuperuserUid(),
+            getAdminUid(),
             Body("[{'op': 'add', 'path': '/birthday', 'value': '1980-12-12'}]")));
     orgUnitId =
         assertStatus(

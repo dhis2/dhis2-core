@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -40,10 +39,11 @@ import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.merge.MergeType;
+import org.hisp.dhis.test.TestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-class DataElementMergeValidatorTest extends DhisConvenienceTest {
+class DataElementMergeValidatorTest extends TestBase {
 
   @Test
   @DisplayName("when all value types match then there are no report errors")

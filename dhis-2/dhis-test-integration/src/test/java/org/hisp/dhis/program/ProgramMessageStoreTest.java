@@ -48,17 +48,20 @@ import org.hisp.dhis.program.message.ProgramMessageQueryParams;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.program.message.ProgramMessageStore;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.joda.time.DateTime;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-class ProgramMessageStoreTest extends TransactionalIntegrationTest {
+@Transactional
+class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private ProgramMessageStore programMessageStore;
 
@@ -94,8 +97,8 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest {
 
   private final String notificationTemplate = CodeGenerator.generateUid();
 
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     OrganisationUnit orgUnitA = createOrganisationUnit('A');
     OrganisationUnit orgUnitB = createOrganisationUnit('B');
     orgUnitService.addOrganisationUnit(orgUnitA);

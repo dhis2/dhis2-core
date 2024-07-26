@@ -37,6 +37,6 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 public class vScheduledEventCount extends ProgramDoubleVariable {
   @Override
   public Object getSql(CommonExpressionVisitor visitor) {
-    return " case when psistatus = 'SCHEDULE' then 1 end ";
+    return " case when eventstatus = 'SCHEDULE' then 1 end ";
   }
 }

@@ -28,8 +28,8 @@
 package org.hisp.dhis.webapi.controller.tracker;
 
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.test.webapi.json.domain.JsonStats;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
-import org.hisp.dhis.webapi.json.domain.JsonStats;
 
 /** Web API equivalent of an {@link ImportReport}. */
 public interface JsonImportReport extends JsonObject {

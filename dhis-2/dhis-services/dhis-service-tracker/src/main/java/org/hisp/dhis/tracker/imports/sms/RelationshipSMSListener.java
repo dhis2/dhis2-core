@@ -42,7 +42,6 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
@@ -77,8 +76,6 @@ public class RelationshipSMSListener extends CompressionSMSListener {
 
   private final EventService eventService;
 
-  private final RelationshipService relationshipService;
-
   private final RelationshipTypeService relationshipTypeService;
 
   private final TrackedEntityService trackedEntityService;
@@ -97,7 +94,6 @@ public class RelationshipSMSListener extends CompressionSMSListener {
       DataElementService dataElementService,
       IdentifiableObjectManager identifiableObjectManager,
       EventService eventService,
-      RelationshipService relationshipService,
       RelationshipTypeService relationshipTypeService,
       TrackedEntityService trackedEntityService,
       EnrollmentService enrollmentService) {
@@ -112,7 +108,6 @@ public class RelationshipSMSListener extends CompressionSMSListener {
         categoryService,
         dataElementService,
         identifiableObjectManager);
-    this.relationshipService = relationshipService;
     this.relationshipTypeService = relationshipTypeService;
     this.trackedEntityService = trackedEntityService;
     this.enrollmentService = enrollmentService;
@@ -153,7 +148,7 @@ public class RelationshipSMSListener extends CompressionSMSListener {
 
     // TODO: Are there values we need to account for in relationships?
 
-    relationshipService.addRelationship(rel);
+    identifiableObjectManager.save(rel);
 
     return SmsResponse.SUCCESS;
   }

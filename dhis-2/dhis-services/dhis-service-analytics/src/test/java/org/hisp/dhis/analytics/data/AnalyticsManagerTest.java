@@ -46,7 +46,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -59,6 +58,7 @@ import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.YearlyPeriodType;
+import org.hisp.dhis.test.TestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -73,7 +73,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * @author Lars Helge Overland
  */
 @ExtendWith(MockitoExtension.class)
-class AnalyticsManagerTest extends DhisConvenienceTest {
+class AnalyticsManagerTest extends TestBase {
   @Mock private QueryPlanner queryPlanner;
 
   @Mock private JdbcTemplate jdbcTemplate;

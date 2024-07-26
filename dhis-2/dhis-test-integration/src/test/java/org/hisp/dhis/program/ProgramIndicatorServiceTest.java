@@ -33,7 +33,7 @@ import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.program.ProgramIndicator.KEY_ATTRIBUTE;
 import static org.hisp.dhis.program.ProgramIndicator.KEY_DATAELEMENT;
 import static org.hisp.dhis.program.ProgramIndicator.KEY_PROGRAM_VARIABLE;
-import static org.hisp.dhis.utils.Assertions.assertMapEquals;
+import static org.hisp.dhis.test.utils.Assertions.assertMapEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -56,7 +56,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -64,14 +64,17 @@ import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.util.DateUtils;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Chau Thu Tran
  */
-class ProgramIndicatorServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private ProgramIndicatorService programIndicatorService;
 
@@ -143,8 +146,8 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest {
 
   private ProgramIndicator indicatorF;
 
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnit);
     // ---------------------------------------------------------------------
@@ -607,10 +610,10 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest {
     Date dateTo = getDate(2019, 12, 31);
     // Generated subquery, since indicatorF is type Enrollment
     String expected =
-        "coalesce((select \"DataElmentA\" from analytics_event_Program000B where analytics_event_Program000B.pi = axx1.pi and \"DataElmentA\" is not null and occurreddate < cast( '"
+        "coalesce((select \"DataElmentA\" from analytics_event_Program000B where analytics_event_Program000B.enrollment = axx1.enrollment and \"DataElmentA\" is not null and occurreddate < cast( '"
             + "2020-01-11"
             + "' as date ) and ps = 'ProgrmStagA' order by occurreddate desc limit 1 )::numeric,0) - "
-            + "coalesce((select \"DataElmentC\" from analytics_event_Program000B where analytics_event_Program000B.pi = axx1.pi and \"DataElmentC\" is not null and occurreddate < cast( '"
+            + "coalesce((select \"DataElmentC\" from analytics_event_Program000B where analytics_event_Program000B.enrollment = axx1.enrollment and \"DataElmentC\" is not null and occurreddate < cast( '"
             + "2020-01-11"
             + "' as date ) and ps = 'ProgrmStagB' order by occurreddate desc limit 1 )::numeric,0)";
     String expression = "#{ProgrmStagA.DataElmentA} - #{ProgrmStagB.DataElmentC}";

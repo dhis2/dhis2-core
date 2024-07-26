@@ -36,12 +36,13 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -57,6 +58,7 @@ import org.hisp.dhis.smscompression.models.Uid;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -130,8 +132,14 @@ public class SimpleEventSMSListener extends EventSavingSMSListener {
       throw new SMSProcessingException(SmsResponse.OU_NOTIN_PROGRAM.set(ouid, progid));
     }
 
-    List<Enrollment> enrollments =
-        new ArrayList<>(enrollmentService.getEnrollments(program, EnrollmentStatus.ACTIVE));
+    List<Enrollment> enrollments;
+    try {
+      enrollments =
+          new ArrayList<>(enrollmentService.getEnrollments(null, program, EnrollmentStatus.ACTIVE));
+    } catch (ForbiddenException | BadRequestException e) {
+      // TODO(tracker) Find a better error message for these exceptions
+      throw new SMSProcessingException(SmsResponse.UNKNOWN_ERROR);
+    }
 
     // For Simple Events, the Program should have one Enrollment
     // If it doesn't exist, this is the first event, we can create it here
@@ -142,7 +150,7 @@ public class SimpleEventSMSListener extends EventSavingSMSListener {
       enrollment.setProgram(program);
       enrollment.setStatus(EnrollmentStatus.ACTIVE);
 
-      enrollmentService.addEnrollment(enrollment);
+      identifiableObjectManager.save(enrollment);
 
       enrollments.add(enrollment);
     } else if (enrollments.size() > 1) {

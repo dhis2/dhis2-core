@@ -28,10 +28,10 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
+import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_ENROLLMENT_GEOMETRY;
+import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_EVENT_GEOMETRY;
 import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_GEOMETRY_LIST;
-import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_PI_GEOMETRY;
-import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_PSI_GEOMETRY;
-import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_TEI_GEOMETRY;
+import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_TRACKED_ENTITY_GEOMETRY;
 import static org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService.SortableItems.isSortable;
 import static org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService.SortableItems.translateItemIfNecessary;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.illegalQueryExSupplier;
@@ -443,15 +443,15 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     } else if (EventQueryParams.EVENT_COORDINATE_FIELD.equals(coordinateField)) {
       coordinateFields.add(
           eventCoordinateService.getCoordinateField(
-              program, COL_NAME_PSI_GEOMETRY, ErrorCode.E7221));
+              program, COL_NAME_EVENT_GEOMETRY, ErrorCode.E7221));
     } else if (EventQueryParams.ENROLLMENT_COORDINATE_FIELD.equals(coordinateField)) {
       coordinateFields.add(
           eventCoordinateService.getCoordinateField(
-              program, COL_NAME_PI_GEOMETRY, ErrorCode.E7221));
+              program, COL_NAME_ENROLLMENT_GEOMETRY, ErrorCode.E7221));
     } else if (EventQueryParams.TRACKER_COORDINATE_FIELD.equals(coordinateField)) {
       coordinateFields.add(
           eventCoordinateService.getCoordinateField(
-              program, COL_NAME_TEI_GEOMETRY, ErrorCode.E7221));
+              program, COL_NAME_TRACKED_ENTITY_GEOMETRY, ErrorCode.E7221));
     }
 
     DataElement dataElement = dataElementService.getDataElement(coordinateField);

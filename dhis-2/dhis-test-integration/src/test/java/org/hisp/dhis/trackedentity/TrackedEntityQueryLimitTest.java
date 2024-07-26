@@ -27,14 +27,15 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.utils.Assertions.assertNotEmpty;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -45,16 +46,21 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Zubair Asghar
  */
-class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class TrackedEntityQueryLimitTest extends PostgresIntegrationTestBase {
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -68,7 +74,7 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private SystemSettingManager systemSettingManager;
 
-  @Autowired private UserService _userService;
+  @Autowired private IdentifiableObjectManager manager;
 
   private OrganisationUnit orgUnitA;
 
@@ -84,9 +90,8 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase {
 
   private User user;
 
-  @Override
-  protected void setUpTest() throws Exception {
-
+  @BeforeAll
+  void setUp() {
     Enrollment enrollment1;
     Enrollment enrollment2;
     Enrollment enrollment3;
@@ -94,8 +99,7 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase {
 
     TrackedEntityType trackedEntityType;
 
-    userService = _userService;
-    user = createAndInjectAdminUser();
+    user = getAdminUser();
 
     orgUnitA = createOrganisationUnit("A");
     organisationUnitService.addOrganisationUnit(orgUnitA);
@@ -127,10 +131,10 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase {
     enrollment3 = createEnrollment(program, trackedEntity3, orgUnitA);
     enrollment4 = createEnrollment(program, trackedEntity4, orgUnitA);
 
-    enrollmentService.addEnrollment(enrollment1);
-    enrollmentService.addEnrollment(enrollment2);
-    enrollmentService.addEnrollment(enrollment3);
-    enrollmentService.addEnrollment(enrollment4);
+    manager.save(enrollment1);
+    manager.save(enrollment2);
+    manager.save(enrollment3);
+    manager.save(enrollment4);
 
     enrollmentService.enrollTrackedEntity(
         trackedEntity1, program, new Date(), new Date(), orgUnitA);

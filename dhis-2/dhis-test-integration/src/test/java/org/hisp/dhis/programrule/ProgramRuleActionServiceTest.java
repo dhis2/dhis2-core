@@ -42,13 +42,20 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.program.notification.NotificationTrigger;
+import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class ProgramRuleActionServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class ProgramRuleActionServiceTest extends PostgresIntegrationTestBase {
 
   private ProgramRule programRuleA;
 
@@ -76,8 +83,10 @@ class ProgramRuleActionServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private ProgramStageService programStageService;
 
-  @Override
-  public void setUpTest() {
+  @Autowired private ProgramNotificationTemplateService programNotificationTemplateService;
+
+  @BeforeEach
+  void setUp() {
     programStageA = createProgramStage('A', 0);
     Set<ProgramStage> programStages = new HashSet<>();
     programStages.add(programStageA);
@@ -332,7 +341,18 @@ class ProgramRuleActionServiceTest extends TransactionalIntegrationTest {
             "$placeofliving",
             null,
             null);
-    actionI.setTemplateUid("tempUId");
+
+    ProgramNotificationTemplate pnt =
+        createProgramNotificationTemplate(
+            "test123",
+            3,
+            NotificationTrigger.PROGRAM_RULE,
+            ProgramNotificationRecipient.USER_GROUP);
+
+    programNotificationTemplateService.save(pnt);
+
+    actionI.setTemplateUid(pnt.getUid());
+    actionI.setNotificationTemplate(pnt);
     actionService.addProgramRuleAction(actionI);
     actionService.addProgramRuleAction(actionJ);
     programRuleA.setProgramRuleActions(Sets.newHashSet(actionI, actionJ));

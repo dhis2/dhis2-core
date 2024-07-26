@@ -28,11 +28,10 @@
 package org.hisp.dhis.program;
 
 import java.util.Date;
-import java.util.List;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
@@ -58,63 +57,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
 
   private final TrackerOwnershipManager trackerOwnershipAccessManager;
 
-  @Override
-  @Transactional
-  public long addEnrollment(Enrollment enrollment) {
-    enrollmentStore.save(enrollment);
-    return enrollment.getId();
-  }
-
-  @Override
-  @Transactional
-  public void deleteEnrollment(Enrollment enrollment) {
-    enrollment.setStatus(EnrollmentStatus.CANCELLED);
-    enrollmentStore.update(enrollment);
-    enrollmentStore.delete(enrollment);
-  }
-
-  @Override
-  @Transactional
-  public void hardDeleteEnrollment(Enrollment enrollment) {
-    enrollmentStore.hardDelete(enrollment);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<Enrollment> getEnrollments(@Nonnull List<String> uids) {
-    return enrollmentStore.getByUid(uids);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean enrollmentExistsIncludingDeleted(String uid) {
-    return enrollmentStore.existsIncludingDeleted(uid);
-  }
-
-  @Override
-  @Transactional
-  public void updateEnrollment(Enrollment enrollment) {
-    enrollmentStore.update(enrollment);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<Enrollment> getEnrollments(Program program) {
-    return enrollmentStore.get(program);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<Enrollment> getEnrollments(Program program, EnrollmentStatus status) {
-    return enrollmentStore.get(program, status);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<Enrollment> getEnrollments(
-      TrackedEntity trackedEntity, Program program, EnrollmentStatus status) {
-    return enrollmentStore.get(trackedEntity, program, status);
-  }
+  private final IdentifiableObjectManager manager;
 
   private Enrollment prepareEnrollment(
       TrackedEntity trackedEntity,
@@ -180,11 +123,11 @@ public class DefaultEnrollmentService implements EnrollmentService {
     Enrollment enrollment =
         prepareEnrollment(
             trackedEntity, program, enrollmentDate, occurredDate, organisationUnit, uid);
-    addEnrollment(enrollment);
+    manager.save(enrollment);
     trackerOwnershipAccessManager.assignOwnership(
         trackedEntity, program, organisationUnit, true, true);
     eventPublisher.publishEvent(new ProgramEnrollmentNotificationEvent(this, enrollment.getId()));
-    updateEnrollment(enrollment);
+    manager.update(enrollment);
     trackedEntityService.updateTrackedEntity(trackedEntity);
     return enrollment;
   }

@@ -50,7 +50,6 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.UserInfoSnapshot;
@@ -63,11 +62,14 @@ import org.hisp.dhis.sms.listener.CommandSMSListener;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserService;
 
 @Slf4j
 public abstract class RegisterSMSListener extends CommandSMSListener {
+
+  protected final org.hisp.dhis.program.EnrollmentService apiEnrollmentService;
 
   protected final EnrollmentService enrollmentService;
 
@@ -84,12 +86,14 @@ public abstract class RegisterSMSListener extends CommandSMSListener {
       UserService userService,
       IncomingSmsService incomingSmsService,
       MessageSender smsSender,
+      org.hisp.dhis.program.EnrollmentService apiEnrollmentService,
       EnrollmentService enrollmentService,
       TrackedEntityDataValueChangeLogService dataValueAuditService,
       FileResourceService fileResourceService,
       DhisConfigurationProvider config,
       IdentifiableObjectManager identifiableObjectManager) {
     super(dataElementCategoryService, userService, incomingSmsService, smsSender);
+    this.apiEnrollmentService = apiEnrollmentService;
     this.enrollmentService = enrollmentService;
     this.dataValueAuditService = dataValueAuditService;
     this.fileResourceService = fileResourceService;
@@ -110,7 +114,7 @@ public abstract class RegisterSMSListener extends CommandSMSListener {
       enrollment.setProgram(smsCommand.getProgram());
       enrollment.setStatus(EnrollmentStatus.ACTIVE);
 
-      enrollmentService.addEnrollment(enrollment);
+      identifiableObjectManager.save(enrollment);
 
       enrollments.add(enrollment);
     } else if (enrollments.size() > 1) {

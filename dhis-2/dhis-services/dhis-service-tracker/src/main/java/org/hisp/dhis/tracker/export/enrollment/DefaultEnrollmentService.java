@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -41,7 +43,9 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -84,7 +88,7 @@ class DefaultEnrollmentService implements EnrollmentService {
   @Override
   public Enrollment getEnrollment(String uid, EnrollmentParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException {
-    return getEnrollment(uid, params, includeDeleted, CurrentUserUtil.getCurrentUserDetails());
+    return getEnrollment(uid, params, includeDeleted, getCurrentUserDetails());
   }
 
   private Enrollment getEnrollment(
@@ -165,7 +169,7 @@ class DefaultEnrollmentService implements EnrollmentService {
       throw new NotFoundException(Enrollment.class, uid);
     }
 
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUser = getCurrentUserDetails();
     List<String> errors = trackerAccessManager.canRead(currentUser, enrollment, false);
     if (!errors.isEmpty()) {
       return null;
@@ -220,6 +224,43 @@ class DefaultEnrollmentService implements EnrollmentService {
   }
 
   @Override
+  public List<Enrollment> getEnrollments(@Nonnull List<String> uids) throws ForbiddenException {
+    List<Enrollment> enrollments = enrollmentStore.getByUid(uids);
+    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
+
+    List<String> errors =
+        enrollments.stream()
+            .flatMap(e -> trackerAccessManager.canRead(user, e, false).stream())
+            .toList();
+
+    if (!errors.isEmpty()) {
+      throw new ForbiddenException(errors.toString());
+    }
+
+    return enrollments.stream()
+        .map(e -> getEnrollment(e, EnrollmentParams.FALSE, false, user))
+        .toList();
+  }
+
+  // TODO(tracker) This method should be removed as soon as we move the org unit validation into the
+  // service layer
+  @Deprecated(since = "2.42")
+  @Override
+  public List<Enrollment> getEnrollments(
+      String trackedEntityUid, Program program, EnrollmentStatus enrollmentStatus)
+      throws ForbiddenException, BadRequestException {
+    EnrollmentOperationParams params =
+        EnrollmentOperationParams.builder()
+            .trackedEntityUid(trackedEntityUid)
+            .programUid(program.getUid())
+            .enrollmentStatus(enrollmentStatus)
+            .orgUnitMode(ACCESSIBLE)
+            .build();
+
+    return getEnrollments(params);
+  }
+
+  @Override
   public List<Enrollment> getEnrollments(EnrollmentOperationParams params)
       throws ForbiddenException, BadRequestException {
     EnrollmentQueryParams queryParams = paramsMapper.map(params);
@@ -252,7 +293,7 @@ class DefaultEnrollmentService implements EnrollmentService {
       boolean includeDeleted,
       OrganisationUnitSelectionMode orgUnitMode) {
     List<Enrollment> enrollmentList = new ArrayList<>();
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUser = getCurrentUserDetails();
 
     for (Enrollment enrollment : enrollments) {
       if (enrollment != null

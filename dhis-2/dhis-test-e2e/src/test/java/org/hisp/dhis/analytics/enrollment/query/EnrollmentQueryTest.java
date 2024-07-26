@@ -39,9 +39,9 @@ import static org.hisp.dhis.analytics.ValidationHelper.validateRowContext;
 
 import java.util.List;
 import org.hisp.dhis.AnalyticsApiTest;
-import org.hisp.dhis.actions.analytics.AnalyticsEnrollmentsActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEnrollmentsActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -97,8 +97,7 @@ public class EnrollmentQueryTest extends AnalyticsApiTest {
 
     // Validate headers
     validateHeader(response, 0, "pi", "Enrollment", "TEXT", "java.lang.String", false, true);
-    validateHeader(
-        response, 1, "tei", "Tracked entity instance", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 1, "tei", "Tracked entity", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response,
         2,

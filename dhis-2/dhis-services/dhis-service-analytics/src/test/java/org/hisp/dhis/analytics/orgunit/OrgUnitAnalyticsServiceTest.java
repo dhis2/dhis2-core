@@ -30,10 +30,10 @@ package org.hisp.dhis.analytics.orgunit;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.orgunit.data.DefaultOrgUnitAnalyticsService;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.test.TestBase;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -43,7 +43,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Lars Helge Overland
  */
 @ExtendWith(MockitoExtension.class)
-class OrgUnitAnalyticsServiceTest extends DhisConvenienceTest {
+class OrgUnitAnalyticsServiceTest extends TestBase {
   @InjectMocks private DefaultOrgUnitAnalyticsService subject;
 
   @Test

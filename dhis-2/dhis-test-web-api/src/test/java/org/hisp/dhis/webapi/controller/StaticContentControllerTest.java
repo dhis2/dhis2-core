@@ -34,10 +34,10 @@ import static org.hamcrest.core.StringContains.containsString;
 import static org.hisp.dhis.fileresource.FileResourceDomain.DOCUMENT;
 import static org.hisp.dhis.fileresource.FileResourceKeyUtil.makeKey;
 import static org.hisp.dhis.setting.SettingKey.USE_CUSTOM_LOGO_BANNER;
+import static org.hisp.dhis.test.webapi.TestUtils.APPLICATION_JSON_UTF8;
 import static org.hisp.dhis.webapi.controller.StaticContentController.LOGO_BANNER;
 import static org.hisp.dhis.webapi.controller.StaticContentController.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.utils.FileResourceUtils.build;
-import static org.hisp.dhis.webapi.utils.TestUtils.APPLICATION_JSON_UTF8;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -52,7 +52,7 @@ import com.google.gson.JsonObject;
 import java.util.Optional;
 import org.hisp.dhis.fileresource.JCloudsFileResourceContentStore;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.webapi.DhisWebSpringTest;
+import org.hisp.dhis.test.webapi.WebSpringTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,7 +63,7 @@ import org.springframework.test.web.servlet.ResultActions;
 /**
  * @author Luciano Fiandesio
  */
-class StaticContentControllerTest extends DhisWebSpringTest {
+class StaticContentControllerTest extends WebSpringTestBase {
 
   private static final String URL = "/api/staticContent/";
 
@@ -79,7 +79,7 @@ class StaticContentControllerTest extends DhisWebSpringTest {
 
   @BeforeEach
   void setUp() {
-    this.session = getSession("ALL");
+    this.session = getMockHttpSession();
     this.mockMultipartFile =
         new MockMultipartFile("file", "testlogo.png", MIME_PNG, "image".getBytes());
     systemSettingManager.saveSystemSetting(USE_CUSTOM_LOGO_BANNER, FALSE);

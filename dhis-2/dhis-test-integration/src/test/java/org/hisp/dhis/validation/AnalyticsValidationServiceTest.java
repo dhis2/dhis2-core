@@ -82,7 +82,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -90,15 +90,18 @@ import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Jim Grace
  */
 @Slf4j
-class AnalyticsValidationServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class AnalyticsValidationServiceTest extends PostgresIntegrationTestBase {
   @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private TrackedEntityAttributeService entityAttributeService;
@@ -131,8 +134,6 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private DataValidationRunner runner;
 
-  @Autowired private UserService _userService;
-
   @Autowired private IdentifiableObjectManager manager;
 
   private CategoryOptionCombo defaultCombo;
@@ -161,11 +162,8 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest {
 
   private ValidationRule ruleX;
 
-  @Override
-  public void setUpTest() {
-
-    this.userService = _userService;
-
+  @BeforeEach
+  void setUp() {
     final String DATA_ELEMENT_A_UID = "DataElement";
     final String TRACKED_ENTITY_ATTRIBUTE_UID = "TEAttribute";
     final String PROGRAM_UID = "ProgramABCD";
@@ -227,7 +225,7 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest {
     Enrollment enrollment =
         enrollmentService.enrollTrackedEntity(
             trackedEntity, program, dateMar20, dateMar20, orgUnitA);
-    enrollmentService.addEnrollment(enrollment);
+    manager.save(enrollment);
     Event eventA = createEvent(stageA, enrollment, orgUnitA);
     eventA.setOccurredDate(dateMar20);
     manager.save(eventA);
@@ -280,8 +278,8 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest {
     injectSecurityContextUser(user);
   }
 
-  @Override
-  public void tearDownTest() {
+  @AfterEach
+  void tearDown() {
     runner.setAnalyticsService(analyticsService);
   }
 

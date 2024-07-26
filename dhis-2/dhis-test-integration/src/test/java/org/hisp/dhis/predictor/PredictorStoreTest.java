@@ -43,15 +43,18 @@ import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class PredictorStoreTest extends TransactionalIntegrationTest {
+@Transactional
+class PredictorStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private PredictorStore predictorStore;
 
@@ -87,11 +90,8 @@ class PredictorStoreTest extends TransactionalIntegrationTest {
 
   private PeriodType periodType;
 
-  // -------------------------------------------------------------------------
-  // Fixture
-  // -------------------------------------------------------------------------
-  @Override
-  public void setUpTest() throws Exception {
+  @BeforeEach
+  void setUp() {
     orgUnitLevel1 = new OrganisationUnitLevel(1, "Level1");
     organisationUnitService.addOrganisationUnitLevel(orgUnitLevel1);
     dataElementA = createDataElement('A');

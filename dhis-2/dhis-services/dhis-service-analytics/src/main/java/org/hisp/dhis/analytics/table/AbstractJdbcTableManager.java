@@ -154,12 +154,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   /**
-   * Encapsulates the SQL logic to get the correct date column based on the event(program stage
-   * instance) status. If new statuses need to be loaded into the analytics events tables, they have
-   * to be supported/added into this logic.
+   * Encapsulates the SQL logic to get the correct date column based on the event status. If new
+   * statuses need to be loaded into the analytics events tables, they have to be supported/added
+   * into this logic.
    */
   protected final String eventDateExpression =
-      "CASE WHEN 'SCHEDULE' = psi.status THEN psi.scheduleddate ELSE psi.occurreddate END";
+      "CASE WHEN 'SCHEDULE' = ev.status THEN ev.scheduleddate ELSE ev.occurreddate END";
 
   // -------------------------------------------------------------------------
   // Implementation

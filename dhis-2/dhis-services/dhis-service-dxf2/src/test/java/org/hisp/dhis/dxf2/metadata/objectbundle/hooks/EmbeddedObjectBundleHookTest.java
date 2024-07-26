@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import static org.hisp.dhis.DhisConvenienceTest.createEventVisualization;
-import static org.hisp.dhis.DhisConvenienceTest.createProgram;
+import static org.hisp.dhis.test.TestBase.createEventVisualization;
+import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.when;
 

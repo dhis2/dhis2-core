@@ -47,9 +47,10 @@ import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.event.EventChangeLog.DataValueChange;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
+import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -59,9 +60,9 @@ class EventChangeLogServiceTest extends TrackerTest {
 
   @Autowired private TrackerImportService trackerImportService;
 
-  @Autowired private IdentifiableObjectManager manager;
+  @Autowired private TrackerObjectDeletionService trackerObjectDeletionService;
 
-  @Autowired protected UserService _userService;
+  @Autowired private IdentifiableObjectManager manager;
 
   private User importUser;
 
@@ -71,11 +72,13 @@ class EventChangeLogServiceTest extends TrackerTest {
       EventChangeLogOperationParams.builder().build();
   private final PageParams defaultPageParams = new PageParams(null, null, false);
 
-  @Override
-  protected void initTest() throws IOException {
-    userService = _userService;
+  @BeforeAll
+  void setUp() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
-    importUser = userService.getUser("M5zQapPyTZI");
+
+    importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
+
     importParams = TrackerImportParams.builder().userId(importUser.getUid()).build();
     assertNoErrors(
         trackerImportService.importTracker(
@@ -84,6 +87,16 @@ class EventChangeLogServiceTest extends TrackerTest {
 
   @Test
   void shouldFailWhenEventDoesNotExist() {
+    assertThrows(
+        NotFoundException.class,
+        () ->
+            eventChangeLogService.getEventChangeLog(
+                UID.of(CodeGenerator.generateUid()), null, null));
+  }
+
+  @Test
+  void shouldFailWhenEventIsSoftDeleted() throws NotFoundException {
+    trackerObjectDeletionService.deleteEvents(List.of("D9PbzJY8bJM"));
     assertThrows(
         NotFoundException.class,
         () ->

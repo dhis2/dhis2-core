@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.datavalue;
 
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
@@ -40,13 +40,19 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /** Created by Halvdan Hoem Grelland */
-class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class DataValueAuditServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataValueAuditService dataValueAuditService;
 
   @Autowired private DataValueService dataValueService;
@@ -93,8 +99,8 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase {
 
   private DataValue dataValueD;
 
-  @Override
-  public void setUpTest() throws Exception {
+  @BeforeAll
+  void setUp() {
     dataElementA = createDataElement('A');
     dataElementB = createDataElement('B');
     dataElementC = createDataElement('C');

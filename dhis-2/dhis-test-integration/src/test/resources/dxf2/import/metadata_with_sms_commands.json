@@ -5,16 +5,16 @@
       "user": {
         "id": "T12jeH7KPzk"
       },
-      "aggregationLevels": [ ],
+      "aggregationLevels": [],
       "publicAccess": "rw------",
       "aggregationType": "SUM",
       "lastUpdated": "2016-03-08T07:30:07.699+0000",
       "created": "2016-03-08T07:30:07.698+0000",
       "name": "Simple Value",
       "shortName": "Simple Value",
-      "attributeValues": [ ],
+      "attributeValues": [],
       "zeroIsSignificant": false,
-      "userGroupAccesses": [ ],
+      "userGroupAccesses": [],
       "domainType": "AGGREGATE",
       "id": "nHwIqKAudKN"
     },
@@ -23,12 +23,12 @@
       "created": "2016-03-08T07:30:58.416+0000",
       "lastUpdated": "2016-03-08T07:30:58.417+0000",
       "zeroIsSignificant": false,
-      "userGroupAccesses": [ ],
+      "userGroupAccesses": [],
       "id": "VolAzjFe5zP",
       "domainType": "AGGREGATE",
-      "attributeValues": [ ],
+      "attributeValues": [],
       "shortName": "Value with CC",
-      "aggregationLevels": [ ],
+      "aggregationLevels": [],
       "user": {
         "id": "T12jeH7KPzk"
       },
@@ -44,12 +44,12 @@
       "created": "2016-03-08T07:30:58.416+0000",
       "lastUpdated": "2016-03-08T07:30:58.417+0000",
       "zeroIsSignificant": false,
-      "userGroupAccesses": [ ],
+      "userGroupAccesses": [],
       "id": "R45hiT7RLui",
       "domainType": "AGGREGATE",
-      "attributeValues": [ ],
+      "attributeValues": [],
       "shortName": "Value with CC 5 years",
-      "aggregationLevels": [ ],
+      "aggregationLevels": [],
       "user": {
         "id": "T12jeH7KPzk"
       },
@@ -75,7 +75,7 @@
         }
       ],
       "name": "Gender",
-      "userGroupAccesses": [ ],
+      "userGroupAccesses": [],
       "skipTotal": false,
       "dataDimensionType": "DISAGGREGATION",
       "id": "faV8QvLgIwB"
@@ -90,7 +90,7 @@
       "shortName": "Country",
       "description": "",
       "id": "x3gVvpbVgqy",
-      "attributeValues": [ ],
+      "attributeValues": [],
       "path": "/x3gVvpbVgqy",
       "featureType": "NONE",
       "user": {
@@ -102,13 +102,13 @@
   "categoryOptions": [
     {
       "id": "JYiFOMKa25J",
-      "userGroupAccesses": [ ],
-      "attributeValues": [ ],
+      "userGroupAccesses": [],
+      "attributeValues": [],
       "shortName": "Female",
       "name": "Female",
       "created": "2016-03-08T07:28:50.372+0000",
       "lastUpdated": "2016-03-08T07:28:50.374+0000",
-      "organisationUnits": [ ],
+      "organisationUnits": [],
       "user": {
         "id": "T12jeH7KPzk"
       },
@@ -116,13 +116,13 @@
     },
     {
       "shortName": "Male",
-      "userGroupAccesses": [ ],
+      "userGroupAccesses": [],
       "id": "tdaMRD34m8o",
-      "attributeValues": [ ],
+      "attributeValues": [],
       "lastUpdated": "2016-03-08T07:28:44.217+0000",
       "name": "Male",
       "created": "2016-03-08T07:28:44.214+0000",
-      "organisationUnits": [ ],
+      "organisationUnits": [],
       "user": {
         "id": "T12jeH7KPzk"
       },
@@ -131,12 +131,12 @@
   ],
   "userRoles": [
     {
-      "name": "Superuser",
+      "name": "metadata Superuser",
       "created": "2016-03-08T07:26:51.925+0000",
       "lastUpdated": "2016-03-08T07:26:51.925+0000",
-      "userGroupAccesses": [ ],
+      "userGroupAccesses": [],
       "id": "wSdzlWUHmEu",
-      "dataSets": [ ],
+      "dataSets": [],
       "authorities": [
         "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
         "ALL",
@@ -170,7 +170,7 @@
         "F_TRACKED_ENTITY_DATAVALUE_DELETE"
       ],
       "publicAccess": "--------",
-      "programs": [ ]
+      "programs": []
     }
   ],
   "categories": [
@@ -201,7 +201,7 @@
     {
       "description": "Person",
       "id": "MDvmqCKmXQM",
-      "attributeValues": [ ],
+      "attributeValues": [],
       "name": "Person",
       "created": "2016-03-08T07:28:58.738+0000",
       "lastUpdated": "2016-03-08T07:28:58.740+0000"
@@ -211,7 +211,7 @@
     {
       "sortOrder": 0,
       "id": "JwcV2ZifEQf",
-      "indicators": [ ],
+      "indicators": [],
       "lastUpdated": "2016-03-08T07:32:29.362+0000",
       "created": "2016-03-08T07:32:29.361+0000",
       "name": "Section Default",
@@ -224,21 +224,21 @@
           "id": "R45hiT7RLui"
         }
       ],
-      "greyedFields": [ ]
+      "greyedFields": []
     },
     {
       "lastUpdated": "2016-03-08T07:32:42.140+0000",
       "created": "2016-03-08T07:32:42.140+0000",
       "name": "Section Gender",
       "id": "C50M0WxaI7y",
-      "indicators": [ ],
+      "indicators": [],
       "sortOrder": 0,
       "dataElements": [
         {
           "id": "VolAzjFe5zP"
         }
       ],
-      "greyedFields": [ ],
+      "greyedFields": [],
       "dataSet": {
         "id": "em8Bg4LCr5k"
       }
@@ -300,7 +300,7 @@
           }
         }
       ],
-      "compulsoryDataElementOperands": [ ],
+      "compulsoryDataElementOperands": [],
       "timelyDays": 15,
       "fieldCombinationRequired": false,
       "version": 4,
@@ -313,10 +313,10 @@
       "publicAccess": "rw------",
       "noValueRequiresComment": false,
       "shortName": "Data Set",
-      "attributeValues": [ ],
+      "attributeValues": [],
       "id": "em8Bg4LCr5k",
-      "indicators": [ ],
-      "userGroupAccesses": [ ],
+      "indicators": [],
+      "userGroupAccesses": [],
       "periodType": "Monthly",
       "mobile": false,
       "lastUpdated": "2016-03-08T07:32:42.146+0000",
@@ -344,7 +344,7 @@
       "dataViewOrganisationUnits": [],
       "catDimensionConstraints": [],
       "disabled": false,
-      "username": "admin",
+      "username": "metadataadmin",
       "selfRegistered": false,
       "cogsDimensionConstraints": [],
       "passwordLastUpdated": "2016-03-08T07:26:51.942+0000",
@@ -356,43 +356,47 @@
       "invitation": false,
       "externalAuth": false,
       "lastLogin": "2016-03-08T07:26:51.942+0000",
-      "surname": "admin",
+      "surname": "metadata admin",
       "attributeValues": [],
       "id": "T12jeH7KPzk",
       "created": "2016-03-08T07:26:51.909+0000",
-      "firstName": "admin",
+      "firstName": "metadata admin",
       "lastUpdated": "2016-03-08T07:26:51.909+0000",
       "teiSearchOrganisationUnits": []
     }
   ],
-
-  "smsCommands":[{
-    "id": "em8Bg4LCr1a",
-    "name": "test-sms-command",
-    "parserType": "KEY_VALUE_PARSER",
-    "dataset": {
-      "id": "em8Bg4LCr5k"
-    },
-    "completenessMethod": "AT_LEAST_ONE_DATAVALUE",
-    "currentPeriodUsedForReporting": false,
-    "wrongFormatMessage": "Wrong command format",
-    "noUserMessage": "No user associated with this phone number. Please contact your supervisor.",
-    "moreThanOneOrgUnitMessage": "Found more than one org unit for this number. Please specify one organisation unit",
-    "successMessage": "Command has been processed successfully",
-    "specialCharacters": [],
-    "smsCodes": [{
-      "code": "a",
-      "dataElement": {
-        "id": "nHwIqKAudKN"
-      }
-    }, {
-      "code": "b",
-      "dataElement": {
-        "id": "VolAzjFe5zP"
+  "smsCommands": [
+    {
+      "id": "em8Bg4LCr1a",
+      "name": "test-sms-command",
+      "parserType": "KEY_VALUE_PARSER",
+      "dataset": {
+        "id": "em8Bg4LCr5k"
       },
-      "optionId": {
-        "id": "J5uZylXMmbB"
-      }
-    }]
-  }]
+      "completenessMethod": "AT_LEAST_ONE_DATAVALUE",
+      "currentPeriodUsedForReporting": false,
+      "wrongFormatMessage": "Wrong command format",
+      "noUserMessage": "No user associated with this phone number. Please contact your supervisor.",
+      "moreThanOneOrgUnitMessage": "Found more than one org unit for this number. Please specify one organisation unit",
+      "successMessage": "Command has been processed successfully",
+      "specialCharacters": [],
+      "smsCodes": [
+        {
+          "code": "a",
+          "dataElement": {
+            "id": "nHwIqKAudKN"
+          }
+        },
+        {
+          "code": "b",
+          "dataElement": {
+            "id": "VolAzjFe5zP"
+          },
+          "optionId": {
+            "id": "J5uZylXMmbB"
+          }
+        }
+      ]
+    }
+  ]
 }

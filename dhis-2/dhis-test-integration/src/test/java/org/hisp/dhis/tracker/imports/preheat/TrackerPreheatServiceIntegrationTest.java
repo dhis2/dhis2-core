@@ -40,7 +40,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
@@ -50,11 +50,13 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class TrackerPreheatServiceIntegrationTest extends TransactionalIntegrationTest {
+@Transactional
+class TrackerPreheatServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   private final String TET_UID = "TET12345678";
 
@@ -70,18 +72,15 @@ class TrackerPreheatServiceIntegrationTest extends TransactionalIntegrationTest 
 
   @Autowired private AttributeService attributeService;
 
-  @Autowired private UserService _userService;
-
   private User currentUser;
 
   private Program program;
 
   private String programAttribute;
 
-  @Override
-  public void setUpTest() throws Exception {
-    userService = _userService;
-    currentUser = createAndInjectAdminUser("ALL");
+  @BeforeEach
+  void setUp() {
+    currentUser = getAdminUser();
     // Set up placeholder OU; We add Code for testing idScheme.
     OrganisationUnit orgUnit = createOrganisationUnit('A');
     orgUnit.setCode("OUA");

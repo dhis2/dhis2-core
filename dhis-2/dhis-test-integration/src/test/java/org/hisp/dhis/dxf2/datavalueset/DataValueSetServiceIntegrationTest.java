@@ -93,9 +93,9 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -105,7 +105,7 @@ import org.springframework.core.io.ClassPathResource;
 /**
  * @author Lars Helge Overland
  */
-class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
+class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
   private final String ATTRIBUTE_UID = "uh6H2ff562G";
 
   @Autowired private DataElementService dataElementService;
@@ -131,8 +131,6 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
   @Autowired private IdentifiableObjectManager idObjectManager;
 
   @Autowired private AttributeService attributeService;
-
-  @Autowired private UserService _userService;
 
   private CategoryOptionCombo ocDef;
 
@@ -162,13 +160,9 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
 
   private User superUser;
 
-  @Override
-  public void setUpTest() {
-    userService = _userService;
-    //    superUser = preCreateInjectAdminUser();
-    superUser = userService.getUserByUsername("admin_test");
-    injectSecurityContextUser(superUser);
-
+  @BeforeEach
+  void setUp() {
+    superUser = getAdminUser();
     CategoryOptionCombo categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
     Attribute attribute = new Attribute("CUSTOM_ID", ValueType.TEXT);
     attribute.setUid(ATTRIBUTE_UID);
@@ -1534,10 +1528,6 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
 
     assertSuccessWithImportedUpdatedDeleted(5, 0, 0, summary);
   }
-
-  // -------------------------------------------------------------------------
-  // Supportive methods
-  // -------------------------------------------------------------------------
 
   /**
    * Creates a {@link org.hisp.dhis.dxf2.datavalue.DataValue}.

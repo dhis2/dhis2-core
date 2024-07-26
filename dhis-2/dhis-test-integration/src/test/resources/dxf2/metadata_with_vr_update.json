@@ -109,7 +109,7 @@
       "teiSearchOrganisationUnits": [],
       "dataViewOrganisationUnits": [],
       "lastUpdated": "2016-03-10T05:01:28.993+0000",
-      "username": "admin",
+      "username": "metadataadmin",
       "disabled": false,
       "passwordLastUpdated": "2016-03-10T05:00:11.791+0000",
       "selfRegistered": false,
@@ -126,11 +126,11 @@
         }
       ],
       "lastLogin": "2016-03-10T05:00:11.791+0000",
-      "surname": "admin",
+      "surname": "metadata admin",
       "attributeValues": [],
       "created": "2016-03-10T05:00:11.766+0000",
       "id": "ZK1wkC59FCw",
-      "firstName": "admin",
+      "firstName": "metadata admin",
       "organisationUnits": [
         {
           "id": "SR705r4KVRu"
@@ -150,7 +150,7 @@
   "userRoles": [
     {
       "dataSets": [],
-      "name": "Superuser",
+      "name": "metadata Superuser",
       "authorities": [
         "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
         "ALL",
