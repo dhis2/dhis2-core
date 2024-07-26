@@ -58,7 +58,6 @@ import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.fieldfiltering.Preset;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.node.AbstractNode;
 import org.hisp.dhis.node.Node;
