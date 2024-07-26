@@ -41,6 +41,7 @@ import org.hisp.dhis.user.sharing.Sharing;
 /**
  * @author Lars Helge Overland
  */
+@OpenApi.Kind("IdentifiableObject")
 public interface IdentifiableObject
     extends PrimaryKeyObject, LinkableObject, Comparable<IdentifiableObject>, Serializable {
   String getCode();

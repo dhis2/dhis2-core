@@ -66,8 +66,8 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.Preset;
 import org.hisp.dhis.node.NodeUtils;
-import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -236,6 +236,7 @@ public class DataApprovalController {
         .collect(toList());
   }
 
+  @OpenApi.Response(DataApprovalStateResponse[].class)
   @GetMapping(value = STATUS_PATH, produces = ContextUtils.CONTENT_TYPE_JSON)
   public @ResponseBody RootNode getApproval(
       @OpenApi.Param({UID[].class, DataSet.class}) @RequestParam Set<String> ds,

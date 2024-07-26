@@ -35,11 +35,8 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.EnrollmentStore;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -51,7 +48,6 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.program.EnrollmentStore")
 public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment>
     implements EnrollmentStore {
-  private static final String STATUS = "status";
 
   public HibernateEnrollmentStore(
       EntityManager entityManager,
@@ -59,30 +55,6 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
       ApplicationEventPublisher publisher,
       AclService aclService) {
     super(entityManager, jdbcTemplate, publisher, Enrollment.class, aclService, true);
-  }
-
-  @Override
-  public List<Enrollment> get(Program program, EnrollmentStatus status) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    return getList(
-        builder,
-        newJpaParameters()
-            .addPredicate(root -> builder.equal(root.get("program"), program))
-            .addPredicate(root -> builder.equal(root.get(STATUS), status)));
-  }
-
-  @Override
-  public List<Enrollment> get(
-      TrackedEntity trackedEntity, Program program, EnrollmentStatus status) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    return getList(
-        builder,
-        newJpaParameters()
-            .addPredicate(root -> builder.equal(root.get("trackedEntity"), trackedEntity))
-            .addPredicate(root -> builder.equal(root.get("program"), program))
-            .addPredicate(root -> builder.equal(root.get(STATUS), status)));
   }
 
   @Override

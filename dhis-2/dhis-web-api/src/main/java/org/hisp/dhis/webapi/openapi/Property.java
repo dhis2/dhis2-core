@@ -168,7 +168,8 @@ class Property {
 
   private static boolean isExplicitlyIncluded(AnnotatedElement source) {
     return source.isAnnotationPresent(JsonProperty.class)
-        || source.isAnnotationPresent(OpenApi.Property.class);
+        || source.isAnnotationPresent(OpenApi.Property.class)
+        || source.isAnnotationPresent(OpenApi.Description.class);
   }
 
   private static Type getType(AnnotatedElement source, Type type) {

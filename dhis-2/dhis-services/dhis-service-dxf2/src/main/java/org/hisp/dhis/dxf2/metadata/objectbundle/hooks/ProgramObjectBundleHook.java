@@ -37,8 +37,8 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.EnrollmentStatus;
+import org.hisp.dhis.program.EventProgramEnrollmentService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
@@ -54,7 +54,7 @@ import org.springframework.stereotype.Component;
 @Component
 @AllArgsConstructor
 public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
-  private final EnrollmentService enrollmentService;
+  private final EventProgramEnrollmentService eventProgramEnrollmentService;
 
   private final ProgramStageService programStageService;
 
@@ -139,7 +139,7 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
   }
 
   private int getProgramInstancesCount(Program program) {
-    return enrollmentService.getEnrollments(program, EnrollmentStatus.ACTIVE).size();
+    return eventProgramEnrollmentService.getEnrollments(program, EnrollmentStatus.ACTIVE).size();
   }
 
   private void validateAttributeSecurity(
