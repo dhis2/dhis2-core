@@ -41,6 +41,7 @@ import java.util.function.Function;
 import java.util.function.LongSupplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
@@ -308,7 +309,7 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
   }
 
   @Override
-  public void deleteEnrollment(Enrollment enrollment) {
+  public void delete(@Nonnull Enrollment enrollment) {
     enrollment.setStatus(EnrollmentStatus.CANCELLED);
     super.delete(enrollment);
   }
