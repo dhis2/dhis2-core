@@ -144,7 +144,10 @@ class FieldPathHelperTest extends SingleSetupIntegrationTestBase {
     assertTrue(
         Preset.NAMEABLE
             .getFields()
-            .containsAll(fieldPathMap.values().stream().map(FieldPath::getName).toList()));
+            .containsAll(
+                fieldPathMap.values().stream()
+                    .map(FieldPath::getName)
+                    .collect(Collectors.toList())));
   }
 
   @Test
