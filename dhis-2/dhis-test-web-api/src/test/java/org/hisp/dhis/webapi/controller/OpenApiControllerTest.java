@@ -27,11 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertGreaterOrEqual;
 import static org.hisp.dhis.test.utils.Assertions.assertLessOrEqual;
+import static org.hisp.dhis.test.web.WebClient.Accept;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
 
 import io.swagger.parser.OpenAPIParser;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
@@ -100,6 +103,14 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
                 "/api/users/sharing"));
     assertLessOrEqual(151, doc.getObject("paths").size());
     assertLessOrEqual(80, doc.getObject("components.schemas").size());
+  }
+
+  @Test
+  void testGetOpenApiDocumentHtml_DomainFilter() {
+    String html =
+        GET("/openapi/openapi.html?domain=DataElement", Accept(TEXT_HTML_VALUE))
+            .content(TEXT_HTML_VALUE);
+    assertContains("#DataElement", html);
   }
 
   @Test

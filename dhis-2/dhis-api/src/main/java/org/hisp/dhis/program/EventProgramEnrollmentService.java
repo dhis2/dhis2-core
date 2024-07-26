@@ -38,4 +38,6 @@ public interface EventProgramEnrollmentService {
 
   /** Returns a list of enrollments in the given program. */
   List<Enrollment> getEnrollments(Program program);
+
+  List<Enrollment> getEnrollments(Program program, EnrollmentStatus enrollmentStatus);
 }

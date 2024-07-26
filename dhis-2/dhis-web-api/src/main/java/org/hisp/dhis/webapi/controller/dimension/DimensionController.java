@@ -44,11 +44,15 @@ import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.dimension.AnalyticsDimensionService;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DataQueryRequest;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.common.OrderParams;
@@ -86,6 +90,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Lars Helge Overland
  */
+@OpenApi.EntityType(BaseDimensionalObject.class)
 @Controller
 @RequestMapping("/api/dimensions")
 @RequiredArgsConstructor
@@ -170,6 +175,12 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
     return ResponseEntity.ok(csv);
   }
 
+  @OpenApi.Response(
+      status = OpenApi.Response.Status.OK,
+      object = {
+        @OpenApi.Property(name = "pager", value = Pager.class),
+        @OpenApi.Property(name = "items", value = BaseDimensionalItemObject[].class)
+      })
   @SuppressWarnings("unchecked")
   @GetMapping("/{uid}/items")
   public @ResponseBody RootNode getItems(
@@ -228,6 +239,12 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
     return rootNode;
   }
 
+  @OpenApi.Response(
+      status = OpenApi.Response.Status.OK,
+      object = {
+        @OpenApi.Property(name = "pager", value = Pager.class),
+        @OpenApi.Property(name = "dimensions", value = OpenApi.EntityType[].class)
+      })
   @GetMapping("/constraints")
   public @ResponseBody ResponseEntity<JsonRoot> getDimensionConstraints(
       @RequestParam(value = "links", defaultValue = "true", required = false) Boolean links,
@@ -243,6 +260,12 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
     return ResponseEntity.ok(new JsonRoot("dimensions", objectNodes));
   }
 
+  @OpenApi.Response(
+      status = OpenApi.Response.Status.OK,
+      object = {
+        @OpenApi.Property(name = "pager", value = Pager.class),
+        @OpenApi.Property(name = "dimensions", value = OpenApi.EntityType[].class)
+      })
   @GetMapping("/recommendations")
   public ResponseEntity<JsonRoot> getRecommendedDimensions(
       @RequestParam Set<String> dimension,
@@ -256,6 +279,12 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
     return ResponseEntity.ok(new JsonRoot("dimensions", objectNodes));
   }
 
+  @OpenApi.Response(
+      status = OpenApi.Response.Status.OK,
+      object = {
+        @OpenApi.Property(name = "pager", value = Pager.class),
+        @OpenApi.Property(name = "dimensions", value = OpenApi.EntityType[].class)
+      })
   @GetMapping("/dataSet/{uid}")
   public ResponseEntity<JsonRoot> getDimensionsForDataSet(
       @PathVariable String uid,

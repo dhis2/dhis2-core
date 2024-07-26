@@ -61,7 +61,9 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.PropertyNames;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.common.UID;
@@ -91,7 +93,6 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.openapi.Api.PropertyNames;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -113,6 +114,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  *
  * @author Jan Bernitt
  */
+@Maturity.Stable
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @OpenApi.Document(group = OpenApi.Document.Group.QUERY)
 public abstract class AbstractFullReadOnlyController<T extends IdentifiableObject>
@@ -406,7 +408,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
   @OpenApi.Param(name = "filter", value = String[].class)
   @OpenApi.Params(WebOptions.class)
   @OpenApi.Response(OpenApi.EntityType.class)
-  @GetMapping("/{uid}")
+  @GetMapping("/{uid:[a-zA-Z0-9]{11}}")
   @SuppressWarnings("unchecked")
   public @ResponseBody ResponseEntity<?> getObject(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
@@ -458,7 +460,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
   @OpenApi.Param(name = "fields", value = String[].class)
   @OpenApi.Params(WebOptions.class)
-  @GetMapping("/{uid}/{property}")
+  @GetMapping("/{uid:[a-zA-Z0-9]{11}}/{property}")
   public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
       @OpenApi.Param(PropertyNames.class) @PathVariable("property") String pvProperty,
