@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,46 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.note;
+package org.hisp.dhis.program;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.List;
 
 /**
- * @author Chau Thu Tran
+ * This store is intended as a temporary solution until we separate event programs from tracker
+ * programs. Once they become distinct entities and event programs no longer require a placeholder
+ * enrollment, this store should be discontinued.
  */
-class NoteServiceTest extends PostgresIntegrationTestBase {
-  @Autowired private NoteService noteService;
+public interface EventProgramEnrollmentStore {
 
-  private Note noteA;
+  List<Enrollment> get(Program program);
 
-  private Note noteB;
-
-  @BeforeEach
-  void setUp() {
-    noteA = new Note("A", "Test");
-    noteA.setUid(CodeGenerator.generateUid());
-    noteB = new Note("B", "Test");
-    noteB.setUid(CodeGenerator.generateUid());
-  }
-
-  @Test
-  void testSaveTrackedEntityComment() {
-    noteService.addNote(noteA);
-    noteService.addNote(noteB);
-
-    assertTrue(noteService.noteExists(noteA.getUid()));
-    assertTrue(noteService.noteExists(noteB.getUid()));
-  }
-
-  @Test
-  void testCommentExists() {
-    noteService.addNote(noteA);
-    assertTrue(noteService.noteExists(noteA.getUid()));
-  }
+  List<Enrollment> get(Program program, EnrollmentStatus enrollmentStatus);
 }

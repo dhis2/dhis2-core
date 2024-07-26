@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,27 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.note;
+package org.hisp.dhis.program;
+
+import java.util.List;
 
 /**
- * @author Chau Thu Tran
+ * This service is intended as a temporary solution until we separate event programs from tracker
+ * programs. Once they become distinct entities and event programs no longer require a placeholder
+ * enrollment, this service should be discontinued.
  */
-public interface NoteService {
-  String ID = NoteService.class.getName();
+public interface EventProgramEnrollmentService {
 
-  /**
-   * Adds an {@link Note}
-   *
-   * @param note The Note to add.
-   * @return A generated unique id of the added {@link Note}.
-   */
-  void addNote(Note note);
+  /** Returns a list of enrollments in the given program. */
+  List<Enrollment> getEnrollments(Program program);
 
-  /**
-   * Checks for the existence of a Note by UID.
-   *
-   * @param uid Note UID to check for
-   * @return true/false depending on result
-   */
-  boolean noteExists(String uid);
+  List<Enrollment> getEnrollments(Program program, EnrollmentStatus enrollmentStatus);
 }

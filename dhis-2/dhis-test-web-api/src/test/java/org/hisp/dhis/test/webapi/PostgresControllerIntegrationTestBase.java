@@ -38,4 +38,4 @@ import org.springframework.test.context.ActiveProfiles;
  */
 @ActiveProfiles("test-postgres")
 @IntegrationTest
-public abstract class PostgresControllerIntegrationTestBase extends ControllerTestBase {}
+public abstract class PostgresControllerIntegrationTestBase extends ControllerIntegrationTestBase {}

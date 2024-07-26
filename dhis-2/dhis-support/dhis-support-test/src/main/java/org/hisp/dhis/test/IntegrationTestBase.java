@@ -44,8 +44,12 @@ import org.springframework.test.context.ContextConfiguration;
       PostgresDhisConfiguration.class,
     })
 @SpringIntegrationTest
-public abstract class SpringIntegrationTestBase extends TestBase {
+public abstract class IntegrationTestBase extends TestBase {
 
   @Getter private User adminUser;
   public EntityManager entityManager;
+
+  protected final void injectAdminIntoSecurityContext() {
+    injectSecurityContextUser(getAdminUser());
+  }
 }

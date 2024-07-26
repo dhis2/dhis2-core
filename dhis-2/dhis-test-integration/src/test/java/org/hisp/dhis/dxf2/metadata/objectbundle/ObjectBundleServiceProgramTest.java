@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -64,6 +65,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 @Transactional
 class ObjectBundleServiceProgramTest extends PostgresIntegrationTestBase {
 
@@ -390,6 +392,7 @@ class ObjectBundleServiceProgramTest extends PostgresIntegrationTestBase {
     params.setObjects(metadata);
     ObjectBundle bundle = objectBundleService.create(params);
     ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
+    validate.forEachErrorReport(errorReport -> log.error("Error report:" + errorReport));
     assertFalse(validate.hasErrorReports());
     objectBundleService.commit(bundle);
   }

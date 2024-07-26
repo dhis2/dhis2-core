@@ -154,7 +154,7 @@ class SharingControllerTest extends H2ControllerIntegrationTestBase {
     GET("/sharing?type=dataSet&id=" + dataSetId).content(HttpStatus.OK);
     switchToNewUser("A", "test");
     GET("/sharing?type=dataSet&id=" + dataSetId).content(HttpStatus.FORBIDDEN);
-    switchToSuperuser();
+    switchToAdminUser();
     GET("/sharing?type=dataSet&id=" + dataSetId).content(HttpStatus.OK);
   }
 
@@ -174,7 +174,7 @@ class SharingControllerTest extends H2ControllerIntegrationTestBase {
         "The lastUpdatedBy value should match the user who just created the object");
 
     // when a different user updates it
-    switchToSuperuser();
+    switchToAdminUser();
     PUT("/sharing?type=categoryOption&id=xYerKDKCef1", sharingPrivate()).content(HttpStatus.OK);
 
     // then

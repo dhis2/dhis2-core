@@ -576,10 +576,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   public void beforeEach() {
-    // Reset the security context for each test.
-    clearSecurityContext();
-
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
   }
 
   /** Adds a program ownership history entry. */
@@ -637,7 +634,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testDimensionRestrictionWhenUserCannotReadCategoryOptions() {
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
 
     // Given
     // The category options are not readable by the user

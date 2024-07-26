@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,19 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.note;
+package org.hisp.dhis.program.hibernate;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import java.util.List;
+import javax.persistence.EntityManager;
+import lombok.RequiredArgsConstructor;
+import org.hibernate.Session;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
+import org.hisp.dhis.program.EventProgramEnrollmentStore;
+import org.hisp.dhis.program.Program;
+import org.springframework.stereotype.Repository;
 
-/**
- * @author David Katuscak
- */
-public interface NoteStore extends IdentifiableObjectStore<Note> {
-  /**
-   * Checks for the existence of a TrackedEntityComment by UID
-   *
-   * @param uid TrackedEntityComment UID to check for.
-   * @return true/false depending on result.
-   */
-  boolean exists(String uid);
+@RequiredArgsConstructor
+@Repository("org.hisp.dhis.program.EventProgramEnrollmentStore")
+public class HibernateEventProgramEnrollmentStore implements EventProgramEnrollmentStore {
+
+  private final EntityManager entityManager;
+
+  @Override
+  public List<Enrollment> get(Program program) {
+    try (Session session = entityManager.unwrap(Session.class)) {
+
+      return session
+          .createQuery("from Enrollment e where e.program.uid = :programUid", Enrollment.class)
+          .setParameter("programUid", program.getUid())
+          .list();
+    }
+  }
+
+  @Override
+  public List<Enrollment> get(Program program, EnrollmentStatus enrollmentStatus) {
+    try (Session session = entityManager.unwrap(Session.class)) {
+
+      return session
+          .createQuery(
+              "from Enrollment e where e.program.uid = :programUid and status = :enrollmentStatus",
+              Enrollment.class)
+          .setParameter("programUid", program.getUid())
+          .setParameter("enrollmentStatus", enrollmentStatus)
+          .list();
+    }
+  }
 }

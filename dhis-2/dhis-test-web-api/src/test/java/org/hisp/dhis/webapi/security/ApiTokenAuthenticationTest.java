@@ -37,7 +37,6 @@ import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator;
 import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.TokenWrapper;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
-import org.hisp.dhis.security.apikey.ApiTokenStore;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.ControllerWithApiTokenAuthTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonUser;
@@ -61,19 +60,9 @@ class ApiTokenAuthenticationTest extends ControllerWithApiTokenAuthTestBase {
 
   @Autowired private ApiTokenService apiTokenService;
 
-  @Autowired private ApiTokenStore apiTokenStore;
-
   @BeforeAll
   static void setUpClass() {
     DhisWebApiWebSecurityConfig.setApiContextPath("");
-  }
-
-  private ApiKeyTokenGenerator.TokenWrapper createNewToken() {
-    long thirtyDaysInTheFuture = System.currentTimeMillis() + TimeUnit.DAYS.toMillis(30);
-    ApiKeyTokenGenerator.TokenWrapper wrapper =
-        generatePersonalAccessToken(null, thirtyDaysInTheFuture);
-    apiTokenService.save(wrapper.getApiToken());
-    return wrapper;
   }
 
   @Test
@@ -130,7 +119,7 @@ class ApiTokenAuthenticationTest extends ControllerWithApiTokenAuthTestBase {
 
     token.addIpToAllowedList("127.0.0.1");
 
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
     UserDetails currentUserDetails2 = CurrentUserUtil.getCurrentUserDetails();
     apiTokenService.update(token);
 
@@ -152,7 +141,7 @@ class ApiTokenAuthenticationTest extends ControllerWithApiTokenAuthTestBase {
         GET(URI, ApiTokenHeader(plaintext)).error(HttpStatus.UNAUTHORIZED).getMessage());
     token.addMethodToAllowedList("GET");
 
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
     apiTokenService.update(token);
 
     JsonUser user = GET(URI, ApiTokenHeader(plaintext)).content().as(JsonUser.class);
@@ -173,7 +162,7 @@ class ApiTokenAuthenticationTest extends ControllerWithApiTokenAuthTestBase {
         GET(URI, ApiTokenHeader(plaintext)).error(HttpStatus.UNAUTHORIZED).getMessage());
     token.addReferrerToAllowedList("https://two.io");
 
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
     apiTokenService.update(token);
 
     JsonUser user =
@@ -239,5 +228,13 @@ class ApiTokenAuthenticationTest extends ControllerWithApiTokenAuthTestBase {
     assertEquals(
         "The API token does not exists",
         GET(URI, ApiTokenHeader(plaintext)).error(HttpStatus.UNAUTHORIZED).getMessage());
+  }
+
+  private ApiKeyTokenGenerator.TokenWrapper createNewToken() {
+    long thirtyDaysInTheFuture = System.currentTimeMillis() + TimeUnit.DAYS.toMillis(30);
+    ApiKeyTokenGenerator.TokenWrapper wrapper =
+        generatePersonalAccessToken(null, thirtyDaysInTheFuture);
+    apiTokenService.save(wrapper.getApiToken());
+    return wrapper;
   }
 }

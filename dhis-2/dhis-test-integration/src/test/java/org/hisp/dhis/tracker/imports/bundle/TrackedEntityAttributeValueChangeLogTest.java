@@ -48,6 +48,7 @@ import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,17 +65,22 @@ class TrackedEntityAttributeValueChangeLogTest extends TrackerTest {
 
   @Autowired private TrackedEntityAttributeValueChangeLogService attributeValueAuditService;
 
+  private User importUser;
+
   @BeforeAll
   void setUp() throws IOException {
     setUpMetadata("tracker/te_program_with_tea_allow_audit_metadata.json");
-    injectAdminUser();
+
+    importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
   }
 
   @Test
   void testTrackedEntityAttributeValueAuditCreate() throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     assertNoErrors(
         trackerImportService.importTracker(
-            new TrackerImportParams(), fromJson("tracker/te_program_with_tea_data.json")));
+            params, fromJson("tracker/te_program_with_tea_data.json")));
 
     List<TrackedEntity> trackedEntities = manager.getAll(TrackedEntity.class);
     assertEquals(1, trackedEntities.size());
@@ -98,9 +104,9 @@ class TrackedEntityAttributeValueChangeLogTest extends TrackerTest {
 
   @Test
   void testTrackedEntityAttributeValueAuditDelete() throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     TrackerObjects trackerObjects = fromJson("tracker/te_program_with_tea_data.json");
 
-    TrackerImportParams params = new TrackerImportParams();
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
     List<TrackedEntityAttributeValue> attributeValues1 =

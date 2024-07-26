@@ -28,7 +28,7 @@
 package org.hisp.dhis.test.integration;
 
 import org.hisp.dhis.test.IntegrationTest;
-import org.hisp.dhis.test.SpringIntegrationTestBase;
+import org.hisp.dhis.test.IntegrationTestBase;
 import org.springframework.test.context.ActiveProfiles;
 
 /**
@@ -36,4 +36,4 @@ import org.springframework.test.context.ActiveProfiles;
  */
 @IntegrationTest
 @ActiveProfiles(profiles = {"test-postgres"})
-public abstract class PostgresIntegrationTestBase extends SpringIntegrationTestBase {}
+public abstract class PostgresIntegrationTestBase extends IntegrationTestBase {}

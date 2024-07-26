@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,33 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.note;
+package org.hisp.dhis.program;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-/**
- * @author Chau Thu Tran
- */
 @RequiredArgsConstructor
-@Service("org.hisp.dhis.trackedentitycomment.NoteService")
-public class DefaultNoteService implements NoteService {
-  private final NoteStore commentStore;
+@Service("org.hisp.dhis.program.DefaultEventProgramEnrollmentService")
+public class DefaultEventProgramEnrollmentService implements EventProgramEnrollmentService {
 
-  // -------------------------------------------------------------------------
-  // Implementation methods
-  // -------------------------------------------------------------------------
+  private final EventProgramEnrollmentStore eventProgramEnrollmentStore;
 
   @Override
-  @Transactional
-  public void addNote(Note comment) {
-    commentStore.save(comment);
+  // TODO(tracker) The CopyService is currently copying enrollments from tracker programs. We need
+  // to discuss if that's correct. Seems to make more sense to copy enrollments from event programs
+  // only.
+  public List<Enrollment> getEnrollments(Program program) {
+    return eventProgramEnrollmentStore.get(program);
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public boolean noteExists(String uid) {
-    return commentStore.exists(uid);
+  // TODO(tracker) This method gets enrollments from event and tracker programs. This needs a
+  // discussion, enrollments from tracker programs might not be necessary.
+  public List<Enrollment> getEnrollments(Program program, EnrollmentStatus enrollmentStatus) {
+    return eventProgramEnrollmentStore.get(program, enrollmentStatus);
   }
 }

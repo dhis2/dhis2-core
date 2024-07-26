@@ -35,29 +35,21 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import javax.servlet.http.Cookie;
 import lombok.Getter;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.test.TestBase;
+import org.hisp.dhis.test.IntegrationTestBase;
 import org.hisp.dhis.test.config.H2DhisConfiguration;
 import org.hisp.dhis.test.config.PostgresDhisConfiguration;
-import org.hisp.dhis.test.utils.TestUtils;
 import org.hisp.dhis.test.web.HttpMethod;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.web.WebClient;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserRole;
-import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -67,7 +59,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -98,9 +89,9 @@ import org.springframework.web.context.WebApplicationContext;
  *
  * @author Viet Nguyen
  */
-@ExtendWith(SpringExtension.class)
 @WebAppConfiguration
 @ContextConfiguration(
+    inheritLocations = false,
     classes = {
       H2DhisConfiguration.class,
       PostgresDhisConfiguration.class,
@@ -108,11 +99,10 @@ import org.springframework.web.context.WebApplicationContext;
       WebTestConfiguration.class
     })
 @Transactional
-public abstract class ControllerTestBase extends TestBase implements WebClient {
+public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
+    implements WebClient {
 
   @Autowired protected WebApplicationContext webApplicationContext;
-
-  @Autowired private UserService _userService;
 
   @Autowired private RenderService _renderService;
 
@@ -122,68 +112,24 @@ public abstract class ControllerTestBase extends TestBase implements WebClient {
 
   @Autowired private TransactionTemplate txTemplate;
 
-  @Getter protected User adminUser;
-
-  @Getter protected User superUser;
-
-  @Getter protected User currentUser;
+  @Getter private User currentUser;
 
   protected MockMvc mvc;
 
   protected MockHttpSession session;
 
-  protected final String getSuperuserUid() {
-    return superUser.getUid();
+  protected final String getAdminUid() {
+    return getAdminUser().getUid();
   }
 
   @BeforeEach
   void setup() {
-    userService = _userService;
     renderService = _renderService;
-    clearSecurityContext();
-
-    this.adminUser = _preCreateInjectAdminUserWithoutPersistence();
-    manager.persist(adminUser);
-    _injectSecurityContextUser(adminUser);
-
-    superUser = createAndAddAdminUser("ALL");
 
     mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
 
-    switchContextToUser(superUser);
-    currentUser = superUser;
-
-    TestUtils.executeStartupRoutines(webApplicationContext);
-
-    dbmsManager.flushSession();
-    dbmsManager.clearSession();
-  }
-
-  private void _injectSecurityContextUser(User user) {
-    if (user == null) {
-      clearSecurityContext();
-      return;
-    }
-    hibernateService.flushSession();
-    User user1 = manager.find(User.class, user.getId());
-    injectSecurityContext(UserDetails.fromUser(user1));
-  }
-
-  private User _preCreateInjectAdminUserWithoutPersistence() {
-    UserRole role = createUserRole("Superuser_Test_" + CodeGenerator.generateUid(), "ALL");
-    role.setUid(CodeGenerator.generateUid());
-    manager.persist(role);
-    User user = new User();
-    String uid = CodeGenerator.generateUid();
-    user.setUid(uid);
-    user.setFirstName("Firstname_" + uid);
-    user.setSurname("Surname_" + uid);
-    user.setUsername(DEFAULT_USERNAME + "_test_" + CodeGenerator.generateUid());
-    user.setPassword(DEFAULT_ADMIN_PASSWORD);
-    user.getUserRoles().add(role);
-    user.setLastUpdated(new Date());
-    user.setCreated(new Date());
-    return user;
+    switchContextToUser(getAdminUser());
+    currentUser = getAdminUser();
   }
 
   protected final void doInTransaction(Runnable operation) {
@@ -198,28 +144,15 @@ public abstract class ControllerTestBase extends TestBase implements WebClient {
     txTemplate.setPropagationBehavior(defaultPropagationBehaviour);
   }
 
-  protected final User switchToSuperuser() {
-    switchContextToUser(userService.getUser(superUser.getUid()));
-    return superUser;
-  }
-
-  /**
-   * Method which allows passing in actual {@link Authorities}. It calls the existing method {@link
-   * ControllerTestBase#switchToNewUser(String, String...)} that accepts String authorities
-   * underneath.
-   *
-   * @param username - username
-   * @param authorities - varargs of {@link Authorities}
-   * @return new {@link User}
-   */
-  protected final User switchToNewUserWithAuthorities(String username, Authorities... authorities) {
-    return switchToNewUser(username, Authorities.toStringArray(authorities));
+  protected final User switchToAdminUser() {
+    switchContextToUser(userService.getUser(getAdminUser().getUid()));
+    return getAdminUser();
   }
 
   protected final User switchToNewUser(String username, String... authorities) {
-    if (superUser != null) {
+    if (getAdminUser() != null) {
       // we need to be an admin to be allowed to create user groups
-      switchContextToUser(superUser);
+      switchContextToUser(getAdminUser());
     }
 
     currentUser = createUserWithAuth(username, authorities);

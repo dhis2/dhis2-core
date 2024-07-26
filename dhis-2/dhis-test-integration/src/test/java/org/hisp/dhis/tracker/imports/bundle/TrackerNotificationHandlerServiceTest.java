@@ -54,7 +54,6 @@ import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
@@ -188,6 +187,8 @@ class TrackerNotificationHandlerServiceTest extends PostgresIntegrationTestBase 
 
   @Test
   void shouldSendTrackerNotificationAtEnrollmentCompletionAndThenEventCompletion() {
+    String eventUid = CodeGenerator.generateUid();
+
     Enrollment enrollment =
         Enrollment.builder()
             .program(MetadataIdentifier.ofUid(programA.getUid()))
@@ -199,13 +200,29 @@ class TrackerNotificationHandlerServiceTest extends PostgresIntegrationTestBase 
             .enrollment(CodeGenerator.generateUid())
             .build();
 
+    org.hisp.dhis.tracker.imports.domain.Event event =
+        org.hisp.dhis.tracker.imports.domain.Event.builder()
+            .program(MetadataIdentifier.ofUid(programA.getUid()))
+            .orgUnit(MetadataIdentifier.ofUid(orgUnitA.getUid()))
+            .enrollment(enrollment.getEnrollment())
+            .event(eventUid)
+            .programStage(MetadataIdentifier.ofUid(programStageA.getUid()))
+            .status(EventStatus.ACTIVE)
+            .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
+            .completedAt(Instant.now())
+            .occurredAt(Instant.now())
+            .build();
+
     ImportReport importReport =
         trackerImportService.importTracker(
             TrackerImportParams.builder()
                 .userId(user.getUid())
                 .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
                 .build(),
-            TrackerObjects.builder().enrollments(List.of(enrollment)).build());
+            TrackerObjects.builder()
+                .enrollments(List.of(enrollment))
+                .events(List.of(event))
+                .build());
 
     assertNoErrors(importReport);
 
@@ -221,12 +238,12 @@ class TrackerNotificationHandlerServiceTest extends PostgresIntegrationTestBase 
     assertContainsOnly(
         List.of("enrollment_subject", "enrollment_completion_subject"), subjectMessages);
 
-    Event event =
-        Event.builder()
+    org.hisp.dhis.tracker.imports.domain.Event eventUpdated =
+        org.hisp.dhis.tracker.imports.domain.Event.builder()
             .program(MetadataIdentifier.ofUid(programA.getUid()))
             .orgUnit(MetadataIdentifier.ofUid(orgUnitA.getUid()))
             .enrollment(enrollment.getEnrollment())
-            .event(CodeGenerator.generateUid())
+            .event(eventUid)
             .programStage(MetadataIdentifier.ofUid(programStageA.getUid()))
             .status(EventStatus.COMPLETED)
             .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
@@ -238,9 +255,9 @@ class TrackerNotificationHandlerServiceTest extends PostgresIntegrationTestBase 
         trackerImportService.importTracker(
             TrackerImportParams.builder()
                 .userId(user.getUid())
-                .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
+                .importStrategy(TrackerImportStrategy.UPDATE)
                 .build(),
-            TrackerObjects.builder().events(List.of(event)).build());
+            TrackerObjects.builder().events(List.of(eventUpdated)).build());
 
     assertNoErrors(importReport);
 
@@ -258,6 +275,74 @@ class TrackerNotificationHandlerServiceTest extends PostgresIntegrationTestBase 
   }
 
   @Test
+  void shouldSendEnrollmentCompletionNotificationWhenStatusIsUpdatedFromActiveToCompleted() {
+    String uid = CodeGenerator.generateUid();
+    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
+        org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
+            .program(MetadataIdentifier.ofUid(programA.getUid()))
+            .orgUnit(MetadataIdentifier.ofUid(orgUnitA.getUid()))
+            .trackedEntity(trackedEntityA.getUid())
+            .status(EnrollmentStatus.ACTIVE)
+            .enrollment(uid)
+            .enrolledAt(Instant.now())
+            .occurredAt(Instant.now())
+            .build();
+
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            TrackerImportParams.builder()
+                .userId(user.getUid())
+                .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
+                .build(),
+            TrackerObjects.builder().enrollments(List.of(enrollment)).build());
+
+    assertNoErrors(importReport);
+
+    await()
+        .atMost(3, TimeUnit.SECONDS)
+        .until(() -> manager.getAll(MessageConversation.class).size() > 0);
+
+    List<MessageConversation> messageConversations = manager.getAll(MessageConversation.class);
+
+    List<String> subjectMessages =
+        messageConversations.stream().map(MessageConversation::getSubject).toList();
+
+    assertContainsOnly(List.of("enrollment_subject"), subjectMessages);
+
+    org.hisp.dhis.tracker.imports.domain.Enrollment enrollmentUpdated =
+        org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
+            .program(MetadataIdentifier.ofUid(programA.getUid()))
+            .orgUnit(MetadataIdentifier.ofUid(orgUnitA.getUid()))
+            .trackedEntity(trackedEntityA.getUid())
+            .status(EnrollmentStatus.COMPLETED)
+            .enrollment(uid)
+            .enrolledAt(Instant.now())
+            .occurredAt(Instant.now())
+            .build();
+
+    importReport =
+        trackerImportService.importTracker(
+            TrackerImportParams.builder()
+                .userId(user.getUid())
+                .importStrategy(TrackerImportStrategy.UPDATE)
+                .build(),
+            TrackerObjects.builder().enrollments(List.of(enrollmentUpdated)).build());
+
+    assertNoErrors(importReport);
+
+    await()
+        .atMost(3, TimeUnit.SECONDS)
+        .until(() -> manager.getAll(MessageConversation.class).size() > 1);
+
+    messageConversations = manager.getAll(MessageConversation.class);
+
+    subjectMessages = messageConversations.stream().map(MessageConversation::getSubject).toList();
+
+    assertContainsOnly(
+        List.of("enrollment_subject", "enrollment_completion_subject"), subjectMessages);
+  }
+
+  @Test
   void shouldSendEnrollmentCompletionNotificationOnlyOnce() {
     String uid = CodeGenerator.generateUid();
     Enrollment enrollment =
@@ -269,7 +354,7 @@ class TrackerNotificationHandlerServiceTest extends PostgresIntegrationTestBase 
             .enrollment(uid)
             .enrolledAt(Instant.now())
             .occurredAt(Instant.now())
-            .enrollment(CodeGenerator.generateUid())
+            .completedAt(Instant.now())
             .build();
 
     ImportReport importReport =

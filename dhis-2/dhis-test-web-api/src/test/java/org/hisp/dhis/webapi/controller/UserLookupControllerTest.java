@@ -67,7 +67,7 @@ class UserLookupControllerTest extends H2ControllerIntegrationTestBase {
     paul = switchToNewUser("Paul");
     george = switchToNewUser("George");
     ringo = switchToNewUser("Ringo");
-    switchToSuperuser();
+    switchToAdminUser();
     roleId = assertStatus(HttpStatus.CREATED, POST("/userRoles", "{'name':'common'}"));
     assertStatus(HttpStatus.NO_CONTENT, POST("/userRoles/" + roleId + "/users/" + john.getUid()));
     assertStatus(HttpStatus.NO_CONTENT, POST("/userRoles/" + roleId + "/users/" + paul.getUid()));
@@ -81,7 +81,7 @@ class UserLookupControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testLookUpUsers() {
     User tester = switchToNewUser("tester");
-    switchToSuperuser();
+    switchToAdminUser();
     assertStatus(HttpStatus.NO_CONTENT, POST("/userRoles/" + roleId + "/users/" + tester.getUid()));
     switchContextToUser(tester);
     JsonArray matches = GET("/userLookup?query=John").content().getArray("users");

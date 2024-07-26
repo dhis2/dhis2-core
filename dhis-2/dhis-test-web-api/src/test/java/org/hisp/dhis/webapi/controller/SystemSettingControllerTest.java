@@ -190,7 +190,7 @@ class SystemSettingControllerTest extends H2ControllerIntegrationTestBase {
     assertStatus(HttpStatus.NOT_FOUND, GET("/systemSettings/keyEmailPassword"));
     assertStatus(
         HttpStatus.NOT_FOUND, GET("/systemSettings/keyEmailPassword", Accept("application/json")));
-    switchToSuperuser();
+    switchToAdminUser();
     assertStatus(HttpStatus.OK, GET("/systemSettings/keyEmailPassword"));
   }
 

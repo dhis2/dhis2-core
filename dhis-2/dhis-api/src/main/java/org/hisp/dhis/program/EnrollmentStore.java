@@ -27,10 +27,8 @@
  */
 package org.hisp.dhis.program;
 
-import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 
 /**
@@ -39,23 +37,6 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
   String ID = EnrollmentStore.class.getName();
 
-  /** Get enrollments into a program. */
-  List<Enrollment> get(Program program);
-
-  /** Get enrollments into a program that are in given status. */
-  List<Enrollment> get(Program program, EnrollmentStatus status);
-
   /** Get a tracked entities enrollments into a program that are in given status. */
   List<Enrollment> get(TrackedEntity trackedEntity, Program program, EnrollmentStatus status);
-
-  /**
-   * Get all enrollments which have notifications with the given ProgramNotificationTemplate
-   * scheduled on the given date.
-   *
-   * @param template the template.
-   * @param notificationDate the Date for which the notification is scheduled.
-   * @return a list of enrollments.
-   */
-  List<Enrollment> getWithScheduledNotifications(
-      ProgramNotificationTemplate template, Date notificationDate);
 }

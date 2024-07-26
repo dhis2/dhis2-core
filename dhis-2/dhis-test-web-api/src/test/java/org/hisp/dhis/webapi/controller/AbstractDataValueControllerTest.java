@@ -75,11 +75,11 @@ abstract class AbstractDataValueControllerTest extends H2ControllerIntegrationTe
 
     // Add the newly created org unit to the superuser's hierarchy
     OrganisationUnit unit = manager.get(OrganisationUnit.class, orgUnitId);
-    User user = userService.getUser(getSuperUser().getUid());
+    User user = userService.getUser(getAdminUser().getUid());
     user.addOrganisationUnit(unit);
     userService.updateUser(user);
 
-    switchToSuperuser();
+    switchToAdminUser();
   }
 
   /**

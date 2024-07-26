@@ -68,49 +68,53 @@ class TrackedEntityImportValidationTest extends TrackerTest {
 
   @Autowired private TrackerOwnershipManager trackerOwnershipManager;
 
+  private User importUser;
+
   @BeforeAll
   void setUp() throws IOException {
     setUpMetadata("tracker/tracker_basic_metadata.json");
-    injectAdminUser();
+
+    importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
   }
 
   @Test
   void failValidationWhenTrackedEntityAttributeHasWrongOptionValue() throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     TrackerObjects trackerObjects =
         fromJson("tracker/validations/te-with_invalid_option_value.json");
 
-    ImportReport importReport =
-        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
+    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertHasOnlyErrors(importReport, ValidationCode.E1125);
   }
 
   @Test
   void successValidationWhenTrackedEntityAttributeHasValidOptionValue() throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     TrackerObjects trackerObjects = fromJson("tracker/validations/te-with_valid_option_value.json");
 
-    ImportReport importReport =
-        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
+    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertNoErrors(importReport);
   }
 
   @Test
   void failValidationWhenTrackedEntityAttributesHaveSameUniqueValues() throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     TrackerObjects trackerObjects = fromJson("tracker/validations/te-with_unique_attributes.json");
 
-    ImportReport importReport =
-        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
+    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertHasErrors(importReport, 2, ValidationCode.E1064);
   }
 
   @Test
   void testTeValidationOkAll() throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     TrackerObjects trackerObjects = fromJson("tracker/validations/te-data_with_different_ou.json");
 
-    ImportReport importReport =
-        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
+    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertNoErrors(importReport);
   }
@@ -130,9 +134,11 @@ class TrackedEntityImportValidationTest extends TrackerTest {
 
   @Test
   void testUpdateAccessInSearchScopeOu() throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     TrackerObjects trackerObjects = fromJson("tracker/validations/te-data_with_different_ou.json");
-    TrackerImportParams params = new TrackerImportParams();
+
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+
     assertNoErrors(importReport);
     assertEquals(3, importReport.getStats().getCreated());
 
@@ -148,9 +154,11 @@ class TrackedEntityImportValidationTest extends TrackerTest {
 
   @Test
   void testNoUpdateAccessOutsideSearchScopeOu() throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     TrackerObjects trackerObjects = fromJson("tracker/validations/te-data_with_different_ou.json");
-    TrackerImportParams params = new TrackerImportParams();
+
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+
     assertNoErrors(importReport);
     assertEquals(3, importReport.getStats().getCreated());
 
@@ -159,7 +167,9 @@ class TrackedEntityImportValidationTest extends TrackerTest {
     params.setUserId(user.getUid());
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
     params.setAtomicMode(AtomicMode.OBJECT);
+
     importReport = trackerImportService.importTracker(params, trackerObjects);
+
     assertHasOnlyErrors(importReport, ValidationCode.E1003);
     assertEquals(2, importReport.getStats().getUpdated());
     assertEquals(1, importReport.getStats().getIgnored());
@@ -190,17 +200,19 @@ class TrackedEntityImportValidationTest extends TrackerTest {
 
   @Test
   void testGeoOk() throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     TrackerObjects trackerObjects = fromJson("tracker/validations/te-data_error_geo-ok.json");
-    TrackerImportParams params = new TrackerImportParams();
+
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+
     assertNoErrors(importReport);
   }
 
   @Test
   void testTeAttrNonExistentAttr() throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     TrackerObjects trackerObjects =
         fromJson("tracker/validations/te-data_error_attr-non-existing.json");
-    TrackerImportParams params = new TrackerImportParams();
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertHasErrors(importReport, 2, ValidationCode.E1006);
@@ -208,9 +220,11 @@ class TrackedEntityImportValidationTest extends TrackerTest {
 
   @Test
   void testDeleteCascadeEnrollments() throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     TrackerObjects trackerObjects = fromJson("tracker/validations/enrollments_te_te-data.json");
-    TrackerImportParams params = new TrackerImportParams();
+
     assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
+
     importEnrollments();
     manager.flush();
     manager.clear();
@@ -227,8 +241,9 @@ class TrackedEntityImportValidationTest extends TrackerTest {
   @Test
   void shouldFailToDeleteWhenUserHasAccessToRegistrationUnitAndTEWasTransferred()
       throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     TrackerObjects trackerObjects = fromJson("tracker/validations/enrollments_te_te-data.json");
-    TrackerImportParams params = new TrackerImportParams();
+
     assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
     importEnrollments();
     manager.flush();
@@ -247,8 +262,9 @@ class TrackedEntityImportValidationTest extends TrackerTest {
   void
       shouldFailToDeleteWhenTEWasTransferredAndUserHasAccessToTransferredOrgUnitAndTEOUIsNotInCaptureScope()
           throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     TrackerObjects trackerObjects = fromJson("tracker/validations/enrollments_te_te-data.json");
-    TrackerImportParams params = new TrackerImportParams();
+
     assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
     importEnrollments();
     manager.flush();
@@ -266,8 +282,9 @@ class TrackedEntityImportValidationTest extends TrackerTest {
   @Test
   void shouldDeleteWhenTEWasTransferredAndUserHasAccessToTransferredOrgUnitAndTEOUIsInCaptureScope()
       throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     TrackerObjects trackerObjects = fromJson("tracker/validations/enrollments_te_te-data.json");
-    TrackerImportParams params = new TrackerImportParams();
+
     assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
     importEnrollments();
     manager.flush();
@@ -285,8 +302,11 @@ class TrackedEntityImportValidationTest extends TrackerTest {
   @Test
   void shouldFailToUpdateWhenUserHasAccessToRegistrationUnitAndTEWasTransferred()
       throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     TrackerObjects trackerObjects = fromJson("tracker/validations/enrollments_te_te-data.json");
-    assertNoErrors(trackerImportService.importTracker(new TrackerImportParams(), trackerObjects));
+
+    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
+
     trackerObjects = fromJson("tracker/validations/enrollments_te_enrollments-data_2.json");
     TrackerImportParams trackerImportParams = new TrackerImportParams();
     trackerImportParams.setUserId(USER_8);
@@ -307,9 +327,11 @@ class TrackedEntityImportValidationTest extends TrackerTest {
 
   @Test
   void shouldUpdateWhenTEWasTransferredAndUserHasAccessToTransferredOrgUnit() throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     TrackerObjects trackerObjects = fromJson("tracker/validations/enrollments_te_te-data.json");
-    TrackerImportParams params = new TrackerImportParams();
+
     assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
+
     importEnrollments();
     manager.flush();
     manager.clear();
@@ -325,9 +347,11 @@ class TrackedEntityImportValidationTest extends TrackerTest {
 
   @Test
   void testTeDeleteOk() throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     TrackerObjects trackerObjects = fromJson("tracker/validations/te-data.json");
-    TrackerImportParams params = new TrackerImportParams();
+
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+
     assertNoErrors(importReport);
 
     TrackerObjects deleteTrackerObjects = fromJson("tracker/validations/te-data-delete.json");
@@ -335,15 +359,17 @@ class TrackedEntityImportValidationTest extends TrackerTest {
 
     ImportReport importReportDelete =
         trackerImportService.importTracker(params, deleteTrackerObjects);
+
     assertNoErrors(importReportDelete);
     assertEquals(1, importReportDelete.getStats().getDeleted());
   }
 
   protected void importEnrollments() throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     TrackerObjects trackerObjects =
         fromJson("tracker/validations/enrollments_te_enrollments-data.json");
-    ImportReport importReport =
-        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
+
+    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
   }
 
