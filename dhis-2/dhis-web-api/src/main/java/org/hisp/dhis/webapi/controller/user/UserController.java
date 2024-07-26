@@ -116,7 +116,6 @@ import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.Users;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.hisp.dhis.webapi.openapi.Api;
 import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -262,7 +261,7 @@ public class UserController extends AbstractCrudController<User> {
   @OpenApi.Document(group = Group.QUERY)
   public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
-      @OpenApi.Param(Api.PropertyNames.class) @PathVariable("property") String pvProperty,
+      @OpenApi.Param(OpenApi.PropertyNames.class) @PathVariable("property") String pvProperty,
       @RequestParam Map<String, String> rpParameters,
       TranslateParams translateParams,
       @CurrentUser UserDetails currentUser,

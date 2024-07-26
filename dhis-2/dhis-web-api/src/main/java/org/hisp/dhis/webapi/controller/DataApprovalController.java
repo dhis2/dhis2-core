@@ -236,6 +236,7 @@ public class DataApprovalController {
         .collect(toList());
   }
 
+  @OpenApi.Response(DataApprovalStateResponse[].class)
   @GetMapping(value = STATUS_PATH, produces = ContextUtils.CONTENT_TYPE_JSON)
   public @ResponseBody RootNode getApproval(
       @OpenApi.Param({UID[].class, DataSet.class}) @RequestParam Set<String> ds,
