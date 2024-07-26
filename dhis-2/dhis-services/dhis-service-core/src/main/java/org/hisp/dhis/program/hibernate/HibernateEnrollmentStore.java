@@ -48,7 +48,6 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.program.EnrollmentStore")
 public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment>
     implements EnrollmentStore {
-  private static final String STATUS = "status";
 
   public HibernateEnrollmentStore(
       EntityManager entityManager,
