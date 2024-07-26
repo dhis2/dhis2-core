@@ -41,6 +41,7 @@ import java.util.function.Function;
 import java.util.function.LongSupplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
@@ -59,7 +60,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -309,7 +309,7 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
   }
 
   @Override
-  public void delete(@NotNull Enrollment enrollment) {
+  public void delete(@Nonnull Enrollment enrollment) {
     enrollment.setStatus(EnrollmentStatus.CANCELLED);
     super.delete(enrollment);
   }
