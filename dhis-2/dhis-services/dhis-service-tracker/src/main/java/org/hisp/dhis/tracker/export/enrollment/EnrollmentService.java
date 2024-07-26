@@ -37,7 +37,6 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.UserDetails;
@@ -69,7 +68,7 @@ public interface EnrollmentService {
   List<Enrollment> getEnrollments(@Nonnull List<String> uids) throws ForbiddenException;
 
   List<Enrollment> getEnrollments(
-      TrackedEntity trackedEntity, Program program, EnrollmentStatus enrollmentStatus)
+      String trackedEntityUid, Program program, EnrollmentStatus enrollmentStatus)
       throws ForbiddenException, BadRequestException;
 
   /**

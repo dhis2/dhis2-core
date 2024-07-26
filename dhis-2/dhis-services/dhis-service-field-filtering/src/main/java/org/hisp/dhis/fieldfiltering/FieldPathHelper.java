@@ -219,6 +219,10 @@ public class FieldPathHelper {
         schema.getProperties().stream()
             .filter(p -> p.getPropertyType().isSimple())
             .forEach(p -> fieldPaths.add(toFieldPath(preset.getPath(), p)));
+      } else if (Preset.NAMEABLE.getName().equals(preset.getName())) {
+        schema.getProperties().stream()
+            .filter(p -> Preset.NAMEABLE.getFields().contains(p.getName()))
+            .forEach(p -> fieldPaths.add(toFieldPath(preset.getPath(), p)));
       }
     }
 

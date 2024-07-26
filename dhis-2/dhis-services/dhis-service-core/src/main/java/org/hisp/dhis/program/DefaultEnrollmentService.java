@@ -28,7 +28,6 @@
 package org.hisp.dhis.program;
 
 import java.util.Date;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
@@ -59,12 +58,6 @@ public class DefaultEnrollmentService implements EnrollmentService {
   private final TrackerOwnershipManager trackerOwnershipAccessManager;
 
   private final IdentifiableObjectManager manager;
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<Enrollment> getEnrollments(Program program, EnrollmentStatus status) {
-    return enrollmentStore.get(program, status);
-  }
 
   private Enrollment prepareEnrollment(
       TrackedEntity trackedEntity,
