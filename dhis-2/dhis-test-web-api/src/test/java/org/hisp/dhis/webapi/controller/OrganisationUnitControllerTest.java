@@ -27,17 +27,12 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
-import static org.hisp.dhis.web.WebClientUtils.objectReference;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import java.util.List;
-import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.webapi.json.domain.JsonOrganisationUnit;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
@@ -70,16 +65,6 @@ class OrganisationUnitControllerTest extends DhisControllerConvenienceTest {
     assertNotNull(organisationUnit.getId());
   }
 
-  private List<String> toOrganisationUnitNames(JsonObject response) {
-    return response
-        .getList("organisationUnits", JsonIdentifiableObject.class)
-        .toList(JsonIdentifiableObject::getDisplayName);
-  }
-
-  private void assertListOfOrganisationUnits(JsonObject response, String... names) {
-    assertContainsOnly(List.of(names), toOrganisationUnitNames(response));
-  }
-
   private String addOrganisationUnit(String name) {
     return assertStatus(
         HttpStatus.CREATED,
@@ -94,19 +79,5 @@ class OrganisationUnitControllerTest extends DhisControllerConvenienceTest {
                     + "'code':'Org code'"
                     + "}",
                 name, name)));
-  }
-
-  private String addOrganisationUnit(String name, String parentId) {
-    return assertStatus(
-        HttpStatus.CREATED,
-        POST(
-            "/organisationUnits",
-            "{'name':'"
-                + name
-                + "', 'shortName':'"
-                + name
-                + "', 'openingDate':'2021', 'parent': "
-                + objectReference(parentId)
-                + " }"));
   }
 }
