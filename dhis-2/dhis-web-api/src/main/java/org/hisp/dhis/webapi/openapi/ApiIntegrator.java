@@ -51,6 +51,7 @@ import javax.annotation.Nonnull;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.webapi.openapi.Api.Endpoint;
 import org.hisp.dhis.webapi.openapi.Api.Parameter;
@@ -180,6 +181,10 @@ public class ApiIntegrator {
         .filter(Api.Schema::isShared)
         .sorted(comparing(e -> e.getSharedName().getValue()))
         .forEach(addSchema);
+
+    sharedSchemasByName.values().stream()
+        .flatMap(List::stream)
+        .forEach(ApiIntegrator::setSchemaKindName);
 
     api.getGeneratorSchemas().values().stream()
         .flatMap(schemas -> schemas.values().stream())
@@ -678,5 +683,10 @@ public class ApiIntegrator {
     return a.getResponses().values().stream()
         .filter(r -> r.getContent().containsKey(MediaType.APPLICATION_JSON))
         .count();
+  }
+
+  private static void setSchemaKindName(Api.Schema s) {
+    OpenApi.Kind kind = OpenApiAnnotations.getKind(s.getRawType());
+    if (kind != null) s.getKind().setValue(kind.value());
   }
 }

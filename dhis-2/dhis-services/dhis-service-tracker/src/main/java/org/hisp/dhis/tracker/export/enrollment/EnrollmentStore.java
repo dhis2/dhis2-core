@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.export.enrollment;
 
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.tracker.export.Page;
@@ -50,5 +51,5 @@ public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
    */
   Set<String> getOrderableFields();
 
-  void deleteEnrollment(Enrollment enrollment);
+  void delete(@Nonnull Enrollment enrollment);
 }

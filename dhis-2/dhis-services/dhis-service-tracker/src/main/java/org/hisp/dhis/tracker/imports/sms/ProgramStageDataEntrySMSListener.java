@@ -145,7 +145,7 @@ public class ProgramStageDataEntrySMSListener extends RegisterSMSListener {
       enrollments =
           new ArrayList<>(
               enrollmentService.getEnrollments(
-                  trackedEntity, smsCommand.getProgram(), EnrollmentStatus.ACTIVE));
+                  trackedEntity.getUid(), smsCommand.getProgram(), EnrollmentStatus.ACTIVE));
     } catch (BadRequestException | ForbiddenException e) {
       // TODO(tracker) Find a better error message for these exceptions
       throw new SMSProcessingException(SmsResponse.UNKNOWN_ERROR);
