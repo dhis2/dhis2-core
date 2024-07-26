@@ -28,7 +28,7 @@
 package org.hisp.dhis.analytics.table;
 
 import static java.lang.String.join;
-import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS;
+import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENT;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getStartDate;
@@ -284,7 +284,7 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
    */
   @Override
   public AnalyticsTableType getAnalyticsTableType() {
-    return TRACKED_ENTITY_INSTANCE_EVENTS;
+    return TRACKED_ENTITY_INSTANCE_EVENT;
   }
 
   /**
