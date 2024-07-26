@@ -47,6 +47,7 @@ import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Event;
@@ -107,21 +108,8 @@ public class EventPersister
   }
 
   @Override
-  protected TrackerSideEffectDataBundle handleSideEffects(TrackerBundle bundle, Event event) {
-    TrackerPreheat preheat = bundle.getPreheat();
-    List<SideEffectTrigger> triggers = new ArrayList<>();
-
-    if (isNew(preheat, event.getUid())) {
-      if (event.isCompleted()) {
-        triggers.add(SideEffectTrigger.EVENT_COMPLETION);
-      }
-    } else {
-      Event existingEvent = preheat.getEvent(event.getUid());
-      if (existingEvent.getStatus() != event.getStatus() && event.isCompleted()) {
-        triggers.add(SideEffectTrigger.EVENT_COMPLETION);
-      }
-    }
-
+  protected TrackerSideEffectDataBundle handleSideEffects(
+      TrackerBundle bundle, Event event, List<SideEffectTrigger> triggers) {
     return TrackerSideEffectDataBundle.builder()
         .klass(Event.class)
         .enrollmentRuleEffects(new HashMap<>())
@@ -133,6 +121,28 @@ public class EventPersister
         .program(event.getProgramStage().getProgram())
         .triggers(triggers)
         .build();
+  }
+
+  @Override
+  protected List<SideEffectTrigger> determineSideEffectTriggers(
+      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Event entity) {
+    Event persistedEvent = preheat.getEvent(entity.getUid());
+    List<SideEffectTrigger> triggers = new ArrayList<>();
+    // If the event is new and has been completed
+    if (persistedEvent == null && entity.getStatus() == EventStatus.COMPLETED) {
+      triggers.add(SideEffectTrigger.EVENT_COMPLETION);
+      return triggers;
+    }
+
+    // If the event is existing and its status has changed to completed
+    if (persistedEvent != null
+        && persistedEvent.getStatus() != entity.getStatus()
+        && entity.getStatus() == EventStatus.COMPLETED) {
+      triggers.add(SideEffectTrigger.EVENT_COMPLETION);
+      return triggers;
+    }
+
+    return triggers;
   }
 
   @Override

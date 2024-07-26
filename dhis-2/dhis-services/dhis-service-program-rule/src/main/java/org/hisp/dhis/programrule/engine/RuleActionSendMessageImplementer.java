@@ -42,6 +42,7 @@ import org.hisp.dhis.program.notification.event.ProgramRuleStageEvent;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.user.AuthenticationService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,8 +70,9 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
   public RuleActionSendMessageImplementer(
       ProgramNotificationTemplateService programNotificationTemplateService,
       NotificationLoggingService notificationLoggingService,
-      ApplicationEventPublisher publisher) {
-    super(programNotificationTemplateService, notificationLoggingService);
+      ApplicationEventPublisher publisher,
+      AuthenticationService authenticationService) {
+    super(programNotificationTemplateService, notificationLoggingService, authenticationService);
     this.publisher = publisher;
   }
 
@@ -82,6 +84,7 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
   @Override
   @Transactional
   public void implement(RuleEffect ruleEffect, Enrollment enrollment) {
+    authenticationService.obtainSystemAuthentication();
     NotificationValidationResult result = validate(ruleEffect, enrollment);
 
     if (!result.isValid()) {
@@ -108,6 +111,7 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
   @Override
   @Transactional
   public void implement(RuleEffect ruleEffect, Event event) {
+    authenticationService.obtainSystemAuthentication();
     checkNotNull(event, "Event cannot be null");
 
     NotificationValidationResult result = validate(ruleEffect, event.getEnrollment());

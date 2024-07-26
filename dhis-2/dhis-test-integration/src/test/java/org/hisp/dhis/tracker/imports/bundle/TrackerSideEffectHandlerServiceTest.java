@@ -33,15 +33,12 @@ import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -50,13 +47,13 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
@@ -72,11 +69,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
   @Autowired private TrackerImportService trackerImportService;
-
   @Autowired private IdentifiableObjectManager manager;
-  @Autowired private ObjectBundleService objectBundleService;
-  @Autowired private ObjectBundleValidationService objectBundleValidationService;
-  @Autowired private RenderService _renderService;
   @Autowired private UserService _userService;
 
   private Program programA;
@@ -160,13 +153,13 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
   }
 
   @Test
-  void shouldSendTrackerNotificationAtEnrollmentCompletionAndThenEventCompletion() {
-    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
-        org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
+  void shouldSendTrackerNotificationAtEnrollment() {
+    Enrollment enrollment =
+        Enrollment.builder()
             .program(MetadataIdentifier.ofUid(programA.getUid()))
             .orgUnit(MetadataIdentifier.ofUid(orgUnitA.getUid()))
             .trackedEntity(trackedEntityA.getUid())
-            .status(EnrollmentStatus.COMPLETED)
+            .status(EnrollmentStatus.ACTIVE)
             .enrolledAt(Instant.now())
             .occurredAt(Instant.now())
             .enrollment(CodeGenerator.generateUid())
@@ -177,9 +170,61 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
             TrackerImportParams.builder()
                 .userId(user.getUid())
                 .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
-                .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
                 .build(),
             TrackerObjects.builder().enrollments(List.of(enrollment)).build());
+
+    assertNoErrors(importReport);
+
+    await()
+        .atMost(3, TimeUnit.SECONDS)
+        .until(() -> !manager.getAll(MessageConversation.class).isEmpty());
+
+    List<MessageConversation> messageConversations = manager.getAll(MessageConversation.class);
+
+    List<String> subjectMessages =
+        messageConversations.stream().map(MessageConversation::getSubject).toList();
+
+    assertContainsOnly(List.of("enrollment_subject"), subjectMessages);
+  }
+
+  @Test
+  void shouldSendTrackerNotificationAtEnrollmentCompletionAndThenEventCompletion() {
+    String eventUid = CodeGenerator.generateUid();
+
+    Enrollment enrollment =
+        Enrollment.builder()
+            .program(MetadataIdentifier.ofUid(programA.getUid()))
+            .orgUnit(MetadataIdentifier.ofUid(orgUnitA.getUid()))
+            .trackedEntity(trackedEntityA.getUid())
+            .status(EnrollmentStatus.COMPLETED)
+            .enrolledAt(Instant.now())
+            .occurredAt(Instant.now())
+            .enrollment(CodeGenerator.generateUid())
+            .build();
+
+    org.hisp.dhis.tracker.imports.domain.Event event =
+        org.hisp.dhis.tracker.imports.domain.Event.builder()
+            .program(MetadataIdentifier.ofUid(programA.getUid()))
+            .orgUnit(MetadataIdentifier.ofUid(orgUnitA.getUid()))
+            .enrollment(enrollment.getEnrollment())
+            .event(eventUid)
+            .programStage(MetadataIdentifier.ofUid(programStageA.getUid()))
+            .status(EventStatus.ACTIVE)
+            .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
+            .completedAt(Instant.now())
+            .occurredAt(Instant.now())
+            .build();
+
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            TrackerImportParams.builder()
+                .userId(user.getUid())
+                .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
+                .build(),
+            TrackerObjects.builder()
+                .enrollments(List.of(enrollment))
+                .events(List.of(event))
+                .build());
 
     assertNoErrors(importReport);
 
@@ -189,21 +234,18 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
 
     List<MessageConversation> messageConversations = manager.getAll(MessageConversation.class);
 
-    List<String> subjectMessages = new ArrayList<>();
-    for (MessageConversation messageConversation : messageConversations) {
-      String subject = messageConversation.getSubject();
-      subjectMessages.add(subject);
-    }
+    List<String> subjectMessages =
+        messageConversations.stream().map(MessageConversation::getSubject).toList();
 
     assertContainsOnly(
         List.of("enrollment_subject", "enrollment_completion_subject"), subjectMessages);
 
-    org.hisp.dhis.tracker.imports.domain.Event event =
+    org.hisp.dhis.tracker.imports.domain.Event eventUpdated =
         org.hisp.dhis.tracker.imports.domain.Event.builder()
             .program(MetadataIdentifier.ofUid(programA.getUid()))
             .orgUnit(MetadataIdentifier.ofUid(orgUnitA.getUid()))
             .enrollment(enrollment.getEnrollment())
-            .event(CodeGenerator.generateUid())
+            .event(eventUid)
             .programStage(MetadataIdentifier.ofUid(programStageA.getUid()))
             .status(EventStatus.COMPLETED)
             .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
@@ -215,9 +257,9 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
         trackerImportService.importTracker(
             TrackerImportParams.builder()
                 .userId(user.getUid())
-                .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
+                .importStrategy(TrackerImportStrategy.UPDATE)
                 .build(),
-            TrackerObjects.builder().events(List.of(event)).build());
+            TrackerObjects.builder().events(List.of(eventUpdated)).build());
 
     assertNoErrors(importReport);
 
@@ -227,12 +269,7 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
 
     messageConversations = manager.getAll(MessageConversation.class);
 
-    List<String> list = new ArrayList<>();
-    for (MessageConversation messageConversation : messageConversations) {
-      String subject = messageConversation.getSubject();
-      list.add(subject);
-    }
-    subjectMessages = list;
+    subjectMessages = messageConversations.stream().map(MessageConversation::getSubject).toList();
 
     assertContainsOnly(
         List.of("enrollment_subject", "enrollment_completion_subject", "event_completion_subject"),
@@ -240,9 +277,41 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
   }
 
   @Test
-  void shouldSendEnrollmentCompletionNotificationOnlyOnce() {
+  void shouldSendEnrollmentCompletionNotificationWhenStatusIsUpdatedFromActiveToCompleted() {
     String uid = CodeGenerator.generateUid();
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
+        org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
+            .program(MetadataIdentifier.ofUid(programA.getUid()))
+            .orgUnit(MetadataIdentifier.ofUid(orgUnitA.getUid()))
+            .trackedEntity(trackedEntityA.getUid())
+            .status(EnrollmentStatus.ACTIVE)
+            .enrollment(uid)
+            .enrolledAt(Instant.now())
+            .occurredAt(Instant.now())
+            .build();
+
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            TrackerImportParams.builder()
+                .userId(user.getUid())
+                .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
+                .build(),
+            TrackerObjects.builder().enrollments(List.of(enrollment)).build());
+
+    assertNoErrors(importReport);
+
+    await()
+        .atMost(3, TimeUnit.SECONDS)
+        .until(() -> manager.getAll(MessageConversation.class).size() > 0);
+
+    List<MessageConversation> messageConversations = manager.getAll(MessageConversation.class);
+
+    List<String> subjectMessages =
+        messageConversations.stream().map(MessageConversation::getSubject).toList();
+
+    assertContainsOnly(List.of("enrollment_subject"), subjectMessages);
+
+    org.hisp.dhis.tracker.imports.domain.Enrollment enrollmentUpdated =
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
             .program(MetadataIdentifier.ofUid(programA.getUid()))
             .orgUnit(MetadataIdentifier.ofUid(orgUnitA.getUid()))
@@ -251,14 +320,49 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
             .enrollment(uid)
             .enrolledAt(Instant.now())
             .occurredAt(Instant.now())
-            .enrollment(CodeGenerator.generateUid())
+            .build();
+
+    importReport =
+        trackerImportService.importTracker(
+            TrackerImportParams.builder()
+                .userId(user.getUid())
+                .importStrategy(TrackerImportStrategy.UPDATE)
+                .build(),
+            TrackerObjects.builder().enrollments(List.of(enrollmentUpdated)).build());
+
+    assertNoErrors(importReport);
+
+    await()
+        .atMost(3, TimeUnit.SECONDS)
+        .until(() -> manager.getAll(MessageConversation.class).size() > 1);
+
+    messageConversations = manager.getAll(MessageConversation.class);
+
+    subjectMessages = messageConversations.stream().map(MessageConversation::getSubject).toList();
+
+    assertContainsOnly(
+        List.of("enrollment_subject", "enrollment_completion_subject"), subjectMessages);
+  }
+
+  @Test
+  void shouldSendEnrollmentCompletionNotificationOnlyOnce() {
+    String uid = CodeGenerator.generateUid();
+    Enrollment enrollment =
+        Enrollment.builder()
+            .program(MetadataIdentifier.ofUid(programA.getUid()))
+            .orgUnit(MetadataIdentifier.ofUid(orgUnitA.getUid()))
+            .trackedEntity(trackedEntityA.getUid())
+            .status(EnrollmentStatus.COMPLETED)
+            .enrollment(uid)
+            .enrolledAt(Instant.now())
+            .occurredAt(Instant.now())
+            .completedAt(Instant.now())
             .build();
 
     ImportReport importReport =
         trackerImportService.importTracker(
             TrackerImportParams.builder()
                 .userId(user.getUid())
-                .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
                 .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
                 .build(),
             TrackerObjects.builder().enrollments(List.of(enrollment)).build());
@@ -271,11 +375,8 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
 
     List<MessageConversation> messageConversations = manager.getAll(MessageConversation.class);
 
-    List<String> subjectMessages = new ArrayList<>();
-    for (MessageConversation messageConversation : messageConversations) {
-      String subject = messageConversation.getSubject();
-      subjectMessages.add(subject);
-    }
+    List<String> subjectMessages =
+        messageConversations.stream().map(MessageConversation::getSubject).toList();
 
     assertContainsOnly(
         List.of("enrollment_subject", "enrollment_completion_subject"), subjectMessages);
@@ -284,7 +385,6 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
         trackerImportService.importTracker(
             TrackerImportParams.builder()
                 .userId(user.getUid())
-                .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
                 .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
                 .build(),
             TrackerObjects.builder().enrollments(List.of(enrollment)).build());
@@ -297,12 +397,7 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
 
     messageConversations = manager.getAll(MessageConversation.class);
 
-    List<String> list = new ArrayList<>();
-    for (MessageConversation messageConversation : messageConversations) {
-      String subject = messageConversation.getSubject();
-      list.add(subject);
-    }
-    subjectMessages = list;
+    subjectMessages = messageConversations.stream().map(MessageConversation::getSubject).toList();
 
     assertContainsOnly(
         List.of("enrollment_subject", "enrollment_completion_subject"), subjectMessages);

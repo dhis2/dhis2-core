@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,43 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fileresource;
+package org.hisp.dhis.config;
 
-import static org.jclouds.ContextBuilder.newBuilder;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
-import java.util.NoSuchElementException;
-import org.junit.jupiter.api.Test;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
- * Verify that the supported jclouds providers can be selected.
+ * Use this configuration for tests relying on MinIO storage running in a Docker container. e.g. add
+ * to test class like `@ContextConfiguration(classes = {MinIODhisConfiguration.class})`
  *
- * @author Jim Grace
+ * @author david mackessy
  */
-class JCloudsProviderTest {
-  @Test
-  void verifyFilesystem() {
-    assertDoesNotThrow(() -> newBuilder("filesystem"));
-  }
-
-  @Test
-  void verifyAwsS3() {
-    assertDoesNotThrow(() -> newBuilder("aws-s3"));
-  }
-
-  @Test
-  void verifyS3() {
-    assertDoesNotThrow(() -> newBuilder("s3"));
-  }
-
-  @Test
-  void verifyInvalidProvider() {
-    assertThrows(NoSuchElementException.class, () -> newBuilder("s4"));
-  }
-
-  @Test
-  void verifyTransient() {
-    assertDoesNotThrow(() -> newBuilder("transient"));
+@Configuration
+public class MinIOConfiguration {
+  @Bean
+  public DhisConfigurationProvider dhisConfigurationProvider() {
+    return new MinIOConfigurationProvider(
+        new TestContainerPostgresConfig().dhisConfigurationProvider().getProperties());
   }
 }
