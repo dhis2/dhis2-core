@@ -34,7 +34,7 @@ import static org.hisp.dhis.analytics.AnalyticsTableType.DATA_VALUE;
 import static org.hisp.dhis.analytics.AnalyticsTableType.ENROLLMENT;
 import static org.hisp.dhis.analytics.AnalyticsTableType.EVENT;
 import static org.hisp.dhis.analytics.AnalyticsTableType.OWNERSHIP;
-import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCES;
+import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_ENROLLMENTS;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS;
 import static org.hisp.dhis.analytics.AnalyticsTableType.VALIDATION_RESULT;
@@ -128,7 +128,7 @@ public class ResourceTableController {
     }
 
     if (isTrue(skipTrackedEntities)) {
-      skipTableTypes.add(TRACKED_ENTITY_INSTANCES);
+      skipTableTypes.add(TRACKED_ENTITY_INSTANCE);
       skipTableTypes.add(TRACKED_ENTITY_INSTANCE_EVENTS);
       skipTableTypes.add(TRACKED_ENTITY_INSTANCE_ENROLLMENTS);
     }

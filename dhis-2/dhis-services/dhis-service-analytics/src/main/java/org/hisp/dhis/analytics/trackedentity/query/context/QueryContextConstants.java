@@ -28,7 +28,7 @@
 package org.hisp.dhis.analytics.trackedentity.query.context;
 
 import static lombok.AccessLevel.PRIVATE;
-import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCES;
+import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE;
 
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.QueryContext;
@@ -40,7 +40,7 @@ import org.hisp.dhis.analytics.trackedentity.query.context.sql.QueryContext;
 @NoArgsConstructor(access = PRIVATE)
 public class QueryContextConstants {
   public static final String ANALYTICS_TRACKED_ENTITY =
-      TRACKED_ENTITY_INSTANCES.getTableName() + "_";
+      TRACKED_ENTITY_INSTANCE.getTableName() + "_";
 
   public static final String TRACKED_ENTITY_ALIAS = "t_1";
 

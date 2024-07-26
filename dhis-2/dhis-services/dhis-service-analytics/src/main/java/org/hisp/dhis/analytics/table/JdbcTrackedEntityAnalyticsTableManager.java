@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics.table;
 
 import static java.lang.String.join;
 import static java.util.stream.Collectors.groupingBy;
-import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCES;
+import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
@@ -289,7 +289,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractJdbcTableMan
    */
   @Override
   public AnalyticsTableType getAnalyticsTableType() {
-    return TRACKED_ENTITY_INSTANCES;
+    return TRACKED_ENTITY_INSTANCE;
   }
 
   /**
