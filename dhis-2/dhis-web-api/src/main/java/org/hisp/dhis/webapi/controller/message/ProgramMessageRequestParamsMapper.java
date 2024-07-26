@@ -41,6 +41,7 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.message.ProgramMessageQueryParams;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Zubair Asghar
@@ -50,6 +51,7 @@ import org.springframework.stereotype.Component;
 public class ProgramMessageRequestParamsMapper {
   private final IdentifiableObjectManager manager;
 
+  @Transactional(readOnly = true)
   public ProgramMessageQueryParams ValidateAndMap(ProgramMessageRequestParams params)
       throws ConflictException, BadRequestException {
     if (params == null) {
