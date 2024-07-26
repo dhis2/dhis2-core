@@ -77,7 +77,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -793,41 +792,33 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetEnrollmentById() {
-    manager.save(enrollmentA);
-    manager.save(enrollmentB);
-    assertEquals(enrollmentA, manager.get(Enrollment.class, enrollmentA.getUid()));
-    assertEquals(enrollmentB, manager.get(Enrollment.class, enrollmentB.getUid()));
-  }
-
-  @Test
-  void testGetEnrollmentsByTrackedEntityProgramAndEnrollmentStatus()
-      throws ForbiddenException, BadRequestException {
-    manager.save(enrollmentA);
-    Enrollment enrollment1 = createEnrollment(programA, trackedEntityA, orgUnitA);
-    enrollment1.setStatus(EnrollmentStatus.COMPLETED);
-    manager.save(enrollment1, false);
-    Enrollment enrollment2 = createEnrollment(programA, trackedEntityA, orgUnitA);
-    enrollment2.setStatus(EnrollmentStatus.COMPLETED);
-    manager.save(enrollment2, false);
+  void shouldGetAllCompletedEnrollments() throws ForbiddenException, BadRequestException {
+    Enrollment enrollmentC = createEnrollment(programA, trackedEntityA, orgUnitA);
+    enrollmentC.setStatus(EnrollmentStatus.COMPLETED);
+    manager.save(enrollmentC, false);
+    Enrollment enrollmentD = createEnrollment(programA, trackedEntityA, orgUnitA);
+    enrollmentD.setStatus(EnrollmentStatus.COMPLETED);
+    manager.save(enrollmentD, false);
 
     List<Enrollment> enrollments =
         enrollmentService.getEnrollments(trackedEntityA, programA, EnrollmentStatus.COMPLETED);
-    assertContainsOnly(List.of(enrollment1, enrollment2), enrollments);
+    assertContainsOnly(List.of(enrollmentC, enrollmentD), enrollments);
+  }
 
-    enrollments =
+  @Test
+  void shouldGetAllActiveEnrollments() throws ForbiddenException, BadRequestException {
+    List<Enrollment> enrollments =
         enrollmentService.getEnrollments(trackedEntityA, programA, EnrollmentStatus.ACTIVE);
+
     assertContainsOnly(List.of(enrollmentA), enrollments);
   }
 
   @Test
   void shouldNotDeleteNoteWhenDeletingEnrollment() throws ForbiddenException, NotFoundException {
-
     Note note = new Note();
     note.setCreator(CodeGenerator.generateUid());
     note.setNoteText("text");
     manager.save(note);
-
     enrollmentA.setNotes(List.of(note));
 
     manager.save(enrollmentA);
@@ -836,7 +827,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     manager.delete(enrollmentA);
 
-    Assertions.assertThrows(
+    assertThrows(
         NotFoundException.class, () -> enrollmentService.getEnrollment(enrollmentA.getUid()));
     assertTrue(manager.exists(Note.class, note.getUid()));
   }
