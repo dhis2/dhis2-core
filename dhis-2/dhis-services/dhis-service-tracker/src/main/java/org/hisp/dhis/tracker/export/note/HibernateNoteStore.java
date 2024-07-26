@@ -25,12 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.note.hibernate;
+package org.hisp.dhis.tracker.export.note;
 
 import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.note.Note;
-import org.hisp.dhis.note.NoteStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -39,22 +38,13 @@ import org.springframework.stereotype.Repository;
 /**
  * @author David Katuscak
  */
-@Repository("org.hisp.dhis.trackedentitycomment.NoteStore")
-public class HibernateNoteStore extends HibernateIdentifiableObjectStore<Note>
-    implements NoteStore {
+@Repository("org.hisp.dhis.tracker.export.note.NoteStore")
+class HibernateNoteStore extends HibernateIdentifiableObjectStore<Note> {
   public HibernateNoteStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService) {
     super(entityManager, jdbcTemplate, publisher, Note.class, aclService, false);
-  }
-
-  @Override
-  public boolean exists(String uid) {
-    return (boolean)
-        nativeSynchronizedQuery("select exists(select 1 from note where uid=:uid)")
-            .setParameter("uid", uid)
-            .getSingleResult();
   }
 }

@@ -27,15 +27,11 @@
  */
 package org.hisp.dhis.program;
 
-import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_ENROLLMENT_DATE;
-import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_INCIDENT_DATE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.google.common.collect.Sets;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
@@ -45,8 +41,6 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -166,20 +160,6 @@ class EnrollmentStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetEnrollmentsByProgram() {
-    enrollmentStore.save(enrollmentA);
-    enrollmentStore.save(enrollmentB);
-    enrollmentStore.save(enrollmentD);
-    List<Enrollment> enrollments = enrollmentStore.get(programA);
-    assertEquals(2, enrollments.size());
-    assertTrue(enrollments.contains(enrollmentA));
-    assertTrue(enrollments.contains(enrollmentD));
-    enrollments = enrollmentStore.get(programB);
-    assertEquals(1, enrollments.size());
-    assertTrue(enrollments.contains(enrollmentB));
-  }
-
-  @Test
   void testGetEnrollmentsByTrackedEntityProgramAndEnrollmentStatus() {
     enrollmentStore.save(enrollmentA);
     enrollmentStore.save(enrollmentB);
@@ -192,69 +172,6 @@ class EnrollmentStoreTest extends PostgresIntegrationTestBase {
     enrollments = enrollmentStore.get(trackedEntityA, programA, EnrollmentStatus.ACTIVE);
     assertEquals(1, enrollments.size());
     assertTrue(enrollments.contains(enrollmentA));
-  }
-
-  @Test
-  void testGetWithScheduledNotifications() {
-    ProgramNotificationTemplate
-        a1 =
-            createProgramNotificationTemplate(
-                "a1",
-                -1,
-                SCHEDULED_DAYS_INCIDENT_DATE,
-                ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE),
-        a2 =
-            createProgramNotificationTemplate(
-                "a2",
-                1,
-                SCHEDULED_DAYS_INCIDENT_DATE,
-                ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE),
-        a3 =
-            createProgramNotificationTemplate(
-                "a3",
-                7,
-                SCHEDULED_DAYS_ENROLLMENT_DATE,
-                ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE);
-    programNotificationStore.save(a1);
-    programNotificationStore.save(a2);
-    programNotificationStore.save(a3);
-    // TE
-    TrackedEntity trackedEntityX = createTrackedEntity(organisationUnitA);
-    TrackedEntity trackedEntityY = createTrackedEntity(organisationUnitA);
-    trackedEntityService.addTrackedEntity(trackedEntityX);
-    trackedEntityService.addTrackedEntity(trackedEntityY);
-    // Program
-    programA.setNotificationTemplates(Sets.newHashSet(a1, a2, a3));
-    programService.updateProgram(programA);
-    // Dates
-    Calendar cal = Calendar.getInstance();
-    PeriodType.clearTimeOfDay(cal);
-    Date today = cal.getTime();
-    cal.add(Calendar.DATE, 1);
-    Date tomorrow = cal.getTime();
-    cal.add(Calendar.DATE, -2);
-    Date yesterday = cal.getTime();
-    cal.add(Calendar.DATE, -6);
-    Date aWeekAgo = cal.getTime();
-    // Enrollments
-    Enrollment enrollmentA = new Enrollment(today, tomorrow, trackedEntityX, programA);
-    enrollmentStore.save(enrollmentA);
-    Enrollment enrollmentB = new Enrollment(aWeekAgo, yesterday, trackedEntityY, programA);
-    enrollmentStore.save(enrollmentB);
-    // Queries
-    List<Enrollment> results;
-    // A
-    results = enrollmentStore.getWithScheduledNotifications(a1, today);
-    assertEquals(1, results.size());
-    assertEquals(enrollmentA, results.get(0));
-    results = enrollmentStore.getWithScheduledNotifications(a2, today);
-    assertEquals(1, results.size());
-    assertEquals(enrollmentB, results.get(0));
-    results = enrollmentStore.getWithScheduledNotifications(a3, today);
-    assertEquals(1, results.size());
-    assertEquals(enrollmentB, results.get(0));
-    results = enrollmentStore.getWithScheduledNotifications(a3, yesterday);
-    assertEquals(0, results.size());
   }
 
   @Test

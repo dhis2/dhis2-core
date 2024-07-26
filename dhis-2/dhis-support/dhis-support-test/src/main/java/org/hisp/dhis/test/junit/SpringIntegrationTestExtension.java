@@ -96,7 +96,7 @@ public class SpringIntegrationTestExtension
 
   @Override
   public void beforeAll(ExtensionContext context) throws Exception {
-    if (!isTestLifecyclePerClass(context)) {
+    if (isTestLifecyclePerMethod(context)) {
       return;
     }
 
@@ -116,7 +116,7 @@ public class SpringIntegrationTestExtension
 
   @Override
   public void afterAll(ExtensionContext context) {
-    if (!isTestLifecyclePerClass(context)) {
+    if (isTestLifecyclePerMethod(context)) {
       return;
     }
 
@@ -152,6 +152,10 @@ public class SpringIntegrationTestExtension
       unbindSession(context);
       emptyDatabase(context);
     }
+  }
+
+  private static boolean isTestLifecyclePerMethod(ExtensionContext context) {
+    return !isTestLifecyclePerClass(context);
   }
 
   private static boolean isTestLifecyclePerClass(ExtensionContext context) {

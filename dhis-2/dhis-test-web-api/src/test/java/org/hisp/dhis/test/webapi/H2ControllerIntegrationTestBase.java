@@ -37,4 +37,4 @@ import org.springframework.test.context.ActiveProfiles;
  */
 @ActiveProfiles("test-h2")
 @IntegrationH2Test
-public abstract class H2ControllerIntegrationTestBase extends ControllerTestBase {}
+public abstract class H2ControllerIntegrationTestBase extends ControllerIntegrationTestBase {}

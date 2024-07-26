@@ -28,7 +28,6 @@
 package org.hisp.dhis.program;
 
 import java.util.Date;
-import java.util.List;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 
@@ -36,16 +35,6 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
  * @author Abyot Asalefew
  */
 public interface EnrollmentService {
-
-  /** Get enrollments into a program. */
-  List<Enrollment> getEnrollments(Program program);
-
-  /** Get enrollments into a program that are in given status. */
-  List<Enrollment> getEnrollments(Program program, EnrollmentStatus status);
-
-  /** Get a tracked entities enrollments into a program that are in given status. */
-  List<Enrollment> getEnrollments(
-      TrackedEntity trackedEntity, Program program, EnrollmentStatus status);
 
   /**
    * Enroll a TrackedEntity into a program. Must be run inside a transaction.

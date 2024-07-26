@@ -36,7 +36,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -50,7 +49,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
@@ -85,17 +83,6 @@ public class EventPersister
     super(reservedValueService, trackedEntityAttributeValueChangeLogService);
     this.eventConverter = eventConverter;
     this.trackedEntityDataValueAuditService = trackedEntityDataValueChangeLogService;
-  }
-
-  @Override
-  protected void persistNotes(EntityManager entityManager, TrackerPreheat preheat, Event event) {
-    if (!event.getNotes().isEmpty()) {
-      for (Note note : event.getNotes()) {
-        if (Objects.isNull(preheat.getNote(note.getUid()))) {
-          entityManager.persist(note);
-        }
-      }
-    }
   }
 
   @Override
