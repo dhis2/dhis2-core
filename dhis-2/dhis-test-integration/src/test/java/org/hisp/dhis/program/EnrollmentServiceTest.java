@@ -251,13 +251,15 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     manager.update(enrollment2);
 
     List<Enrollment> enrollments =
-        enrollmentService.getEnrollments(trackedEntityA, programA, EnrollmentStatus.COMPLETED);
+        enrollmentService.getEnrollments(
+            trackedEntityA.getUid(), programA, EnrollmentStatus.COMPLETED);
     assertEquals(2, enrollments.size());
     assertTrue(enrollments.contains(enrollment1));
     assertTrue(enrollments.contains(enrollment2));
 
     enrollments =
-        enrollmentService.getEnrollments(trackedEntityA, programA, EnrollmentStatus.ACTIVE);
+        enrollmentService.getEnrollments(
+            trackedEntityA.getUid(), programA, EnrollmentStatus.ACTIVE);
     assertEquals(1, enrollments.size());
     assertTrue(enrollments.contains(enrollmentA));
   }
