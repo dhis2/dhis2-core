@@ -42,9 +42,9 @@ public enum AnalyticsTableType {
   EVENT("analytics_event", false, true),
   ENROLLMENT("analytics_enrollment", false, false),
   OWNERSHIP("analytics_ownership", false, false),
-  TRACKED_ENTITY_INSTANCE_EVENT("analytics_te_event", false, true),
-  TRACKED_ENTITY_INSTANCE_ENROLLMENT("analytics_te_enrollment", false, false),
-  TRACKED_ENTITY_INSTANCE("analytics_te", false, false);
+  TRACKED_ENTITY_INSTANCE_EVENTS("analytics_te_event", false, true),
+  TRACKED_ENTITY_INSTANCE_ENROLLMENTS("analytics_te_enrollment", false, false),
+  TRACKED_ENTITY_INSTANCES("analytics_te", false, false);
 
   private final String tableName;
 

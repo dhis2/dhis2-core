@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics.table;
 
 import static java.lang.String.join;
 import static java.lang.String.valueOf;
-import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_ENROLLMENT;
+import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_ENROLLMENTS;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
@@ -225,7 +225,7 @@ public class JdbcTrackedEntityEnrollmentsAnalyticsTableManager extends AbstractJ
    */
   @Override
   public AnalyticsTableType getAnalyticsTableType() {
-    return TRACKED_ENTITY_INSTANCE_ENROLLMENT;
+    return TRACKED_ENTITY_INSTANCE_ENROLLMENTS;
   }
 
   /**
