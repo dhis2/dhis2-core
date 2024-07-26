@@ -42,6 +42,7 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.user.AuthenticationService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -58,6 +59,8 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
   protected final ProgramNotificationTemplateService programNotificationTemplateService;
 
   protected final NotificationLoggingService notificationLoggingService;
+
+  protected final AuthenticationService authenticationService;
 
   protected ExternalNotificationLogEntry createLogEntry(String key, String templateUid) {
     ExternalNotificationLogEntry entry = new ExternalNotificationLogEntry();
