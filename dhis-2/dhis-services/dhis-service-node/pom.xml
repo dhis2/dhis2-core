@@ -131,6 +131,10 @@
       <artifactId>hibernate-core</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-service-field-filtering</artifactId>
+    </dependency>
 
   </dependencies>
 </project>
