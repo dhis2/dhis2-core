@@ -86,16 +86,17 @@ class ProgramMessageTest extends TrackerApiTest {
   }
 
   @Test
-  void shouldGetValidationErrorWhenEnrollmentAndEventNotPresent() {
-    QueryParamsBuilder params = new QueryParamsBuilder().add("enrollment=" + "g8upMTyEeee");
+  void shouldGetValidationErrorWhenEnrollmentDoesNotExist() {
+    String invalidEnrollment = "g8upMTyEeee";
+    QueryParamsBuilder params = new QueryParamsBuilder().add("enrollment=" + invalidEnrollment);
 
     ApiResponse response = programMessageActions.get("", JSON, JSON, params);
 
     response
         .validate()
         .statusCode(409)
-        .body("httpStatus", equalTo("Bad Request"))
-        .body("status", equalTo("Conflict"))
+        .body("httpStatus", equalTo("Conflict"))
+        .body("status", equalTo("ERROR"))
         .body("message", equalTo("Enrollment does not exist."));
   }
 }
