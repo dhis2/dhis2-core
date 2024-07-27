@@ -97,6 +97,7 @@ class ProgramMessageTest extends TrackerApiTest {
         .statusCode(409)
         .body("httpStatus", equalTo("Conflict"))
         .body("status", equalTo("ERROR"))
-        .body("message", equalTo(String.format("Enrollment %s does not exist." + invalidEnrollment)));
+        .body(
+            "message", equalTo(String.format("Enrollment %s does not exist." + invalidEnrollment)));
   }
 }
