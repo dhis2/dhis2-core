@@ -25,37 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.message;
+package org.hisp.dhis.webapi.controller.message;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Builder;
+import lombok.Getter;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.program.message.ProgramMessage;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
+@Getter
+@Builder
 @JacksonXmlRootElement(localName = "programMessageBatch", namespace = DxfNamespaces.DXF_2_0)
-public class ProgramMessageBatch {
-  private List<ProgramMessage> programMessages = new ArrayList<>();
-
-  public ProgramMessageBatch() {}
-
-  public ProgramMessageBatch(List<ProgramMessage> programMessages) {
-    this.programMessages = programMessages;
-  }
-
-  @JsonProperty
-  @JacksonXmlElementWrapper(localName = "programMessages", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "programMessage", namespace = DxfNamespaces.DXF_2_0)
-  public List<ProgramMessage> getProgramMessages() {
-    return programMessages;
-  }
-
-  public void setProgramMessages(List<ProgramMessage> programMessages) {
-    this.programMessages = programMessages;
-  }
+public class ProgramMessagesImportBatch {
+  private final List<ProgramMessage> programMessages = new ArrayList<>();
 }

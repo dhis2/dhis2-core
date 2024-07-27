@@ -80,13 +80,19 @@ public class ProgramMessageRequestParamsMapper {
     if (enrollmentUid != null) {
       enrollment =
           Optional.ofNullable(manager.get(Enrollment.class, entity.getValue()))
-              .orElseThrow(() -> new IllegalQueryException("Enrollment does not exist."));
+              .orElseThrow(
+                  () ->
+                      new IllegalQueryException(
+                          String.format("Enrollment: %s does not exist.", entity.getValue())));
     }
 
     if (eventUid != null) {
       event =
           Optional.ofNullable(manager.get(Event.class, entity.getValue()))
-              .orElseThrow(() -> new IllegalQueryException("Event does not exist."));
+              .orElseThrow(
+                  () ->
+                      new IllegalQueryException(
+                          String.format("Event: %s does not exist.", entity.getValue())));
     }
 
     return ProgramMessageQueryParams.builder()

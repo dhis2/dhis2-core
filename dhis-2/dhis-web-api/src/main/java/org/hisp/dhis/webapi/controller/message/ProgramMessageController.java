@@ -40,10 +40,8 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.program.message.ProgramMessage;
-import org.hisp.dhis.program.message.ProgramMessageBatch;
 import org.hisp.dhis.program.message.ProgramMessageQueryParams;
 import org.hisp.dhis.program.message.ProgramMessageService;
-import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -73,23 +71,12 @@ public class ProgramMessageController extends AbstractCrudController<ProgramMess
     return ResponseEntity.ok(programMessageService.getProgramMessages(params));
   }
 
-  @RequiresAuthority(anyOf = F_MOBILE_SENDSMS)
-  @GetMapping(value = "/scheduled/sent", produces = APPLICATION_JSON_VALUE)
-  @ResponseBody
-  public ResponseEntity<List<ProgramMessage>> getScheduledSentMessage(
-      ProgramMessageRequestParams requestParams) throws BadRequestException, ConflictException {
-    requestParams.setMessageStatus(ProgramMessageStatus.SENT);
-    ProgramMessageQueryParams queryParams = paramsMapper.ValidateAndMap(requestParams);
-
-    return ResponseEntity.ok(programMessageService.getProgramMessages(queryParams));
-  }
-
   @RequiresAuthority(anyOf = {F_MOBILE_SENDSMS, F_SEND_EMAIL})
   @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public BatchResponseStatus sendMessages(HttpServletRequest request) throws IOException {
-    ProgramMessageBatch batch =
-        renderService.fromJson(request.getInputStream(), ProgramMessageBatch.class);
+    ProgramMessagesImportBatch batch =
+        renderService.fromJson(request.getInputStream(), ProgramMessagesImportBatch.class);
 
     for (ProgramMessage programMessage : batch.getProgramMessages()) {
       programMessageService.validatePayload(programMessage);
