@@ -64,8 +64,6 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private ProgramMessageStore programMessageStore;
 
-  @Autowired private EnrollmentStore enrollmentStore;
-
   @Autowired private OrganisationUnitService orgUnitService;
 
   @Autowired private TrackedEntityService trackedEntityService;
@@ -214,7 +212,7 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetProgramMessageByEnrollment() {
-    enrollmentStore.save(enrollmentA);
+    manager.save(enrollmentA);
     pmsgA.setEnrollment(enrollmentA);
     pmsgB.setEnrollment(enrollmentA);
     programMessageStore.save(pmsgA);
@@ -229,7 +227,7 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetProgramMessageByEvent() {
-    enrollmentStore.save(enrollmentA);
+    manager.save(enrollmentA);
     manager.save(eventA);
     pmsgA.setEvent(eventA);
     pmsgB.setEvent(eventA);
@@ -257,7 +255,7 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetProgramMessageByMultipleParameters() {
-    enrollmentStore.save(enrollmentA);
+    manager.save(enrollmentA);
     pmsgA.setEnrollment(enrollmentA);
     pmsgB.setEnrollment(enrollmentA);
     programMessageStore.save(pmsgA);
