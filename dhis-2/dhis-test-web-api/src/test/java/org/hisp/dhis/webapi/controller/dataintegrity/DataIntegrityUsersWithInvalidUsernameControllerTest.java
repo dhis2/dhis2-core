@@ -82,7 +82,7 @@ class DataIntegrityUsersWithInvalidUsernameControllerTest
     assertEquals(DETAILS_ID_TYPE, details.getIssuesIdType());
     assertEquals(CHECK_NAME, details.getName());
 
-    //Note that there is already one user which is part of the test class setup.
+    // Note that there is already one user which is part of the test class setup.
     JsonDataIntegritySummary summary = getSummary(CHECK_NAME);
     assertTrue(
         almostEqual(
