@@ -25,21 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.fieldfiltering;
 
 import java.util.List;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 
 /**
- * @author Abyot Asalefew
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
-  String ID = EnrollmentStore.class.getName();
+public enum Preset {
+  ID("id", List.of("id")),
+  CODE("code", List.of("code")),
+  ID_NAME("idName", List.of("id", "displayName")),
+  ALL("all", List.of("*")),
+  IDENTIFIABLE("identifiable", List.of("id", "name", "code", "created", "lastUpdated", "href")),
+  NAMEABLE(
+      "nameable",
+      List.of("id", "name", "shortName", "description", "code", "created", "lastUpdated"));
 
-  /** Get enrollments into a program that are in given status. */
-  List<Enrollment> get(Program program, EnrollmentStatus status);
+  private final String name;
 
-  /** Get a tracked entities enrollments into a program that are in given status. */
-  List<Enrollment> get(TrackedEntity trackedEntity, Program program, EnrollmentStatus status);
+  private final List<String> fields;
+
+  Preset(String name, List<String> fields) {
+    this.name = name;
+    this.fields = fields;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public List<String> getFields() {
+    return fields;
+  }
+
+  public static Preset defaultPreset() {
+    return Preset.ID_NAME;
+  }
+
+  public static Preset defaultAssociationPreset() {
+    return Preset.ID;
+  }
 }

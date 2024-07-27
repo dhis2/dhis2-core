@@ -55,6 +55,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.Value;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Maturity;
@@ -75,6 +76,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
  * @author Jan Bernitt
  */
 @Value
+@Slf4j
 public class Api {
   /**
    * Can be used in {@link OpenApi.Param#value()} to point not to the type to use but the generator
@@ -86,14 +88,6 @@ public class Api {
   public interface SchemaGenerator {
     Schema generate(Endpoint endpoint, Type source, Class<?>... args);
   }
-
-  /**
-   * A "virtual" property name enumeration type. It creates an OpenAPI {@code enum} string schema
-   * containing all valid property names for the target type. The target type is either the actual
-   * type substitute for the {@link OpenApi.EntityType} or the first argument type.
-   */
-  @NoArgsConstructor
-  public static final class PropertyNames {}
 
   /** Can be set to enable debug mode */
   Maybe<Boolean> debug = new Maybe<>(false);
@@ -201,6 +195,7 @@ public class Api {
     @ToString.Exclude @EqualsAndHashCode.Include Class<?> entityType;
 
     String name;
+    Class<?> domain;
     List<String> paths = new ArrayList<>();
     List<Endpoint> endpoints = new ArrayList<>();
   }
@@ -390,8 +385,9 @@ public class Api {
   @EqualsAndHashCode(onlyExplicitlyIncluded = true)
   public static class Schema {
 
-    public static Schema ofUnsupported(java.lang.reflect.Type source) {
-      return new Schema(Type.UNSUPPORTED, source, Object.class, null);
+    public static Schema ofAny(java.lang.reflect.Type source) {
+      if (source != Object.class) log.warn("OpenAPI failed to analyse the type: " + source);
+      return new Schema(Type.ANY, source, Object.class, null);
     }
 
     public static Schema ofUID(Class<?> of) {
@@ -448,7 +444,7 @@ public class Api {
     public enum Type {
       // Note that schemas are generated in the order of types given here
       // each type group being sorted alphabetically by shared name
-      UNSUPPORTED,
+      ANY,
       SIMPLE,
       ARRAY,
       OBJECT,
@@ -463,6 +459,7 @@ public class Api {
 
     @ToString.Exclude @EqualsAndHashCode.Include Class<?> rawType;
 
+    /** Which UID type is used to refer to objects of this schema */
     @CheckForNull @ToString.Exclude Class<? extends IdentifiableObject> identifyAs;
 
     /** Is empty for primitive types */
@@ -496,6 +493,9 @@ public class Api {
      * #direction}.
      */
     Maybe<Schema> input = new Maybe<>();
+
+    /** A shared schema gets a kind from {@link OpenApi.Kind} if available */
+    Maybe<String> kind = new Maybe<>();
 
     public boolean isShared() {
       return sharedName.isPresent();

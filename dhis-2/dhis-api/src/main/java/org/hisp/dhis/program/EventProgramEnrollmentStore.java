@@ -37,4 +37,6 @@ import java.util.List;
 public interface EventProgramEnrollmentStore {
 
   List<Enrollment> get(Program program);
+
+  List<Enrollment> get(Program program, EnrollmentStatus enrollmentStatus);
 }
