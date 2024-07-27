@@ -27,20 +27,29 @@
  */
 package org.hisp.dhis.webapi.controller.message;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.program.message.ProgramMessage;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-@Getter
-@Builder
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 @JacksonXmlRootElement(localName = "programMessageBatch", namespace = DxfNamespaces.DXF_2_0)
 public class ProgramMessagesImportBatch {
-  private final List<ProgramMessage> programMessages = new ArrayList<>();
+
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "programMessages", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "programMessage", namespace = DxfNamespaces.DXF_2_0)
+  private List<ProgramMessage> programMessages = new ArrayList<>();
 }

@@ -29,10 +29,10 @@ package org.hisp.dhis.tracker.message;
 
 import static org.hamcrest.Matchers.equalTo;
 
+import io.restassured.path.json.JsonPath;
 import java.io.File;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 import org.hisp.dhis.test.e2e.Constants;
 import org.hisp.dhis.test.e2e.actions.metadata.MetadataActions;
 import org.hisp.dhis.test.e2e.actions.tracker.message.ProgramMessageActions;
@@ -76,13 +76,14 @@ class ProgramMessageTest extends TrackerApiTest {
 
   @Test
   void shouldGetProgramMessageForEnrollment() {
-    QueryParamsBuilder params = new QueryParamsBuilder().add("enrollment=" + enrollmentUid);
+    QueryParamsBuilder params = new QueryParamsBuilder().add("enrollment", enrollmentUid);
 
     ApiResponse response = programMessageActions.get("", JSON, JSON, params);
-    List<Object> objectList =
-        response.validate().statusCode(200).extract().body().jsonPath().get("enrollment.id");
 
-    Assertions.assertEquals(enrollmentUid, objectList.get(0));
+    JsonPath jsonPath = new JsonPath(response.getAsString());
+    String question = jsonPath.getString("[0].enrollment.id");
+
+    Assertions.assertEquals(enrollmentUid, question);
   }
 
   @Test
@@ -98,6 +99,6 @@ class ProgramMessageTest extends TrackerApiTest {
         .body("httpStatus", equalTo("Conflict"))
         .body("status", equalTo("ERROR"))
         .body(
-            "message", equalTo(String.format("Enrollment %s does not exist." + invalidEnrollment)));
+            "message", equalTo(String.format("Enrollment: %s does not exist.", invalidEnrollment)));
   }
 }

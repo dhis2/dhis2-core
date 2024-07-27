@@ -34,6 +34,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+
+import org.hisp.dhis.test.e2e.TestRunStorage;
 import org.hisp.dhis.test.e2e.actions.RestApiActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.JsonObjectBuilder;
@@ -53,13 +55,14 @@ public class ProgramMessageActions extends RestApiActions {
    * @return ProgramMessage id
    */
   public String sendProgramMessage(String enrollment, String orgUnit) {
+    String uid = "U5HE4IRrZ32";
     JsonArray deliveryChannels = new JsonArray();
     deliveryChannels.add("SMS");
 
     JsonObject programMessage =
         new JsonObjectBuilder()
             .addProperty("name", "test_program_message")
-            .addProperty("code", "test_program_message")
+            .addProperty("id", "U5HE4IRrZ32")
             .addProperty("text", "message text")
             .addProperty("subject", "subject text")
             .addProperty("messageStatus", "SENT")
@@ -82,6 +85,8 @@ public class ProgramMessageActions extends RestApiActions {
             JsonObjectBuilder.jsonObject().addArray("programMessages", programMessageList).build());
 
     response.validate().statusCode(is(oneOf(201, 200)));
+    TestRunStorage.addCreatedEntity(endpoint, uid);
+
     return response.extractUid();
   }
 }
