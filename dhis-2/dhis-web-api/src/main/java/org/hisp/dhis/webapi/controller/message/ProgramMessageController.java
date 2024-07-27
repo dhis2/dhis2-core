@@ -42,6 +42,7 @@ import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageQueryParams;
 import org.hisp.dhis.program.message.ProgramMessageService;
+import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -69,6 +70,17 @@ public class ProgramMessageController extends AbstractCrudController<ProgramMess
     ProgramMessageQueryParams params = paramsMapper.ValidateAndMap(requestParams);
 
     return ResponseEntity.ok(programMessageService.getProgramMessages(params));
+  }
+
+  @RequiresAuthority(anyOf = F_MOBILE_SENDSMS)
+  @GetMapping(value = "/scheduled/sent", produces = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public List<ProgramMessage> getScheduledSentMessage(ProgramMessageRequestParams requestParams)
+      throws BadRequestException, ConflictException {
+    requestParams.setMessageStatus(ProgramMessageStatus.SENT);
+    ProgramMessageQueryParams params = paramsMapper.ValidateAndMap(requestParams);
+
+    return programMessageService.getProgramMessages(params);
   }
 
   @RequiresAuthority(anyOf = {F_MOBILE_SENDSMS, F_SEND_EMAIL})
