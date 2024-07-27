@@ -86,6 +86,6 @@ public class ProgramMessageActions extends RestApiActions {
     response.validate().statusCode(is(oneOf(201, 200)));
     TestRunStorage.addCreatedEntity(endpoint, uid);
 
-    return response.extractUid();
+    return uid;
   }
 }

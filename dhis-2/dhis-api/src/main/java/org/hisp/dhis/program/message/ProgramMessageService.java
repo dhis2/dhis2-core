@@ -29,6 +29,7 @@ package org.hisp.dhis.program.message;
 
 import java.util.List;
 import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 
 /**
@@ -69,9 +70,14 @@ public interface ProgramMessageService {
 
   void updateProgramMessage(ProgramMessage programMessage);
 
+  void updateProgramMessage(String uid, ProgramMessageUpdateRequest request)
+      throws NotFoundException;
+
   // -------------------------------------------------------------------------
   // Delete
   // -------------------------------------------------------------------------
 
   void deleteProgramMessage(ProgramMessage programMessage);
+
+  void deleteProgramMessage(String uid) throws NotFoundException;
 }

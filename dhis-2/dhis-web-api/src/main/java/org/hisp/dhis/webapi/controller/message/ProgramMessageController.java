@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.message;
 
+import static java.lang.String.format;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.security.Authorities.F_MOBILE_SENDSMS;
 import static org.hisp.dhis.security.Authorities.F_SEND_EMAIL;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -36,19 +38,26 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageQueryParams;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.program.message.ProgramMessageStatus;
+import org.hisp.dhis.program.message.ProgramMessageUpdateRequest;
+import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.controller.AbstractFullReadOnlyController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -58,9 +67,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/messages")
 @RequiredArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-public class ProgramMessageController extends AbstractCrudController<ProgramMessage> {
+public class ProgramMessageController extends AbstractFullReadOnlyController<ProgramMessage> {
   private final ProgramMessageService programMessageService;
   private final ProgramMessageRequestParamsMapper paramsMapper;
+  private final RenderService renderService;
 
   @RequiresAuthority(anyOf = F_MOBILE_SENDSMS)
   @GetMapping(produces = APPLICATION_JSON_VALUE)
@@ -95,5 +105,21 @@ public class ProgramMessageController extends AbstractCrudController<ProgramMess
     }
 
     return programMessageService.sendMessages(batch.getProgramMessages());
+  }
+
+  @RequiresAuthority(anyOf = F_MOBILE_SENDSMS)
+  @PutMapping(value = "/{uid}", produces = APPLICATION_JSON_VALUE)
+  public WebMessage updateProgramMessage(
+      @PathVariable String uid, ProgramMessageUpdateRequest updatedRequest)
+      throws NotFoundException {
+    programMessageService.updateProgramMessage(uid, updatedRequest);
+    return ok(format("ProgramMessage with id %s updated", uid));
+  }
+
+  @RequiresAuthority(anyOf = F_MOBILE_SENDSMS)
+  @DeleteMapping(value = "/{uid}", produces = APPLICATION_JSON_VALUE)
+  public WebMessage deleteProgramMessage(@PathVariable String uid) throws NotFoundException {
+    programMessageService.deleteProgramMessage(uid);
+    return ok(format("ProgramMessage with id %s deleted", uid));
   }
 }

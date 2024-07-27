@@ -48,6 +48,7 @@ import org.junit.jupiter.api.Test;
  * @author Zubair Asghar
  */
 class ProgramMessageTest extends TrackerApiTest {
+  private String programMessageUid;
   private String enrollmentUid;
   private ProgramMessageActions programMessageActions;
 
@@ -71,7 +72,7 @@ class ProgramMessageTest extends TrackerApiTest {
             .get(0);
 
     String programOrgUnit = "g8upMTyEZGZ";
-    programMessageActions.sendProgramMessage(enrollmentUid, programOrgUnit);
+    programMessageUid = programMessageActions.sendProgramMessage(enrollmentUid, programOrgUnit);
   }
 
   @Test
@@ -87,7 +88,7 @@ class ProgramMessageTest extends TrackerApiTest {
   }
 
   @Test
-  void shouldGetValidationErrorWhenEnrollmentDoesNotExist() {
+  void shouldGetErrorWhenEnrollmentDoesNotExist() {
     String invalidEnrollment = "g8upMTyEeee";
     QueryParamsBuilder params = new QueryParamsBuilder().add("enrollment=" + invalidEnrollment);
 
@@ -100,5 +101,25 @@ class ProgramMessageTest extends TrackerApiTest {
         .body("status", equalTo("ERROR"))
         .body(
             "message", equalTo(String.format("Enrollment: %s does not exist.", invalidEnrollment)));
+  }
+
+  @Test
+  void shouldUpdateProgramMessage() {
+    ApiResponse response = programMessageActions.get(programMessageUid);
+    response.validate().statusCode(200).body("messageStatus", equalTo("FAILED"));
+
+    response = programMessageActions.updateNoBody(programMessageUid + "?status=SENT");
+
+    response
+        .validate()
+        .statusCode(200)
+        .body("httpStatus", equalTo("OK"))
+        .body("status", equalTo("OK"))
+        .body(
+            "message",
+            equalTo(String.format("ProgramMessage with id %s updated", programMessageUid)));
+
+    response = programMessageActions.get(programMessageUid);
+    response.validate().statusCode(200).body("messageStatus", equalTo("SENT"));
   }
 }
