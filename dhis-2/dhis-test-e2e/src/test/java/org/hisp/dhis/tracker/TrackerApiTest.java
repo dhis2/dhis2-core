@@ -28,10 +28,9 @@
 package org.hisp.dhis.tracker;
 
 import com.google.gson.JsonObject;
+import io.restassured.http.ContentType;
 import java.io.File;
 import java.util.List;
-
-import io.restassured.http.ContentType;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.helpers.file.JsonFileReader;
@@ -53,7 +52,6 @@ import org.junit.jupiter.api.Tag;
 public class TrackerApiTest extends ApiTest {
   protected static final String TRACKER_PROGRAM_STAGE_ID = "nlXNK4b7LVr";
   protected static final String JSON = ContentType.JSON.toString();
-
 
   protected String TRACKER_PROGRAM_ID = Constants.TRACKER_PROGRAM_ID;
 
