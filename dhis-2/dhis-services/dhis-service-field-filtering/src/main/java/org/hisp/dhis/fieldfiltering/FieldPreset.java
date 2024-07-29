@@ -30,24 +30,44 @@ package org.hisp.dhis.fieldfiltering;
 import java.util.List;
 
 /**
- * Constants for available field presets. A preset represents a short-hand notation for a specific
- * category of fields.
- *
- * <p>TODO: Centralize this with the existing Preset enum in dhis-service-node.
- *
- * @author Lars Helge Overland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface FieldPreset {
-  List<String> IDENTIFIABLE_FIELDS =
-      List.of("id", "code", "name", "created", "lastUpdated", "lastUpdatedBy");
+public enum FieldPreset {
+  ID("id", List.of("id")),
+  CODE("code", List.of("code")),
+  ID_NAME("idName", List.of("id", "displayName")),
+  ALL("all", List.of("*")),
+  IDENTIFIABLE(
+      "identifiable", List.of("id", "name", "code", "created", "lastUpdated", "lastUpdatedBy")),
+  NAMEABLE(
+      "nameable",
+      List.of("id", "name", "shortName", "description", "code", "created", "lastUpdated")),
+  OWNER("owner", List.of("owner")),
+  PERSISTED("persisted", List.of("persisted")),
+  SIMPLE("simple", List.of("simple"));
 
-  String ALL = "all";
+  private final String name;
 
-  String OWNER = "owner";
+  private final List<String> fields;
 
-  String PERSISTED = "persisted";
+  FieldPreset(String name, List<String> fields) {
+    this.name = name;
+    this.fields = fields;
+  }
 
-  String IDENTIFIABLE = "identifiable";
+  public String getName() {
+    return name;
+  }
 
-  String SIMPLE = "simple";
+  public List<String> getFields() {
+    return fields;
+  }
+
+  public static FieldPreset defaultPreset() {
+    return FieldPreset.ID_NAME;
+  }
+
+  public static FieldPreset defaultAssociationPreset() {
+    return FieldPreset.ID;
+  }
 }
