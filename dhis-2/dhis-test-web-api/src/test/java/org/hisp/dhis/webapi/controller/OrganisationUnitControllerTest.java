@@ -32,6 +32,7 @@ import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.hisp.dhis.web.WebClientUtils.objectReference;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
 import org.hisp.dhis.jsontree.JsonList;
@@ -85,6 +86,20 @@ class OrganisationUnitControllerTest extends DhisControllerConvenienceTest {
         jsonWebMessage.getList("organisationUnits", JsonOrganisationUnit.class);
     assertFalse(organisationUnits.isEmpty());
     assertEquals("L0", organisationUnits.get(0).getDisplayName());
+  }
+
+  @Test
+  void getOrgUnitNameableFieldsTest() {
+    JsonWebMessage jsonWebMessage =
+        GET("/organisationUnits/" + ou0 + "?fields=:nameable").content().as(JsonWebMessage.class);
+    JsonOrganisationUnit organisationUnit = jsonWebMessage.as(JsonOrganisationUnit.class);
+    assertEquals("L0", organisationUnit.getName());
+    assertEquals("L0", organisationUnit.getString("shortName").string());
+    assertEquals("Org desc", organisationUnit.getString("description").string());
+    assertEquals("Org code", organisationUnit.getString("code").string());
+    assertNotNull(organisationUnit.getCreated());
+    assertNotNull(organisationUnit.getLastUpdated());
+    assertNotNull(organisationUnit.getId());
   }
 
   @Test
@@ -214,7 +229,16 @@ class OrganisationUnitControllerTest extends DhisControllerConvenienceTest {
         HttpStatus.CREATED,
         POST(
             "/organisationUnits",
-            "{'name':'" + name + "', 'shortName':'" + name + "', 'openingDate':'2021'}"));
+            """
+              {
+                'name':'%s',
+                'shortName':'%s',
+                'openingDate':'2021',
+                'description':'Org desc',
+                'code':'Org code'
+              }
+            """
+                .formatted(name, name)));
   }
 
   private String addOrganisationUnit(String name, String parentId) {
