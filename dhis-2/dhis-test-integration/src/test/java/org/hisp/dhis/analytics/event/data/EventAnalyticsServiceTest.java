@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.event.data;
 import static java.util.Calendar.FEBRUARY;
 import static java.util.Calendar.JANUARY;
 import static java.util.Calendar.MARCH;
+import static java.util.Collections.emptyList;
 import static java.util.function.UnaryOperator.identity;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
@@ -54,8 +55,10 @@ import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.period.PeriodType.getPeriodTypeByName;
 import static org.hisp.dhis.program.AnalyticsType.ENROLLMENT;
 import static org.hisp.dhis.program.AnalyticsType.EVENT;
+import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -107,8 +110,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.AnalyticsType;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -125,6 +126,12 @@ import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.imports.TrackerIdScheme;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
+import org.hisp.dhis.tracker.imports.TrackerImportService;
+import org.hisp.dhis.tracker.imports.domain.Enrollment;
+import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -160,8 +167,6 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private AnalyticsTableGenerator analyticsTableGenerator;
 
-  @Autowired private EnrollmentService enrollmentService;
-
   @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
   @Autowired private IdentifiableObjectManager manager;
@@ -171,6 +176,8 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   @Autowired private CategoryService categoryService;
+
+  @Autowired private TrackerImportService trackerImportService;
 
   private OrganisationUnit ouA;
 
@@ -241,6 +248,10 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   private ProgramStage psA;
 
   private User userA;
+
+  private static final String ENROLLMENT_A_UID = "MNWZ6hnuhSA";
+
+  private static final String ENROLLMENT_B_UID = "MNWZ6hnuhSB";
 
   @BeforeAll
   void setUp() throws ConflictException {
@@ -423,15 +434,29 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     attributeValueService.addTrackedEntityAttributeValue(atv);
 
     // Enrollments (Enrollments)
-    Enrollment piA = enrollmentService.enrollTrackedEntity(teiA, programA, jan1, jan1, ouE);
-    piA.setEnrollmentDate(jan1);
-    piA.setOccurredDate(jan1);
-    manager.save(piA);
+    User admin = getAdminUser();
+    admin.addOrganisationUnit(ouE);
+    manager.update(admin);
+    TrackerImportParams params = TrackerImportParams.builder().userId(admin.getUid()).build();
+    List<Enrollment> enrollments =
+        List.of(
+            createEnrollment(ENROLLMENT_A_UID, teiA.getUid(), programA.getUid(), ouE, jan1, jan1));
+    TrackerObjects trackerObjects =
+        new TrackerObjects(emptyList(), enrollments, emptyList(), emptyList());
+    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
 
-    Enrollment piB = enrollmentService.enrollTrackedEntity(teiA, programB, jan1, jan1, ouE);
-    piB.setEnrollmentDate(jan1);
-    piB.setOccurredDate(jan1);
-    manager.save(piB);
+    enrollments =
+        List.of(
+            createEnrollment(ENROLLMENT_B_UID, teiA.getUid(), programB.getUid(), ouE, jan1, jan1));
+    trackerObjects = new TrackerObjects(emptyList(), enrollments, emptyList(), emptyList());
+    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
+
+    org.hisp.dhis.program.Enrollment enrollmentA =
+        manager.get(org.hisp.dhis.program.Enrollment.class, ENROLLMENT_A_UID);
+    org.hisp.dhis.program.Enrollment enrollmentB =
+        manager.get(org.hisp.dhis.program.Enrollment.class, ENROLLMENT_B_UID);
+    assertNotNull(enrollmentA);
+    assertNotNull(enrollmentB);
 
     // Change programA / teiA ownership through time:
     // Jan 1 (enrollment) - Jan 15: ouE
@@ -439,13 +464,13 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     // Feb 15 - Feb 15 Noon: ouE
     // Feb 15 Noon - Mar 15: ouG
     // Mar 15 - present: ouH
-    addProgramOwnershipHistory(programA, teiA, ouE, piA.getEnrollmentDate(), jan15);
+    addProgramOwnershipHistory(programA, teiA, ouE, enrollmentA.getEnrollmentDate(), jan15);
     addProgramOwnershipHistory(programA, teiA, ouF, jan15, feb15);
     addProgramOwnershipHistory(programA, teiA, ouE, feb15, feb15Noon);
     addProgramOwnershipHistory(programA, teiA, ouG, feb15Noon, mar15);
     trackedEntityProgramOwnerService.createOrUpdateTrackedEntityProgramOwner(teiA, programA, ouH);
 
-    Event eventA1 = createEvent(psA, piA, ouI);
+    Event eventA1 = createEvent(psA, enrollmentA, ouI);
     eventA1.setScheduledDate(jan15);
     eventA1.setOccurredDate(jan15);
     eventA1.setUid("event0000A1");
@@ -454,7 +479,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
             new EventDataValue(deA.getUid(), "1"), new EventDataValue(deU.getUid(), ouL.getUid())));
     eventA1.setAttributeOptionCombo(cocDefault);
 
-    Event eventA2 = createEvent(psA, piA, ouJ);
+    Event eventA2 = createEvent(psA, enrollmentA, ouJ);
     eventA2.setScheduledDate(feb15);
     eventA2.setOccurredDate(feb15);
     eventA2.setUid("event0000A2");
@@ -463,7 +488,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
             new EventDataValue(deA.getUid(), "2"), new EventDataValue(deU.getUid(), ouM.getUid())));
     eventA2.setAttributeOptionCombo(cocDefault);
 
-    Event eventA3 = createEvent(psA, piA, ouK);
+    Event eventA3 = createEvent(psA, enrollmentA, ouK);
     eventA3.setScheduledDate(mar15);
     eventA3.setOccurredDate(mar15);
     eventA3.setUid("event0000A3");
@@ -472,7 +497,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
             new EventDataValue(deA.getUid(), "4"), new EventDataValue(deU.getUid(), ouN.getUid())));
     eventA3.setAttributeOptionCombo(cocDefault);
 
-    Event eventB1 = createEvent(psB, piB, ouI);
+    Event eventB1 = createEvent(psB, enrollmentB, ouI);
     eventB1.setScheduledDate(jan1);
     eventB1.setOccurredDate(jan1);
     eventB1.setUid("event0000B1");
@@ -480,7 +505,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
         Set.of(new EventDataValue(deA.getUid(), "10"), new EventDataValue(deB.getUid(), "A")));
     eventB1.setAttributeOptionCombo(cocDefault);
 
-    Event eventB2 = createEvent(psB, piB, ouI);
+    Event eventB2 = createEvent(psB, enrollmentB, ouI);
     eventB2.setScheduledDate(jan20);
     eventB2.setOccurredDate(jan20);
     eventB2.setUid("event0000B2");
@@ -488,7 +513,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
         Set.of(new EventDataValue(deA.getUid(), "20"), new EventDataValue(deB.getUid(), "B")));
     eventB2.setAttributeOptionCombo(cocDefault);
 
-    Event eventB3 = createEvent(psB, piB, ouJ);
+    Event eventB3 = createEvent(psB, enrollmentB, ouJ);
     eventB3.setScheduledDate(jan1);
     eventB3.setOccurredDate(jan1);
     eventB3.setUid("event0000B3");
@@ -496,7 +521,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
         Set.of(new EventDataValue(deA.getUid(), "30"), new EventDataValue(deB.getUid(), "C")));
     eventB3.setAttributeOptionCombo(cocDefault);
 
-    Event eventB4 = createEvent(psB, piB, ouJ);
+    Event eventB4 = createEvent(psB, enrollmentB, ouJ);
     eventB4.setScheduledDate(jan20);
     eventB4.setOccurredDate(jan20);
     eventB4.setUid("event0000B4");
@@ -504,7 +529,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
         Set.of(new EventDataValue(deA.getUid(), "40"), new EventDataValue(deB.getUid(), "D")));
     eventB4.setAttributeOptionCombo(cocDefault);
 
-    Event eventB5 = createEvent(psB, piB, ouI);
+    Event eventB5 = createEvent(psB, enrollmentB, ouI);
     eventB5.setScheduledDate(feb15);
     eventB5.setOccurredDate(feb15);
     eventB5.setUid("event0000B5");
@@ -512,7 +537,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
         Set.of(new EventDataValue(deA.getUid(), "50"), new EventDataValue(deB.getUid(), "E")));
     eventB5.setAttributeOptionCombo(cocDefault);
 
-    Event eventB6 = createEvent(psB, piB, ouI);
+    Event eventB6 = createEvent(psB, enrollmentB, ouI);
     eventB6.setScheduledDate(feb15Noon);
     eventB6.setOccurredDate(feb15Noon);
     eventB6.setUid("event0000B6");
@@ -520,7 +545,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
         Set.of(new EventDataValue(deA.getUid(), "60"), new EventDataValue(deB.getUid(), "F")));
     eventB6.setAttributeOptionCombo(cocDefault);
 
-    Event eventB7 = createEvent(psB, piB, ouJ);
+    Event eventB7 = createEvent(psB, enrollmentB, ouJ);
     eventB7.setScheduledDate(feb15);
     eventB7.setOccurredDate(feb15);
     eventB7.setUid("event0000B7");
@@ -528,7 +553,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
         Set.of(new EventDataValue(deA.getUid(), "70"), new EventDataValue(deB.getUid(), "G")));
     eventB7.setAttributeOptionCombo(cocDefault);
 
-    Event eventB8 = createEvent(psB, piB, ouJ);
+    Event eventB8 = createEvent(psB, enrollmentB, ouJ);
     eventB8.setScheduledDate(feb15Noon);
     eventB8.setOccurredDate(feb15Noon);
     eventB8.setUid("event0000B8");
@@ -536,7 +561,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
         Set.of(new EventDataValue(deA.getUid(), "80"), new EventDataValue(deB.getUid(), "H")));
     eventB8.setAttributeOptionCombo(cocDefault);
 
-    Event eventM1 = createEvent(psB, piB, ouI);
+    Event eventM1 = createEvent(psB, enrollmentB, ouI);
     eventM1.setScheduledDate(jan15);
     eventM1.setOccurredDate(jan15);
     eventM1.setUid("event0000M1");
@@ -1541,5 +1566,25 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
         .boxed()
         .map(i -> headers.get(i) + ":" + values.get(headerMap.get(headers.get(i))))
         .collect(joining("/"));
+  }
+
+  private org.hisp.dhis.tracker.imports.domain.Enrollment createEnrollment(
+      String enrollmentUid,
+      String trackedEntityUid,
+      String programUid,
+      OrganisationUnit organisationUnit,
+      Date enrolledAt,
+      Date occurredAt) {
+
+    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
+        new org.hisp.dhis.tracker.imports.domain.Enrollment();
+    enrollment.setEnrollment(enrollmentUid);
+    enrollment.setProgram(MetadataIdentifier.of(TrackerIdScheme.UID, programUid, null));
+    enrollment.setOrgUnit(MetadataIdentifier.ofUid(organisationUnit));
+    enrollment.setTrackedEntity(trackedEntityUid);
+    enrollment.setEnrolledAt(enrolledAt.toInstant());
+    enrollment.setOccurredAt(occurredAt.toInstant());
+
+    return enrollment;
   }
 }
