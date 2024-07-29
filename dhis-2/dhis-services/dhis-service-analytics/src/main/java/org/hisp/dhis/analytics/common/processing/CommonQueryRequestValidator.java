@@ -143,7 +143,7 @@ public class CommonQueryRequestValidator implements Validator<CommonRequestParam
   private void checkAllowedDimensions(Set<String> dimensions) {
     dimensions.forEach(
         dim -> {
-          // The "pe" dimension is not supported for TEI queries.
+          // The "pe" dimension is not supported for TE queries.
           if (containsPe(dim)) {
             throwIllegalQueryEx(E7222, dim);
           }

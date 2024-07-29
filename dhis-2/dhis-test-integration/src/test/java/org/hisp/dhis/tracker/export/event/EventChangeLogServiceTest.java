@@ -47,6 +47,7 @@ import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.event.EventChangeLog.DataValueChange;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
+import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
@@ -58,6 +59,8 @@ class EventChangeLogServiceTest extends TrackerTest {
   @Autowired private EventChangeLogService eventChangeLogService;
 
   @Autowired private TrackerImportService trackerImportService;
+
+  @Autowired private TrackerObjectDeletionService trackerObjectDeletionService;
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -72,7 +75,10 @@ class EventChangeLogServiceTest extends TrackerTest {
   @BeforeAll
   void setUp() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
-    importUser = userService.getUser("M5zQapPyTZI");
+
+    importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
+
     importParams = TrackerImportParams.builder().userId(importUser.getUid()).build();
     assertNoErrors(
         trackerImportService.importTracker(
@@ -81,6 +87,16 @@ class EventChangeLogServiceTest extends TrackerTest {
 
   @Test
   void shouldFailWhenEventDoesNotExist() {
+    assertThrows(
+        NotFoundException.class,
+        () ->
+            eventChangeLogService.getEventChangeLog(
+                UID.of(CodeGenerator.generateUid()), null, null));
+  }
+
+  @Test
+  void shouldFailWhenEventIsSoftDeleted() throws NotFoundException {
+    trackerObjectDeletionService.deleteEvents(List.of("D9PbzJY8bJM"));
     assertThrows(
         NotFoundException.class,
         () ->

@@ -112,12 +112,8 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   private TrackedEntityAttribute trackedEntityAttribute;
 
-  private User superUser;
-
   @BeforeEach
   void setUp() {
-    this.superUser = getAdminUser();
-
     trackedEntityType = createTrackedEntityType('A');
     TrackedEntityAttribute attrD = createTrackedEntityAttribute('D');
     TrackedEntityAttribute attrE = createTrackedEntityAttribute('E');
@@ -260,7 +256,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldOrderEntitiesByCreatedInAscOrder() {
-    injectSecurityContextUser(superUser);
+    injectAdminIntoSecurityContext();
 
     trackedEntityA1.setCreated(DateTime.now().plusDays(1).toDate());
     trackedEntityB1.setCreated(DateTime.now().toDate());
@@ -286,7 +282,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldOrderEntitiesByCreatedInDescOrder() {
-    injectSecurityContextUser(superUser);
+    injectAdminIntoSecurityContext();
 
     trackedEntityA1.setCreated(DateTime.now().plusDays(1).toDate());
     trackedEntityB1.setCreated(DateTime.now().toDate());
@@ -312,7 +308,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldOrderEntitiesByCreatedAtInAscOrder() {
-    injectSecurityContextUser(superUser);
+    injectAdminIntoSecurityContext();
 
     trackedEntityA1.setCreated(DateTime.now().plusDays(1).toDate());
     trackedEntityB1.setCreated(DateTime.now().toDate());
@@ -338,7 +334,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldOrderEntitiesByCreatedAtInDescOrder() {
-    injectSecurityContextUser(superUser);
+    injectAdminIntoSecurityContext();
 
     DateTime now = DateTime.now();
 
@@ -367,7 +363,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldOrderEntitiesByUpdatedAtInAscOrder() throws InterruptedException {
-    injectSecurityContextUser(superUser);
+    injectAdminIntoSecurityContext();
 
     addEntityInstances();
     // lastupdated is automatically set by the store; update entities in a certain order and
@@ -398,7 +394,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldOrderEntitiesByUpdatedAtInDescOrder() throws InterruptedException {
-    injectSecurityContextUser(superUser);
+    injectAdminIntoSecurityContext();
 
     addEntityInstances();
     // lastupdated is automatically set by the store; update entities in a certain order and
@@ -430,7 +426,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldOrderEntitiesByTrackedEntityUidInDescOrder() {
-    injectSecurityContextUser(superUser);
+    injectAdminIntoSecurityContext();
 
     addEntityInstances();
 
@@ -452,7 +448,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldOrderEntitiesByUpdatedAtClientInDescOrder() {
-    injectSecurityContextUser(superUser);
+    injectAdminIntoSecurityContext();
 
     trackedEntityA1.setLastUpdatedAtClient(DateTime.now().plusDays(1).toDate());
     trackedEntityB1.setLastUpdatedAtClient(DateTime.now().toDate());
@@ -478,7 +474,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldOrderEntitiesByEnrolledAtDateInDescOrder() {
-    injectSecurityContextUser(superUser);
+    injectAdminIntoSecurityContext();
 
     addEntityInstances();
     manager.save(enrollment);
@@ -504,7 +500,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldSortEntitiesAndKeepOrderOfParamsWhenMultipleStaticFieldsSupplied() {
-    injectSecurityContextUser(superUser);
+    injectAdminIntoSecurityContext();
     trackedEntityA1.setInactive(true);
     trackedEntityB1.setInactive(true);
     trackedEntityC1.setInactive(false);
@@ -537,7 +533,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldOrderEntitiesByDefaultUsingTrackedEntityIdInAscOrderWhenNoOrderParamProvided() {
-    injectSecurityContextUser(superUser);
+    injectAdminIntoSecurityContext();
     addEntityInstances();
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
@@ -556,7 +552,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldOrderByNonStaticFieldWhenNonStaticFieldProvided() {
-    injectSecurityContextUser(superUser);
+    injectAdminIntoSecurityContext();
     trackedEntityAttribute.setDisplayInListNoProgram(true);
     attributeService.addTrackedEntityAttribute(trackedEntityAttribute);
 
@@ -583,7 +579,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldSortEntitiesAndKeepOrderOfParamsWhenStaticAndNonStaticFieldsSupplied() {
-    injectSecurityContextUser(superUser);
+    injectAdminIntoSecurityContext();
     trackedEntityAttribute.setDisplayInListNoProgram(true);
     attributeService.addTrackedEntityAttribute(trackedEntityAttribute);
 
@@ -619,7 +615,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldSortEntitiesByAttributeDescendingWhenAttributeDescendingProvided() {
-    injectSecurityContextUser(superUser);
+    injectAdminIntoSecurityContext();
 
     TrackedEntityAttribute tea = createTrackedEntityAttribute();
 
@@ -648,7 +644,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldSortEntitiesByAttributeAscendingWhenAttributeAscendingProvided() {
-    injectSecurityContextUser(superUser);
+    injectAdminIntoSecurityContext();
 
     TrackedEntityAttribute tea = createTrackedEntityAttribute();
 

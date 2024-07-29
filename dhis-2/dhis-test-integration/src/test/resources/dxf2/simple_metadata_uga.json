@@ -161,7 +161,7 @@
         "F_APPROVE_DATA_LOWER_LEVELS",
         "F_TRACKED_ENTITY_DATAVALUE_DELETE"
       ],
-      "name": "Superuser",
+      "name": "metadata Superuser",
       "lastUpdated": "2016-03-03T07:15:10.078+0000",
       "dataSets": [],
       "programs": [],
@@ -225,9 +225,9 @@
   ],
   "users": [
     {
-      "firstName": "admin",
+      "firstName": "metadata admin",
       "created": "2016-03-03T07:15:10.066+0000",
-      "surname": "admin",
+      "surname": "metadata admin",
       "catDimensionConstraints": [],
       "externalAuth": false,
       "passwordLastUpdated": "2016-03-03T07:15:10.102+0000",
@@ -235,7 +235,7 @@
       "selfRegistered": false,
       "lastLogin": "2016-03-03T07:15:10.102+0000",
       "disabled": false,
-      "username": "admin",
+      "username": "metadataadmin",
       "userRoles": [
         {
           "id": "wROqj1MuHYl"

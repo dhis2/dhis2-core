@@ -288,7 +288,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldNotReturnRelationshipWhenTeIsTransferredAndUserHasNoAccessToAtLeastOneProgram() {
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
 
     TrackedEntityType trackedEntityType = createTrackedEntityType('X');
     manager.save(trackedEntityType, false);
@@ -333,7 +333,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldExcludeRelationshipWhenProgramIsProtectedAndUserHasNoAccess()
       throws ForbiddenException, NotFoundException {
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
 
     TrackedEntity trackedEntityFrom = createTrackedEntity(orgUnitA);
     trackedEntityFrom.setTrackedEntityType(trackedEntityType);

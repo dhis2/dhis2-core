@@ -56,8 +56,8 @@ import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
 import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
-import org.hisp.dhis.analytics.tei.TeiQueryParams;
-import org.hisp.dhis.analytics.tei.TeiRequestParams;
+import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
+import org.hisp.dhis.analytics.trackedentity.TrackedEntityRequestParams;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.MetadataItem;
@@ -90,7 +90,7 @@ public class MetadataParamsHandler {
    */
   public void handle(
       Grid grid,
-      ContextParams<TeiRequestParams, TeiQueryParams> contextParams,
+      ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams,
       User user,
       long rowsCount) {
     CommonRequestParams commonRequest = contextParams.getCommonRaw();

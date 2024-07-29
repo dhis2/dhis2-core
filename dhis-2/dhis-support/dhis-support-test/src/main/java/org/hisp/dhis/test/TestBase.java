@@ -2536,13 +2536,14 @@ public abstract class TestBase {
       authorities.addAll(Lists.newArrayList(auths));
     }
 
+    String username = CodeGenerator.generateCode(16);
     UserRole group = new UserRole();
-    group.setName("Superuser");
+    group.setName(username);
     group.getAuthorities().addAll(authorities);
     userService.addUserRole(group);
 
     User user = makeUser(getNextUniqueChar());
-    user.setUsername(CodeGenerator.generateCode(16));
+    user.setUsername(username);
     user.getUserRoles().add(group);
 
     if (organisationUnits != null) {
@@ -2610,23 +2611,31 @@ public abstract class TestBase {
     return user;
   }
 
-  protected User createAndAddAdminUserWithAuth(Authorities... authorities) {
-    return createAndAddAdminUser(Authorities.toStringArray(authorities));
+  /**
+   * Creates and persists a user with a random UID and given authorities and injects it into the
+   * Spring security context.
+   */
+  protected final User createAndInjectRandomUser(String... authorities) {
+    User user = createAndAddRandomUser(authorities);
+    injectSecurityContextUser(user);
+    return user;
   }
 
-  protected User createAndAddAdminUser(String... authorities) {
+  /** Creates and persists a user with a random UID and given authorities. */
+  protected User createAndAddRandomUser(String... authorities) {
     checkUserServiceWasInjected();
 
-    UserRole role = createUserRole("Superuser", authorities);
-    role.setUid("yrB6vc5Ip3r");
+    String uid = CodeGenerator.generateUid();
+    UserRole role = createUserRole("Superuser_Test_" + uid, authorities);
+    role.setUid(uid);
 
-    String username = DEFAULT_USERNAME;
+    String username = DEFAULT_USERNAME + "_" + uid;
     String password = DEFAULT_ADMIN_PASSWORD;
 
     User user = createUser(username);
-    user.setUuid(UUID.fromString("6507f586-f154-4ec1-a25e-d7aa51de5216"));
-    user.setUid(ADMIN_USER_UID);
-    user.setName("Admin");
+    user.setUuid(UUID.randomUUID());
+    user.setUid(uid);
+    user.setName("Admin" + "_" + uid);
     user.setUsername(username);
     user.setPassword(password);
     user.getUserRoles().add(role);
@@ -2641,20 +2650,6 @@ public abstract class TestBase {
     userService.addUserRole(role);
 
     return user;
-  }
-
-  protected final User createAndInjectAdminUser() {
-    return createAndInjectAdminUser("ALL");
-  }
-
-  protected final User createAndInjectAdminUser(String... authorities) {
-    User user = createAndAddAdminUser(authorities);
-    injectSecurityContextUser(user);
-    return user;
-  }
-
-  protected void injectAdminUser() {
-    injectSecurityContextUser(userService.getUser(ADMIN_USER_UID));
   }
 
   protected void injectSecurityContextUser(User user) {
@@ -2929,7 +2924,30 @@ public abstract class TestBase {
   }
 
   protected User preCreateInjectAdminUser() {
-    User user = preCreateInjectAdminUserWithoutPersistence();
+    UserRole role = createUserRole("Superuser", "ALL");
+    role.setUid("yrB6vc5Ip3r");
+
+    User user = new User();
+    user.setCode("Code" + DEFAULT_USERNAME);
+    user.setUuid(UUID.fromString("6507f586-f154-4ec1-a25e-d7aa51de5216"));
+    user.setUid(ADMIN_USER_UID);
+    user.setFirstName(FIRST_NAME + DEFAULT_USERNAME);
+    user.setSurname(SURNAME + DEFAULT_USERNAME);
+    user.setUsername(DEFAULT_USERNAME);
+    user.setPassword(DEFAULT_ADMIN_PASSWORD);
+    user.getUserRoles().add(role);
+
+    user.setCreatedBy(user);
+    role.setCreatedBy(user);
+
+    // I assume this is needed so we can save the user
+    UserDetails currentUserDetails = userService.createUserDetails(user);
+    Authentication authentication =
+        new UsernamePasswordAuthenticationToken(
+            currentUserDetails, DEFAULT_ADMIN_PASSWORD, List.of(new SimpleGrantedAuthority("ALL")));
+    SecurityContext context = SecurityContextHolder.createEmptyContext();
+    context.setAuthentication(authentication);
+    SecurityContextHolder.setContext(context);
 
     userService.addUser(user);
 
@@ -2938,31 +2956,9 @@ public abstract class TestBase {
     userService.encodeAndSetPassword(user, user.getPassword());
     userService.updateUser(user);
 
-    return user;
-  }
-
-  protected User preCreateInjectAdminUserWithoutPersistence() {
-    String uid = CodeGenerator.generateUid();
-
-    UserRole role = createUserRole("Superuser_Test_" + uid, "ALL");
-    role.setUid(uid);
-
-    User user = new User();
-    user.setUid(uid);
-    user.setFirstName("Admin");
-    user.setSurname("User");
-    user.setUsername(DEFAULT_USERNAME + "_test");
-    user.setPassword(DEFAULT_ADMIN_PASSWORD);
-    user.getUserRoles().add(role);
-
-    UserDetails currentUserDetails = userService.createUserDetails(user);
-    Authentication authentication =
-        new UsernamePasswordAuthenticationToken(
-            currentUserDetails, DEFAULT_ADMIN_PASSWORD, List.of(new SimpleGrantedAuthority("ALL")));
-
-    SecurityContext context = SecurityContextHolder.createEmptyContext();
-    context.setAuthentication(authentication);
-    SecurityContextHolder.setContext(context);
+    // needed by tests like ControllerWithApiTokenAuthTestBase
+    UserDetails userDetails = userService.createUserDetails(user);
+    injectSecurityContext(userDetails);
 
     return user;
   }

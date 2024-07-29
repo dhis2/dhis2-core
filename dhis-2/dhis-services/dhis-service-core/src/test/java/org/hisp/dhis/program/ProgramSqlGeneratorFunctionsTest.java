@@ -300,7 +300,7 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
         is(
             "(select count(\"DataElmentA\") "
                 + "from analytics_event_Program000A "
-                + "where analytics_event_Program000A.pi = ax.pi "
+                + "where analytics_event_Program000A.enrollment = ax.enrollment "
                 + "and \"DataElmentA\" is not null and \"DataElmentA\" is not null "
                 + "and ps = 'ProgrmStagA')"));
   }
@@ -318,7 +318,7 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
         is(
             "(select count(\"DataElmentA\") "
                 + "from analytics_event_Program000A "
-                + "where analytics_event_Program000A.pi = ax.pi "
+                + "where analytics_event_Program000A.enrollment = ax.enrollment "
                 + "and \"DataElmentA\" is not null and \"DataElmentA\" is not null "
                 + "and occurreddate < cast( '2021-01-01' as date ) "
                 + "and ps = 'ProgrmStagA')"));
@@ -337,7 +337,7 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
         is(
             "(select count(\"DataElmentA\") "
                 + "from analytics_event_Program000A "
-                + "where analytics_event_Program000A.pi = ax.pi "
+                + "where analytics_event_Program000A.enrollment = ax.enrollment "
                 + "and \"DataElmentA\" is not null and \"DataElmentA\" is not null "
                 + "and occurreddate >= cast( '2020-01-01' as date ) "
                 + "and ps = 'ProgrmStagA')"));
@@ -356,7 +356,7 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
         is(
             "(select count(\"DataElmentA\") "
                 + "from analytics_event_Program000A "
-                + "where analytics_event_Program000A.pi = ax.pi "
+                + "where analytics_event_Program000A.enrollment = ax.enrollment "
                 + "and \"DataElmentA\" is not null and \"DataElmentA\" is not null "
                 + "and occurreddate < cast( '2021-01-01' as date ) and occurreddate >= cast( '2020-01-01' as date ) "
                 + "and ps = 'ProgrmStagA')"));
@@ -376,7 +376,7 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
         is(
             "(select count(\"DataElmentA\") "
                 + "from analytics_event_Program000A "
-                + "where analytics_event_Program000A.pi = ax.pi "
+                + "where analytics_event_Program000A.enrollment = ax.enrollment "
                 + "and \"DataElmentA\" is not null and \"DataElmentA\" > 5 and ps = 'ProgrmStagA')"));
   }
 
@@ -399,7 +399,7 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
         is(
             "(select count(\"DataElmentA\") "
                 + "from analytics_event_Program000A "
-                + "where analytics_event_Program000A.pi = ax.pi "
+                + "where analytics_event_Program000A.enrollment = ax.enrollment "
                 + "and \"DataElmentA\" is not null and \"DataElmentA\" > "
                 + "coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentE\" else null end::numeric,0) "
                 + "and ps = 'ProgrmStagA')"));
@@ -416,7 +416,7 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
         is(
             "(select count(\"DataElmentA\") "
                 + "from analytics_event_Program000A "
-                + "where analytics_event_Program000A.pi = ax.pi "
+                + "where analytics_event_Program000A.enrollment = ax.enrollment "
                 + "and \"DataElmentA\" is not null and \"DataElmentA\" = 55 "
                 + "and ps = 'ProgrmStagA')"));
   }
@@ -434,7 +434,7 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
         is(
             "(select count(\"DataElmentA\") "
                 + "from analytics_event_Program000A "
-                + "where analytics_event_Program000A.pi = ax.pi "
+                + "where analytics_event_Program000A.enrollment = ax.enrollment "
                 + "and \"DataElmentA\" is not null and \"DataElmentA\" = 'ABC' "
                 + "and ps = 'ProgrmStagA')"));
   }
@@ -576,7 +576,7 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
         sql,
         is(
             "(date_part('year',age(cast((select occurreddate from analytics_event_Program000A "
-                + "where analytics_event_Program000A.pi = ax.pi and occurreddate is not null "
+                + "where analytics_event_Program000A.enrollment = ax.enrollment and occurreddate is not null "
                 + "and ps = 'ProgrmStagA' "
                 + "order by occurreddate desc limit 1 ) as date), cast(enrollmentdate as date))))"));
   }
@@ -592,7 +592,7 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
         sql,
         is(
             "(date_part('year',age(cast((select occurreddate from analytics_event_Program000A "
-                + "where analytics_event_Program000A.pi = ax.pi and occurreddate is not null "
+                + "where analytics_event_Program000A.enrollment = ax.enrollment and occurreddate is not null "
                 + "and occurreddate < cast( '2021-01-01' as date ) and occurreddate >= cast( '2020-01-01' as date ) "
                 + "and ps = 'ProgrmStagA' "
                 + "order by occurreddate desc limit 1 ) as date), cast(enrollmentdate as date)))) < 1"));
@@ -643,7 +643,7 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
   @Test
   void testLog() {
     String sql = test("log(V{enrollment_count})");
-    assertThat(sql, is("ln(distinct pi)"));
+    assertThat(sql, is("ln(distinct enrollment)"));
 
     sql = test("log(V{event_count},3)");
     assertThat(sql, is("log(3,case " + DEFAULT_COUNT_CONDITION + " end)"));

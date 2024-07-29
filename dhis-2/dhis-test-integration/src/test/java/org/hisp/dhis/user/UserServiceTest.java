@@ -55,10 +55,10 @@ import java.util.Set;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeAll;
@@ -86,7 +86,8 @@ class UserServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager idObjectManager;
 
-  @Autowired private DataElementService dataElementService;
+  @Autowired private PasswordManager passwordManager;
+
   private OrganisationUnit unitA;
 
   private OrganisationUnit unitB;
@@ -132,7 +133,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   final void setup() {
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
   }
 
   private UserQueryParams getDefaultParams() {
@@ -443,13 +444,13 @@ class UserServiceTest extends PostgresIntegrationTestBase {
             });
     UserQueryParams params = getDefaultParams().addOrganisationUnit(unitA);
     List<User> allUsersA = userService.getUsers(params, singletonList("email:idesc"));
-    assertEquals(allUsersA, asList(getAdminUser(), userA, userB, userC));
+    assertEquals(asList(getAdminUser(), userA, userB, userC), allUsersA);
 
     List<User> allUsersB = userService.getUsers(params, null);
-    assertEquals(allUsersB, asList(userB, userC, getAdminUser(), userA));
+    assertEquals(asList(userB, userC, getAdminUser(), userA), allUsersB);
 
     List<User> allUserC = userService.getUsers(params, singletonList("firstName:asc"));
-    assertEquals(allUserC, asList(getAdminUser(), userA, userC, userB));
+    assertEquals(asList(userA, getAdminUser(), userC, userB), allUserC);
   }
 
   @Test
@@ -486,14 +487,14 @@ class UserServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetManagedGroupsSearch() {
-    User userA = addUser("A");
-    addUser("B");
+    addUser("A");
+    User userB = addUser("B");
     addUser("C");
     addUser("D");
     addUser("E");
     addUser("F");
-    UserQueryParams params = getDefaultParams().setQuery("rstnameA");
-    assertContainsOnly(List.of(userA), userService.getUsers(params));
+    UserQueryParams params = getDefaultParams().setQuery("rstnameB");
+    assertContainsOnly(List.of(userB), userService.getUsers(params));
     assertEquals(1, userService.getUserCount(params));
   }
 
@@ -585,7 +586,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
     assertEquals(1, userService.disableUsersInactiveSince(twoMonthsAgo));
     // being a super-user is the simplest way to filter purely on the set
     // parameters
-    createAndInjectAdminUser();
+    injectAdminIntoSecurityContext();
     UserQueryParams params = getDefaultParams().setDisabled(true);
     List<User> users = userService.getUsers(params);
     assertEquals(
@@ -635,9 +636,8 @@ class UserServiceTest extends PostgresIntegrationTestBase {
     userService.generateTwoFactorOtpSecretForApproval(userToModify);
     userService.updateUser(userToModify);
 
-    User admin = createAndAddAdminUser("ALL");
     List<ErrorReport> errors = new ArrayList<>();
-    userService.privilegedTwoFactorDisable(admin, userToModify.getUid(), errors::add);
+    userService.privilegedTwoFactorDisable(getAdminUser(), userToModify.getUid(), errors::add);
     assertTrue(errors.isEmpty());
   }
 
@@ -669,5 +669,20 @@ class UserServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testGetDisplayNameNull() {
     assertNull(userService.getDisplayName("notExist"));
+  }
+
+  @Test
+  void testBCryptedPasswordOnInputError() {
+    User user = new User();
+    user.setUsername("test");
+    user.setPassword("password");
+    userService.addUser(user);
+
+    String encodedPassword = passwordManager.encode("password");
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> userService.encodeAndSetPassword(user, encodedPassword),
+        "Raw password look like BCrypt encoded password, this is most certainly a bug");
   }
 }

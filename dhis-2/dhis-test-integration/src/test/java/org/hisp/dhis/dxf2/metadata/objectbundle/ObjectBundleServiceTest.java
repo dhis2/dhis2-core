@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.StreamSupport;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -85,6 +86,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 @Transactional
 class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
 
@@ -399,7 +401,7 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     assertEquals(2, dataSet.getDataSetElements().size());
     assertEquals(PeriodType.getPeriodTypeByName("Monthly"), dataSet.getPeriodType());
     assertNotNull(user);
-    assertEquals("admin", user.getUsername());
+    assertEquals("metadataadmin", user.getUsername());
     assertFalse(user.getUserRoles().isEmpty());
     assertFalse(user.getOrganisationUnits().isEmpty());
     assertEquals("PdWlltZnVZe", user.getOrganisationUnit().getUid());
@@ -847,6 +849,8 @@ class ObjectBundleServiceTest extends PostgresIntegrationTestBase {
     params.setObjects(metadata);
     bundle = objectBundleService.create(params);
     validate = objectBundleValidationService.validate(bundle);
+
+    validate.forEachErrorReport(errorReport -> log.error("Error report:" + errorReport));
     assertFalse(validate.hasErrorReports());
     objectBundleService.commit(bundle);
     List<DataSet> dataSets = manager.getAll(DataSet.class);

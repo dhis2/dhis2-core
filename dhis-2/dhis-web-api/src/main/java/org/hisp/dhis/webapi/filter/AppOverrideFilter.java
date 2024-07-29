@@ -145,9 +145,16 @@ public class AppOverrideFilter extends OncePerRequestFilter {
         response.setContentType(mimeType);
       }
 
-      response.setContentLength((int) resource.contentLength());
+      // we need to handle scenarios when the Resource is a File (knowing the content length)
+      // or when it's URL (not knowing the content length and having to make a call, e.g. remote web
+      // link in AWS S3/MinIO) - otherwise content length can be set to 0 which causes issues at
+      // the front-end, returning an empty body.
+      if (resource.isFile()) {
+        response.setContentLength((int) resource.contentLength());
+      } else {
+        response.setContentLength(appManager.getUriContentLength(resource));
+      }
       response.setHeader("ETag", etag);
-
       StreamUtils.copyThenCloseInputStream(resource.getInputStream(), response.getOutputStream());
     }
   }

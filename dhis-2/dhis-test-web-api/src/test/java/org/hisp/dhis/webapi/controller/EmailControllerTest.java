@@ -62,7 +62,7 @@ class EmailControllerTest extends H2ControllerIntegrationTestBase {
                     + getCurrentUser().getUid()
                     + "'},"
                     + "'recipients':[{'id':'"
-                    + getSuperuserUid()
+                    + getAdminUid()
                     + "'}]"
                     + "}")
             .content(HttpStatus.CONFLICT));
@@ -75,7 +75,7 @@ class EmailControllerTest extends H2ControllerIntegrationTestBase {
         409,
         "ERROR",
         "SMTP server not configured",
-        POST("/email/notification?subject=Subject&message=Text&recipients=" + getSuperuserUid())
+        POST("/email/notification?subject=Subject&message=Text&recipients=" + getAdminUid())
             .content(HttpStatus.CONFLICT));
   }
 }

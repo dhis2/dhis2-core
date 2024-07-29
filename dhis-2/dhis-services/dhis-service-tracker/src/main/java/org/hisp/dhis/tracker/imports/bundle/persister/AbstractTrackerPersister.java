@@ -61,6 +61,7 @@ import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
+import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.report.Entity;
@@ -106,17 +107,14 @@ public abstract class AbstractTrackerPersister<
     for (T trackerDto : dtos) {
 
       Entity objectReport = new Entity(getType(), trackerDto.getUid());
+      List<NotificationTrigger> triggers =
+          determineNotificationTriggers(bundle.getPreheat(), trackerDto);
 
       try {
         //
         // Convert the TrackerDto into an Hibernate-managed entity
         //
         V convertedDto = convert(bundle, trackerDto);
-
-        //
-        // Handle notes persistence, if required
-        //
-        persistNotes(entityManager, bundle.getPreheat(), convertedDto);
 
         //
         // Handle ownership records, if required
@@ -147,7 +145,7 @@ public abstract class AbstractTrackerPersister<
         }
 
         if (!bundle.isSkipSideEffects()) {
-          notificationDataBundles.add(handleNotifications(bundle, convertedDto));
+          notificationDataBundles.add(handleNotifications(bundle, convertedDto, triggers));
         }
 
         //
@@ -201,10 +199,6 @@ public abstract class AbstractTrackerPersister<
    */
   protected abstract V convert(TrackerBundle bundle, T trackerDto);
 
-  /** Persists the notes for the given entity, if the entity has notes */
-  protected abstract void persistNotes(
-      EntityManager entityManager, TrackerPreheat preheat, V entity);
-
   /** Persists ownership records for the given entity */
   protected abstract void persistOwnership(TrackerPreheat preheat, V entity);
 
@@ -237,7 +231,17 @@ public abstract class AbstractTrackerPersister<
 
   /** TODO add comment */
   protected abstract TrackerNotificationDataBundle handleNotifications(
-      TrackerBundle bundle, V entity);
+      TrackerBundle bundle, V entity, List<NotificationTrigger> triggers);
+
+  /**
+   * Determines the notification triggers based on the enrollment/event status.
+   *
+   * @param preheat the enrollment/event fetched from the database
+   * @param entity the enrollment/event coming from the request payload
+   * @return a list of NotificationTriggers
+   */
+  protected abstract List<NotificationTrigger> determineNotificationTriggers(
+      TrackerPreheat preheat, T entity);
 
   /** Get the Tracker Type for which the current Persister is responsible for. */
   protected abstract TrackerType getType();

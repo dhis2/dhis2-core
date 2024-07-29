@@ -43,6 +43,7 @@ import static org.hisp.dhis.tracker.TrackerTestUtils.uids;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -56,8 +57,10 @@ import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -85,8 +88,6 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   @Autowired private EnrollmentService enrollmentService;
 
   @Autowired protected UserService _userService;
-
-  @Autowired private org.hisp.dhis.program.EnrollmentService apiEnrollmentService;
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -250,27 +251,24 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     relationshipA.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(relationshipA));
     manager.save(relationshipA, false);
 
-    enrollmentA =
-        apiEnrollmentService.enrollTrackedEntity(
-            trackedEntityA, programA, new Date(), new Date(), orgUnitA);
+    enrollmentA = createEnrollment(programA, trackedEntityA, orgUnitA);
+    manager.save(enrollmentA, false);
     eventA = createEvent(programStageA, enrollmentA, orgUnitA);
     eventA.setOccurredDate(incidentDate);
     manager.save(eventA);
     enrollmentA.setEvents(Set.of(eventA));
     enrollmentA.setRelationshipItems(Set.of(from, to));
-    manager.save(enrollmentA, false);
+    manager.update(enrollmentA);
 
-    enrollmentB =
-        apiEnrollmentService.enrollTrackedEntity(
-            trackedEntityB, programB, new Date(), new Date(), orgUnitB);
+    enrollmentB = createEnrollment(programB, trackedEntityB, orgUnitB);
+    manager.save(enrollmentB);
 
-    enrollmentChildA =
-        apiEnrollmentService.enrollTrackedEntity(
-            trackedEntityChildA, programA, new Date(), new Date(), orgUnitChildA);
+    enrollmentChildA = createEnrollment(programA, trackedEntityChildA, orgUnitChildA);
+    manager.save(enrollmentChildA);
 
     enrollmentGrandchildA =
-        apiEnrollmentService.enrollTrackedEntity(
-            trackedEntityGrandchildA, programA, new Date(), new Date(), orgUnitGrandchildA);
+        createEnrollment(programA, trackedEntityGrandchildA, orgUnitGrandchildA);
+    manager.save(enrollmentGrandchildA);
 
     injectSecurityContextUser(user);
   }
@@ -791,6 +789,49 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     assertContains(
         String.format("User has no data read access to program: %s", programA.getUid()),
         exception.getMessage());
+  }
+
+  @Test
+  void shouldGetAllCompletedEnrollments() throws ForbiddenException, BadRequestException {
+    Enrollment enrollmentC = createEnrollment(programA, trackedEntityA, orgUnitA);
+    enrollmentC.setStatus(EnrollmentStatus.COMPLETED);
+    manager.save(enrollmentC, false);
+    Enrollment enrollmentD = createEnrollment(programA, trackedEntityA, orgUnitA);
+    enrollmentD.setStatus(EnrollmentStatus.COMPLETED);
+    manager.save(enrollmentD, false);
+
+    List<Enrollment> enrollments =
+        enrollmentService.getEnrollments(
+            trackedEntityA.getUid(), programA, EnrollmentStatus.COMPLETED);
+    assertContainsOnly(List.of(enrollmentC, enrollmentD), enrollments);
+  }
+
+  @Test
+  void shouldGetAllActiveEnrollments() throws ForbiddenException, BadRequestException {
+    List<Enrollment> enrollments =
+        enrollmentService.getEnrollments(
+            trackedEntityA.getUid(), programA, EnrollmentStatus.ACTIVE);
+
+    assertContainsOnly(List.of(enrollmentA), enrollments);
+  }
+
+  @Test
+  void shouldNotDeleteNoteWhenDeletingEnrollment() throws ForbiddenException, NotFoundException {
+    Note note = new Note();
+    note.setCreator(CodeGenerator.generateUid());
+    note.setNoteText("text");
+    manager.save(note);
+    enrollmentA.setNotes(List.of(note));
+
+    manager.save(enrollmentA);
+
+    assertNotNull(enrollmentService.getEnrollment(enrollmentA.getUid()));
+
+    manager.delete(enrollmentA);
+
+    assertThrows(
+        NotFoundException.class, () -> enrollmentService.getEnrollment(enrollmentA.getUid()));
+    assertTrue(manager.exists(Note.class, note.getUid()));
   }
 
   private static List<String> attributeUids(Enrollment enrollment) {

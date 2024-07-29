@@ -76,7 +76,7 @@ public enum AnalyticsDateFilter {
 
   private final Function<EnrollmentAnalyticsQueryCriteria, String> enrollmentExtractor;
 
-  private final Function<CommonRequestParams, Set<String>> teiExtractor;
+  private final Function<CommonRequestParams, Set<String>> trackedEntityExtractor;
 
   public static Optional<AnalyticsDateFilter> of(String dateField) {
     return Arrays.stream(values())
@@ -90,9 +90,5 @@ public enum AnalyticsDateFilter {
 
   public boolean appliesToEvents() {
     return eventExtractor != null;
-  }
-
-  public boolean appliesToTei() {
-    return teiExtractor != null;
   }
 }

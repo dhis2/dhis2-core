@@ -60,7 +60,6 @@ class DatastoreIntegrationTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   void setUp() throws ConflictException, BadRequestException {
-    createAndInjectAdminUser();
     datastore.deleteNamespace("pets");
 
     addEntry("dog", toJson(false));

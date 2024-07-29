@@ -116,7 +116,7 @@ class GmlImportServiceTest extends PostgresIntegrationTestBase {
     forskOrgUnit = createOrganisationUnit('E');
     forskOrgUnit.setName("Forskningsparken");
     organisationUnitService.addOrganisationUnit(forskOrgUnit);
-    user = createAndInjectAdminUser();
+    user = getAdminUser();
     id = new JobConfiguration("gmlImportTest", JobType.METADATA_IMPORT, user.getUid());
     importOptions = new ImportOptions().setImportStrategy(ImportStrategy.UPDATE);
     importOptions.setDryRun(false);

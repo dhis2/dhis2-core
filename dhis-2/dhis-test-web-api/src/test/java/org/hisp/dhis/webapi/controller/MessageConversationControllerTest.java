@@ -50,7 +50,7 @@ class MessageConversationControllerTest extends H2ControllerIntegrationTestBase 
         "Message conversation created",
         POST(
                 "/messageConversations/",
-                "{'subject':'Subject','text':'Text','users':[{'id':'" + getSuperuserUid() + "'}]}")
+                "{'subject':'Subject','text':'Text','users':[{'id':'" + getAdminUid() + "'}]}")
             .content(HttpStatus.CREATED));
   }
 
@@ -72,9 +72,7 @@ class MessageConversationControllerTest extends H2ControllerIntegrationTestBase 
             HttpStatus.CREATED,
             POST(
                 "/messageConversations/",
-                "{'subject':'Subject','text':'Text','users':[{'id':'"
-                    + getSuperuserUid()
-                    + "'}]}"));
+                "{'subject':'Subject','text':'Text','users':[{'id':'" + getAdminUid() + "'}]}"));
     assertWebMessage(
         "OK", 200, "OK", null, DELETE("/messageConversations/" + uid).content(HttpStatus.OK));
   }
@@ -86,9 +84,7 @@ class MessageConversationControllerTest extends H2ControllerIntegrationTestBase 
             HttpStatus.CREATED,
             POST(
                 "/messageConversations/",
-                "{'subject':'Subject','text':'Text','users':[{'id':'"
-                    + getSuperuserUid()
-                    + "'}]}"));
+                "{'subject':'Subject','text':'Text','users':[{'id':'" + getAdminUid() + "'}]}"));
     assertWebMessage(
         "Created",
         201,
@@ -114,9 +110,7 @@ class MessageConversationControllerTest extends H2ControllerIntegrationTestBase 
             HttpStatus.CREATED,
             POST(
                 "/messageConversations/",
-                "{'subject':'Subject','text':'Text','users':[{'id':'"
-                    + getSuperuserUid()
-                    + "'}]}"));
+                "{'subject':'Subject','text':'Text','users':[{'id':'" + getAdminUid() + "'}]}"));
     assertWebMessage(
         "Conflict",
         409,

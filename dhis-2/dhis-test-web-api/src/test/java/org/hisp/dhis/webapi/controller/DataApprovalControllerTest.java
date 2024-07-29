@@ -116,7 +116,7 @@ class DataApprovalControllerTest extends H2ControllerIntegrationTestBase {
                     + "'}]"
                     + "}"));
 
-    getSuperUser().addOrganisationUnit(manager.get(OrganisationUnit.class, ouId));
+    getAdminUser().addOrganisationUnit(manager.get(OrganisationUnit.class, ouId));
   }
 
   @Test

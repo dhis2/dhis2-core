@@ -576,17 +576,14 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   public void beforeEach() {
-    // Reset the security context for each test.
-    clearSecurityContext();
-
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
   }
 
   /** Adds a program ownership history entry. */
   private void addProgramOwnershipHistory(
-      Program program, TrackedEntity tei, OrganisationUnit ou, Date startDate, Date endDate) {
+      Program program, TrackedEntity te, OrganisationUnit ou, Date startDate, Date endDate) {
     ProgramOwnershipHistory poh =
-        new ProgramOwnershipHistory(program, tei, ou, startDate, endDate, "admin");
+        new ProgramOwnershipHistory(program, te, ou, startDate, endDate, "admin");
 
     programOwnershipHistoryService.addProgramOwnershipHistory(poh);
   }
@@ -637,7 +634,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testDimensionRestrictionWhenUserCannotReadCategoryOptions() {
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
 
     // Given
     // The category options are not readable by the user
@@ -1385,7 +1382,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
         .withOutputType(EventOutputType.EVENT)
         .withDisplayProperty(DisplayProperty.SHORTNAME)
         .withEndpointItem(RequestTypeAware.EndpointItem.EVENT)
-        .withCoordinateFields(List.of("psigeometry"));
+        .withCoordinateFields(List.of("evgeometry"));
   }
 
   /** Params builder A for getting aggregated grids. */

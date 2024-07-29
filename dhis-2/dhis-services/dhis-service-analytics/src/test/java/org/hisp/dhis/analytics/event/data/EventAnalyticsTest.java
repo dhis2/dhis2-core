@@ -64,18 +64,18 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
  * @author Luciano Fiandesio
  */
 abstract class EventAnalyticsTest {
-  private static final String COL_NAME_PI_GEOMETRY = "pigeometry";
+  private static final String COL_NAME_ENROLLMENT_GEOMETRY = "engeometry";
 
-  private static final String COL_NAME_PSI_GEOMETRY = "psigeometry";
+  private static final String COL_NAME_EVENT_GEOMETRY = "evgeometry";
 
-  private static final String COL_NAME_TEI_GEOMETRY = "teigeometry";
+  private static final String COL_NAME_TRACKED_ENTITY_GEOMETRY = "tegeometry";
 
   private static final String COL_NAME_OU_GEOMETRY = "ougeometry";
 
   private static final List<String> COL_NAME_GEOMETRY_LIST =
       List.of(
-          COL_NAME_PSI_GEOMETRY, COL_NAME_PI_GEOMETRY,
-          COL_NAME_TEI_GEOMETRY, COL_NAME_OU_GEOMETRY);
+          COL_NAME_EVENT_GEOMETRY, COL_NAME_ENROLLMENT_GEOMETRY,
+          COL_NAME_TRACKED_ENTITY_GEOMETRY, COL_NAME_OU_GEOMETRY);
 
   @Mock protected SqlRowSet rowSet;
 

@@ -34,6 +34,7 @@ import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 
 import java.io.IOException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -61,7 +62,10 @@ class RelationshipImportTest extends TrackerTest {
   @BeforeAll
   void setUp() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
-    userA = userService.getUser("M5zQapPyTZI");
+
+    userA = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(userA);
+
     TrackerImportParams params = TrackerImportParams.builder().userId(userA.getUid()).build();
     assertNoErrors(trackerImportService.importTracker(params, fromJson("tracker/single_te.json")));
     assertNoErrors(
@@ -106,5 +110,21 @@ class RelationshipImportTest extends TrackerTest {
     assertThat(importReport.getStatus(), is(Status.OK));
     assertThat(importReport.getStats().getCreated(), is(0));
     assertThat(importReport.getStats().getIgnored(), is(1));
+  }
+
+  @Test
+  void shouldFailWhenTryingToUpdateADeletedRelationship() throws IOException {
+    TrackerImportParams trackerImportParams =
+        TrackerImportParams.builder().userId(userA.getUid()).build();
+    TrackerObjects trackerObjects = fromJson("tracker/relationships.json");
+    trackerImportService.importTracker(trackerImportParams, trackerObjects);
+
+    manager.delete(manager.get(Relationship.class, "Nva3Xj2j75W"));
+
+    trackerImportParams.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
+    ImportReport importReport =
+        trackerImportService.importTracker(trackerImportParams, trackerObjects);
+    assertHasError(importReport, ValidationCode.E4017);
+    assertThat(importReport.getStats().getIgnored(), is(2));
   }
 }
