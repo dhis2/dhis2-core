@@ -30,8 +30,8 @@
  *       </ul>
  *   <li>Can you setup your test data once? By default JUnit tests have a {@link
  *       org.junit.jupiter.api.TestInstance.Lifecycle} of method meaning every test method will get
- *       their own instance of the test class. This means the data you setup in a {@link
- *       org.junit.jupiter.api.BeforeEach} is done for every test method.
+ *       their own instance of the test class. You will then not be able to setup DB related data in
+ *       a {@link org.junit.jupiter.api.BeforeAll} method as they need to be static.
  *       <ul>
  *         <li>Yes(with caveat): you might need to benchmark this to be certain but if you need the
  *             same data for lots of tests it is likely that doing this is going to speedup the test
