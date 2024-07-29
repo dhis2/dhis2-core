@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.user;
 
+import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -217,5 +218,36 @@ class UserStoreTest extends SingleSetupIntegrationTestBase {
     assertTrue(usersWithAuthorityA.contains(userA));
     List<User> usersWithAuthorityB = userService.getUsersWithAuthority(AUTH_D);
     assertFalse(usersWithAuthorityB.contains(userB));
+  }
+
+  @Test
+  void testGetUserByOpenId() {
+    String openId1 = "ABC";
+    String openId2 = "DEF";
+
+    User userA = makeUser("A");
+    User userB = makeUser("B");
+    User userC = makeUser("C");
+    User userD = makeUser("D");
+
+    userA.setOpenId(openId1);
+    userB.setOpenId(openId1);
+    userC.setOpenId(openId1);
+    userD.setOpenId(openId2);
+
+    userA.setLastLogin(parseDate("2024-07-01"));
+    userB.setLastLogin(parseDate("2024-07-02"));
+    userC.setLastLogin(parseDate("2024-07-03"));
+    userD.setLastLogin(parseDate("2024-07-04"));
+
+    userC.setDisabled(true);
+
+    userStore.save(userA);
+    userStore.save(userB);
+    userStore.save(userC);
+    userStore.save(userD);
+
+    User foundUser = userStore.getUserByOpenId(openId1);
+    assertEquals(userB.getUid(), foundUser.getUid());
   }
 }
