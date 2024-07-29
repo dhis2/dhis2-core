@@ -37,7 +37,8 @@ public enum FieldPreset {
   CODE("code", List.of("code")),
   ID_NAME("idName", List.of("id", "displayName")),
   ALL("all", List.of("*")),
-  IDENTIFIABLE("identifiable", List.of("id", "name", "code", "created", "lastUpdated")),
+  IDENTIFIABLE(
+      "identifiable", List.of("id", "name", "code", "created", "lastUpdated", "lastUpdatedBy")),
   NAMEABLE(
       "nameable",
       List.of("id", "name", "shortName", "description", "code", "created", "lastUpdated")),
