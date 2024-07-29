@@ -32,6 +32,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import org.junit.jupiter.api.Tag;
+import org.springframework.test.context.ActiveProfiles;
 
 /**
  * Tags tests as integration tests using Postgres so they can be run in isolation.
@@ -42,5 +43,6 @@ import org.junit.jupiter.api.Tag;
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
+@ActiveProfiles("test-postgres")
 @Tag("integration")
 public @interface IntegrationTest {}

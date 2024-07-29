@@ -28,7 +28,6 @@
 package org.hisp.dhis.test.webapi;
 
 import org.hisp.dhis.test.IntegrationTest;
-import org.springframework.test.context.ActiveProfiles;
 
 /**
  * Base class for all Spring Mock MVC based controller tests which use a Postgres DB running in a
@@ -36,6 +35,5 @@ import org.springframework.test.context.ActiveProfiles;
  *
  * @author Viet Nguyen
  */
-@ActiveProfiles("test-postgres")
 @IntegrationTest
 public abstract class PostgresControllerIntegrationTestBase extends ControllerIntegrationTestBase {}

@@ -29,9 +29,11 @@ package org.hisp.dhis.test;
 
 import javax.persistence.EntityManager;
 import lombok.Getter;
+import org.hisp.dhis.test.config.H2DhisConfiguration;
 import org.hisp.dhis.test.config.IntegrationBaseConfiguration;
 import org.hisp.dhis.test.config.PostgresDhisConfiguration;
 import org.hisp.dhis.test.junit.SpringIntegrationTest;
+import org.hisp.dhis.test.spring.DbActiveProfilesResolver;
 import org.hisp.dhis.user.User;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -58,9 +60,11 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration(
     classes = {
       IntegrationBaseConfiguration.class,
+      H2DhisConfiguration.class,
       PostgresDhisConfiguration.class,
     })
 @SpringIntegrationTest
+@ActiveProfiles(resolver = DbActiveProfilesResolver.class)
 public abstract class IntegrationTestBase extends TestBase {
 
   @Getter private User adminUser;
