@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
-
 import java.util.Optional;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
@@ -43,8 +41,6 @@ import org.hisp.dhis.program.ProgramOwnershipHistory;
 import org.hisp.dhis.program.ProgramOwnershipHistoryService;
 import org.hisp.dhis.program.ProgramTempOwner;
 import org.hisp.dhis.program.ProgramTempOwnerService;
-import org.hisp.dhis.program.ProgramTempOwnershipAudit;
-import org.hisp.dhis.program.ProgramTempOwnershipAuditService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
@@ -62,7 +58,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
   private static final int TEMPORARY_OWNERSHIP_VALIDITY_IN_HOURS = 3;
 
   private final TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
-  private final ProgramTempOwnershipAuditService programTempOwnershipAuditService;
   private final ProgramTempOwnerService programTempOwnerService;
   private final ProgramOwnershipHistoryService programOwnershipHistoryService;
   private final TrackedEntityService trackedEntityService;
@@ -73,7 +68,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       UserService userService,
       TrackedEntityProgramOwnerService trackedEntityProgramOwnerService,
       CacheProvider cacheProvider,
-      ProgramTempOwnershipAuditService programTempOwnershipAuditService,
       ProgramTempOwnerService programTempOwnerService,
       ProgramOwnershipHistoryService programOwnershipHistoryService,
       TrackedEntityService trackedEntityService,
@@ -81,7 +75,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
     this.userService = userService;
     this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
-    this.programTempOwnershipAuditService = programTempOwnershipAuditService;
     this.programOwnershipHistoryService = programOwnershipHistoryService;
     this.programTempOwnerService = programTempOwnerService;
     this.trackedEntityService = trackedEntityService;
@@ -199,10 +192,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     }
 
     if (program.isProtected()) {
-      if (config.isEnabled(CHANGELOG_TRACKER)) {
-        programTempOwnershipAuditService.addProgramTempOwnershipAudit(
-            new ProgramTempOwnershipAudit(program, trackedEntity, reason, user.getUsername()));
-      }
       ProgramTempOwner programTempOwner =
           new ProgramTempOwner(
               program,
