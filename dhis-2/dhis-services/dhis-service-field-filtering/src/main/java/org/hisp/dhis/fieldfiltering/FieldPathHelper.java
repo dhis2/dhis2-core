@@ -43,6 +43,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.fieldfilter.Preset;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
@@ -220,6 +221,10 @@ public class FieldPathHelper {
       } else if (FieldPreset.SIMPLE.equals(preset.getName())) {
         schema.getProperties().stream()
             .filter(p -> p.getPropertyType().isSimple())
+            .forEach(p -> fieldPaths.add(toFieldPath(preset.getPath(), p)));
+      } else if (Preset.NAMEABLE.getName().equals(preset.getName())) {
+        schema.getProperties().stream()
+            .filter(p -> Preset.NAMEABLE.getFields().contains(p.getName()))
             .forEach(p -> fieldPaths.add(toFieldPath(preset.getPath(), p)));
       }
     }

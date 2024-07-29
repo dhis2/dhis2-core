@@ -28,6 +28,7 @@
 package org.hisp.dhis.fieldfiltering;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -37,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.fieldfilter.Preset;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.DisplayName;
@@ -126,6 +128,41 @@ class FieldPathHelperTest extends SingleSetupIntegrationTestBase {
             .map(FieldPath::getName)
             .collect(Collectors.toList())
             .containsAll(List.of("username", "userRoles")));
+  }
+
+  @Test
+  @DisplayName("nameable field filter for DataElement returns expected fields")
+  void nameableFieldFilterTest() {
+    // given
+    FieldPath fieldPath = new FieldPath(Preset.NAMEABLE.getName(), List.of());
+    Map<String, FieldPath> fieldPathMap = new HashMap<>();
+
+    // when
+    helper.applyPresets(List.of(fieldPath), fieldPathMap, DataElement.class);
+
+    // then
+    assertEquals(7, fieldPathMap.size());
+    assertTrue(
+        Preset.NAMEABLE
+            .getFields()
+            .containsAll(
+                fieldPathMap.values().stream()
+                    .map(FieldPath::getName)
+                    .collect(Collectors.toList())));
+  }
+
+  @Test
+  @DisplayName("persisted field filter for DataElement returns fields")
+  void persistedFieldFilterTest() {
+    // given
+    FieldPath fieldPath = new FieldPath(FieldPreset.PERSISTED, List.of());
+    Map<String, FieldPath> fieldPathMap = new HashMap<>();
+
+    // when
+    helper.applyPresets(List.of(fieldPath), fieldPathMap, DataElement.class);
+
+    // then
+    assertFalse(fieldPathMap.isEmpty());
   }
 
   private void assertPropertyExists(String propertyName, Map<String, FieldPath> fieldMapPath) {

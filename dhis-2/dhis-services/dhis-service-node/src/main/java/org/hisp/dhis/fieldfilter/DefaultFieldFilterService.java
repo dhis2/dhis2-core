@@ -62,7 +62,6 @@ import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.node.AbstractNode;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.NodeTransformer;
-import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.SimpleNode;

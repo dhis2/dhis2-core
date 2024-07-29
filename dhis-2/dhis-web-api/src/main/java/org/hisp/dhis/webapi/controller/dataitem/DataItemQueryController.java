@@ -49,7 +49,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.feedback.ErrorMessage;
-import org.hisp.dhis.node.Preset;
+import org.hisp.dhis.fieldfilter.Preset;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.security.acl.AclService;
