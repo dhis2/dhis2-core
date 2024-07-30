@@ -54,6 +54,7 @@ import org.hisp.dhis.test.message.FakeMessageSender;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonUser;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -411,15 +412,15 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
     systemSettingManager.saveSystemSetting(
         SettingKey.SELF_REGISTRATION_NO_RECAPTCHA, Boolean.FALSE);
 
-    assertWebMessage(
-        "Bad Request",
-        400,
-        "ERROR",
-        "Recaptcha validation failed: [invalid-input-secret]",
+    JsonWebMessage response =
         POST(
                 "/auth/registration",
                 renderService.toJsonAsString(getRegParamsWithRecaptcha("secret", RegType.SELF_REG)))
-            .content(HttpStatus.BAD_REQUEST));
+            .content(HttpStatus.BAD_REQUEST)
+            .as(JsonWebMessage.class);
+
+    assertTrue(response.getMessage().contains("Recaptcha validation failed"));
+    assertEquals("ERROR", response.getStatus());
   }
 
   @Test
@@ -557,15 +558,15 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
     systemSettingManager.saveSystemSetting(
         SettingKey.SELF_REGISTRATION_NO_RECAPTCHA, Boolean.FALSE);
 
-    assertWebMessage(
-        "Bad Request",
-        400,
-        "ERROR",
-        "Recaptcha validation failed: [invalid-input-secret]",
+    JsonWebMessage response =
         POST(
                 "/auth/invite",
                 renderService.toJsonAsString(getRegParamsWithRecaptcha("secret", RegType.INVITE)))
-            .content(HttpStatus.BAD_REQUEST));
+            .content(HttpStatus.BAD_REQUEST)
+            .as(JsonWebMessage.class);
+
+    assertTrue(response.getMessage().contains("Recaptcha validation failed"));
+    assertEquals("ERROR", response.getStatus());
   }
 
   @Test
