@@ -37,7 +37,6 @@ import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator;
 import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.TokenWrapper;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
-import org.hisp.dhis.test.spring.DbActiveProfilesResolver;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.ControllerWithApiTokenAuthTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonUser;
@@ -46,23 +45,18 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.ActiveProfiles;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-// @ActiveProfiles("cache-test")
-@ActiveProfiles(
-    profiles = {"cache-test"},
-    resolver = DbActiveProfilesResolver.class)
+ @ActiveProfiles("cache-test")
+//@ActiveProfiles(
+//    profiles = {"cache-test"},
+//    resolver = DbActiveProfilesResolver.class)
 class ApiTokenAuthenticationTest extends ControllerWithApiTokenAuthTestBase {
-
-  @Value("${spring.profiles.active}")
-  String activeProfiles;
 
   public static final String URI = "/me?fields=settings,id";
 
@@ -73,11 +67,6 @@ class ApiTokenAuthenticationTest extends ControllerWithApiTokenAuthTestBase {
   @BeforeAll
   static void setUpClass() {
     DhisWebApiWebSecurityConfig.setApiContextPath("");
-  }
-
-  @BeforeEach
-  void print() {
-    System.out.println(activeProfiles);
   }
 
   @Test

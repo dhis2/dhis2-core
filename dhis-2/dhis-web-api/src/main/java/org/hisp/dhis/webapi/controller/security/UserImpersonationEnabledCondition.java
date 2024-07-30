@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.security;
 
+import java.util.Arrays;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -39,6 +40,8 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 public class UserImpersonationEnabledCondition extends PropertiesAwareConfigurationCondition {
   @Override
   public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+    System.out.println(Arrays.toString(context.getEnvironment().getActiveProfiles()));
+
     if (SystemUtils.isUserImpersonationInTest(context.getEnvironment().getActiveProfiles())) {
       return true;
     }

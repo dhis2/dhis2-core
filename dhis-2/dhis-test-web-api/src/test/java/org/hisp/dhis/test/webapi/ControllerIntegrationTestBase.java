@@ -98,6 +98,7 @@ import org.springframework.web.context.WebApplicationContext;
       WebTestConfiguration.class
     })
 @Transactional
+@ActiveProfiles("test-h2")
 public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
     implements WebClient {
 
