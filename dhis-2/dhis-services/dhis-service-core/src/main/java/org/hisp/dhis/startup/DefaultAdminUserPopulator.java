@@ -47,6 +47,7 @@ public class DefaultAdminUserPopulator extends TransactionContextStartupRoutine 
   public static final Set<String> ALL_AUTHORITIES =
       Set.of(
           "ALL",
+          "F_capture",
           "F_VIEW_EVENT_ANALYTICS",
           "F_METADATA_EXPORT",
           "F_METADATA_IMPORT",
