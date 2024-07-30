@@ -72,8 +72,6 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackerAccessManager trackerAccessManager;
 
-  @Autowired private TrackedEntityService trackedEntityService1;
-
   @Autowired
   private org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService trackedEntityService;
 
