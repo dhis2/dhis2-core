@@ -126,7 +126,6 @@ class EventSecurityImportValidationTest extends TrackerTest {
     injectSecurityContextUser(importUser);
 
     TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
-
     assertNoErrors(
         trackerImportService.importTracker(
             params, fromJson("tracker/validations/enrollments_te_te-data.json")));
@@ -141,6 +140,8 @@ class EventSecurityImportValidationTest extends TrackerTest {
     manager.save(organisationUnitB);
     organisationUnitA.setPublicAccess(AccessStringHelper.FULL);
     manager.update(organisationUnitA);
+    importUser.addOrganisationUnit(organisationUnitA);
+    manager.update(importUser);
     dataElementA = createDataElement('A');
     dataElementB = createDataElement('B');
     dataElementA.setValueType(ValueType.INTEGER);
@@ -191,6 +192,7 @@ class EventSecurityImportValidationTest extends TrackerTest {
     manager.save(maleB);
     manager.save(femaleA);
     manager.save(femaleB);
+
     int testYear = Calendar.getInstance().get(Calendar.YEAR) - 1;
     Date dateMar20 = getDate(testYear, 3, 20);
     Date dateApr10 = getDate(testYear, 4, 10);
@@ -205,7 +207,7 @@ class EventSecurityImportValidationTest extends TrackerTest {
     trackerOwnershipAccessManager.assignOwnership(maleA, programA, organisationUnitA, false, false);
 
     trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
-        maleA.getUid(), programA.getUid(), organisationUnitA.getUid());
+        maleA, programA, organisationUnitA);
     manager.update(programA);
     User user = userService.getUser(USER_5);
     OrganisationUnit qfUVllTs6cS = organisationUnitService.getOrganisationUnit("QfUVllTs6cS");

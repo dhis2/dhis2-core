@@ -30,7 +30,6 @@ package org.hisp.dhis.trackedentity;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -46,7 +45,6 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -75,8 +73,6 @@ class TrackedEntityDataValueChangeLogStoreTest extends PostgresIntegrationTestBa
 
   @Autowired private TrackedEntityDataValueChangeLogStore auditStore;
 
-  @Autowired private TrackedEntityService trackedEntityService;
-
   @Autowired private OrganisationUnitService organisationUnitService;
 
   @Autowired private DataElementService dataElementService;
@@ -84,8 +80,6 @@ class TrackedEntityDataValueChangeLogStoreTest extends PostgresIntegrationTestBa
   @Autowired private ProgramService programService;
 
   @Autowired private ProgramStageService programStageService;
-
-  @Autowired private EnrollmentService enrollmentService;
 
   @Autowired private CategoryService categoryService;
 
@@ -167,8 +161,10 @@ class TrackedEntityDataValueChangeLogStoreTest extends PostgresIntegrationTestBa
     TrackedEntity teA = createTrackedEntity(ouA);
     manager.save(teA);
 
-    Enrollment enrollmentA =
-        enrollmentService.enrollTrackedEntity(teA, pA, new Date(), new Date(), ouA);
+    Enrollment enrollment = createEnrollment(pA, teA, ouA);
+    manager.save(enrollment);
+    teA.getEnrollments().add(enrollment);
+    manager.update(teA);
 
     dvA = new EventDataValue(deA.getUid(), "A", USER_SNAP_A);
     dvB = new EventDataValue(deB.getUid(), "B", USER_SNAP_A);
@@ -176,11 +172,11 @@ class TrackedEntityDataValueChangeLogStoreTest extends PostgresIntegrationTestBa
     dvD = new EventDataValue(deB.getUid(), "D", USER_SNAP_A);
     dvE = new EventDataValue(deB.getUid(), "E", USER_SNAP_A);
 
-    eventA = createEvent(enrollmentA, psA, ouA, Set.of(dvA, dvB));
-    eventB = createEvent(enrollmentA, psB, ouB, Set.of(dvC, dvD));
-    eventC = createEvent(enrollmentA, psA, ouC, Set.of(dvA, dvB));
-    eventD = createEvent(enrollmentA, psB, ouD, Set.of(dvC, dvD));
-    eventE = createEvent(enrollmentA, psA, ouE, Set.of(dvA, dvE));
+    eventA = createEvent(enrollment, psA, ouA, Set.of(dvA, dvB));
+    eventB = createEvent(enrollment, psB, ouB, Set.of(dvC, dvD));
+    eventC = createEvent(enrollment, psA, ouC, Set.of(dvA, dvB));
+    eventD = createEvent(enrollment, psB, ouD, Set.of(dvC, dvD));
+    eventE = createEvent(enrollment, psA, ouE, Set.of(dvA, dvE));
     manager.save(eventA);
     manager.save(eventB);
     manager.save(eventC);

@@ -28,7 +28,6 @@
 package org.hisp.dhis.program;
 
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,8 +52,7 @@ public class DefaultProgramTempOwnerService implements ProgramTempOwnerService {
 
   @Override
   @Transactional(readOnly = true)
-  public int getValidTempOwnerRecordCount(
-      Program program, TrackedEntity trackedEntity, UserDetails user) {
+  public int getValidTempOwnerRecordCount(Program program, String trackedEntity, UserDetails user) {
     return programTempOwnerStore.getValidTempOwnerCount(program, trackedEntity, user);
   }
 }
