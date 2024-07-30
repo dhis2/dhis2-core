@@ -236,6 +236,7 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
     trackedEntity = createTrackedEntity(organisationUnit);
     trackedEntity.getTrackedEntityAttributeValues().add(trackedEntityAttributeValue);
     trackedEntity.setOrganisationUnit(organisationUnit);
+    trackedEntity.setTrackedEntityType(trackedEntityType);
 
     trackedEntityAttributeValue =
         createTrackedEntityAttributeValue('A', trackedEntity, trackedEntityAttribute);
