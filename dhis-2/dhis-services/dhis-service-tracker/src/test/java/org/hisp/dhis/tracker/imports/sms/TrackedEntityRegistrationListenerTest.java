@@ -116,8 +116,6 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
 
   private TrackedEntityRegistrationSMSListener subject;
 
-  private TrackedEntityType trackedEntityType;
-
   private TrackedEntity trackedEntity;
 
   private TrackedEntityAttribute trackedEntityAttribute;
@@ -218,7 +216,7 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
   }
 
   private void setUpInstances() {
-    trackedEntityType = createTrackedEntityType('T');
+    TrackedEntityType trackedEntityType = createTrackedEntityType('T');
     organisationUnit = createOrganisationUnit('O');
     program = createProgram('P');
 
