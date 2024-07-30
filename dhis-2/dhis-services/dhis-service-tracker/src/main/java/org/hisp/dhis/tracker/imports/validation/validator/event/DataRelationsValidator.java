@@ -90,15 +90,17 @@ class DataRelationsValidator implements Validator<Event> {
 
   private void validateRegistrationProgram(
       Reporter reporter, TrackerBundle bundle, Event event, Program program) {
-    if (program.isRegistration()) {
-      if (StringUtils.isEmpty(event.getEnrollment())) {
-        reporter.addError(event, E1033, event.getEvent());
-      } else {
-        Program enrollmentProgram = getEnrollmentProgramFromEvent(bundle, event);
+    if (program.isWithoutRegistration()) {
+      return;
+    }
 
-        if (!program.equals(enrollmentProgram)) {
-          reporter.addError(event, E1079, event, program, event.getEnrollment());
-        }
+    if (StringUtils.isEmpty(event.getEnrollment())) {
+      reporter.addError(event, E1033, event.getEvent());
+    } else {
+      Program enrollmentProgram = getEnrollmentProgramFromEvent(bundle, event);
+
+      if (!program.equals(enrollmentProgram)) {
+        reporter.addError(event, E1079, event, program, event.getEnrollment());
       }
     }
   }

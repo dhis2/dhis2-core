@@ -206,16 +206,8 @@ class TrackedEntityStoreTest extends PostgresIntegrationTestBase {
     attributeValueService.addTrackedEntityAttributeValue(
         new TrackedEntityAttributeValue(atA, trackedEntityF, "Female"));
 
-    Enrollment enrollmentA = createEnrollment(prA, trackedEntityB, ouB);
-    manager.save(enrollmentA);
-    trackedEntityB.getEnrollments().add(enrollmentA);
-    manager.update(trackedEntityB);
-    Enrollment enrollmentB = createEnrollment(prA, trackedEntityE, ouB);
-    manager.save(enrollmentB);
-    trackedEntityE.getEnrollments().add(enrollmentB);
-    manager.update(trackedEntityE);
-    trackerOwnershipAccessManager.assignOwnership(trackedEntityB, prA, ouB, false, false);
-    trackerOwnershipAccessManager.assignOwnership(trackedEntityE, prA, ouB, false, false);
+    enrollTrackedEntity(prA, trackedEntityB, ouB);
+    enrollTrackedEntity(prA, trackedEntityE, ouB);
 
     // Get all
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
@@ -352,16 +344,8 @@ class TrackedEntityStoreTest extends PostgresIntegrationTestBase {
     attributeValueService.addTrackedEntityAttributeValue(
         new TrackedEntityAttributeValue(atA, trackedEntityF, "Female"));
 
-    Enrollment enrollmentA = createEnrollment(prA, trackedEntityB, ouB);
-    manager.save(enrollmentA);
-    trackedEntityB.getEnrollments().add(enrollmentA);
-    manager.update(trackedEntityB);
-    Enrollment enrollmentB = createEnrollment(prA, trackedEntityE, ouB);
-    manager.save(enrollmentB);
-    trackedEntityB.getEnrollments().add(enrollmentB);
-    manager.update(trackedEntityB);
-    trackerOwnershipAccessManager.assignOwnership(trackedEntityB, prA, ouB, false, false);
-    trackerOwnershipAccessManager.assignOwnership(trackedEntityE, prA, ouB, false, false);
+    enrollTrackedEntity(prA, trackedEntityB, ouB);
+    enrollTrackedEntity(prA, trackedEntityE, ouB);
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
     List<TrackedEntity> trackedEntitites = trackedEntityStore.getTrackedEntities(params);
@@ -461,5 +445,15 @@ class TrackedEntityStoreTest extends PostgresIntegrationTestBase {
                     atA, QueryOperator.EW, "em", ValueType.TEXT, AggregationType.NONE, null));
     trackedEntitites = trackedEntityStore.getTrackedEntities(params);
     assertEquals(0, trackedEntitites.size());
+  }
+
+  private void enrollTrackedEntity(
+      Program program, TrackedEntity trackedEntity, OrganisationUnit organisationUnit) {
+    Enrollment enrollment = createEnrollment(program, trackedEntity, organisationUnit);
+    manager.save(enrollment);
+    trackedEntity.getEnrollments().add(enrollment);
+    manager.update(trackedEntity);
+    trackerOwnershipAccessManager.assignOwnership(
+        trackedEntity, program, organisationUnit, false, false);
   }
 }
