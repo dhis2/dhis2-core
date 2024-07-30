@@ -27,32 +27,24 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import static java.util.Collections.emptyList;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
-import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.tracker.imports.TrackerIdScheme;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.TrackerImportService;
-import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -79,8 +71,6 @@ class TrackedEntityQueryLimitTest extends PostgresIntegrationTestBase {
   @Autowired private SystemSettingManager systemSettingManager;
 
   @Autowired private IdentifiableObjectManager manager;
-
-  @Autowired private TrackerImportService trackerImportService;
 
   private OrganisationUnit orgUnitA;
 
@@ -131,44 +121,23 @@ class TrackedEntityQueryLimitTest extends PostgresIntegrationTestBase {
     User admin = getAdminUser();
     admin.addOrganisationUnit(orgUnitA);
     manager.update(admin);
-    String enrollmentUid1 = CodeGenerator.generateUid();
-    String enrollmentUid2 = CodeGenerator.generateUid();
-    String enrollmentUid3 = CodeGenerator.generateUid();
-    String enrollmentUid4 = CodeGenerator.generateUid();
-    TrackerImportParams params = TrackerImportParams.builder().userId(admin.getUid()).build();
-    List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments =
-        List.of(
-            createEnrollment(
-                enrollmentUid1,
-                trackedEntity1.getUid(),
-                program.getUid(),
-                orgUnitA,
-                new Date(),
-                new Date()),
-            createEnrollment(
-                enrollmentUid2,
-                trackedEntity2.getUid(),
-                program.getUid(),
-                orgUnitA,
-                new Date(),
-                new Date()),
-            createEnrollment(
-                enrollmentUid3,
-                trackedEntity3.getUid(),
-                program.getUid(),
-                orgUnitA,
-                new Date(),
-                new Date()),
-            createEnrollment(
-                enrollmentUid4,
-                trackedEntity4.getUid(),
-                program.getUid(),
-                orgUnitA,
-                new Date(),
-                new Date()));
-    TrackerObjects trackerObjects =
-        new TrackerObjects(emptyList(), enrollments, emptyList(), emptyList());
-    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
+
+    Enrollment enrollment1 = createEnrollment(program, trackedEntity1, orgUnitA);
+    manager.save(enrollment1);
+    trackedEntity1.getEnrollments().add(enrollment1);
+    manager.update(trackedEntity1);
+    Enrollment enrollment2 = createEnrollment(program, trackedEntity2, orgUnitA);
+    manager.save(enrollment2);
+    trackedEntity2.getEnrollments().add(enrollment2);
+    manager.update(trackedEntity1);
+    Enrollment enrollment3 = createEnrollment(program, trackedEntity3, orgUnitA);
+    manager.save(enrollment3);
+    trackedEntity3.getEnrollments().add(enrollment3);
+    manager.update(trackedEntity1);
+    Enrollment enrollment4 = createEnrollment(program, trackedEntity4, orgUnitA);
+    manager.save(enrollment4);
+    trackedEntity4.getEnrollments().add(enrollment4);
+    manager.update(trackedEntity1);
 
     userService.addUser(user);
   }
@@ -314,25 +283,5 @@ class TrackedEntityQueryLimitTest extends PostgresIntegrationTestBase {
 
     assertNotEmpty(trackedEntities);
     assertEquals(2, trackedEntities.size());
-  }
-
-  private org.hisp.dhis.tracker.imports.domain.Enrollment createEnrollment(
-      String enrollmentUid,
-      String trackedEntityUid,
-      String programUid,
-      OrganisationUnit organisationUnit,
-      Date enrolledAt,
-      Date occurredAt) {
-
-    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
-        new org.hisp.dhis.tracker.imports.domain.Enrollment();
-    enrollment.setEnrollment(enrollmentUid);
-    enrollment.setProgram(MetadataIdentifier.of(TrackerIdScheme.UID, programUid, null));
-    enrollment.setOrgUnit(MetadataIdentifier.ofUid(organisationUnit));
-    enrollment.setTrackedEntity(trackedEntityUid);
-    enrollment.setEnrolledAt(enrolledAt.toInstant());
-    enrollment.setOccurredAt(occurredAt.toInstant());
-
-    return enrollment;
   }
 }

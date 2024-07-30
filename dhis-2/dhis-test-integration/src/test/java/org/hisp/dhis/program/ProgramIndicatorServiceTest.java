@@ -28,14 +28,12 @@
 package org.hisp.dhis.program;
 
 import static java.lang.String.format;
-import static java.util.Collections.emptyList;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.program.ProgramIndicator.KEY_ATTRIBUTE;
 import static org.hisp.dhis.program.ProgramIndicator.KEY_DATAELEMENT;
 import static org.hisp.dhis.program.ProgramIndicator.KEY_PROGRAM_VARIABLE;
 import static org.hisp.dhis.test.utils.Assertions.assertMapEquals;
-import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,7 +46,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.Constant;
@@ -63,15 +60,8 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.tracker.imports.TrackerIdScheme;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.TrackerImportService;
-import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -89,8 +79,6 @@ class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackedEntityAttributeService attributeService;
 
-  @Autowired private TrackedEntityService trackedEntityService;
-
   @Autowired private OrganisationUnitService organisationUnitService;
 
   @Autowired private ProgramService programService;
@@ -107,12 +95,6 @@ class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
 
-  @Autowired private TrackerImportService trackerImportService;
-
-  private Date occurredDate;
-
-  private Date enrollmentDate;
-
   private ProgramStage psA;
 
   private ProgramStage psB;
@@ -120,8 +102,6 @@ class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
   private Program programA;
 
   private Program programB;
-
-  private Enrollment enrollment;
 
   private DataElement deAInteger;
 
@@ -252,27 +232,15 @@ class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
     // ---------------------------------------------------------------------
     // Enrollment
     // ---------------------------------------------------------------------
-    occurredDate = DateUtils.toMediumDate("2014-10-22");
-    enrollmentDate = DateUtils.toMediumDate("2014-12-31");
+    Date occurredDate = DateUtils.toMediumDate("2014-10-22");
+    Date enrollmentDate = DateUtils.toMediumDate("2014-12-31");
 
-    User admin = getAdminUser();
-    admin.addOrganisationUnit(organisationUnit);
-    manager.update(admin);
-    TrackerImportParams params = TrackerImportParams.builder().userId(admin.getUid()).build();
-    String enrollmentUid = CodeGenerator.generateUid();
-    List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments =
-        List.of(
-            createEnrollment(
-                enrollmentUid,
-                trackedEntity.getUid(),
-                programA.getUid(),
-                organisationUnit,
-                enrollmentDate,
-                occurredDate));
-    TrackerObjects trackerObjects =
-        new TrackerObjects(emptyList(), enrollments, emptyList(), emptyList());
-    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
-    Enrollment enrollment = manager.get(Enrollment.class, enrollmentUid);
+    Enrollment enrollment = createEnrollment(programA, trackedEntity, organisationUnit);
+    enrollment.setEnrollmentDate(enrollmentDate);
+    enrollment.setOccurredDate(occurredDate);
+    manager.save(enrollment);
+    trackedEntity.getEnrollments().add(enrollment);
+    manager.update(trackedEntity);
 
     // ---------------------------------------------------------------------
     // TrackedEntityAttribute
@@ -660,25 +628,5 @@ class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
   private String filter(String expression) {
     return programIndicatorService.getAnalyticsSql(
         expression, BOOLEAN, indicatorA, new Date(), new Date());
-  }
-
-  private org.hisp.dhis.tracker.imports.domain.Enrollment createEnrollment(
-      String enrollmentUid,
-      String trackedEntityUid,
-      String programUid,
-      OrganisationUnit organisationUnit,
-      Date enrolledAt,
-      Date occurredAt) {
-
-    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
-        new org.hisp.dhis.tracker.imports.domain.Enrollment();
-    enrollment.setEnrollment(enrollmentUid);
-    enrollment.setProgram(MetadataIdentifier.of(TrackerIdScheme.UID, programUid, null));
-    enrollment.setOrgUnit(MetadataIdentifier.ofUid(organisationUnit));
-    enrollment.setTrackedEntity(trackedEntityUid);
-    enrollment.setEnrolledAt(enrolledAt.toInstant());
-    enrollment.setOccurredAt(occurredAt.toInstant());
-
-    return enrollment;
   }
 }

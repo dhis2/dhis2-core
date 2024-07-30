@@ -27,17 +27,14 @@
  */
 package org.hisp.dhis.predictor;
 
-import static java.util.Collections.emptyList;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.expression.Expression.SEPARATOR;
-import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Sets;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.analytics.AggregationType;
@@ -45,7 +42,6 @@ import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.MockAnalyticsService;
 import org.hisp.dhis.category.CategoryManager;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -81,11 +77,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.tracker.imports.TrackerIdScheme;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.TrackerImportService;
-import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -129,8 +120,6 @@ class EventPredictionServiceTest extends PostgresIntegrationTestBase {
   @Autowired private CategoryManager categoryManager;
 
   @Autowired private IdentifiableObjectManager manager;
-
-  @Autowired private TrackerImportService trackerImportService;
 
   private CategoryOptionCombo defaultCombo;
 
@@ -259,24 +248,12 @@ class EventPredictionServiceTest extends PostgresIntegrationTestBase {
     program.getProgramIndicators().add(programIndicatorB);
     programService.updateProgram(program);
 
-    User admin = getAdminUser();
-    admin.addOrganisationUnit(orgUnitA);
-    manager.update(admin);
-    TrackerImportParams params = TrackerImportParams.builder().userId(admin.getUid()).build();
-    String enrollmentUid = CodeGenerator.generateUid();
-    List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments =
-        List.of(
-            createEnrollment(
-                enrollmentUid,
-                trackedEntity.getUid(),
-                program.getUid(),
-                orgUnitA,
-                dateMar20,
-                dateMar20));
-    TrackerObjects trackerObjects =
-        new TrackerObjects(emptyList(), enrollments, emptyList(), emptyList());
-    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
-    Enrollment enrollment = manager.get(Enrollment.class, enrollmentUid);
+    Enrollment enrollment = createEnrollment(program, trackedEntity, orgUnitA);
+    enrollment.setEnrollmentDate(dateMar20);
+    enrollment.setOccurredDate(dateMar20);
+    manager.save(enrollment);
+    trackedEntity.getEnrollments().add(enrollment);
+    manager.update(trackedEntity);
 
     Event eventA = createEvent(stageA, enrollment, orgUnitA);
     eventA.setOccurredDate(dateMar20);
@@ -437,25 +414,5 @@ class EventPredictionServiceTest extends PostgresIntegrationTestBase {
         predictorT, getDate(testYear, 4, 1), getDate(testYear, 5, 31), summary);
     assertEquals("101", getDataValue(predictorOutputT, periodApr));
     assertEquals("302", getDataValue(predictorOutputT, periodMay));
-  }
-
-  private org.hisp.dhis.tracker.imports.domain.Enrollment createEnrollment(
-      String enrollmentUid,
-      String trackedEntityUid,
-      String programUid,
-      OrganisationUnit organisationUnit,
-      Date enrolledAt,
-      Date occurredAt) {
-
-    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
-        new org.hisp.dhis.tracker.imports.domain.Enrollment();
-    enrollment.setEnrollment(enrollmentUid);
-    enrollment.setProgram(MetadataIdentifier.of(TrackerIdScheme.UID, programUid, null));
-    enrollment.setOrgUnit(MetadataIdentifier.ofUid(organisationUnit));
-    enrollment.setTrackedEntity(trackedEntityUid);
-    enrollment.setEnrolledAt(enrolledAt.toInstant());
-    enrollment.setOccurredAt(occurredAt.toInstant());
-
-    return enrollment;
   }
 }

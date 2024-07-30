@@ -27,12 +27,9 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import static java.util.Collections.emptyList;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -40,7 +37,6 @@ import org.hisp.dhis.audit.UserInfoTestHelper;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.changelog.ChangeLogType;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.dataelement.DataElement;
@@ -58,12 +54,6 @@ import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogStore;
-import org.hisp.dhis.tracker.imports.TrackerIdScheme;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.TrackerImportService;
-import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -83,8 +73,6 @@ class TrackedEntityDataValueChangeLogStoreTest extends PostgresIntegrationTestBa
 
   @Autowired private TrackedEntityDataValueChangeLogStore auditStore;
 
-  @Autowired private TrackedEntityService trackedEntityService;
-
   @Autowired private OrganisationUnitService organisationUnitService;
 
   @Autowired private DataElementService dataElementService;
@@ -96,8 +84,6 @@ class TrackedEntityDataValueChangeLogStoreTest extends PostgresIntegrationTestBa
   @Autowired private CategoryService categoryService;
 
   @Autowired private IdentifiableObjectManager manager;
-
-  @Autowired private TrackerImportService trackerImportService;
 
   private CategoryOptionCombo coc;
 
@@ -175,19 +161,10 @@ class TrackedEntityDataValueChangeLogStoreTest extends PostgresIntegrationTestBa
     TrackedEntity teA = createTrackedEntity(ouA);
     manager.save(teA);
 
-    User admin = getAdminUser();
-    admin.addOrganisationUnit(ouA);
-    manager.update(admin);
-    String enrollmentUid = CodeGenerator.generateUid();
-    TrackerImportParams params = TrackerImportParams.builder().userId(admin.getUid()).build();
-    List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments =
-        List.of(
-            createEnrollment(
-                enrollmentUid, teA.getUid(), pA.getUid(), ouA, new Date(), new Date()));
-    TrackerObjects trackerObjects =
-        new TrackerObjects(emptyList(), enrollments, emptyList(), emptyList());
-    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
-    Enrollment enrollment = manager.get(Enrollment.class, enrollmentUid);
+    Enrollment enrollment = createEnrollment(pA, teA, ouA);
+    manager.save(enrollment);
+    teA.getEnrollments().add(enrollment);
+    manager.update(teA);
 
     dvA = new EventDataValue(deA.getUid(), "A", USER_SNAP_A);
     dvB = new EventDataValue(deB.getUid(), "B", USER_SNAP_A);
@@ -497,25 +474,5 @@ class TrackedEntityDataValueChangeLogStoreTest extends PostgresIntegrationTestBa
             .setAuditTypes(List.of(ChangeLogType.UPDATE, ChangeLogType.DELETE));
     assertContainsOnly(List.of(dvaB, dvaC), auditStore.getTrackedEntityDataValueChangeLogs(params));
     assertEquals(2, auditStore.countTrackedEntityDataValueChangeLogs(params));
-  }
-
-  private org.hisp.dhis.tracker.imports.domain.Enrollment createEnrollment(
-      String enrollmentUid,
-      String trackedEntityUid,
-      String programUid,
-      OrganisationUnit organisationUnit,
-      Date enrolledAt,
-      Date occurredAt) {
-
-    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
-        new org.hisp.dhis.tracker.imports.domain.Enrollment();
-    enrollment.setEnrollment(enrollmentUid);
-    enrollment.setProgram(MetadataIdentifier.of(TrackerIdScheme.UID, programUid, null));
-    enrollment.setOrgUnit(MetadataIdentifier.ofUid(organisationUnit));
-    enrollment.setTrackedEntity(trackedEntityUid);
-    enrollment.setEnrolledAt(enrolledAt.toInstant());
-    enrollment.setOccurredAt(occurredAt.toInstant());
-
-    return enrollment;
   }
 }

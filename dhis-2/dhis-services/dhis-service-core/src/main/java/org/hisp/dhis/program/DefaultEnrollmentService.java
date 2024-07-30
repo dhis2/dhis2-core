@@ -34,7 +34,6 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
@@ -124,9 +123,9 @@ public class DefaultEnrollmentService implements EnrollmentService {
     manager.save(enrollment);
     trackerOwnershipAccessManager.assignOwnership(
         trackedEntity, program, organisationUnit, true, true);
-    eventPublisher.publishEvent(new ProgramEnrollmentNotificationEvent(this, enrollment.getId()));
+    /*    eventPublisher.publishEvent(new ProgramEnrollmentNotificationEvent(this, enrollment.getId()));
     manager.update(enrollment);
-    trackedEntityService.updateTrackedEntity(trackedEntity);
+    trackedEntityService.updateTrackedEntity(trackedEntity);*/
     return enrollment;
   }
 }

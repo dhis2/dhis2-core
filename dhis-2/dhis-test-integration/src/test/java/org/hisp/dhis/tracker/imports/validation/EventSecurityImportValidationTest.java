@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.imports.validation;
 
-import static java.util.Collections.emptyList;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_3;
@@ -38,13 +37,13 @@ import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -59,11 +58,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.TrackerTest;
-import org.hisp.dhis.tracker.imports.TrackerIdScheme;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
-import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.user.User;
@@ -193,11 +190,16 @@ class EventSecurityImportValidationTest extends TrackerTest {
     manager.save(femaleA);
     manager.save(femaleB);
 
-    List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments = List.of(createEnrollment());
-    TrackerObjects trackerObjects =
-        new TrackerObjects(emptyList(), enrollments, emptyList(), emptyList());
-
-    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
+    int testYear = Calendar.getInstance().get(Calendar.YEAR) - 1;
+    Date dateMar20 = getDate(testYear, 3, 20);
+    Date dateApr10 = getDate(testYear, 4, 10);
+    Enrollment enrollment = createEnrollment(programA, maleA, organisationUnitA);
+    enrollment.setUid("MNWZ6hnuhSX");
+    enrollment.setEnrollmentDate(dateMar20);
+    enrollment.setOccurredDate(dateApr10);
+    manager.save(enrollment);
+    maleA.getEnrollments().add(enrollment);
+    manager.update(maleA);
 
     trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
         maleA.getUid(), programA.getUid(), organisationUnitA.getUid());
@@ -258,22 +260,5 @@ class EventSecurityImportValidationTest extends TrackerTest {
     params.setImportStrategy(TrackerImportStrategy.UPDATE);
     importReport = trackerImportService.importTracker(params, trackerObjects);
     assertHasOnlyErrors(importReport, ValidationCode.E1083);
-  }
-
-  private org.hisp.dhis.tracker.imports.domain.Enrollment createEnrollment() {
-    int testYear = Calendar.getInstance().get(Calendar.YEAR) - 1;
-    Date dateMar20 = getDate(testYear, 3, 20);
-    Date dateApr10 = getDate(testYear, 4, 10);
-
-    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
-        new org.hisp.dhis.tracker.imports.domain.Enrollment();
-    enrollment.setEnrollment("MNWZ6hnuhSX");
-    enrollment.setProgram(MetadataIdentifier.of(TrackerIdScheme.UID, programA.getUid(), null));
-    enrollment.setOrgUnit(MetadataIdentifier.ofUid(organisationUnitA));
-    enrollment.setTrackedEntity(maleA.getUid());
-    enrollment.setEnrolledAt(dateMar20.toInstant());
-    enrollment.setOccurredAt(dateApr10.toInstant());
-
-    return enrollment;
   }
 }
