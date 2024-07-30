@@ -110,9 +110,9 @@ class TrackerOrgUnitMergeHandlerTest extends PostgresIntegrationTestBase {
     trackedEntityA = createTrackedEntity('A', ouA);
     trackedEntityB = createTrackedEntity('B', ouB);
     trackedEntityC = createTrackedEntity('C', ouC);
-    trackedEntityService.addTrackedEntity(trackedEntityA);
-    trackedEntityService.addTrackedEntity(trackedEntityB);
-    trackedEntityService.addTrackedEntity(trackedEntityC);
+    manager.save(trackedEntityA);
+    manager.save(trackedEntityB);
+    manager.save(trackedEntityC);
     enrollmentA = createEnrollment(prA, trackedEntityA, ouA);
     enrollmentB = createEnrollment(prA, trackedEntityB, ouB);
     enrollmentC = createEnrollment(prA, trackedEntityC, ouA);

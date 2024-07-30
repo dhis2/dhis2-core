@@ -121,10 +121,10 @@ class TrackedEntityQueryLimitTest extends PostgresIntegrationTestBase {
     trackedEntity3.setTrackedEntityType(trackedEntityType);
     trackedEntity4.setTrackedEntityType(trackedEntityType);
 
-    trackedEntityService.addTrackedEntity(trackedEntity1);
-    trackedEntityService.addTrackedEntity(trackedEntity2);
-    trackedEntityService.addTrackedEntity(trackedEntity3);
-    trackedEntityService.addTrackedEntity(trackedEntity4);
+    manager.save(trackedEntity1);
+    manager.save(trackedEntity2);
+    manager.save(trackedEntity3);
+    manager.save(trackedEntity4);
 
     enrollment1 = createEnrollment(program, trackedEntity1, orgUnitA);
     enrollment2 = createEnrollment(program, trackedEntity2, orgUnitA);

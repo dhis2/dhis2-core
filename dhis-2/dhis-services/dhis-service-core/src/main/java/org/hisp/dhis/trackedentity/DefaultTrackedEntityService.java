@@ -474,17 +474,10 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
   @Override
   @Transactional
-  public long addTrackedEntity(TrackedEntity trackedEntity) {
-    trackedEntityStore.save(trackedEntity);
-
-    return trackedEntity.getId();
-  }
-
-  @Override
-  @Transactional
   public long createTrackedEntity(
       TrackedEntity trackedEntity, Set<TrackedEntityAttributeValue> attributeValues) {
-    long id = addTrackedEntity(trackedEntity);
+    trackedEntityStore.save(trackedEntity);
+    long id = trackedEntity.getId();
 
     for (TrackedEntityAttributeValue pav : attributeValues) {
       attributeValueService.addTrackedEntityAttributeValue(pav);
