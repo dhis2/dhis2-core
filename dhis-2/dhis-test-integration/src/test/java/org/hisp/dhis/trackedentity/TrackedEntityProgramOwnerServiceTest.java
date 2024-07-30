@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -56,7 +57,7 @@ class TrackedEntityProgramOwnerServiceTest extends PostgresIntegrationTestBase {
 
   private static final String TE_A1 = "TE-A1";
 
-  @Autowired private TrackedEntityService trackedEntityService;
+  @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private TrackedEntityProgramOwnerService programOwnerService;
 
@@ -78,8 +79,8 @@ class TrackedEntityProgramOwnerServiceTest extends PostgresIntegrationTestBase {
     trackedEntityA1.setUid(TE_A1);
     TrackedEntity trackedEntityB1 = createTrackedEntity(organisationUnitA);
     trackedEntityB1.setUid(TE_B1);
-    trackedEntityService.addTrackedEntity(trackedEntityA1);
-    trackedEntityService.addTrackedEntity(trackedEntityB1);
+    manager.save(trackedEntityA1);
+    manager.save(trackedEntityB1);
     Program programA = createProgram('A');
     programA.setUid(PA);
     programService.addProgram(programA);

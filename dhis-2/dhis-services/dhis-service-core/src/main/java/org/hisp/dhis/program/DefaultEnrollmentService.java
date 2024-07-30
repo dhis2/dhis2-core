@@ -28,7 +28,6 @@
 package org.hisp.dhis.program;
 
 import java.util.Date;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
@@ -50,8 +49,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.program.EnrollmentService")
 public class DefaultEnrollmentService implements EnrollmentService {
-  private final EnrollmentStore enrollmentStore;
-
   private final TrackedEntityService trackedEntityService;
 
   private final ApplicationEventPublisher eventPublisher;
@@ -59,25 +56,6 @@ public class DefaultEnrollmentService implements EnrollmentService {
   private final TrackerOwnershipManager trackerOwnershipAccessManager;
 
   private final IdentifiableObjectManager manager;
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<Enrollment> getEnrollments(Program program) {
-    return enrollmentStore.get(program);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<Enrollment> getEnrollments(Program program, EnrollmentStatus status) {
-    return enrollmentStore.get(program, status);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<Enrollment> getEnrollments(
-      TrackedEntity trackedEntity, Program program, EnrollmentStatus status) {
-    return enrollmentStore.get(trackedEntity, program, status);
-  }
 
   private Enrollment prepareEnrollment(
       TrackedEntity trackedEntity,

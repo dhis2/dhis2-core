@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,27 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test;
+package org.hisp.dhis.program;
 
-import javax.persistence.EntityManager;
-import lombok.Getter;
-import org.hisp.dhis.test.config.IntegrationBaseConfiguration;
-import org.hisp.dhis.test.config.PostgresDhisConfiguration;
-import org.hisp.dhis.test.junit.SpringIntegrationTest;
-import org.hisp.dhis.user.User;
-import org.springframework.test.context.ContextConfiguration;
+import java.util.List;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * This store is intended as a temporary solution until we separate event programs from tracker
+ * programs. Once they become distinct entities and event programs no longer require a placeholder
+ * enrollment, this store should be discontinued.
  */
-@ContextConfiguration(
-    classes = {
-      IntegrationBaseConfiguration.class,
-      PostgresDhisConfiguration.class,
-    })
-@SpringIntegrationTest
-public abstract class SpringIntegrationTestBase extends TestBase {
+public interface EventProgramEnrollmentStore {
 
-  @Getter private User adminUser;
-  public EntityManager entityManager;
+  List<Enrollment> get(Program program);
+
+  List<Enrollment> get(Program program, EnrollmentStatus enrollmentStatus);
 }

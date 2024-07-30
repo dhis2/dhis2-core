@@ -35,6 +35,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.intellij.lang.annotations.Language;
 
@@ -135,6 +136,33 @@ public @interface OpenApi {
      *     UserDTO would refer to User
      */
     Class<? extends IdentifiableObject> as();
+  }
+
+  /**
+   * Kind as a higher order type bucket to group objects of similar role. This is purely for display
+   * purposes showing types (schemas) of same kind in the same group.
+   */
+  @Inherited
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target(ElementType.TYPE)
+  @interface Kind {
+    /**
+     * @return name of the kind
+     */
+    String value();
+  }
+
+  @Inherited
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target(ElementType.TYPE)
+  @interface Team {
+
+    /**
+     * Names are case-insensitive, e.g. "Tracker" is the same as "tracker"
+     *
+     * @return name of the team that supports the annotated element
+     */
+    String value();
   }
 
   /**
@@ -284,19 +312,19 @@ public @interface OpenApi {
      *
      * @return type of the parameter, should be a simple type for a path parameter.
      */
-    Class<?>[] value();
+    Class<?>[] value() default {};
+
+    /**
+     * When used together with {@link #value()} it is assumed that the {@link #value()} type is
+     * object and that the given properties are in addition to that type's properties.
+     *
+     * @return the properties of the declared object
+     */
+    Property[] object() default {};
 
     boolean required() default false;
 
     boolean deprecated() default false;
-
-    /**
-     * When not empty the parameter is wrapped in an object having a single member with the provided
-     * property name.
-     *
-     * @return name of the property to use
-     */
-    String asProperty() default "";
 
     /**
      * If given, this values takes precedence over the actual initial value of a field that might be
@@ -357,6 +385,8 @@ public @interface OpenApi {
       OK(200),
       CREATED(201),
       NO_CONTENT(204),
+      FOUND(302),
+      NOT_MODIFIED(304),
       BAD_REQUEST(400),
       FORBIDDEN(403),
       NOT_FOUND(404),
@@ -366,12 +396,22 @@ public @interface OpenApi {
     }
 
     /**
-     * None (length zero) uses the actual type of the method. More than one use a {@code oneOf}
-     * union type of all the type schemas.
+     * No value (length zero) uses the actual type of the method unless {@link #object()} is
+     * non-empty.
+     *
+     * <p>More than one use a {@code oneOf} union type of all the type schemas.
      *
      * @return body type of the response.
      */
-    Class<?>[] value();
+    Class<?>[] value() default {};
+
+    /**
+     * When used together with {@link #value()} it is assumed that the {@link #value()} type is
+     * object and that the given properties are in addition to that type's properties.
+     *
+     * @return the properties of the declared object
+     */
+    Property[] object() default {};
 
     /**
      * If status is left empty the {@link #value()} applies to the status inferred from the method
@@ -411,6 +451,15 @@ public @interface OpenApi {
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.RUNTIME)
   @interface Shared {
+
+    /**
+     * Marker annotation to use on properties of a shared parameter object that cannot be shared as
+     * their type is dynamic (varying).
+     */
+    @Target({ElementType.FIELD, ElementType.METHOD})
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface Inline {}
+
     boolean value() default true;
 
     /**
@@ -517,4 +566,12 @@ public @interface OpenApi {
   @interface ResponseRepeat {
     Response[] value();
   }
+
+  /**
+   * A "virtual" property name enumeration type. It creates an OpenAPI {@code enum} string schema
+   * containing all valid property names for the target type. The target type is either the actual
+   * type substitute for the {@link EntityType} or the first argument type.
+   */
+  @NoArgsConstructor
+  final class PropertyNames {}
 }

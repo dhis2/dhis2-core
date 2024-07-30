@@ -38,6 +38,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ConflictException;
@@ -87,6 +88,12 @@ public class SmsGatewayController {
   // GET
   // -------------------------------------------------------------------------
 
+  @OpenApi.Response(
+      status = OpenApi.Response.Status.OK,
+      object = {
+        @OpenApi.Property(name = "pager", value = Pager.class),
+        @OpenApi.Property(name = "gateways", value = SmsGatewayConfig[].class)
+      })
   @RequiresAuthority(anyOf = F_MOBILE_SENDSMS)
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<JsonRoot> getGateways(
@@ -97,6 +104,7 @@ public class SmsGatewayController {
     return ResponseEntity.ok(JsonRoot.of("gateways", fieldFilterService.toObjectNodes(params)));
   }
 
+  @OpenApi.Response(SmsGatewayConfig.class)
   @RequiresAuthority(anyOf = F_MOBILE_SENDSMS)
   @GetMapping(value = "/{uid}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<ObjectNode> getGatewayConfiguration(

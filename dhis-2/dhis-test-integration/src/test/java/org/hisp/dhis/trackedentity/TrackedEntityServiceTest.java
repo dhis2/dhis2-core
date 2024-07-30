@@ -112,12 +112,8 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   private TrackedEntityAttribute trackedEntityAttribute;
 
-  private User superUser;
-
   @BeforeEach
   void setUp() {
-    this.superUser = getAdminUser();
-
     trackedEntityType = createTrackedEntityType('A');
     TrackedEntityAttribute attrD = createTrackedEntityAttribute('D');
     TrackedEntityAttribute attrE = createTrackedEntityAttribute('E');
@@ -179,18 +175,18 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testSaveTrackedEntity() {
-    long idA = trackedEntityService.addTrackedEntity(trackedEntityA1);
-    long idB = trackedEntityService.addTrackedEntity(trackedEntityB1);
-    assertNotNull(trackedEntityService.getTrackedEntity(idA));
-    assertNotNull(trackedEntityService.getTrackedEntity(idB));
+    manager.save(trackedEntityA1);
+    manager.save(trackedEntityB1);
+    assertNotNull(trackedEntityService.getTrackedEntity(trackedEntityA1.getUid()));
+    assertNotNull(trackedEntityService.getTrackedEntity(trackedEntityB1.getUid()));
   }
 
   @Test
   void testDeleteTrackedEntity() {
-    long idA = trackedEntityService.addTrackedEntity(trackedEntityA1);
-    long idB = trackedEntityService.addTrackedEntity(trackedEntityB1);
-    TrackedEntity trackedEntityA = trackedEntityService.getTrackedEntity(idA);
-    TrackedEntity trackedEntityB = trackedEntityService.getTrackedEntity(idB);
+    manager.save(trackedEntityA1);
+    manager.save(trackedEntityB1);
+    TrackedEntity trackedEntityA = trackedEntityService.getTrackedEntity(trackedEntityA1.getUid());
+    TrackedEntity trackedEntityB = trackedEntityService.getTrackedEntity(trackedEntityB1.getUid());
     assertNotNull(trackedEntityA);
     assertNotNull(trackedEntityB);
     trackedEntityService.deleteTrackedEntity(trackedEntityA1);
@@ -203,7 +199,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testDeleteTrackedEntityAndLinkedEnrollmentsAndEvents() throws NotFoundException {
-    long idA = trackedEntityService.addTrackedEntity(trackedEntityA1);
+    manager.save(trackedEntityA1);
     manager.save(enrollment);
     manager.save(event);
     long eventIdA = event.getId();
@@ -211,7 +207,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     trackedEntityA1.setEnrollments(Set.of(enrollment));
     manager.update(enrollment);
     trackedEntityService.updateTrackedEntity(trackedEntityA1);
-    TrackedEntity trackedEntityA = trackedEntityService.getTrackedEntity(idA);
+    TrackedEntity trackedEntityA = trackedEntityService.getTrackedEntity(trackedEntityA1.getUid());
     Enrollment psA = manager.get(Enrollment.class, enrollment.getUid());
     Event eventA = manager.get(Event.class, eventIdA);
     assertNotNull(trackedEntityA);
@@ -225,27 +221,27 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testUpdateTrackedEntity() {
-    long idA = trackedEntityService.addTrackedEntity(trackedEntityA1);
-    assertNotNull(trackedEntityService.getTrackedEntity(idA));
+    manager.save(trackedEntityA1);
+    assertNotNull(trackedEntityService.getTrackedEntity(trackedEntityA1.getUid()));
     trackedEntityA1.setName("B");
     trackedEntityService.updateTrackedEntity(trackedEntityA1);
-    assertEquals("B", trackedEntityService.getTrackedEntity(idA).getName());
+    assertEquals("B", trackedEntityService.getTrackedEntity(trackedEntityA1.getUid()).getName());
   }
 
   @Test
   void testGetTrackedEntityById() {
-    long idA = trackedEntityService.addTrackedEntity(trackedEntityA1);
-    long idB = trackedEntityService.addTrackedEntity(trackedEntityB1);
-    assertEquals(trackedEntityA1, trackedEntityService.getTrackedEntity(idA));
-    assertEquals(trackedEntityB1, trackedEntityService.getTrackedEntity(idB));
+    manager.save(trackedEntityA1);
+    manager.save(trackedEntityB1);
+    assertEquals(trackedEntityA1, trackedEntityService.getTrackedEntity(trackedEntityA1.getUid()));
+    assertEquals(trackedEntityB1, trackedEntityService.getTrackedEntity(trackedEntityB1.getUid()));
   }
 
   @Test
   void testGetTrackedEntityByUid() {
     trackedEntityA1.setUid("A1");
     trackedEntityB1.setUid("B1");
-    trackedEntityService.addTrackedEntity(trackedEntityA1);
-    trackedEntityService.addTrackedEntity(trackedEntityB1);
+    manager.save(trackedEntityA1);
+    manager.save(trackedEntityB1);
     assertEquals(trackedEntityA1, trackedEntityService.getTrackedEntity("A1"));
     assertEquals(trackedEntityB1, trackedEntityService.getTrackedEntity("B1"));
   }
@@ -253,14 +249,14 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testStoredByColumnForTrackedEntity() {
     trackedEntityA1.setStoredBy("test");
-    trackedEntityService.addTrackedEntity(trackedEntityA1);
+    manager.save(trackedEntityA1);
     TrackedEntity trackedEntity = trackedEntityService.getTrackedEntity(trackedEntityA1.getUid());
     assertEquals("test", trackedEntity.getStoredBy());
   }
 
   @Test
   void shouldOrderEntitiesByCreatedInAscOrder() {
-    injectSecurityContextUser(superUser);
+    injectAdminIntoSecurityContext();
 
     trackedEntityA1.setCreated(DateTime.now().plusDays(1).toDate());
     trackedEntityB1.setCreated(DateTime.now().toDate());
@@ -286,7 +282,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldOrderEntitiesByCreatedInDescOrder() {
-    injectSecurityContextUser(superUser);
+    injectAdminIntoSecurityContext();
 
     trackedEntityA1.setCreated(DateTime.now().plusDays(1).toDate());
     trackedEntityB1.setCreated(DateTime.now().toDate());
@@ -312,7 +308,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldOrderEntitiesByCreatedAtInAscOrder() {
-    injectSecurityContextUser(superUser);
+    injectAdminIntoSecurityContext();
 
     trackedEntityA1.setCreated(DateTime.now().plusDays(1).toDate());
     trackedEntityB1.setCreated(DateTime.now().toDate());
@@ -338,7 +334,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldOrderEntitiesByCreatedAtInDescOrder() {
-    injectSecurityContextUser(superUser);
+    injectAdminIntoSecurityContext();
 
     DateTime now = DateTime.now();
 
@@ -367,7 +363,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldOrderEntitiesByUpdatedAtInAscOrder() throws InterruptedException {
-    injectSecurityContextUser(superUser);
+    injectAdminIntoSecurityContext();
 
     addEntityInstances();
     // lastupdated is automatically set by the store; update entities in a certain order and
@@ -398,7 +394,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldOrderEntitiesByUpdatedAtInDescOrder() throws InterruptedException {
-    injectSecurityContextUser(superUser);
+    injectAdminIntoSecurityContext();
 
     addEntityInstances();
     // lastupdated is automatically set by the store; update entities in a certain order and
@@ -430,7 +426,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldOrderEntitiesByTrackedEntityUidInDescOrder() {
-    injectSecurityContextUser(superUser);
+    injectAdminIntoSecurityContext();
 
     addEntityInstances();
 
@@ -452,7 +448,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldOrderEntitiesByUpdatedAtClientInDescOrder() {
-    injectSecurityContextUser(superUser);
+    injectAdminIntoSecurityContext();
 
     trackedEntityA1.setLastUpdatedAtClient(DateTime.now().plusDays(1).toDate());
     trackedEntityB1.setLastUpdatedAtClient(DateTime.now().toDate());
@@ -478,7 +474,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldOrderEntitiesByEnrolledAtDateInDescOrder() {
-    injectSecurityContextUser(superUser);
+    injectAdminIntoSecurityContext();
 
     addEntityInstances();
     manager.save(enrollment);
@@ -504,7 +500,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldSortEntitiesAndKeepOrderOfParamsWhenMultipleStaticFieldsSupplied() {
-    injectSecurityContextUser(superUser);
+    injectAdminIntoSecurityContext();
     trackedEntityA1.setInactive(true);
     trackedEntityB1.setInactive(true);
     trackedEntityC1.setInactive(false);
@@ -537,7 +533,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldOrderEntitiesByDefaultUsingTrackedEntityIdInAscOrderWhenNoOrderParamProvided() {
-    injectSecurityContextUser(superUser);
+    injectAdminIntoSecurityContext();
     addEntityInstances();
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
@@ -556,7 +552,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldOrderByNonStaticFieldWhenNonStaticFieldProvided() {
-    injectSecurityContextUser(superUser);
+    injectAdminIntoSecurityContext();
     trackedEntityAttribute.setDisplayInListNoProgram(true);
     attributeService.addTrackedEntityAttribute(trackedEntityAttribute);
 
@@ -583,7 +579,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldSortEntitiesAndKeepOrderOfParamsWhenStaticAndNonStaticFieldsSupplied() {
-    injectSecurityContextUser(superUser);
+    injectAdminIntoSecurityContext();
     trackedEntityAttribute.setDisplayInListNoProgram(true);
     attributeService.addTrackedEntityAttribute(trackedEntityAttribute);
 
@@ -619,7 +615,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldSortEntitiesByAttributeDescendingWhenAttributeDescendingProvided() {
-    injectSecurityContextUser(superUser);
+    injectAdminIntoSecurityContext();
 
     TrackedEntityAttribute tea = createTrackedEntityAttribute();
 
@@ -648,7 +644,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldSortEntitiesByAttributeAscendingWhenAttributeAscendingProvided() {
-    injectSecurityContextUser(superUser);
+    injectAdminIntoSecurityContext();
 
     TrackedEntityAttribute tea = createTrackedEntityAttribute();
 
@@ -700,15 +696,15 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     trackedEntityB1.setTrackedEntityType(trackedEntityType);
     trackedEntityC1.setTrackedEntityType(trackedEntityType);
     trackedEntityD1.setTrackedEntityType(trackedEntityType);
-    trackedEntityService.addTrackedEntity(trackedEntityA1);
-    trackedEntityService.addTrackedEntity(trackedEntityB1);
-    trackedEntityService.addTrackedEntity(trackedEntityC1);
-    trackedEntityService.addTrackedEntity(trackedEntityD1);
+    manager.save(trackedEntityA1);
+    manager.save(trackedEntityB1);
+    manager.save(trackedEntityC1);
+    manager.save(trackedEntityD1);
   }
 
   private void setUpEntityAndAttributeValue(TrackedEntity trackedEntity, String attributeValue) {
     trackedEntity.setTrackedEntityType(trackedEntityType);
-    trackedEntityService.addTrackedEntity(trackedEntity);
+    manager.save(trackedEntity);
 
     TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
     trackedEntityAttributeValue.setAttribute(trackedEntityAttribute);

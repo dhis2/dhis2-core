@@ -37,7 +37,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import org.hisp.dhis.test.random.BeanRandomizer;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
@@ -86,7 +85,7 @@ class NoteValidatorTest {
     // Given
     final Note note = rnd.nextObject(Note.class);
 
-    when(preheat.getNote(note.getNote())).thenReturn(Optional.of(new org.hisp.dhis.note.Note()));
+    when(preheat.hasNote(note.getNote())).thenReturn(true);
     enrollment.setNotes(Collections.singletonList(note));
 
     // When

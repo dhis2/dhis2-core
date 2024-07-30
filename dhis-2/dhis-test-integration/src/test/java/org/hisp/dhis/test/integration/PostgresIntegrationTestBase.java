@@ -28,12 +28,15 @@
 package org.hisp.dhis.test.integration;
 
 import org.hisp.dhis.test.IntegrationTest;
-import org.hisp.dhis.test.SpringIntegrationTestBase;
+import org.hisp.dhis.test.IntegrationTestBase;
 import org.springframework.test.context.ActiveProfiles;
 
 /**
+ * Base class for all Spring based integration tests which use a Postgres DB running in a Docker
+ * container. Extend this if you test Spring services or repositories.
+ *
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 @IntegrationTest
 @ActiveProfiles(profiles = {"test-postgres"})
-public abstract class PostgresIntegrationTestBase extends SpringIntegrationTestBase {}
+public abstract class PostgresIntegrationTestBase extends IntegrationTestBase {}

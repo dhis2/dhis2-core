@@ -25,48 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.node;
+package org.hisp.dhis.tracker.export.note;
 
-import com.google.common.collect.Lists;
-import java.util.List;
+import javax.persistence.EntityManager;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.note.Note;
+import org.hisp.dhis.security.acl.AclService;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author David Katuscak
  */
-public enum Preset {
-  ID("id", Lists.newArrayList("id")),
-  CODE("code", Lists.newArrayList("code")),
-  ID_NAME("idName", Lists.newArrayList("id", "displayName")),
-  ALL("all", Lists.newArrayList("*")),
-  IDENTIFIABLE(
-      "identifiable", Lists.newArrayList("id", "name", "code", "created", "lastUpdated", "href")),
-  NAMEABLE(
-      "nameable",
-      Lists.newArrayList(
-          "id", "name", "shortName", "description", "code", "created", "lastUpdated", "href"));
-
-  private String name;
-
-  private List<String> fields;
-
-  Preset(String name, List<String> fields) {
-    this.name = name;
-    this.fields = fields;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public List<String> getFields() {
-    return fields;
-  }
-
-  public static Preset defaultPreset() {
-    return Preset.ID_NAME;
-  }
-
-  public static Preset defaultAssociationPreset() {
-    return Preset.ID;
+@Repository("org.hisp.dhis.tracker.export.note.NoteStore")
+class HibernateNoteStore extends HibernateIdentifiableObjectStore<Note> {
+  public HibernateNoteStore(
+      EntityManager entityManager,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      AclService aclService) {
+    super(entityManager, jdbcTemplate, publisher, Note.class, aclService, false);
   }
 }

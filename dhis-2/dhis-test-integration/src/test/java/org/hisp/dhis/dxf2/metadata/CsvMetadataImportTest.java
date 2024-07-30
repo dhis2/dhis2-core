@@ -75,6 +75,8 @@ class CsvMetadataImportTest extends PostgresIntegrationTestBase {
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
+  // TODO(DHIS2-17768 platform) this import is run as a super user, create a different user if you
+  // need to
   @Test
   void testOrgUnitImport() throws Exception {
     ImportReport importReport =
@@ -88,7 +90,6 @@ class CsvMetadataImportTest extends PostgresIntegrationTestBase {
 
   @Test
   void testOrgUnitImport_SuperUser() throws Exception {
-    createAndInjectAdminUser();
     ImportReport importReport =
         runImport(
             "metadata/organisationUnits.csv",

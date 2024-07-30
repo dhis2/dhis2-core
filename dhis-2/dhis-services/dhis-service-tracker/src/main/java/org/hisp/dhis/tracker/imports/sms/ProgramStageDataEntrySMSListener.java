@@ -38,18 +38,21 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
+import org.hisp.dhis.sms.listener.SMSProcessingException;
 import org.hisp.dhis.sms.parse.ParserType;
+import org.hisp.dhis.smscompression.SmsResponse;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -57,6 +60,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -84,6 +88,7 @@ public class ProgramStageDataEntrySMSListener extends RegisterSMSListener {
       UserService userService,
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
+      org.hisp.dhis.program.EnrollmentService apiEnrollmentService,
       EnrollmentService enrollmentService,
       TrackedEntityDataValueChangeLogService dataValueAuditService,
       FileResourceService fileResourceService,
@@ -97,6 +102,7 @@ public class ProgramStageDataEntrySMSListener extends RegisterSMSListener {
         userService,
         incomingSmsService,
         smsSender,
+        apiEnrollmentService,
         enrollmentService,
         dataValueAuditService,
         fileResourceService,
@@ -128,14 +134,22 @@ public class ProgramStageDataEntrySMSListener extends RegisterSMSListener {
   }
 
   private void registerProgramStage(
-      TrackedEntity te,
+      TrackedEntity trackedEntity,
       IncomingSms sms,
       SMSCommand smsCommand,
       Map<String, String> keyValue,
       Set<OrganisationUnit> ous) {
-    List<Enrollment> enrollments =
-        new ArrayList<>(
-            enrollmentService.getEnrollments(te, smsCommand.getProgram(), EnrollmentStatus.ACTIVE));
+
+    List<Enrollment> enrollments;
+    try {
+      enrollments =
+          new ArrayList<>(
+              enrollmentService.getEnrollments(
+                  trackedEntity.getUid(), smsCommand.getProgram(), EnrollmentStatus.ACTIVE));
+    } catch (BadRequestException | ForbiddenException e) {
+      // TODO(tracker) Find a better error message for these exceptions
+      throw new SMSProcessingException(SmsResponse.UNKNOWN_ERROR);
+    }
 
     register(enrollments, keyValue, smsCommand, sms, ous);
   }

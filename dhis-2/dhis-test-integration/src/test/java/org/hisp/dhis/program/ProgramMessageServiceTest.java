@@ -148,7 +148,7 @@ class ProgramMessageServiceTest extends PostgresIntegrationTestBase {
     ouUids.add(ouA.getUid());
     // ouSet.add( ouB );
     trackedEntityA = createTrackedEntity(ouA);
-    trackedEntityService.addTrackedEntity(trackedEntityA);
+    manager.save(trackedEntityA);
     recipientsA = new ProgramMessageRecipients();
     recipientsA.setOrganisationUnit(ouA);
     recipientsA.setTrackedEntity(trackedEntityA);

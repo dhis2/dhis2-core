@@ -63,10 +63,10 @@ class DataIntegrityUsersWithNoRoleControllerTest extends AbstractDataIntegrityIn
     manager.persist(user);
     dbmsManager.clearSession();
 
-    // Note that there are already two users which exist due to the overall test setup, thus, three
+    // Note that there is already one user which exists due to the overall test setup, thus, two
     // users in total.
     assertHasDataIntegrityIssues(
-        DETAILS_ID_TYPE, CHECK_NAME, 33, user.getUid(), user.getUsername(), "disabled:false", true);
+        DETAILS_ID_TYPE, CHECK_NAME, 50, user.getUid(), user.getUsername(), "disabled:false", true);
 
     JsonDataIntegrityDetails details = getDetails(CHECK_NAME);
     JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();

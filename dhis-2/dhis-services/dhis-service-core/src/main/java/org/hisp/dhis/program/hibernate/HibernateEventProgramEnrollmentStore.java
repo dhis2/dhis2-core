@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,37 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.program.hibernate;
 
-import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import javax.persistence.EntityManager;
+import lombok.RequiredArgsConstructor;
+import org.hibernate.Session;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
+import org.hisp.dhis.program.EventProgramEnrollmentStore;
+import org.hisp.dhis.program.Program;
+import org.springframework.stereotype.Repository;
 
-/**
- * @author Abyot Asalefew
- */
-public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
-  String ID = EnrollmentStore.class.getName();
+@RequiredArgsConstructor
+@Repository("org.hisp.dhis.program.EventProgramEnrollmentStore")
+public class HibernateEventProgramEnrollmentStore implements EventProgramEnrollmentStore {
 
-  /** Get enrollments into a program. */
-  List<Enrollment> get(Program program);
+  private final EntityManager entityManager;
 
-  /** Get enrollments into a program that are in given status. */
-  List<Enrollment> get(Program program, EnrollmentStatus status);
+  @Override
+  public List<Enrollment> get(Program program) {
+    try (Session session = entityManager.unwrap(Session.class)) {
 
-  /** Get a tracked entities enrollments into a program that are in given status. */
-  List<Enrollment> get(TrackedEntity trackedEntity, Program program, EnrollmentStatus status);
+      return session
+          .createQuery("from Enrollment e where e.program.uid = :programUid", Enrollment.class)
+          .setParameter("programUid", program.getUid())
+          .list();
+    }
+  }
 
-  /**
-   * Get all enrollments which have notifications with the given ProgramNotificationTemplate
-   * scheduled on the given date.
-   *
-   * @param template the template.
-   * @param notificationDate the Date for which the notification is scheduled.
-   * @return a list of enrollments.
-   */
-  List<Enrollment> getWithScheduledNotifications(
-      ProgramNotificationTemplate template, Date notificationDate);
+  @Override
+  public List<Enrollment> get(Program program, EnrollmentStatus enrollmentStatus) {
+    try (Session session = entityManager.unwrap(Session.class)) {
+
+      return session
+          .createQuery(
+              "from Enrollment e where e.program.uid = :programUid and status = :enrollmentStatus",
+              Enrollment.class)
+          .setParameter("programUid", program.getUid())
+          .setParameter("enrollmentStatus", enrollmentStatus)
+          .list();
+    }
+  }
 }

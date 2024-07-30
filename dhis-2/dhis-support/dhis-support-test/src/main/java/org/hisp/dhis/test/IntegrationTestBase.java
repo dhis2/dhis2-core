@@ -25,36 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.note.hibernate;
+package org.hisp.dhis.test;
 
 import javax.persistence.EntityManager;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.note.Note;
-import org.hisp.dhis.note.NoteStore;
-import org.hisp.dhis.security.acl.AclService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import lombok.Getter;
+import org.hisp.dhis.test.config.IntegrationBaseConfiguration;
+import org.hisp.dhis.test.config.PostgresDhisConfiguration;
+import org.hisp.dhis.test.junit.SpringIntegrationTest;
+import org.hisp.dhis.user.User;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 
 /**
- * @author David Katuscak
+ * Main base class for all Spring based integration tests. The Spring context is configured to
+ * contain the Spring components to test DHIS2 services and repositories.
+ *
+ * <p>Concrete test classes should extend {@code
+ * org.hisp.dhis.test.integration.PostgresIntegrationTestBase}.
+ *
+ * <p>Read through
+ *
+ * <ul>
+ *   <li>{@link org.hisp.dhis.test}
+ *   <li>{@link ContextConfiguration}
+ *   <li>{@link ActiveProfiles}
+ * </ul>
+ *
+ * if you are unsure how to get started and certainly before you create another base test class!
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Repository("org.hisp.dhis.trackedentitycomment.NoteStore")
-public class HibernateNoteStore extends HibernateIdentifiableObjectStore<Note>
-    implements NoteStore {
-  public HibernateNoteStore(
-      EntityManager entityManager,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      AclService aclService) {
-    super(entityManager, jdbcTemplate, publisher, Note.class, aclService, false);
-  }
+@ContextConfiguration(
+    classes = {
+      IntegrationBaseConfiguration.class,
+      PostgresDhisConfiguration.class,
+    })
+@SpringIntegrationTest
+public abstract class IntegrationTestBase extends TestBase {
 
-  @Override
-  public boolean exists(String uid) {
-    return (boolean)
-        nativeSynchronizedQuery("select exists(select 1 from note where uid=:uid)")
-            .setParameter("uid", uid)
-            .getSingleResult();
+  @Getter private User adminUser;
+  public EntityManager entityManager;
+
+  protected final void injectAdminIntoSecurityContext() {
+    injectSecurityContextUser(getAdminUser());
   }
 }

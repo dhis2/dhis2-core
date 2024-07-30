@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -67,7 +68,7 @@ class TrackedEntityAttributeStoreIntegrationTest extends PostgresIntegrationTest
 
   @Autowired private ProgramService programService;
 
-  @Autowired private TrackedEntityService trackedEntityService;
+  @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private TrackedEntityAttributeValueService entityAttributeValueService;
 
@@ -254,7 +255,7 @@ class TrackedEntityAttributeStoreIntegrationTest extends PostgresIntegrationTest
     trackedEntity.setOrganisationUnit(organisationUnit);
     trackedEntity.setTrackedEntityType(trackedEntityType);
 
-    trackedEntityService.addTrackedEntity(trackedEntity);
+    manager.save(trackedEntity);
 
     TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
     trackedEntityAttributeValue.setAttribute(attributeW);

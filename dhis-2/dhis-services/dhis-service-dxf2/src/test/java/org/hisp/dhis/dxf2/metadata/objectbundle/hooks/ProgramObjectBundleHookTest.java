@@ -46,8 +46,8 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.EnrollmentStatus;
+import org.hisp.dhis.program.EventProgramEnrollmentService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
@@ -67,7 +67,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ProgramObjectBundleHookTest {
   private ProgramObjectBundleHook subject;
 
-  @Mock private EnrollmentService enrollmentService;
+  @Mock private EventProgramEnrollmentService eventProgramEnrollmentService;
 
   @Mock private ProgramStageService programStageService;
 
@@ -81,7 +81,10 @@ class ProgramObjectBundleHookTest {
   public void setUp() {
     this.subject =
         new ProgramObjectBundleHook(
-            enrollmentService, programStageService, aclService, identifiableObjectManager);
+            eventProgramEnrollmentService,
+            programStageService,
+            aclService,
+            identifiableObjectManager);
 
     programA = createProgram('A');
     programA.setId(100);
@@ -91,14 +94,14 @@ class ProgramObjectBundleHookTest {
   void verifyNullObjectIsIgnored() {
     subject.preCreate(null, null);
 
-    verifyNoInteractions(enrollmentService);
+    verifyNoInteractions(eventProgramEnrollmentService);
   }
 
   @Test
   void verifyMissingBundleIsIgnored() {
     subject.preCreate(programA, null);
 
-    verifyNoInteractions(enrollmentService);
+    verifyNoInteractions(eventProgramEnrollmentService);
   }
 
   @Test
@@ -134,7 +137,7 @@ class ProgramObjectBundleHookTest {
 
   @Test
   void verifyProgramFailsValidation() {
-    when(enrollmentService.getEnrollments(programA, EnrollmentStatus.ACTIVE))
+    when(eventProgramEnrollmentService.getEnrollments(programA, EnrollmentStatus.ACTIVE))
         .thenReturn(Lists.newArrayList(new Enrollment(), new Enrollment()));
 
     List<ErrorReport> errors = subject.validate(programA, null);
@@ -148,7 +151,7 @@ class ProgramObjectBundleHookTest {
     Program transientObj = createProgram('A');
     subject.validate(transientObj, null);
 
-    verifyNoInteractions(enrollmentService);
+    verifyNoInteractions(eventProgramEnrollmentService);
   }
 
   @Test

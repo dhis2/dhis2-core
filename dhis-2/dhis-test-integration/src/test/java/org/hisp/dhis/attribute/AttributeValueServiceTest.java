@@ -87,7 +87,6 @@ class AttributeValueServiceTest extends PostgresIntegrationTestBase {
   @BeforeEach
   void setUp() {
     categoryService = _categoryService;
-    createAndInjectAdminUser();
     currentUser = getCurrentUser();
     attribute1 = new Attribute("attribute 1", ValueType.TEXT);
     attribute1.setDataElementAttribute(true);
