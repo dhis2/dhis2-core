@@ -78,6 +78,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
@@ -91,6 +92,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
@@ -134,6 +136,10 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
   @Mock private FileResourceService fileResourceService;
 
   @Mock private DhisConfigurationProvider config;
+
+  @Mock private TrackerOwnershipManager trackerOwnershipAccessManager;
+
+  @Mock private ApplicationEventPublisher eventPublisher;
 
   EnrollmentSMSListener subject;
 
@@ -205,7 +211,10 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
             trackedEntityService,
             apiEnrollmentService,
             enrollmentService,
-            identifiableObjectManager);
+            identifiableObjectManager,
+            trackerOwnershipAccessManager,
+            eventPublisher,
+            trackedEntityService);
 
     setUpInstances();
 
@@ -221,8 +230,6 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
     when(organisationUnitService.getOrganisationUnit(anyString())).thenReturn(organisationUnit);
     when(programService.getProgram(anyString())).thenReturn(program);
     when(trackedEntityTypeService.getTrackedEntityType(anyString())).thenReturn(trackedEntityType);
-    when(apiEnrollmentService.enrollTrackedEntity(any(), any(), any(), any(), any(), any()))
-        .thenReturn(enrollment);
     when(programService.hasOrgUnit(any(Program.class), any(OrganisationUnit.class)))
         .thenReturn(true);
     when(enrollmentService.getEnrollment(anyString(), any(UserDetails.class)))
@@ -235,6 +242,9 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
             })
         .when(incomingSmsService)
         .update(any());
+
+    trackedEntity.setTrackedEntityType(trackedEntityType);
+    when(trackedEntityService.getTrackedEntity(anyString())).thenReturn(trackedEntity);
   }
 
   @Test

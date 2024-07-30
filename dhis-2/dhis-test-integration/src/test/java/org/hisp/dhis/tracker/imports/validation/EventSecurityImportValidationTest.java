@@ -44,7 +44,6 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -58,6 +57,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -88,9 +88,9 @@ class EventSecurityImportValidationTest extends TrackerTest {
 
   @Autowired private TrackedEntityTypeService trackedEntityTypeService;
 
-  @Autowired private EnrollmentService enrollmentService;
-
   @Autowired private OrganisationUnitService organisationUnitService;
+
+  @Autowired private TrackerOwnershipManager trackerOwnershipAccessManager;
 
   private TrackedEntity maleA;
 
@@ -194,10 +194,16 @@ class EventSecurityImportValidationTest extends TrackerTest {
     int testYear = Calendar.getInstance().get(Calendar.YEAR) - 1;
     Date dateMar20 = getDate(testYear, 3, 20);
     Date dateApr10 = getDate(testYear, 4, 10);
-    Enrollment enrollment =
-        enrollmentService.enrollTrackedEntity(
-            maleA, programA, dateMar20, dateApr10, organisationUnitA, "MNWZ6hnuhSX");
-    manager.save(enrollment);
+
+    Enrollment enrollmentA = createEnrollment(programA, maleA, organisationUnitA);
+    enrollmentA.setEnrollmentDate(dateMar20);
+    enrollmentA.setOccurredDate(dateApr10);
+    enrollmentA.setUid("MNWZ6hnuhSX");
+    manager.save(enrollmentA);
+    maleA.getEnrollments().add(enrollmentA);
+    manager.update(maleA);
+    trackerOwnershipAccessManager.assignOwnership(maleA, programA, organisationUnitA, false, false);
+
     trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
         maleA.getUid(), programA.getUid(), organisationUnitA.getUid());
     manager.update(programA);

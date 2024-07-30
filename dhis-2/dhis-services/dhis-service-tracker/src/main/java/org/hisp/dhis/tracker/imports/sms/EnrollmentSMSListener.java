@@ -35,7 +35,9 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -45,10 +47,12 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.listener.SMSProcessingException;
@@ -65,6 +69,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
@@ -74,6 +79,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -83,12 +89,19 @@ import org.springframework.transaction.annotation.Transactional;
 public class EnrollmentSMSListener extends EventSavingSMSListener {
   private final TrackedEntityService teService;
 
-  private final org.hisp.dhis.program.EnrollmentService apiEnrollmentService;
   private final EnrollmentService enrollmentService;
 
   private final TrackedEntityAttributeValueService attributeValueService;
 
   private final ProgramStageService programStageService;
+
+  private final IdentifiableObjectManager manager;
+
+  private final TrackerOwnershipManager trackerOwnershipAccessManager;
+
+  private final ApplicationEventPublisher eventPublisher;
+
+  private final TrackedEntityService trackedEntityService;
 
   public EnrollmentSMSListener(
       IncomingSmsService incomingSmsService,
@@ -109,7 +122,10 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
       TrackedEntityService teService,
       org.hisp.dhis.program.EnrollmentService apiEnrollmentService,
       EnrollmentService enrollmentService,
-      IdentifiableObjectManager identifiableObjectManager) {
+      IdentifiableObjectManager manager,
+      TrackerOwnershipManager trackerOwnershipAccessManager,
+      ApplicationEventPublisher eventPublisher,
+      TrackedEntityService trackedEntityService) {
     super(
         incomingSmsService,
         smsSender,
@@ -120,16 +136,19 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
         organisationUnitService,
         categoryService,
         dataElementService,
-        identifiableObjectManager,
+        manager,
         eventService,
         dataValueAuditService,
         fileResourceService,
         config);
     this.teService = teService;
     this.programStageService = programStageService;
-    this.apiEnrollmentService = apiEnrollmentService;
     this.enrollmentService = enrollmentService;
     this.attributeValueService = attributeValueService;
+    this.manager = manager;
+    this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
+    this.eventPublisher = eventPublisher;
+    this.trackedEntityService = trackedEntityService;
   }
 
   @Override
@@ -203,11 +222,9 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
     }
 
     if (enrollment == null) {
-      enrollment =
-          apiEnrollmentService.enrollTrackedEntity(
-              te, program, enrollmentDate, occurredDate, orgUnit, enrollmentid.getUid());
+      enrollment = enrollTrackedEntity(te, program, orgUnit, occurredDate);
 
-      if (enrollment == null) {
+      if (enrollment.getUid() == null) {
         throw new SMSProcessingException(SmsResponse.ENROLL_FAILED.set(teUid, progid));
       }
     }
@@ -339,5 +356,64 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
         event.getEventDate(),
         event.getDueDate(),
         event.getCoordinates());
+  }
+
+  // TODO(tracker) we should use the importer here
+  private Enrollment enrollTrackedEntity(
+      TrackedEntity trackedEntity,
+      Program program,
+      OrganisationUnit organisationUnit,
+      Date occurredDate) {
+    Enrollment enrollment =
+        prepareEnrollment(
+            trackedEntity,
+            program,
+            new Date(),
+            occurredDate,
+            organisationUnit,
+            CodeGenerator.generateUid());
+    manager.save(enrollment);
+    trackerOwnershipAccessManager.assignOwnership(
+        trackedEntity, program, organisationUnit, true, true);
+    eventPublisher.publishEvent(new ProgramEnrollmentNotificationEvent(this, enrollment.getId()));
+    manager.update(enrollment);
+    trackedEntityService.updateTrackedEntity(trackedEntity);
+
+    return enrollment;
+  }
+
+  private Enrollment prepareEnrollment(
+      TrackedEntity trackedEntity,
+      Program program,
+      Date enrollmentDate,
+      Date occurredDate,
+      OrganisationUnit organisationUnit,
+      String uid) {
+    if (program.getTrackedEntityType() != null
+        && !program.getTrackedEntityType().equals(trackedEntity.getTrackedEntityType())) {
+      throw new IllegalQueryException(
+          "Tracked entity must have same tracked entity as program: " + program.getUid());
+    }
+
+    Enrollment enrollment = new Enrollment();
+    enrollment.setUid(CodeGenerator.isValidUid(uid) ? uid : CodeGenerator.generateUid());
+    enrollment.setOrganisationUnit(organisationUnit);
+    enrollment.enrollTrackedEntity(trackedEntity, program);
+
+    if (enrollmentDate != null) {
+      enrollment.setEnrollmentDate(enrollmentDate);
+    } else {
+      enrollment.setEnrollmentDate(new Date());
+    }
+
+    if (occurredDate != null) {
+      enrollment.setOccurredDate(occurredDate);
+    } else {
+      enrollment.setOccurredDate(new Date());
+    }
+
+    enrollment.setStatus(EnrollmentStatus.ACTIVE);
+
+    return enrollment;
   }
 }
