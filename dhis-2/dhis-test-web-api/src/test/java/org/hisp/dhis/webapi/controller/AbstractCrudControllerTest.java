@@ -122,6 +122,39 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("Should not return error when adding an item to collection using PATCH api")
+  void testPatchCollectionItem() {
+    String catOption1 =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/categoryOptions/", "{'name':'CategoryOption1', 'shortName':'CATOPT1'}"));
+
+    String cat =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categories/",
+                "{'name':'Category', 'shortName':'CAT','dataDimensionType':'DISAGGREGATION','categoryOptions':[{'id':'"
+                    + catOption1
+                    + "'}]}"));
+
+    String catOption2 =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/categoryOptions/", "{'name':'CategoryOption2', 'shortName':'CATOPT2'}"));
+
+    PATCH(
+            "/categories/" + cat,
+            "[{'op': 'add', 'path': '/categoryOptions/-', 'value': { 'id': '"
+                + catOption2
+                + "' } }]")
+        .content(HttpStatus.OK);
+
+    JsonObject category = GET("/categories/{id}", cat).content();
+    assertEquals(2, category.getArray("categoryOptions").size());
+  }
+
+  @Test
   void testPatchRemoveById() {
     String ou1 =
         assertStatus(

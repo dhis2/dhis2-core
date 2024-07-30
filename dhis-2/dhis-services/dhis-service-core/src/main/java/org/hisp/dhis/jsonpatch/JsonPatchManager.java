@@ -34,8 +34,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.Collection;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import javax.persistence.EntityManager;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.EmbeddedObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
@@ -44,6 +46,7 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.ReflectionUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,15 +57,16 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Morten Olav Hansen
  */
 @Service
+@RequiredArgsConstructor
 public class JsonPatchManager {
   private final ObjectMapper jsonMapper;
 
+  @Qualifier("ignoreLazyLoadJsonMapper")
+  private final ObjectMapper ignoreLazyLoadJsonMapper;
+
   private final SchemaService schemaService;
 
-  public JsonPatchManager(ObjectMapper jsonMapper, SchemaService schemaService) {
-    this.jsonMapper = jsonMapper;
-    this.schemaService = schemaService;
-  }
+  private final EntityManager entityManager;
 
   /**
    * Applies a JSON patch to any valid jackson java object. It uses valueToTree to convert from the
@@ -108,15 +112,15 @@ public class JsonPatchManager {
           continue;
         }
 
-        if (BaseIdentifiableObject.class.isAssignableFrom(property.getItemKlass())
+        if (IdentifiableObject.class.isAssignableFrom(property.getItemKlass())
             && !EmbeddedObject.class.isAssignableFrom(property.getItemKlass())) {
           ArrayNode arrayNode = jsonMapper.createArrayNode();
 
           collection.forEach(
-              item ->
-                  arrayNode.add(
-                      jsonMapper.valueToTree(
-                          shallowCopyIdentifiableObject((BaseIdentifiableObject) item))));
+              item -> {
+                entityManager.detach(item);
+                arrayNode.add(ignoreLazyLoadJsonMapper.valueToTree(item));
+              });
 
           node.set(property.getCollectionName(), arrayNode);
         } else {
@@ -124,21 +128,6 @@ public class JsonPatchManager {
         }
       }
     }
-  }
-
-  /**
-   * Create a copy of given {@link BaseIdentifiableObject} but only with two properties: {@link
-   * BaseIdentifiableObject#setId(long)} and {@link BaseIdentifiableObject#setUid(String)}. No other
-   * properties will be copied.
-   *
-   * @param source the BaseIdentifiableObject to be cloned.
-   * @return a new BaseIdentifiableObject with id and uid properties.
-   */
-  private BaseIdentifiableObject shallowCopyIdentifiableObject(BaseIdentifiableObject source) {
-    BaseIdentifiableObject clone = new BaseIdentifiableObject();
-    clone.setId(source.getId());
-    clone.setUid(source.getUid());
-    return clone;
   }
 
   /** Check if all patch paths are valid for the given schema. */

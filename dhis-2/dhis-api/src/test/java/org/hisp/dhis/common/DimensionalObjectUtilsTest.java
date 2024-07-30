@@ -543,7 +543,7 @@ class DimensionalObjectUtilsTest {
 
   private BaseDimensionalObject stubDimensionalObject() {
     BaseDimensionalObject baseDimensionalObject = new BaseDimensionalObject();
-    baseDimensionalObject.setDimension("dimensionUid");
+    baseDimensionalObject.setUid("dimensionUid");
     baseDimensionalObject.setProgram(stubProgram());
     baseDimensionalObject.setProgramStage(stubProgramStage());
 
