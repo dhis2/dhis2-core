@@ -348,7 +348,7 @@ class TrackedEntityStoreTest extends PostgresIntegrationTestBase {
     // importer persists the data in a different thread. However, this tests the store in the api
     // module, which should anyway be removed in the following days, so I'm commenting this part out
     // until we remove it.
-/*    params = new TrackedEntityQueryParams().setProgram(prA);
+    /*    params = new TrackedEntityQueryParams().setProgram(prA);
     trackedEntitites = trackedEntityStore.getTrackedEntities(params);
     assertEquals(2, trackedEntitites.size());
     assertTrue(trackedEntitites.contains(trackedEntityB));
