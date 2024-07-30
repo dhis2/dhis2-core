@@ -59,7 +59,7 @@ import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.fieldfiltering.Preset;
+import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.node.AbstractNode;
 import org.hisp.dhis.node.Node;
@@ -194,7 +194,7 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
     WebOptions options = new WebOptions(parameters);
 
     if (fields.isEmpty()) {
-      fields.addAll(Preset.defaultPreset().getFields());
+      fields.addAll(FieldPreset.defaultPreset().getFields());
     }
 
     // This is the base list used in this flow. It contains only items
@@ -354,7 +354,7 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
     List<Order> orders = orderParams.getOrders(getSchema(DimensionalObject.class));
 
     if (fields.isEmpty()) {
-      fields.addAll(Preset.defaultPreset().getFields());
+      fields.addAll(FieldPreset.defaultPreset().getFields());
     }
 
     WebOptions options = new WebOptions(rpParameters);
