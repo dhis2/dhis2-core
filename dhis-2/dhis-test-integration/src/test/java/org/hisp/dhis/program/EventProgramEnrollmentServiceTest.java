@@ -76,9 +76,9 @@ class EventProgramEnrollmentServiceTest extends PostgresIntegrationTestBase {
     organisationUnitService.addOrganisationUnit(organisationUnitB);
 
     TrackedEntity trackedEntityA = createTrackedEntity(organisationUnitA);
-    trackedEntityService.addTrackedEntity(trackedEntityA);
+    manager.save(trackedEntityA);
     TrackedEntity trackedEntityB = createTrackedEntity(organisationUnitB);
-    trackedEntityService.addTrackedEntity(trackedEntityB);
+    manager.save(trackedEntityB);
 
     programA = createProgram('A', new HashSet<>(), organisationUnitA);
     programService.addProgram(programA);

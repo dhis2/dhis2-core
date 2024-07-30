@@ -78,7 +78,7 @@ class ProgramNotificationInstanceControllerTest extends H2ControllerIntegrationT
     ProgramStage psA = createProgramStage('A', prA);
     manager.save(psA);
     TrackedEntity trackedEntityA = createTrackedEntity('A', ouA);
-    trackedEntityService.addTrackedEntity(trackedEntityA);
+    manager.save(trackedEntityA);
     enrollment = createEnrollment(prA, trackedEntityA, ouA);
     manager.save(enrollment);
 

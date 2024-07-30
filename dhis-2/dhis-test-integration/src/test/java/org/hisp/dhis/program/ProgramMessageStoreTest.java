@@ -111,7 +111,7 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
     programA.setProgramStages(programStages);
     programService.updateProgram(programA);
     TrackedEntity trackedEntityB = createTrackedEntity(orgUnitA);
-    trackedEntityService.addTrackedEntity(trackedEntityB);
+    manager.save(trackedEntityB);
     DateTime testDate1 = DateTime.now();
     testDate1.withTimeAtStartOfDay();
     testDate1 = testDate1.minusDays(70);
@@ -127,7 +127,7 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
     Set<String> orgUnits = new HashSet<>();
     orgUnits.add(orgUnitA.getUid());
     TrackedEntity trackedEntityA = createTrackedEntity(orgUnitA);
-    trackedEntityService.addTrackedEntity(trackedEntityA);
+    manager.save(trackedEntityA);
     ProgramMessageRecipients recipientsA = new ProgramMessageRecipients();
     recipientsA.setOrganisationUnit(orgUnitA);
     recipientsA.setTrackedEntity(trackedEntityA);

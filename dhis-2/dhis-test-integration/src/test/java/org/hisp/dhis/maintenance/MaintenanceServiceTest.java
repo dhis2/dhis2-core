@@ -163,10 +163,10 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
     trackedEntity = createTrackedEntity(organisationUnit);
     trackedEntity.setTrackedEntityType(trackedEntityType);
-    trackedEntityService.addTrackedEntity(trackedEntity);
+    manager.save(trackedEntity);
     trackedEntityB = createTrackedEntity(organisationUnit);
     trackedEntityB.setTrackedEntityType(trackedEntityType);
-    trackedEntityService.addTrackedEntity(trackedEntityB);
+    manager.save(trackedEntityB);
     trackedEntityWithAssociations = createTrackedEntity('T', organisationUnit);
     DateTime testDate1 = DateTime.now();
     testDate1.withTimeAtStartOfDay();
@@ -182,7 +182,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
         new Enrollment(enrollmentDate, occurredDate, trackedEntityWithAssociations, program);
     enrollmentWithTeAssociation.setUid("UID-B");
     enrollmentWithTeAssociation.setOrganisationUnit(organisationUnit);
-    trackedEntityService.addTrackedEntity(trackedEntityWithAssociations);
+    manager.save(trackedEntityWithAssociations);
     manager.save(enrollmentWithTeAssociation);
     manager.save(enrollment);
     event = new Event(enrollment, stageA);
@@ -308,11 +308,11 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
             .recipients(programMessageRecipients)
             .deliveryChannels(Sets.newHashSet(DeliveryChannel.EMAIL))
             .build();
-    long idA = trackedEntityService.addTrackedEntity(trackedEntityB);
+    manager.save(trackedEntityB);
     programMessageService.saveProgramMessage(message);
-    assertNotNull(trackedEntityService.getTrackedEntity(idA));
+    assertNotNull(trackedEntityService.getTrackedEntity(trackedEntityB.getUid()));
     trackedEntityService.deleteTrackedEntity(trackedEntityB);
-    assertNull(trackedEntityService.getTrackedEntity(idA));
+    assertNull(trackedEntityService.getTrackedEntity(trackedEntityB.getUid()));
     assertTrue(trackedEntityService.trackedEntityExistsIncludingDeleted(trackedEntityB.getUid()));
 
     maintenanceService.deleteSoftDeletedTrackedEntities();

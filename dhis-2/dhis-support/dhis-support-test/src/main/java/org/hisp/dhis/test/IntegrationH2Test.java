@@ -34,9 +34,13 @@ import java.lang.annotation.Target;
 import org.junit.jupiter.api.Tag;
 
 /**
+ * Tags tests as integration tests using the H2 in-memory DB so they can be run in isolation.
+ *
+ * <p>Only one of {@link IntegrationTest} and {@link IntegrationH2Test} should be used.
+ *
  * @author Enrico Colasante
  */
-@Target({ElementType.TYPE, ElementType.METHOD})
+@Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Tag("integrationH2")
 public @interface IntegrationH2Test {}
