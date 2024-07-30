@@ -60,7 +60,6 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -86,9 +85,6 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
   private final UserService userService;
 
-  // TODO: FIXME luciano using @Lazy here because we have circular
-  // dependencies:
-  // TrackedEntityService --> TrackedEntityProgramOwnerService --> TrackedEntityService
   public DefaultTrackedEntityService(
       UserService userService,
       TrackedEntityStore trackedEntityStore,
@@ -97,8 +93,8 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
       TrackedEntityTypeService trackedEntityTypeService,
       OrganisationUnitService organisationUnitService,
       AclService aclService,
-      @Lazy TrackedEntityChangeLogService trackedEntityChangeLogService,
-      @Lazy TrackedEntityAttributeValueChangeLogService attributeValueAuditService) {
+      TrackedEntityChangeLogService trackedEntityChangeLogService,
+      TrackedEntityAttributeValueChangeLogService attributeValueAuditService) {
     checkNotNull(trackedEntityStore);
     checkNotNull(attributeValueService);
     checkNotNull(attributeService);

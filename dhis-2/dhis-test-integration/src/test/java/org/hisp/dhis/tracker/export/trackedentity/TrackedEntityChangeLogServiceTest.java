@@ -203,8 +203,7 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
     Program program = createAndAddProgram('B');
     injectSecurityContextUser(user);
 
-    programOwnerService.createOrUpdateTrackedEntityProgramOwner(
-        trackedEntity.getUid(), program.getUid(), orgUnitB.getUid());
+    programOwnerService.createOrUpdateTrackedEntityProgramOwner(trackedEntity, program, orgUnitB);
 
     Exception exception =
         assertThrows(
@@ -225,8 +224,7 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
     updateAttributeValue(trackedEntityAttributeValue, ChangeLogType.CREATE, "new value");
     Program program = createAndAddProgram('C');
 
-    programOwnerService.createOrUpdateTrackedEntityProgramOwner(
-        trackedEntity.getUid(), program.getUid(), orgUnitA.getUid());
+    programOwnerService.createOrUpdateTrackedEntityProgramOwner(trackedEntity, program, orgUnitA);
 
     createAndPersistProgramAttribute(program, trackedEntityAttribute);
 
@@ -249,8 +247,7 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
     updateAttributeValue(trackedEntityAttributeValue, ChangeLogType.DELETE, "value");
     Program program = createAndAddProgram('D');
 
-    programOwnerService.createOrUpdateTrackedEntityProgramOwner(
-        trackedEntity.getUid(), program.getUid(), orgUnitA.getUid());
+    programOwnerService.createOrUpdateTrackedEntityProgramOwner(trackedEntity, program, orgUnitA);
 
     createAndPersistProgramAttribute(program, trackedEntityAttribute);
 
@@ -271,8 +268,7 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
     updateAttributeValue(trackedEntityAttributeValue, ChangeLogType.UPDATE, "updated value");
     Program program = createAndAddProgram('E');
 
-    programOwnerService.createOrUpdateTrackedEntityProgramOwner(
-        trackedEntity.getUid(), program.getUid(), orgUnitA.getUid());
+    programOwnerService.createOrUpdateTrackedEntityProgramOwner(trackedEntity, program, orgUnitA);
 
     createAndPersistProgramAttribute(program, trackedEntityAttribute);
 
@@ -299,8 +295,7 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
     updateAttributeValue(trackedEntityAttributeValue, ChangeLogType.UPDATE, "updated value");
     updateAttributeValue(trackedEntityAttributeValue, ChangeLogType.UPDATE, "latest updated value");
     Program program = createAndAddProgram('F');
-    programOwnerService.createOrUpdateTrackedEntityProgramOwner(
-        trackedEntity.getUid(), program.getUid(), orgUnitA.getUid());
+    programOwnerService.createOrUpdateTrackedEntityProgramOwner(trackedEntity, program, orgUnitA);
 
     createAndPersistProgramAttribute(program, trackedEntityAttribute);
 
@@ -334,8 +329,7 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
     updateAttributeValue(trackedEntityAttributeValue, ChangeLogType.UPDATE, "updated value");
     updateAttributeValue(trackedEntityAttributeValue, ChangeLogType.DELETE, "updated value");
     Program program = createAndAddProgram('G');
-    programOwnerService.createOrUpdateTrackedEntityProgramOwner(
-        trackedEntity.getUid(), program.getUid(), orgUnitA.getUid());
+    programOwnerService.createOrUpdateTrackedEntityProgramOwner(trackedEntity, program, orgUnitA);
 
     createAndPersistProgramAttribute(program, trackedEntityAttribute);
 
@@ -388,8 +382,7 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
     updateAttributeValue(outOfScopeTrackedEntityAttributeValue, ChangeLogType.CREATE, "new value");
     Program program = createAndAddProgram('C');
 
-    programOwnerService.createOrUpdateTrackedEntityProgramOwner(
-        trackedEntity.getUid(), program.getUid(), orgUnitA.getUid());
+    programOwnerService.createOrUpdateTrackedEntityProgramOwner(trackedEntity, program, orgUnitA);
 
     createAndPersistProgramAttribute(program, trackedEntityAttribute);
 
