@@ -54,21 +54,4 @@ public interface EnrollmentService {
       Date incidentDate,
       OrganisationUnit orgunit,
       String uid);
-
-  /**
-   * Enroll a tracked entity into a program. Must be run inside a transaction.
-   *
-   * @param trackedEntity TrackedEntity
-   * @param program Program
-   * @param enrollmentDate The date of enrollment
-   * @param incidentDate The date of incident
-   * @param orgunit Organisation Unit
-   * @return Enrollment
-   */
-  Enrollment enrollTrackedEntity(
-      TrackedEntity trackedEntity,
-      Program program,
-      Date enrollmentDate,
-      Date incidentDate,
-      OrganisationUnit orgunit);
 }
