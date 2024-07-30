@@ -121,9 +121,9 @@ class ProgramNotificationServiceTest extends PostgresIntegrationTestBase {
     manager.save(organisationUnitA);
     manager.save(organisationUnitB);
     TrackedEntity trackedEntityA = createTrackedEntity(organisationUnitA);
-    trackedEntityService.addTrackedEntity(trackedEntityA);
+    manager.save(trackedEntityA);
     TrackedEntity trackedEntityB = createTrackedEntity(organisationUnitB);
-    trackedEntityService.addTrackedEntity(trackedEntityB);
+    manager.save(trackedEntityB);
     programA = createProgram('A', new HashSet<>(), organisationUnitA);
     programService.addProgram(programA);
     stageA = new ProgramStage("A", programA);
@@ -401,8 +401,8 @@ class ProgramNotificationServiceTest extends PostgresIntegrationTestBase {
     // TE
     TrackedEntity trackedEntityX = createTrackedEntity(organisationUnitA);
     TrackedEntity trackedEntityY = createTrackedEntity(organisationUnitA);
-    trackedEntityService.addTrackedEntity(trackedEntityX);
-    trackedEntityService.addTrackedEntity(trackedEntityY);
+    manager.save(trackedEntityX);
+    manager.save(trackedEntityY);
     // Program
     programA.setNotificationTemplates(Sets.newHashSet(a1, a2, a3));
     programService.updateProgram(programA);

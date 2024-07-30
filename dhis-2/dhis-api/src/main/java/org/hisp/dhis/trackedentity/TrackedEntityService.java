@@ -113,14 +113,6 @@ public interface TrackedEntityService {
       boolean skipSearchScopeValidation);
 
   /**
-   * Adds an {@link TrackedEntity}
-   *
-   * @param trackedEntity The TrackedEntity to add.
-   * @return A generated unique id of the added {@link TrackedEntity}.
-   */
-  long addTrackedEntity(TrackedEntity trackedEntity);
-
-  /**
    * Soft deletes a {@link TrackedEntity}.
    *
    * @param trackedEntity the TrackedEntity to delete.

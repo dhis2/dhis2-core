@@ -248,7 +248,7 @@ class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
     // TrackedEntity
     // ---------------------------------------------------------------------
     TrackedEntity trackedEntity = createTrackedEntity(organisationUnit);
-    trackedEntityService.addTrackedEntity(trackedEntity);
+    manager.save(trackedEntity);
     // ---------------------------------------------------------------------
     // Enrollment
     // ---------------------------------------------------------------------

@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.google.common.collect.Lists;
 import java.util.List;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -54,6 +55,8 @@ class PotentialDuplicateStoreTEAVTest extends PostgresIntegrationTestBase {
   @Autowired private HibernatePotentialDuplicateStore potentialDuplicateStore;
 
   @Autowired private TrackedEntityService trackedEntityService;
+
+  @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
 
@@ -88,9 +91,9 @@ class PotentialDuplicateStoreTEAVTest extends PostgresIntegrationTestBase {
     original = createTrackedEntity(ou);
     duplicate = createTrackedEntity(ou);
     control = createTrackedEntity(ou);
-    trackedEntityService.addTrackedEntity(original);
-    trackedEntityService.addTrackedEntity(duplicate);
-    trackedEntityService.addTrackedEntity(control);
+    manager.save(original);
+    manager.save(duplicate);
+    manager.save(control);
     trackedEntityAttributeA = createTrackedEntityAttribute('A');
     trackedEntityAttributeB = createTrackedEntityAttribute('B');
     trackedEntityAttributeC = createTrackedEntityAttribute('C');
