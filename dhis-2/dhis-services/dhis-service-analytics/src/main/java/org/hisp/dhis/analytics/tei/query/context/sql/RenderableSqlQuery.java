@@ -34,6 +34,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import lombok.Builder;
@@ -137,7 +140,17 @@ public class RenderableSqlQuery implements Renderable {
   }
 
   private String select() {
-    return getIfPresentOrElse(SELECT, () -> Select.of(selectFields).render());
+    return getIfPresentOrElse(SELECT, () -> Select.of(distinctSelectFields()).render());
+  }
+
+  private List<Field> distinctSelectFields() {
+    return selectFields.stream().filter(distinctByRendered()).toList();
+  }
+
+  /** Returns a predicate that filters out fields that have already been rendered. */
+  private static Predicate<Field> distinctByRendered() {
+    Set<String> seen = ConcurrentHashMap.newKeySet();
+    return f -> seen.add(f.render());
   }
 
   private String getIfPresentOrElse(String key, Supplier<String> supplier) {
