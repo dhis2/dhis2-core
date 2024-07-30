@@ -27,18 +27,14 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import static java.util.Collections.emptyList;
-import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
@@ -47,16 +43,12 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.tracker.imports.TrackerIdScheme;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.TrackerImportService;
-import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -81,9 +73,9 @@ class TrackedEntityStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private DbmsManager dbmsManager;
 
-  @Autowired private TrackerImportService trackerImportService;
-
   @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private TrackerOwnershipManager trackerOwnershipAccessManager;
 
   private TrackedEntity trackedEntityA;
 
@@ -213,26 +205,17 @@ class TrackedEntityStoreTest extends PostgresIntegrationTestBase {
         new TrackedEntityAttributeValue(atA, trackedEntityE, "Male"));
     attributeValueService.addTrackedEntityAttributeValue(
         new TrackedEntityAttributeValue(atA, trackedEntityF, "Female"));
-    TrackerImportParams importParams = TrackerImportParams.builder().userId(admin.getUid()).build();
-    List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments =
-        List.of(
-            createEnrollment(
-                CodeGenerator.generateUid(),
-                trackedEntityB.getUid(),
-                prA.getUid(),
-                ouB,
-                new Date(),
-                new Date()),
-            createEnrollment(
-                CodeGenerator.generateUid(),
-                trackedEntityE.getUid(),
-                prA.getUid(),
-                ouB,
-                new Date(),
-                new Date()));
-    TrackerObjects trackerObjects =
-        new TrackerObjects(emptyList(), enrollments, emptyList(), emptyList());
-    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+
+    Enrollment enrollmentA = createEnrollment(prA, trackedEntityB, ouB);
+    manager.save(enrollmentA);
+    trackedEntityB.getEnrollments().add(enrollmentA);
+    manager.update(trackedEntityB);
+    Enrollment enrollmentB = createEnrollment(prA, trackedEntityE, ouB);
+    manager.save(enrollmentB);
+    trackedEntityE.getEnrollments().add(enrollmentB);
+    manager.update(trackedEntityE);
+    trackerOwnershipAccessManager.assignOwnership(trackedEntityB, prA, ouB, false, false);
+    trackerOwnershipAccessManager.assignOwnership(trackedEntityE, prA, ouB, false, false);
 
     // Get all
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
@@ -344,10 +327,9 @@ class TrackedEntityStoreTest extends PostgresIntegrationTestBase {
     assertTrue(trackedEntitites.contains(trackedEntityE));
     assertTrue(trackedEntitites.contains(trackedEntityF));
     // Filter by program enrollment
-    // TODO(tracker) This assertions fail because the class is marked as transactional and the
-    // importer persists the data in a different thread. However, this tests the store in the api
-    // module, which should anyway be removed in the following days, so I'm commenting this part out
-    // until we remove it.
+    // TODO(tracker) This assertions fails, it returns only one TE. Couldn't figure out why yet, but
+    // I'm assuming this test class will be removed in the next iteration of DHIS2-17712. That's why
+    // I'm commenting it out.
     /*    params = new TrackedEntityQueryParams().setProgram(prA);
     trackedEntitites = trackedEntityStore.getTrackedEntities(params);
     assertEquals(2, trackedEntitites.size());
@@ -370,26 +352,16 @@ class TrackedEntityStoreTest extends PostgresIntegrationTestBase {
     attributeValueService.addTrackedEntityAttributeValue(
         new TrackedEntityAttributeValue(atA, trackedEntityF, "Female"));
 
-    TrackerImportParams importParams = TrackerImportParams.builder().userId(admin.getUid()).build();
-    List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments =
-        List.of(
-            createEnrollment(
-                CodeGenerator.generateUid(),
-                trackedEntityB.getUid(),
-                prA.getUid(),
-                ouB,
-                new Date(),
-                new Date()),
-            createEnrollment(
-                CodeGenerator.generateUid(),
-                trackedEntityE.getUid(),
-                prA.getUid(),
-                ouB,
-                new Date(),
-                new Date()));
-    TrackerObjects trackerObjects =
-        new TrackerObjects(emptyList(), enrollments, emptyList(), emptyList());
-    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+    Enrollment enrollmentA = createEnrollment(prA, trackedEntityB, ouB);
+    manager.save(enrollmentA);
+    trackedEntityB.getEnrollments().add(enrollmentA);
+    manager.update(trackedEntityB);
+    Enrollment enrollmentB = createEnrollment(prA, trackedEntityE, ouB);
+    manager.save(enrollmentB);
+    trackedEntityB.getEnrollments().add(enrollmentB);
+    manager.update(trackedEntityB);
+    trackerOwnershipAccessManager.assignOwnership(trackedEntityB, prA, ouB, false, false);
+    trackerOwnershipAccessManager.assignOwnership(trackedEntityE, prA, ouB, false, false);
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
     List<TrackedEntity> trackedEntitites = trackedEntityStore.getTrackedEntities(params);
@@ -438,26 +410,16 @@ class TrackedEntityStoreTest extends PostgresIntegrationTestBase {
     attributeValueService.addTrackedEntityAttributeValue(
         new TrackedEntityAttributeValue(atA, trackedEntityF, "Female"));
 
-    TrackerImportParams importParams = TrackerImportParams.builder().userId(admin.getUid()).build();
-    List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments =
-        List.of(
-            createEnrollment(
-                CodeGenerator.generateUid(),
-                trackedEntityB.getUid(),
-                prA.getUid(),
-                ouB,
-                new Date(),
-                new Date()),
-            createEnrollment(
-                CodeGenerator.generateUid(),
-                trackedEntityE.getUid(),
-                prA.getUid(),
-                ouB,
-                new Date(),
-                new Date()));
-    TrackerObjects trackerObjects =
-        new TrackerObjects(emptyList(), enrollments, emptyList(), emptyList());
-    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+    Enrollment enrollmentA = createEnrollment(prA, trackedEntityB, ouB);
+    manager.save(enrollmentA);
+    trackedEntityB.getEnrollments().add(enrollmentA);
+    manager.update(trackedEntityB);
+    Enrollment enrollmentB = createEnrollment(prA, trackedEntityE, ouB);
+    manager.save(enrollmentB);
+    trackedEntityB.getEnrollments().add(enrollmentB);
+    manager.update(trackedEntityB);
+    trackerOwnershipAccessManager.assignOwnership(trackedEntityB, prA, ouB, false, false);
+    trackerOwnershipAccessManager.assignOwnership(trackedEntityE, prA, ouB, false, false);
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
     List<TrackedEntity> trackedEntitites = trackedEntityStore.getTrackedEntities(params);
@@ -499,25 +461,5 @@ class TrackedEntityStoreTest extends PostgresIntegrationTestBase {
                     atA, QueryOperator.EW, "em", ValueType.TEXT, AggregationType.NONE, null));
     trackedEntitites = trackedEntityStore.getTrackedEntities(params);
     assertEquals(0, trackedEntitites.size());
-  }
-
-  private org.hisp.dhis.tracker.imports.domain.Enrollment createEnrollment(
-      String enrollmentUid,
-      String trackedEntityUid,
-      String programUid,
-      OrganisationUnit organisationUnit,
-      Date enrolledAt,
-      Date occurredAt) {
-
-    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
-        new org.hisp.dhis.tracker.imports.domain.Enrollment();
-    enrollment.setEnrollment(enrollmentUid);
-    enrollment.setProgram(MetadataIdentifier.of(TrackerIdScheme.UID, programUid, null));
-    enrollment.setOrgUnit(MetadataIdentifier.ofUid(organisationUnit));
-    enrollment.setTrackedEntity(trackedEntityUid);
-    enrollment.setEnrolledAt(enrolledAt.toInstant());
-    enrollment.setOccurredAt(occurredAt.toInstant());
-
-    return enrollment;
   }
 }

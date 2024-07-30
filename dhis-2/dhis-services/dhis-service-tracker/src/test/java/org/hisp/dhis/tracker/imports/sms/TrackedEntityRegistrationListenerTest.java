@@ -42,6 +42,7 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -63,6 +64,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -71,6 +73,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 /**
  * @author Zubair Asghar.
@@ -104,6 +107,12 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
   @Mock private TrackedEntityService trackedEntityService;
 
   @Mock private ProgramService programService;
+
+  @Mock private IdentifiableObjectManager manager;
+
+  @Mock private TrackerOwnershipManager trackerOwnershipAccessManager;
+
+  @Mock private ApplicationEventPublisher eventPublisher;
 
   private TrackedEntityRegistrationSMSListener subject;
 
@@ -147,7 +156,9 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
             smsCommandService,
             trackedEntityTypeService,
             trackedEntityService,
-            enrollmentService);
+            manager,
+            trackerOwnershipAccessManager,
+            eventPublisher);
 
     setUpInstances();
 

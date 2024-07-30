@@ -239,10 +239,6 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
 
   private User userA;
 
-  private static final String ENROLLMENT_A_UID = "MNWZ6hnuhSA";
-
-  private static final String ENROLLMENT_B_UID = "MNWZ6hnuhSB";
-
   @BeforeAll
   void setUp() throws ConflictException {
     // Organisation Units
