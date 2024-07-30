@@ -74,6 +74,8 @@ public class JacksonObjectMapperConfig {
    */
   public static final ObjectMapper hibernateAwareJsonMapper = configureMapper(new ObjectMapper());
 
+  public static final ObjectMapper ignoreLazyLoadJsonMapper = configureMapper(new ObjectMapper());
+
   /*
    * Standard JSON mapper for event data values.
    */
@@ -100,6 +102,16 @@ public class JacksonObjectMapperConfig {
         Hibernate5Module.Feature.SERIALIZE_IDENTIFIER_FOR_LAZY_NOT_LOADED_OBJECTS);
     hibernateAwareJsonMapper.registerModule(hibernate5Module);
     return hibernateAwareJsonMapper;
+  }
+
+  @Bean("ignoreLazyLoadJsonMapper")
+  public ObjectMapper ignoreLazyLoadingMapper() {
+    Hibernate5Module hibernate5Module = new Hibernate5Module();
+    hibernate5Module.enable(
+        Hibernate5Module.Feature.SERIALIZE_IDENTIFIER_FOR_LAZY_NOT_LOADED_OBJECTS);
+    hibernate5Module.disable(Hibernate5Module.Feature.FORCE_LAZY_LOADING);
+    ignoreLazyLoadJsonMapper.registerModule(hibernate5Module);
+    return ignoreLazyLoadJsonMapper;
   }
 
   @Bean("dataValueJsonMapper")
