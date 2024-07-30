@@ -102,7 +102,6 @@ public class DefaultProgramMessageService implements ProgramMessageService {
   @Transactional(readOnly = true)
   public List<ProgramMessage> getProgramMessages(ProgramMessageQueryParams params) {
     currentUserHasAccess(params);
-    validateQueryParameters(params);
 
     return programMessageStore.getProgramMessages(params);
   }
@@ -194,54 +193,62 @@ public class DefaultProgramMessageService implements ProgramMessageService {
     }
   }
 
-  private void validateQueryParameters(ProgramMessageQueryParams params) {
-    String violation = null;
-
-    if (!params.hasEnrollment() && !params.hasEvent()) {
-      violation = "Enrollment or event must be provided";
-    }
-
-    if (violation != null) {
-      log.warn("Parameter validation failed: " + violation);
-
-      throw new IllegalQueryException(violation);
-    }
-  }
-
   @Override
   @Transactional(readOnly = true)
   public void validatePayload(ProgramMessage message) {
-    String violation = null;
+    List<String> violations = new ArrayList<>();
+
+    // Check if message text is provided
+    if (message.getText() == null) {
+      violations.add("Message content must be provided.");
+    }
+
+    // Check if delivery channels are specified
+    if (message.getDeliveryChannels() == null || message.getDeliveryChannels().isEmpty()) {
+      violations.add("Delivery channel must be specified.");
+    }
+
+    // Check if either enrollment or event is specified
+    if (message.getEnrollment() == null && message.getEvent() == null) {
+      violations.add("Enrollment or event must be specified.");
+    }
+
+    // Validate enrollment if it exists
+    if (message.getEnrollment() != null) {
+      String uid = message.getEnrollment().getUid();
+      if (!manager.exists(Enrollment.class, uid)) {
+        violations.add(String.format("Enrollment: %s does not exist.", uid));
+      }
+    }
+
+    // Validate event if it exists
+    if (message.getEvent() != null) {
+      String uid = message.getEvent().getUid();
+      if (!manager.exists(Event.class, uid)) {
+        violations.add(String.format("Event: %s does not exist.", uid));
+      }
+    }
 
     ProgramMessageRecipients recipients = message.getRecipients();
 
-    if (message.getText() == null) {
-      violation = "Message content must be provided";
-    }
-
-    if (message.getDeliveryChannels() == null || message.getDeliveryChannels().isEmpty()) {
-      violation = "Delivery channel must be specified";
-    }
-
-    if (message.getEnrollment() == null && message.getEvent() == null) {
-      violation = "Enrollment or event must be specified";
-    }
-
+    // Validate tracked entity if it exists
     if (recipients.getTrackedEntity() != null
         && trackedEntityService.getTrackedEntity(recipients.getTrackedEntity().getUid()) == null) {
-      violation = "Tracked entity does not exist";
+      violations.add("Tracked entity does not exist.");
     }
 
+    // Validate orgUnit if it exists
     if (recipients.getOrganisationUnit() != null
         && organisationUnitService.getOrganisationUnit(recipients.getOrganisationUnit().getUid())
             == null) {
-      violation = "Organisation unit does not exist";
+      violations.add("Organisation unit does not exist.");
     }
 
-    if (violation != null) {
-      log.info("Message validation failed: " + violation);
-
-      throw new IllegalQueryException(violation);
+    // If there are any violations, log them and throw an exception
+    if (!violations.isEmpty()) {
+      String violationMessage = String.join(", ", violations);
+      log.info("Message validation failed: " + violationMessage);
+      throw new IllegalQueryException(violationMessage);
     }
   }
 
