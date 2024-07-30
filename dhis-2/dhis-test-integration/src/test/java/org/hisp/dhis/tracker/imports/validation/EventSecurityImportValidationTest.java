@@ -199,7 +199,7 @@ class EventSecurityImportValidationTest extends TrackerTest {
             maleA, programA, dateMar20, dateApr10, organisationUnitA, "MNWZ6hnuhSX");
     manager.save(enrollment);
     trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
-        maleA.getUid(), programA.getUid(), organisationUnitA.getUid());
+        maleA, programA, organisationUnitA);
     manager.update(programA);
     User user = userService.getUser(USER_5);
     OrganisationUnit qfUVllTs6cS = organisationUnitService.getOrganisationUnit("QfUVllTs6cS");

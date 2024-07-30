@@ -30,6 +30,7 @@ package org.hisp.dhis.trackedentity;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.GenericStore;
+import org.hisp.dhis.program.Program;
 
 /**
  * @author Ameen Mohamed
@@ -37,14 +38,8 @@ import org.hisp.dhis.common.GenericStore;
 public interface TrackedEntityProgramOwnerStore extends GenericStore<TrackedEntityProgramOwner> {
   String ID = TrackedEntityProgramOwnerStore.class.getName();
 
-  /**
-   * Get tracked entity program owner entity for the te-program combination.
-   *
-   * @param teId The tracked entity id
-   * @param programId the program id
-   * @return matching tracked entity program owner entity
-   */
-  TrackedEntityProgramOwner getTrackedEntityProgramOwner(long teId, long programId);
+  /** Get tracked entity program owner entity for the te-program combination. */
+  TrackedEntityProgramOwner getTrackedEntityProgramOwner(TrackedEntity te, Program program);
 
   List<TrackedEntityProgramOwnerOrgUnit> getTrackedEntityProgramOwnerOrgUnits(Set<Long> teIds);
 }
