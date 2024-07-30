@@ -27,13 +27,16 @@
  */
 package org.hisp.dhis.notification;
 
+import static java.util.Collections.emptyList;
 import static org.hisp.dhis.notification.BaseNotificationMessageRenderer.formatDate;
+import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Sets;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DeliveryChannel;
@@ -46,7 +49,6 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -66,6 +68,12 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.imports.TrackerIdScheme;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
+import org.hisp.dhis.tracker.imports.TrackerImportService;
+import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.user.User;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -144,8 +152,6 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
 
   @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
-  @Autowired private EnrollmentService enrollmentService;
-
   @Autowired private ProgramNotificationTemplateStore programNotificationTemplateStore;
 
   @Autowired private OrganisationUnitService organisationUnitService;
@@ -156,6 +162,8 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
   private ProgramStageNotificationMessageRenderer programStageNotificationMessageRenderer;
 
   @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private TrackerImportService trackerImportService;
 
   @BeforeEach
   void setUp() {
@@ -214,12 +222,27 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
     trackedEntityAttributeValueService.addTrackedEntityAttributeValue(trackedEntityAttributeValueA);
     trackedEntityA.setTrackedEntityAttributeValues(Sets.newHashSet(trackedEntityAttributeValueA));
     trackedEntityService.updateTrackedEntity(trackedEntityA);
+
     // Enrollment to be provided in message renderer
-    enrollmentA =
-        enrollmentService.enrollTrackedEntity(
-            trackedEntityA, programA, enrollmentDate, incidentDate, organisationUnitA);
-    enrollmentA.setUid(enrollmentUid);
-    manager.save(enrollmentA);
+    User admin = getAdminUser();
+    admin.addOrganisationUnit(organisationUnitA);
+    manager.update(admin);
+    TrackerImportParams params = TrackerImportParams.builder().userId(admin.getUid()).build();
+    List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments =
+        List.of(
+            createEnrollment(
+                enrollmentUid,
+                trackedEntityA.getUid(),
+                programA.getUid(),
+                organisationUnitA,
+                enrollmentDate,
+                incidentDate));
+    TrackerObjects trackerObjects =
+        new TrackerObjects(emptyList(), enrollments, emptyList(), emptyList());
+    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
+
+    enrollmentA = manager.get(Enrollment.class, enrollmentUid);
+
     // Event to be provided in message renderer
     eventA = createEvent(programStageA, enrollmentA, organisationUnitA);
     eventA.setScheduledDate(enrollmentDate);
@@ -331,5 +354,25 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
         "message is " + formatDate(eventA.getOccurredDate()), notificationMessage.getMessage());
     assertEquals(
         "subject is " + formatDate(eventA.getOccurredDate()), notificationMessage.getSubject());
+  }
+
+  private org.hisp.dhis.tracker.imports.domain.Enrollment createEnrollment(
+      String enrollmentUid,
+      String trackedEntityUid,
+      String programUid,
+      OrganisationUnit organisationUnit,
+      Date enrolledAt,
+      Date occurredAt) {
+
+    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
+        new org.hisp.dhis.tracker.imports.domain.Enrollment();
+    enrollment.setEnrollment(enrollmentUid);
+    enrollment.setProgram(MetadataIdentifier.of(TrackerIdScheme.UID, programUid, null));
+    enrollment.setOrgUnit(MetadataIdentifier.ofUid(organisationUnit));
+    enrollment.setTrackedEntity(trackedEntityUid);
+    enrollment.setEnrolledAt(enrolledAt.toInstant());
+    enrollment.setOccurredAt(occurredAt.toInstant());
+
+    return enrollment;
   }
 }
