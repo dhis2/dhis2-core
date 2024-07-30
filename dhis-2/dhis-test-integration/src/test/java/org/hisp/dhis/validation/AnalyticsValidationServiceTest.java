@@ -227,9 +227,6 @@ class AnalyticsValidationServiceTest extends PostgresIntegrationTestBase {
     trackedEntity.getEnrollments().add(enrollment);
     manager.update(trackedEntity);
 
-    /*    Enrollment enrollment =
-    enrollmentService.enrollTrackedEntity(
-        trackedEntity, program, dateMar20, dateMar20, orgUnitA);*/
     manager.save(enrollment);
     Event eventA = createEvent(stageA, enrollment, orgUnitA);
     eventA.setOccurredDate(dateMar20);
