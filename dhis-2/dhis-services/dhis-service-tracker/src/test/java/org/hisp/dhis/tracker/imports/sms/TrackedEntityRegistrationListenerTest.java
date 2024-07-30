@@ -47,7 +47,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -90,8 +89,6 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
 
   private static final String SUCCESS_MESSAGE = "Command has been processed successfully";
 
-  @Mock private EnrollmentService enrollmentService;
-
   @Mock private CategoryService dataElementCategoryService;
 
   @Mock private UserService userService;
@@ -113,6 +110,8 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
   @Mock private TrackerOwnershipManager trackerOwnershipAccessManager;
 
   @Mock private ApplicationEventPublisher eventPublisher;
+
+  @Mock private SMSEnrollmentService smsEnrollmentService;
 
   private TrackedEntityRegistrationSMSListener subject;
 
@@ -154,9 +153,7 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
             smsCommandService,
             trackedEntityTypeService,
             trackedEntityService,
-            manager,
-            trackerOwnershipAccessManager,
-            eventPublisher);
+            smsEnrollmentService);
 
     setUpInstances();
 

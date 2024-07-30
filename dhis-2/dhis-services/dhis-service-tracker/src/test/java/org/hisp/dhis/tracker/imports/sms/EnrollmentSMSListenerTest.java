@@ -135,9 +135,7 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
 
   @Mock private DhisConfigurationProvider config;
 
-  @Mock private TrackerOwnershipManager trackerOwnershipAccessManager;
-
-  @Mock private ApplicationEventPublisher eventPublisher;
+  @Mock private SMSEnrollmentService smsEnrollmentService;
 
   EnrollmentSMSListener subject;
 
@@ -209,9 +207,7 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
             trackedEntityService,
             enrollmentService,
             identifiableObjectManager,
-            trackerOwnershipAccessManager,
-            eventPublisher,
-            trackedEntityService);
+            smsEnrollmentService);
 
     setUpInstances();
 

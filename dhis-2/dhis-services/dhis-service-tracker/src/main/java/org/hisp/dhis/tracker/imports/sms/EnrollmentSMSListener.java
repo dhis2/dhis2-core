@@ -35,9 +35,7 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -47,7 +45,6 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
@@ -95,13 +92,7 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
 
   private final ProgramStageService programStageService;
 
-  private final IdentifiableObjectManager manager;
-
-  private final TrackerOwnershipManager trackerOwnershipAccessManager;
-
-  private final ApplicationEventPublisher eventPublisher;
-
-  private final TrackedEntityService trackedEntityService;
+  private final SMSEnrollmentService smsEnrollmentService;
 
   public EnrollmentSMSListener(
       IncomingSmsService incomingSmsService,
@@ -122,9 +113,7 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
       TrackedEntityService teService,
       EnrollmentService enrollmentService,
       IdentifiableObjectManager manager,
-      TrackerOwnershipManager trackerOwnershipAccessManager,
-      ApplicationEventPublisher eventPublisher,
-      TrackedEntityService trackedEntityService) {
+      SMSEnrollmentService smsEnrollmentService) {
     super(
         incomingSmsService,
         smsSender,
@@ -144,10 +133,7 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
     this.programStageService = programStageService;
     this.enrollmentService = enrollmentService;
     this.attributeValueService = attributeValueService;
-    this.manager = manager;
-    this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
-    this.eventPublisher = eventPublisher;
-    this.trackedEntityService = trackedEntityService;
+    this.smsEnrollmentService = smsEnrollmentService;
   }
 
   @Override
@@ -221,9 +207,9 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
     }
 
     if (enrollment == null) {
-      enrollment = enrollTrackedEntity(te, program, orgUnit, occurredDate);
+      enrollment = smsEnrollmentService.enrollTrackedEntity(te, program, orgUnit, occurredDate);
 
-      if (enrollment.getUid() == null) {
+      if (enrollment == null) {
         throw new SMSProcessingException(SmsResponse.ENROLL_FAILED.set(teUid, progid));
       }
     }
@@ -355,64 +341,5 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
         event.getEventDate(),
         event.getDueDate(),
         event.getCoordinates());
-  }
-
-  // TODO(tracker) we should use the importer here
-  private Enrollment enrollTrackedEntity(
-      TrackedEntity trackedEntity,
-      Program program,
-      OrganisationUnit organisationUnit,
-      Date occurredDate) {
-    Enrollment enrollment =
-        prepareEnrollment(
-            trackedEntity,
-            program,
-            new Date(),
-            occurredDate,
-            organisationUnit,
-            CodeGenerator.generateUid());
-    manager.save(enrollment);
-    trackerOwnershipAccessManager.assignOwnership(
-        trackedEntity, program, organisationUnit, true, true);
-    eventPublisher.publishEvent(new ProgramEnrollmentNotificationEvent(this, enrollment.getId()));
-    manager.update(enrollment);
-    trackedEntityService.updateTrackedEntity(trackedEntity);
-
-    return enrollment;
-  }
-
-  private Enrollment prepareEnrollment(
-      TrackedEntity trackedEntity,
-      Program program,
-      Date enrollmentDate,
-      Date occurredDate,
-      OrganisationUnit organisationUnit,
-      String uid) {
-    if (program.getTrackedEntityType() != null
-        && !program.getTrackedEntityType().equals(trackedEntity.getTrackedEntityType())) {
-      throw new IllegalQueryException(
-          "Tracked entity must have same tracked entity as program: " + program.getUid());
-    }
-
-    Enrollment enrollment = new Enrollment();
-    enrollment.setUid(CodeGenerator.isValidUid(uid) ? uid : CodeGenerator.generateUid());
-    enrollment.setOrganisationUnit(organisationUnit);
-    enrollment.enrollTrackedEntity(trackedEntity, program);
-
-    if (enrollmentDate != null) {
-      enrollment.setEnrollmentDate(enrollmentDate);
-    } else {
-      enrollment.setEnrollmentDate(new Date());
-    }
-
-    if (occurredDate != null) {
-      enrollment.setOccurredDate(occurredDate);
-    } else {
-      enrollment.setOccurredDate(new Date());
-    }
-
-    enrollment.setStatus(EnrollmentStatus.ACTIVE);
-
-    return enrollment;
   }
 }
