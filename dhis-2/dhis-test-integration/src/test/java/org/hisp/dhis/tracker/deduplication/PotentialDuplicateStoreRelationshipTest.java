@@ -86,10 +86,10 @@ class PotentialDuplicateStoreRelationshipTest extends PostgresIntegrationTestBas
     duplicate = createTrackedEntity(ou);
     extra1 = createTrackedEntity(ou);
     extra2 = createTrackedEntity(ou);
-    trackedEntityService.addTrackedEntity(original);
-    trackedEntityService.addTrackedEntity(duplicate);
-    trackedEntityService.addTrackedEntity(extra1);
-    trackedEntityService.addTrackedEntity(extra2);
+    manager.save(original);
+    manager.save(duplicate);
+    manager.save(extra1);
+    manager.save(extra2);
     relationshipTypeBiDirectional = createRelationshipType('A');
     relationshipTypeUniDirectional = createRelationshipType('B');
     relationshipTypeBiDirectional.setBidirectional(true);
