@@ -120,7 +120,6 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
       DhisConfigurationProvider config,
       TrackedEntityAttributeValueService attributeValueService,
       TrackedEntityService teService,
-      org.hisp.dhis.program.EnrollmentService apiEnrollmentService,
       EnrollmentService enrollmentService,
       IdentifiableObjectManager manager,
       TrackerOwnershipManager trackerOwnershipAccessManager,

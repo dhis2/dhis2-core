@@ -123,8 +123,6 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
 
   @Mock private TrackedEntityService trackedEntityService;
 
-  @Mock private org.hisp.dhis.program.EnrollmentService apiEnrollmentService;
-
   @Mock private EnrollmentService enrollmentService;
 
   @Mock private TrackedEntityAttributeValueService attributeValueService;
@@ -209,7 +207,6 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
             config,
             attributeValueService,
             trackedEntityService,
-            apiEnrollmentService,
             enrollmentService,
             identifiableObjectManager,
             trackerOwnershipAccessManager,
