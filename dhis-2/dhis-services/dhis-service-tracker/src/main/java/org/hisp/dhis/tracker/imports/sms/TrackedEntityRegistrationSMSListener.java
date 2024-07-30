@@ -180,6 +180,7 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
     return trackedEntityAttributeValue;
   }
 
+  // TODO(tracker) we should use the importer here
   private void enrollTrackedEntity(
       TrackedEntity trackedEntity,
       Program program,
