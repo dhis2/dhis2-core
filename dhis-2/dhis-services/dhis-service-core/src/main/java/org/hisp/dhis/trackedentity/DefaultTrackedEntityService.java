@@ -84,8 +84,6 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
   private final TrackedEntityChangeLogService trackedEntityChangeLogService;
 
-  private final TrackedEntityAttributeValueChangeLogService attributeValueAuditService;
-
   private final UserService userService;
 
   // TODO: FIXME luciano using @Lazy here because we have circular
@@ -118,7 +116,6 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     this.organisationUnitService = organisationUnitService;
     this.aclService = aclService;
     this.trackedEntityChangeLogService = trackedEntityChangeLogService;
-    this.attributeValueAuditService = attributeValueAuditService;
   }
 
   @Override
@@ -501,13 +498,6 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
       Set<String> trackedEntityUIDs, Date lastUpdated, String userInfoSnapshot) {
     trackedEntityStore.updateTrackedEntityLastUpdated(
         trackedEntityUIDs, lastUpdated, userInfoSnapshot);
-  }
-
-  @Override
-  @Transactional
-  public void deleteTrackedEntity(TrackedEntity trackedEntity) {
-    attributeValueAuditService.deleteTrackedEntityAttributeValueChangeLogs(trackedEntity);
-    trackedEntityStore.delete(trackedEntity);
   }
 
   @Override

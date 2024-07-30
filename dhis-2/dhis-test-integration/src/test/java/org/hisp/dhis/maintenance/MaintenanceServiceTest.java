@@ -223,7 +223,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     manager.save(r);
     assertNotNull(trackedEntityService.getTrackedEntity(trackedEntity.getId()));
     assertNotNull(getRelationship(r.getId()));
-    trackedEntityService.deleteTrackedEntity(trackedEntity);
+    manager.delete(trackedEntity);
     assertNull(trackedEntityService.getTrackedEntity(trackedEntity.getId()));
     manager.delete(r);
     manager.delete(enrollment);
@@ -311,7 +311,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     manager.save(trackedEntityB);
     programMessageService.saveProgramMessage(message);
     assertNotNull(trackedEntityService.getTrackedEntity(trackedEntityB.getUid()));
-    trackedEntityService.deleteTrackedEntity(trackedEntityB);
+    manager.delete(trackedEntityB);
     assertNull(trackedEntityService.getTrackedEntity(trackedEntityB.getUid()));
     assertTrue(trackedEntityService.trackedEntityExistsIncludingDeleted(trackedEntityB.getUid()));
 
@@ -425,7 +425,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
   @Test
   @Disabled("until we can inject dhis.conf property overrides")
   void testAuditEntryForDeletionOfSoftDeletedTrackedEntity() {
-    trackedEntityService.deleteTrackedEntity(trackedEntityWithAssociations);
+    manager.delete(trackedEntityWithAssociations);
     assertNull(trackedEntityService.getTrackedEntity(trackedEntityWithAssociations.getId()));
     assertTrue(
         trackedEntityService.trackedEntityExistsIncludingDeleted(

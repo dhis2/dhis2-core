@@ -79,7 +79,7 @@ class HardDeleteAuditTest extends PostgresIntegrationTestBase {
           manager.save(ou);
           manager.save(attribute);
           manager.save(trackedEntity);
-          trackedEntityService.deleteTrackedEntity(trackedEntity);
+          manager.delete(trackedEntity);
           dbmsManager.clearSession();
           return null;
         });

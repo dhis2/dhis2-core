@@ -113,13 +113,6 @@ public interface TrackedEntityService {
       boolean skipSearchScopeValidation);
 
   /**
-   * Soft deletes a {@link TrackedEntity}.
-   *
-   * @param trackedEntity the TrackedEntity to delete.
-   */
-  void deleteTrackedEntity(TrackedEntity trackedEntity);
-
-  /**
    * Updates a {@link TrackedEntity}.
    *
    * @param trackedEntity the TrackedEntity to update.
