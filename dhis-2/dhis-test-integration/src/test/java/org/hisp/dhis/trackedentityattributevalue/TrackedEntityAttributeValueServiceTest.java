@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -42,7 +43,6 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +56,7 @@ class TrackedEntityAttributeValueServiceTest extends PostgresIntegrationTestBase
 
   @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
-  @Autowired private TrackedEntityService trackedEntityService;
+  @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -92,10 +92,10 @@ class TrackedEntityAttributeValueServiceTest extends PostgresIntegrationTestBase
     trackedEntityB = createTrackedEntity(organisationUnit);
     trackedEntityC = createTrackedEntity(organisationUnit);
     trackedEntityD = createTrackedEntity(organisationUnit);
-    trackedEntityService.addTrackedEntity(trackedEntityA);
-    trackedEntityService.addTrackedEntity(trackedEntityB);
-    trackedEntityService.addTrackedEntity(trackedEntityC);
-    trackedEntityService.addTrackedEntity(trackedEntityD);
+    manager.save(trackedEntityA);
+    manager.save(trackedEntityB);
+    manager.save(trackedEntityC);
+    manager.save(trackedEntityD);
     attributeA = createTrackedEntityAttribute('A');
     attributeB = createTrackedEntityAttribute('B');
     attributeC = createTrackedEntityAttribute('C');

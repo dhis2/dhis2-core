@@ -208,7 +208,7 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
     programService.updateProgram(programA);
     trackedEntityA = createTrackedEntity(organisationUnitA);
     trackedEntityA.setUid(trackedEntityUid);
-    trackedEntityService.addTrackedEntity(trackedEntityA);
+    manager.save(trackedEntityA);
     trackedEntityAttributeValueA =
         new TrackedEntityAttributeValue(trackedEntityAttributeA, trackedEntityA, "attribute-test");
     trackedEntityAttributeValueService.addTrackedEntityAttributeValue(trackedEntityAttributeValueA);

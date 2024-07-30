@@ -239,7 +239,7 @@ class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
     // TrackedEntity & Enrollment
     // ---------------------------------------------------------------------
     TrackedEntity trackedEntity = createTrackedEntity(organisationUnit);
-    trackedEntityService.addTrackedEntity(trackedEntity);
+    manager.save(trackedEntity);
     occurredDate = DateUtils.toMediumDate("2014-10-22");
     enrollmentDate = DateUtils.toMediumDate("2014-12-31");
     enrollment =
