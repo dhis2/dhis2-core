@@ -29,6 +29,7 @@ package org.hisp.dhis.test;
 
 import javax.persistence.EntityManager;
 import lombok.Getter;
+import org.hisp.dhis.test.config.H2DhisConfiguration;
 import org.hisp.dhis.test.config.IntegrationBaseConfiguration;
 import org.hisp.dhis.test.config.PostgresDhisConfiguration;
 import org.hisp.dhis.test.junit.SpringIntegrationTest;
@@ -58,6 +59,7 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration(
     classes = {
       IntegrationBaseConfiguration.class,
+      H2DhisConfiguration.class,
       PostgresDhisConfiguration.class,
     })
 @SpringIntegrationTest
