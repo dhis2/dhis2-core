@@ -163,7 +163,7 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
     }
 
     TrackedEntity trackedEntity;
-    boolean teExists = teService.trackedEntityExists(teUid.getUid());
+    boolean teExists = identifiableObjectManager.exists(TrackedEntity.class, teUid.getUid());
 
     if (teExists) {
       log.info("Tracked entity exists: '{}'. Updating.", teUid);

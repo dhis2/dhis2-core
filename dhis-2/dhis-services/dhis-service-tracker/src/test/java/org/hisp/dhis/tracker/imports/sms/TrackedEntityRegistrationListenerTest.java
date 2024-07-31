@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
@@ -47,7 +46,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -89,8 +87,6 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
   private static final String ORIGINATOR = "47400000";
 
   private static final String SUCCESS_MESSAGE = "Command has been processed successfully";
-
-  @Mock private EnrollmentService enrollmentService;
 
   @Mock private CategoryService dataElementCategoryService;
 
@@ -183,7 +179,7 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
   void testTrackedEntityRegistration() {
     // Mock for trackedEntityService
     when(trackedEntityService.createTrackedEntity(any(), any())).thenReturn(1L);
-    when(trackedEntityService.getTrackedEntity(anyLong())).thenReturn(trackedEntity);
+    when(trackedEntityService.getTrackedEntity(any())).thenReturn(trackedEntity);
     when(programService.hasOrgUnit(program, organisationUnit)).thenReturn(true);
 
     // Mock for incomingSmsService
