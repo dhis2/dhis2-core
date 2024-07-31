@@ -55,7 +55,7 @@ import org.springframework.security.web.savedrequest.RequestCache;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com
  */
 @Configuration
-@Order(10)
+@Order(1000000001)
 public class WebTestConfiguration {
   @Bean
   public RequestCache requestCache() {

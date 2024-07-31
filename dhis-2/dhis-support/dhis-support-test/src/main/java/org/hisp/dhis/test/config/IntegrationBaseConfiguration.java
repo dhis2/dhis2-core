@@ -30,6 +30,7 @@ package org.hisp.dhis.test.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -42,6 +43,7 @@ import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
  */
 @Configuration
 @ComponentScan("org.hisp.dhis")
+@Order(1000000000)
 public class IntegrationBaseConfiguration {
   @Bean
   public static SessionRegistry sessionRegistry() {
