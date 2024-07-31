@@ -27,17 +27,13 @@
  */
 package org.hisp.dhis.program.notification;
 
-import java.math.BigInteger;
 import java.util.Collection;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
-import javax.persistence.criteria.CriteriaBuilder;
 import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -48,10 +44,7 @@ import org.springframework.stereotype.Repository;
 public class DefaultProgramNotificationTemplateStore
     extends HibernateIdentifiableObjectStore<ProgramNotificationTemplate>
     implements ProgramNotificationTemplateStore {
-  private static final String NOTIFICATION_RECIPIENT = "recipient";
-
   private static final String PROGRAM_ID = "pid";
-
   private static final String PROGRAM_STAGE_ID = "psid";
 
   public DefaultProgramNotificationTemplateStore(
@@ -69,66 +62,10 @@ public class DefaultProgramNotificationTemplateStore
   }
 
   @Override
-  public List<ProgramNotificationTemplate> getProgramNotificationByTriggerType(
-      NotificationTrigger trigger) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    return getList(
-        builder,
-        newJpaParameters()
-            .addPredicate(root -> builder.equal(root.get("notificationtrigger"), trigger)));
-  }
-
-  @Override
-  public boolean isProgramLinkedToWebHookNotification(Long pId) {
-    NativeQuery<BigInteger> query =
-        nativeSynchronizedQuery(
-            "select count(*) from programnotificationtemplate where programid = :pid and notificationrecipienttype = :recipient");
-    query.setParameter(PROGRAM_ID, pId);
-    query.setParameter(NOTIFICATION_RECIPIENT, ProgramNotificationRecipient.WEB_HOOK.name());
-
-    return query.getSingleResult().longValue() > 0;
-  }
-
-  @Override
-  public boolean isProgramStageLinkedToWebHookNotification(Long psId) {
-    NativeQuery<BigInteger> query =
-        nativeSynchronizedQuery(
-            "select count(*) from programnotificationtemplate where programstageid = :psid and notificationrecipienttype = :recipient");
-    query.setParameter(PROGRAM_STAGE_ID, psId);
-    query.setParameter(NOTIFICATION_RECIPIENT, ProgramNotificationRecipient.WEB_HOOK.name());
-
-    return query.getSingleResult().longValue() > 0;
-  }
-
-  @Override
-  public List<ProgramNotificationTemplate> getProgramLinkedToWebHookNotifications(Program program) {
-    NativeQuery<ProgramNotificationTemplate> query =
-        nativeSynchronizedTypedQuery(
-            "select * from programnotificationtemplate where programid = :pid and notificationrecipienttype = :recipient");
-    query.setParameter(PROGRAM_ID, program.getId());
-    query.setParameter(NOTIFICATION_RECIPIENT, ProgramNotificationRecipient.WEB_HOOK.name());
-
-    return query.getResultList();
-  }
-
-  @Override
-  public List<ProgramNotificationTemplate> getProgramStageLinkedToWebHookNotifications(
-      ProgramStage programStage) {
-    NativeQuery<ProgramNotificationTemplate> query =
-        nativeSynchronizedTypedQuery(
-            "select * from programnotificationtemplate where programstageid = :psid and notificationrecipienttype = :recipient");
-    query.setParameter(PROGRAM_STAGE_ID, programStage.getId());
-    query.setParameter(NOTIFICATION_RECIPIENT, ProgramNotificationRecipient.WEB_HOOK.name());
-
-    return query.getResultList();
-  }
-
-  @Override
   public int countProgramNotificationTemplates(ProgramNotificationTemplateParam param) {
     Query query =
         nativeSynchronizedQuery(
-            "select count(*) from programnotificationtemplate where programstageid = :psid or  programid = :pid");
+            "select count(*) from programnotificationtemplate where programstageid = :psid or programid = :pid");
     query.setParameter(
         PROGRAM_STAGE_ID, param.hasProgramStage() ? param.getProgramStage().getId() : 0);
     query.setParameter(PROGRAM_ID, param.hasProgram() ? param.getProgram().getId() : 0);
@@ -141,8 +78,7 @@ public class DefaultProgramNotificationTemplateStore
       ProgramNotificationTemplateParam param) {
     NativeQuery<ProgramNotificationTemplate> query =
         nativeSynchronizedTypedQuery(
-            "select * from programnotificationtemplate where programstageid = :psid or  programid = :pid");
-
+            "select * from programnotificationtemplate where programstageid = :psid or programid = :pid");
     query.setParameter(
         PROGRAM_STAGE_ID, param.hasProgramStage() ? param.getProgramStage().getId() : 0);
     query.setParameter(PROGRAM_ID, param.hasProgram() ? param.getProgram().getId() : 0);
@@ -152,7 +88,6 @@ public class DefaultProgramNotificationTemplateStore
 
   @Override
   public List<ProgramNotificationTemplate> getByDataElement(Collection<DataElement> dataElements) {
-    // language=hql
     String hql =
         """
         from ProgramNotificationTemplate pnt

@@ -43,7 +43,7 @@ import org.hisp.dhis.program.Event;
 @Setter
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
-public class ProgramNotificationInstanceParam extends BaseNotificationParam {
+public class ProgramNotificationInstanceParam extends NotificationPagingParam {
   @Builder
   public ProgramNotificationInstanceParam(
       Integer page,
@@ -51,8 +51,9 @@ public class ProgramNotificationInstanceParam extends BaseNotificationParam {
       boolean skipPaging,
       Enrollment enrollment,
       Event event,
-      Date scheduledAt) {
-    super(page, pageSize, skipPaging);
+      Date scheduledAt,
+      boolean paged) {
+    super(page, pageSize, skipPaging, paged);
     this.enrollment = enrollment;
     this.event = event;
     this.scheduledAt = scheduledAt;

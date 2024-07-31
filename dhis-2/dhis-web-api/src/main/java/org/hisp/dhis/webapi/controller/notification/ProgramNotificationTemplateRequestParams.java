@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,26 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.notification;
+package org.hisp.dhis.webapi.controller.notification;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.webapi.controller.tracker.export.PageRequestParams;
 
 /**
  * @author Zubair Asghar
  */
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
-public class BaseNotificationParam {
-  public static final int DEFAULT_PAGE_SIZE = 50;
+public class ProgramNotificationTemplateRequestParams implements PageRequestParams {
+  private UID program;
 
-  public static final int DEFAULT_PAGE = 1;
+  private UID programStage;
 
   private Integer page;
 
   private Integer pageSize;
 
-  private boolean skipPaging;
+  private Boolean totalPages = false;
+
+  @Deprecated(since = "2.41")
+  private Boolean skipPaging;
+
+  // TODO(tracker): set paging=true once skipPaging is removed. Both cannot have a default right
+  // now. This would lead to invalid parameters if the user passes the other param i.e.
+  // skipPaging==paging.
+  // PageRequestParams.isPaged handles the default case of skipPaging==paging==null => paging
+  // enabled
+  private Boolean paging;
 }

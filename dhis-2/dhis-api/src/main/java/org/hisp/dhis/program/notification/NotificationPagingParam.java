@@ -27,44 +27,27 @@
  */
 package org.hisp.dhis.program.notification;
 
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
 
 /**
  * @author Zubair Asghar
  */
-@Getter
-@Setter
-@EqualsAndHashCode(callSuper = false)
+@Data
+@AllArgsConstructor
 @NoArgsConstructor
-public class ProgramNotificationTemplateParam extends NotificationPagingParam {
-  @Builder
-  public ProgramNotificationTemplateParam(
-      Integer page,
-      Integer pageSize,
-      boolean skipPaging,
-      Program program,
-      ProgramStage programStage,
-      boolean paged) {
-    super(page, pageSize, skipPaging, paged);
-    this.program = program;
-    this.programStage = programStage;
-  }
+public class NotificationPagingParam {
+  public static final int DEFAULT_PAGE_SIZE = 50;
 
-  private Program program;
+  public static final int DEFAULT_PAGE = 1;
 
-  private ProgramStage programStage;
+  private Integer page;
 
-  public boolean hasProgram() {
-    return this.program != null;
-  }
+  private Integer pageSize;
 
-  public boolean hasProgramStage() {
-    return this.programStage != null;
-  }
+  @Deprecated(since = "2.41")
+  private boolean skipPaging;
+
+  private boolean paged;
 }
