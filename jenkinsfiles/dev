@@ -117,6 +117,7 @@ pipeline {
             }
         }
 
+        /* Commented out for testing purposes
         stage('Sync WAR') {
             steps {
                 implementIoBuildStarted(buildName: "${STAGE_NAME}")
@@ -211,6 +212,7 @@ pipeline {
                 }
             }
         }
+        */
 
         stage('Trigger Cypress Tests') {
             steps {
