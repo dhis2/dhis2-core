@@ -44,7 +44,6 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -88,8 +87,6 @@ class EventSecurityImportValidationTest extends TrackerTest {
 
   @Autowired private TrackedEntityTypeService trackedEntityTypeService;
 
-  @Autowired private EnrollmentService enrollmentService;
-
   @Autowired private OrganisationUnitService organisationUnitService;
 
   private TrackedEntity maleA;
@@ -126,7 +123,6 @@ class EventSecurityImportValidationTest extends TrackerTest {
     injectSecurityContextUser(importUser);
 
     TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
-
     assertNoErrors(
         trackerImportService.importTracker(
             params, fromJson("tracker/validations/enrollments_te_te-data.json")));
@@ -141,6 +137,8 @@ class EventSecurityImportValidationTest extends TrackerTest {
     manager.save(organisationUnitB);
     organisationUnitA.setPublicAccess(AccessStringHelper.FULL);
     manager.update(organisationUnitA);
+    importUser.addOrganisationUnit(organisationUnitA);
+    manager.update(importUser);
     dataElementA = createDataElement('A');
     dataElementB = createDataElement('B');
     dataElementA.setValueType(ValueType.INTEGER);
@@ -191,15 +189,20 @@ class EventSecurityImportValidationTest extends TrackerTest {
     manager.save(maleB);
     manager.save(femaleA);
     manager.save(femaleB);
+
     int testYear = Calendar.getInstance().get(Calendar.YEAR) - 1;
     Date dateMar20 = getDate(testYear, 3, 20);
     Date dateApr10 = getDate(testYear, 4, 10);
-    Enrollment enrollment =
-        enrollmentService.enrollTrackedEntity(
-            maleA, programA, dateMar20, dateApr10, organisationUnitA, "MNWZ6hnuhSX");
+    Enrollment enrollment = createEnrollment(programA, maleA, organisationUnitA);
+    enrollment.setUid("MNWZ6hnuhSX");
+    enrollment.setEnrollmentDate(dateMar20);
+    enrollment.setOccurredDate(dateApr10);
     manager.save(enrollment);
+    maleA.getEnrollments().add(enrollment);
+    manager.update(maleA);
+
     trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
-        maleA.getUid(), programA.getUid(), organisationUnitA.getUid());
+        maleA, programA, organisationUnitA);
     manager.update(programA);
     User user = userService.getUser(USER_5);
     OrganisationUnit qfUVllTs6cS = organisationUnitService.getOrganisationUnit("QfUVllTs6cS");

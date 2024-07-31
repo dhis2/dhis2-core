@@ -37,52 +37,11 @@ public interface TrackedEntityProgramOwnerService {
   String ID = TrackedEntityProgramOwnerService.class.getName();
 
   /**
-   * Assign an orgUnit as the owner for a tracked entity for the given program. If another owner
-   * already exist then this method would fail.
-   *
-   * @param teUid The Uid of the tracked entity
-   * @param programUid The program Uid
-   * @param orgUnitUid The organisation units Uid
-   */
-  void createTrackedEntityProgramOwner(String teUid, String programUid, String orgUnitUid);
-
-  /**
-   * Update the owner ou for a tracked entity for the given program. If no owner previously exist,
-   * then this method will fail.
-   *
-   * @param teUid The tracked entity Uid
-   * @param programUid The program Uid
-   * @param orgUnitUid The organisation Unit Uid
-   */
-  void updateTrackedEntityProgramOwner(String teUid, String programUid, String orgUnitUid);
-
-  /**
    * Get the program owner details for a tracked entity.
    *
-   * @param teId The tracked entity Id
-   * @param programId The program Id
    * @return The TrackedEntityProgramOwner object
    */
-  TrackedEntityProgramOwner getTrackedEntityProgramOwner(long teId, long programId);
-
-  /**
-   * Get the program owner details for a tracked entity.
-   *
-   * @param teUid The tracked entity Uid
-   * @param programUid The program Uid
-   * @return The TrackedEntityProgramOwner object
-   */
-  TrackedEntityProgramOwner getTrackedEntityProgramOwner(String teUid, String programUid);
-
-  /**
-   * Assign an orgUnit as the owner for a tracked entity for the given program. If another owner
-   * already exist then it would be overwritten.
-   *
-   * @param teUid
-   * @param programUid
-   * @param orgUnitUid
-   */
-  void createOrUpdateTrackedEntityProgramOwner(String teUid, String programUid, String orgUnitUid);
+  TrackedEntityProgramOwner getTrackedEntityProgramOwner(TrackedEntity te, Program program);
 
   /**
    * Assign an orgUnit as the owner for a tracked entity for the given program. If another owner

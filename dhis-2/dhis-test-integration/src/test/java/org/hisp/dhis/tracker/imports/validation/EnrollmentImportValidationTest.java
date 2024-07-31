@@ -33,7 +33,6 @@ import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_2;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_4;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -117,14 +116,6 @@ class EnrollmentImportValidationTest extends TrackerTest {
                               .get(e.getProgram().getIdentifier())
                               .getOrganisationUnit()));
             });
-  }
-
-  @Test
-  void testDisplayIncidentDateTrueButDateValueIsInvalid() {
-    // TODO(DHIS2-17768 tracker) what are we testing here? should we not call the importer?
-    assertThrows(
-        IOException.class,
-        () -> fromJson("tracker/validations/enrollments_error-displayIncident.json"));
   }
 
   @Test

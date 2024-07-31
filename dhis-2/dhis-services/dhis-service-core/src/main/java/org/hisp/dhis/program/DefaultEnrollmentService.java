@@ -49,8 +49,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.program.EnrollmentService")
 public class DefaultEnrollmentService implements EnrollmentService {
-  private final EnrollmentStore enrollmentStore;
-
   private final TrackedEntityService trackedEntityService;
 
   private final ApplicationEventPublisher eventPublisher;
@@ -92,23 +90,6 @@ public class DefaultEnrollmentService implements EnrollmentService {
     enrollment.setStatus(EnrollmentStatus.ACTIVE);
 
     return enrollment;
-  }
-
-  @Override
-  @Transactional
-  public Enrollment enrollTrackedEntity(
-      TrackedEntity trackedEntity,
-      Program program,
-      Date enrollmentDate,
-      Date occurredDate,
-      OrganisationUnit organisationUnit) {
-    return enrollTrackedEntity(
-        trackedEntity,
-        program,
-        enrollmentDate,
-        occurredDate,
-        organisationUnit,
-        CodeGenerator.generateUid());
   }
 
   @Override

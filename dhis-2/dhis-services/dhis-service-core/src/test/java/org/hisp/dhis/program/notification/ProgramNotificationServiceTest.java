@@ -59,7 +59,6 @@ import org.hisp.dhis.notification.NotificationTemplate;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentStore;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -110,8 +109,6 @@ class ProgramNotificationServiceTest extends TestBase {
   @Mock private ProgramMessageService programMessageService;
 
   @Mock private MessageService messageService;
-
-  @Mock private EnrollmentStore enrollmentStore;
 
   @Mock private IdentifiableObjectManager manager;
 
@@ -184,7 +181,6 @@ class ProgramNotificationServiceTest extends TestBase {
         new DefaultProgramNotificationService(
             this.programMessageService,
             this.messageService,
-            this.enrollmentStore,
             this.manager,
             this.programNotificationRenderer,
             this.programStageNotificationRenderer,
@@ -205,7 +201,7 @@ class ProgramNotificationServiceTest extends TestBase {
 
   @Test
   void testIfEnrollmentIsNull() {
-    when(enrollmentStore.get(anyLong())).thenReturn(null);
+    when(manager.get(eq(Enrollment.class), any(Long.class))).thenReturn(null);
 
     programNotificationService.sendEnrollmentCompletionNotifications(0);
 
@@ -223,7 +219,8 @@ class ProgramNotificationServiceTest extends TestBase {
 
   @Test
   void testSendCompletionNotification() {
-    when(enrollmentStore.get(anyLong())).thenReturn(enrollments.iterator().next());
+    when(manager.get(eq(Enrollment.class), any(Long.class)))
+        .thenReturn(enrollments.iterator().next());
 
     when(programMessageService.sendMessages(anyList()))
         .thenAnswer(
@@ -249,7 +246,8 @@ class ProgramNotificationServiceTest extends TestBase {
 
   @Test
   void testSendEnrollmentNotification() {
-    when(enrollmentStore.get(anyLong())).thenReturn(enrollments.iterator().next());
+    when(manager.get(eq(Enrollment.class), any(Long.class)))
+        .thenReturn(enrollments.iterator().next());
 
     when(programMessageService.sendMessages(anyList()))
         .thenAnswer(
@@ -275,7 +273,8 @@ class ProgramNotificationServiceTest extends TestBase {
 
   @Test
   void testUserGroupRecipient() {
-    when(enrollmentStore.get(anyLong())).thenReturn(enrollments.iterator().next());
+    when(manager.get(eq(Enrollment.class), any(Long.class)))
+        .thenReturn(enrollments.iterator().next());
 
     when(messageService.sendMessage(any()))
         .thenAnswer(
@@ -302,7 +301,8 @@ class ProgramNotificationServiceTest extends TestBase {
 
   @Test
   void testOuContactRecipient() {
-    when(enrollmentStore.get(anyLong())).thenReturn(enrollments.iterator().next());
+    when(manager.get(eq(Enrollment.class), any(Long.class)))
+        .thenReturn(enrollments.iterator().next());
 
     when(programMessageService.sendMessages(anyList()))
         .thenAnswer(
@@ -331,7 +331,8 @@ class ProgramNotificationServiceTest extends TestBase {
 
   @Test
   void testProgramAttributeRecipientWithSMS() {
-    when(enrollmentStore.get(anyLong())).thenReturn(enrollments.iterator().next());
+    when(manager.get(eq(Enrollment.class), any(Long.class)))
+        .thenReturn(enrollments.iterator().next());
 
     when(programMessageService.sendMessages(anyList()))
         .thenAnswer(
@@ -361,7 +362,8 @@ class ProgramNotificationServiceTest extends TestBase {
 
   @Test
   void testProgramAttributeRecipientWithEMAIL() {
-    when(enrollmentStore.get(anyLong())).thenReturn(enrollments.iterator().next());
+    when(manager.get(eq(Enrollment.class), any(Long.class)))
+        .thenReturn(enrollments.iterator().next());
 
     when(programMessageService.sendMessages(anyList()))
         .thenAnswer(

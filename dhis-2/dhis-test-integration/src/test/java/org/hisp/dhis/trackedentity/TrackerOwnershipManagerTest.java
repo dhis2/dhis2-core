@@ -72,8 +72,6 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackerAccessManager trackerAccessManager;
 
-  @Autowired private TrackedEntityService trackedEntityService1;
-
   @Autowired
   private org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService trackedEntityService;
 
@@ -122,8 +120,8 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
     trackedEntityA1.setTrackedEntityType(trackedEntityType);
     trackedEntityB1 = createTrackedEntity(organisationUnitB);
     trackedEntityB1.setTrackedEntityType(trackedEntityType);
-    trackedEntityService1.addTrackedEntity(trackedEntityA1);
-    trackedEntityService1.addTrackedEntity(trackedEntityB1);
+    manager.save(trackedEntityA1);
+    manager.save(trackedEntityB1);
 
     userA = createUserWithAuth("userA");
     userA.addOrganisationUnit(organisationUnitA);

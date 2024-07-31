@@ -39,7 +39,6 @@ import static org.hisp.dhis.tracker.imports.validation.Users.USER_6;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -216,13 +215,6 @@ class EventImportValidationTest extends TrackerTest {
     importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertNoErrors(importReport);
-  }
-
-  @Test
-  void testWrongScheduledDateString() {
-    // TODO(DHIS2-17768 tracker) what are we testing here? should we not call the importer?
-    assertThrows(
-        IOException.class, () -> fromJson("tracker/validations/events_error-no-wrong-date.json"));
   }
 
   @Test

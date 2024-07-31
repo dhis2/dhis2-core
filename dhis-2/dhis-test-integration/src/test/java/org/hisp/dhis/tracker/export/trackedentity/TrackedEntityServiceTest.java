@@ -81,7 +81,6 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
@@ -117,8 +116,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackedEntityService trackedEntityService;
-
-  @Autowired private EnrollmentService enrollmentService;
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -348,9 +345,11 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     trackedEntityGrandchildA.setTrackedEntityType(trackedEntityTypeA);
     manager.save(trackedEntityGrandchildA, false);
 
-    enrollmentA =
-        enrollmentService.enrollTrackedEntity(
-            trackedEntityA, programA, new Date(), new Date(), orgUnitA);
+    enrollmentA = createEnrollment(programA, trackedEntityA, orgUnitA);
+    manager.save(enrollmentA);
+    trackedEntityA.getEnrollments().add(enrollmentA);
+    manager.update(trackedEntityA);
+
     eventA = new Event();
     eventA.setEnrollment(enrollmentA);
     eventA.setProgramStage(programStageA1);
@@ -371,9 +370,11 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     enrollmentA.setFollowup(true);
     manager.save(enrollmentA, false);
 
-    enrollmentB =
-        enrollmentService.enrollTrackedEntity(
-            trackedEntityA, programB, new Date(), new Date(), orgUnitA);
+    enrollmentB = createEnrollment(programB, trackedEntityA, orgUnitA);
+    manager.save(enrollmentB);
+    trackedEntityA.getEnrollments().add(enrollmentB);
+    manager.update(trackedEntityA);
+
     eventB = new Event();
     eventB.setEnrollment(enrollmentB);
     eventB.setProgramStage(programStageB1);
@@ -387,9 +388,11 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     trackedEntityB.setTrackedEntityType(trackedEntityTypeA);
     manager.save(trackedEntityB, false);
 
-    Enrollment enrollmentC =
-        enrollmentService.enrollTrackedEntity(
-            trackedEntityB, programB, new Date(), new Date(), orgUnitB);
+    Enrollment enrollmentC = createEnrollment(programB, trackedEntityB, orgUnitB);
+    manager.save(enrollmentC);
+    trackedEntityA.getEnrollments().add(enrollmentC);
+    manager.update(trackedEntityB);
+
     Event eventC = new Event();
     eventC.setEnrollment(enrollmentC);
     eventC.setProgramStage(programStageB1);
@@ -684,10 +687,10 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnEnrollmentsFromSpecifiedProgramWhenRequestingSingleTrackedEntity()
       throws ForbiddenException, NotFoundException, BadRequestException {
-    Enrollment enrollmentProgramB =
-        enrollmentService.enrollTrackedEntity(
-            trackedEntityA, programB, new Date(), new Date(), orgUnitA);
+    Enrollment enrollmentProgramB = createEnrollment(programB, trackedEntityA, orgUnitA);
     manager.save(enrollmentProgramB);
+    trackedEntityA.getEnrollments().add(enrollmentProgramB);
+    manager.update(trackedEntityA);
 
     TrackedEntity trackedEntity =
         trackedEntityService.getTrackedEntity(
@@ -699,10 +702,10 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnAllEnrollmentsWhenRequestingSingleTrackedEntityAndNoProgramSpecified()
       throws ForbiddenException, NotFoundException, BadRequestException {
-    Enrollment enrollmentProgramB =
-        enrollmentService.enrollTrackedEntity(
-            trackedEntityA, programB, new Date(), new Date(), orgUnitA);
+    Enrollment enrollmentProgramB = createEnrollment(programB, trackedEntityA, orgUnitA);
     manager.save(enrollmentProgramB);
+    trackedEntityA.getEnrollments().add(enrollmentProgramB);
+    manager.update(trackedEntityA);
 
     TrackedEntity trackedEntity =
         trackedEntityService.getTrackedEntity(

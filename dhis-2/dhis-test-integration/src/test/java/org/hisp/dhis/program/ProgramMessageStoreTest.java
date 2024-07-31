@@ -65,8 +65,6 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private ProgramMessageStore programMessageStore;
 
-  @Autowired private EnrollmentStore enrollmentStore;
-
   @Autowired private OrganisationUnitService orgUnitService;
 
   @Autowired private TrackedEntityService trackedEntityService;
@@ -113,7 +111,7 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
     programA.setProgramStages(programStages);
     programService.updateProgram(programA);
     TrackedEntity trackedEntityB = createTrackedEntity(orgUnitA);
-    trackedEntityService.addTrackedEntity(trackedEntityB);
+    manager.save(trackedEntityB);
     DateTime testDate1 = DateTime.now();
     testDate1.withTimeAtStartOfDay();
     testDate1 = testDate1.minusDays(70);
@@ -129,7 +127,7 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
     Set<String> orgUnits = new HashSet<>();
     orgUnits.add(orgUnitA.getUid());
     TrackedEntity trackedEntityA = createTrackedEntity(orgUnitA);
-    trackedEntityService.addTrackedEntity(trackedEntityA);
+    manager.save(trackedEntityA);
     ProgramMessageRecipients recipientsA = new ProgramMessageRecipients();
     recipientsA.setOrganisationUnit(orgUnitA);
     recipientsA.setTrackedEntity(trackedEntityA);
@@ -226,7 +224,7 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetProgramMessageByEnrollment() {
-    enrollmentStore.save(enrollmentA);
+    manager.save(enrollmentA);
     pmsgA.setEnrollment(enrollmentA);
     pmsgB.setEnrollment(enrollmentA);
     programMessageStore.save(pmsgA);
@@ -241,7 +239,7 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetProgramMessageByEvent() {
-    enrollmentStore.save(enrollmentA);
+    manager.save(enrollmentA);
     manager.save(eventA);
     pmsgA.setEvent(eventA);
     pmsgB.setEvent(eventA);
@@ -269,7 +267,7 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetProgramMessageByMultipleParameters() {
-    enrollmentStore.save(enrollmentA);
+    manager.save(enrollmentA);
     pmsgA.setEnrollment(enrollmentA);
     pmsgB.setEnrollment(enrollmentA);
     programMessageStore.save(pmsgA);
