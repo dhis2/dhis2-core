@@ -54,7 +54,7 @@ jobs:
           IMAGE_REPOSITORY: core-pr
           IMAGE_TAG: ${{ github.event.pull_request.number }}
           IMAGE_PULL_POLICY: Always
-          DATABASE_ID: test-dbs-sierra-leone-dev-sql-gz
+          DATABASE_ID: test-dbs-sierra-leone-2-38-sql-gz
         run: |
           ./findByName.sh dev $INSTANCE_NAME | jq --exit-status 'has("id")' &&
           ./restart.sh $(./findByName.sh dev $INSTANCE_NAME | jq '.instances[] | select(.stackName=="dhis2-core") | .id') ||
