@@ -234,6 +234,7 @@ pipeline {
                 gitHelper.setCommitStatus("${env.DHIS2_COMMIT_SHA}", "${env.DHIS2_REPO_URL}")
             }
         }
+        /* Commented out for testing purposes
 
         failure {
             script {
@@ -244,6 +245,7 @@ pipeline {
                 )
             }
         }
+        */
 
         aborted {
             script {
