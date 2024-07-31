@@ -148,6 +148,11 @@ public class SpringIntegrationTestExtension
   private void tearDown(ExtensionContext context) {
     clearSecurityContext();
 
+    // https://docs.spring.io/spring-framework/reference/testing/testcontext-framework/tx.html#testcontext-tx-attribute-support
+    // > methods annotated with JUnit @BeforeAll or @AfterAll are not run within a test-managed
+    // transaction
+    // This means we need to empty the DB even if a test class is annotated with @Transactional if
+    // its test lifecycle is set to class
     if (isTestLifecyclePerClass(context) || !isAnnotatedWithTransactional(context)) {
       unbindSession(context);
       emptyDatabase(context);
