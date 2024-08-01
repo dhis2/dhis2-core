@@ -60,7 +60,7 @@ public class HibernateEventProgramEnrollmentStore implements EventProgramEnrollm
 
       return session
           .createQuery(
-              "from Enrollment e where e.program.uid = :programUid and status = :enrollmentStatus and e.program.programType = 'with_registration'",
+              "from Enrollment e where e.program.uid = :programUid and status = :enrollmentStatus and e.program.programType = 'wit_registration'",
               Enrollment.class)
           .setParameter("programUid", program.getUid())
           .setParameter("enrollmentStatus", enrollmentStatus)
