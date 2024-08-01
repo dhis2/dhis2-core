@@ -52,7 +52,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 @RequiredArgsConstructor
 public class ProgramMessageOperationParamsMapper {
-
   private final IdentifiableObjectManager manager;
 
   private final ProgramService programService;
@@ -61,7 +60,6 @@ public class ProgramMessageOperationParamsMapper {
 
   @Transactional(readOnly = true)
   public ProgramMessageQueryParams map(ProgramMessageOperationParams operationParams) {
-
     Enrollment enrollment = getEntity(operationParams.getEnrollment(), Enrollment.class);
     Event event = getEntity(operationParams.getEvent(), Event.class);
 
