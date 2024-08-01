@@ -34,6 +34,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
 import java.util.Set;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -76,6 +77,8 @@ class DefaultTrackedEntityServiceTest {
 
   @Mock private TrackedEntityAttributeValueChangeLogService attributeValueAuditService;
 
+  @Mock private IdentifiableObjectManager manager;
+
   private TrackedEntityQueryParams params;
 
   private DefaultTrackedEntityService trackedEntityService;
@@ -94,7 +97,8 @@ class DefaultTrackedEntityServiceTest {
             organisationUnitService,
             aclService,
             trackedEntityChangeLogService,
-            attributeValueAuditService);
+            attributeValueAuditService,
+            manager);
 
     User user = new User();
     user.setUsername("test");

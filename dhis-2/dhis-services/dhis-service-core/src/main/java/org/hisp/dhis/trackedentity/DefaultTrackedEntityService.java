@@ -45,6 +45,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.changelog.ChangeLogType;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -85,6 +86,8 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
   private final UserService userService;
 
+  private final IdentifiableObjectManager manager;
+
   public DefaultTrackedEntityService(
       UserService userService,
       TrackedEntityStore trackedEntityStore,
@@ -94,7 +97,8 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
       OrganisationUnitService organisationUnitService,
       AclService aclService,
       TrackedEntityChangeLogService trackedEntityChangeLogService,
-      TrackedEntityAttributeValueChangeLogService attributeValueAuditService) {
+      TrackedEntityAttributeValueChangeLogService attributeValueAuditService,
+      IdentifiableObjectManager manager) {
     checkNotNull(trackedEntityStore);
     checkNotNull(attributeValueService);
     checkNotNull(attributeService);
@@ -112,6 +116,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     this.organisationUnitService = organisationUnitService;
     this.aclService = aclService;
     this.trackedEntityChangeLogService = trackedEntityChangeLogService;
+    this.manager = manager;
   }
 
   @Override
@@ -477,7 +482,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
       trackedEntity.getTrackedEntityAttributeValues().add(pav);
     }
 
-    updateTrackedEntity(trackedEntity); // Update associations
+    manager.update(trackedEntity);
 
     return id;
   }

@@ -91,6 +91,8 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
 
   private final SMSEnrollmentService smsEnrollmentService;
 
+  private final IdentifiableObjectManager manager;
+
   public EnrollmentSMSListener(
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
@@ -131,6 +133,7 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
     this.enrollmentService = enrollmentService;
     this.attributeValueService = attributeValueService;
     this.smsEnrollmentService = smsEnrollmentService;
+    this.manager = manager;
   }
 
   @Override
@@ -182,7 +185,7 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
     if (teExists) {
       updateAttributeValues(attributeValues, trackedEntity.getTrackedEntityAttributeValues());
       trackedEntity.setTrackedEntityAttributeValues(attributeValues);
-      teService.updateTrackedEntity(trackedEntity);
+      manager.update(trackedEntity);
     } else {
       teService.createTrackedEntity(trackedEntity, attributeValues);
     }
