@@ -30,6 +30,7 @@ package org.hisp.dhis.test.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -41,7 +42,14 @@ import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Configuration
-@ComponentScan("org.hisp.dhis")
+@ComponentScan(
+    basePackages = "org.hisp.dhis",
+    excludeFilters = {
+      @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org\\.hisp\\.dhis\\.test\\..*"),
+      @ComponentScan.Filter(
+          type = FilterType.REGEX,
+          pattern = "org\\.hisp\\.dhis\\.webapi\\.security\\.config\\.WebMvcConfig")
+    })
 public class IntegrationTestBaseConfig {
   @Bean
   public static SessionRegistry sessionRegistry() {

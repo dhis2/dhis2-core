@@ -37,7 +37,6 @@ import org.flywaydb.core.api.configuration.ClassicConfiguration;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 
 /**
  * @author Luciano Fiandesio
@@ -48,7 +47,6 @@ public class FlywayConfig {
   private static final String FLYWAY_MIGRATION_FOLDER = "org/hisp/dhis/db/migration";
 
   @Bean(initMethod = "migrate")
-  @Profile("!test-h2")
   public Flyway flyway(DhisConfigurationProvider configurationProvider, DataSource dataSource) {
     ClassicConfiguration classicConfiguration = new ClassicConfiguration();
 

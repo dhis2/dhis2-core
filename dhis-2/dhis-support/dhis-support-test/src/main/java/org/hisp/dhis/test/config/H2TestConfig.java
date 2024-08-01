@@ -27,17 +27,55 @@
  */
 package org.hisp.dhis.test.config;
 
+import java.beans.PropertyVetoException;
+import java.sql.SQLException;
+import javax.sql.DataSource;
+import org.hisp.dhis.datasource.DatabasePoolUtils;
+import org.hisp.dhis.datasource.model.PoolConfig;
+import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.test.h2.H2SqlFunction;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.Primary;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 /** Use this Spring configuration for tests relying on the H2 in-memory DB. */
-@Profile("test-h2")
 @Configuration
-public class H2DhisTestConfig {
+public class H2TestConfig {
   @Bean
   public DhisConfigurationProvider dhisConfigurationProvider() {
     return new H2DhisConfigurationProvider();
+  }
+
+  public static class NoOpFlyway {}
+
+  @Bean
+  public NoOpFlyway flyway() {
+    return new NoOpFlyway();
+  }
+
+  @Bean(name = {"namedParameterJdbcTemplate", "analyticsNamedParameterJdbcTemplate"})
+  @Primary
+  public NamedParameterJdbcTemplate namedParameterJdbcTemplate(
+      @Qualifier("dataSource") DataSource dataSource) {
+    return new NamedParameterJdbcTemplate(dataSource);
+  }
+
+  @Bean(name = {"dataSource", "analyticsDataSource"})
+  @Primary
+  public DataSource actualDataSource(DhisConfigurationProvider config)
+      throws SQLException, PropertyVetoException {
+    String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
+
+    PoolConfig.PoolConfigBuilder builder = PoolConfig.builder();
+    builder.dhisConfig(config);
+    builder.dbPoolType(dbPoolType);
+
+    final DataSource dbPool = DatabasePoolUtils.createDbPool(builder.build());
+    H2SqlFunction.registerH2Functions(dbPool);
+
+    return dbPool;
   }
 }
