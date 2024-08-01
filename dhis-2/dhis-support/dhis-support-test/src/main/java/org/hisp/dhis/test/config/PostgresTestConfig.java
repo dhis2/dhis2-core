@@ -27,22 +27,19 @@
  */
 package org.hisp.dhis.test.config;
 
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 
 /**
- * Creates a no operation flyway bean that can be used to disable flyway migrations when running
- * tests.
+ * Use this Spring configuration for tests relying on the Postgres DB running in a Docker container.
+ *
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@Profile("test-h2")
 @Configuration
-public class NoOpFlywayTestConfig {
-
-  public static class NoOpFlyway {}
-
+public class PostgresTestConfig {
   @Bean
-  public NoOpFlyway flyway() {
-    return new NoOpFlyway();
+  public DhisConfigurationProvider dhisConfigurationProvider() {
+    return new PostgresDhisConfigurationProvider();
   }
 }
