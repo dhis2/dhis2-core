@@ -110,6 +110,8 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
 
   @Mock private ApplicationEventPublisher eventPublisher;
 
+  @Mock private SMSEnrollmentService smsEnrollmentService;
+
   private TrackedEntityRegistrationSMSListener subject;
 
   private TrackedEntity trackedEntity;
@@ -150,9 +152,7 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
             smsCommandService,
             trackedEntityTypeService,
             trackedEntityService,
-            manager,
-            trackerOwnershipAccessManager,
-            eventPublisher);
+            smsEnrollmentService);
 
     setUpInstances();
 
