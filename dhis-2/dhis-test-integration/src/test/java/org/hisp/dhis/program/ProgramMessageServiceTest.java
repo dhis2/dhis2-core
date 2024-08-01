@@ -40,6 +40,7 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.message.ProgramMessage;
@@ -233,7 +234,7 @@ class ProgramMessageServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetProgramMessageByQuery() {
+  void testGetProgramMessageByQuery() throws NotFoundException {
     programMessageService.saveProgramMessage(pmsgA);
     programMessageService.saveProgramMessage(pmsgB);
     List<ProgramMessage> list = programMessageService.getProgramMessages(params);
