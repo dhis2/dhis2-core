@@ -41,7 +41,6 @@ import org.hisp.dhis.cache.QueryCacheManager;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -64,8 +63,6 @@ class CacheInvalidationListenerTest {
 
   @Mock protected TrackedEntityAttributeService trackedEntityAttributeService;
 
-  @Mock protected TrackedEntityService trackedEntityService;
-
   @Mock protected PeriodService periodService;
 
   @Mock protected DisabledCaching disabledCaching;
@@ -87,7 +84,6 @@ class CacheInvalidationListenerTest {
             queryCacheManager,
             idObjectManager,
             trackedEntityAttributeService,
-            trackedEntityService,
             periodService,
             "SERVER_A");
 
