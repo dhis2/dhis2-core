@@ -35,6 +35,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.EventProgramEnrollmentStore;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramType;
 import org.springframework.stereotype.Repository;
 
 @RequiredArgsConstructor
@@ -60,10 +61,11 @@ public class HibernateEventProgramEnrollmentStore implements EventProgramEnrollm
 
       return session
           .createQuery(
-              "from Enrollment e where e.program.uid = :programUid and status = :enrollmentStatus and e.program.programType = 'with_registration'",
+              "from Enrollment e where e.program.uid = :programUid and status = :enrollmentStatus and e.program.programType = :programType",
               Enrollment.class)
           .setParameter("programUid", program.getUid())
           .setParameter("enrollmentStatus", enrollmentStatus)
+          .setParameter("programType", ProgramType.WITHOUT_REGISTRATION)
           .list();
     }
   }
