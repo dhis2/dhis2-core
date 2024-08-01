@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.notification;
 
+import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -46,6 +47,8 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class ProgramNotificationTemplateRequestParamsMapper {
+  private static final int DEFAULT_PAGE = 1;
+  private static final int DEFAULT_PAGE_SIZE = 50;
 
   private final IdentifiableObjectManager manager;
 
@@ -67,8 +70,11 @@ public class ProgramNotificationTemplateRequestParamsMapper {
         .programStage(programStage)
         .skipPaging(!isPaged)
         .paged(isPaged)
-        .page(requestParams.getPage())
-        .pageSize(requestParams.getPageSize())
+        .page(isPaged ? Objects.requireNonNullElse(requestParams.getPage(), DEFAULT_PAGE) : null)
+        .pageSize(
+            isPaged
+                ? Objects.requireNonNullElse(requestParams.getPageSize(), DEFAULT_PAGE_SIZE)
+                : null)
         .build();
   }
 
