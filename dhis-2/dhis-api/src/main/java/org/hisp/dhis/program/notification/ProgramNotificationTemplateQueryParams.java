@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,37 +28,22 @@
 package org.hisp.dhis.program.notification;
 
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Data;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 
 /**
  * @author Zubair Asghar
  */
-@Getter
-@Setter
-@EqualsAndHashCode(callSuper = false)
-@NoArgsConstructor
-public class ProgramNotificationTemplateParam extends NotificationPagingParam {
-  @Builder
-  public ProgramNotificationTemplateParam(
-      Integer page,
-      Integer pageSize,
-      boolean skipPaging,
-      Program program,
-      ProgramStage programStage,
-      boolean paged) {
-    super(page, pageSize, skipPaging, paged);
-    this.program = program;
-    this.programStage = programStage;
-  }
-
+@Data
+@Builder
+public class ProgramNotificationTemplateQueryParams {
+  private Integer page;
+  private Integer pageSize;
+  private boolean skipPaging;
   private Program program;
-
   private ProgramStage programStage;
+  private boolean paged;
 
   public boolean hasProgram() {
     return this.program != null;

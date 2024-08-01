@@ -35,7 +35,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplateParam;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateOperationParams;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.schema.descriptors.ProgramNotificationTemplateSchemaDescriptor;
 import org.hisp.dhis.security.RequiresAuthority;
@@ -79,7 +79,7 @@ public class ProgramNotificationTemplateController
       throws ConflictException, BadRequestException {
     validatePaginationParameters(requestParams);
 
-    ProgramNotificationTemplateParam params = requestParamsMapper.validateAndMap(requestParams);
+    ProgramNotificationTemplateOperationParams params = requestParamsMapper.map(requestParams);
 
     List<ProgramNotificationTemplate> instances =
         programNotificationTemplateService.getProgramNotificationTemplates(params);

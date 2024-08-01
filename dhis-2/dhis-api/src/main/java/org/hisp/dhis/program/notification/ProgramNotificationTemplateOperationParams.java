@@ -27,20 +27,35 @@
  */
 package org.hisp.dhis.program.notification;
 
-import java.util.Collection;
-import java.util.List;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.dataelement.DataElement;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hisp.dhis.common.UID;
 
-/** Created by zubair@dhis2.org on 16.11.17. */
-public interface ProgramNotificationTemplateStore
-    extends IdentifiableObjectStore<ProgramNotificationTemplate> {
-  String ID = ProgramNotificationTemplate.class.getName();
+/**
+ * @author Zubair Asghar
+ */
+@Getter
+@Setter
+@EqualsAndHashCode(callSuper = false)
+@NoArgsConstructor
+public class ProgramNotificationTemplateOperationParams extends NotificationPagingParam {
+  @Builder
+  public ProgramNotificationTemplateOperationParams(
+      Integer page,
+      Integer pageSize,
+      boolean skipPaging,
+      UID program,
+      UID programStage,
+      boolean paged) {
+    super(page, pageSize, skipPaging, paged);
+    this.program = program;
+    this.programStage = programStage;
+  }
 
-  int countProgramNotificationTemplates(ProgramNotificationTemplateQueryParams param);
+  private UID program;
 
-  List<ProgramNotificationTemplate> getProgramNotificationTemplates(
-      ProgramNotificationTemplateQueryParams param);
-
-  List<ProgramNotificationTemplate> getByDataElement(Collection<DataElement> dataElements);
+  private UID programStage;
 }

@@ -62,7 +62,7 @@ public class DefaultProgramNotificationTemplateStore
   }
 
   @Override
-  public int countProgramNotificationTemplates(ProgramNotificationTemplateParam param) {
+  public int countProgramNotificationTemplates(ProgramNotificationTemplateQueryParams param) {
     Query query =
         nativeSynchronizedQuery(
             "select count(*) from programnotificationtemplate where programstageid = :psid or programid = :pid");
@@ -75,7 +75,7 @@ public class DefaultProgramNotificationTemplateStore
 
   @Override
   public List<ProgramNotificationTemplate> getProgramNotificationTemplates(
-      ProgramNotificationTemplateParam param) {
+      ProgramNotificationTemplateQueryParams param) {
     NativeQuery<ProgramNotificationTemplate> query =
         nativeSynchronizedTypedQuery(
             "select * from programnotificationtemplate where programstageid = :psid or programid = :pid");

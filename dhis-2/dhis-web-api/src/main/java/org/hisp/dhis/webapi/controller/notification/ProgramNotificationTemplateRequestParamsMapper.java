@@ -28,18 +28,11 @@
 package org.hisp.dhis.webapi.controller.notification;
 
 import java.util.Objects;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.notification.NotificationPagingParam;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplateParam;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateOperationParams;
 import org.springframework.stereotype.Component;
 
 /**
@@ -48,22 +41,18 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class ProgramNotificationTemplateRequestParamsMapper {
-  private final IdentifiableObjectManager manager;
 
-  public ProgramNotificationTemplateParam validateAndMap(
+  public ProgramNotificationTemplateOperationParams map(
       ProgramNotificationTemplateRequestParams requestParams)
       throws ConflictException, BadRequestException {
 
     validateRequestParams(requestParams);
 
-    Program program = getEntity(requestParams.getProgram(), Program.class);
-    ProgramStage programStage = getEntity(requestParams.getProgramStage(), ProgramStage.class);
-
     boolean isPaged = determinePaging(requestParams);
 
-    return ProgramNotificationTemplateParam.builder()
-        .program(program)
-        .programStage(programStage)
+    return ProgramNotificationTemplateOperationParams.builder()
+        .program(requestParams.getProgram())
+        .programStage(requestParams.getProgramStage())
         .skipPaging(!isPaged)
         .paged(isPaged)
         .page(
@@ -96,21 +85,6 @@ public class ProgramNotificationTemplateRequestParamsMapper {
       throw new BadRequestException(
           "Paging can either be enabled or disabled. Prefer 'paging' as 'skipPaging' will be removed.");
     }
-  }
-
-  private <T extends BaseIdentifiableObject> T getEntity(UID objectId, Class<T> klass)
-      throws IllegalQueryException {
-    if (objectId == null) {
-      return null;
-    }
-
-    return Optional.ofNullable(manager.get(klass, objectId.getValue()))
-        .orElseThrow(
-            () ->
-                new IllegalQueryException(
-                    String.format(
-                        "%s with ID %s does not exist.",
-                        klass.getSimpleName(), objectId.getValue())));
   }
 
   private boolean determinePaging(ProgramNotificationTemplateRequestParams requestParams) {
