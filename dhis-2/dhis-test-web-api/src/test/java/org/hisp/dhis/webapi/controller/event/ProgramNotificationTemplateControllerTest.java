@@ -230,30 +230,32 @@ class ProgramNotificationTemplateControllerTest extends H2ControllerIntegrationT
 
   @Test
   void shouldFailWhenProgramDoesNotExist() {
-    String program = CodeGenerator.generateUid();
+    String invalidProgram = CodeGenerator.generateUid();
     String message =
-        GET("/programNotificationTemplates/filter?program={uid}", program)
-            .content(HttpStatus.CONFLICT)
-            .getString("message")
-            .string();
-
-    assertStartsWith(
-        String.format("%s with ID %s does not exist.", Program.class.getSimpleName(), program),
-        message);
-  }
-
-  @Test
-  void shouldFailWhenProgramStageDoesNotExist() {
-    String programStage = CodeGenerator.generateUid();
-    String message =
-        GET("/programNotificationTemplates/filter?programStage={uid}", programStage)
+        GET("/programNotificationTemplates/filter?program={uid}", invalidProgram)
             .content(HttpStatus.CONFLICT)
             .getString("message")
             .string();
 
     assertStartsWith(
         String.format(
-            "%s with ID %s does not exist.", ProgramStage.class.getSimpleName(), programStage),
+            "%s with ID %s does not exist.", Program.class.getSimpleName(), invalidProgram),
+        message);
+  }
+
+  @Test
+  void shouldFailWhenProgramStageDoesNotExist() {
+    String invalidProgramStage = CodeGenerator.generateUid();
+    String message =
+        GET("/programNotificationTemplates/filter?programStage={uid}", invalidProgramStage)
+            .content(HttpStatus.CONFLICT)
+            .getString("message")
+            .string();
+
+    assertStartsWith(
+        String.format(
+            "%s with ID %s does not exist.",
+            ProgramStage.class.getSimpleName(), invalidProgramStage),
         message);
   }
 }
