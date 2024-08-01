@@ -244,4 +244,6 @@ public interface AppManager {
    * @return true if the status was changed in this method.
    */
   boolean markAppToDelete(App app);
+
+  int getUriContentLength(Resource resource);
 }
