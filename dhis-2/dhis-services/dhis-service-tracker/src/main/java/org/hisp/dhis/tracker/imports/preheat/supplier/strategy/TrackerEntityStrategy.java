@@ -68,7 +68,7 @@ public class TrackerEntityStrategy extends HibernateGenericStore<TrackedEntity>
 
   private List<TrackedEntity> getIncludingDeleted(List<String> uids) {
     List<TrackedEntity> trackedEntities = new ArrayList<>();
-    List<List<String>> uidsPartitions = Lists.partition(Lists.newArrayList(uids), 20000);
+    List<List<String>> uidsPartitions = Lists.partition(uids, 20000);
 
     for (List<String> uidsPartition : uidsPartitions) {
       if (!uidsPartition.isEmpty()) {

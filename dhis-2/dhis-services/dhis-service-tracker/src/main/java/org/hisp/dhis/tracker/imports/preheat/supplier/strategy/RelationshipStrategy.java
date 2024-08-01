@@ -75,7 +75,7 @@ public class RelationshipStrategy extends HibernateGenericStore<Relationship>
 
   private List<Relationship> getIncludingDeleted(List<String> uids) {
     List<Relationship> relationships = new ArrayList<>();
-    List<List<String>> uidsPartitions = Lists.partition(Lists.newArrayList(uids), 20000);
+    List<List<String>> uidsPartitions = Lists.partition(uids, 20000);
 
     for (List<String> uidsPartition : uidsPartitions) {
       if (!uidsPartition.isEmpty()) {
