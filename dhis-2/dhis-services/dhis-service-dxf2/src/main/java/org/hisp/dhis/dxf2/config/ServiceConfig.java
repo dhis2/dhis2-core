@@ -95,7 +95,7 @@ public class ServiceConfig {
         .collect(Collectors.toMap(e -> (Class<? extends T>) e.getClass(), Functions.identity()));
   }
 
-  @Bean("retryTemplate")
+  @Bean
   public RetryTemplate retryTemplate() {
     ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();
 

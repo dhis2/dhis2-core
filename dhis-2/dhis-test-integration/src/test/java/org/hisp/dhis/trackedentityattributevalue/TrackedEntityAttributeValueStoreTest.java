@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
 import org.hisp.dhis.changelog.ChangeLogType;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.render.RenderService;
@@ -41,7 +42,6 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -58,7 +58,7 @@ class TrackedEntityAttributeValueStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackedEntityAttributeValueStore attributeValueStore;
 
-  @Autowired private TrackedEntityService trackedEntityService;
+  @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -100,10 +100,10 @@ class TrackedEntityAttributeValueStoreTest extends PostgresIntegrationTestBase {
     trackedEntityB = createTrackedEntity(organisationUnit);
     trackedEntityC = createTrackedEntity(organisationUnit);
     trackedEntityD = createTrackedEntity(organisationUnit);
-    trackedEntityService.addTrackedEntity(trackedEntityA);
-    trackedEntityService.addTrackedEntity(trackedEntityB);
-    trackedEntityService.addTrackedEntity(trackedEntityC);
-    trackedEntityService.addTrackedEntity(trackedEntityD);
+    manager.save(trackedEntityA);
+    manager.save(trackedEntityB);
+    manager.save(trackedEntityC);
+    manager.save(trackedEntityD);
     atA = createTrackedEntityAttribute('A');
     atB = createTrackedEntityAttribute('B');
     atC = createTrackedEntityAttribute('C');

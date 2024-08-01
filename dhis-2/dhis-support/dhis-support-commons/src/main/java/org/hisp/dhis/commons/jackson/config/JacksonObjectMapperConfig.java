@@ -88,12 +88,12 @@ public class JacksonObjectMapperConfig {
   public static final CsvMapper csvMapper = configureCsvMapper(new CsvMapper());
 
   @Primary
-  @Bean("jsonMapper")
+  @Bean
   public ObjectMapper jsonMapper() {
     return jsonMapper;
   }
 
-  @Bean("hibernateAwareJsonMapper")
+  @Bean
   public ObjectMapper hibernateAwareJsonMapper() {
     Hibernate5Module hibernate5Module = new Hibernate5Module();
     hibernate5Module.enable(
@@ -102,7 +102,7 @@ public class JacksonObjectMapperConfig {
     return hibernateAwareJsonMapper;
   }
 
-  @Bean("dataValueJsonMapper")
+  @Bean
   public ObjectMapper dataValueJsonMapper() {
     return dataValueJsonMapper;
   }

@@ -42,7 +42,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -59,7 +58,6 @@ import org.hisp.dhis.fileresource.FileResourceStorageStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -99,8 +97,6 @@ class TrackedEntitiesExportControllerTest extends H2ControllerIntegrationTestBas
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private FileResourceService fileResourceService;
-
-  @Autowired private EnrollmentService enrollmentService;
 
   @Autowired private CategoryService categoryService;
 
@@ -1079,8 +1075,12 @@ class TrackedEntitiesExportControllerTest extends H2ControllerIntegrationTestBas
 
   private Enrollment enroll(
       TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit) {
-    return enrollmentService.enrollTrackedEntity(
-        trackedEntity, program, new Date(), new Date(), orgUnit);
+    Enrollment enrollment = createEnrollment(program, trackedEntity, orgUnit);
+    manager.save(enrollment);
+    trackedEntity.getEnrollments().add(enrollment);
+    manager.update(trackedEntity);
+
+    return enrollment;
   }
 
   private UserAccess userAccess() {

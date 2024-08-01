@@ -113,10 +113,10 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
     TrackedEntity duplicate = createTrackedEntity(ou);
     TrackedEntity control1 = createTrackedEntity(ou);
     TrackedEntity control2 = createTrackedEntity(ou);
-    trackedEntityService.addTrackedEntity(original);
-    trackedEntityService.addTrackedEntity(duplicate);
-    trackedEntityService.addTrackedEntity(control1);
-    trackedEntityService.addTrackedEntity(control2);
+    manager.save(original);
+    manager.save(duplicate);
+    manager.save(control1);
+    manager.save(control2);
     RelationshipType relationshipType = createRelationshipType('A');
     relationshipTypeService.addRelationshipType(relationshipType);
     Relationship relationship1 = createTeToTeRelationship(original, control1, relationshipType);
@@ -151,10 +151,10 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
     TrackedEntity duplicate = createTrackedEntity(ou);
     TrackedEntity control1 = createTrackedEntity(ou);
     TrackedEntity control2 = createTrackedEntity(ou);
-    trackedEntityService.addTrackedEntity(original);
-    trackedEntityService.addTrackedEntity(duplicate);
-    trackedEntityService.addTrackedEntity(control1);
-    trackedEntityService.addTrackedEntity(control2);
+    manager.save(original);
+    manager.save(duplicate);
+    manager.save(control1);
+    manager.save(control2);
     Program program = createProgram('A');
     programService.addProgram(program);
     Enrollment enrollment1 = createEnrollment(program, original, ou);
@@ -190,7 +190,7 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
     OrganisationUnit ou = createOrganisationUnit("OU_A");
     organisationUnitService.addOrganisationUnit(ou);
     TrackedEntity trackedEntity = createTrackedEntity('T', ou, trackedEntityAttribute);
-    trackedEntityService.addTrackedEntity(trackedEntity);
+    manager.save(trackedEntity);
     return trackedEntity;
   }
 

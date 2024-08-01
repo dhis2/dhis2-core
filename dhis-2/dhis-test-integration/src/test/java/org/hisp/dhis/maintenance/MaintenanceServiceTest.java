@@ -163,10 +163,10 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
     trackedEntity = createTrackedEntity(organisationUnit);
     trackedEntity.setTrackedEntityType(trackedEntityType);
-    trackedEntityService.addTrackedEntity(trackedEntity);
+    manager.save(trackedEntity);
     trackedEntityB = createTrackedEntity(organisationUnit);
     trackedEntityB.setTrackedEntityType(trackedEntityType);
-    trackedEntityService.addTrackedEntity(trackedEntityB);
+    manager.save(trackedEntityB);
     trackedEntityWithAssociations = createTrackedEntity('T', organisationUnit);
     DateTime testDate1 = DateTime.now();
     testDate1.withTimeAtStartOfDay();
@@ -182,7 +182,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
         new Enrollment(enrollmentDate, occurredDate, trackedEntityWithAssociations, program);
     enrollmentWithTeAssociation.setUid("UID-B");
     enrollmentWithTeAssociation.setOrganisationUnit(organisationUnit);
-    trackedEntityService.addTrackedEntity(trackedEntityWithAssociations);
+    manager.save(trackedEntityWithAssociations);
     manager.save(enrollmentWithTeAssociation);
     manager.save(enrollment);
     event = new Event(enrollment, stageA);
@@ -221,20 +221,20 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     r.setKey(RelationshipUtils.generateRelationshipKey(r));
     r.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(r));
     manager.save(r);
-    assertNotNull(trackedEntityService.getTrackedEntity(trackedEntity.getId()));
+    assertNotNull(manager.get(TrackedEntity.class, trackedEntity.getId()));
     assertNotNull(getRelationship(r.getId()));
-    trackedEntityService.deleteTrackedEntity(trackedEntity);
-    assertNull(trackedEntityService.getTrackedEntity(trackedEntity.getId()));
+    manager.delete(trackedEntity);
+    assertNull(manager.get(TrackedEntity.class, trackedEntity.getId()));
     manager.delete(r);
     manager.delete(enrollment);
     assertNull(getRelationship(r.getId()));
-    assertTrue(trackedEntityService.trackedEntityExistsIncludingDeleted(trackedEntity.getUid()));
+    assertTrue(trackedEntityExistsIncludingDeleted(trackedEntity.getUid()));
     assertTrue(relationshipExistsIncludingDeleted(r.getUid()));
 
     maintenanceService.deleteSoftDeletedEnrollments();
     maintenanceService.deleteSoftDeletedTrackedEntities();
 
-    assertFalse(trackedEntityService.trackedEntityExistsIncludingDeleted(trackedEntity.getUid()));
+    assertFalse(trackedEntityExistsIncludingDeleted(trackedEntity.getUid()));
     assertFalse(relationshipExistsIncludingDeleted(r.getUid()));
   }
 
@@ -308,16 +308,16 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
             .recipients(programMessageRecipients)
             .deliveryChannels(Sets.newHashSet(DeliveryChannel.EMAIL))
             .build();
-    long idA = trackedEntityService.addTrackedEntity(trackedEntityB);
+    manager.save(trackedEntityB);
     programMessageService.saveProgramMessage(message);
-    assertNotNull(trackedEntityService.getTrackedEntity(idA));
-    trackedEntityService.deleteTrackedEntity(trackedEntityB);
-    assertNull(trackedEntityService.getTrackedEntity(idA));
-    assertTrue(trackedEntityService.trackedEntityExistsIncludingDeleted(trackedEntityB.getUid()));
+    assertNotNull(trackedEntityService.getTrackedEntity(trackedEntityB.getUid()));
+    manager.delete(trackedEntityB);
+    assertNull(trackedEntityService.getTrackedEntity(trackedEntityB.getUid()));
+    assertTrue(trackedEntityExistsIncludingDeleted(trackedEntityB.getUid()));
 
     maintenanceService.deleteSoftDeletedTrackedEntities();
 
-    assertFalse(trackedEntityService.trackedEntityExistsIncludingDeleted(trackedEntityB.getUid()));
+    assertFalse(trackedEntityExistsIncludingDeleted(trackedEntityB.getUid()));
   }
 
   @Test
@@ -425,11 +425,9 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
   @Test
   @Disabled("until we can inject dhis.conf property overrides")
   void testAuditEntryForDeletionOfSoftDeletedTrackedEntity() {
-    trackedEntityService.deleteTrackedEntity(trackedEntityWithAssociations);
-    assertNull(trackedEntityService.getTrackedEntity(trackedEntityWithAssociations.getId()));
-    assertTrue(
-        trackedEntityService.trackedEntityExistsIncludingDeleted(
-            trackedEntityWithAssociations.getUid()));
+    manager.delete(trackedEntityWithAssociations);
+    assertNull(manager.get(TrackedEntity.class, trackedEntityWithAssociations.getId()));
+    assertTrue(trackedEntityExistsIncludingDeleted(trackedEntityWithAssociations.getUid()));
     maintenanceService.deleteSoftDeletedTrackedEntities();
     List<Audit> audits =
         auditService.getAudits(
@@ -478,6 +476,12 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
 
   private Relationship getRelationship(long id) {
     return manager.get(Relationship.class, id);
+  }
+
+  private boolean trackedEntityExistsIncludingDeleted(String uid) {
+    return Boolean.TRUE.equals(
+        jdbcTemplate.queryForObject(
+            "select exists(select 1 from trackedentity where uid=?)", Boolean.class, uid));
   }
 
   private boolean eventExistsIncludingDeleted(String uid) {

@@ -51,7 +51,6 @@ import org.hisp.dhis.test.web.WebClient;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.mock.web.MockMultipartFile;
@@ -74,18 +73,18 @@ import org.springframework.web.context.WebApplicationContext;
  * Main base class for all Spring Mock MVC based controller integration tests. The Spring context is
  * configured to contain the Spring components to test the DHIS2 web app.
  *
- * <p>Concrete test classes
+ * <p>Concrete test classes should extend one of {@link PostgresControllerIntegrationTestBase} or
+ * {@link H2ControllerIntegrationTestBase}.
+ *
+ * <p>Read through
  *
  * <ul>
- *   <li>should ideally extend one of {@link PostgresControllerIntegrationTestBase} or {@link
- *       H2ControllerIntegrationTestBase}
- *   <li>only if the above do not fit should they directly extend this class and pick the DB they
- *       want to test against via the {@link ActiveProfiles} matching one of the {@link Profile}
- *       declared in {@link PostgresDhisConfiguration} or {@link H2DhisConfiguration}
+ *   <li>{@link org.hisp.dhis.test}
+ *   <li>{@link ContextConfiguration}
+ *   <li>{@link ActiveProfiles}
  * </ul>
  *
- * Refer to {@link ContextConfiguration} and {@link ActiveProfiles} before creating yet another base
- * class.
+ * if you are unsure how to get started and certainly before you create another base test class!
  *
  * @author Viet Nguyen
  */

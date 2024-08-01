@@ -60,7 +60,6 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.util.DateUtils;
@@ -80,15 +79,11 @@ class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackedEntityAttributeService attributeService;
 
-  @Autowired private TrackedEntityService trackedEntityService;
-
   @Autowired private OrganisationUnitService organisationUnitService;
 
   @Autowired private ProgramService programService;
 
   @Autowired private ProgramStageService programStageService;
-
-  @Autowired private EnrollmentService enrollmentService;
 
   @Autowired private DataElementService dataElementService;
 
@@ -100,10 +95,6 @@ class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
 
-  private Date occurredDate;
-
-  private Date enrollmentDate;
-
   private ProgramStage psA;
 
   private ProgramStage psB;
@@ -111,8 +102,6 @@ class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
   private Program programA;
 
   private Program programB;
-
-  private Enrollment enrollment;
 
   private DataElement deAInteger;
 
@@ -236,21 +225,23 @@ class ProgramIndicatorServiceTest extends PostgresIntegrationTestBase {
     programStageDataElementService.addProgramStageDataElement(stageDataElementI);
     programStageDataElementService.addProgramStageDataElement(stageDataElementJ);
     // ---------------------------------------------------------------------
-    // TrackedEntity & Enrollment
+    // TrackedEntity
     // ---------------------------------------------------------------------
     TrackedEntity trackedEntity = createTrackedEntity(organisationUnit);
-    trackedEntityService.addTrackedEntity(trackedEntity);
-    occurredDate = DateUtils.toMediumDate("2014-10-22");
-    enrollmentDate = DateUtils.toMediumDate("2014-12-31");
-    enrollment =
-        enrollmentService.enrollTrackedEntity(
-            trackedEntity, programA, enrollmentDate, occurredDate, organisationUnit);
-    occurredDate = DateUtils.toMediumDate("2014-10-22");
-    enrollmentDate = DateUtils.toMediumDate("2014-12-31");
-    enrollment =
-        enrollmentService.enrollTrackedEntity(
-            trackedEntity, programA, enrollmentDate, occurredDate, organisationUnit);
-    // TODO enroll twice?
+    manager.save(trackedEntity);
+    // ---------------------------------------------------------------------
+    // Enrollment
+    // ---------------------------------------------------------------------
+    Date occurredDate = DateUtils.toMediumDate("2014-10-22");
+    Date enrollmentDate = DateUtils.toMediumDate("2014-12-31");
+
+    Enrollment enrollment = createEnrollment(programA, trackedEntity, organisationUnit);
+    enrollment.setEnrollmentDate(enrollmentDate);
+    enrollment.setOccurredDate(occurredDate);
+    manager.save(enrollment);
+    trackedEntity.getEnrollments().add(enrollment);
+    manager.update(trackedEntity);
+
     // ---------------------------------------------------------------------
     // TrackedEntityAttribute
     // ---------------------------------------------------------------------

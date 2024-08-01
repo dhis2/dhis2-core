@@ -41,7 +41,6 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class EnrollmentDeletionHandler extends IdObjectDeletionHandler<Enrollment> {
-  private final EnrollmentService enrollmentService;
 
   @Override
   protected void registerHandler() {
