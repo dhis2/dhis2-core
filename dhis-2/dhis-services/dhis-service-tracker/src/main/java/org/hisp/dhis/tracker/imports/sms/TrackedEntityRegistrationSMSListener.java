@@ -132,7 +132,7 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
       sendFeedback("No TrackedEntityAttribute found", senderPhoneNumber, WARNING);
     }
 
-    enrollTrackedEntity(
+    smsEnrollmentService.enrollTrackedEntity(
         trackedEntityService.getTrackedEntity(trackedEntity.getUid()),
         program,
         orgUnit,
