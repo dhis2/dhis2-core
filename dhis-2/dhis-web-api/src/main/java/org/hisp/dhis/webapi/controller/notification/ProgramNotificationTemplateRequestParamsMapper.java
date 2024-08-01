@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.notification;
 import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.UID;
@@ -39,7 +40,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.notification.NotificationPagingParam;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateParam;
-import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Component;
 
 /**
@@ -56,10 +56,8 @@ public class ProgramNotificationTemplateRequestParamsMapper {
 
     validateRequestParams(requestParams);
 
-    UID entity = getFirstNonNullEntity(requestParams.getProgram(), requestParams.getProgramStage());
-
-    Program program = getProgram(entity, requestParams);
-    ProgramStage programStage = getProgramStage(entity, requestParams);
+    Program program = getEntity(requestParams.getProgram(), Program.class);
+    ProgramStage programStage = getEntity(requestParams.getProgramStage(), ProgramStage.class);
 
     boolean isPaged = determinePaging(requestParams);
 
@@ -100,28 +98,19 @@ public class ProgramNotificationTemplateRequestParamsMapper {
     }
   }
 
-  private UID getFirstNonNullEntity(UID programUid, UID programStageUid) {
-    return ObjectUtils.firstNonNull(programUid, programStageUid);
-  }
-
-  private Program getProgram(UID entity, ProgramNotificationTemplateRequestParams params)
+  private <T extends BaseIdentifiableObject> T getEntity(UID objectId, Class<T> klass)
       throws IllegalQueryException {
-    if (params.getProgram() == null) return null;
-    return Optional.ofNullable(manager.get(Program.class, entity.getValue()))
+    if (objectId == null) {
+      return null;
+    }
+
+    return Optional.ofNullable(manager.get(klass, objectId.getValue()))
         .orElseThrow(
             () ->
                 new IllegalQueryException(
-                    String.format("Program: %s does not exist.", entity.getValue())));
-  }
-
-  private ProgramStage getProgramStage(UID entity, ProgramNotificationTemplateRequestParams params)
-      throws IllegalQueryException {
-    if (params.getProgramStage() == null) return null;
-    return Optional.ofNullable(manager.get(ProgramStage.class, entity.getValue()))
-        .orElseThrow(
-            () ->
-                new IllegalQueryException(
-                    String.format("ProgramStage: %s does not exist.", entity.getValue())));
+                    String.format(
+                        "%s with ID %s does not exist.",
+                        klass.getSimpleName(), objectId.getValue())));
   }
 
   private boolean determinePaging(ProgramNotificationTemplateRequestParams requestParams) {
