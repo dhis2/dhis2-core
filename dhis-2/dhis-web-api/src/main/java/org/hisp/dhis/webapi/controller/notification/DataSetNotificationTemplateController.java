@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event;
+package org.hisp.dhis.webapi.controller.notification;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate;
