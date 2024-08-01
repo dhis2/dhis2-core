@@ -76,7 +76,8 @@ public class ProgramMessageController extends AbstractFullReadOnlyController<Pro
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public ResponseEntity<List<ProgramMessage>> getProgramMessages(
-      ProgramMessageRequestParams requestParams) throws BadRequestException, ConflictException {
+      ProgramMessageRequestParams requestParams)
+      throws BadRequestException, ConflictException, NotFoundException {
     ProgramMessageOperationParams params = paramsMapper.map(requestParams);
 
     return ResponseEntity.ok(programMessageService.getProgramMessages(params));
@@ -86,7 +87,7 @@ public class ProgramMessageController extends AbstractFullReadOnlyController<Pro
   @GetMapping(value = "/scheduled/sent", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public List<ProgramMessage> getScheduledSentMessage(ProgramMessageRequestParams requestParams)
-      throws BadRequestException, ConflictException {
+      throws BadRequestException, ConflictException, NotFoundException {
     requestParams.setMessageStatus(ProgramMessageStatus.SENT);
     ProgramMessageOperationParams params = paramsMapper.map(requestParams);
 

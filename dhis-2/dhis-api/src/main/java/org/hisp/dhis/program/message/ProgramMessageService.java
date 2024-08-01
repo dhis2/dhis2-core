@@ -61,7 +61,8 @@ public interface ProgramMessageService {
 
   ProgramMessage getProgramMessage(String uid);
 
-  List<ProgramMessage> getProgramMessages(ProgramMessageOperationParams params);
+  List<ProgramMessage> getProgramMessages(ProgramMessageOperationParams params)
+      throws NotFoundException;
 
   // -------------------------------------------------------------------------
   // Save OR Update

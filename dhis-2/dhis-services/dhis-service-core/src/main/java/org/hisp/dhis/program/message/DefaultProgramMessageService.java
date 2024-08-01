@@ -101,7 +101,8 @@ public class DefaultProgramMessageService implements ProgramMessageService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<ProgramMessage> getProgramMessages(ProgramMessageOperationParams params) {
+  public List<ProgramMessage> getProgramMessages(ProgramMessageOperationParams params)
+      throws NotFoundException {
     ProgramMessageQueryParams queryParams = paramsMapper.map(params);
 
     return programMessageStore.getProgramMessages(queryParams);

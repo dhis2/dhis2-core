@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.program.message;
 
-import jakarta.ws.rs.NotFoundException;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +34,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
@@ -59,7 +59,8 @@ public class ProgramMessageOperationParamsMapper {
   private final UserService userService;
 
   @Transactional(readOnly = true)
-  public ProgramMessageQueryParams map(ProgramMessageOperationParams operationParams) {
+  public ProgramMessageQueryParams map(ProgramMessageOperationParams operationParams)
+      throws NotFoundException {
     Enrollment enrollment = getEntity(operationParams.getEnrollment(), Enrollment.class);
     Event event = getEntity(operationParams.getEvent(), Event.class);
 
