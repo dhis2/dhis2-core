@@ -33,6 +33,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.message.ProgramMessageStatus;
 
 /**
@@ -48,13 +50,17 @@ public class ProgramMessageRequestParams {
   private ProgramMessageStatus messageStatus;
 
   @Deprecated(since = "2.41")
+  @OpenApi.Property(value = Enrollment.class)
   private UID programInstance;
 
+  @OpenApi.Property({UID.class, Enrollment.class})
   private UID enrollment;
 
+  @OpenApi.Property(value = Event.class)
   @Deprecated(since = "2.41")
   private UID programStageInstance;
 
+  @OpenApi.Property({UID.class, Event.class})
   private UID event;
 
   private Date afterDate;
