@@ -236,7 +236,7 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
 
     trackedEntity.setTrackedEntityType(trackedEntityType);
     when(trackedEntityService.getTrackedEntity(anyString())).thenReturn(trackedEntity);
-    when(smsEnrollmentService.enrollTrackedEntity(any(), any(), any(), any()))
+    when(smsEnrollmentService.enrollTrackedEntity(any(), any(), any(), any(), any()))
         .thenReturn(enrollment);
   }
 

@@ -56,13 +56,23 @@ public class SMSEnrollmentService {
   private final ApplicationEventPublisher eventPublisher;
   private final TrackedEntityService trackedEntityService;
 
-  public Enrollment enrollTrackedEntity(
+  public void enrollTrackedEntity(
       TrackedEntity trackedEntity,
       Program program,
       OrganisationUnit organisationUnit,
       Date occurredDate) {
+    enrollTrackedEntity(
+        trackedEntity, program, organisationUnit, occurredDate, CodeGenerator.generateUid());
+  }
+
+  public Enrollment enrollTrackedEntity(
+      TrackedEntity trackedEntity,
+      Program program,
+      OrganisationUnit organisationUnit,
+      Date occurredDate,
+      String enrollmentUid) {
     Enrollment enrollment =
-        prepareEnrollment(trackedEntity, program, occurredDate, organisationUnit);
+        prepareEnrollment(trackedEntity, program, occurredDate, organisationUnit, enrollmentUid);
     manager.save(enrollment);
     trackerOwnershipAccessManager.assignOwnership(
         trackedEntity, program, organisationUnit, true, true);
@@ -77,7 +87,8 @@ public class SMSEnrollmentService {
       TrackedEntity trackedEntity,
       Program program,
       Date occurredDate,
-      OrganisationUnit organisationUnit) {
+      OrganisationUnit organisationUnit,
+      String enrollmentUid) {
     if (program.getTrackedEntityType() != null
         && !program.getTrackedEntityType().equals(trackedEntity.getTrackedEntityType())) {
       throw new IllegalQueryException(
@@ -85,7 +96,7 @@ public class SMSEnrollmentService {
     }
 
     Enrollment enrollment = new Enrollment();
-    enrollment.setUid(CodeGenerator.generateUid());
+    enrollment.setUid(enrollmentUid);
     enrollment.setOrganisationUnit(organisationUnit);
     enrollment.enrollTrackedEntity(trackedEntity, program);
     enrollment.setEnrollmentDate(new Date());

@@ -204,7 +204,9 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
     }
 
     if (enrollment == null) {
-      enrollment = smsEnrollmentService.enrollTrackedEntity(te, program, orgUnit, occurredDate);
+      enrollment =
+          smsEnrollmentService.enrollTrackedEntity(
+              te, program, orgUnit, occurredDate, enrollmentid.getUid());
 
       if (enrollment == null) {
         throw new SMSProcessingException(SmsResponse.ENROLL_FAILED.set(teUid, progid));
