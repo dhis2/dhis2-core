@@ -34,11 +34,16 @@ import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.code.SMSCode;
@@ -53,9 +58,11 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -72,7 +79,11 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
 
   private final ProgramService programService;
 
-  private final EnrollmentService enrollmentService;
+  private final IdentifiableObjectManager manager;
+
+  private final TrackerOwnershipManager trackerOwnershipAccessManager;
+
+  private final ApplicationEventPublisher eventPublisher;
 
   public TrackedEntityRegistrationSMSListener(
       ProgramService programService,
@@ -83,13 +94,17 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
       SMSCommandService smsCommandService,
       TrackedEntityTypeService trackedEntityTypeService,
       TrackedEntityService trackedEntityService,
-      EnrollmentService enrollmentService) {
+      IdentifiableObjectManager manager,
+      TrackerOwnershipManager trackerOwnershipAccessManager,
+      ApplicationEventPublisher eventPublisher) {
     super(dataElementCategoryService, userService, incomingSmsService, smsSender);
     this.smsCommandService = smsCommandService;
     this.trackedEntityTypeService = trackedEntityTypeService;
     this.trackedEntityService = trackedEntityService;
     this.programService = programService;
-    this.enrollmentService = enrollmentService;
+    this.manager = manager;
+    this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
+    this.eventPublisher = eventPublisher;
   }
 
   @Override
@@ -97,7 +112,7 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
       IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage) {
     String message = sms.getText();
 
-    Date date = SmsUtils.lookForDate(message);
+    Date occurredDate = SmsUtils.lookForDate(message);
     String senderPhoneNumber = StringUtils.replace(sms.getOriginator(), "+", "");
     Collection<OrganisationUnit> orgUnits = getOrganisationUnits(sms);
 
@@ -127,20 +142,21 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
               patientAttributeValues.add(trackedEntityAttributeValue);
             });
 
-    long trackedEntityId = 0;
     if (!patientAttributeValues.isEmpty()) {
-      trackedEntityId =
-          trackedEntityService.createTrackedEntity(trackedEntity, patientAttributeValues);
+      trackedEntityService.createTrackedEntity(trackedEntity, patientAttributeValues);
     } else {
       sendFeedback("No TrackedEntityAttribute found", senderPhoneNumber, WARNING);
     }
 
-    TrackedEntity te = trackedEntityService.getTrackedEntity(trackedEntityId);
-
-    enrollmentService.enrollTrackedEntity(te, smsCommand.getProgram(), new Date(), date, orgUnit);
+    enrollTrackedEntity(
+        trackedEntityService.getTrackedEntity(trackedEntity.getUid()),
+        program,
+        orgUnit,
+        occurredDate);
 
     sendFeedback(
-        StringUtils.defaultIfBlank(smsCommand.getSuccessMessage(), SUCCESS_MESSAGE + te.getUid()),
+        StringUtils.defaultIfBlank(
+            smsCommand.getSuccessMessage(), SUCCESS_MESSAGE + trackedEntity.getUid()),
         senderPhoneNumber,
         INFO);
 
@@ -163,5 +179,62 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
     trackedEntityAttributeValue.setTrackedEntity(trackedEntity);
     trackedEntityAttributeValue.setValue(value);
     return trackedEntityAttributeValue;
+  }
+
+  // TODO(tracker) we should use the importer here
+  private void enrollTrackedEntity(
+      TrackedEntity trackedEntity,
+      Program program,
+      OrganisationUnit organisationUnit,
+      Date occurredDate) {
+    Enrollment enrollment =
+        prepareEnrollment(
+            trackedEntity,
+            program,
+            new Date(),
+            occurredDate,
+            organisationUnit,
+            CodeGenerator.generateUid());
+    manager.save(enrollment);
+    trackerOwnershipAccessManager.assignOwnership(
+        trackedEntity, program, organisationUnit, true, true);
+    eventPublisher.publishEvent(new ProgramEnrollmentNotificationEvent(this, enrollment.getId()));
+    manager.update(enrollment);
+    trackedEntityService.updateTrackedEntity(trackedEntity);
+  }
+
+  private Enrollment prepareEnrollment(
+      TrackedEntity trackedEntity,
+      Program program,
+      Date enrollmentDate,
+      Date occurredDate,
+      OrganisationUnit organisationUnit,
+      String uid) {
+    if (program.getTrackedEntityType() != null
+        && !program.getTrackedEntityType().equals(trackedEntity.getTrackedEntityType())) {
+      throw new IllegalQueryException(
+          "Tracked entity must have same tracked entity as program: " + program.getUid());
+    }
+
+    Enrollment enrollment = new Enrollment();
+    enrollment.setUid(CodeGenerator.isValidUid(uid) ? uid : CodeGenerator.generateUid());
+    enrollment.setOrganisationUnit(organisationUnit);
+    enrollment.enrollTrackedEntity(trackedEntity, program);
+
+    if (enrollmentDate != null) {
+      enrollment.setEnrollmentDate(enrollmentDate);
+    } else {
+      enrollment.setEnrollmentDate(new Date());
+    }
+
+    if (occurredDate != null) {
+      enrollment.setOccurredDate(occurredDate);
+    } else {
+      enrollment.setOccurredDate(new Date());
+    }
+
+    enrollment.setStatus(EnrollmentStatus.ACTIVE);
+
+    return enrollment;
   }
 }

@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
@@ -42,11 +41,11 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -63,6 +62,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -71,6 +71,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 /**
  * @author Zubair Asghar.
@@ -86,8 +87,6 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
   private static final String ORIGINATOR = "47400000";
 
   private static final String SUCCESS_MESSAGE = "Command has been processed successfully";
-
-  @Mock private EnrollmentService enrollmentService;
 
   @Mock private CategoryService dataElementCategoryService;
 
@@ -105,9 +104,13 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
 
   @Mock private ProgramService programService;
 
-  private TrackedEntityRegistrationSMSListener subject;
+  @Mock private IdentifiableObjectManager manager;
 
-  private TrackedEntityType trackedEntityType;
+  @Mock private TrackerOwnershipManager trackerOwnershipAccessManager;
+
+  @Mock private ApplicationEventPublisher eventPublisher;
+
+  private TrackedEntityRegistrationSMSListener subject;
 
   private TrackedEntity trackedEntity;
 
@@ -147,7 +150,9 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
             smsCommandService,
             trackedEntityTypeService,
             trackedEntityService,
-            enrollmentService);
+            manager,
+            trackerOwnershipAccessManager,
+            eventPublisher);
 
     setUpInstances();
 
@@ -174,7 +179,7 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
   void testTrackedEntityRegistration() {
     // Mock for trackedEntityService
     when(trackedEntityService.createTrackedEntity(any(), any())).thenReturn(1L);
-    when(trackedEntityService.getTrackedEntity(anyLong())).thenReturn(trackedEntity);
+    when(trackedEntityService.getTrackedEntity(any())).thenReturn(trackedEntity);
     when(programService.hasOrgUnit(program, organisationUnit)).thenReturn(true);
 
     // Mock for incomingSmsService
@@ -207,7 +212,7 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
   }
 
   private void setUpInstances() {
-    trackedEntityType = createTrackedEntityType('T');
+    TrackedEntityType trackedEntityType = createTrackedEntityType('T');
     organisationUnit = createOrganisationUnit('O');
     program = createProgram('P');
 
@@ -225,6 +230,7 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
     trackedEntity = createTrackedEntity(organisationUnit);
     trackedEntity.getTrackedEntityAttributeValues().add(trackedEntityAttributeValue);
     trackedEntity.setOrganisationUnit(organisationUnit);
+    trackedEntity.setTrackedEntityType(trackedEntityType);
 
     trackedEntityAttributeValue =
         createTrackedEntityAttributeValue('A', trackedEntity, trackedEntityAttribute);

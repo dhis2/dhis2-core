@@ -99,23 +99,6 @@ public class DefaultEnrollmentService implements EnrollmentService {
       Program program,
       Date enrollmentDate,
       Date occurredDate,
-      OrganisationUnit organisationUnit) {
-    return enrollTrackedEntity(
-        trackedEntity,
-        program,
-        enrollmentDate,
-        occurredDate,
-        organisationUnit,
-        CodeGenerator.generateUid());
-  }
-
-  @Override
-  @Transactional
-  public Enrollment enrollTrackedEntity(
-      TrackedEntity trackedEntity,
-      Program program,
-      Date enrollmentDate,
-      Date occurredDate,
       OrganisationUnit organisationUnit,
       String uid) {
     Enrollment enrollment =

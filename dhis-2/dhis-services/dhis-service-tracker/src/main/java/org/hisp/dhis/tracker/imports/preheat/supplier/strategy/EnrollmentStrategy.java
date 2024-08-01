@@ -68,7 +68,7 @@ public class EnrollmentStrategy extends HibernateGenericStore<Enrollment>
 
   private List<Enrollment> getIncludingDeleted(List<String> uids) {
     List<Enrollment> enrollments = new ArrayList<>();
-    List<List<String>> uidsPartitions = Lists.partition(Lists.newArrayList(uids), 20000);
+    List<List<String>> uidsPartitions = Lists.partition(uids, 20000);
 
     for (List<String> uidsPartition : uidsPartitions) {
       if (!uidsPartition.isEmpty()) {
