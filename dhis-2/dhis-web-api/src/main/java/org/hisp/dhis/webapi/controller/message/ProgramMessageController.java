@@ -38,6 +38,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
@@ -47,7 +48,6 @@ import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageQueryParams;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.program.message.ProgramMessageStatus;
-import org.hisp.dhis.program.message.ProgramMessageUpdateRequest;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.AbstractFullReadOnlyController;
@@ -110,15 +110,14 @@ public class ProgramMessageController extends AbstractFullReadOnlyController<Pro
   @RequiresAuthority(anyOf = F_MOBILE_SENDSMS)
   @PutMapping(value = "/{uid}", produces = APPLICATION_JSON_VALUE)
   public WebMessage updateProgramMessage(
-      @PathVariable String uid, ProgramMessageUpdateRequest updatedRequest)
-      throws NotFoundException {
-    programMessageService.updateProgramMessage(uid, updatedRequest);
+      @PathVariable UID uid, ProgramMessageUpdateRequest updatedRequest) throws NotFoundException {
+    programMessageService.updateProgramMessage(uid, updatedRequest.getStatus());
     return ok(format("ProgramMessage with id %s updated", uid));
   }
 
   @RequiresAuthority(anyOf = F_MOBILE_SENDSMS)
   @DeleteMapping(value = "/{uid}", produces = APPLICATION_JSON_VALUE)
-  public WebMessage deleteProgramMessage(@PathVariable String uid) throws NotFoundException {
+  public WebMessage deleteProgramMessage(@PathVariable UID uid) throws NotFoundException {
     programMessageService.deleteProgramMessage(uid);
     return ok(format("ProgramMessage with id %s deleted", uid));
   }

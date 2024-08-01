@@ -25,14 +25,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.message;
+package org.hisp.dhis.webapi.controller.message;
 
-/**
- * @author Zubair Asghar
- */
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.program.message.ProgramMessageStatus;
 
 /** User input when updating {@link org.hisp.dhis.program.message.ProgramMessage}. */
 @Data
