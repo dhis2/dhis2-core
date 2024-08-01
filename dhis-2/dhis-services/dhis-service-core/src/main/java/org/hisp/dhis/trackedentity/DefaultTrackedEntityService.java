@@ -489,12 +489,6 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
   @Override
   @Transactional
-  public void updateTrackedEntity(TrackedEntity trackedEntity) {
-    trackedEntityStore.update(trackedEntity);
-  }
-
-  @Override
-  @Transactional
   public void updateTrackedEntityLastUpdated(
       Set<String> trackedEntityUIDs, Date lastUpdated, String userInfoSnapshot) {
     trackedEntityStore.updateTrackedEntityLastUpdated(
