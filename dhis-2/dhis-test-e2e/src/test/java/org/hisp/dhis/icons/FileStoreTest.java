@@ -55,7 +55,7 @@ class FileStoreTest extends ApiTest {
   }
 
   @Test
-  public void shouldStoreFileResourceInExternalStore() {
+  void shouldStoreFileResourceInExternalStore() {
     loginActions.loginAsSuperUser();
 
     File file = new File(getClass().getClassLoader().getResource("dhis2.png").getFile());
@@ -63,7 +63,7 @@ class FileStoreTest extends ApiTest {
         new MultiPartSpecBuilder(file).fileName("dhis2.png").mimeType("image/png").build();
     String fileResourceId =
         given()
-            .queryParam("domain", "ICON")
+            .queryParam("domain", "DOCUMENT")
             .multiPart(multiPart)
             .contentType(ContentType.MULTIPART)
             .when()
