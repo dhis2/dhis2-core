@@ -246,5 +246,4 @@ public interface AppManager {
   boolean markAppToDelete(App app);
 
   int getUriContentLength(Resource resource);
-
 }
