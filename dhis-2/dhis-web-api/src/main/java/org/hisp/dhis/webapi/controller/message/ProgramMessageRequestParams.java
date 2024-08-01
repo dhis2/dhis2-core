@@ -31,12 +31,15 @@ import java.util.Date;
 import java.util.Set;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.message.ProgramMessageStatus;
 
 /**
  * @author Zubair Asghar
  */
+@OpenApi.Shared(name = "ProgramMessageRequestParams")
+@OpenApi.Property
 @Data
 @NoArgsConstructor
 public class ProgramMessageRequestParams {
@@ -58,7 +61,9 @@ public class ProgramMessageRequestParams {
 
   private Date beforeDate;
 
+  @OpenApi.Property(defaultValue = "1")
   private Integer page;
 
+  @OpenApi.Property(defaultValue = "50")
   private Integer pageSize;
 }
