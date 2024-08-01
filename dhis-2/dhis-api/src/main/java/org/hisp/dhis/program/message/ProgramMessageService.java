@@ -61,7 +61,7 @@ public interface ProgramMessageService {
 
   ProgramMessage getProgramMessage(String uid);
 
-  List<ProgramMessage> getProgramMessages(ProgramMessageQueryParams params);
+  List<ProgramMessage> getProgramMessages(ProgramMessageOperationParams params);
 
   // -------------------------------------------------------------------------
   // Save OR Update

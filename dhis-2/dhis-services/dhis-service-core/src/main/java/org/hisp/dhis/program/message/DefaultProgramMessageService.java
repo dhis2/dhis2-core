@@ -29,7 +29,6 @@ package org.hisp.dhis.program.message;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -47,12 +46,10 @@ import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -84,6 +81,8 @@ public class DefaultProgramMessageService implements ProgramMessageService {
 
   private final AclService aclService;
 
+  private final ProgramMessageOperationParamsMapper paramsMapper;
+
   // -------------------------------------------------------------------------
   // Implementation methods
   // -------------------------------------------------------------------------
@@ -102,10 +101,10 @@ public class DefaultProgramMessageService implements ProgramMessageService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<ProgramMessage> getProgramMessages(ProgramMessageQueryParams params) {
-    currentUserHasAccess(params);
+  public List<ProgramMessage> getProgramMessages(ProgramMessageOperationParams params) {
+    ProgramMessageQueryParams queryParams = paramsMapper.map(params);
 
-    return programMessageStore.getProgramMessages(params);
+    return programMessageStore.getProgramMessages(queryParams);
   }
 
   @Override
@@ -167,31 +166,6 @@ public class DefaultProgramMessageService implements ProgramMessageService {
     saveProgramMessages(programMessages, status);
 
     return status;
-  }
-
-  private void currentUserHasAccess(ProgramMessageQueryParams params) {
-    Enrollment enrollment = null;
-
-    Set<Program> programs;
-
-    if (params.hasEnrollment()) {
-      enrollment = params.getEnrollment();
-    }
-
-    if (params.hasEvent()) {
-      enrollment = params.getEvent().getEnrollment();
-    }
-
-    if (enrollment == null) {
-      throw new IllegalQueryException("Enrollment or Event has to be provided");
-    }
-
-    programs = new HashSet<>(programService.getCurrentUserPrograms());
-
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    if (currentUser != null && !programs.contains(enrollment.getProgram())) {
-      throw new IllegalQueryException("User does not have access to the required program");
-    }
   }
 
   @Override

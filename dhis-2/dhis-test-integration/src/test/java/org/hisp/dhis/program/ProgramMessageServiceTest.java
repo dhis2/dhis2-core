@@ -42,7 +42,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.message.ProgramMessage;
-import org.hisp.dhis.program.message.ProgramMessageQueryParams;
+import org.hisp.dhis.program.message.ProgramMessageOperationParams;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.program.message.ProgramMessageStatus;
@@ -76,7 +76,7 @@ class ProgramMessageServiceTest extends PostgresIntegrationTestBase {
 
   private Set<DeliveryChannel> channels = new HashSet<>();
 
-  private ProgramMessageQueryParams params;
+  private ProgramMessageOperationParams params;
 
   private ProgramMessage pmsgA;
 
@@ -187,7 +187,7 @@ class ProgramMessageServiceTest extends PostgresIntegrationTestBase {
     pmsgB.setUid(uidB);
     pmsgC.setUid(uidC);
     params =
-        ProgramMessageQueryParams.builder()
+        ProgramMessageOperationParams.builder()
             .organisationUnit(ouUids)
             .enrollment(enrollmentA)
             .messageStatus(messageStatus)

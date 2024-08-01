@@ -45,7 +45,7 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.program.message.ProgramMessage;
-import org.hisp.dhis.program.message.ProgramMessageQueryParams;
+import org.hisp.dhis.program.message.ProgramMessageOperationParams;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.render.RenderService;
@@ -77,7 +77,7 @@ public class ProgramMessageController extends AbstractFullReadOnlyController<Pro
   @ResponseBody
   public ResponseEntity<List<ProgramMessage>> getProgramMessages(
       ProgramMessageRequestParams requestParams) throws BadRequestException, ConflictException {
-    ProgramMessageQueryParams params = paramsMapper.ValidateAndMap(requestParams);
+    ProgramMessageOperationParams params = paramsMapper.map(requestParams);
 
     return ResponseEntity.ok(programMessageService.getProgramMessages(params));
   }
@@ -88,7 +88,7 @@ public class ProgramMessageController extends AbstractFullReadOnlyController<Pro
   public List<ProgramMessage> getScheduledSentMessage(ProgramMessageRequestParams requestParams)
       throws BadRequestException, ConflictException {
     requestParams.setMessageStatus(ProgramMessageStatus.SENT);
-    ProgramMessageQueryParams params = paramsMapper.ValidateAndMap(requestParams);
+    ProgramMessageOperationParams params = paramsMapper.map(requestParams);
 
     return programMessageService.getProgramMessages(params);
   }

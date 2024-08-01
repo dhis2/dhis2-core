@@ -29,19 +29,12 @@ package org.hisp.dhis.webapi.controller.message;
 
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
 
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.message.ProgramMessageQueryParams;
-import org.hisp.dhis.util.ObjectUtils;
+import org.hisp.dhis.program.message.ProgramMessageOperationParams;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Zubair Asghar
@@ -49,10 +42,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 @RequiredArgsConstructor
 public class ProgramMessageRequestParamsMapper {
-  private final IdentifiableObjectManager manager;
-
-  @Transactional(readOnly = true)
-  public ProgramMessageQueryParams ValidateAndMap(ProgramMessageRequestParams params)
+  public ProgramMessageOperationParams map(ProgramMessageRequestParams params)
       throws ConflictException, BadRequestException {
     UID enrollmentUid =
         validateDeprecatedParameter(
@@ -68,32 +58,9 @@ public class ProgramMessageRequestParamsMapper {
       throw new ConflictException("Enrollment and Event cannot be processed together.");
     }
 
-    UID entity = ObjectUtils.firstNonNull(enrollmentUid, eventUid);
-
-    Enrollment enrollment = null;
-    Event event = null;
-
-    if (enrollmentUid != null) {
-      enrollment =
-          Optional.ofNullable(manager.get(Enrollment.class, entity.getValue()))
-              .orElseThrow(
-                  () ->
-                      new IllegalQueryException(
-                          String.format("Enrollment: %s does not exist.", entity.getValue())));
-    }
-
-    if (eventUid != null) {
-      event =
-          Optional.ofNullable(manager.get(Event.class, entity.getValue()))
-              .orElseThrow(
-                  () ->
-                      new IllegalQueryException(
-                          String.format("Event: %s does not exist.", entity.getValue())));
-    }
-
-    return ProgramMessageQueryParams.builder()
-        .enrollment(enrollment)
-        .event(event)
+    return ProgramMessageOperationParams.builder()
+        .enrollment(enrollmentUid)
+        .event(eventUid)
         .messageStatus(params.getMessageStatus())
         .afterDate(params.getAfterDate())
         .beforeDate(params.getBeforeDate())
