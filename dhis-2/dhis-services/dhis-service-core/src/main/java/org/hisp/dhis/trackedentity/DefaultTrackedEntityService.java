@@ -497,34 +497,12 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public TrackedEntity getTrackedEntity(long id) {
-    TrackedEntity te = trackedEntityStore.get(id);
-
-    addTrackedEntityAudit(te, CurrentUserUtil.getCurrentUsername(), ChangeLogType.READ);
-
-    return te;
-  }
-
-  @Override
   @Transactional
   public TrackedEntity getTrackedEntity(String uid) {
     TrackedEntity te = trackedEntityStore.getByUid(uid);
     addTrackedEntityAudit(te, CurrentUserUtil.getCurrentUsername(), ChangeLogType.READ);
 
     return te;
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean trackedEntityExists(String uid) {
-    return trackedEntityStore.exists(uid);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean trackedEntityExistsIncludingDeleted(String uid) {
-    return trackedEntityStore.existsIncludingDeleted(uid);
   }
 
   private boolean isLocalSearch(TrackedEntityQueryParams params, User user) {
