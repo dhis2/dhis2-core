@@ -54,10 +54,6 @@ public class ProgramMessageRequestParamsMapper {
   @Transactional(readOnly = true)
   public ProgramMessageQueryParams ValidateAndMap(ProgramMessageRequestParams params)
       throws ConflictException, BadRequestException {
-    if (params == null) {
-      throw new BadRequestException("ProgramMessageRequestParams cannot be null.");
-    }
-
     UID enrollmentUid =
         validateDeprecatedParameter(
             "programInstance", params.getProgramInstance(), "enrollment", params.getEnrollment());
