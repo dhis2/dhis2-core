@@ -68,6 +68,7 @@ class SqlQueryHelper {
                                      order by occurreddate ${programStageOffsetDirection} ) as rn
                  from analytics_te_events_${trackedEntityTypeUid} events
                  where programstage = '${programStageUid}'
+                   and trackedentity = t_1.trackedentity
                    and enrollment = %s
                    and status != 'SCHEDULE') ev
            where ev.rn = ${programStageOffset})"""
@@ -77,7 +78,7 @@ class SqlQueryHelper {
       """
           (select ${dataElementField}
            from analytics_te_events_${trackedEntityTypeUid}
-           where event = %s)"""
+           where trackedentity = t_1.trackedentity and event = %s)"""
           .formatted(EVENT_ORDER_BY_SUBQUERY);
 
   private static final String ENROLLMENT_EXISTS_SUBQUERY =
@@ -101,7 +102,8 @@ class SqlQueryHelper {
                          from (select *
                                from (select *, row_number() over ( partition by enrollment order by occurreddate ${programStageOffsetDirection} ) as rn
                                      from analytics_te_events_${trackedEntityTypeUid}
-                                     where "${enrollmentSubqueryAlias}".enrollment = enrollment
+                                     where "${enrollmentSubqueryAlias}".trackedentity = trackedentity
+                                       and "${enrollmentSubqueryAlias}".enrollment = enrollment
                                        and programstage = '${programStageUid}'
                                        and status != 'SCHEDULE') ev
                                where ev.rn = 1) as "${eventSubqueryAlias}"
@@ -115,7 +117,8 @@ class SqlQueryHelper {
               """
                   exists(select 1
                          from analytics_te_events_${trackedEntityTypeUid}
-                         where "${eventSubqueryAlias}".event = event
+                         where "${eventSubqueryAlias}".trackedentity = trackedentity
+                           and "${eventSubqueryAlias}".event = event
                            and ${eventDataValueCondition})"""));
 
   /**
