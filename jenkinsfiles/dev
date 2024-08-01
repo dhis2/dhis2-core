@@ -7,10 +7,6 @@ pipeline {
         label 'ec2-jdk17'
     }
 
-    triggers {
-        cron('H H(9-16)/2 * * 1-5')
-        pollSCM('H/30 * * * *')
-    }
 
     options {
         buildDiscarder(logRotator(daysToKeepStr: '5'))
