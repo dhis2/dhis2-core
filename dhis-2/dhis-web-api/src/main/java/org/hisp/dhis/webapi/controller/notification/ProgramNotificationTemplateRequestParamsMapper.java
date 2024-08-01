@@ -37,6 +37,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.notification.NotificationPagingParam;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateParam;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Component;
@@ -47,9 +48,6 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class ProgramNotificationTemplateRequestParamsMapper {
-  private static final int DEFAULT_PAGE = 1;
-  private static final int DEFAULT_PAGE_SIZE = 50;
-
   private final IdentifiableObjectManager manager;
 
   public ProgramNotificationTemplateParam validateAndMap(
@@ -70,10 +68,15 @@ public class ProgramNotificationTemplateRequestParamsMapper {
         .programStage(programStage)
         .skipPaging(!isPaged)
         .paged(isPaged)
-        .page(isPaged ? Objects.requireNonNullElse(requestParams.getPage(), DEFAULT_PAGE) : null)
+        .page(
+            isPaged
+                ? Objects.requireNonNullElse(
+                    requestParams.getPage(), NotificationPagingParam.DEFAULT_PAGE)
+                : null)
         .pageSize(
             isPaged
-                ? Objects.requireNonNullElse(requestParams.getPageSize(), DEFAULT_PAGE_SIZE)
+                ? Objects.requireNonNullElse(
+                    requestParams.getPageSize(), NotificationPagingParam.DEFAULT_PAGE_SIZE)
                 : null)
         .build();
   }
