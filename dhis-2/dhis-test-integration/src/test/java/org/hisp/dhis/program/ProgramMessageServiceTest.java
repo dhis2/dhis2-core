@@ -39,6 +39,7 @@ import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.message.ProgramMessage;
@@ -189,7 +190,7 @@ class ProgramMessageServiceTest extends PostgresIntegrationTestBase {
     params =
         ProgramMessageOperationParams.builder()
             .organisationUnit(ouUids)
-            .enrollment(enrollmentA)
+            .enrollment(UID.of(enrollmentA))
             .messageStatus(messageStatus)
             .build();
     bulkSmsConfig = new BulkSmsGatewayConfig();
