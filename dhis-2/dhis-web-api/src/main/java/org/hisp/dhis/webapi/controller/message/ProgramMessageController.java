@@ -38,6 +38,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageBatch;
@@ -81,7 +82,7 @@ public class ProgramMessageController extends AbstractCrudController<ProgramMess
   @GetMapping(value = "/scheduled/sent", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public List<ProgramMessage> getScheduledSentMessage(ProgramMessageRequestParams params)
-      throws BadRequestException, ConflictException {
+      throws BadRequestException, ConflictException, NotFoundException {
     params.setMessageStatus(ProgramMessageStatus.SENT);
     ProgramMessageOperationParams operationParams = requestParamMapper.map(params);
 
