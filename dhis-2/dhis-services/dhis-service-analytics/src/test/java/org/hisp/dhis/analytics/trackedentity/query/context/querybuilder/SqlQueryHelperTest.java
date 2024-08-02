@@ -154,6 +154,7 @@ class SqlQueryHelperTest {
                                        order by occurreddate desc ) as rn
                    from analytics_te_events_trackedentitytype events
                    where programstage = 'programStageUid'
+                     and trackedentity = t_1.trackedentity
                      and enrollment = (select enrollment
              from (select *,
                    row_number() over ( partition by trackedentity
@@ -179,7 +180,8 @@ class SqlQueryHelperTest {
                    from (select *
                          from (select *, row_number() over ( partition by enrollment order by occurreddate desc ) as rn
                                from analytics_te_events_trackedentitytype
-                               where "enrollmentSubqueryAlias".enrollment = enrollment
+                               where "enrollmentSubqueryAlias".trackedentity = trackedentity
+                                 and "enrollmentSubqueryAlias".enrollment = enrollment
                                  and programstage = 'programStageUid'
                                  and status != 'SCHEDULE') ev
                          where ev.rn = 1) as "prefix"
@@ -218,12 +220,13 @@ class SqlQueryHelperTest {
         """
             (select field
              from analytics_te_events_trackedentitytype
-             where event = (select event
+             where trackedentity = t_1.trackedentity and event = (select event
              from (select *,
                    row_number() over ( partition by enrollment
                                        order by occurreddate desc ) as rn
                    from analytics_te_events_trackedentitytype events
                    where programstage = 'programStageUid'
+                     and trackedentity = t_1.trackedentity
                      and enrollment = (select enrollment
              from (select *,
                    row_number() over ( partition by trackedentity
@@ -249,13 +252,15 @@ class SqlQueryHelperTest {
                    from (select *
                          from (select *, row_number() over ( partition by enrollment order by occurreddate desc ) as rn
                                from analytics_te_events_trackedentitytype
-                               where "enrollmentSubqueryAlias".enrollment = enrollment
+                               where "enrollmentSubqueryAlias".trackedentity = trackedentity
+                                 and "enrollmentSubqueryAlias".enrollment = enrollment
                                  and programstage = 'programStageUid'
                                  and status != 'SCHEDULE') ev
                          where ev.rn = 1) as "prefix"
                    where exists(select 1
                    from analytics_te_events_trackedentitytype
-                   where "prefix".event = event
+                   where "prefix".trackedentity = trackedentity
+                     and "prefix".event = event
                      and field)))""",
         SqlQueryHelper.buildExistsValueSubquery(testedDimension, () -> "field").render());
   }

@@ -55,6 +55,7 @@ import org.junit.jupiter.api.Test;
  * @author Lars Helge Overland
  */
 class AnalyticsTableTest {
+
   private final List<AnalyticsTableColumn> columnsA =
       List.of(
           AnalyticsTableColumn.builder().name("id").dataType(BIGINT).selectExpression("id").build(),
@@ -203,7 +204,11 @@ class AnalyticsTableTest {
   @Test
   void skipPartitionWhenTableTypeDistributedAndSystemSettingsDistributed() {
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.EVENT, columnsA, Logged.UNLOGGED, DISTRIBUTED);
+        new AnalyticsTable(
+            AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS,
+            columnsA,
+            Logged.UNLOGGED,
+            DISTRIBUTED);
     table.addTablePartition(
         List.of(),
         2014,
