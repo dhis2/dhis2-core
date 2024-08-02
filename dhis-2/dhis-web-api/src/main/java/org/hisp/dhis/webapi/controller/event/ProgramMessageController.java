@@ -39,7 +39,6 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -52,13 +51,10 @@ import org.hisp.dhis.program.message.ProgramMessageBatch;
 import org.hisp.dhis.program.message.ProgramMessageQueryParams;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.program.message.ProgramMessageStatus;
-import org.hisp.dhis.program.notification.ProgramNotificationInstance;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -71,17 +67,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/messages")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class ProgramMessageController extends AbstractCrudController<ProgramMessage> {
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
-
   @Autowired private ProgramMessageService programMessageService;
-
-  @Autowired private RenderService renderService;
-
-  @Autowired
-  @Qualifier("org.hisp.dhis.program.notification.ProgramNotificationInstanceStore")
-  private IdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore;
 
   // -------------------------------------------------------------------------
   // GET

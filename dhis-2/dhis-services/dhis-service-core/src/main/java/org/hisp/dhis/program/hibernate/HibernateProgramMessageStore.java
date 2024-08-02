@@ -79,19 +79,9 @@ public class HibernateProgramMessageStore extends HibernateIdentifiableObjectSto
     JpaQueryParameters<ProgramMessage> parameters =
         newJpaParameters()
             .addPredicate(
-                root ->
-                    builder.and(
-                        builder.equal(root.get("messageStatus"), "OUTBOUND"),
-                        builder.equal(root.get("messageCatagory"), "OUTGOING")));
+                root -> builder.and(builder.equal(root.get("messageStatus"), "OUTBOUND")));
 
     return getList(builder, parameters);
-  }
-
-  @Override
-  public boolean exists(String uid) {
-    ProgramMessage programMessage = getByUid(uid);
-
-    return programMessage != null && programMessage.getId() > 0;
   }
 
   // -------------------------------------------------------------------------

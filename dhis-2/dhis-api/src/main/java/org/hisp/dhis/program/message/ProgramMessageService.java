@@ -47,13 +47,6 @@ public interface ProgramMessageService {
       Date afterDate,
       Date beforeDate);
 
-  /**
-   * To check if {@link ProgramMessage message} exists against the given uid.
-   *
-   * @param uid the uid of ProgramMessage.
-   */
-  boolean exists(String uid);
-
   void currentUserHasAccess(ProgramMessageQueryParams params);
 
   void validateQueryParameters(ProgramMessageQueryParams params);
@@ -77,8 +70,6 @@ public interface ProgramMessageService {
    * @param programMessages the ProgramMessage.
    */
   BatchResponseStatus sendMessages(List<ProgramMessage> programMessages);
-
-  void sendMessagesAsync(List<ProgramMessage> programMessages);
 
   // -------------------------------------------------------------------------
   // GET

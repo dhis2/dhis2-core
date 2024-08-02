@@ -37,6 +37,4 @@ public interface ProgramMessageStore extends IdentifiableObjectStore<ProgramMess
   List<ProgramMessage> getProgramMessages(ProgramMessageQueryParams params);
 
   List<ProgramMessage> getAllOutboundMessages();
-
-  boolean exists(String uid);
 }
