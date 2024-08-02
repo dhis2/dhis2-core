@@ -113,13 +113,6 @@ public interface TrackedEntityService {
       boolean skipSearchScopeValidation);
 
   /**
-   * Soft deletes a {@link TrackedEntity}.
-   *
-   * @param trackedEntity the TrackedEntity to delete.
-   */
-  void deleteTrackedEntity(TrackedEntity trackedEntity);
-
-  /**
    * Updates a {@link TrackedEntity}.
    *
    * @param trackedEntity the TrackedEntity to update.
@@ -131,36 +124,12 @@ public interface TrackedEntityService {
       Set<String> trackedEntityUIDs, Date lastUpdated, String userInfoSnapshot);
 
   /**
-   * Returns a {@link TrackedEntity}.
-   *
-   * @param id the id of the TrackedEntity to return.
-   * @return the TrackedEntity with the given id
-   */
-  TrackedEntity getTrackedEntity(long id);
-
-  /**
    * Returns the {@link TrackedEntity} with the given UID.
    *
    * @param uid the UID.
    * @return the TrackedEntity with the given UID, or null if no match.
    */
   TrackedEntity getTrackedEntity(String uid);
-
-  /**
-   * Checks for the existence of a TE by UID. Deleted values are not taken into account.
-   *
-   * @param uid Event UID to check for
-   * @return true/false depending on result
-   */
-  boolean trackedEntityExists(String uid);
-
-  /**
-   * Checks for the existence of a TE by UID. Takes into account also the deleted values.
-   *
-   * @param uid Event UID to check for
-   * @return true/false depending on result
-   */
-  boolean trackedEntityExistsIncludingDeleted(String uid);
 
   /**
    * Register a new trackedEntity

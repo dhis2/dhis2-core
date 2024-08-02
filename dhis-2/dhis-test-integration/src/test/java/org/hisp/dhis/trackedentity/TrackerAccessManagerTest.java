@@ -49,7 +49,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -80,8 +79,6 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
   @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private ProgramStageDataElementService programStageDataElementService;
-
-  @Autowired private EnrollmentService enrollmentService;
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -165,9 +162,11 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     manager.save(femaleA);
     manager.save(femaleB);
 
-    Enrollment enrollmentA =
-        enrollmentService.enrollTrackedEntity(
-            trackedEntityA, programA, new Date(), new Date(), orgUnitA);
+    Enrollment enrollmentA = createEnrollment(programA, trackedEntityA, orgUnitA);
+    manager.save(enrollmentA);
+    trackedEntityA.getEnrollments().add(enrollmentA);
+    manager.update(trackedEntityA);
+
     eventA = new Event();
     eventA.setEnrollment(enrollmentA);
     eventA.setProgramStage(programStageA);

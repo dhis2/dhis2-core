@@ -72,7 +72,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -109,8 +108,6 @@ class AnalyticsValidationServiceTest extends PostgresIntegrationTestBase {
   @Autowired private TrackedEntityAttributeValueService entityAttributeValueService;
 
   @Autowired private ProgramService programService;
-
-  @Autowired private EnrollmentService enrollmentService;
 
   @Autowired private ProgramStageService programStageService;
 
@@ -222,9 +219,14 @@ class AnalyticsValidationServiceTest extends PostgresIntegrationTestBase {
     program.setProgramStages(Sets.newHashSet(stageA));
     program.getProgramIndicators().add(programIndicator);
     programService.updateProgram(program);
-    Enrollment enrollment =
-        enrollmentService.enrollTrackedEntity(
-            trackedEntity, program, dateMar20, dateMar20, orgUnitA);
+
+    Enrollment enrollment = createEnrollment(program, trackedEntity, orgUnitA);
+    enrollment.setEnrollmentDate(dateMar20);
+    enrollment.setOccurredDate(dateMar20);
+    manager.save(enrollment);
+    trackedEntity.getEnrollments().add(enrollment);
+    manager.update(trackedEntity);
+
     manager.save(enrollment);
     Event eventA = createEvent(stageA, enrollment, orgUnitA);
     eventA.setOccurredDate(dateMar20);

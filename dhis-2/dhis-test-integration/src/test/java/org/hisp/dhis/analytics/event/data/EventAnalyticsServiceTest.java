@@ -108,7 +108,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -159,8 +158,6 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   @Autowired private OptionService optionService;
 
   @Autowired private AnalyticsTableGenerator analyticsTableGenerator;
-
-  @Autowired private EnrollmentService enrollmentService;
 
   @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
@@ -423,15 +420,19 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     attributeValueService.addTrackedEntityAttributeValue(atv);
 
     // Enrollments (Enrollments)
-    Enrollment piA = enrollmentService.enrollTrackedEntity(teiA, programA, jan1, jan1, ouE);
-    piA.setEnrollmentDate(jan1);
-    piA.setOccurredDate(jan1);
-    manager.save(piA);
+    Enrollment enrollmentA = createEnrollment(programA, teiA, ouE);
+    enrollmentA.setEnrollmentDate(jan1);
+    enrollmentA.setOccurredDate(jan1);
+    manager.save(enrollmentA);
+    teiA.getEnrollments().add(enrollmentA);
+    manager.update(teiA);
 
-    Enrollment piB = enrollmentService.enrollTrackedEntity(teiA, programB, jan1, jan1, ouE);
-    piB.setEnrollmentDate(jan1);
-    piB.setOccurredDate(jan1);
-    manager.save(piB);
+    Enrollment enrollmentB = createEnrollment(programB, teiA, ouE);
+    enrollmentB.setEnrollmentDate(jan1);
+    enrollmentB.setOccurredDate(jan1);
+    manager.save(enrollmentB);
+    teiA.getEnrollments().add(enrollmentB);
+    manager.update(teiA);
 
     // Change programA / teiA ownership through time:
     // Jan 1 (enrollment) - Jan 15: ouE
@@ -439,13 +440,13 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     // Feb 15 - Feb 15 Noon: ouE
     // Feb 15 Noon - Mar 15: ouG
     // Mar 15 - present: ouH
-    addProgramOwnershipHistory(programA, teiA, ouE, piA.getEnrollmentDate(), jan15);
+    addProgramOwnershipHistory(programA, teiA, ouE, enrollmentA.getEnrollmentDate(), jan15);
     addProgramOwnershipHistory(programA, teiA, ouF, jan15, feb15);
     addProgramOwnershipHistory(programA, teiA, ouE, feb15, feb15Noon);
     addProgramOwnershipHistory(programA, teiA, ouG, feb15Noon, mar15);
     trackedEntityProgramOwnerService.createOrUpdateTrackedEntityProgramOwner(teiA, programA, ouH);
 
-    Event eventA1 = createEvent(psA, piA, ouI);
+    Event eventA1 = createEvent(psA, enrollmentA, ouI);
     eventA1.setScheduledDate(jan15);
     eventA1.setOccurredDate(jan15);
     eventA1.setUid("event0000A1");
@@ -454,7 +455,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
             new EventDataValue(deA.getUid(), "1"), new EventDataValue(deU.getUid(), ouL.getUid())));
     eventA1.setAttributeOptionCombo(cocDefault);
 
-    Event eventA2 = createEvent(psA, piA, ouJ);
+    Event eventA2 = createEvent(psA, enrollmentA, ouJ);
     eventA2.setScheduledDate(feb15);
     eventA2.setOccurredDate(feb15);
     eventA2.setUid("event0000A2");
@@ -463,7 +464,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
             new EventDataValue(deA.getUid(), "2"), new EventDataValue(deU.getUid(), ouM.getUid())));
     eventA2.setAttributeOptionCombo(cocDefault);
 
-    Event eventA3 = createEvent(psA, piA, ouK);
+    Event eventA3 = createEvent(psA, enrollmentA, ouK);
     eventA3.setScheduledDate(mar15);
     eventA3.setOccurredDate(mar15);
     eventA3.setUid("event0000A3");
@@ -472,7 +473,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
             new EventDataValue(deA.getUid(), "4"), new EventDataValue(deU.getUid(), ouN.getUid())));
     eventA3.setAttributeOptionCombo(cocDefault);
 
-    Event eventB1 = createEvent(psB, piB, ouI);
+    Event eventB1 = createEvent(psB, enrollmentB, ouI);
     eventB1.setScheduledDate(jan1);
     eventB1.setOccurredDate(jan1);
     eventB1.setUid("event0000B1");
@@ -480,7 +481,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
         Set.of(new EventDataValue(deA.getUid(), "10"), new EventDataValue(deB.getUid(), "A")));
     eventB1.setAttributeOptionCombo(cocDefault);
 
-    Event eventB2 = createEvent(psB, piB, ouI);
+    Event eventB2 = createEvent(psB, enrollmentB, ouI);
     eventB2.setScheduledDate(jan20);
     eventB2.setOccurredDate(jan20);
     eventB2.setUid("event0000B2");
@@ -488,7 +489,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
         Set.of(new EventDataValue(deA.getUid(), "20"), new EventDataValue(deB.getUid(), "B")));
     eventB2.setAttributeOptionCombo(cocDefault);
 
-    Event eventB3 = createEvent(psB, piB, ouJ);
+    Event eventB3 = createEvent(psB, enrollmentB, ouJ);
     eventB3.setScheduledDate(jan1);
     eventB3.setOccurredDate(jan1);
     eventB3.setUid("event0000B3");
@@ -496,7 +497,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
         Set.of(new EventDataValue(deA.getUid(), "30"), new EventDataValue(deB.getUid(), "C")));
     eventB3.setAttributeOptionCombo(cocDefault);
 
-    Event eventB4 = createEvent(psB, piB, ouJ);
+    Event eventB4 = createEvent(psB, enrollmentB, ouJ);
     eventB4.setScheduledDate(jan20);
     eventB4.setOccurredDate(jan20);
     eventB4.setUid("event0000B4");
@@ -504,7 +505,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
         Set.of(new EventDataValue(deA.getUid(), "40"), new EventDataValue(deB.getUid(), "D")));
     eventB4.setAttributeOptionCombo(cocDefault);
 
-    Event eventB5 = createEvent(psB, piB, ouI);
+    Event eventB5 = createEvent(psB, enrollmentB, ouI);
     eventB5.setScheduledDate(feb15);
     eventB5.setOccurredDate(feb15);
     eventB5.setUid("event0000B5");
@@ -512,7 +513,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
         Set.of(new EventDataValue(deA.getUid(), "50"), new EventDataValue(deB.getUid(), "E")));
     eventB5.setAttributeOptionCombo(cocDefault);
 
-    Event eventB6 = createEvent(psB, piB, ouI);
+    Event eventB6 = createEvent(psB, enrollmentB, ouI);
     eventB6.setScheduledDate(feb15Noon);
     eventB6.setOccurredDate(feb15Noon);
     eventB6.setUid("event0000B6");
@@ -520,7 +521,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
         Set.of(new EventDataValue(deA.getUid(), "60"), new EventDataValue(deB.getUid(), "F")));
     eventB6.setAttributeOptionCombo(cocDefault);
 
-    Event eventB7 = createEvent(psB, piB, ouJ);
+    Event eventB7 = createEvent(psB, enrollmentB, ouJ);
     eventB7.setScheduledDate(feb15);
     eventB7.setOccurredDate(feb15);
     eventB7.setUid("event0000B7");
@@ -528,7 +529,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
         Set.of(new EventDataValue(deA.getUid(), "70"), new EventDataValue(deB.getUid(), "G")));
     eventB7.setAttributeOptionCombo(cocDefault);
 
-    Event eventB8 = createEvent(psB, piB, ouJ);
+    Event eventB8 = createEvent(psB, enrollmentB, ouJ);
     eventB8.setScheduledDate(feb15Noon);
     eventB8.setOccurredDate(feb15Noon);
     eventB8.setUid("event0000B8");
@@ -536,7 +537,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
         Set.of(new EventDataValue(deA.getUid(), "80"), new EventDataValue(deB.getUid(), "H")));
     eventB8.setAttributeOptionCombo(cocDefault);
 
-    Event eventM1 = createEvent(psB, piB, ouI);
+    Event eventM1 = createEvent(psB, enrollmentB, ouI);
     eventM1.setScheduledDate(jan15);
     eventM1.setOccurredDate(jan15);
     eventM1.setUid("event0000M1");

@@ -52,7 +52,7 @@ public class DefaultSessionConfiguration {
    *
    * @return a {@link CharacterEncodingFilter} without specifying encoding.
    */
-  @Bean("springSessionRepositoryFilter")
+  @Bean
   public Filter springSessionRepositoryFilter() {
     return new CharacterEncodingFilter();
   }

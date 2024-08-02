@@ -121,8 +121,6 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
 
   @Mock private TrackedEntityService trackedEntityService;
 
-  @Mock private org.hisp.dhis.program.EnrollmentService apiEnrollmentService;
-
   @Mock private EnrollmentService enrollmentService;
 
   @Mock private TrackedEntityAttributeValueService attributeValueService;
@@ -134,6 +132,8 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
   @Mock private FileResourceService fileResourceService;
 
   @Mock private DhisConfigurationProvider config;
+
+  @Mock private SMSEnrollmentService smsEnrollmentService;
 
   EnrollmentSMSListener subject;
 
@@ -203,9 +203,9 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
             config,
             attributeValueService,
             trackedEntityService,
-            apiEnrollmentService,
             enrollmentService,
-            identifiableObjectManager);
+            identifiableObjectManager,
+            smsEnrollmentService);
 
     setUpInstances();
 
@@ -221,8 +221,6 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
     when(organisationUnitService.getOrganisationUnit(anyString())).thenReturn(organisationUnit);
     when(programService.getProgram(anyString())).thenReturn(program);
     when(trackedEntityTypeService.getTrackedEntityType(anyString())).thenReturn(trackedEntityType);
-    when(apiEnrollmentService.enrollTrackedEntity(any(), any(), any(), any(), any(), any()))
-        .thenReturn(enrollment);
     when(programService.hasOrgUnit(any(Program.class), any(OrganisationUnit.class)))
         .thenReturn(true);
     when(enrollmentService.getEnrollment(anyString(), any(UserDetails.class)))
@@ -235,6 +233,11 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
             })
         .when(incomingSmsService)
         .update(any());
+
+    trackedEntity.setTrackedEntityType(trackedEntityType);
+    when(trackedEntityService.getTrackedEntity(anyString())).thenReturn(trackedEntity);
+    when(smsEnrollmentService.enrollTrackedEntity(any(), any(), any(), any(), any()))
+        .thenReturn(enrollment);
   }
 
   @Test
