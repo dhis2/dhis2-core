@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,23 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.config;
+package org.hisp.dhis.eventhook;
 
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import java.util.concurrent.Executor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
- * Use this Spring configuration for tests relying on the Postgres DB running in a Docker container.
- *
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ * @author Morten Olav Hansen
  */
-@Profile("test-postgres")
 @Configuration
-public class PostgresDhisConfiguration {
-  @Bean
-  public DhisConfigurationProvider dhisConfigurationProvider() {
-    return new PostgresDhisConfigurationProvider();
+public class EventHookConfig {
+  @Bean(name = "eventHookTaskExecutor")
+  public Executor eventHookPoolTaskExecutor() {
+    final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+
+    // setting static defaults for now, we might to make this configurable in dhis.conf in the
+    // future
+    executor.setCorePoolSize(50);
+    executor.setMaxPoolSize(500);
+    executor.setQueueCapacity(5000);
+    executor.setThreadNamePrefix("EventHook-");
+    executor.initialize();
+
+    return executor;
   }
 }

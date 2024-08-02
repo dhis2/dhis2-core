@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,26 +27,22 @@
  */
 package org.hisp.dhis.test.config;
 
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 /**
- * Use this configuration for tests relying on MinIO storage running in a Docker container. e.g. add
- * to test class like `@ContextConfiguration(classes = {MinIODhisConfiguration.class})`
- *
- * @author david mackessy
+ * Creates a no operation flyway bean that can be used to disable flyway migrations when running
+ * tests.
  */
+@Profile("test-h2")
 @Configuration
-public class MinIOConfiguration {
+public class NoOpFlywayTestConfig {
 
-  /**
-   * Config class for MinIO setup, which reuses the existing Postgres properties.
-   *
-   * @return dhisConfigurationProvider
-   */
+  public static class NoOpFlyway {}
+
   @Bean
-  public DhisConfigurationProvider dhisConfigurationProvider() {
-    return new MinIOConfigurationProvider(new PostgresDhisConfigurationProvider().getProperties());
+  public NoOpFlyway flyway() {
+    return new NoOpFlyway();
   }
 }

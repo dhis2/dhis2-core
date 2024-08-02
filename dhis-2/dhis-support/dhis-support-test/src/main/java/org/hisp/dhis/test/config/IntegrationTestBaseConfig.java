@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,21 +28,38 @@
 package org.hisp.dhis.test.config;
 
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.ldap.authentication.LdapAuthenticator;
+import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 
 /**
- * Creates a no operation flyway bean that can be used to disable flyway migrations when running
- * tests.
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Profile("test-h2")
 @Configuration
-public class NoOpFlywayConfiguration {
-
-  public static class NoOpFlyway {}
+@ComponentScan("org.hisp.dhis")
+public class IntegrationTestBaseConfig {
+  @Bean
+  public static SessionRegistry sessionRegistry() {
+    return new SessionRegistryImpl();
+  }
 
   @Bean
-  public NoOpFlyway flyway() {
-    return new NoOpFlyway();
+  public LdapAuthenticator ldapAuthenticator() {
+    return authentication -> null;
+  }
+
+  @Bean
+  public LdapAuthoritiesPopulator ldapAuthoritiesPopulator() {
+    return (dirContextOperations, s) -> null;
+  }
+
+  @Bean
+  public PasswordEncoder encoder() {
+    return new BCryptPasswordEncoder();
   }
 }

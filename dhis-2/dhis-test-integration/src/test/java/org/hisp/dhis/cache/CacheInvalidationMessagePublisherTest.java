@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
+import org.hisp.dhis.cache.CacheInvalidationMessagePublisherTest.Config;
 import org.hisp.dhis.cacheinvalidation.redis.CacheInvalidationMessagePublisher;
 import org.hisp.dhis.cacheinvalidation.redis.CacheInvalidationPreStartupRoutine;
 import org.hisp.dhis.cacheinvalidation.redis.PostCacheEventPublisher;
@@ -56,11 +57,11 @@ import org.springframework.test.context.ContextConfiguration;
 @ActiveProfiles("cache-invalidation-test")
 @ContextConfiguration(
     classes = {
-      CacheInvalidationMessagePublisherTest.Configuration.class,
+      Config.class,
     })
 class CacheInvalidationMessagePublisherTest extends PostgresIntegrationTestBase {
 
-  static class Configuration {
+  static class Config {
     @Bean
     public static SessionRegistry sessionRegistry() {
       return new SessionRegistryImpl();

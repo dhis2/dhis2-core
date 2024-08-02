@@ -25,41 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.configuration;
+package org.hisp.dhis.webapi.filter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import javax.servlet.Filter;
 import org.hisp.dhis.condition.RedisDisabledCondition;
-import org.hisp.dhis.condition.RedisEnabledCondition;
-import org.hisp.dhis.system.notification.InMemoryNotifier;
-import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.system.notification.RedisNotifier;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.web.filter.CharacterEncodingFilter;
 
 /**
- * This class deals with the configuring an appropriate notifier depending on whether redis is
- * enabled or not.
+ * Configuration registered if {@link RedisDisabledCondition} matches to true. This serves as a
+ * fallback to spring-session if redis is disabled. Since web.xml has a
+ * "springSessionRepositoryFilter" mapped to all urls, the container will expect a filter bean with
+ * that name. Therefore we define a dummy {@link Filter} named springSessionRepositoryFilter. Here
+ * we define a {@link CharacterEncodingFilter} without setting any encoding so that requests will
+ * simply pass through the filter.
  *
  * @author Ameen Mohamed
  */
 @Configuration
-public class NotifierConfiguration {
-  @Autowired(required = false)
-  private RedisTemplate<?, ?> redisTemplate;
-
-  @SuppressWarnings("unchecked")
-  @Bean("notifier")
-  @Conditional(RedisEnabledCondition.class)
-  public Notifier redisNotifier(ObjectMapper objectMapper) {
-    return new RedisNotifier((RedisTemplate<String, String>) redisTemplate, objectMapper);
-  }
-
-  @Bean("notifier")
-  @Conditional(RedisDisabledCondition.class)
-  public Notifier inMemoryNotifier() {
-    return new InMemoryNotifier();
+@Conditional(RedisDisabledCondition.class)
+public class DefaultSessionConfig {
+  /**
+   * Defines a {@link CharacterEncodingFilter} named springSessionRepositoryFilter
+   *
+   * @return a {@link CharacterEncodingFilter} without specifying encoding.
+   */
+  @Bean
+  public Filter springSessionRepositoryFilter() {
+    return new CharacterEncodingFilter();
   }
 }

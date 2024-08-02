@@ -25,19 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.config;
+package org.hisp.dhis.web.jetty;
 
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 
-/** Use this Spring configuration for tests relying on the H2 in-memory DB. */
-@Profile("test-h2")
+/**
+ * Configuration class for a simple startup timer for embedded Jetty.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
 @Configuration
-public class H2DhisConfiguration {
-  @Bean
-  public DhisConfigurationProvider dhisConfigurationProvider() {
-    return new H2DhisConfigurationProvider();
+@Order(100)
+@ComponentScan(basePackages = {"org.hisp.dhis"})
+public class JettyStartupTimerSpringConfig {
+
+  @Bean("org.hisp.dhis.web.embeddedjetty.StartupFinishedRoutine")
+  public StartupFinishedRoutine startupFinishedRoutine() {
+    StartupFinishedRoutine startupRoutine = new StartupFinishedRoutine();
+    startupRoutine.setName("StartupFinishedRoutine");
+    startupRoutine.setRunlevel(42);
+    startupRoutine.setSkipInTests(true);
+    return startupRoutine;
   }
 }

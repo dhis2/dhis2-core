@@ -43,8 +43,8 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.test.IntegrationTestBase;
-import org.hisp.dhis.test.config.H2DhisConfiguration;
-import org.hisp.dhis.test.config.PostgresDhisConfiguration;
+import org.hisp.dhis.test.config.H2DhisTestConfig;
+import org.hisp.dhis.test.config.PostgresDhisTestConfig;
 import org.hisp.dhis.test.web.HttpMethod;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.web.WebClient;
@@ -92,10 +92,10 @@ import org.springframework.web.context.WebApplicationContext;
 @ContextConfiguration(
     inheritLocations = false,
     classes = {
-      H2DhisConfiguration.class,
-      PostgresDhisConfiguration.class,
-      MvcTestConfiguration.class,
-      WebTestConfiguration.class
+      H2DhisTestConfig.class,
+      PostgresDhisTestConfig.class,
+      MvcTestConfig.class,
+      WebTestConfig.class
     })
 @Transactional
 public abstract class ControllerIntegrationTestBase extends IntegrationTestBase

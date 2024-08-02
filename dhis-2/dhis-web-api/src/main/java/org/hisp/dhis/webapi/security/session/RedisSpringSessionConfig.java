@@ -25,29 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.web.jetty;
+package org.hisp.dhis.webapi.security.session;
 
+import org.hisp.dhis.condition.RedisEnabledCondition;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.session.data.redis.config.ConfigureRedisAction;
+import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 
 /**
- * Configuration class for a simple startup timer for embedded Jetty.
+ * Configuration registered if {@link RedisEnabledCondition} matches to true. Redis backed Spring
+ * Session will be configured due to the {@link EnableRedisHttpSession} annotation.
  *
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author Ameen Mohamed
  */
 @Configuration
-@Order(100)
-@ComponentScan(basePackages = {"org.hisp.dhis"})
-public class JettyStartupTimerSpringConfiguration {
+@Order(1998)
+@Conditional(RedisEnabledCondition.class)
+@EnableRedisHttpSession
+public class RedisSpringSessionConfig {
 
-  @Bean("org.hisp.dhis.web.embeddedjetty.StartupFinishedRoutine")
-  public StartupFinishedRoutine startupFinishedRoutine() {
-    StartupFinishedRoutine startupRoutine = new StartupFinishedRoutine();
-    startupRoutine.setName("StartupFinishedRoutine");
-    startupRoutine.setRunlevel(42);
-    startupRoutine.setSkipInTests(true);
-    return startupRoutine;
+  @Bean
+  public static ConfigureRedisAction configureRedisAction() {
+    return ConfigureRedisAction.NO_OP;
+  }
+
+  @Bean
+  public HttpSessionEventPublisher httpSessionEventPublisher() {
+    return new HttpSessionEventPublisher();
   }
 }

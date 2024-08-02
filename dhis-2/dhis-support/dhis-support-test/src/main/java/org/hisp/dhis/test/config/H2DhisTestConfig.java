@@ -25,36 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.security.session;
+package org.hisp.dhis.test.config;
 
-import org.hisp.dhis.condition.RedisEnabledCondition;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
-import org.springframework.security.web.session.HttpSessionEventPublisher;
-import org.springframework.session.data.redis.config.ConfigureRedisAction;
-import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
+import org.springframework.context.annotation.Profile;
 
-/**
- * Configuration registered if {@link RedisEnabledCondition} matches to true. Redis backed Spring
- * Session will be configured due to the {@link EnableRedisHttpSession} annotation.
- *
- * @author Ameen Mohamed
- */
+/** Use this Spring configuration for tests relying on the H2 in-memory DB. */
+@Profile("test-h2")
 @Configuration
-@Order(1998)
-@Conditional(RedisEnabledCondition.class)
-@EnableRedisHttpSession
-public class RedisSpringSessionConfiguration {
-
+public class H2DhisTestConfig {
   @Bean
-  public static ConfigureRedisAction configureRedisAction() {
-    return ConfigureRedisAction.NO_OP;
-  }
-
-  @Bean
-  public HttpSessionEventPublisher httpSessionEventPublisher() {
-    return new HttpSessionEventPublisher();
+  public DhisConfigurationProvider dhisConfigurationProvider() {
+    return new H2DhisConfigurationProvider();
   }
 }
