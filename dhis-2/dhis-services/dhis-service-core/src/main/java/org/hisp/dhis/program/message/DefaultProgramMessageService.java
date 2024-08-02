@@ -39,6 +39,7 @@ import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
@@ -106,7 +107,8 @@ public class DefaultProgramMessageService implements ProgramMessageService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<ProgramMessage> getProgramMessages(ProgramMessageOperationParams params) {
+  public List<ProgramMessage> getProgramMessages(ProgramMessageOperationParams params)
+      throws NotFoundException {
     ProgramMessageQueryParams queryParams = operationParamMapper.map(params);
 
     return programMessageStore.getProgramMessages(queryParams);

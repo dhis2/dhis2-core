@@ -29,6 +29,7 @@ package org.hisp.dhis.program.message;
 
 import java.util.List;
 import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 
 /**
@@ -65,7 +66,8 @@ public interface ProgramMessageService {
 
   List<ProgramMessage> getAllProgramMessages();
 
-  List<ProgramMessage> getProgramMessages(ProgramMessageOperationParams params);
+  List<ProgramMessage> getProgramMessages(ProgramMessageOperationParams params)
+      throws NotFoundException;
 
   // -------------------------------------------------------------------------
   // Save OR Update
