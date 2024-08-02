@@ -29,11 +29,9 @@ package org.hisp.dhis.program.hibernate;
 
 import java.util.List;
 import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
-import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageQueryParams;
 import org.hisp.dhis.program.message.ProgramMessageStore;
@@ -70,18 +68,6 @@ public class HibernateProgramMessageStore extends HibernateIdentifiableObjectSto
     }
 
     return query.list();
-  }
-
-  @Override
-  public List<ProgramMessage> getAllOutboundMessages() {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    JpaQueryParameters<ProgramMessage> parameters =
-        newJpaParameters()
-            .addPredicate(
-                root -> builder.and(builder.equal(root.get("messageStatus"), "OUTBOUND")));
-
-    return getList(builder, parameters);
   }
 
   // -------------------------------------------------------------------------
