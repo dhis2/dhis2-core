@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.cacheinvalidation.redis;
 
-import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.springframework.context.annotation.ConditionContext;
@@ -39,14 +38,6 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 public class CacheInvalidationEnabledCondition extends PropertiesAwareConfigurationCondition {
   @Override
   public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-    if (SystemUtils.isCacheInvalidationInTest(context.getEnvironment().getActiveProfiles())) {
-      return true;
-    }
-
-    if (SystemUtils.isTestRun(context.getEnvironment().getActiveProfiles())) {
-      return false;
-    }
-
     return getConfiguration().isEnabled(ConfigurationKey.REDIS_CACHE_INVALIDATION_ENABLED);
   }
 

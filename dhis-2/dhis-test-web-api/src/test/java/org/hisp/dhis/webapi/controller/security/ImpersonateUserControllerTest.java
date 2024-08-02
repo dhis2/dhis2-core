@@ -42,7 +42,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.security.ImpersonateUserControllerTest.DhisConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Bean;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
@@ -52,7 +51,6 @@ import org.springframework.test.context.ContextConfiguration;
     classes = {
       DhisConfig.class,
     })
-@ActiveProfiles("impersonate-user-test")
 class ImpersonateUserControllerTest extends H2ControllerIntegrationTestBase {
 
   static class DhisConfig {
