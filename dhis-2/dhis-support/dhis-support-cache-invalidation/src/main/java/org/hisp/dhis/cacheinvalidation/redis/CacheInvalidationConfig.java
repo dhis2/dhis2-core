@@ -43,7 +43,6 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 
 /**
@@ -53,7 +52,6 @@ import org.springframework.core.annotation.Order;
  */
 @Order(10002)
 @Configuration
-@Profile({"!test", "!test-h2"})
 @Conditional(value = CacheInvalidationEnabledConditionNotTestable.class)
 public class CacheInvalidationConfig {
   public static final List<Class<?>> EXCLUDE_LIST = List.of(JobConfiguration.class);
