@@ -112,13 +112,6 @@ public interface TrackedEntityService {
       boolean skipAccessValidation,
       boolean skipSearchScopeValidation);
 
-  /**
-   * Updates a {@link TrackedEntity}.
-   *
-   * @param trackedEntity the TrackedEntity to update.
-   */
-  void updateTrackedEntity(TrackedEntity trackedEntity);
-
   /** */
   void updateTrackedEntityLastUpdated(
       Set<String> trackedEntityUIDs, Date lastUpdated, String userInfoSnapshot);

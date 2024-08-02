@@ -116,7 +116,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
       manager.delete(enrollment);
 
-      teService.updateTrackedEntity(te);
+      manager.update(te);
 
       typeReport.getStats().incDeleted();
       typeReport.addEntity(objectReport);
@@ -160,7 +160,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
         TrackedEntity entity = event.getEnrollment().getTrackedEntity();
         entity.setLastUpdatedByUserInfo(userInfoSnapshot);
 
-        teService.updateTrackedEntity(entity);
+        manager.update(entity);
 
         Enrollment enrollment = event.getEnrollment();
         enrollment.setLastUpdatedByUserInfo(userInfoSnapshot);

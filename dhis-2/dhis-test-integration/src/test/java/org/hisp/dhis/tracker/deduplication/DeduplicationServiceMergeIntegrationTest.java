@@ -101,8 +101,8 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
     manager.save(enrollment2);
     original.getEnrollments().add(enrollment1);
     duplicate.getEnrollments().add(enrollment2);
-    trackedEntityService.updateTrackedEntity(original);
-    trackedEntityService.updateTrackedEntity(duplicate);
+    manager.update(original);
+    manager.update(duplicate);
     PotentialDuplicate potentialDuplicate =
         new PotentialDuplicate(original.getUid(), duplicate.getUid());
     deduplicationService.addPotentialDuplicate(potentialDuplicate);
@@ -158,8 +158,8 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
     manager.update(enrollment2);
     original.getEnrollments().add(enrollment1);
     duplicate.getEnrollments().add(enrollment2);
-    trackedEntityService.updateTrackedEntity(original);
-    trackedEntityService.updateTrackedEntity(duplicate);
+    manager.update(original);
+    manager.update(duplicate);
     PotentialDuplicate potentialDuplicate =
         new PotentialDuplicate(original.getUid(), duplicate.getUid());
     deduplicationService.addPotentialDuplicate(potentialDuplicate);

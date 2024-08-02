@@ -210,7 +210,7 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
         new TrackedEntityAttributeValue(trackedEntityAttributeA, trackedEntityA, "attribute-test");
     trackedEntityAttributeValueService.addTrackedEntityAttributeValue(trackedEntityAttributeValueA);
     trackedEntityA.setTrackedEntityAttributeValues(Sets.newHashSet(trackedEntityAttributeValueA));
-    trackedEntityService.updateTrackedEntity(trackedEntityA);
+    manager.update(trackedEntityA);
 
     // Enrollment to be provided in message renderer
     enrollmentA = createEnrollment(programA, trackedEntityA, organisationUnitA);

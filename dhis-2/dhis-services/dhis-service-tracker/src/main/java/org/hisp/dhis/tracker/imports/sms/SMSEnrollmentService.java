@@ -78,7 +78,7 @@ public class SMSEnrollmentService {
         trackedEntity, program, organisationUnit, true, true);
     eventPublisher.publishEvent(new ProgramEnrollmentNotificationEvent(this, enrollment.getId()));
     manager.update(enrollment);
-    trackedEntityService.updateTrackedEntity(trackedEntity);
+    manager.update(trackedEntity);
 
     return enrollment;
   }

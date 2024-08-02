@@ -202,7 +202,7 @@ class AnalyticsValidationServiceTest extends PostgresIntegrationTestBase {
     trackedEntityAttributeValue.setValue("123");
     entityAttributeValueService.addTrackedEntityAttributeValue(trackedEntityAttributeValue);
     trackedEntity.setTrackedEntityAttributeValues(Sets.newHashSet(trackedEntityAttributeValue));
-    trackedEntityService.updateTrackedEntity(trackedEntity);
+    manager.update(trackedEntity);
     Program program =
         createProgram(
             'A', null, Sets.newHashSet(entityAttribute), Sets.newHashSet(orgUnitA, orgUnitA), null);
