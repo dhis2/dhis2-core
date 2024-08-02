@@ -61,7 +61,6 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.SMSSpecialCharacter;
@@ -113,8 +112,6 @@ class DataValueListenerTest extends TestBase {
   private static final String WRONG_FORMAT = "WRONG_FORMAT";
 
   private static final String MORE_THAN_ONE_OU = "MORE_THAN_ONE_OU";
-
-  @Mock private EnrollmentService enrollmentService;
 
   @Mock private CategoryService dataElementCategoryService;
 

@@ -45,6 +45,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.changelog.ChangeLogType;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -85,6 +86,8 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
   private final UserService userService;
 
+  private final IdentifiableObjectManager manager;
+
   public DefaultTrackedEntityService(
       UserService userService,
       TrackedEntityStore trackedEntityStore,
@@ -94,7 +97,8 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
       OrganisationUnitService organisationUnitService,
       AclService aclService,
       TrackedEntityChangeLogService trackedEntityChangeLogService,
-      TrackedEntityAttributeValueChangeLogService attributeValueAuditService) {
+      TrackedEntityAttributeValueChangeLogService attributeValueAuditService,
+      IdentifiableObjectManager manager) {
     checkNotNull(trackedEntityStore);
     checkNotNull(attributeValueService);
     checkNotNull(attributeService);
@@ -112,6 +116,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     this.organisationUnitService = organisationUnitService;
     this.aclService = aclService;
     this.trackedEntityChangeLogService = trackedEntityChangeLogService;
+    this.manager = manager;
   }
 
   @Override
@@ -477,15 +482,9 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
       trackedEntity.getTrackedEntityAttributeValues().add(pav);
     }
 
-    updateTrackedEntity(trackedEntity); // Update associations
+    manager.update(trackedEntity);
 
     return id;
-  }
-
-  @Override
-  @Transactional
-  public void updateTrackedEntity(TrackedEntity trackedEntity) {
-    trackedEntityStore.update(trackedEntity);
   }
 
   @Override
@@ -497,34 +496,12 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public TrackedEntity getTrackedEntity(long id) {
-    TrackedEntity te = trackedEntityStore.get(id);
-
-    addTrackedEntityAudit(te, CurrentUserUtil.getCurrentUsername(), ChangeLogType.READ);
-
-    return te;
-  }
-
-  @Override
   @Transactional
   public TrackedEntity getTrackedEntity(String uid) {
     TrackedEntity te = trackedEntityStore.getByUid(uid);
     addTrackedEntityAudit(te, CurrentUserUtil.getCurrentUsername(), ChangeLogType.READ);
 
     return te;
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean trackedEntityExists(String uid) {
-    return trackedEntityStore.exists(uid);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean trackedEntityExistsIncludingDeleted(String uid) {
-    return trackedEntityStore.existsIncludingDeleted(uid);
   }
 
   private boolean isLocalSearch(TrackedEntityQueryParams params, User user) {

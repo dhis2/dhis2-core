@@ -156,7 +156,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
         .addResolver(new IndexFallbackResourceResolver());
   }
 
-  @Bean("multipartResolver")
+  @Bean
   public MultipartResolver multipartResolver() {
     return new CommonsMultipartResolver();
   }

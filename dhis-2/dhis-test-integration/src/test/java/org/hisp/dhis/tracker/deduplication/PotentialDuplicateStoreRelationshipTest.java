@@ -151,8 +151,8 @@ class PotentialDuplicateStoreRelationshipTest extends PostgresIntegrationTestBas
     duplicate = trackedEntityService.getTrackedEntity(duplicate.getUid());
     List<String> relationships = Lists.newArrayList(uni3.getUid());
     potentialDuplicateStore.moveRelationships(original, duplicate, relationships);
-    trackedEntityService.updateTrackedEntity(original);
-    trackedEntityService.updateTrackedEntity(duplicate);
+    manager.update(original);
+    manager.update(duplicate);
     Relationship _uni1 = getRelationship(uni1.getUid());
     Relationship _uni2 = getRelationship(uni2.getUid());
     Relationship _uni3 = getRelationship(uni3.getUid());

@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
@@ -47,7 +46,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -90,8 +88,6 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
 
   private static final String SUCCESS_MESSAGE = "Command has been processed successfully";
 
-  @Mock private EnrollmentService enrollmentService;
-
   @Mock private CategoryService dataElementCategoryService;
 
   @Mock private UserService userService;
@@ -113,6 +109,8 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
   @Mock private TrackerOwnershipManager trackerOwnershipAccessManager;
 
   @Mock private ApplicationEventPublisher eventPublisher;
+
+  @Mock private SMSEnrollmentService smsEnrollmentService;
 
   private TrackedEntityRegistrationSMSListener subject;
 
@@ -154,9 +152,7 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
             smsCommandService,
             trackedEntityTypeService,
             trackedEntityService,
-            manager,
-            trackerOwnershipAccessManager,
-            eventPublisher);
+            smsEnrollmentService);
 
     setUpInstances();
 
@@ -183,7 +179,7 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
   void testTrackedEntityRegistration() {
     // Mock for trackedEntityService
     when(trackedEntityService.createTrackedEntity(any(), any())).thenReturn(1L);
-    when(trackedEntityService.getTrackedEntity(anyLong())).thenReturn(trackedEntity);
+    when(trackedEntityService.getTrackedEntity(any())).thenReturn(trackedEntity);
     when(programService.hasOrgUnit(program, organisationUnit)).thenReturn(true);
 
     // Mock for incomingSmsService
