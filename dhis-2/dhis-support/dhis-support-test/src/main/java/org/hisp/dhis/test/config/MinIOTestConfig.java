@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,38 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.leader.election;
+package org.hisp.dhis.test.config;
 
-import org.hisp.dhis.condition.RedisDisabledCondition;
-import org.hisp.dhis.condition.RedisEnabledCondition;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.core.StringRedisTemplate;
 
 /**
- * Configures leaderManager that takes care of node leader elections.
+ * Use this configuration for tests relying on MinIO storage running in a Docker container. e.g. add
+ * to test class like `@ContextConfiguration(classes = {MinIODhisConfiguration.class})`
  *
- * @author Ameen Mohamed
+ * @author david mackessy
  */
 @Configuration
-public class LeaderElectionConfiguration {
-  @Autowired private DhisConfigurationProvider dhisConfigurationProvider;
+public class MinIOTestConfig {
 
-  @Bean(name = "leaderManager")
-  @Conditional(RedisEnabledCondition.class)
-  public LeaderManager redisLeaderManager(
-      @Autowired(required = false) @Qualifier("stringRedisTemplate")
-          StringRedisTemplate stringRedisTemplate) {
-    return new RedisLeaderManager(stringRedisTemplate, dhisConfigurationProvider);
-  }
-
-  @Bean(name = "leaderManager")
-  @Conditional(RedisDisabledCondition.class)
-  public LeaderManager noOpLeaderManager() {
-    return new NoOpLeaderManager(dhisConfigurationProvider);
+  /**
+   * Config class for MinIO setup, which reuses the existing Postgres properties.
+   *
+   * @return dhisConfigurationProvider
+   */
+  @Bean
+  public DhisConfigurationProvider dhisConfigurationProvider() {
+    return new MinIOConfigurationProvider(new PostgresDhisConfigurationProvider().getProperties());
   }
 }

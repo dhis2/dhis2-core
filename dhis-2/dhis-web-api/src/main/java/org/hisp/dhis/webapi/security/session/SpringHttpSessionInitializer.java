@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.webapi.security.session;
 
-import org.hisp.dhis.webapi.filter.DefaultSessionConfiguration;
+import org.hisp.dhis.webapi.filter.DefaultSessionConfig;
 import org.springframework.session.web.context.AbstractHttpSessionApplicationInitializer;
 
 /**
  * This is used for adding springSessionRepositoryFilter into the filter chain. The actual filter
- * bean used will be either backed by redis from the {@link RedisSpringSessionConfiguration} or a
- * dummy filter from {@link DefaultSessionConfiguration}.
+ * bean used will be either backed by redis from the {@link RedisSpringSessionConfig} or a dummy
+ * filter from {@link DefaultSessionConfig}.
  *
  * @author Ameen Mohamed
  */

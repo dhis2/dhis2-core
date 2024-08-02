@@ -94,7 +94,7 @@ public class PostCollectionCacheEventPublisher implements PreCollectionUpdateEve
               + ":"
               + affectedOwnerIdOrNull;
 
-      messagePublisher.publish(CacheInvalidationConfiguration.CHANNEL_NAME, message);
+      messagePublisher.publish(CacheInvalidationConfig.CHANNEL_NAME, message);
     }
   }
 

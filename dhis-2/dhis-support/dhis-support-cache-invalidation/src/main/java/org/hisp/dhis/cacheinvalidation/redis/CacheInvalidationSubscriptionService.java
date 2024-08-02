@@ -56,8 +56,8 @@ public class CacheInvalidationSubscriptionService {
     pubSubConnection.addListener(cacheInvalidationListener);
 
     RedisPubSubAsyncCommands<String, String> async = pubSubConnection.async();
-    async.subscribe(CacheInvalidationConfiguration.CHANNEL_NAME);
+    async.subscribe(CacheInvalidationConfig.CHANNEL_NAME);
 
-    log.debug("Subscribed to channel: " + CacheInvalidationConfiguration.CHANNEL_NAME);
+    log.debug("Subscribed to channel: " + CacheInvalidationConfig.CHANNEL_NAME);
   }
 }

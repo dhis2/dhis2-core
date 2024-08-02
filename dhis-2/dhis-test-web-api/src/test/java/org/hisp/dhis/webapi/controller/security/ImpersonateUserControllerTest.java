@@ -39,6 +39,7 @@ import org.hisp.dhis.test.webapi.json.domain.JsonImpersonateUserResponse;
 import org.hisp.dhis.test.webapi.json.domain.JsonUser;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.controller.security.ImpersonateUserControllerTest.DhisConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ActiveProfiles;
@@ -49,12 +50,12 @@ import org.springframework.test.context.ContextConfiguration;
  */
 @ContextConfiguration(
     classes = {
-      ImpersonateUserControllerTest.DhisConfiguration.class,
+      DhisConfig.class,
     })
 @ActiveProfiles("impersonate-user-test")
 class ImpersonateUserControllerTest extends H2ControllerIntegrationTestBase {
 
-  static class DhisConfiguration {
+  static class DhisConfig {
     @Bean
     public DhisConfigurationProvider dhisConfigurationProvider() {
       H2DhisConfigurationProvider provider = new H2DhisConfigurationProvider();

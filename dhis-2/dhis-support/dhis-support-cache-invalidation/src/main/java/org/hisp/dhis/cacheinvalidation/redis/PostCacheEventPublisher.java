@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.cacheinvalidation.redis;
 
-import static org.hisp.dhis.cacheinvalidation.redis.CacheInvalidationConfiguration.CHANNEL_NAME;
-import static org.hisp.dhis.cacheinvalidation.redis.CacheInvalidationConfiguration.EXCLUDE_LIST;
+import static org.hisp.dhis.cacheinvalidation.redis.CacheInvalidationConfig.CHANNEL_NAME;
+import static org.hisp.dhis.cacheinvalidation.redis.CacheInvalidationConfig.EXCLUDE_LIST;
 
 import java.io.Serializable;
 import lombok.extern.slf4j.Slf4j;

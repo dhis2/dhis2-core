@@ -49,7 +49,7 @@ public class RedisMessagePublisher implements CacheInvalidationMessagePublisher 
 
   @Override
   public void publish(String channel, String message) {
-    redisConnection.async().publish(CacheInvalidationConfiguration.CHANNEL_NAME, message);
+    redisConnection.async().publish(CacheInvalidationConfig.CHANNEL_NAME, message);
     log.debug("Published message: " + message);
   }
 }

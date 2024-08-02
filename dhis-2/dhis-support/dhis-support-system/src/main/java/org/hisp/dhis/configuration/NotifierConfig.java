@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook;
+package org.hisp.dhis.configuration;
 
-import java.util.concurrent.Executor;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hisp.dhis.condition.RedisDisabledCondition;
+import org.hisp.dhis.condition.RedisEnabledCondition;
+import org.hisp.dhis.system.notification.InMemoryNotifier;
+import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.system.notification.RedisNotifier;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.data.redis.core.RedisTemplate;
 
 /**
- * @author Morten Olav Hansen
+ * This class deals with the configuring an appropriate notifier depending on whether redis is
+ * enabled or not.
+ *
+ * @author Ameen Mohamed
  */
 @Configuration
-public class EventHookConfiguration {
-  @Bean(name = "eventHookTaskExecutor")
-  public Executor eventHookPoolTaskExecutor() {
-    final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+public class NotifierConfig {
+  @Autowired(required = false)
+  private RedisTemplate<?, ?> redisTemplate;
 
-    // setting static defaults for now, we might to make this configurable in dhis.conf in the
-    // future
-    executor.setCorePoolSize(50);
-    executor.setMaxPoolSize(500);
-    executor.setQueueCapacity(5000);
-    executor.setThreadNamePrefix("EventHook-");
-    executor.initialize();
+  @SuppressWarnings("unchecked")
+  @Bean("notifier")
+  @Conditional(RedisEnabledCondition.class)
+  public Notifier redisNotifier(ObjectMapper objectMapper) {
+    return new RedisNotifier((RedisTemplate<String, String>) redisTemplate, objectMapper);
+  }
 
-    return executor;
+  @Bean("notifier")
+  @Conditional(RedisDisabledCondition.class)
+  public Notifier inMemoryNotifier() {
+    return new InMemoryNotifier();
   }
 }

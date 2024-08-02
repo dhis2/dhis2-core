@@ -55,7 +55,7 @@ import org.springframework.core.annotation.Order;
 @Configuration
 @Profile({"!test", "!test-h2"})
 @Conditional(value = CacheInvalidationEnabledConditionNotTestable.class)
-public class CacheInvalidationConfiguration {
+public class CacheInvalidationConfig {
   public static final List<Class<?>> EXCLUDE_LIST = List.of(JobConfiguration.class);
 
   public static final String CHANNEL_NAME = "dhis2_cache_invalidation";
