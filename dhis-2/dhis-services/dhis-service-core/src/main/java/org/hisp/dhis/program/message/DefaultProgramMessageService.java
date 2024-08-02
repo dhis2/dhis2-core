@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.program.message;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -34,30 +35,26 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchService;
-import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.sms.config.MessageSendingCallback;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.concurrent.ListenableFuture;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -85,11 +82,6 @@ public class DefaultProgramMessageService implements ProgramMessageService {
   private final List<MessageBatchCreatorService> batchCreators;
 
   private final AclService aclService;
-
-  @Qualifier("smsMessageSender")
-  private final MessageSender smsSender;
-
-  private final MessageSendingCallback sendingCallback;
 
   // -------------------------------------------------------------------------
   // Implementation methods
@@ -132,12 +124,6 @@ public class DefaultProgramMessageService implements ProgramMessageService {
     params.setBeforeDate(beforeDate);
 
     return params;
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean exists(String uid) {
-    return programMessageStore.exists(uid);
   }
 
   @Override
@@ -204,24 +190,6 @@ public class DefaultProgramMessageService implements ProgramMessageService {
   }
 
   @Override
-  @Transactional
-  public void sendMessagesAsync(List<ProgramMessage> programMessages) {
-    List<ProgramMessage> populatedProgramMessages =
-        programMessages.stream()
-            .filter(this::hasDataWriteAccess)
-            .map(this::setAttributesBasedOnStrategy)
-            .collect(Collectors.toList());
-
-    List<OutboundMessageBatch> batches = createBatches(populatedProgramMessages);
-
-    for (OutboundMessageBatch batch : batches) {
-      ListenableFuture<OutboundMessageResponseSummary> future =
-          smsSender.sendMessageBatchAsync(batch);
-      future.addCallback(sendingCallback.getBatchCallBack());
-    }
-  }
-
-  @Override
   @Transactional(readOnly = true)
   public void currentUserHasAccess(ProgramMessageQueryParams params) {
     Enrollment enrollment = null;
@@ -267,37 +235,35 @@ public class DefaultProgramMessageService implements ProgramMessageService {
   @Override
   @Transactional(readOnly = true)
   public void validatePayload(ProgramMessage message) {
-    String violation = null;
+    List<String> violations = new ArrayList<>();
 
     ProgramMessageRecipients recipients = message.getRecipients();
 
     if (message.getText() == null) {
-      violation = "Message content must be provided";
+      violations.add("Message content must be provided");
     }
 
     if (message.getDeliveryChannels() == null || message.getDeliveryChannels().isEmpty()) {
-      violation = "Delivery channel must be specified";
+      violations.add("Delivery channel must be specified");
     }
 
     if (message.getEnrollment() == null && message.getEvent() == null) {
-      violation = "Enrollment or event must be specified";
+      violations.add("Enrollment or event must be specified");
     }
 
     if (recipients.getTrackedEntity() != null
         && trackedEntityService.getTrackedEntity(recipients.getTrackedEntity().getUid()) == null) {
-      violation = "Tracked entity does not exist";
+      violations.add("Tracked entity does not exist");
     }
 
     if (recipients.getOrganisationUnit() != null
         && organisationUnitService.getOrganisationUnit(recipients.getOrganisationUnit().getUid())
             == null) {
-      violation = "Organisation unit does not exist";
+      violations.add("Organisation unit does not exist");
     }
 
-    if (violation != null) {
-      log.info("Message validation failed: " + violation);
-
-      throw new IllegalQueryException(violation);
+    if (!violations.isEmpty()) {
+      throw new IllegalQueryException(String.join(", ", violations));
     }
   }
 
@@ -339,8 +305,8 @@ public class DefaultProgramMessageService implements ProgramMessageService {
   }
 
   private ProgramMessage setParameters(ProgramMessage message, BatchResponseStatus status) {
-    message.setEnrollment(getEnrollment(message));
-    message.setEvent(getEvent(message));
+    message.setEnrollment(getEntity(Enrollment.class, message.getEnrollment()));
+    message.setEvent(getEntity(Event.class, message.getEvent()));
     message.setProcessedDate(new Date());
     message.setMessageStatus(
         status.isOk() ? ProgramMessageStatus.SENT : ProgramMessageStatus.FAILED);
@@ -355,20 +321,13 @@ public class DefaultProgramMessageService implements ProgramMessageService {
         .toList();
   }
 
-  private Enrollment getEnrollment(ProgramMessage programMessage) {
-    if (programMessage.getEnrollment() != null) {
-      return manager.get(Enrollment.class, programMessage.getEnrollment().getUid());
+  private <T extends BaseIdentifiableObject> T getEntity(
+      Class<T> klass, BaseIdentifiableObject entity) {
+    if (entity == null) {
+      return null;
     }
 
-    return null;
-  }
-
-  private Event getEvent(ProgramMessage programMessage) {
-    if (programMessage.getEvent() != null) {
-      return manager.get(Event.class, programMessage.getEvent().getUid());
-    }
-
-    return null;
+    return manager.get(klass, entity.getUid());
   }
 
   private ProgramMessage setAttributesBasedOnStrategy(ProgramMessage message) {
