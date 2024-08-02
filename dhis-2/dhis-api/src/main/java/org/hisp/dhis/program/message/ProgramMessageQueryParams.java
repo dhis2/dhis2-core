@@ -29,12 +29,16 @@ package org.hisp.dhis.program.message;
 
 import java.util.Date;
 import java.util.Set;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
+@Data
+@NoArgsConstructor
 public class ProgramMessageQueryParams {
   private Set<String> organisationUnit;
 
@@ -51,34 +55,6 @@ public class ProgramMessageQueryParams {
   private Integer page;
 
   private Integer pageSize;
-
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
-
-  public ProgramMessageQueryParams() {
-    super();
-  }
-
-  public ProgramMessageQueryParams(
-      Set<String> organisationUnit,
-      ProgramMessageStatus messageStatus,
-      Enrollment enrollment,
-      Event event,
-      Date afterDate,
-      Date beforeDate,
-      Integer page,
-      Integer pageSize) {
-    super();
-    this.organisationUnit = organisationUnit;
-    this.messageStatus = messageStatus;
-    this.enrollment = enrollment;
-    this.event = event;
-    this.afterDate = afterDate;
-    this.beforeDate = beforeDate;
-    this.page = page;
-    this.pageSize = pageSize;
-  }
 
   // -------------------------------------------------------------------------
   // Logic
@@ -98,73 +74,5 @@ public class ProgramMessageQueryParams {
 
   public boolean hasPaging() {
     return page != null && pageSize != null;
-  }
-
-  // -------------------------------------------------------------------------
-  // Getters and Setters
-  // -------------------------------------------------------------------------
-
-  public Enrollment getEnrollment() {
-    return enrollment;
-  }
-
-  public void setEnrollment(Enrollment enrollment) {
-    this.enrollment = enrollment;
-  }
-
-  public Event getEvent() {
-    return event;
-  }
-
-  public void setEvent(Event event) {
-    this.event = event;
-  }
-
-  public Set<String> getOrganisationUnit() {
-    return organisationUnit;
-  }
-
-  public void setOrganisationUnit(Set<String> organisationUnit) {
-    this.organisationUnit = organisationUnit;
-  }
-
-  public Integer getPage() {
-    return page;
-  }
-
-  public void setPage(Integer page) {
-    this.page = page;
-  }
-
-  public Integer getPageSize() {
-    return pageSize;
-  }
-
-  public void setPageSize(Integer pageSize) {
-    this.pageSize = pageSize;
-  }
-
-  public ProgramMessageStatus getMessageStatus() {
-    return messageStatus;
-  }
-
-  public void setMessageStatus(ProgramMessageStatus messageStatus) {
-    this.messageStatus = messageStatus;
-  }
-
-  public Date getAfterDate() {
-    return afterDate;
-  }
-
-  public void setAfterDate(Date afterDate) {
-    this.afterDate = afterDate;
-  }
-
-  public Date getBeforeDate() {
-    return beforeDate;
-  }
-
-  public void setBeforeDate(Date beforeDate) {
-    this.beforeDate = beforeDate;
   }
 }
