@@ -25,29 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.web.jetty;
+package org.hisp.dhis.test.config;
 
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
+import org.springframework.context.annotation.Profile;
 
 /**
- * Configuration class for a simple startup timer for embedded Jetty.
+ * Use this Spring configuration for tests relying on the Postgres DB running in a Docker container.
  *
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
+@Profile("test-postgres")
 @Configuration
-@Order(100)
-@ComponentScan(basePackages = {"org.hisp.dhis"})
-public class JettyStartupTimerSpringConfiguration {
-
-  @Bean("org.hisp.dhis.web.embeddedjetty.StartupFinishedRoutine")
-  public StartupFinishedRoutine startupFinishedRoutine() {
-    StartupFinishedRoutine startupRoutine = new StartupFinishedRoutine();
-    startupRoutine.setName("StartupFinishedRoutine");
-    startupRoutine.setRunlevel(42);
-    startupRoutine.setSkipInTests(true);
-    return startupRoutine;
+public class PostgresDhisTestConfig {
+  @Bean
+  public DhisConfigurationProvider dhisConfigurationProvider() {
+    return new PostgresDhisConfigurationProvider();
   }
 }

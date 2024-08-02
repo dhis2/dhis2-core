@@ -25,41 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.configuration;
+package org.hisp.dhis.webapi.security.session;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.hisp.dhis.condition.RedisDisabledCondition;
 import org.hisp.dhis.condition.RedisEnabledCondition;
-import org.hisp.dhis.system.notification.InMemoryNotifier;
-import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.system.notification.RedisNotifier;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.session.data.redis.config.ConfigureRedisAction;
+import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 
 /**
- * This class deals with the configuring an appropriate notifier depending on whether redis is
- * enabled or not.
+ * Configuration registered if {@link RedisEnabledCondition} matches to true. Redis backed Spring
+ * Session will be configured due to the {@link EnableRedisHttpSession} annotation.
  *
  * @author Ameen Mohamed
  */
 @Configuration
-public class NotifierConfiguration {
-  @Autowired(required = false)
-  private RedisTemplate<?, ?> redisTemplate;
+@Order(1998)
+@Conditional(RedisEnabledCondition.class)
+@EnableRedisHttpSession
+public class RedisSpringSessionConfig {
 
-  @SuppressWarnings("unchecked")
-  @Bean("notifier")
-  @Conditional(RedisEnabledCondition.class)
-  public Notifier redisNotifier(ObjectMapper objectMapper) {
-    return new RedisNotifier((RedisTemplate<String, String>) redisTemplate, objectMapper);
+  @Bean
+  public static ConfigureRedisAction configureRedisAction() {
+    return ConfigureRedisAction.NO_OP;
   }
 
-  @Bean("notifier")
-  @Conditional(RedisDisabledCondition.class)
-  public Notifier inMemoryNotifier() {
-    return new InMemoryNotifier();
+  @Bean
+  public HttpSessionEventPublisher httpSessionEventPublisher() {
+    return new HttpSessionEventPublisher();
   }
 }

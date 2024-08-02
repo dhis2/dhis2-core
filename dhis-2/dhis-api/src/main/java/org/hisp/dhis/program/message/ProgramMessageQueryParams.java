@@ -60,7 +60,7 @@ public class ProgramMessageQueryParams {
   // Logic
   // -------------------------------------------------------------------------
 
-  public boolean hasOrignisationUnit() {
+  public boolean hasOrganisationUnit() {
     return organisationUnit != null;
   }
 

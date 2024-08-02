@@ -181,9 +181,7 @@ public class DefaultProgramMessageService implements ProgramMessageService {
     }
 
     if (!violations.isEmpty()) {
-      String violationMessage = String.join(", ", violations);
-      log.info("Message validation failed: " + violationMessage);
-      throw new IllegalQueryException(violationMessage);
+      throw new IllegalQueryException(String.join(", ", violations));
     }
   }
 
