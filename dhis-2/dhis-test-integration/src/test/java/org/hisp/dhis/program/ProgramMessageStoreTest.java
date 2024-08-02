@@ -36,7 +36,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -49,7 +48,6 @@ import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.program.message.ProgramMessageStore;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -66,15 +64,11 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private OrganisationUnitService orgUnitService;
 
-  @Autowired private TrackedEntityService trackedEntityService;
-
   @Autowired private ProgramService programService;
 
   @Autowired private ProgramStageService programStageService;
 
   @Autowired private IdentifiableObjectManager manager;
-
-  @Autowired private CategoryService categoryService;
 
   private Enrollment enrollmentA;
 

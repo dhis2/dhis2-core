@@ -34,7 +34,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import java.io.IOException;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
@@ -96,8 +95,7 @@ public class ProgramMessageController extends AbstractCrudController<ProgramMess
   @RequiresAuthority(anyOf = {F_MOBILE_SENDSMS, F_SEND_EMAIL})
   @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
   @ResponseBody
-  public BatchResponseStatus sendMessages(HttpServletRequest request, HttpServletResponse response)
-      throws IOException {
+  public BatchResponseStatus sendMessages(HttpServletRequest request) throws IOException {
     ProgramMessageBatch batch =
         renderService.fromJson(request.getInputStream(), ProgramMessageBatch.class);
 
