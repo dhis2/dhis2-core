@@ -87,7 +87,7 @@ public class BaseDimensionalObject extends BaseNameableObject implements Dimensi
   private transient OptionSet optionSet;
 
   /** The dimensional items for this dimension. */
-  private transient List<DimensionalItemObject> items = new ArrayList<>();
+  private List<DimensionalItemObject> items = new ArrayList<>();
 
   /** Indicates whether all available items in this dimension are included. */
   private boolean allItems;
@@ -353,7 +353,11 @@ public class BaseDimensionalObject extends BaseNameableObject implements Dimensi
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getDimension() {
-    return getUid();
+    return uid;
+  }
+
+  public void setDimension(String dimension) {
+    this.uid = dimension;
   }
 
   @Override

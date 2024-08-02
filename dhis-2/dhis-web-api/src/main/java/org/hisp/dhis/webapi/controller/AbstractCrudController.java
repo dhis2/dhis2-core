@@ -64,7 +64,6 @@ import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.MetadataObjects;
-import org.hisp.dhis.dxf2.metadata.PatchService;
 import org.hisp.dhis.dxf2.metadata.collection.CollectionService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
@@ -137,8 +136,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
   @Autowired protected JsonPatchManager jsonPatchManager;
 
-  @Autowired protected PatchService patchService;
-
   @Autowired
   @Qualifier("xmlMapper")
   protected ObjectMapper xmlMapper;
@@ -177,28 +174,47 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
       @RequestParam Map<String, String> rpParameters,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
-      throws ForbiddenException, NotFoundException, IOException, JsonPatchException {
+      throws ForbiddenException,
+          NotFoundException,
+          IOException,
+          JsonPatchException,
+          ConflictException {
     WebOptions options = new WebOptions(rpParameters);
+
     final T persistedObject = getEntity(pvUid, options);
 
     if (!aclService.canUpdate(currentUser, persistedObject)) {
       throw new ForbiddenException("You don't have the proper permissions to update this object.");
     }
+
     manager.resetNonOwnerProperties(persistedObject);
 
     JsonPatch patch = jsonMapper.readValue(request.getInputStream(), JsonPatch.class);
 
+    final T patchedObject = doPatch(patch, persistedObject);
+
+    // Do not allow changing IDs
+    ((BaseIdentifiableObject) patchedObject).setId(persistedObject.getId());
+
+    // Do not allow changing UIDs
+    ((BaseIdentifiableObject) patchedObject).setUid(persistedObject.getUid());
+
+    prePatchEntity(persistedObject, patchedObject);
+
     Map<String, List<String>> parameterValuesMap = contextService.getParameterValuesMap();
+
     if (!parameterValuesMap.containsKey("importReportMode")) {
       parameterValuesMap.put("importReportMode", Collections.singletonList("ERRORS_NOT_OWNER"));
     }
+
     MetadataImportParams params = importService.getParamsFromMap(parameterValuesMap);
 
-    ImportReport importReport =
-        patchService.doPatch(
-            currentUser, patch, persistedObject, params, t -> handlePrePatch(t, persistedObject));
+    params.setUser(UID.of(currentUser)).setImportStrategy(ImportStrategy.UPDATE);
 
+    ImportReport importReport =
+        importService.importMetadata(params, new MetadataObjects().addObject(patchedObject));
     WebMessage webMessage = objectReport(importReport);
+
     if (importReport.getStatus() == Status.OK) {
       T entity = manager.get(getEntityClass(), pvUid);
 
@@ -206,7 +222,21 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     } else {
       webMessage.setStatus(Status.ERROR);
     }
+
     return webMessage;
+  }
+
+  private T doPatch(JsonPatch patch, T persistedObject) throws JsonPatchException {
+
+    final T patchedObject = jsonPatchManager.apply(patch, persistedObject);
+
+    if (patchedObject instanceof User) {
+      // Reset to avoid non owning properties (here UserGroups) to be
+      // operated on in the import.
+      manager.resetNonOwnerProperties(patchedObject);
+    }
+
+    return patchedObject;
   }
 
   @OpenApi.Params(WebOptions.class)
@@ -890,13 +920,5 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     }
 
     return false;
-  }
-
-  private void handlePrePatch(T t, T persistedObject) {
-    try {
-      prePatchEntity(t, persistedObject);
-    } catch (ConflictException e) {
-      throw new RuntimeException(e);
-    }
   }
 }

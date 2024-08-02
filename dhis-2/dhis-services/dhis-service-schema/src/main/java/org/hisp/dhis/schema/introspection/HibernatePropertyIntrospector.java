@@ -229,11 +229,9 @@ public class HibernatePropertyIntrospector implements PropertyIntrospector {
       MetamodelImplementor metamodelImplementor, Property property, CollectionType type) {
     CollectionPersister persister = metamodelImplementor.collectionPersister(type.getRole());
 
+    property.setOwner(!persister.isInverse());
     property.setManyToMany(persister.isManyToMany());
     property.setOneToMany(persister.isOneToMany());
-    if ((property.isManyToMany() || property.isOneToMany()) && persister.isInverse()) {
-      property.setOwner(true);
-    }
 
     property.setMin(0d);
     property.setMax(Double.MAX_VALUE);
