@@ -32,7 +32,6 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.SystemAuthoritiesProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -43,9 +42,7 @@ import org.springframework.security.web.savedrequest.RequestCache;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com
  */
 @Configuration
-@Order(10)
 public class WebTestConfig {
-
   @Bean
   public RequestCache requestCache() {
     return new HttpSessionRequestCache();
