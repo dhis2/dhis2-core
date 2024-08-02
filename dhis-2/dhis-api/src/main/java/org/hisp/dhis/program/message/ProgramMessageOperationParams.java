@@ -42,11 +42,13 @@ public class ProgramMessageOperationParams {
   private Set<String> ou;
 
   private UID enrollment;
+
   private UID event;
 
   private ProgramMessageStatus messageStatus;
 
   private Date afterDate;
+
   private Date beforeDate;
 
   private Integer page;
