@@ -72,7 +72,7 @@ public class ProgramMessageController extends AbstractCrudController<ProgramMess
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public List<ProgramMessage> getProgramMessages(ProgramMessageRequestParams requestParams)
-      throws BadRequestException, ConflictException {
+      throws BadRequestException, ConflictException, NotFoundException {
     ProgramMessageOperationParams params = requestParamMapper.map(requestParams);
 
     return programMessageService.getProgramMessages(params);
