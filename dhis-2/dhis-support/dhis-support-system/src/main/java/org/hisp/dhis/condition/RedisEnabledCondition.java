@@ -39,10 +39,7 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 public class RedisEnabledCondition extends PropertiesAwareConfigurationCondition {
   @Override
   public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-    if (!isTestRun(context)) {
-      return getConfiguration().isEnabled(ConfigurationKey.REDIS_ENABLED);
-    }
-    return false;
+    return getConfiguration().isEnabled(ConfigurationKey.REDIS_ENABLED);
   }
 
   @Override
