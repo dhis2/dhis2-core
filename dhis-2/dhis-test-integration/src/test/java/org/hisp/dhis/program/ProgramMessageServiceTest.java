@@ -39,10 +39,11 @@ import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.message.ProgramMessage;
-import org.hisp.dhis.program.message.ProgramMessageQueryParams;
+import org.hisp.dhis.program.message.ProgramMessageOperationParams;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.program.message.ProgramMessageStatus;
@@ -76,7 +77,7 @@ class ProgramMessageServiceTest extends PostgresIntegrationTestBase {
 
   private Set<DeliveryChannel> channels = new HashSet<>();
 
-  private ProgramMessageQueryParams params;
+  private ProgramMessageOperationParams params;
 
   private ProgramMessage pmsgA;
 
@@ -186,10 +187,12 @@ class ProgramMessageServiceTest extends PostgresIntegrationTestBase {
     pmsgA.setUid(uidA);
     pmsgB.setUid(uidB);
     pmsgC.setUid(uidC);
-    params = new ProgramMessageQueryParams();
-    params.setOrganisationUnit(ouUids);
-    params.setEnrollment(enrollmentA);
-    params.setMessageStatus(messageStatus);
+    params =
+        ProgramMessageOperationParams.builder()
+            .ou(ouUids)
+            .enrollment(UID.of(enrollmentA))
+            .messageStatus(messageStatus)
+            .build();
     bulkSmsConfig = new BulkSmsGatewayConfig();
     bulkSmsConfig.setDefault(true);
     bulkSmsConfig.setName("bulk");

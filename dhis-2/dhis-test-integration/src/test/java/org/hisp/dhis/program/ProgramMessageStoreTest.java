@@ -181,8 +181,7 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
     pmsgA.setUid(uidA);
     pmsgB.setUid(uidB);
     pmsgC.setUid(uidC);
-    params = new ProgramMessageQueryParams();
-    params.setOrganisationUnit(orgUnits);
+    params = ProgramMessageQueryParams.builder().organisationUnit(orgUnits).build();
   }
 
   @Test

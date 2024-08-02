@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,54 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.message;
+package org.hisp.dhis.webapi.controller.message;
 
 import java.util.Date;
 import java.util.Set;
-import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.message.ProgramMessageStatus;
 
 /**
- * @author Zubair <rajazubair.asghar@gmail.com>
+ * @author Zubair Asghar
  */
+@OpenApi.Shared(name = "ProgramMessageRequestParams")
 @Data
-@Builder
-public class ProgramMessageQueryParams {
-  private Set<String> organisationUnit;
+@NoArgsConstructor
+public class ProgramMessageRequestParams {
+  private Set<String> ou;
+
+  @Deprecated(since = "2.41")
+  @OpenApi.Property(value = Enrollment.class)
+  private UID programInstance;
+
+  @OpenApi.Property({UID.class, Enrollment.class})
+  private UID enrollment;
+
+  @Deprecated(since = "2.41")
+  @OpenApi.Property(value = Event.class)
+  private UID programStageInstance;
+
+  @OpenApi.Property({UID.class, Event.class})
+  private UID event;
 
   private ProgramMessageStatus messageStatus;
-
-  private Enrollment enrollment;
-
-  private Event event;
 
   private Date afterDate;
 
   private Date beforeDate;
 
+  @OpenApi.Property(defaultValue = "1")
   private Integer page;
 
+  @OpenApi.Property(defaultValue = "50")
   private Integer pageSize;
-
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  public boolean hasOrignisationUnit() {
-    return organisationUnit != null;
-  }
-
-  public boolean hasEnrollment() {
-    return enrollment != null;
-  }
-
-  public boolean hasEvent() {
-    return event != null;
-  }
-
-  public boolean hasPaging() {
-    return page != null && pageSize != null;
-  }
 }
