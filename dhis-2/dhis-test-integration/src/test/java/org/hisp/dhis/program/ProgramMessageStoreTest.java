@@ -237,7 +237,6 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
     List<ProgramMessage> programMessages = programMessageStore.getProgramMessages(params);
 
     assertContainsOnly(List.of(programMessageA, programMessageB), programMessages);
-
     assertEquals(
         channels,
         programMessages.get(0).getDeliveryChannels(),
