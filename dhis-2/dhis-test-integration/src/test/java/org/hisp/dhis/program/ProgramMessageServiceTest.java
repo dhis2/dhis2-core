@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.program;
 
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -58,6 +59,10 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class ProgramMessageServiceTest extends PostgresIntegrationTestBase {
+  private String TEXT = "Hi";
+  private String MSISDN = "4742312555";
+  private String SUBJECT = "subjectText";
+
   private OrganisationUnit ouA;
 
   private OrganisationUnit ouB;
@@ -78,12 +83,6 @@ class ProgramMessageServiceTest extends PostgresIntegrationTestBase {
   private ProgramMessageRecipients recipientB;
   private ProgramMessageRecipients recipientC;
 
-  private String text = "Hi";
-
-  private String msisdn = "4742312555";
-
-  private String subject = "subjectText";
-
   // -------------------------------------------------------------------------
   // Dependencies
   // -------------------------------------------------------------------------
@@ -98,7 +97,7 @@ class ProgramMessageServiceTest extends PostgresIntegrationTestBase {
   @BeforeEach
   void setUp() {
     ouA = createOrganisationUnit('A');
-    ouA.setPhoneNumber(msisdn);
+    ouA.setPhoneNumber(MSISDN);
     ouB = createOrganisationUnit('B');
     orgUnitService.addOrganisationUnit(ouA);
     orgUnitService.addOrganisationUnit(ouB);
@@ -118,7 +117,7 @@ class ProgramMessageServiceTest extends PostgresIntegrationTestBase {
     manager.save(enrollmentA);
 
     Set<String> phoneNumberListA = new HashSet<>();
-    phoneNumberListA.add(msisdn);
+    phoneNumberListA.add(MSISDN);
 
     recipientA = new ProgramMessageRecipients();
     recipientA.setPhoneNumbers(phoneNumberListA);
@@ -128,14 +127,14 @@ class ProgramMessageServiceTest extends PostgresIntegrationTestBase {
     recipientC.setPhoneNumbers(phoneNumberListA);
 
     programMessageA =
-        createProgramMessage(text, subject, recipientA, messageStatus, Set.of(DeliveryChannel.SMS));
+        createProgramMessage(TEXT, SUBJECT, recipientA, messageStatus, Set.of(DeliveryChannel.SMS));
     programMessageA.setEnrollment(enrollmentA);
     programMessageA.setStoreCopy(false);
     programMessageB =
-        createProgramMessage(text, subject, recipientB, messageStatus, Set.of(DeliveryChannel.SMS));
+        createProgramMessage(TEXT, SUBJECT, recipientB, messageStatus, Set.of(DeliveryChannel.SMS));
     programMessageB.setEnrollment(enrollmentA);
     programMessageC =
-        createProgramMessage(text, subject, recipientC, messageStatus, Set.of(DeliveryChannel.SMS));
+        createProgramMessage(TEXT, SUBJECT, recipientC, messageStatus, Set.of(DeliveryChannel.SMS));
 
     params =
         ProgramMessageOperationParams.builder()
@@ -167,12 +166,7 @@ class ProgramMessageServiceTest extends PostgresIntegrationTestBase {
 
     List<ProgramMessage> programMessages = programMessageService.getAllProgramMessages();
 
-    assertNotNull(
-        programMessages, "The list of program messages should not be null" + programMessages);
-    assertEquals(
-        List.of(programMessageA, programMessageB, programMessageC),
-        programMessages,
-        "The list should contain all saved program messages" + programMessages);
+    assertContainsOnly(List.of(programMessageA, programMessageB, programMessageC), programMessages);
   }
 
   @Test
@@ -202,11 +196,7 @@ class ProgramMessageServiceTest extends PostgresIntegrationTestBase {
 
     List<ProgramMessage> programMessages = programMessageService.getProgramMessages(params);
 
-    assertNotNull(programMessages, "The list of program messages should not be null");
-    assertEquals(
-        List.of(programMessageA, programMessageB),
-        programMessages,
-        "The list should contain all saved program messages");
+    assertContainsOnly(List.of(programMessageA, programMessageB), programMessages);
     assertEquals(
         Set.of(DeliveryChannel.SMS),
         programMessages.get(0).getDeliveryChannels(),

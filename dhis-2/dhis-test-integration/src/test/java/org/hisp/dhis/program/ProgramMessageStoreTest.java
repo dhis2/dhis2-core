@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.program;
 
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -48,7 +48,6 @@ import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.program.message.ProgramMessageStore;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +58,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
+  private static final String MSISDN = "4740332255";
+  private static final String MESSAGE_TEXT = "Hi";
 
   @Autowired private ProgramMessageStore programMessageStore;
 
@@ -92,67 +93,40 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
     OrganisationUnit orgUnitB = createOrganisationUnit('B');
     orgUnitService.addOrganisationUnit(orgUnitA);
     orgUnitService.addOrganisationUnit(orgUnitB);
+
+    // Initialize Program and Program Stage
     Program programA = createProgram('A', new HashSet<>(), orgUnitA);
     programService.addProgram(programA);
+
     ProgramStage stageA = new ProgramStage("StageA", programA);
-    stageA.setSortOrder(1);
     programStageService.saveProgramStage(stageA);
+
     Set<ProgramStage> programStages = new HashSet<>();
     programStages.add(stageA);
     programA.setProgramStages(programStages);
     programService.updateProgram(programA);
+
+    // Initialize Tracked Entities, Enrollment and Event
     TrackedEntity trackedEntityB = createTrackedEntity(orgUnitA);
     manager.save(trackedEntityB);
-    DateTime testDate1 = DateTime.now();
-    testDate1.withTimeAtStartOfDay();
-    testDate1 = testDate1.minusDays(70);
-    Date incidentDate = testDate1.toDate();
-    DateTime testDate2 = DateTime.now();
-    testDate2.withTimeAtStartOfDay();
-    Date enrollmentDate = testDate2.toDate();
-    enrollmentA = new Enrollment(enrollmentDate, incidentDate, trackedEntityB, programA);
+
+    enrollmentA = new Enrollment(new Date(), new Date(), trackedEntityB, programA);
     enrollmentA.setUid(CodeGenerator.generateUid());
+
     eventA = createEvent(stageA, enrollmentA, orgUnitA);
-    eventA.setScheduledDate(enrollmentDate);
+    eventA.setScheduledDate(new Date());
     eventA.setUid(CodeGenerator.generateUid());
-    Set<String> orgUnits = new HashSet<>();
-    orgUnits.add(orgUnitA.getUid());
+
     TrackedEntity trackedEntityA = createTrackedEntity(orgUnitA);
     manager.save(trackedEntityA);
-    ProgramMessageRecipients recipientsA = new ProgramMessageRecipients();
-    recipientsA.setOrganisationUnit(orgUnitA);
-    recipientsA.setTrackedEntity(trackedEntityA);
-    ProgramMessageRecipients recipientsB = new ProgramMessageRecipients();
-    recipientsB.setOrganisationUnit(orgUnitA);
-    recipientsB.setTrackedEntity(trackedEntityA);
-    Set<String> phoneNumberListA = new HashSet<>();
-    String msisdn = "4740332255";
-    phoneNumberListA.add(msisdn);
-    recipientsA.setPhoneNumbers(phoneNumberListA);
-    Set<String> phoneNumberListB = new HashSet<>();
-    phoneNumberListB.add(msisdn);
-    recipientsB.setPhoneNumbers(phoneNumberListB);
-    String text = "Hi";
-    programMessageA =
-        ProgramMessage.builder()
-            .subject(text)
-            .text(text)
-            .recipients(recipientsA)
-            .messageStatus(messageStatus)
-            .deliveryChannels(channels)
-            .notificationTemplate(notificationTemplate)
-            .build();
-    programMessageB =
-        ProgramMessage.builder()
-            .subject(text)
-            .text(text)
-            .recipients(recipientsB)
-            .messageStatus(messageStatus)
-            .deliveryChannels(channels)
-            .notificationTemplate(notificationTemplate)
-            .build();
 
-    params = ProgramMessageQueryParams.builder().organisationUnit(orgUnits).build();
+    ProgramMessageRecipients recipientsA = createRecipients(orgUnitA, trackedEntityA);
+    ProgramMessageRecipients recipientsB = createRecipients(orgUnitA, trackedEntityA);
+
+    programMessageA = createProgramMessage(MESSAGE_TEXT, recipientsA);
+    programMessageB = createProgramMessage(MESSAGE_TEXT, recipientsB);
+
+    params = ProgramMessageQueryParams.builder().build();
   }
 
   @Test
@@ -169,18 +143,22 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetProgramMessages() {
+  void shouldGetProgramMessages() {
     programMessageStore.save(programMessageA);
     programMessageStore.save(programMessageB);
-    assertTrue(equals(programMessageStore.getAll(), programMessageA, programMessageB));
+
+    assertContainsOnly(List.of(programMessageA, programMessageB), programMessageStore.getAll());
   }
 
   @Test
-  void testDeleteProgramMessage() {
+  void shouldDeleteProgramMessage() {
     programMessageStore.save(programMessageA);
-    long pmsgAId = programMessageA.getId();
+
     programMessageStore.delete(programMessageA);
-    assertNull(programMessageStore.get(pmsgAId));
+
+    assertNull(
+        programMessageStore.get(programMessageA.getId()),
+        "The program message should be null after deletion");
   }
 
   @Test
@@ -191,15 +169,22 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
     programMessageStore.save(programMessageA);
     programMessageStore.save(programMessageB);
     params.setEnrollment(enrollmentA);
+
     List<ProgramMessage> programMessages = programMessageStore.getProgramMessages(params);
-    assertNotNull(programMessages);
-    assertTrue(equals(programMessages, programMessageA, programMessageB));
-    assertEquals(channels, programMessages.get(0).getDeliveryChannels());
-    assertEquals(enrollmentA, programMessages.get(0).getEnrollment());
+
+    assertContainsOnly(List.of(programMessageA, programMessageB), programMessages);
+    assertEquals(
+        channels,
+        programMessages.get(0).getDeliveryChannels(),
+        "Delivery channels should match for each program message");
+    assertEquals(
+        enrollmentA,
+        programMessages.get(0).getEnrollment(),
+        "Enrollment should match for each program message");
   }
 
   @Test
-  void testGetProgramMessageByEvent() {
+  void shouldGetProgramMessageByEvent() {
     manager.save(enrollmentA);
     manager.save(eventA);
     programMessageA.setEvent(eventA);
@@ -207,27 +192,40 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
     programMessageStore.save(programMessageA);
     programMessageStore.save(programMessageB);
     params.setEvent(eventA);
+
     List<ProgramMessage> programMessages = programMessageStore.getProgramMessages(params);
+
     assertNotNull(programMessages);
-    assertTrue(equals(programMessages, programMessageA, programMessageB));
-    assertEquals(channels, programMessages.get(0).getDeliveryChannels());
-    assertEquals(eventA, programMessages.get(0).getEvent());
+    assertContainsOnly(List.of(programMessageA, programMessageB), programMessages);
+    assertEquals(
+        channels,
+        programMessages.get(0).getDeliveryChannels(),
+        "Delivery channels should match for each program message");
+    assertEquals(
+        eventA, programMessages.get(0).getEvent(), "Event should match for each program message");
   }
 
   @Test
-  void testGetProgramMessageByMessageStatus() {
+  void shouldGetProgramMessageByMessageStatus() {
     programMessageStore.save(programMessageA);
     programMessageStore.save(programMessageB);
     params.setMessageStatus(messageStatus);
+
     List<ProgramMessage> programMessages = programMessageStore.getProgramMessages(params);
-    assertNotNull(programMessages);
-    assertTrue(equals(programMessages, programMessageA, programMessageB));
-    assertEquals(channels, programMessages.get(0).getDeliveryChannels());
-    assertEquals(messageStatus, programMessages.get(0).getMessageStatus());
+
+    assertContainsOnly(List.of(programMessageA, programMessageB), programMessages);
+    assertEquals(
+        channels,
+        programMessages.get(0).getDeliveryChannels(),
+        "Delivery channels should match for each program message");
+    assertEquals(
+        messageStatus,
+        programMessages.get(0).getMessageStatus(),
+        "ProgramMessageStatus should match for each program message");
   }
 
   @Test
-  void testGetProgramMessageByMultipleParameters() {
+  void shouldGetProgramMessageByEnrollmentAndStatus() {
     manager.save(enrollmentA);
     programMessageA.setEnrollment(enrollmentA);
     programMessageB.setEnrollment(enrollmentA);
@@ -235,10 +233,44 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
     programMessageStore.save(programMessageB);
     params.setEnrollment(enrollmentA);
     params.setMessageStatus(messageStatus);
+
     List<ProgramMessage> programMessages = programMessageStore.getProgramMessages(params);
-    assertNotNull(programMessages);
-    assertTrue(equals(programMessages, programMessageA, programMessageB));
-    assertEquals(channels, programMessages.get(0).getDeliveryChannels());
-    assertEquals(enrollmentA, programMessages.get(0).getEnrollment());
+
+    assertContainsOnly(List.of(programMessageA, programMessageB), programMessages);
+
+    assertEquals(
+        channels,
+        programMessages.get(0).getDeliveryChannels(),
+        "Delivery channels should match for each program message");
+    assertEquals(
+        enrollmentA,
+        programMessages.get(0).getEnrollment(),
+        "Enrollment should match for each program message");
+    assertEquals(
+        messageStatus,
+        programMessages.get(0).getMessageStatus(),
+        "ProgramMessageStatus should match for each program message");
+  }
+
+  private ProgramMessageRecipients createRecipients(
+      OrganisationUnit orgUnit, TrackedEntity trackedEntity) {
+    ProgramMessageRecipients recipients = new ProgramMessageRecipients();
+    recipients.setOrganisationUnit(orgUnit);
+    recipients.setTrackedEntity(trackedEntity);
+    Set<String> phoneNumberList = new HashSet<>();
+    phoneNumberList.add(MSISDN);
+    recipients.setPhoneNumbers(phoneNumberList);
+    return recipients;
+  }
+
+  private ProgramMessage createProgramMessage(String text, ProgramMessageRecipients recipients) {
+    return ProgramMessage.builder()
+        .subject(text)
+        .text(text)
+        .recipients(recipients)
+        .messageStatus(messageStatus)
+        .deliveryChannels(channels)
+        .notificationTemplate(notificationTemplate)
+        .build();
   }
 }
