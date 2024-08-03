@@ -39,7 +39,6 @@ import org.hisp.dhis.program.message.ProgramMessageOperationParams;
 import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.webapi.controller.message.ProgramMessageRequestParamMapper;
 import org.hisp.dhis.webapi.controller.message.ProgramMessageRequestParams;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -52,15 +51,12 @@ import org.mockito.quality.Strictness;
  */
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
-public class ProgramMessageRequestParamsMapperTest {
+class ProgramMessageRequestParamsMapperTest {
   private static UID ENROLLMENT = UID.of(CodeGenerator.generateUid());
   private static UID PROGRAM_INSTANCE = UID.of(CodeGenerator.generateUid());
   private static UID EVENT = UID.of(CodeGenerator.generateUid());
 
   @InjectMocks private ProgramMessageRequestParamMapper subject;
-
-  @BeforeEach
-  void setUp() {}
 
   @Test
   void shouldMapProgramMessageStatus() throws ConflictException, BadRequestException {

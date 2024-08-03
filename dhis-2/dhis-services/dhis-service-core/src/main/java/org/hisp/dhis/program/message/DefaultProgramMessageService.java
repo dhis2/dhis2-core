@@ -46,11 +46,9 @@ import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -69,11 +67,7 @@ public class DefaultProgramMessageService implements ProgramMessageService {
 
   private final TrackedEntityService trackedEntityService;
 
-  private final ProgramService programService;
-
   private final OutboundMessageBatchService messageBatchService;
-
-  private final UserService userService;
 
   private final List<DeliveryChannelStrategy> strategies;
 
