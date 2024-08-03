@@ -105,7 +105,10 @@ public class ProgramMessageOperationParamMapper {
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     if (currentUser != null && !programs.contains(entity.getProgram())) {
-      throw new IllegalQueryException("User does not have access to the required program");
+      throw new IllegalQueryException(
+          String.format(
+              "User:%s does not have access to the required program:%s",
+              currentUser.getUsername(), entity.getProgram().getName()));
     }
   }
 }

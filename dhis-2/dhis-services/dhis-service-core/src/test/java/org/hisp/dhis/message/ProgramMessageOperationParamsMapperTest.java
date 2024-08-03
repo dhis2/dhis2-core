@@ -87,6 +87,7 @@ class ProgramMessageOperationParamsMapperTest {
     injectSecurityContext(UserDetails.fromUser(user));
 
     program = new Program();
+    program.setName("TB-Program");
     program.setAutoFields();
 
     enrollment = new Enrollment();
@@ -155,13 +156,19 @@ class ProgramMessageOperationParamsMapperTest {
 
   @Test
   void shouldFailWhenUserHaveNoAccessToProgram() {
-    when(programService.getCurrentUserPrograms()).thenReturn(List.of(new Program()));
+    when(programService.getCurrentUserPrograms()).thenReturn(List.of());
 
     IllegalQueryException exception =
         assertThrows(
             IllegalQueryException.class,
-            () -> subject.map(ProgramMessageOperationParams.builder().event(EVENT).build()));
+            () ->
+                subject.map(
+                    ProgramMessageOperationParams.builder().enrollment(ENROLLMENT).build()));
 
-    assertStartsWith("User does not have access to the required program", exception.getMessage());
+    assertStartsWith(
+        String.format(
+            "User:%s does not have access to the required program:%s",
+            user.getUsername(), program.getName()),
+        exception.getMessage());
   }
 }
