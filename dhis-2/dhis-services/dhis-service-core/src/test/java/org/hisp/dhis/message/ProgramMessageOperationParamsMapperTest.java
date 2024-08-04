@@ -155,7 +155,7 @@ class ProgramMessageOperationParamsMapperTest {
   }
 
   @Test
-  void shouldFailWhenUserHaveNoAccessToProgram() {
+  void shouldFailWhenUserHasNoAccessToProgram() {
     when(programService.getCurrentUserPrograms()).thenReturn(List.of());
 
     IllegalQueryException exception =
