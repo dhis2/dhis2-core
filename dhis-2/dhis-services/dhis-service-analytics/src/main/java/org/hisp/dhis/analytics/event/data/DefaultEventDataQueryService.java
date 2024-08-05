@@ -496,15 +496,15 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
    */
   private String mapCoordinateField(String coordinateField) {
     if ("pigeometry".equalsIgnoreCase(coordinateField)) {
-      coordinateField = COL_NAME_ENROLLMENT_GEOMETRY;
+      return COL_NAME_ENROLLMENT_GEOMETRY;
     }
 
     if ("psigeometry".equalsIgnoreCase(coordinateField)) {
-      coordinateField = COL_NAME_EVENT_GEOMETRY;
+      return COL_NAME_EVENT_GEOMETRY;
     }
 
     if ("teigeometry".equalsIgnoreCase(coordinateField)) {
-      coordinateField = COL_NAME_TRACKED_ENTITY_GEOMETRY;
+      return COL_NAME_TRACKED_ENTITY_GEOMETRY;
     }
 
     return coordinateField;
