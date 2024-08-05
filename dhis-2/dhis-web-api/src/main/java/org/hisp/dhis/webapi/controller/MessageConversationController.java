@@ -432,7 +432,7 @@ public class MessageConversationController
     }
 
     if (!hasAccessToMessageConversation(currentUser, conversation)) {
-      throw new AccessDeniedException("Not authorized to send messages to this conversation.");
+      throw new AccessDeniedException("Not authorized to change recipients in this conversation.");
     }
 
     Set<User> additionalUsers =
@@ -461,9 +461,13 @@ public class MessageConversationController
     String metaData =
         MessageService.META_USER_AGENT + request.getHeader(ContextUtils.HEADER_USER_AGENT);
 
-    messageService.sendTicketMessage(subject, body, metaData);
+    long id = messageService.sendTicketMessage(subject, body, metaData);
+    org.hisp.dhis.message.MessageConversation conversation =
+        messageService.getMessageConversation(id);
 
-    return created("Feedback created");
+    return created("Feedback created")
+        .setLocation(
+            MessageConversationSchemaDescriptor.API_ENDPOINT + "/" + conversation.getUid());
   }
 
   // --------------------------------------------------------------------------
@@ -491,7 +495,7 @@ public class MessageConversationController
     }
 
     if (!hasAccessToMessageConversation(currentUser, messageConversation)) {
-      throw new AccessDeniedException("Not authorized to send messages to this conversation.");
+      throw new AccessDeniedException("Not authorized to change priority in this conversation.");
     }
 
     CollectionNode marked =
@@ -531,7 +535,7 @@ public class MessageConversationController
     }
 
     if (!hasAccessToMessageConversation(currentUser, messageConversation)) {
-      throw new AccessDeniedException("Not authorized to send messages to this conversation.");
+      throw new AccessDeniedException("Not authorized to change status in this conversation.");
     }
 
     CollectionNode marked =
@@ -571,7 +575,7 @@ public class MessageConversationController
     }
 
     if (!hasAccessToMessageConversation(currentUser, messageConversation)) {
-      throw new AccessDeniedException("Not authorized to send messages to this conversation.");
+      throw new AccessDeniedException("Not authorized to assign a user to this conversation.");
     }
 
     User userToAssign;
@@ -625,7 +629,8 @@ public class MessageConversationController
     }
 
     if (!hasAccessToMessageConversation(currentUser, messageConversation)) {
-      throw new AccessDeniedException("Not authorized to send messages to this conversation.");
+      throw new AccessDeniedException(
+          "Not authorized to remove the assigned user to this conversation.");
     }
 
     messageConversation.setAssignee(null);
@@ -727,7 +732,7 @@ public class MessageConversationController
 
     for (org.hisp.dhis.message.MessageConversation messageConversation : messageConversations) {
       if (!hasAccessToMessageConversation(currentUser, messageConversation)) {
-        throw new AccessDeniedException("Not authorized to send messages to this conversation.");
+        throw new AccessDeniedException("Not authorized to change followups in this conversation.");
       }
     }
 
@@ -784,7 +789,8 @@ public class MessageConversationController
 
     for (org.hisp.dhis.message.MessageConversation messageConversation : messageConversations) {
       if (!hasAccessToMessageConversation(currentUser, messageConversation)) {
-        throw new AccessDeniedException("Not authorized to send messages to this conversation.");
+        throw new AccessDeniedException(
+            "Not authorized to change unfollowups in this conversation.");
       }
     }
 
@@ -874,7 +880,8 @@ public class MessageConversationController
     }
 
     if (!hasAccessToMessageConversation(currentUser, messageConversation)) {
-      throw new AccessDeniedException("Not authorized to modify this conversation.");
+      throw new AccessDeniedException(
+          "Not authorized to remove assigned users to this conversation.");
     }
 
     CollectionNode removed = responseNode.addChild(new CollectionNode("removed"));
@@ -925,7 +932,8 @@ public class MessageConversationController
 
     for (org.hisp.dhis.message.MessageConversation messageConversation : messageConversations) {
       if (!hasAccessToMessageConversation(currentUser, messageConversation)) {
-        throw new AccessDeniedException("Not authorized to send messages to this conversation.");
+        throw new AccessDeniedException(
+            "Not authorized to remove assigned users to this conversation.");
       }
     }
 
@@ -1043,7 +1051,8 @@ public class MessageConversationController
 
     for (org.hisp.dhis.message.MessageConversation messageConversation : messageConversations) {
       if (!hasAccessToMessageConversation(currentUser, messageConversation)) {
-        throw new AccessDeniedException("Not authorized to send messages to this conversation.");
+        throw new AccessDeniedException(
+            "Not authorized to change read property of this conversation.");
       }
     }
 
@@ -1052,7 +1061,6 @@ public class MessageConversationController
     marked.setWrapping(false);
 
     for (org.hisp.dhis.message.MessageConversation conversation : messageConversations) {
-
       boolean success = (readValue ? conversation.markRead(user) : conversation.markUnread(user));
       if (success) {
         messageService.updateMessageConversation(conversation);
