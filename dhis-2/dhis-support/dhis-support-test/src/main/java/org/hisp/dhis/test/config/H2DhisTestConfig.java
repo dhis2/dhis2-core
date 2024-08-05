@@ -35,7 +35,7 @@ import org.springframework.context.annotation.Profile;
 /** Use this Spring configuration for tests relying on the H2 in-memory DB. */
 @Profile("test-h2")
 @Configuration
-public class H2DhisConfiguration {
+public class H2DhisTestConfig {
   @Bean
   public DhisConfigurationProvider dhisConfigurationProvider() {
     return new H2DhisConfigurationProvider();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,29 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.web.jetty;
+package org.hisp.dhis.eventhook;
 
+import java.util.concurrent.Executor;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
- * Configuration class for a simple startup timer for embedded Jetty.
- *
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author Morten Olav Hansen
  */
 @Configuration
-@Order(100)
-@ComponentScan(basePackages = {"org.hisp.dhis"})
-public class JettyStartupTimerSpringConfiguration {
+public class EventHookConfig {
+  @Bean(name = "eventHookTaskExecutor")
+  public Executor eventHookPoolTaskExecutor() {
+    final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 
-  @Bean("org.hisp.dhis.web.embeddedjetty.StartupFinishedRoutine")
-  public StartupFinishedRoutine startupFinishedRoutine() {
-    StartupFinishedRoutine startupRoutine = new StartupFinishedRoutine();
-    startupRoutine.setName("StartupFinishedRoutine");
-    startupRoutine.setRunlevel(42);
-    startupRoutine.setSkipInTests(true);
-    return startupRoutine;
+    // setting static defaults for now, we might to make this configurable in dhis.conf in the
+    // future
+    executor.setCorePoolSize(50);
+    executor.setMaxPoolSize(500);
+    executor.setQueueCapacity(5000);
+    executor.setThreadNamePrefix("EventHook-");
+    executor.initialize();
+
+    return executor;
   }
 }

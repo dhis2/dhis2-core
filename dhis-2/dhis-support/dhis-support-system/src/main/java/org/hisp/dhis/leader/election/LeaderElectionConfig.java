@@ -25,33 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.leader.election;
 
-import java.util.Date;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.condition.RedisDisabledCondition;
+import org.hisp.dhis.condition.RedisEnabledCondition;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 /**
- * @author Abyot Asalefew
+ * Configures leaderManager that takes care of node leader elections.
+ *
+ * @author Ameen Mohamed
  */
-public interface EnrollmentService {
+@Configuration
+public class LeaderElectionConfig {
+  @Autowired private DhisConfigurationProvider dhisConfigurationProvider;
 
-  /**
-   * Enroll a TrackedEntity into a program. Must be run inside a transaction.
-   *
-   * @param trackedEntity TrackedEntity
-   * @param program Program
-   * @param enrollmentDate The date of enrollment
-   * @param incidentDate The date of incident
-   * @param orgunit Organisation Unit
-   * @param uid UID to use for new instance
-   * @return Enrollment
-   */
-  Enrollment enrollTrackedEntity(
-      TrackedEntity trackedEntity,
-      Program program,
-      Date enrollmentDate,
-      Date incidentDate,
-      OrganisationUnit orgunit,
-      String uid);
+  @Bean(name = "leaderManager")
+  @Conditional(RedisEnabledCondition.class)
+  public LeaderManager redisLeaderManager(
+      @Autowired(required = false) @Qualifier("stringRedisTemplate")
+          StringRedisTemplate stringRedisTemplate) {
+    return new RedisLeaderManager(stringRedisTemplate, dhisConfigurationProvider);
+  }
+
+  @Bean(name = "leaderManager")
+  @Conditional(RedisDisabledCondition.class)
+  public LeaderManager noOpLeaderManager() {
+    return new NoOpLeaderManager(dhisConfigurationProvider);
+  }
 }

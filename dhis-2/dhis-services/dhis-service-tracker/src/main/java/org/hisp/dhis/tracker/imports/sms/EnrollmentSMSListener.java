@@ -83,12 +83,15 @@ import org.springframework.transaction.annotation.Transactional;
 public class EnrollmentSMSListener extends EventSavingSMSListener {
   private final TrackedEntityService teService;
 
-  private final org.hisp.dhis.program.EnrollmentService apiEnrollmentService;
   private final EnrollmentService enrollmentService;
 
   private final TrackedEntityAttributeValueService attributeValueService;
 
   private final ProgramStageService programStageService;
+
+  private final SMSEnrollmentService smsEnrollmentService;
+
+  private final IdentifiableObjectManager manager;
 
   public EnrollmentSMSListener(
       IncomingSmsService incomingSmsService,
@@ -107,9 +110,9 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
       DhisConfigurationProvider config,
       TrackedEntityAttributeValueService attributeValueService,
       TrackedEntityService teService,
-      org.hisp.dhis.program.EnrollmentService apiEnrollmentService,
       EnrollmentService enrollmentService,
-      IdentifiableObjectManager identifiableObjectManager) {
+      IdentifiableObjectManager manager,
+      SMSEnrollmentService smsEnrollmentService) {
     super(
         incomingSmsService,
         smsSender,
@@ -120,16 +123,17 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
         organisationUnitService,
         categoryService,
         dataElementService,
-        identifiableObjectManager,
+        manager,
         eventService,
         dataValueAuditService,
         fileResourceService,
         config);
     this.teService = teService;
     this.programStageService = programStageService;
-    this.apiEnrollmentService = apiEnrollmentService;
     this.enrollmentService = enrollmentService;
     this.attributeValueService = attributeValueService;
+    this.smsEnrollmentService = smsEnrollmentService;
+    this.manager = manager;
   }
 
   @Override
@@ -163,7 +167,7 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
     }
 
     TrackedEntity trackedEntity;
-    boolean teExists = teService.trackedEntityExists(teUid.getUid());
+    boolean teExists = identifiableObjectManager.exists(TrackedEntity.class, teUid.getUid());
 
     if (teExists) {
       log.info("Tracked entity exists: '{}'. Updating.", teUid);
@@ -181,7 +185,7 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
     if (teExists) {
       updateAttributeValues(attributeValues, trackedEntity.getTrackedEntityAttributeValues());
       trackedEntity.setTrackedEntityAttributeValues(attributeValues);
-      teService.updateTrackedEntity(trackedEntity);
+      manager.update(trackedEntity);
     } else {
       teService.createTrackedEntity(trackedEntity, attributeValues);
     }
@@ -204,8 +208,8 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
 
     if (enrollment == null) {
       enrollment =
-          apiEnrollmentService.enrollTrackedEntity(
-              te, program, enrollmentDate, occurredDate, orgUnit, enrollmentid.getUid());
+          smsEnrollmentService.enrollTrackedEntity(
+              te, program, orgUnit, occurredDate, enrollmentid.getUid());
 
       if (enrollment == null) {
         throw new SMSProcessingException(SmsResponse.ENROLL_FAILED.set(teUid, progid));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,45 +25,70 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.tracker.imports.sms;
+
+import static java.util.Objects.requireNonNullElseGet;
 
 import java.util.Date;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-/**
- * @author Abyot Asalefew
- */
-@Slf4j
 @RequiredArgsConstructor
-@Service("org.hisp.dhis.program.EnrollmentService")
-public class DefaultEnrollmentService implements EnrollmentService {
-  private final TrackedEntityService trackedEntityService;
-
-  private final ApplicationEventPublisher eventPublisher;
-
-  private final TrackerOwnershipManager trackerOwnershipAccessManager;
+@Deprecated(since = "2.42")
+// TODO(tracker) This class will be removed as soon as the SMS feature uses the importer
+@Service("org.hisp.dhis.tracker.imports.sms.SMSEnrollmentService")
+public class SMSEnrollmentService {
 
   private final IdentifiableObjectManager manager;
+  private final TrackerOwnershipManager trackerOwnershipAccessManager;
+  private final ApplicationEventPublisher eventPublisher;
+  private final TrackedEntityService trackedEntityService;
+
+  public void enrollTrackedEntity(
+      TrackedEntity trackedEntity,
+      Program program,
+      OrganisationUnit organisationUnit,
+      Date occurredDate) {
+    enrollTrackedEntity(
+        trackedEntity, program, organisationUnit, occurredDate, CodeGenerator.generateUid());
+  }
+
+  public Enrollment enrollTrackedEntity(
+      TrackedEntity trackedEntity,
+      Program program,
+      OrganisationUnit organisationUnit,
+      Date occurredDate,
+      String enrollmentUid) {
+    Enrollment enrollment =
+        prepareEnrollment(trackedEntity, program, occurredDate, organisationUnit, enrollmentUid);
+    manager.save(enrollment);
+    trackerOwnershipAccessManager.assignOwnership(
+        trackedEntity, program, organisationUnit, true, true);
+    eventPublisher.publishEvent(new ProgramEnrollmentNotificationEvent(this, enrollment.getId()));
+    manager.update(enrollment);
+    manager.update(trackedEntity);
+
+    return enrollment;
+  }
 
   private Enrollment prepareEnrollment(
       TrackedEntity trackedEntity,
       Program program,
-      Date enrollmentDate,
       Date occurredDate,
       OrganisationUnit organisationUnit,
-      String uid) {
+      String enrollmentUid) {
     if (program.getTrackedEntityType() != null
         && !program.getTrackedEntityType().equals(trackedEntity.getTrackedEntityType())) {
       throw new IllegalQueryException(
@@ -71,45 +96,13 @@ public class DefaultEnrollmentService implements EnrollmentService {
     }
 
     Enrollment enrollment = new Enrollment();
-    enrollment.setUid(CodeGenerator.isValidUid(uid) ? uid : CodeGenerator.generateUid());
+    enrollment.setUid(enrollmentUid);
     enrollment.setOrganisationUnit(organisationUnit);
     enrollment.enrollTrackedEntity(trackedEntity, program);
-
-    if (enrollmentDate != null) {
-      enrollment.setEnrollmentDate(enrollmentDate);
-    } else {
-      enrollment.setEnrollmentDate(new Date());
-    }
-
-    if (occurredDate != null) {
-      enrollment.setOccurredDate(occurredDate);
-    } else {
-      enrollment.setOccurredDate(new Date());
-    }
-
+    enrollment.setEnrollmentDate(new Date());
+    enrollment.setOccurredDate(requireNonNullElseGet(occurredDate, Date::new));
     enrollment.setStatus(EnrollmentStatus.ACTIVE);
 
-    return enrollment;
-  }
-
-  @Override
-  @Transactional
-  public Enrollment enrollTrackedEntity(
-      TrackedEntity trackedEntity,
-      Program program,
-      Date enrollmentDate,
-      Date occurredDate,
-      OrganisationUnit organisationUnit,
-      String uid) {
-    Enrollment enrollment =
-        prepareEnrollment(
-            trackedEntity, program, enrollmentDate, occurredDate, organisationUnit, uid);
-    manager.save(enrollment);
-    trackerOwnershipAccessManager.assignOwnership(
-        trackedEntity, program, organisationUnit, true, true);
-    eventPublisher.publishEvent(new ProgramEnrollmentNotificationEvent(this, enrollment.getId()));
-    manager.update(enrollment);
-    trackedEntityService.updateTrackedEntity(trackedEntity);
     return enrollment;
   }
 }

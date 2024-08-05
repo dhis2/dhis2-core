@@ -51,7 +51,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  */
 @Configuration
 @Conditional(RedisEnabledCondition.class)
-public class RedisConfiguration {
+public class RedisConfig {
   @Bean
   public LettuceConnectionFactory lettuceConnectionFactory() {
     LettuceClientConfigurationBuilder builder = LettuceClientConfiguration.builder();

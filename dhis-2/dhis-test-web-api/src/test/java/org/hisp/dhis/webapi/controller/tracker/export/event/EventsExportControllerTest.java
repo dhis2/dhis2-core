@@ -53,6 +53,7 @@ import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.webapi.controller.tracker.export.event.EventsExportControllerTest.Config;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -63,10 +64,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ContextConfiguration;
 
-@ContextConfiguration(classes = EventsExportControllerTest.Configuration.class)
+@ContextConfiguration(classes = Config.class)
 class EventsExportControllerTest extends H2ControllerIntegrationTestBase {
 
-  static class Configuration {
+  static class Config {
     @Bean
     public EventService eventService() {
       EventService eventService = mock(EventService.class);

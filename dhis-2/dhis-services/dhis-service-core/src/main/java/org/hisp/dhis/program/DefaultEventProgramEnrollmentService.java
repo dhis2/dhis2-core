@@ -46,8 +46,6 @@ public class DefaultEventProgramEnrollmentService implements EventProgramEnrollm
   }
 
   @Override
-  // TODO(tracker) This method gets enrollments from event and tracker programs. This needs a
-  // discussion, enrollments from tracker programs might not be necessary.
   public List<Enrollment> getEnrollments(Program program, EnrollmentStatus enrollmentStatus) {
     return eventProgramEnrollmentStore.get(program, enrollmentStatus);
   }

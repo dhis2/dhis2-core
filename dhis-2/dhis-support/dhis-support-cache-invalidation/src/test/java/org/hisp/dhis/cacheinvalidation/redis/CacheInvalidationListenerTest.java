@@ -41,7 +41,6 @@ import org.hisp.dhis.cache.QueryCacheManager;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -64,8 +63,6 @@ class CacheInvalidationListenerTest {
 
   @Mock protected TrackedEntityAttributeService trackedEntityAttributeService;
 
-  @Mock protected TrackedEntityService trackedEntityService;
-
   @Mock protected PeriodService periodService;
 
   @Mock protected DisabledCaching disabledCaching;
@@ -87,7 +84,6 @@ class CacheInvalidationListenerTest {
             queryCacheManager,
             idObjectManager,
             trackedEntityAttributeService,
-            trackedEntityService,
             periodService,
             "SERVER_A");
 
@@ -112,7 +108,7 @@ class CacheInvalidationListenerTest {
             + "ROLE"
             + ":"
             + "1";
-    cacheInvalidationListener.message(CacheInvalidationConfiguration.CHANNEL_NAME, message);
+    cacheInvalidationListener.message(CacheInvalidationConfig.CHANNEL_NAME, message);
 
     verify(queryCacheManager, times(0)).evictQueryCache(any(), any());
     verify(sessionFactory.getCache(), times(1)).evictCollectionData(any(), any());
@@ -123,7 +119,7 @@ class CacheInvalidationListenerTest {
   @DisplayName("Should not call evict cache on INSERT messages")
   void testInsertMessage() {
     String message = "SERVER_B" + ":" + "INSERT" + ":" + "org.hisp.dhis.user.User" + ":" + "1";
-    cacheInvalidationListener.message(CacheInvalidationConfiguration.CHANNEL_NAME, message);
+    cacheInvalidationListener.message(CacheInvalidationConfig.CHANNEL_NAME, message);
 
     verify(queryCacheManager, times(1)).evictQueryCache(any(), any());
     verify(sessionFactory.getCache(), times(0)).evict(any(), any());
@@ -134,7 +130,7 @@ class CacheInvalidationListenerTest {
   @DisplayName("Should call evict cache on UPDATE messages")
   void testUpdateMessage() {
     String message = "SERVER_B" + ":" + "UPDATE" + ":" + "org.hisp.dhis.user.User" + ":" + "1";
-    cacheInvalidationListener.message(CacheInvalidationConfiguration.CHANNEL_NAME, message);
+    cacheInvalidationListener.message(CacheInvalidationConfig.CHANNEL_NAME, message);
 
     verify(sessionFactory.getCache(), times(1)).evict(any(), any());
   }
@@ -143,7 +139,7 @@ class CacheInvalidationListenerTest {
   @DisplayName("Should call evict cache on DELETE messages")
   void testDeleteMessage() {
     String message = "SERVER_B" + ":" + "DELETE" + ":" + "org.hisp.dhis.user.User" + ":" + "1";
-    cacheInvalidationListener.message(CacheInvalidationConfiguration.CHANNEL_NAME, message);
+    cacheInvalidationListener.message(CacheInvalidationConfig.CHANNEL_NAME, message);
 
     verify(queryCacheManager, times(1)).evictQueryCache(any(), any());
     verify(sessionFactory.getCache(), times(1)).evict(any(), any());

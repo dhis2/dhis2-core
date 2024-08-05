@@ -226,7 +226,7 @@ class EventPredictionServiceTest extends PostgresIntegrationTestBase {
     trackedEntityAttributeValue.setValue("123");
     entityAttributeValueService.addTrackedEntityAttributeValue(trackedEntityAttributeValue);
     trackedEntity.setTrackedEntityAttributeValues(Sets.newHashSet(trackedEntityAttributeValue));
-    trackedEntityService.updateTrackedEntity(trackedEntity);
+    manager.update(trackedEntity);
     Program program = createProgram('A', null, Sets.newHashSet(entityAttribute), orgUnitASet, null);
     program.setUid(PROGRAM_UID);
     programService.addProgram(program);

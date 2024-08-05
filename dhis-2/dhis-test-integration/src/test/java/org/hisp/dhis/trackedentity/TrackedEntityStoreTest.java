@@ -28,7 +28,6 @@
 package org.hisp.dhis.trackedentity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -136,16 +135,6 @@ class TrackedEntityStoreTest extends PostgresIntegrationTestBase {
     admin = getAdminUser();
     admin.addOrganisationUnit(ouA);
     manager.update(admin);
-  }
-
-  @Test
-  void testTrackedEntityExists() {
-    trackedEntityStore.save(trackedEntityA);
-    trackedEntityStore.save(trackedEntityB);
-    dbmsManager.flushSession();
-    assertTrue(trackedEntityStore.exists(trackedEntityA.getUid()));
-    assertTrue(trackedEntityStore.exists(trackedEntityB.getUid()));
-    assertFalse(trackedEntityStore.exists("aaaabbbbccc"));
   }
 
   @Test

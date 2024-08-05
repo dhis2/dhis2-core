@@ -25,49 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.preheat.supplier.strategy;
+package org.hisp.dhis.test.config;
 
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.List;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityStore;
-import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 /**
- * @author Luciano Fiandesio
+ * Use this Spring configuration for tests relying on the Postgres DB running in a Docker container.
+ *
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@ExtendWith(MockitoExtension.class)
-class TrackerEntityStrategyTest {
-  @InjectMocks private TrackerEntityStrategy strategy;
-
-  @Mock private TrackedEntityStore trackedEntityStore;
-
-  @Mock private TrackerPreheat preheat;
-
-  @Test
-  void verifyStrategyAddRightTeToPreheat() {
-    final List<String> uids = List.of("TE_A", "TE_B");
-
-    List<List<String>> splitUids = new ArrayList<>();
-    splitUids.add(uids);
-
-    TrackedEntity teA = new TrackedEntity();
-    teA.setUid("TE_A");
-    TrackedEntity teB = new TrackedEntity();
-    teB.setUid("TE_B");
-    List<TrackedEntity> dbTrackedEntities = List.of(teA, teB);
-    when(trackedEntityStore.getIncludingDeleted(uids)).thenReturn(dbTrackedEntities);
-    strategy.add(splitUids, preheat);
-
-    Mockito.verify(trackedEntityStore).getIncludingDeleted(uids);
-    Mockito.verify(preheat).putTrackedEntities(dbTrackedEntities);
+@Profile("test-postgres")
+@Configuration
+public class PostgresDhisTestConfig {
+  @Bean
+  public DhisConfigurationProvider dhisConfigurationProvider() {
+    return new PostgresDhisConfigurationProvider();
   }
 }

@@ -25,24 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.config;
+package org.hisp.dhis.webapi.filter;
 
+import javax.servlet.Filter;
+import org.hisp.dhis.condition.RedisDisabledCondition;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
+import org.springframework.web.filter.CharacterEncodingFilter;
 
 /**
- * Creates a no operation flyway bean that can be used to disable flyway migrations when running
- * tests.
+ * Configuration registered if {@link RedisDisabledCondition} matches to true. This serves as a
+ * fallback to spring-session if redis is disabled. Since web.xml has a
+ * "springSessionRepositoryFilter" mapped to all urls, the container will expect a filter bean with
+ * that name. Therefore we define a dummy {@link Filter} named springSessionRepositoryFilter. Here
+ * we define a {@link CharacterEncodingFilter} without setting any encoding so that requests will
+ * simply pass through the filter.
+ *
+ * @author Ameen Mohamed
  */
-@Profile("test-h2")
 @Configuration
-public class NoOpFlywayConfiguration {
-
-  public static class NoOpFlyway {}
-
+@Conditional(RedisDisabledCondition.class)
+public class DefaultSessionConfig {
+  /**
+   * Defines a {@link CharacterEncodingFilter} named springSessionRepositoryFilter
+   *
+   * @return a {@link CharacterEncodingFilter} without specifying encoding.
+   */
   @Bean
-  public NoOpFlyway flyway() {
-    return new NoOpFlyway();
+  public Filter springSessionRepositoryFilter() {
+    return new CharacterEncodingFilter();
   }
 }

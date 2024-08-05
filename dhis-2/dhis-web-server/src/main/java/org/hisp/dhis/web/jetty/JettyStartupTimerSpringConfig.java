@@ -25,26 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.patch;
+package org.hisp.dhis.web.jetty;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Configuration class for a simple startup timer for embedded Jetty.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public interface PatchService {
-  /**
-   * Creates a patch by checking the differences between a source object and a target object (given
-   * by PatchParams).
-   *
-   * @param params PatchParams instance containing source and target object
-   * @return Patch containing the differences between source and target
-   */
-  Patch diff(PatchParams params);
+@Configuration
+@Order(100)
+@ComponentScan(basePackages = {"org.hisp.dhis"})
+public class JettyStartupTimerSpringConfig {
 
-  /**
-   * Applies given patch on the given object.
-   *
-   * @param patch Patch instance (either created manually or by using the diff function)
-   * @param target Object to apply the patch to
-   */
-  void apply(Patch patch, Object target);
+  @Bean("org.hisp.dhis.web.embeddedjetty.StartupFinishedRoutine")
+  public StartupFinishedRoutine startupFinishedRoutine() {
+    StartupFinishedRoutine startupRoutine = new StartupFinishedRoutine();
+    startupRoutine.setName("StartupFinishedRoutine");
+    startupRoutine.setRunlevel(42);
+    startupRoutine.setSkipInTests(true);
+    return startupRoutine;
+  }
 }

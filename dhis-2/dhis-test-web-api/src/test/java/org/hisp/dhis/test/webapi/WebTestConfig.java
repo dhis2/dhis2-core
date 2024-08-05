@@ -33,7 +33,7 @@ import java.util.Map;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.artemis.config.ArtemisConfig;
-import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationStoreConfiguration;
+import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationStoreConfig;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.config.AnalyticsDataSourceConfig;
@@ -43,17 +43,17 @@ import org.hisp.dhis.config.HibernateEncryptionConfig;
 import org.hisp.dhis.config.ServiceConfig;
 import org.hisp.dhis.config.StartupConfig;
 import org.hisp.dhis.config.StoreConfig;
-import org.hisp.dhis.configuration.NotifierConfiguration;
+import org.hisp.dhis.configuration.NotifierConfig;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
 import org.hisp.dhis.datasource.model.PoolConfig;
 import org.hisp.dhis.db.migration.config.FlywayConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.jdbc.config.JdbcConfig;
-import org.hisp.dhis.leader.election.LeaderElectionConfiguration;
+import org.hisp.dhis.leader.election.LeaderElectionConfig;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.SystemAuthoritiesProvider;
-import org.hisp.dhis.test.config.NoOpFlywayConfiguration;
+import org.hisp.dhis.test.config.NoOpFlywayTestConfig;
 import org.hisp.dhis.test.h2.H2SqlFunction;
 import org.hisp.dhis.tracker.imports.config.TrackerPreheatConfig;
 import org.hisp.dhis.webapi.security.config.PasswordEncoderConfig;
@@ -99,13 +99,13 @@ import org.springframework.transaction.annotation.Transactional;
   DataSourceConfig.class,
   AnalyticsDataSourceConfig.class,
   JdbcConfig.class,
-  NoOpFlywayConfiguration.class,
+  NoOpFlywayTestConfig.class,
   FlywayConfig.class,
   HibernateEncryptionConfig.class,
   ServiceConfig.class,
   StoreConfig.class,
-  LeaderElectionConfiguration.class,
-  NotifierConfiguration.class,
+  LeaderElectionConfig.class,
+  NotifierConfig.class,
   org.hisp.dhis.setting.config.ServiceConfig.class,
   org.hisp.dhis.external.config.ServiceConfig.class,
   org.hisp.dhis.dxf2.config.ServiceConfig.class,
@@ -117,13 +117,13 @@ import org.springframework.transaction.annotation.Transactional;
   org.hisp.dhis.analytics.config.ServiceConfig.class,
   TrackerPreheatConfig.class,
   JacksonObjectMapperConfig.class,
-  JdbcOrgUnitAssociationStoreConfiguration.class,
+  JdbcOrgUnitAssociationStoreConfig.class,
   StartupConfig.class
 })
 @Transactional
 @Slf4j
 @Order(10)
-public class WebTestConfiguration {
+public class WebTestConfig {
   @Bean
   public static SessionRegistry sessionRegistry() {
     return new org.springframework.security.core.session.SessionRegistryImpl();

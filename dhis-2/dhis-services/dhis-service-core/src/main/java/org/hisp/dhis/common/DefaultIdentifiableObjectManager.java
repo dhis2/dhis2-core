@@ -940,7 +940,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   public void resetNonOwnerProperties(@Nonnull Object object) {
     Schema schema = schemaService.getDynamicSchema(getRealClass(object));
 
-    schema.getProperties().stream()
+    schema.getPersistedProperties().values().stream()
         .filter(
             p ->
                 !p.isOwner()

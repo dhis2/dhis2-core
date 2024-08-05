@@ -25,35 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.filter;
+package org.hisp.dhis.webapi.security.session;
 
-import javax.servlet.Filter;
-import org.hisp.dhis.condition.RedisDisabledCondition;
+import org.hisp.dhis.condition.RedisEnabledCondition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.filter.CharacterEncodingFilter;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.session.data.redis.config.ConfigureRedisAction;
+import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 
 /**
- * Configuration registered if {@link RedisDisabledCondition} matches to true. This serves as a
- * fallback to spring-session if redis is disabled. Since web.xml has a
- * "springSessionRepositoryFilter" mapped to all urls, the container will expect a filter bean with
- * that name. Therefore we define a dummy {@link Filter} named springSessionRepositoryFilter. Here
- * we define a {@link CharacterEncodingFilter} without setting any encoding so that requests will
- * simply pass through the filter.
+ * Configuration registered if {@link RedisEnabledCondition} matches to true. Redis backed Spring
+ * Session will be configured due to the {@link EnableRedisHttpSession} annotation.
  *
  * @author Ameen Mohamed
  */
 @Configuration
-@Conditional(RedisDisabledCondition.class)
-public class DefaultSessionConfiguration {
-  /**
-   * Defines a {@link CharacterEncodingFilter} named springSessionRepositoryFilter
-   *
-   * @return a {@link CharacterEncodingFilter} without specifying encoding.
-   */
-  @Bean("springSessionRepositoryFilter")
-  public Filter springSessionRepositoryFilter() {
-    return new CharacterEncodingFilter();
+@Order(1998)
+@Conditional(RedisEnabledCondition.class)
+@EnableRedisHttpSession
+public class RedisSpringSessionConfig {
+
+  @Bean
+  public static ConfigureRedisAction configureRedisAction() {
+    return ConfigureRedisAction.NO_OP;
+  }
+
+  @Bean
+  public HttpSessionEventPublisher httpSessionEventPublisher() {
+    return new HttpSessionEventPublisher();
   }
 }
