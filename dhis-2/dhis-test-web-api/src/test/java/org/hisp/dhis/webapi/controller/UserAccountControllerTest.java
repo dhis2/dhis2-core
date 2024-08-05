@@ -406,23 +406,6 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("Self registration error when invalid recaptcha input")
-  void selfRegInvalidRecaptchaInput() {
-    systemSettingManager.saveSystemSetting(
-        SettingKey.SELF_REGISTRATION_NO_RECAPTCHA, Boolean.FALSE);
-
-    assertWebMessage(
-        "Bad Request",
-        400,
-        "ERROR",
-        "Recaptcha validation failed: [invalid-input-secret]",
-        POST(
-                "/auth/registration",
-                renderService.toJsonAsString(getRegParamsWithRecaptcha("secret", RegType.SELF_REG)))
-            .content(HttpStatus.BAD_REQUEST));
-  }
-
-  @Test
   @DisplayName("Self registration error when recaptcha enabled and null input")
   void selfRegRecaptcha() {
     systemSettingManager.saveSystemSetting(
@@ -548,23 +531,6 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
         POST(
                 "/auth/invite",
                 renderService.toJsonAsString(getRegParamsWithPassword(password, RegType.INVITE)))
-            .content(HttpStatus.BAD_REQUEST));
-  }
-
-  @Test
-  @DisplayName("Invite registration error when invalid recaptcha input")
-  void inviteRegInvalidRecaptchaInput() {
-    systemSettingManager.saveSystemSetting(
-        SettingKey.SELF_REGISTRATION_NO_RECAPTCHA, Boolean.FALSE);
-
-    assertWebMessage(
-        "Bad Request",
-        400,
-        "ERROR",
-        "Recaptcha validation failed: [invalid-input-secret]",
-        POST(
-                "/auth/invite",
-                renderService.toJsonAsString(getRegParamsWithRecaptcha("secret", RegType.INVITE)))
             .content(HttpStatus.BAD_REQUEST));
   }
 

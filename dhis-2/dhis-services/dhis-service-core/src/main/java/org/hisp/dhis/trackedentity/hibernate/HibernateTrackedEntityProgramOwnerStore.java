@@ -34,6 +34,8 @@ import java.util.Set;
 import javax.persistence.EntityManager;
 import org.hibernate.query.Query;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerStore;
@@ -54,15 +56,15 @@ public class HibernateTrackedEntityProgramOwnerStore
   }
 
   @Override
-  public TrackedEntityProgramOwner getTrackedEntityProgramOwner(long teId, long programId) {
+  public TrackedEntityProgramOwner getTrackedEntityProgramOwner(TrackedEntity te, Program program) {
     Query<TrackedEntityProgramOwner> query =
         getQuery(
             "from TrackedEntityProgramOwner tepo where "
                 + "tepo.trackedEntity.id= :teId and "
                 + "tepo.program.id= :programId");
 
-    query.setParameter("teId", teId);
-    query.setParameter("programId", programId);
+    query.setParameter("teId", te.getId());
+    query.setParameter("programId", program.getId());
     return query.uniqueResult();
   }
 

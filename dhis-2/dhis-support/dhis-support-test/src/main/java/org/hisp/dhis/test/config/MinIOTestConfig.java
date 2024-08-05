@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,29 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.web.jetty;
+package org.hisp.dhis.test.config;
 
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 
 /**
- * Configuration class for a simple startup timer for embedded Jetty.
+ * Use this configuration for tests relying on MinIO storage running in a Docker container. e.g. add
+ * to test class like `@ContextConfiguration(classes = {MinIODhisConfiguration.class})`
  *
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author david mackessy
  */
 @Configuration
-@Order(100)
-@ComponentScan(basePackages = {"org.hisp.dhis"})
-public class JettyStartupTimerSpringConfiguration {
+public class MinIOTestConfig {
 
-  @Bean("org.hisp.dhis.web.embeddedjetty.StartupFinishedRoutine")
-  public StartupFinishedRoutine startupFinishedRoutine() {
-    StartupFinishedRoutine startupRoutine = new StartupFinishedRoutine();
-    startupRoutine.setName("StartupFinishedRoutine");
-    startupRoutine.setRunlevel(42);
-    startupRoutine.setSkipInTests(true);
-    return startupRoutine;
+  /**
+   * Config class for MinIO setup, which reuses the existing Postgres properties.
+   *
+   * @return dhisConfigurationProvider
+   */
+  @Bean
+  public DhisConfigurationProvider dhisConfigurationProvider() {
+    return new MinIOConfigurationProvider(new PostgresDhisConfigurationProvider().getProperties());
   }
 }

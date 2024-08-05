@@ -46,7 +46,6 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -73,8 +72,6 @@ import org.springframework.transaction.annotation.Transactional;
 class RelationshipServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired protected UserService _userService;
-
-  @Autowired private EnrollmentService enrollmentService;
 
   @Autowired private RelationshipService relationshipService;
 
@@ -163,15 +160,19 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     program.setProgramStages(Set.of(programStage, inaccessibleProgramStage));
     manager.save(program, false);
 
-    enrollmentA =
-        enrollmentService.enrollTrackedEntity(
-            teA, program, enrollmentDate, enrollmentDate, orgUnitA);
+    enrollmentA = createEnrollment(program, teA, orgUnitA);
+    manager.save(enrollmentA);
+    teA.getEnrollments().add(enrollmentA);
+    manager.update(teA);
+
     eventA = createEvent(programStage, enrollmentA, orgUnitA);
     eventA.setOccurredDate(enrollmentDate);
     manager.save(eventA);
 
-    Enrollment enrollmentB =
-        enrollmentService.enrollTrackedEntity(teB, program, new Date(), new Date(), orgUnitA);
+    Enrollment enrollmentB = createEnrollment(program, teB, orgUnitA);
+    manager.save(enrollmentB);
+    teA.getEnrollments().add(enrollmentB);
+    manager.update(teA);
     inaccessibleEvent = createEvent(inaccessibleProgramStage, enrollmentB, orgUnitA);
     inaccessibleEvent.setOccurredDate(enrollmentDate);
     manager.save(inaccessibleEvent);

@@ -69,8 +69,6 @@ import org.hisp.dhis.user.UserService;
 @Slf4j
 public abstract class RegisterSMSListener extends CommandSMSListener {
 
-  protected final org.hisp.dhis.program.EnrollmentService apiEnrollmentService;
-
   protected final EnrollmentService enrollmentService;
 
   protected final TrackedEntityDataValueChangeLogService dataValueAuditService;
@@ -86,14 +84,12 @@ public abstract class RegisterSMSListener extends CommandSMSListener {
       UserService userService,
       IncomingSmsService incomingSmsService,
       MessageSender smsSender,
-      org.hisp.dhis.program.EnrollmentService apiEnrollmentService,
       EnrollmentService enrollmentService,
       TrackedEntityDataValueChangeLogService dataValueAuditService,
       FileResourceService fileResourceService,
       DhisConfigurationProvider config,
       IdentifiableObjectManager identifiableObjectManager) {
     super(dataElementCategoryService, userService, incomingSmsService, smsSender);
-    this.apiEnrollmentService = apiEnrollmentService;
     this.enrollmentService = enrollmentService;
     this.dataValueAuditService = dataValueAuditService;
     this.fileResourceService = fileResourceService;

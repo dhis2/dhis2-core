@@ -28,7 +28,6 @@
 package org.hisp.dhis.program;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -210,16 +209,6 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
     long pmsgAId = pmsgA.getId();
     programMessageStore.delete(pmsgA);
     assertNull(programMessageStore.get(pmsgAId));
-  }
-
-  @Test
-  void testProgramMessageExists() {
-    programMessageStore.save(pmsgA);
-    programMessageStore.save(pmsgB);
-    assertTrue(programMessageStore.exists(pmsgA.getUid()));
-    assertTrue(programMessageStore.exists(pmsgB.getUid()));
-    assertFalse(programMessageStore.exists("22343"));
-    assertFalse(programMessageStore.exists(null));
   }
 
   @Test

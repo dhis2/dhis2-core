@@ -169,10 +169,10 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
     duplicate.getEnrollments().add(enrollment2);
     control1.getEnrollments().add(enrollment3);
     control2.getEnrollments().add(enrollment4);
-    trackedEntityService.updateTrackedEntity(original);
-    trackedEntityService.updateTrackedEntity(duplicate);
-    trackedEntityService.updateTrackedEntity(control1);
-    trackedEntityService.updateTrackedEntity(control2);
+    manager.update(original);
+    manager.update(duplicate);
+    manager.update(control1);
+    manager.update(control2);
     assertNotNull(trackedEntityService.getTrackedEntity(original.getUid()));
     assertNotNull(trackedEntityService.getTrackedEntity(duplicate.getUid()));
     assertNotNull(trackedEntityService.getTrackedEntity(control1.getUid()));

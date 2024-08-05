@@ -25,49 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.preheat.supplier.strategy;
+package org.hisp.dhis.webapi.security.session;
 
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.List;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityStore;
-import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.hisp.dhis.condition.RedisEnabledCondition;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.session.data.redis.config.ConfigureRedisAction;
+import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 
 /**
- * @author Luciano Fiandesio
+ * Configuration registered if {@link RedisEnabledCondition} matches to true. Redis backed Spring
+ * Session will be configured due to the {@link EnableRedisHttpSession} annotation.
+ *
+ * @author Ameen Mohamed
  */
-@ExtendWith(MockitoExtension.class)
-class TrackerEntityStrategyTest {
-  @InjectMocks private TrackerEntityStrategy strategy;
+@Configuration
+@Order(1998)
+@Conditional(RedisEnabledCondition.class)
+@EnableRedisHttpSession
+public class RedisSpringSessionConfig {
 
-  @Mock private TrackedEntityStore trackedEntityStore;
+  @Bean
+  public static ConfigureRedisAction configureRedisAction() {
+    return ConfigureRedisAction.NO_OP;
+  }
 
-  @Mock private TrackerPreheat preheat;
-
-  @Test
-  void verifyStrategyAddRightTeToPreheat() {
-    final List<String> uids = List.of("TE_A", "TE_B");
-
-    List<List<String>> splitUids = new ArrayList<>();
-    splitUids.add(uids);
-
-    TrackedEntity teA = new TrackedEntity();
-    teA.setUid("TE_A");
-    TrackedEntity teB = new TrackedEntity();
-    teB.setUid("TE_B");
-    List<TrackedEntity> dbTrackedEntities = List.of(teA, teB);
-    when(trackedEntityStore.getIncludingDeleted(uids)).thenReturn(dbTrackedEntities);
-    strategy.add(splitUids, preheat);
-
-    Mockito.verify(trackedEntityStore).getIncludingDeleted(uids);
-    Mockito.verify(preheat).putTrackedEntities(dbTrackedEntities);
+  @Bean
+  public HttpSessionEventPublisher httpSessionEventPublisher() {
+    return new HttpSessionEventPublisher();
   }
 }

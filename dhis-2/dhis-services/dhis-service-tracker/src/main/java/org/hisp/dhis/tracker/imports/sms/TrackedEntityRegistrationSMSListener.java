@@ -36,7 +36,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.sms.command.SMSCommand;
@@ -72,7 +71,7 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
 
   private final ProgramService programService;
 
-  private final EnrollmentService enrollmentService;
+  private final SMSEnrollmentService smsEnrollmentService;
 
   public TrackedEntityRegistrationSMSListener(
       ProgramService programService,
@@ -83,13 +82,13 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
       SMSCommandService smsCommandService,
       TrackedEntityTypeService trackedEntityTypeService,
       TrackedEntityService trackedEntityService,
-      EnrollmentService enrollmentService) {
+      SMSEnrollmentService smsEnrollmentService) {
     super(dataElementCategoryService, userService, incomingSmsService, smsSender);
     this.smsCommandService = smsCommandService;
     this.trackedEntityTypeService = trackedEntityTypeService;
     this.trackedEntityService = trackedEntityService;
     this.programService = programService;
-    this.enrollmentService = enrollmentService;
+    this.smsEnrollmentService = smsEnrollmentService;
   }
 
   @Override
@@ -97,7 +96,7 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
       IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage) {
     String message = sms.getText();
 
-    Date date = SmsUtils.lookForDate(message);
+    Date occurredDate = SmsUtils.lookForDate(message);
     String senderPhoneNumber = StringUtils.replace(sms.getOriginator(), "+", "");
     Collection<OrganisationUnit> orgUnits = getOrganisationUnits(sms);
 
@@ -127,20 +126,21 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
               patientAttributeValues.add(trackedEntityAttributeValue);
             });
 
-    long trackedEntityId = 0;
     if (!patientAttributeValues.isEmpty()) {
-      trackedEntityId =
-          trackedEntityService.createTrackedEntity(trackedEntity, patientAttributeValues);
+      trackedEntityService.createTrackedEntity(trackedEntity, patientAttributeValues);
     } else {
       sendFeedback("No TrackedEntityAttribute found", senderPhoneNumber, WARNING);
     }
 
-    TrackedEntity te = trackedEntityService.getTrackedEntity(trackedEntityId);
-
-    enrollmentService.enrollTrackedEntity(te, smsCommand.getProgram(), new Date(), date, orgUnit);
+    smsEnrollmentService.enrollTrackedEntity(
+        trackedEntityService.getTrackedEntity(trackedEntity.getUid()),
+        program,
+        orgUnit,
+        occurredDate);
 
     sendFeedback(
-        StringUtils.defaultIfBlank(smsCommand.getSuccessMessage(), SUCCESS_MESSAGE + te.getUid()),
+        StringUtils.defaultIfBlank(
+            smsCommand.getSuccessMessage(), SUCCESS_MESSAGE + trackedEntity.getUid()),
         senderPhoneNumber,
         INFO);
 

@@ -25,36 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.security.session;
+package org.hisp.dhis.test.config;
 
-import org.hisp.dhis.condition.RedisEnabledCondition;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
-import org.springframework.security.web.session.HttpSessionEventPublisher;
-import org.springframework.session.data.redis.config.ConfigureRedisAction;
-import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
+import org.springframework.context.annotation.Profile;
 
 /**
- * Configuration registered if {@link RedisEnabledCondition} matches to true. Redis backed Spring
- * Session will be configured due to the {@link EnableRedisHttpSession} annotation.
- *
- * @author Ameen Mohamed
+ * Creates a no operation flyway bean that can be used to disable flyway migrations when running
+ * tests.
  */
+@Profile("test-h2")
 @Configuration
-@Order(1998)
-@Conditional(RedisEnabledCondition.class)
-@EnableRedisHttpSession
-public class RedisSpringSessionConfiguration {
+public class NoOpFlywayTestConfig {
+
+  public static class NoOpFlyway {}
 
   @Bean
-  public static ConfigureRedisAction configureRedisAction() {
-    return ConfigureRedisAction.NO_OP;
-  }
-
-  @Bean
-  public HttpSessionEventPublisher httpSessionEventPublisher() {
-    return new HttpSessionEventPublisher();
+  public NoOpFlyway flyway() {
+    return new NoOpFlyway();
   }
 }

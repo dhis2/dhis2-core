@@ -25,41 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.configuration;
+package org.hisp.dhis.test.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.hisp.dhis.condition.RedisDisabledCondition;
-import org.hisp.dhis.condition.RedisEnabledCondition;
-import org.hisp.dhis.system.notification.InMemoryNotifier;
-import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.system.notification.RedisNotifier;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.context.annotation.Profile;
 
 /**
- * This class deals with the configuring an appropriate notifier depending on whether redis is
- * enabled or not.
+ * Use this Spring configuration for tests relying on the Postgres DB running in a Docker container.
  *
- * @author Ameen Mohamed
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
+@Profile("test-postgres")
 @Configuration
-public class NotifierConfiguration {
-  @Autowired(required = false)
-  private RedisTemplate<?, ?> redisTemplate;
-
-  @SuppressWarnings("unchecked")
-  @Bean("notifier")
-  @Conditional(RedisEnabledCondition.class)
-  public Notifier redisNotifier(ObjectMapper objectMapper) {
-    return new RedisNotifier((RedisTemplate<String, String>) redisTemplate, objectMapper);
-  }
-
-  @Bean("notifier")
-  @Conditional(RedisDisabledCondition.class)
-  public Notifier inMemoryNotifier() {
-    return new InMemoryNotifier();
+public class PostgresDhisTestConfig {
+  @Bean
+  public DhisConfigurationProvider dhisConfigurationProvider() {
+    return new PostgresDhisConfigurationProvider();
   }
 }

@@ -39,14 +39,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 @Configuration
 @RequiredArgsConstructor
-public class JdbcOrgUnitAssociationStoreConfiguration {
-  private final CacheProvider cacheProvider;
+public class JdbcOrgUnitAssociationStoreConfig {
 
-  private final UserService userService;
-
-  @Bean("jdbcProgramOrgUnitAssociationsStore")
-  public JdbcOrgUnitAssociationsStore jdbcProgramOrgUnitAssociationStore(
-      JdbcTemplate jdbcTemplate) {
+  @Bean
+  public JdbcOrgUnitAssociationsStore jdbcProgramOrgUnitAssociationsStore(
+      JdbcTemplate jdbcTemplate, CacheProvider cacheProvider, UserService userService) {
     return new JdbcOrgUnitAssociationsStore(
         jdbcTemplate,
         new ProgramOrganisationUnitAssociationsQueryBuilder(),
@@ -54,9 +51,9 @@ public class JdbcOrgUnitAssociationStoreConfiguration {
         userService);
   }
 
-  @Bean("jdbcCategoryOptionOrgUnitAssociationsStore")
-  public JdbcOrgUnitAssociationsStore jdbcCategoryOptionOrgUnitAssociationStore(
-      JdbcTemplate jdbcTemplate) {
+  @Bean
+  public JdbcOrgUnitAssociationsStore jdbcCategoryOptionOrgUnitAssociationsStore(
+      JdbcTemplate jdbcTemplate, CacheProvider cacheProvider, UserService userService) {
     return new JdbcOrgUnitAssociationsStore(
         jdbcTemplate,
         new CategoryOptionOrganisationUnitAssociationsQueryBuilder(),
@@ -64,9 +61,9 @@ public class JdbcOrgUnitAssociationStoreConfiguration {
         userService);
   }
 
-  @Bean("jdbcDataSetOrgUnitAssociationsStore")
-  public JdbcOrgUnitAssociationsStore jdbcDataSetOrgUnitAssociationStore(
-      JdbcTemplate jdbcTemplate) {
+  @Bean
+  public JdbcOrgUnitAssociationsStore jdbcDataSetOrgUnitAssociationsStore(
+      JdbcTemplate jdbcTemplate, CacheProvider cacheProvider, UserService userService) {
     return new JdbcOrgUnitAssociationsStore(
         jdbcTemplate,
         new DataSetOrganisationUnitAssociationsQueryBuilder(),

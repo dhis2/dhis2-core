@@ -44,6 +44,7 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.tracker.TrackerType;
@@ -69,6 +70,8 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
   private final TrackedEntityAttributeValueService attributeValueService;
 
   private final TrackedEntityDataValueChangeLogService dataValueChangeLogService;
+
+  private final TrackedEntityAttributeValueChangeLogService attributeValueAuditService;
 
   private final ProgramNotificationInstanceService programNotificationInstanceService;
 
@@ -113,7 +116,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
       manager.delete(enrollment);
 
-      teService.updateTrackedEntity(te);
+      manager.update(te);
 
       typeReport.getStats().incDeleted();
       typeReport.addEntity(objectReport);
@@ -157,7 +160,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
         TrackedEntity entity = event.getEnrollment().getTrackedEntity();
         entity.setLastUpdatedByUserInfo(userInfoSnapshot);
 
-        teService.updateTrackedEntity(entity);
+        manager.update(entity);
 
         Enrollment enrollment = event.getEnrollment();
         enrollment.setLastUpdatedByUserInfo(userInfoSnapshot);
@@ -209,7 +212,9 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
         attributeValueService.deleteTrackedEntityAttributeValue(attributeValue);
       }
 
-      teService.deleteTrackedEntity(entity);
+      attributeValueAuditService.deleteTrackedEntityAttributeValueChangeLogs(entity);
+
+      manager.delete(entity);
 
       typeReport.getStats().incDeleted();
       typeReport.addEntity(objectReport);
