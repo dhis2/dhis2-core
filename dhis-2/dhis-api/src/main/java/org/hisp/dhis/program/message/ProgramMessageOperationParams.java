@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,23 +30,22 @@ package org.hisp.dhis.program.message;
 import java.util.Date;
 import java.util.Set;
 import lombok.Builder;
-import lombok.Data;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
+import lombok.Getter;
+import org.hisp.dhis.common.UID;
 
 /**
- * @author Zubair <rajazubair.asghar@gmail.com>
+ * @author Zubair Asghar
  */
-@Data
+@Getter
 @Builder
-public class ProgramMessageQueryParams {
-  private Set<String> organisationUnit;
+public class ProgramMessageOperationParams {
+  private Set<String> ou;
+
+  private UID enrollment;
+
+  private UID event;
 
   private ProgramMessageStatus messageStatus;
-
-  private Enrollment enrollment;
-
-  private Event event;
 
   private Date afterDate;
 
@@ -55,24 +54,4 @@ public class ProgramMessageQueryParams {
   private Integer page;
 
   private Integer pageSize;
-
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  public boolean hasOrganisationUnit() {
-    return organisationUnit != null;
-  }
-
-  public boolean hasEnrollment() {
-    return enrollment != null;
-  }
-
-  public boolean hasEvent() {
-    return event != null;
-  }
-
-  public boolean hasPaging() {
-    return page != null && pageSize != null;
-  }
 }

@@ -55,9 +55,15 @@ public class HibernateProgramMessageStore extends HibernateIdentifiableObjectSto
   }
 
   // -------------------------------------------------------------------------
-  // Implementation
+  // Implementation of ProgramMessageStore
   // -------------------------------------------------------------------------
 
+  /**
+   * Retrieves a list of ProgramMessages based on the provided query parameters.
+   *
+   * @param params the query parameters for filtering ProgramMessages
+   * @return a list of ProgramMessages that match the query parameters
+   */
   @Override
   public List<ProgramMessage> getProgramMessages(ProgramMessageQueryParams params) {
     Query<ProgramMessage> query = getHqlQuery(params);
@@ -76,52 +82,41 @@ public class HibernateProgramMessageStore extends HibernateIdentifiableObjectSto
 
   private Query<ProgramMessage> getHqlQuery(ProgramMessageQueryParams params) {
     SqlHelper helper = new SqlHelper(true);
+    StringBuilder hql = new StringBuilder("SELECT DISTINCT pm FROM ProgramMessage pm");
 
-    String hql = " select distinct pm from ProgramMessage pm ";
-
+    // Add conditions to the query based on the parameters
     if (params.hasEnrollment()) {
-      hql += helper.whereAnd() + "pm.enrollment = :enrollment";
+      hql.append(helper.whereAnd()).append("pm.enrollment = :enrollment");
     }
-
     if (params.hasEvent()) {
-      hql += helper.whereAnd() + "pm.event = :event";
+      hql.append(helper.whereAnd()).append("pm.event = :event");
+    }
+    if (params.getMessageStatus() != null) {
+      hql.append(helper.whereAnd()).append("pm.messageStatus = :messageStatus");
+    }
+    if (params.getAfterDate() != null) {
+      hql.append(helper.whereAnd()).append("pm.processeddate > :afterDate");
+    }
+    if (params.getBeforeDate() != null) {
+      hql.append(helper.whereAnd()).append("pm.processeddate < :beforeDate");
     }
 
-    hql +=
-        params.getMessageStatus() != null
-            ? helper.whereAnd() + "pm.messageStatus = :messageStatus"
-            : "";
-
-    hql +=
-        params.getAfterDate() != null
-            ? helper.whereAnd() + "pm.processeddate > :processeddate"
-            : "";
-
-    hql +=
-        params.getBeforeDate() != null
-            ? helper.whereAnd() + "pm.processeddate < :processeddate"
-            : "";
-
-    Query<ProgramMessage> query = getQuery(hql);
+    Query<ProgramMessage> query = getQuery(hql.toString());
 
     if (params.hasEnrollment()) {
       query.setParameter("enrollment", params.getEnrollment());
     }
-
     if (params.hasEvent()) {
       query.setParameter("event", params.getEvent());
     }
-
     if (params.getMessageStatus() != null) {
       query.setParameter("messageStatus", params.getMessageStatus());
     }
-
     if (params.getAfterDate() != null) {
-      query.setParameter("processeddate", params.getAfterDate());
+      query.setParameter("afterDate", params.getAfterDate());
     }
-
     if (params.getBeforeDate() != null) {
-      query.setParameter("processeddate", params.getBeforeDate());
+      query.setParameter("beforeDate", params.getBeforeDate());
     }
 
     return query;
