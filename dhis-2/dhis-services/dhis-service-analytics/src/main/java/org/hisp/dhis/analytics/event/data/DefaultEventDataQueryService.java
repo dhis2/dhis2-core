@@ -435,6 +435,24 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       boolean defaultCoordinateFallback) {
     List<String> coordinateFields = new ArrayList<>();
 
+    //TODO!!! remove when all fe apps stop using old names of coordinate fields
+    if("pigeometry".equalsIgnoreCase(coordinateField))
+    {
+      coordinateField = "engeometry";
+    }
+
+    //TODO!!! remove when all fe apps stop using old names of coordinate fields
+    if("psigeometry".equalsIgnoreCase(coordinateField))
+    {
+      coordinateField = "evgeometry";
+    }
+
+    //TODO!!! remove when all fe apps stop using old names of coordinate fields
+    if("teigeometry".equalsIgnoreCase(coordinateField))
+    {
+      coordinateField = "tegeometry";
+    }
+
     if (coordinateField == null) {
       coordinateFields.add(StringUtils.EMPTY);
     } else if (COL_NAME_GEOMETRY_LIST.contains(coordinateField)) {
