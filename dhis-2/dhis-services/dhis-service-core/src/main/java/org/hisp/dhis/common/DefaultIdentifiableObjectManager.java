@@ -953,7 +953,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
 
     Schema schema = schemaService.getDynamicSchema(object.getClass());
 
-    schema.getProperties().stream()
+    schema.getPersistedProperties().values().stream()
         .filter(
             p ->
                 !p.isOwner()
