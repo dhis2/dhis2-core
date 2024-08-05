@@ -435,23 +435,9 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       boolean defaultCoordinateFallback) {
     List<String> coordinateFields = new ArrayList<>();
 
-    //TODO!!! remove when all fe apps stop using old names of coordinate fields
-    if("pigeometry".equalsIgnoreCase(coordinateField))
-    {
-      coordinateField = "engeometry";
-    }
-
-    //TODO!!! remove when all fe apps stop using old names of coordinate fields
-    if("psigeometry".equalsIgnoreCase(coordinateField))
-    {
-      coordinateField = "evgeometry";
-    }
-
-    //TODO!!! remove when all fe apps stop using old names of coordinate fields
-    if("teigeometry".equalsIgnoreCase(coordinateField))
-    {
-      coordinateField = "tegeometry";
-    }
+    // TODO!!! remove when all fe apps stop using old names of coordinate fields
+    coordinateField = mapCoordinateField(coordinateField);
+    fallbackCoordinateField = mapCoordinateField(fallbackCoordinateField);
 
     if (coordinateField == null) {
       coordinateFields.add(StringUtils.EMPTY);
@@ -499,6 +485,29 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
             program, fallbackCoordinateField, defaultCoordinateFallback));
 
     return coordinateFields.stream().distinct().collect(Collectors.toList());
+  }
+
+  // TODO!!! remove when all fe apps stop using old names of the coordinate fields
+  /**
+   * Temporary only, should not be in 2.42 release!!! Retrieves an old name of the coordinate field.
+   *
+   * @param coordinateField a name of the coordinate field
+   * @return old name of the coordinate field.
+   */
+  private String mapCoordinateField(String coordinateField) {
+    if ("pigeometry".equalsIgnoreCase(coordinateField)) {
+      coordinateField = COL_NAME_ENROLLMENT_GEOMETRY;
+    }
+
+    if ("psigeometry".equalsIgnoreCase(coordinateField)) {
+      coordinateField = COL_NAME_EVENT_GEOMETRY;
+    }
+
+    if ("teigeometry".equalsIgnoreCase(coordinateField)) {
+      coordinateField = COL_NAME_TRACKED_ENTITY_GEOMETRY;
+    }
+
+    return coordinateField;
   }
 
   // -------------------------------------------------------------------------
