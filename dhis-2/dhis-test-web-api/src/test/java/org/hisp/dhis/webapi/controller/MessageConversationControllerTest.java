@@ -372,7 +372,7 @@ class MessageConversationControllerTest extends H2ControllerIntegrationTestBase 
                 "/messageConversations/",
                 "{'subject':'Subject','text':'Text','users':[{'id':'" + getAdminUid() + "'}]}"));
 
-    User ringo = switchToNewUser("ringo");
+    switchToNewUser("ringo");
 
     assertWebMessage(
         "Forbidden",
@@ -393,7 +393,7 @@ class MessageConversationControllerTest extends H2ControllerIntegrationTestBase 
                 "/messageConversations/",
                 "{'subject':'Subject','text':'Text','users':[{'id':'" + getAdminUid() + "'}]}"));
 
-    User ringo = switchToNewUser("ringo");
+    switchToNewUser("ringo");
 
     assertWebMessage(
         "Forbidden",
