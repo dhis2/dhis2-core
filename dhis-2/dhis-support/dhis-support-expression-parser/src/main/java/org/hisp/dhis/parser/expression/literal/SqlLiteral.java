@@ -40,7 +40,7 @@ import org.hisp.dhis.parser.expression.antlr.ExpressionParser.StringLiteralConte
 public class SqlLiteral implements AntlrExprLiteral {
   @Override
   public Object getNumericLiteral(NumericLiteralContext ctx) {
-    return ctx.getText();
+    return ctx.getText() + "::numeric";
   }
 
   @Override

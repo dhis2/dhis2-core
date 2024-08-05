@@ -74,7 +74,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.antlr.Parser;
@@ -100,7 +99,6 @@ import org.hisp.dhis.parser.expression.function.VectorMin;
 import org.hisp.dhis.parser.expression.function.VectorStddevSamp;
 import org.hisp.dhis.parser.expression.function.VectorSum;
 import org.hisp.dhis.parser.expression.function.VectorVariance;
-import org.hisp.dhis.parser.expression.literal.NumericLiteral;
 import org.hisp.dhis.parser.expression.literal.SqlLiteral;
 import org.hisp.dhis.program.dataitem.ProgramItemAttribute;
 import org.hisp.dhis.program.dataitem.ProgramItemPsEventdate;
@@ -425,13 +423,8 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
             .reportingEndDate(endDate)
             .dataElementAndAttributeIdentifiers(uids)
             .build();
-    String numericExpression = "^[0-9+\\-*/]+$";
     CommonExpressionVisitor visitor = newVisitor(ITEM_GET_SQL, params, progParams);
-    visitor.setExpressionLiteral(
-        dataType == DataType.NUMERIC && Pattern.matches(numericExpression, expression)
-            ? new NumericLiteral()
-            : new SqlLiteral());
-
+    visitor.setExpressionLiteral(new SqlLiteral());
     String sql = castString(Parser.visit(expression, visitor));
 
     return (tableAlias != null
