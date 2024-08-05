@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -156,7 +155,7 @@ public class DefaultProgramMessageService implements ProgramMessageService {
         programMessages.stream()
             .filter(this::hasDataWriteAccess)
             .map(this::setAttributesBasedOnStrategy)
-            .collect(Collectors.toList());
+            .toList();
 
     List<OutboundMessageBatch> batches = createBatches(populatedProgramMessages);
 
