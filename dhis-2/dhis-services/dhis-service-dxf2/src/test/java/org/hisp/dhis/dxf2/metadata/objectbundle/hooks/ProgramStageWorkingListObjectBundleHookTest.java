@@ -35,8 +35,8 @@ import static org.hisp.dhis.feedback.ErrorCode.E4066;
 import static org.hisp.dhis.feedback.ErrorCode.E4067;
 import static org.hisp.dhis.feedback.ErrorCode.E4068;
 import static org.hisp.dhis.feedback.ErrorCode.E7500;
-import static org.hisp.dhis.utils.Assertions.assertErrorReport;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.test.utils.Assertions.assertErrorReport;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 

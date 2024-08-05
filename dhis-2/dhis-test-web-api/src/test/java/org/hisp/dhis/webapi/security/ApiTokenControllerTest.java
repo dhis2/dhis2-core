@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.webapi.security;
 
-import static org.hisp.dhis.web.WebClient.Body;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.web.WebClient.Body;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -39,11 +39,11 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.web.WebClientUtils;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonApiToken;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.web.WebClientUtils;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.domain.JsonApiToken;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +51,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class ApiTokenControllerTest extends DhisControllerConvenienceTest {
+class ApiTokenControllerTest extends H2ControllerIntegrationTestBase {
 
   public static final String USER_A_USERNAME = "userA";
 
@@ -237,7 +237,7 @@ class ApiTokenControllerTest extends DhisControllerConvenienceTest {
     final ApiToken token = createNewEmptyToken();
     switchToNewUser("anonymous");
     assertStatus(HttpStatus.NOT_FOUND, GET("/apiTokens/{uid}", token.getUid()));
-    switchToSuperuser();
+    switchToAdminUser();
     fetchAsEntity(token.getUid());
   }
 

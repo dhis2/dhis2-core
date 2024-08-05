@@ -45,6 +45,7 @@ import org.springframework.orm.jpa.support.OpenEntityManagerInViewFilter;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
+import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.filter.DelegatingFilterProxy;
@@ -137,5 +138,13 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
     context
         .addFilter("GlobalShellFilter", new DelegatingFilterProxy("globalShellFilter"))
         .addMappingForUrlPatterns(null, true, "/*");
+
+    context.addServlet("RootPageServlet", LoginFallbackServlet.class).addMapping("/login.html");
+
+    String profile = System.getProperty("spring.profiles.active");
+    if (profile == null || !profile.equals("embeddedJetty")) {
+      RequestContextListener requestContextListener = new RequestContextListener();
+      context.addListener(requestContextListener);
+    }
   }
 }

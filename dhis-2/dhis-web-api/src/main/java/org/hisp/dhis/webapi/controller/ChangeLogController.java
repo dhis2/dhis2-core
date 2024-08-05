@@ -70,12 +70,12 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.FileResourceStorageStatus;
 import org.hisp.dhis.node.NodeUtils;
-import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -193,7 +193,7 @@ public class ChangeLogController {
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
     if (fields.isEmpty()) {
-      fields.addAll(Preset.ALL.getFields());
+      fields.addAll(FieldPreset.ALL.getFields());
     }
 
     List<DataElement> dataElements = new ArrayList<>();
@@ -253,6 +253,10 @@ public class ChangeLogController {
     return rootNode;
   }
 
+  /**
+   * @deprecated use EventsExportController#getEventChangeLogsByUid instead
+   */
+  @Deprecated(forRemoval = true, since = "2.42")
   @GetMapping("trackedEntityDataValue")
   public RootNode getTrackedEntityDataValueChangeLog(
       @OpenApi.Param({UID[].class, DataElement.class}) @RequestParam(required = false)
@@ -279,7 +283,7 @@ public class ChangeLogController {
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
     if (fields.isEmpty()) {
-      fields.addAll(Preset.ALL.getFields());
+      fields.addAll(FieldPreset.ALL.getFields());
     }
 
     List<DataElement> dataElements = manager.loadByUid(DataElement.class, de);
@@ -335,6 +339,10 @@ public class ChangeLogController {
     return rootNode;
   }
 
+  /**
+   * @deprecated use TrackedEntitiesExportController#getTrackedEntityAttributeChangeLog instead
+   */
+  @Deprecated(forRemoval = true, since = "2.42")
   @GetMapping("trackedEntityAttributeValue")
   public RootNode getTrackedEntityAttributeValueChangeLog(
       @OpenApi.Param({UID[].class, TrackedEntityAttribute.class}) @RequestParam(required = false)
@@ -420,7 +428,7 @@ public class ChangeLogController {
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
     if (fields.isEmpty()) {
-      fields.addAll(Preset.ALL.getFields());
+      fields.addAll(FieldPreset.ALL.getFields());
     }
 
     DataApprovalAuditQueryParams params =
@@ -483,7 +491,7 @@ public class ChangeLogController {
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
     if (fields.isEmpty()) {
-      fields.addAll(Preset.ALL.getFields());
+      fields.addAll(FieldPreset.ALL.getFields());
     }
 
     List<ChangeLogType> changeLogTypes = emptyIfNull(auditType);
@@ -547,7 +555,7 @@ public class ChangeLogController {
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
     if (fields.isEmpty()) {
-      fields.addAll(Preset.ALL.getFields());
+      fields.addAll(FieldPreset.ALL.getFields());
     }
 
     List<ChangeLogType> changeLogTypes = emptyIfNull(auditType);

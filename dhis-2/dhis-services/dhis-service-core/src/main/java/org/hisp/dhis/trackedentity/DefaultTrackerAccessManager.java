@@ -442,7 +442,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     OrganisationUnit ou = event.getOrganisationUnit();
     if (ou != null) {
       if (event.isCreatableInSearchScope()
-          ? !user.isInUserSearchHierarchy(ou.getPath())
+          ? !user.isInUserEffectiveSearchOrgUnitHierarchy(ou.getPath())
           : !user.isInUserHierarchy(ou.getPath())) {
         errors.add("User has no create access to organisation unit: " + ou.getUid());
       }
@@ -485,7 +485,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       canManageWithRegistration(errors, user, programStage, program);
 
       OrganisationUnit ou = event.getOrganisationUnit();
-      if (ou != null && !user.isInUserSearchHierarchy(ou.getPath())) {
+      if (ou != null && !user.isInUserEffectiveSearchOrgUnitHierarchy(ou.getPath())) {
         errors.add("User has no update access to organisation unit: " + ou.getUid());
       }
 
@@ -519,7 +519,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     List<String> errors = new ArrayList<>();
     if (program.isWithoutRegistration()) {
       OrganisationUnit ou = event.getOrganisationUnit();
-      if (ou != null && !user.isInUserDataHierarchy(ou.getPath())) {
+      if (ou != null && !user.isInUserHierarchy(ou.getPath())) {
         errors.add("User has no delete access to organisation unit: " + ou.getUid());
       }
 
@@ -739,7 +739,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       return user.isInUserHierarchy(orgUnit.getPath());
     }
 
-    return user.isInUserSearchHierarchy(orgUnit.getPath());
+    return user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getPath());
   }
 
   @Override
@@ -747,7 +747,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       UserDetails user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck) {
     if (!skipOwnershipCheck && !ownershipAccessManager.hasAccess(user, trackedEntity, program)) {
       if (program.isProtected()) {
-        return OWNERSHIP_ACCESS_DENIED;
+        return ownershipAccessManager.isOwnerInUserSearchScope(user, trackedEntity, program)
+            ? OWNERSHIP_ACCESS_DENIED
+            : NO_READ_ACCESS_TO_ORG_UNIT;
       }
 
       if (program.isClosed()) {

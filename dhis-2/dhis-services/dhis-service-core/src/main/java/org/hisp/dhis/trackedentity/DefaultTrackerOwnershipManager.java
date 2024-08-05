@@ -65,7 +65,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
   private final ProgramTempOwnershipAuditService programTempOwnershipAuditService;
   private final ProgramTempOwnerService programTempOwnerService;
   private final ProgramOwnershipHistoryService programOwnershipHistoryService;
-  private final TrackedEntityService trackedEntityService;
   private final DhisConfigurationProvider config;
   private final UserService userService;
 
@@ -76,7 +75,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       ProgramTempOwnershipAuditService programTempOwnershipAuditService,
       ProgramTempOwnerService programTempOwnerService,
       ProgramOwnershipHistoryService programOwnershipHistoryService,
-      TrackedEntityService trackedEntityService,
       DhisConfigurationProvider config) {
 
     this.userService = userService;
@@ -84,7 +82,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     this.programTempOwnershipAuditService = programTempOwnershipAuditService;
     this.programOwnershipHistoryService = programOwnershipHistoryService;
     this.programTempOwnerService = programTempOwnerService;
-    this.trackedEntityService = trackedEntityService;
     this.config = config;
     this.ownerCache = cacheProvider.createProgramOwnerCache();
     this.tempOwnerCache = cacheProvider.createProgramTempOwnerCache();
@@ -116,8 +113,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
     if (hasAccess(currentUser, trackedEntity, program) || skipAccessValidation) {
       TrackedEntityProgramOwner teProgramOwner =
-          trackedEntityProgramOwnerService.getTrackedEntityProgramOwner(
-              trackedEntity.getId(), program.getId());
+          trackedEntityProgramOwnerService.getTrackedEntityProgramOwner(trackedEntity, program);
 
       if (teProgramOwner != null) {
         if (!teProgramOwner.getOrganisationUnit().equals(orgUnit)) {
@@ -161,8 +157,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
     if (hasAccess(currentUser, trackedEntity, program) || skipAccessValidation) {
       TrackedEntityProgramOwner teProgramOwner =
-          trackedEntityProgramOwnerService.getTrackedEntityProgramOwner(
-              trackedEntity.getId(), program.getId());
+          trackedEntityProgramOwnerService.getTrackedEntityProgramOwner(trackedEntity, program);
 
       if (teProgramOwner != null) {
         if (overwriteIfExists && !teProgramOwner.getOrganisationUnit().equals(organisationUnit)) {
@@ -223,12 +218,11 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       return true;
     }
 
-    OrganisationUnit ou =
-        getOwner(trackedEntity.getId(), program, trackedEntity::getOrganisationUnit);
+    OrganisationUnit ou = getOwner(trackedEntity, program, trackedEntity::getOrganisationUnit);
 
     final String orgUnitPath = ou.getPath();
     return switch (program.getAccessLevel()) {
-      case OPEN, AUDITED -> user.isInUserSearchHierarchy(orgUnitPath);
+      case OPEN, AUDITED -> user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnitPath);
       case PROTECTED ->
           user.isInUserHierarchy(orgUnitPath) || hasTemporaryAccess(trackedEntity, program, user);
       case CLOSED -> user.isInUserHierarchy(orgUnitPath);
@@ -245,7 +239,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
     final String orgUnitPath = owningOrgUnit.getPath();
     return switch (program.getAccessLevel()) {
-      case OPEN, AUDITED -> user.isInUserSearchHierarchy(orgUnitPath);
+      case OPEN, AUDITED -> user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnitPath);
       case PROTECTED ->
           user.isInUserHierarchy(orgUnitPath)
               || hasTemporaryAccessWithUid(trackedEntity, program, user);
@@ -263,6 +257,13 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     return user == null || user.isSuper() || ProgramType.WITHOUT_REGISTRATION == programType;
   }
 
+  @Override
+  public boolean isOwnerInUserSearchScope(
+      UserDetails user, TrackedEntity trackedEntity, Program program) {
+    return user.isInUserSearchHierarchy(
+        getOwner(trackedEntity, program, trackedEntity::getOrganisationUnit).getPath());
+  }
+
   // -------------------------------------------------------------------------
   // Private Helper Methods
   // -------------------------------------------------------------------------
@@ -271,18 +272,19 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
    * Get the current owner of this TE-program combination. Falls back to the registered organisation
    * unit if no owner explicitly exists for the program.
    *
-   * @param trackedEntityId the TE.
+   * @param trackedEntity the TE.
    * @param program The program
    * @return The owning organisation unit.
    */
   private OrganisationUnit getOwner(
-      Long trackedEntityId, Program program, Supplier<OrganisationUnit> orgUnitIfMissingSupplier) {
+      TrackedEntity trackedEntity,
+      Program program,
+      Supplier<OrganisationUnit> orgUnitIfMissingSupplier) {
     return ownerCache.get(
-        getOwnershipCacheKey(() -> trackedEntityId, program),
+        getOwnershipCacheKey(trackedEntity::getId, program),
         s -> {
           TrackedEntityProgramOwner trackedEntityProgramOwner =
-              trackedEntityProgramOwnerService.getTrackedEntityProgramOwner(
-                  trackedEntityId, program.getId());
+              trackedEntityProgramOwnerService.getTrackedEntityProgramOwner(trackedEntity, program);
 
           return Optional.ofNullable(trackedEntityProgramOwner)
               .map(tepo -> recursivelyInitializeOrgUnit(tepo.getOrganisationUnit()))
@@ -330,7 +332,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     return tempOwnerCache.get(
         getTempOwnershipCacheKey(trackedEntity.getUid(), program.getUid(), user.getUid()),
         s ->
-            (programTempOwnerService.getValidTempOwnerRecordCount(program, trackedEntity, user)
+            (programTempOwnerService.getValidTempOwnerRecordCount(
+                    program, trackedEntity.getUid(), user)
                 > 0));
   }
 
@@ -342,14 +345,9 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
     return tempOwnerCache.get(
         getTempOwnershipCacheKey(trackedEntityUid, program.getUid(), user.getUid()),
-        s -> {
-          TrackedEntity trackedEntity = trackedEntityService.getTrackedEntity(trackedEntityUid);
-          if (trackedEntity == null) {
-            return true;
-          }
-          return (programTempOwnerService.getValidTempOwnerRecordCount(program, trackedEntity, user)
-              > 0);
-        });
+        s ->
+            programTempOwnerService.getValidTempOwnerRecordCount(program, trackedEntityUid, user)
+                > 0);
   }
 
   /**

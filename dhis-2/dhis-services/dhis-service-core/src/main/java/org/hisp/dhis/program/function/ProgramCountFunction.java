@@ -71,9 +71,9 @@ public abstract class ProgramCountFunction extends ProgramExpressionItem {
         + eventTableName
         + " where "
         + eventTableName
-        + ".pi = "
+        + ".enrollment = "
         + AnalyticsConstants.ANALYTICS_TBL_ALIAS
-        + ".pi and "
+        + ".enrollment and "
         + columnName
         + " is not null and "
         + columnName

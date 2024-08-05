@@ -52,12 +52,18 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.transaction.annotation.Transactional;
 
-class CsvImportServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class CsvImportServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private CsvImportService csvImportService;
 
@@ -85,8 +91,8 @@ class CsvImportServiceTest extends SingleSetupIntegrationTestBase {
 
   private OrganisationUnitGroup organisationUnitGroup_B;
 
-  @Override
-  protected void setUpTest() throws Exception {
+  @BeforeAll
+  void setUp() throws Exception {
     inputBasicObjects = new ClassPathResource("csv/basic_objects.csv").getInputStream();
     organisationUnitGroup_A = createOrganisationUnitGroup('A');
     organisationUnitGroup_B = createOrganisationUnitGroup('B');

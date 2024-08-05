@@ -27,10 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -38,7 +39,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class MessageConversationControllerTest extends DhisControllerConvenienceTest {
+class MessageConversationControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testPostJsonObject() {
@@ -49,7 +50,7 @@ class MessageConversationControllerTest extends DhisControllerConvenienceTest {
         "Message conversation created",
         POST(
                 "/messageConversations/",
-                "{'subject':'Subject','text':'Text','users':[{'id':'" + getSuperuserUid() + "'}]}")
+                "{'subject':'Subject','text':'Text','users':[{'id':'" + getAdminUid() + "'}]}")
             .content(HttpStatus.CREATED));
   }
 
@@ -71,9 +72,7 @@ class MessageConversationControllerTest extends DhisControllerConvenienceTest {
             HttpStatus.CREATED,
             POST(
                 "/messageConversations/",
-                "{'subject':'Subject','text':'Text','users':[{'id':'"
-                    + getSuperuserUid()
-                    + "'}]}"));
+                "{'subject':'Subject','text':'Text','users':[{'id':'" + getAdminUid() + "'}]}"));
     assertWebMessage(
         "OK", 200, "OK", null, DELETE("/messageConversations/" + uid).content(HttpStatus.OK));
   }
@@ -85,9 +84,7 @@ class MessageConversationControllerTest extends DhisControllerConvenienceTest {
             HttpStatus.CREATED,
             POST(
                 "/messageConversations/",
-                "{'subject':'Subject','text':'Text','users':[{'id':'"
-                    + getSuperuserUid()
-                    + "'}]}"));
+                "{'subject':'Subject','text':'Text','users':[{'id':'" + getAdminUid() + "'}]}"));
     assertWebMessage(
         "Created",
         201,
@@ -113,9 +110,7 @@ class MessageConversationControllerTest extends DhisControllerConvenienceTest {
             HttpStatus.CREATED,
             POST(
                 "/messageConversations/",
-                "{'subject':'Subject','text':'Text','users':[{'id':'"
-                    + getSuperuserUid()
-                    + "'}]}"));
+                "{'subject':'Subject','text':'Text','users':[{'id':'" + getAdminUid() + "'}]}"));
     assertWebMessage(
         "Conflict",
         409,

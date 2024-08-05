@@ -38,16 +38,20 @@ import javax.persistence.PersistenceContext;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Chau Thu Tran
  */
-class ProgramStageSectionIntegrationTest extends TransactionalIntegrationTest {
+@Transactional
+class ProgramStageSectionIntegrationTest extends PostgresIntegrationTestBase {
 
   @Autowired private ProgramStageService programStageService;
 
@@ -59,6 +63,8 @@ class ProgramStageSectionIntegrationTest extends TransactionalIntegrationTest {
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
+  @Autowired private DbmsManager dbmsManager;
+
   @PersistenceContext private EntityManager entityManager;
 
   private Program program;
@@ -69,8 +75,8 @@ class ProgramStageSectionIntegrationTest extends TransactionalIntegrationTest {
 
   private ProgramStageDataElement programStageDataElementA;
 
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnit);
     sectionA = createProgramStageSection('A', 1);

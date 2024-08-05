@@ -59,16 +59,22 @@ import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.joda.time.DateTime;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class EventQueryPlannerTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class EventQueryPlannerTest extends PostgresIntegrationTestBase {
 
   private Program prA;
 
@@ -116,8 +122,8 @@ class EventQueryPlannerTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
-  @Override
-  public void setUpTest() {
+  @BeforeAll
+  void setUp() {
     prA = createProgram('A');
     prA.setUid("programuida");
     idObjectManager.save(prA);

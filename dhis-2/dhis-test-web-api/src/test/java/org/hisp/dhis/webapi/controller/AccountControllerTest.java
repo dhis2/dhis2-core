@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
@@ -37,9 +38,9 @@ import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -48,13 +49,13 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Jan Bernitt
  */
-class AccountControllerTest extends DhisControllerIntegrationTest {
+class AccountControllerTest extends PostgresControllerIntegrationTestBase {
   @Autowired private SystemSettingManager systemSettingManager;
 
   @Test
   void testRecoverAccount_NotEnabled() {
     User test = switchToNewUser("test");
-    switchToSuperuser();
+    switchToAdminUser();
     clearSecurityContext();
     assertWebMessage(
         "Conflict",
@@ -96,7 +97,8 @@ class AccountControllerTest extends DhisControllerIntegrationTest {
         409,
         "ERROR",
         "User account does not have a valid email address",
-        POST("/account/recovery?username=" + superUser.getUsername()).content(HttpStatus.CONFLICT));
+        POST("/account/recovery?username=" + getAdminUser().getUsername())
+            .content(HttpStatus.CONFLICT));
   }
 
   @Test
@@ -209,7 +211,7 @@ class AccountControllerTest extends DhisControllerIntegrationTest {
 
     JsonMixed response = GET("/account/linkedAccounts").content(HttpStatus.OK);
     JsonList<JsonObject> users = response.getList("users", JsonObject.class);
-    assertEquals(2, users.size());
+    assertEquals(1, users.size());
   }
 
   private static void assertMessage(String key, String value, String message, JsonMixed response) {

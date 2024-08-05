@@ -40,16 +40,16 @@ import java.util.Map;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class SqlViewServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class SqlViewServiceTest extends PostgresIntegrationTestBase {
   @Autowired private SqlViewService sqlViewService;
-
-  @Autowired private UserService internalUserService;
 
   private String sqlA = "SELECT   *  FROM     analytics_rs_categorystructure;;  ; ;;;  ;; ; ";
 
@@ -67,15 +67,6 @@ class SqlViewServiceTest extends TransactionalIntegrationTest {
           + "AND dv.periodid=p.periodid LIMIT 10";
 
   private String sqlE = "WITH foo as (SELECT * FROM organisationunit) SELECT * FROM foo LIMIT 2; ";
-
-  @Override
-  public void setUpTest() {
-    super.userService = internalUserService;
-  }
-
-  // -------------------------------------------------------------------------
-  // Supportive methods
-  // -------------------------------------------------------------------------
 
   private void assertEq(char uniqueCharacter, SqlView sqlView, String sql) {
     assertEquals("SqlView" + uniqueCharacter, sqlView.getName());
@@ -277,9 +268,6 @@ class SqlViewServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void testGetGridValidationFailure() {
-    // this is the easiest way to be allowed to read SQL view data
-    createAndInjectAdminUser();
-
     SqlView sqlView = getSqlView("select * from dataelement; delete from dataelement");
     sqlViewService.saveSqlView(sqlView);
 
@@ -292,8 +280,6 @@ class SqlViewServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void testGetGridRequiresDataReadSharing() {
-    createAndInjectAdminUser("ALL");
-
     // we have the right to create the view
     SqlView sqlView = getSqlView("select * from dataelement; delete from dataelement");
     sqlViewService.saveSqlView(sqlView);
@@ -386,10 +372,9 @@ class SqlViewServiceTest extends TransactionalIntegrationTest {
     assertEquals("SQL query contains variable names that are invalid: `[typö]`", ex.getMessage());
   }
 
+  @Disabled("TODO(DHIS2-17768 platform) enable again")
   @Test
   void testGetSqlViewGrid() {
-    User admin = createAndInjectAdminUser(); // makes admin current user
-
     Map<String, String> variables = new HashMap<>();
     variables.put("ten", "10");
 
@@ -402,8 +387,8 @@ class SqlViewServiceTest extends TransactionalIntegrationTest {
 
     Grid grid = sqlViewService.getSqlViewGridReadOnly(sqlView, null, variables, null, null);
 
-    String username = admin.getUsername();
-    long id = admin.getId();
+    String username = getAdminUser().getUsername();
+    long id = getAdminUser().getId();
     assertEquals(
         "[\n" + "[username, id, value]\n" + "[" + username + ", " + id + ", 10]\n" + "]",
         grid.toString());

@@ -29,21 +29,24 @@ package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static org.hisp.dhis.utils.Assertions.assertStartsWith;
-import static org.hisp.dhis.web.HttpStatus.Series.SUCCESSFUL;
-import static org.hisp.dhis.web.WebClient.Body;
-import static org.hisp.dhis.web.WebClient.ContentType;
-import static org.hisp.dhis.web.WebClientUtils.assertSeries;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.test.web.HttpStatus.Series.SUCCESSFUL;
+import static org.hisp.dhis.test.web.WebClient.Body;
+import static org.hisp.dhis.test.web.WebClient.ContentType;
+import static org.hisp.dhis.test.web.WebClientUtils.assertSeries;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataset.DataSet;
@@ -53,21 +56,21 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.web.snippets.SomeUserId;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonError;
+import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
+import org.hisp.dhis.test.webapi.json.domain.JsonGeoMap;
+import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
+import org.hisp.dhis.test.webapi.json.domain.JsonImportSummary;
+import org.hisp.dhis.test.webapi.json.domain.JsonStats;
+import org.hisp.dhis.test.webapi.json.domain.JsonTranslation;
+import org.hisp.dhis.test.webapi.json.domain.JsonTypeReport;
+import org.hisp.dhis.test.webapi.json.domain.JsonUser;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.web.snippets.SomeUserId;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.domain.JsonError;
-import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
-import org.hisp.dhis.webapi.json.domain.JsonGeoMap;
-import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
-import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
-import org.hisp.dhis.webapi.json.domain.JsonStats;
-import org.hisp.dhis.webapi.json.domain.JsonTranslation;
-import org.hisp.dhis.webapi.json.domain.JsonTypeReport;
-import org.hisp.dhis.webapi.json.domain.JsonUser;
-import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -78,13 +81,13 @@ import org.springframework.http.MediaType;
  *
  * @author Jan Bernitt
  */
-class AbstractCrudControllerTest extends DhisControllerConvenienceTest {
+class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testGetObjectList() {
     JsonList<JsonUser> users =
         GET("/users/").content(HttpStatus.OK).getList("users", JsonUser.class);
-    assertEquals(2, users.size());
+    assertEquals(1, users.size());
     JsonUser user = users.get(0);
     assertStartsWith("First", user.getDisplayName());
   }
@@ -116,6 +119,39 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest {
             "[{'op': 'add', 'path': '/surname', 'value': 'Peter'}]"));
     assertEquals(
         "Peter", GET("/users/{id}", "M5zQapPyTZI").content().as(JsonUser.class).getSurname());
+  }
+
+  @Test
+  @DisplayName("Should not return error when adding an item to collection using PATCH api")
+  void testPatchCollectionItem() {
+    String catOption1 =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/categoryOptions/", "{'name':'CategoryOption1', 'shortName':'CATOPT1'}"));
+
+    String cat =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categories/",
+                "{'name':'Category', 'shortName':'CAT','dataDimensionType':'DISAGGREGATION','categoryOptions':[{'id':'"
+                    + catOption1
+                    + "'}]}"));
+
+    String catOption2 =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/categoryOptions/", "{'name':'CategoryOption2', 'shortName':'CATOPT2'}"));
+
+    PATCH(
+            "/categories/" + cat,
+            "[{'op': 'add', 'path': '/categoryOptions/-', 'value': { 'id': '"
+                + catOption2
+                + "' } }]")
+        .content(HttpStatus.OK);
+
+    JsonObject category = GET("/categories/{id}", cat).content();
+    assertEquals(2, category.getArray("categoryOptions").size());
   }
 
   @Test
@@ -443,7 +479,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest {
         409,
         "ERROR",
         "Objects of this class cannot be set as favorite",
-        POST("/users/" + getSuperuserUid() + "/favorite").content(HttpStatus.CONFLICT));
+        POST("/users/" + getAdminUid() + "/favorite").content(HttpStatus.CONFLICT));
   }
 
   @Test
@@ -513,7 +549,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest {
         409,
         "ERROR",
         "Objects of this class cannot be subscribed to",
-        POST("/users/" + getSuperuserUid() + "/subscriber").content(HttpStatus.CONFLICT));
+        POST("/users/" + getAdminUid() + "/subscriber").content(HttpStatus.CONFLICT));
   }
 
   @Test
@@ -615,7 +651,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest {
   @Test
   void testPutJsonObject_accountExpiry() {
     String userId = switchToNewUser("someUser").getUid();
-    switchToSuperuser();
+    switchToAdminUser();
     JsonUser user = GET("/users/{id}", userId).content().as(JsonUser.class);
     assertStatus(
         HttpStatus.OK,
@@ -629,7 +665,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest {
   @Test
   void testPutJsonObject_accountExpiry_PutNoChange() {
     String userId = switchToNewUser("someUser").getUid();
-    switchToSuperuser();
+    switchToAdminUser();
     JsonUser user = GET("/users/{id}", userId).content().as(JsonUser.class);
     assertStatus(HttpStatus.OK, PUT("/users/{id}", userId, Body(user.toString())));
     assertNull(GET("/users/{id}", userId).content().as(JsonUser.class).getAccountExpiry());
@@ -661,7 +697,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest {
   @Test
   void testPutJsonObject_accountExpiry_NaN() {
     String userId = switchToNewUser("someUser").getUid();
-    switchToSuperuser();
+    switchToAdminUser();
     JsonUser user = GET("/users/{id}", userId).content().as(JsonUser.class);
     String body = user.node().addMember("accountExpiry", "\"NaN\"").toString();
     assertEquals(
@@ -731,7 +767,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest {
 
     manager.flush();
     manager.clear();
-    switchToSuperuser();
+    switchToAdminUser();
 
     // TODO: MAS: This tests fails because it will update the acting user's usergroups and then fail
     // in the test:
@@ -767,7 +803,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest {
     // first create an object which has a collection
     manager.flush();
     manager.clear();
-    switchToSuperuser();
+    switchToAdminUser();
 
     // TODO: MAS: This tests fails because it will update the acting user's usergroups and then fail
     // in the test:
@@ -823,7 +859,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest {
 
     manager.flush();
     manager.clear();
-    switchToSuperuser();
+    switchToAdminUser();
 
     assertStatus(HttpStatus.OK, POST("/userGroups/{uid}/users/{itemId}", groupId, userId));
     assertUserGroupHasOnlyUser(groupId, userId);
@@ -851,7 +887,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest {
     // first create an object which has a collection
     manager.flush();
     manager.clear();
-    switchToSuperuser();
+    switchToAdminUser();
 
     // TODO: MAS: This tests fails because it will update the acting user's usergroups and then fail
     // in the test:
@@ -1103,10 +1139,111 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest {
     assertFalse(response.getArray("dataElements").isEmpty());
   }
 
+  @Test
+  void testFilterSharingEmptyTrue() {
+    String userId = getCurrentUser().getUid();
+    String programId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programs/",
+                "{'name':'test', 'shortName':'test', 'programType':'WITHOUT_REGISTRATION'}"));
+    String sharing =
+        TextUtils.replace(
+            """
+      {'owner':'${userId}', 'public':'rwrw----', 'external': true,'users':{},'userGroups':{}}}""",
+            Map.of("userId", userId));
+    assertStatus(HttpStatus.NO_CONTENT, PUT("/programs/" + programId + "/sharing", sharing));
+    JsonObject programs =
+        GET("/programs?filter=sharing.users:empty", programId).content().as(JsonObject.class);
+
+    assertFalse(programs.get("programs").as(JsonArray.class).isEmpty());
+  }
+
+  @Test
+  void testFilterSharingEmptyFalse() {
+    String userId = getCurrentUser().getUid();
+    String programId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programs/",
+                "{'name':'test', 'shortName':'test', 'programType':'WITHOUT_REGISTRATION'}"));
+    String sharing =
+        TextUtils.replace(
+            """
+      {'owner':'${userId}', 'public':'rwrw----', 'external': true,'users':{'${userId}':{'id':'${userId}','access':'rw------'}},'userGroups':{}}}""",
+            Map.of("userId", userId));
+    assertStatus(HttpStatus.NO_CONTENT, PUT("/programs/" + programId + "/sharing", sharing));
+    JsonObject programs =
+        GET("/programs?filter=sharing.users:empty", programId).content().as(JsonObject.class);
+    assertTrue(programs.get("programs").as(JsonArray.class).isEmpty());
+  }
+
+  @Test
+  void testFilterSharingEqTrue() {
+    String userId = getCurrentUser().getUid();
+    String programId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programs/",
+                "{'name':'test', 'shortName':'test', 'programType':'WITHOUT_REGISTRATION'}"));
+    String sharing =
+        TextUtils.replace(
+            """
+      {'owner':'${userId}', 'public':'rwrw----', 'external': true,'users':{'${userId}':{'id':'${userId}','access':'rw------'}},'userGroups':{}}}""",
+            Map.of("userId", userId));
+    assertStatus(HttpStatus.NO_CONTENT, PUT("/programs/" + programId + "/sharing", sharing));
+    JsonObject programs =
+        GET("/programs?filter=sharing.users:eq:2", programId).content().as(JsonObject.class);
+    assertTrue(programs.get("programs").as(JsonArray.class).isEmpty());
+  }
+
+  @Test
+  void testFilterSharingGt() {
+    String userId = getCurrentUser().getUid();
+    String programId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programs/",
+                "{'name':'test', 'shortName':'test', 'programType':'WITHOUT_REGISTRATION'}"));
+    String sharing =
+        TextUtils.replace(
+            """
+      {'owner':'${userId}', 'public':'rwrw----', 'external': true,'users':{'${userId}':{'id':'${userId}','access':'rw------'}},'userGroups':{}}}""",
+            Map.of("userId", userId));
+    assertStatus(HttpStatus.NO_CONTENT, PUT("/programs/" + programId + "/sharing", sharing));
+    JsonObject programs =
+        GET("/programs?filter=sharing.users:gt:0", programId).content().as(JsonObject.class);
+    assertEquals(1, programs.get("programs").as(JsonArray.class).size());
+  }
+
+  @Test
+  void testFilterSharingLt() {
+    String userId = getCurrentUser().getUid();
+    String programId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programs/",
+                "{'name':'test', 'shortName':'test', 'programType':'WITHOUT_REGISTRATION'}"));
+    String sharing =
+        TextUtils.replace(
+            """
+      {'owner':'${userId}', 'public':'rwrw----', 'external': true,'users':{'${userId}':{'id':'${userId}','access':'rw------'}},'userGroups':{}}}""",
+            Map.of("userId", userId));
+    assertStatus(HttpStatus.NO_CONTENT, PUT("/programs/" + programId + "/sharing", sharing));
+    JsonObject programs =
+        GET("/programs?filter=sharing.users:lt:2", programId).content().as(JsonObject.class);
+    assertEquals(1, programs.get("programs").as(JsonArray.class).size());
+  }
+
   private void assertUserGroupHasOnlyUser(String groupId, String userId) {
     manager.flush();
     manager.clear();
-    switchToSuperuser();
+    switchToAdminUser();
 
     JsonList<JsonUser> usersInGroup =
         GET("/userGroups/{uid}/users/", groupId, userId).content().getList("users", JsonUser.class);
@@ -1117,7 +1254,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest {
   private void assertUserGroupHasNoUser(String groupId) {
     manager.flush();
     manager.clear();
-    switchToSuperuser();
+    switchToAdminUser();
 
     JsonList<JsonUser> usersInGroup =
         GET("/userGroups/{uid}/users/", groupId).content().getList("users", JsonUser.class);

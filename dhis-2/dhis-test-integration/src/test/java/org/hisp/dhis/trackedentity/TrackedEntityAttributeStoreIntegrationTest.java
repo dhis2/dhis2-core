@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -44,10 +45,11 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeTableManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -55,7 +57,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 /**
  * @author Ameen
  */
-class TrackedEntityAttributeStoreIntegrationTest extends IntegrationTestBase {
+class TrackedEntityAttributeStoreIntegrationTest extends PostgresIntegrationTestBase {
   @Autowired private TrackedEntityAttributeService attributeService;
 
   @Autowired private TrackedEntityAttributeTableManager trackedEntityAttributeTableManager;
@@ -66,7 +68,7 @@ class TrackedEntityAttributeStoreIntegrationTest extends IntegrationTestBase {
 
   @Autowired private ProgramService programService;
 
-  @Autowired private TrackedEntityService trackedEntityService;
+  @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private TrackedEntityAttributeValueService entityAttributeValueService;
 
@@ -84,9 +86,8 @@ class TrackedEntityAttributeStoreIntegrationTest extends IntegrationTestBase {
 
   private TrackedEntityAttribute attributeZ;
 
-  @Override
-  public void setUpTest() {
-
+  @BeforeEach
+  void setUp() {
     attributeW = createTrackedEntityAttribute('W');
     attributeW.setUnique(true);
     attributeY = createTrackedEntityAttribute('Y');
@@ -254,7 +255,7 @@ class TrackedEntityAttributeStoreIntegrationTest extends IntegrationTestBase {
     trackedEntity.setOrganisationUnit(organisationUnit);
     trackedEntity.setTrackedEntityType(trackedEntityType);
 
-    trackedEntityService.addTrackedEntity(trackedEntity);
+    manager.save(trackedEntity);
 
     TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
     trackedEntityAttributeValue.setAttribute(attributeW);

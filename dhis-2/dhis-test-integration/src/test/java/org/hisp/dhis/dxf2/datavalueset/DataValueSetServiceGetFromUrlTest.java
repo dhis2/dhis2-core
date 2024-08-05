@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dxf2.datavalueset;
 
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Set;
@@ -38,14 +38,20 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.datavalue.DataExportParams;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class DataValueSetServiceGetFromUrlTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class DataValueSetServiceGetFromUrlTest extends PostgresIntegrationTestBase {
   @Autowired private CategoryService categoryService;
 
   @Autowired private DataValueSetService dataValueSetService;
@@ -74,8 +80,8 @@ class DataValueSetServiceGetFromUrlTest extends SingleSetupIntegrationTestBase {
 
   private CategoryOptionCombo optionComboD;
 
-  @Override
-  public void setUpTest() {
+  @BeforeAll
+  void setUp() {
     categoryOptionA = createCategoryOption('A');
     categoryOptionB = createCategoryOption('B');
     categoryOptionC = createCategoryOption('C');

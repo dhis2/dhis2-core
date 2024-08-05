@@ -29,8 +29,8 @@ package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.singletonList;
 import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.generatePersonalAccessToken;
-import static org.hisp.dhis.web.WebClientUtils.assertSeries;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.web.WebClientUtils.assertSeries;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -42,11 +42,11 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator;
 import org.hisp.dhis.security.apikey.ApiTokenStore;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.web.HttpStatus.Series;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonUser;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.web.HttpStatus.Series;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +56,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Jan Bernitt
  */
-class MeControllerTest extends DhisControllerConvenienceTest {
+class MeControllerTest extends H2ControllerIntegrationTestBase {
   private User userA;
 
   @Autowired private ApiTokenStore apiTokenStore;
@@ -70,7 +70,7 @@ class MeControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void testGetCurrentUser() {
-    switchToSuperuser();
+    switchToAdminUser();
     assertEquals(getCurrentUser().getUid(), GET("/me").content().as(JsonUser.class).getId());
   }
 

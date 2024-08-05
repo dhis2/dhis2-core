@@ -35,7 +35,7 @@ import static org.hisp.dhis.common.ValueType.DATE;
 import static org.hisp.dhis.common.ValueType.INTEGER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.expression.Operator.equal_to;
-import static org.hisp.dhis.utils.Assertions.assertMapEquals;
+import static org.hisp.dhis.test.utils.Assertions.assertMapEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -91,16 +91,21 @@ import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.CsvUtils;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationResultService;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
 import org.hisp.dhis.visualization.Visualization;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests aggregation of data in analytics tables.
@@ -108,7 +113,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * @author Henning Haakonsen (original)
  * @author Jim Grace (break cases into individual tests)
  */
-class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class AnalyticsServiceTest extends PostgresIntegrationTestBase {
   private CategoryOptionCombo ocDef;
 
   private String ocDefUid;
@@ -245,8 +252,8 @@ class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
   //
   // --------------------------------------------------------------------
 
-  @Override
-  public void setUpTest() throws IOException, InterruptedException {
+  @BeforeAll
+  void setUp() throws IOException {
     setUpMetadata();
     setUpDataValues();
     setUpValidation();
@@ -560,12 +567,8 @@ class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         "Import of data set registrations failed, number of imports are wrong");
   }
 
-  // --------------------------------------------------------------------------
-  // Tear down from all tests
-  // --------------------------------------------------------------------------
-
-  @Override
-  public void tearDownTest() {
+  @AfterAll
+  void tearDown() {
     for (AnalyticsTableService service : analyticsTableServices) {
       service.dropTables();
     }

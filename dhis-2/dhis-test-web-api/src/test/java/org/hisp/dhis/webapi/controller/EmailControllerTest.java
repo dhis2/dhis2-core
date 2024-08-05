@@ -27,12 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
+
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 
 /** Tests the {@link EmailController} using (mocked) REST requests. */
-class EmailControllerTest extends DhisControllerConvenienceTest {
+class EmailControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testSendTestEmail() {
@@ -60,7 +62,7 @@ class EmailControllerTest extends DhisControllerConvenienceTest {
                     + getCurrentUser().getUid()
                     + "'},"
                     + "'recipients':[{'id':'"
-                    + getSuperuserUid()
+                    + getAdminUid()
                     + "'}]"
                     + "}")
             .content(HttpStatus.CONFLICT));
@@ -73,7 +75,7 @@ class EmailControllerTest extends DhisControllerConvenienceTest {
         409,
         "ERROR",
         "SMTP server not configured",
-        POST("/email/notification?subject=Subject&message=Text&recipients=" + getSuperuserUid())
+        POST("/email/notification?subject=Subject&message=Text&recipients=" + getAdminUid())
             .content(HttpStatus.CONFLICT));
   }
 }

@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.trackedentity.TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -49,7 +49,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -57,17 +56,19 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
-class TrackerAccessManagerTest extends TransactionalIntegrationTest {
+@Transactional
+class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackerAccessManager trackerAccessManager;
 
@@ -79,11 +80,7 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest {
 
   @Autowired private ProgramStageDataElementService programStageDataElementService;
 
-  @Autowired private EnrollmentService enrollmentService;
-
   @Autowired private IdentifiableObjectManager manager;
-
-  @Autowired private UserService _userService;
 
   @Autowired private CategoryService categoryService;
 
@@ -107,10 +104,9 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest {
 
   private Event eventB;
 
-  @Override
-  protected void setUpTest() {
+  @BeforeEach
+  void setUp() {
     coA = categoryService.getDefaultCategoryOptionCombo();
-    userService = _userService;
     orgUnitA = createOrganisationUnit('A');
     orgUnitB = createOrganisationUnit('B');
     manager.save(orgUnitA);
@@ -166,9 +162,11 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest {
     manager.save(femaleA);
     manager.save(femaleB);
 
-    Enrollment enrollmentA =
-        enrollmentService.enrollTrackedEntity(
-            trackedEntityA, programA, new Date(), new Date(), orgUnitA);
+    Enrollment enrollmentA = createEnrollment(programA, trackedEntityA, orgUnitA);
+    manager.save(enrollmentA);
+    trackedEntityA.getEnrollments().add(enrollmentA);
+    manager.update(trackedEntityA);
+
     eventA = new Event();
     eventA.setEnrollment(enrollmentA);
     eventA.setProgramStage(programStageA);

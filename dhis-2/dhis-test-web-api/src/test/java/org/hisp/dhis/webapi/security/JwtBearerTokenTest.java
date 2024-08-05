@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.security;
 
-import static org.hisp.dhis.web.WebClient.JwtTokenHeader;
+import static org.hisp.dhis.test.web.WebClient.JwtTokenHeader;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -44,11 +44,11 @@ import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.security.oidc.GenericOidcProviderConfigParser;
 import org.hisp.dhis.security.oidc.provider.GoogleProvider;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.ControllerWithJwtTokenAuthTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonError;
+import org.hisp.dhis.test.webapi.json.domain.JsonUser;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerWithJwtTokenAuthTest;
-import org.hisp.dhis.webapi.json.domain.JsonError;
-import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig;
 import org.hisp.dhis.webapi.security.utils.JoseHeader;
 import org.hisp.dhis.webapi.security.utils.JoseHeaderNames;
@@ -67,7 +67,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest {
+class JwtBearerTokenTest extends ControllerWithJwtTokenAuthTestBase {
   public static final String EXPIRED_GOOGLE_JWT_TOKEN =
       "eyJhbGciOiJSUzI1NiIsImtpZCI6ImU4NzMyZGIwNjI4NzUxNTU1NjIx"
           + "M2I4MGFjYmNmZDA4Y2ZiMzAyYTkiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiO"
@@ -129,7 +129,7 @@ class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest {
   }
 
   @Test
-  void testJwkEncodeEndDecode() throws JOSEException {
+  void testJwkEncodeEndDecode() {
     Jwt encodedJws =
         createJwt(TEST_PROVIDER_ONE_URI, CLIENT_ID_1, DEFAULT_MAPPING_CLAIM, DEFAULT_EMAIL);
     assertEquals("JWT", encodedJws.getHeaders().get(JoseHeaderNames.TYP));

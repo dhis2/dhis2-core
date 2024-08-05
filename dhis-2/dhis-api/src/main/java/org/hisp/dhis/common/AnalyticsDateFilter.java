@@ -28,13 +28,13 @@
 package org.hisp.dhis.common;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.TimeField;
-import org.hisp.dhis.analytics.common.CommonQueryRequest;
+import org.hisp.dhis.analytics.common.CommonRequestParams;
 
 /**
  * Enum to map time fields into functions that can extract respective date from controller
@@ -47,28 +47,28 @@ public enum AnalyticsDateFilter {
       TimeField.EVENT_DATE,
       EventsAnalyticsQueryCriteria::getEventDate,
       null,
-      CommonQueryRequest::getEventDate),
+      CommonRequestParams::getEventDate),
   ENROLLMENT_DATE(
       TimeField.ENROLLMENT_DATE,
       EventsAnalyticsQueryCriteria::getEnrollmentDate,
       EnrollmentAnalyticsQueryCriteria::getEnrollmentDate,
-      CommonQueryRequest::getEnrollmentDate),
+      CommonRequestParams::getEnrollmentDate),
   SCHEDULED_DATE(
       TimeField.SCHEDULED_DATE,
       EventsAnalyticsQueryCriteria::getScheduledDate,
       null,
-      CommonQueryRequest::getScheduledDate),
+      CommonRequestParams::getScheduledDate),
   INCIDENT_DATE(
       TimeField.INCIDENT_DATE,
       EventsAnalyticsQueryCriteria::getIncidentDate,
       EnrollmentAnalyticsQueryCriteria::getIncidentDate,
-      CommonQueryRequest::getIncidentDate),
+      CommonRequestParams::getIncidentDate),
   LAST_UPDATED(
       TimeField.LAST_UPDATED,
       EventsAnalyticsQueryCriteria::getLastUpdated,
       EnrollmentAnalyticsQueryCriteria::getLastUpdated,
-      CommonQueryRequest::getLastUpdated),
-  CREATED(TimeField.CREATED, null, null, CommonQueryRequest::getCreated);
+      CommonRequestParams::getLastUpdated),
+  CREATED(TimeField.CREATED, null, null, CommonRequestParams::getCreated);
 
   private final TimeField timeField;
 
@@ -76,7 +76,7 @@ public enum AnalyticsDateFilter {
 
   private final Function<EnrollmentAnalyticsQueryCriteria, String> enrollmentExtractor;
 
-  private final Function<CommonQueryRequest, List<String>> teiExtractor;
+  private final Function<CommonRequestParams, Set<String>> trackedEntityExtractor;
 
   public static Optional<AnalyticsDateFilter> of(String dateField) {
     return Arrays.stream(values())
@@ -90,9 +90,5 @@ public enum AnalyticsDateFilter {
 
   public boolean appliesToEvents() {
     return eventExtractor != null;
-  }
-
-  public boolean appliesToTei() {
-    return teiExtractor != null;
   }
 }

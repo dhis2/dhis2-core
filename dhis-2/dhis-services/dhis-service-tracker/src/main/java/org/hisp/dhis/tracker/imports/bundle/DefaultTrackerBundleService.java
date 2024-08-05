@@ -35,6 +35,8 @@ import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.TrackerType;
@@ -43,14 +45,15 @@ import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.bundle.persister.CommitService;
 import org.hisp.dhis.tracker.imports.bundle.persister.PersistenceException;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
+import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
+import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
+import org.hisp.dhis.tracker.imports.notification.NotificationHandlerService;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheatService;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleService;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
-import org.hisp.dhis.tracker.imports.sideeffect.SideEffectHandlerService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,11 +80,11 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
 
   private final ObjectMapper mapper;
 
-  private List<SideEffectHandlerService> sideEffectHandlers = new ArrayList<>();
+  private List<NotificationHandlerService> notificationHandlers = new ArrayList<>();
 
   @Autowired(required = false)
-  public void setSideEffectHandlers(List<SideEffectHandlerService> sideEffectHandlers) {
-    this.sideEffectHandlers = sideEffectHandlers;
+  public void setNotificationHandlers(List<NotificationHandlerService> notificationHandlers) {
+    this.notificationHandlers = notificationHandlers;
   }
 
   @Override
@@ -147,23 +150,32 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
   }
 
   @Override
-  public void handleTrackerSideEffects(List<TrackerSideEffectDataBundle> bundles) {
-    sideEffectHandlers.forEach(handler -> handler.handleSideEffects(bundles));
+  public void sendNotifications(List<TrackerNotificationDataBundle> bundles) {
+    notificationHandlers.forEach(handler -> handler.handleNotifications(bundles));
   }
 
   @Override
   @Transactional
-  public PersistenceReport delete(TrackerBundle bundle) {
+  public PersistenceReport delete(TrackerBundle bundle)
+      throws ForbiddenException, NotFoundException {
     if (TrackerBundleMode.VALIDATE == bundle.getImportMode()) {
       return PersistenceReport.emptyReport();
     }
 
     Map<TrackerType, TrackerTypeReport> reportMap =
         Map.of(
-            TrackerType.RELATIONSHIP, deletionService.deleteRelationships(bundle),
-            TrackerType.EVENT, deletionService.deleteEvents(bundle),
-            TrackerType.ENROLLMENT, deletionService.deleteEnrollments(bundle),
-            TrackerType.TRACKED_ENTITY, deletionService.deleteTrackedEntity(bundle));
+            TrackerType.RELATIONSHIP,
+                deletionService.deleteRelationships(
+                    bundle.getRelationships().stream().map(TrackerDto::getUid).toList()),
+            TrackerType.EVENT,
+                deletionService.deleteEvents(
+                    bundle.getEvents().stream().map(TrackerDto::getUid).toList()),
+            TrackerType.ENROLLMENT,
+                deletionService.deleteEnrollments(
+                    bundle.getEnrollments().stream().map(TrackerDto::getUid).toList()),
+            TrackerType.TRACKED_ENTITY,
+                deletionService.deleteTrackedEntities(
+                    bundle.getTrackedEntities().stream().map(TrackerDto::getUid).toList()));
 
     return new PersistenceReport(reportMap);
   }

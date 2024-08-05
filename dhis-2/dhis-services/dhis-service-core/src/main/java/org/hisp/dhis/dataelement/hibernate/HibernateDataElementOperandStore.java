@@ -27,10 +27,12 @@
  */
 package org.hisp.dhis.dataelement.hibernate;
 
+import java.util.Collection;
 import java.util.List;
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementOperandStore;
 import org.hisp.dhis.security.acl.AclService;
@@ -65,5 +67,16 @@ public class HibernateDataElementOperandStore
   @Override
   public List<DataElementOperand> getAllOrderedName(int first, int max) {
     return getQuery("from DataElementOperand d").setFirstResult(first).setMaxResults(max).list();
+  }
+
+  @Override
+  public List<DataElementOperand> getByDataElement(Collection<DataElement> dataElements) {
+    return getQuery(
+            """
+            from DataElementOperand deo
+            where deo.dataElement in :dataElements
+            """)
+        .setParameter("dataElements", dataElements)
+        .list();
   }
 }

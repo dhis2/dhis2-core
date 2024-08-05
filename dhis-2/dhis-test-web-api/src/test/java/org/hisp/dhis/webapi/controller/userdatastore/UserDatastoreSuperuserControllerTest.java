@@ -27,18 +27,19 @@
  */
 package org.hisp.dhis.webapi.controller.userdatastore;
 
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import org.hisp.dhis.jsontree.JsonBoolean;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.controller.UserDatastoreController;
-import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -48,7 +49,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class UserDatastoreSuperuserControllerTest extends DhisControllerConvenienceTest {
+class UserDatastoreSuperuserControllerTest extends H2ControllerIntegrationTestBase {
   private User paul;
 
   @BeforeEach
@@ -61,7 +62,7 @@ class UserDatastoreSuperuserControllerTest extends DhisControllerConvenienceTest
   void testDeleteKeys() {
     assertStatus(HttpStatus.CREATED, POST("/userDataStore/test/key1", "true"));
 
-    switchToSuperuser();
+    switchToAdminUser();
     assertWebMessage(
         "OK",
         200,
@@ -87,7 +88,7 @@ class UserDatastoreSuperuserControllerTest extends DhisControllerConvenienceTest
 
   @Test
   void testAddUserKeyJsonValue() {
-    switchToSuperuser();
+    switchToAdminUser();
     assertWebMessage(
         "Created",
         201,
@@ -105,7 +106,7 @@ class UserDatastoreSuperuserControllerTest extends DhisControllerConvenienceTest
 
   @Test
   void testAddUserKeyJsonValue_MalformedValue() {
-    switchToSuperuser();
+    switchToAdminUser();
     assertWebMessage(
         "Bad Request",
         400,
@@ -120,7 +121,7 @@ class UserDatastoreSuperuserControllerTest extends DhisControllerConvenienceTest
   void testAddUserKeyJsonValue_AlreadyExists() {
     assertStatus(HttpStatus.CREATED, POST("/userDataStore/test/key1", "true"));
 
-    switchToSuperuser();
+    switchToAdminUser();
     assertWebMessage(
         "Conflict",
         409,
@@ -145,7 +146,7 @@ class UserDatastoreSuperuserControllerTest extends DhisControllerConvenienceTest
 
   @Test
   void testPutNewUserKeyJsonValue() {
-    switchToSuperuser();
+    switchToAdminUser();
     assertWebMessage(
         "Created",
         201,
@@ -158,7 +159,7 @@ class UserDatastoreSuperuserControllerTest extends DhisControllerConvenienceTest
   void testUpdateUserKeyJsonValue_MalformedValue() {
     assertStatus(HttpStatus.CREATED, POST("/userDataStore/test/key1", "true"));
 
-    switchToSuperuser();
+    switchToAdminUser();
     assertWebMessage(
         "Bad Request",
         400,
@@ -188,7 +189,7 @@ class UserDatastoreSuperuserControllerTest extends DhisControllerConvenienceTest
     assertStatus(HttpStatus.CREATED, POST("/userDataStore/test/key1", "true"));
     assertStatus(HttpStatus.CREATED, POST("/userDataStore/test/key2", "42"));
 
-    switchToSuperuser();
+    switchToAdminUser();
     assertWebMessage(
         "OK",
         200,
@@ -202,7 +203,7 @@ class UserDatastoreSuperuserControllerTest extends DhisControllerConvenienceTest
 
   @Test
   void testDeleteUserKeyJsonValue_UnknownKey() {
-    switchToSuperuser();
+    switchToAdminUser();
     assertWebMessage(
         "Not Found",
         404,
@@ -228,7 +229,7 @@ class UserDatastoreSuperuserControllerTest extends DhisControllerConvenienceTest
     assertStatus(HttpStatus.CREATED, POST("/userDataStore/test/key1", "true"));
     assertStatus(HttpStatus.CREATED, POST("/userDataStore/test2/key1", "42"));
 
-    switchToSuperuser();
+    switchToAdminUser();
     assertContainsOnly(
         List.of("test", "test2"), GET("/userDataStore?username=Paul").content().stringValues());
   }

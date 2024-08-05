@@ -40,12 +40,9 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class EventDeletionHandler extends IdObjectDeletionHandler<Event> {
-  private final EventService eventService;
-
   @Override
   protected void registerHandler() {
     whenVetoing(ProgramStage.class, this::allowDeleteProgramStage);
-    whenDeleting(Enrollment.class, this::deleteEnrollment);
     whenVetoing(Program.class, this::allowDeleteProgram);
     whenVetoing(DataElement.class, this::allowDeleteDataElement);
   }
@@ -55,12 +52,6 @@ public class EventDeletionHandler extends IdObjectDeletionHandler<Event> {
         VETO,
         "select 1 from event where programstageid = :id limit 1",
         Map.of("id", programStage.getId()));
-  }
-
-  private void deleteEnrollment(Enrollment enrollment) {
-    for (Event event : enrollment.getEvents()) {
-      eventService.deleteEvent(event);
-    }
   }
 
   private DeletionVeto allowDeleteProgram(Program program) {

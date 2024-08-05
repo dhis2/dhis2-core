@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.message.ProgramMessage;
@@ -48,16 +49,19 @@ import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.sms.config.BulkSmsGatewayConfig;
 import org.hisp.dhis.sms.config.SmsConfiguration;
 import org.hisp.dhis.sms.config.SmsConfigurationManager;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-class ProgramMessageServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class ProgramMessageServiceTest extends PostgresIntegrationTestBase {
   private OrganisationUnit ouA;
 
   private OrganisationUnit ouB;
@@ -111,17 +115,14 @@ class ProgramMessageServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private TrackedEntityService trackedEntityService;
 
-  @Autowired private EnrollmentService enrollmentService;
+  @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private ProgramService programService;
 
   @Autowired private SmsConfigurationManager smsConfigurationManager;
 
-  // -------------------------------------------------------------------------
-  // Prerequisite
-  // -------------------------------------------------------------------------
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     ouA = createOrganisationUnit('A');
     ouA.setPhoneNumber(msisdn);
     ouB = createOrganisationUnit('B');
@@ -140,14 +141,14 @@ class ProgramMessageServiceTest extends TransactionalIntegrationTest {
     enrollmentA.setName("enrollmentA");
     enrollmentA.setEnrollmentDate(new Date());
     enrollmentA.setAutoFields();
-    enrollmentService.addEnrollment(enrollmentA);
+    manager.save(enrollmentA);
     Set<OrganisationUnit> ouSet = new HashSet<>();
     ouSet.add(ouA);
     Set<String> ouUids = new HashSet<>();
     ouUids.add(ouA.getUid());
     // ouSet.add( ouB );
     trackedEntityA = createTrackedEntity(ouA);
-    trackedEntityService.addTrackedEntity(trackedEntityA);
+    manager.save(trackedEntityA);
     recipientsA = new ProgramMessageRecipients();
     recipientsA.setOrganisationUnit(ouA);
     recipientsA.setTrackedEntity(trackedEntityA);
@@ -210,13 +211,6 @@ class ProgramMessageServiceTest extends TransactionalIntegrationTest {
     programMessageService.deleteProgramMessage(pmsgA);
     ProgramMessage programMessage = programMessageService.getProgramMessage(pmsgAId.intValue());
     assertNull(programMessage);
-  }
-
-  @Test
-  void testExists() {
-    programMessageService.saveProgramMessage(pmsgA);
-    boolean exists = programMessageService.exists(uidA);
-    assertTrue(exists);
   }
 
   @Test

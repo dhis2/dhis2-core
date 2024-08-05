@@ -30,11 +30,11 @@ package org.hisp.dhis.tracker.export.trackedentity;
 import static java.util.Collections.emptySet;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.test.TestBase.getDate;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.util.DateUtils.parseDate;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -143,11 +143,11 @@ class TrackedEntityOperationParamsMapperTest {
 
     when(organisationUnitService.getOrganisationUnit(orgUnit1.getUid())).thenReturn(orgUnit1);
     when(organisationUnitService.isInUserHierarchy(
-            orgUnit1.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
+            orgUnit1.getUid(), user.getEffectiveSearchOrganisationUnits()))
         .thenReturn(true);
     when(organisationUnitService.getOrganisationUnit(orgUnit2.getUid())).thenReturn(orgUnit2);
     when(organisationUnitService.isInUserHierarchy(
-            orgUnit2.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
+            orgUnit2.getUid(), user.getEffectiveSearchOrganisationUnits()))
         .thenReturn(true);
 
     trackedEntityType = new TrackedEntityType();

@@ -33,6 +33,7 @@ checks:
   - option_sets/option_sets_empty.yaml
   - option_sets/unused_option_sets.yaml
   - option_sets/option_sets_wrong_sort_order.yaml
+  - option_sets/option_groups_empty.yaml
   - program_indicators/program_indicators_without_expression.yaml
   - program_rules/program_rules_no_action.yaml
   - program_rules/program_rules_without_condition.yaml
@@ -42,6 +43,7 @@ checks:
   - analytical_objects/maps_not_used_1year.yaml
   - analytical_objects/dashboards_not_used_1year.yaml
   - analytical_objects/dashboards_empty.yaml
+  - analytical_objects/push_analysis_no_recipients.yaml
   - data_elements/aggregate_des_no_groups.yaml
   - data_elements/aggregate_des_abandoned.yaml
   - data_elements/aggregate_des_inconsistent_agg_operator.yaml
@@ -70,3 +72,9 @@ checks:
   - groups/group_size_category_option_groups.yaml
   - groups/group_size_category_option_group_sets.yaml
   - groups/group_size_user_groups.yaml
+  - users/users_capture_ou_not_in_data_view_ou.yaml
+  - users/users_capture_ou_not_in_tei_search_ou.yaml
+  - users/users_with_no_user_role.yaml
+  - users/user_roles_no_authorities.yaml
+  - users/user_roles_with_no_users.yaml
+  - users/users_with_invalid_usernames.yaml

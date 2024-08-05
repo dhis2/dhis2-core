@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.export.relationship;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -88,6 +89,16 @@ public class DefaultRelationshipService implements RelationshipService {
     }
 
     return map(relationship);
+  }
+
+  @Override
+  public List<Relationship> getRelationships(@Nonnull List<String> uids)
+      throws ForbiddenException, NotFoundException {
+    List<Relationship> relationships = new ArrayList<>();
+    for (String uid : uids) {
+      relationships.add(getRelationship(uid));
+    }
+    return relationships;
   }
 
   private List<Relationship> getRelationshipsByTrackedEntity(

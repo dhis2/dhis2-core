@@ -69,18 +69,24 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class EventDataQueryServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
 
   private Program prA;
 
@@ -124,8 +130,8 @@ class EventDataQueryServiceTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private LegendSetService legendSetService;
 
-  @Override
-  public void setUpTest() {
+  @BeforeAll
+  void setUp() {
     peA = PeriodType.getPeriodFromIsoString("201401");
     peB = PeriodType.getPeriodFromIsoString("201402");
     ouA = createOrganisationUnit('A');
@@ -181,7 +187,7 @@ class EventDataQueryServiceTest extends SingleSetupIntegrationTestBase {
     assertEquals(1, params.getOrganisationUnits().size());
     assertEquals(1, params.getItems().size());
     assertEquals(2, params.getFilterPeriods().size());
-    assertEquals(List.of("psigeometry", "ougeometry"), params.getCoordinateFields());
+    assertEquals(List.of("evgeometry", "ougeometry"), params.getCoordinateFields());
   }
 
   @Test
@@ -198,10 +204,8 @@ class EventDataQueryServiceTest extends SingleSetupIntegrationTestBase {
     DimensionalObject pe = params.getDimension("pe");
     assertEquals(3, pe.getItems().size());
     assertTrue(streamOfPeriods(pe).anyMatch(Period::isDefault));
-    assertTrue(
-        streamOfPeriods(pe).map(Period::getDateField).anyMatch(s -> s.equals("LAST_UPDATED")));
-    assertTrue(
-        streamOfPeriods(pe).map(Period::getDateField).anyMatch(s -> s.equals("INCIDENT_DATE")));
+    assertTrue(streamOfPeriods(pe).map(Period::getDateField).anyMatch("LAST_UPDATED"::equals));
+    assertTrue(streamOfPeriods(pe).map(Period::getDateField).anyMatch("INCIDENT_DATE"::equals));
     assertTrue(
         streamOfPeriods(pe)
             .filter(period -> "INCIDENT_DATE".equals(period.getDateField()))
@@ -247,7 +251,7 @@ class EventDataQueryServiceTest extends SingleSetupIntegrationTestBase {
     assertEquals(1, params.getFilterPeriods().size());
     assertEquals(deA, params.getValue());
     assertEquals(AnalyticsAggregationType.AVERAGE, params.getAggregationType());
-    assertEquals(List.of("psigeometry", "ougeometry"), params.getCoordinateFields());
+    assertEquals(List.of("evgeometry", "ougeometry"), params.getCoordinateFields());
   }
 
   @Test
@@ -494,16 +498,16 @@ class EventDataQueryServiceTest extends SingleSetupIntegrationTestBase {
   @Test
   void testGetCoordinateField() {
     assertEquals(
-        List.of("psigeometry"),
+        List.of("evgeometry"),
         dataQueryService.getCoordinateFields(
             prA.getUid(), EventQueryParams.EVENT_COORDINATE_FIELD, null, false));
     assertEquals(
-        List.of("pigeometry"),
+        List.of("engeometry"),
         dataQueryService.getCoordinateFields(
             prA.getUid(), EventQueryParams.ENROLLMENT_COORDINATE_FIELD, null, false));
     assertEquals(
-        List.of("psigeometry"),
-        dataQueryService.getCoordinateFields(prA.getUid(), null, "psigeometry", false));
+        List.of("evgeometry"),
+        dataQueryService.getCoordinateFields(prA.getUid(), null, "evgeometry", false));
     assertEquals(
         List.of(deC.getUid()),
         dataQueryService.getCoordinateFields(prA.getUid(), deC.getUid(), null, false));
@@ -530,7 +534,6 @@ class EventDataQueryServiceTest extends SingleSetupIntegrationTestBase {
     // Then
     assertThrows(
         IllegalQueryException.class,
-        () ->
-            dataQueryService.getCoordinateFields(programUid, "teigeometry", "badfallback", false));
+        () -> dataQueryService.getCoordinateFields(programUid, "tegeometry", "badfallback", false));
   }
 }

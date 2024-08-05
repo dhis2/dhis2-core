@@ -70,7 +70,6 @@ public interface AppManager {
           "scheduler",
           "settings",
           "sms-configuration",
-          "tracker-capture",
           "translations",
           "usage-analytics",
           "user",
@@ -209,6 +208,8 @@ public interface AppManager {
    * @return true if the status was changed in this method.
    */
   boolean markAppToDelete(App app);
+
+  int getUriContentLength(Resource resource);
 
   // -------------------------------------------------------------------------
   // Static methods for manipulating a collection of apps

@@ -38,6 +38,8 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
+import org.hisp.dhis.merge.CommonMergeHandler;
+import org.hisp.dhis.merge.MergeHandler;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeRequest;
 import org.hisp.dhis.merge.MergeService;
@@ -57,8 +59,10 @@ public class IndicatorMergeService implements MergeService {
 
   private final IndicatorService indicatorService;
   private final IndicatorMergeHandler indicatorMergeHandler;
+  private final CommonMergeHandler commonMergeHandler;
   private final MergeValidator validator;
-  private ImmutableList<org.hisp.dhis.merge.indicator.IndicatorMergeHandler> handlers;
+  private ImmutableList<MergeHandler> commonMergeHandlers;
+  private ImmutableList<org.hisp.dhis.merge.indicator.IndicatorMergeHandler> mergeHandlers;
 
   @Override
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
@@ -80,7 +84,8 @@ public class IndicatorMergeService implements MergeService {
     Indicator target = indicatorService.getIndicator(request.getTarget().getValue());
 
     // merge metadata
-    handlers.forEach(h -> h.merge(sources, target));
+    mergeHandlers.forEach(h -> h.merge(sources, target));
+    commonMergeHandlers.forEach(h -> h.merge(sources, target));
 
     // handle deletes
     if (request.isDeleteSources()) handleDeleteSources(sources, mergeReport);
@@ -97,15 +102,19 @@ public class IndicatorMergeService implements MergeService {
 
   @PostConstruct
   private void initMergeHandlers() {
-    handlers =
+    mergeHandlers =
         ImmutableList.<org.hisp.dhis.merge.indicator.IndicatorMergeHandler>builder()
             .add(indicatorMergeHandler::handleDataSets)
             .add(indicatorMergeHandler::handleIndicatorGroups)
             .add(indicatorMergeHandler::handleSections)
-            .add(indicatorMergeHandler::handleIndicatorRefsInIndicator)
-            .add(indicatorMergeHandler::handleIndicatorRefsInCustomForms)
             .add(indicatorMergeHandler::handleDataDimensionItems)
             .add(indicatorMergeHandler::handleVisualizations)
+            .build();
+
+    commonMergeHandlers =
+        ImmutableList.<MergeHandler>builder()
+            .add(commonMergeHandler::handleRefsInIndicatorExpression)
+            .add(commonMergeHandler::handleRefsInCustomForms)
             .build();
   }
 }

@@ -28,6 +28,7 @@
 package org.hisp.dhis.program;
 
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
@@ -35,4 +36,8 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
  */
 public interface ProgramIndicatorStore extends IdentifiableObjectStore<ProgramIndicator> {
   List<ProgramIndicator> getProgramIndicatorsWithNoExpression();
+
+  List<ProgramIndicator> getAllWithExpressionContainingStrings(@Nonnull List<String> searchStrings);
+
+  List<ProgramIndicator> getAllWithFilterContainingStrings(@Nonnull List<String> searchStrings);
 }

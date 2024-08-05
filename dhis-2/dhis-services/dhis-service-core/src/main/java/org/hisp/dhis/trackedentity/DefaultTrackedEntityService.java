@@ -45,6 +45,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.changelog.ChangeLogType;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -60,7 +61,6 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -84,13 +84,10 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
   private final TrackedEntityChangeLogService trackedEntityChangeLogService;
 
-  private final TrackedEntityAttributeValueChangeLogService attributeValueAuditService;
-
   private final UserService userService;
 
-  // TODO: FIXME luciano using @Lazy here because we have circular
-  // dependencies:
-  // TrackedEntityService --> TrackedEntityProgramOwnerService --> TrackedEntityService
+  private final IdentifiableObjectManager manager;
+
   public DefaultTrackedEntityService(
       UserService userService,
       TrackedEntityStore trackedEntityStore,
@@ -99,8 +96,9 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
       TrackedEntityTypeService trackedEntityTypeService,
       OrganisationUnitService organisationUnitService,
       AclService aclService,
-      @Lazy TrackedEntityChangeLogService trackedEntityChangeLogService,
-      @Lazy TrackedEntityAttributeValueChangeLogService attributeValueAuditService) {
+      TrackedEntityChangeLogService trackedEntityChangeLogService,
+      TrackedEntityAttributeValueChangeLogService attributeValueAuditService,
+      IdentifiableObjectManager manager) {
     checkNotNull(trackedEntityStore);
     checkNotNull(attributeValueService);
     checkNotNull(attributeService);
@@ -118,7 +116,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     this.organisationUnitService = organisationUnitService;
     this.aclService = aclService;
     this.trackedEntityChangeLogService = trackedEntityChangeLogService;
-    this.attributeValueAuditService = attributeValueAuditService;
+    this.manager = manager;
   }
 
   @Override
@@ -474,32 +472,19 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
   @Override
   @Transactional
-  public long addTrackedEntity(TrackedEntity trackedEntity) {
-    trackedEntityStore.save(trackedEntity);
-
-    return trackedEntity.getId();
-  }
-
-  @Override
-  @Transactional
   public long createTrackedEntity(
       TrackedEntity trackedEntity, Set<TrackedEntityAttributeValue> attributeValues) {
-    long id = addTrackedEntity(trackedEntity);
+    trackedEntityStore.save(trackedEntity);
+    long id = trackedEntity.getId();
 
     for (TrackedEntityAttributeValue pav : attributeValues) {
       attributeValueService.addTrackedEntityAttributeValue(pav);
       trackedEntity.getTrackedEntityAttributeValues().add(pav);
     }
 
-    updateTrackedEntity(trackedEntity); // Update associations
+    manager.update(trackedEntity);
 
     return id;
-  }
-
-  @Override
-  @Transactional
-  public void updateTrackedEntity(TrackedEntity trackedEntity) {
-    trackedEntityStore.update(trackedEntity);
   }
 
   @Override
@@ -512,40 +497,11 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
   @Override
   @Transactional
-  public void deleteTrackedEntity(TrackedEntity trackedEntity) {
-    attributeValueAuditService.deleteTrackedEntityAttributeValueChangeLogs(trackedEntity);
-    trackedEntityStore.delete(trackedEntity);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public TrackedEntity getTrackedEntity(long id) {
-    TrackedEntity te = trackedEntityStore.get(id);
-
-    addTrackedEntityAudit(te, CurrentUserUtil.getCurrentUsername(), ChangeLogType.READ);
-
-    return te;
-  }
-
-  @Override
-  @Transactional
   public TrackedEntity getTrackedEntity(String uid) {
     TrackedEntity te = trackedEntityStore.getByUid(uid);
     addTrackedEntityAudit(te, CurrentUserUtil.getCurrentUsername(), ChangeLogType.READ);
 
     return te;
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean trackedEntityExists(String uid) {
-    return trackedEntityStore.exists(uid);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean trackedEntityExistsIncludingDeleted(String uid) {
-    return trackedEntityStore.existsIncludingDeleted(uid);
   }
 
   private boolean isLocalSearch(TrackedEntityQueryParams params, User user) {

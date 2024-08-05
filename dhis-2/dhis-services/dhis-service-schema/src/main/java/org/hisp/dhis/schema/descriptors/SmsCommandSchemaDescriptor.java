@@ -52,6 +52,7 @@ public class SmsCommandSchemaDescriptor implements SchemaDescriptor {
 
     schema.add(new Authority(AuthorityType.CREATE, List.of(F_MOBILE_SENDSMS.toString())));
     schema.add(new Authority(AuthorityType.DELETE, List.of(F_MOBILE_SENDSMS.toString())));
+    schema.add(new Authority(AuthorityType.READ, List.of(F_MOBILE_SENDSMS.toString())));
 
     return schema;
   }

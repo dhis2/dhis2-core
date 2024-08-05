@@ -66,7 +66,6 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.query.Query;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -102,8 +101,6 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.trackedentity.TrackedEntityStore")
 public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<TrackedEntity>
     implements TrackedEntityStore {
-  private static final String TE_HQL_BY_UIDS = "from TrackedEntity as te where te.uid in (:uids)";
-
   private static final String TE_HQL_BY_IDS = "from TrackedEntity as te where te.id in (:ids)";
 
   private static final String OFFSET = "OFFSET";
@@ -1051,44 +1048,6 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
           .append(SPACE)
           .toString();
     }
-  }
-
-  @Override
-  public boolean exists(String uid) {
-    Query<?> query =
-        nativeSynchronizedQuery(
-            "select count(*) from trackedentity where uid=:uid and deleted is false");
-    query.setParameter("uid", uid);
-    int count = ((Number) query.getSingleResult()).intValue();
-
-    return count > 0;
-  }
-
-  @Override
-  public boolean existsIncludingDeleted(String uid) {
-    Query<?> query = nativeSynchronizedQuery("select count(*) from trackedentity where uid=:uid");
-    query.setParameter("uid", uid);
-    int count = ((Number) query.getSingleResult()).intValue();
-
-    return count > 0;
-  }
-
-  @Override
-  public List<TrackedEntity> getIncludingDeleted(List<String> uids) {
-    List<TrackedEntity> trackedEntities = new ArrayList<>();
-    List<List<String>> uidsPartitions = Lists.partition(Lists.newArrayList(uids), 20000);
-
-    for (List<String> uidsPartition : uidsPartitions) {
-      if (!uidsPartition.isEmpty()) {
-        trackedEntities.addAll(
-            getSession()
-                .createQuery(TE_HQL_BY_UIDS, TrackedEntity.class)
-                .setParameter("uids", uidsPartition)
-                .list());
-      }
-    }
-
-    return trackedEntities;
   }
 
   @Override

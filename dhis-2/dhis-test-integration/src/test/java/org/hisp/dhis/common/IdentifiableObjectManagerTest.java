@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.common;
 
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -56,24 +56,27 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class IdentifiableObjectManagerTest extends TransactionalIntegrationTest {
+@Transactional
+class IdentifiableObjectManagerTest extends PostgresIntegrationTestBase {
   private Attribute atA;
 
   @PersistenceContext private EntityManager entityManager;
@@ -84,16 +87,14 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest {
 
   @Autowired private IdentifiableObjectManager idObjectManager;
 
-  @Autowired private UserService _userService;
+  @Autowired private DbmsManager dbmsManager;
 
-  @Override
-  protected void setUpTest() throws Exception {
+  @BeforeEach
+  void setUp() {
     atA = createAttribute('A');
     atA.setUnique(true);
     atA.setDataElementAttribute(true);
     attributeService.addAttribute(atA);
-
-    this.userService = _userService;
   }
 
   @Test

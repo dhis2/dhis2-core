@@ -29,20 +29,19 @@ package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 import javax.persistence.EntityManager;
-import org.hisp.dhis.note.Note;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
-import org.hisp.dhis.tracker.imports.job.SideEffectTrigger;
-import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
+import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
+import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.springframework.stereotype.Component;
 
@@ -92,18 +91,6 @@ public class EnrollmentPersister
   }
 
   @Override
-  protected void persistNotes(
-      EntityManager entityManager, TrackerPreheat preheat, Enrollment enrollment) {
-    if (!enrollment.getNotes().isEmpty()) {
-      for (Note note : enrollment.getNotes()) {
-        if (Objects.isNull(preheat.getNote(note.getUid()))) {
-          entityManager.persist(note);
-        }
-      }
-    }
-  }
-
-  @Override
   protected void updatePreheat(TrackerPreheat preheat, Enrollment enrollment) {
     preheat.putEnrollments(Collections.singletonList(enrollment));
     preheat.addProgramOwner(
@@ -118,27 +105,13 @@ public class EnrollmentPersister
   }
 
   @Override
-  protected TrackerSideEffectDataBundle handleSideEffects(
-      TrackerBundle bundle, Enrollment enrollment) {
-    TrackerPreheat preheat = bundle.getPreheat();
-    List<SideEffectTrigger> triggers = new ArrayList<>();
+  protected TrackerNotificationDataBundle handleNotifications(
+      TrackerBundle bundle, Enrollment enrollment, List<NotificationTrigger> triggers) {
 
-    if (isNew(preheat, enrollment.getUid())) {
-      triggers.add(SideEffectTrigger.ENROLLMENT);
-      if (enrollment.isCompleted()) {
-        triggers.add(SideEffectTrigger.ENROLLMENT_COMPLETION);
-      }
-    } else {
-      Enrollment exitingEnrollment = preheat.getEnrollment(enrollment.getUid());
-      if (exitingEnrollment.getStatus() != enrollment.getStatus() && enrollment.isCompleted()) {
-        triggers.add(SideEffectTrigger.ENROLLMENT_COMPLETION);
-      }
-    }
-
-    return TrackerSideEffectDataBundle.builder()
+    return TrackerNotificationDataBundle.builder()
         .klass(Enrollment.class)
-        .enrollmentRuleEffects(bundle.getEnrollmentRuleEffects())
-        .eventRuleEffects(new HashMap<>())
+        .enrollmentNotifications(
+            bundle.getEnrollmentNotifications().get(UID.of(enrollment.getUid())))
         .object(enrollment.getUid())
         .importStrategy(bundle.getImportStrategy())
         .accessedBy(bundle.getUsername())
@@ -146,6 +119,31 @@ public class EnrollmentPersister
         .program(enrollment.getProgram())
         .triggers(triggers)
         .build();
+  }
+
+  @Override
+  protected List<NotificationTrigger> determineNotificationTriggers(
+      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Enrollment entity) {
+    Enrollment persistedEnrollment = preheat.getEnrollment(entity.getUid());
+    List<NotificationTrigger> triggers = new ArrayList<>();
+
+    if (persistedEnrollment == null) {
+      // New enrollment
+      triggers.add(NotificationTrigger.ENROLLMENT);
+
+      // New enrollment that is completed
+      if (entity.getStatus() == EnrollmentStatus.COMPLETED) {
+        triggers.add(NotificationTrigger.ENROLLMENT_COMPLETION);
+      }
+    } else {
+      // Existing enrollment that has changed to completed
+      if (persistedEnrollment.getStatus() != entity.getStatus()
+          && entity.getStatus() == EnrollmentStatus.COMPLETED) {
+        triggers.add(NotificationTrigger.ENROLLMENT_COMPLETION);
+      }
+    }
+
+    return triggers;
   }
 
   @Override

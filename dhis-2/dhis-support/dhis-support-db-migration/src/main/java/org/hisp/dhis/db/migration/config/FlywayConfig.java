@@ -34,11 +34,9 @@ import javax.sql.DataSource;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.Location;
 import org.flywaydb.core.api.configuration.ClassicConfiguration;
-import org.hisp.dhis.db.migration.helper.NoOpFlyway;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Profile;
 
 /**
@@ -49,9 +47,8 @@ public class FlywayConfig {
 
   private static final String FLYWAY_MIGRATION_FOLDER = "org/hisp/dhis/db/migration";
 
-  @Bean(value = "flyway", initMethod = "migrate")
+  @Bean(initMethod = "migrate")
   @Profile("!test-h2")
-  @DependsOn("dataSource")
   public Flyway flyway(DhisConfigurationProvider configurationProvider, DataSource dataSource) {
     ClassicConfiguration classicConfiguration = new ClassicConfiguration();
 
@@ -66,11 +63,5 @@ public class FlywayConfig {
 
     return new DhisFlyway(
         classicConfiguration, configurationProvider.isEnabled(FLYWAY_REPAIR_BEFORE_MIGRATION));
-  }
-
-  @Bean("flyway")
-  @Profile("test-h2")
-  public NoOpFlyway noFlyway() {
-    return new NoOpFlyway();
   }
 }

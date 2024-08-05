@@ -61,7 +61,8 @@ import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
-import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
+import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
+import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.report.Entity;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
@@ -94,7 +95,7 @@ public abstract class AbstractTrackerPersister<
     //
     TrackerTypeReport typeReport = new TrackerTypeReport(getType());
 
-    List<TrackerSideEffectDataBundle> sideEffectDataBundles = new ArrayList<>();
+    List<TrackerNotificationDataBundle> notificationDataBundles = new ArrayList<>();
 
     //
     // Extract the entities to persist from the Bundle
@@ -106,17 +107,14 @@ public abstract class AbstractTrackerPersister<
     for (T trackerDto : dtos) {
 
       Entity objectReport = new Entity(getType(), trackerDto.getUid());
+      List<NotificationTrigger> triggers =
+          determineNotificationTriggers(bundle.getPreheat(), trackerDto);
 
       try {
         //
         // Convert the TrackerDto into an Hibernate-managed entity
         //
         V convertedDto = convert(bundle, trackerDto);
-
-        //
-        // Handle notes persistence, if required
-        //
-        persistNotes(entityManager, bundle.getPreheat(), convertedDto);
 
         //
         // Handle ownership records, if required
@@ -147,7 +145,7 @@ public abstract class AbstractTrackerPersister<
         }
 
         if (!bundle.isSkipSideEffects()) {
-          sideEffectDataBundles.add(handleSideEffects(bundle, convertedDto));
+          notificationDataBundles.add(handleNotifications(bundle, convertedDto, triggers));
         }
 
         //
@@ -181,7 +179,7 @@ public abstract class AbstractTrackerPersister<
       }
     }
 
-    typeReport.getSideEffectDataBundles().addAll(sideEffectDataBundles);
+    typeReport.getNotificationDataBundles().addAll(notificationDataBundles);
 
     return typeReport;
   }
@@ -200,10 +198,6 @@ public abstract class AbstractTrackerPersister<
    * Hibernate-managed object
    */
   protected abstract V convert(TrackerBundle bundle, T trackerDto);
-
-  /** Persists the notes for the given entity, if the entity has notes */
-  protected abstract void persistNotes(
-      EntityManager entityManager, TrackerPreheat preheat, V entity);
 
   /** Persists ownership records for the given entity */
   protected abstract void persistOwnership(TrackerPreheat preheat, V entity);
@@ -236,7 +230,18 @@ public abstract class AbstractTrackerPersister<
   protected abstract boolean isNew(TrackerPreheat preheat, String uid);
 
   /** TODO add comment */
-  protected abstract TrackerSideEffectDataBundle handleSideEffects(TrackerBundle bundle, V entity);
+  protected abstract TrackerNotificationDataBundle handleNotifications(
+      TrackerBundle bundle, V entity, List<NotificationTrigger> triggers);
+
+  /**
+   * Determines the notification triggers based on the enrollment/event status.
+   *
+   * @param preheat the enrollment/event fetched from the database
+   * @param entity the enrollment/event coming from the request payload
+   * @return a list of NotificationTriggers
+   */
+  protected abstract List<NotificationTrigger> determineNotificationTriggers(
+      TrackerPreheat preheat, T entity);
 
   /** Get the Tracker Type for which the current Persister is responsible for. */
   protected abstract TrackerType getType();

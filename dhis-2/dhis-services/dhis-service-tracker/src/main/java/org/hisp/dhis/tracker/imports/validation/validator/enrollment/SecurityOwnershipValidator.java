@@ -175,7 +175,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
     }
   }
 
-  private void checkTeiTypeAndTeiProgramAccess(
+  private void checkTeTypeAndTeProgramAccess(
       Reporter reporter,
       TrackerDto dto,
       UserDetails user,
@@ -204,8 +204,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
 
     checkProgramWriteAccess(reporter, enrollment, user, program);
 
-    checkTeiTypeAndTeiProgramAccess(
-        reporter, enrollment, user, trackedEntity, ownerOrgUnit, program);
+    checkTeTypeAndTeProgramAccess(reporter, enrollment, user, trackedEntity, ownerOrgUnit, program);
   }
 
   private void checkProgramWriteAccess(

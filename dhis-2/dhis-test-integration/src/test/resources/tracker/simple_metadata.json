@@ -36,7 +36,7 @@
       "code": "Unicef",
       "shortName": "Unicef",
       "sharing": {
-        "owner": "M5zQapPyTZI",
+        "owner": "tTgjgobT1oS",
         "users": {},
         "userGroups": {},
         "public": "rwr-----"
@@ -49,7 +49,7 @@
       "shortName": "World Relief",
       "description": "sharing.public data 'r' needs to be set to test this sharing case",
       "sharing": {
-        "owner": "M5zQapPyTZI",
+        "owner": "tTgjgobT1oS",
         "users": {},
         "userGroups": {},
         "public": "rwr-----"
@@ -75,7 +75,7 @@
       "shortName": "Provide access to primary health care",
       "description": "used to test non public data access. only super user or user with data access should get access",
       "sharing": {
-        "owner": "M5zQapPyTZI",
+        "owner": "tTgjgobT1oS",
         "users": {
           "o1HMTIzBGo7": {
             "displayName": "foofi",
@@ -107,7 +107,7 @@
       "shortName": "Provide access to basic education",
       "description": "used to test sharing when public is null",
       "sharing": {
-        "owner": "M5zQapPyTZI",
+        "owner": "tTgjgobT1oS",
         "users": {},
         "userGroups": {},
         "public": null
@@ -385,14 +385,46 @@
       "featureType": "NONE",
       "minAttributesRequiredToSearch": 1,
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "userGroupAccesses": [],
       "attributeValues": [],
-      "trackedEntityTypeAttributes": [],
+      "trackedEntityTypeAttributes": [
+        {
+          "lastUpdated": "2022-04-25T08:34:44.294",
+          "id": "IvcLJpReZPS",
+          "created": "2019-02-05T13:46:01.219",
+          "displayName": "TA Person TA First name",
+          "displayShortName": "null TA First name",
+          "valueType": "TEXT",
+          "searchable": true,
+          "displayInList": true,
+          "name": "TA Person TA First name",
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "trackedEntityAttribute": {
+            "id": "dIVt4l5vIOa"
+          },
+          "sharing": {
+            "userGroups": {},
+            "external": false,
+            "users": {}
+          },
+          "favorites": [],
+          "translations": [],
+          "attributeValues": []
+        }
+      ],
       "translations": [],
       "userAccesses": [],
       "sharing": {
@@ -414,10 +446,10 @@
       "featureType": "NONE",
       "minAttributesRequiredToSearch": 1,
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "userGroupAccesses": [],
       "attributeValues": [],
@@ -518,10 +550,10 @@
         "id": "bjDvmb4bfuf"
       },
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "translations": [],
       "userGroupAccesses": [],
@@ -545,10 +577,10 @@
         "id": "bjDvmb4bfuf"
       },
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "translations": [],
       "userGroupAccesses": [],
@@ -572,10 +604,10 @@
         "id": "bjDvmb4bfuf"
       },
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "translations": [],
       "userGroupAccesses": [],
@@ -599,10 +631,10 @@
         "id": "bjDvmb4bfuf"
       },
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "translations": [],
       "userGroupAccesses": [],
@@ -626,7 +658,7 @@
         "id": "bjDvmb4bfuf"
       },
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "optionSet": {
         "id": "VWzgQENmzPK"
@@ -653,10 +685,10 @@
         "id": "bjDvmb4bfuf"
       },
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "translations": [],
       "userGroupAccesses": [],
@@ -677,10 +709,10 @@
       "valueType": "TEXT",
       "zeroIsSignificant": false,
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "translations": [],
       "userGroupAccesses": [],
@@ -794,10 +826,10 @@
       "id": "xfHoY6IZSWI",
       "publicAccess": "rw------",
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "userGroupAccesses": [],
       "attributeValues": [],
@@ -837,10 +869,10 @@
         "id": "BFcipDERJnf"
       },
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "notificationTemplates": [
         {
@@ -1111,10 +1143,10 @@
         "id": "BFcipDERJnf"
       },
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "notificationTemplates": [
         {
@@ -1153,10 +1185,10 @@
         "id": "BFcipDERJne"
       },
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "notificationTemplates": [
         {
@@ -1194,10 +1226,10 @@
         "id": "BFcipDERJng"
       },
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "notificationTemplates": [
         {
@@ -1656,7 +1688,7 @@
       "attributeValues": [],
       "userRoles": [
         {
-          "id": "yrB6vc5Ip3r"
+          "id": "nJ4Ml8ads4M"
         }
       ],
       "userAccesses": [],
@@ -1673,16 +1705,16 @@
       ]
     },
     {
-      "code": "admin",
+      "code": "tracker admin",
       "lastUpdated": "2020-05-31T11:41:22.356",
-      "id": "M5zQapPyTZI",
+      "id": "tTgjgobT1oS",
       "created": "2020-05-31T08:55:27.984",
       "password": "Test123###...",
-      "surname": "admin",
-      "firstName": "admin",
-      "name": "admin admin",
+      "surname": "tracker admin",
+      "firstName": "tracker admin",
+      "name": "tracker admin",
       "lastLogin": "2020-05-31T08:55:38.571",
-      "displayName": "admin admin",
+      "displayName": "tracker admin",
       "externalAuth": false,
       "externalAccess": false,
       "disabled": false,
@@ -1691,7 +1723,7 @@
       "invitation": false,
       "selfRegistered": false,
       "favorite": false,
-      "username": "admin",
+      "username": "trackeradmin",
       "access": {
         "read": true,
         "update": true,
@@ -1708,7 +1740,7 @@
       "attributeValues": [],
       "userRoles": [
         {
-          "id": "yrB6vc5Ip3r"
+          "id": "nJ4Ml8ads4M"
         }
       ],
       "userAccesses": [],
@@ -1966,10 +1998,10 @@
       "path": "/h4w96yEMlzO",
       "openingDate": "2020-05-31T00:00:00.000",
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "attributeValues": [],
       "translations": []
@@ -1987,10 +2019,10 @@
       "path": "/g4w96yEMlzO",
       "openingDate": "2020-05-31T00:00:00.000",
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "attributeValues": [],
       "translations": []
@@ -2010,10 +2042,10 @@
         "id": "h4w96yEMlzO"
       },
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "attributeValues": [],
       "translations": []
@@ -2033,10 +2065,10 @@
         "id": "h4w96yEMlzO"
       },
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "attributeValues": [],
       "translations": []
@@ -2056,10 +2088,10 @@
         "id": "uoNW0E3xXUy"
       },
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "attributeValues": [],
       "translations": []
@@ -2079,10 +2111,10 @@
         "id": "RojfDTBhoGC"
       },
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "attributeValues": [],
       "translations": []
@@ -2100,10 +2132,10 @@
       "path": "/DiszpKrYNg8",
       "openingDate": "2020-05-31T00:00:00.000",
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "attributeValues": [
         {
@@ -2143,15 +2175,90 @@
         "id": "bjDvmb4bfuf"
       },
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "trackedEntityType": {
         "id": "ja8NY4PW7Xm"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
-      "programTrackedEntityAttributes": [],
+      "programTrackedEntityAttributes": [
+        {
+          "lastUpdated": "2022-01-07T12:45:47.386",
+          "id": "k45TmK2PnUx",
+          "created": "2019-04-25T11:04:29.212",
+          "displayName": "TA Tracker_program TA First name",
+          "mandatory": false,
+          "displayShortName": "TA Tracker_program TA First name",
+          "renderOptionsAsRadio": false,
+          "valueType": "TEXT",
+          "searchable": true,
+          "displayInList": true,
+          "sortOrder": 1,
+          "name": "TA Tracker_program TA First name",
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "write": true,
+            "delete": true,
+            "manage": true
+          },
+          "program": {
+            "id": "BFcipDERJnf"
+          },
+          "trackedEntityAttribute": {
+            "id": "dIVt4l5vIOa"
+          },
+          "sharing": {
+            "userGroups": {},
+            "external": false,
+            "users": {}
+          },
+          "favorites": [],
+          "translations": [],
+          "attributeValues": []
+        },
+        {
+          "lastUpdated": "2022-01-07T12:45:47.386",
+          "id": "r56Tmr3PnPf",
+          "created": "2019-04-25T11:04:29.212",
+          "displayName": "TA Tracker_program TA Test",
+          "mandatory": false,
+          "displayShortName": "TA Tracker_program TA Test",
+          "renderOptionsAsRadio": false,
+          "valueType": "TEXT",
+          "searchable": true,
+          "displayInList": true,
+          "sortOrder": 2,
+          "name": "TA Tracker_program TA Test",
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "write": true,
+            "delete": true,
+            "manage": true
+          },
+          "program": {
+            "id": "BFcipDERJnf"
+          },
+          "trackedEntityAttribute": {
+            "id": "fRGt4l6yIRb"
+          },
+          "sharing": {
+            "userGroups": {},
+            "external": false,
+            "users": {}
+          },
+          "favorites": [],
+          "translations": [],
+          "attributeValues": []
+        }
+      ],
       "notificationTemplates": [],
       "translations": [],
       "organisationUnits": [
@@ -2198,10 +2305,10 @@
         "id": "bjDvmb4bfuf"
       },
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "programTrackedEntityAttributes": [],
       "notificationTemplates": [],
@@ -2247,10 +2354,10 @@
         "id": "bjDvmb4bfuf"
       },
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "programTrackedEntityAttributes": [],
       "notificationTemplates": [],
@@ -2689,18 +2796,18 @@
   ],
   "userRoles": [
     {
-      "code": "Superuser",
+      "code": "tracker Superuser",
       "created": "2020-05-31T08:55:28.141",
       "lastUpdated": "2020-05-31T11:41:22.347",
-      "name": "Superuser",
-      "id": "yrB6vc5Ip3r",
+      "name": "tracker Superuser",
+      "id": "nJ4Ml8ads4M",
       "publicAccess": "--------",
-      "description": "Superuser",
+      "description": "tracker Superuser",
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "userGroupAccesses": [],
       "authorities": [
@@ -2711,7 +2818,6 @@
         "F_ORGANISATIONUNIT_MOVE",
         "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS",
         "F_PREDICTOR_RUN",
-        "F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION",
         "F_SKIP_DATA_IMPORT_AUDIT",
         "F_RUN_VALIDATION",
         "F_LOCALE_ADD",
@@ -2745,19 +2851,76 @@
         "external": false
       },
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "authorities": [
-        "M_dhis-web-capture",
-        "M_dhis-web-tracker-capture"
+        "M_dhis-web-capture"
       ],
       "translations": []
     }
   ],
   "trackedEntityAttributes": [
+    {
+      "code": "TA_FIRST_NAME_ATT",
+      "lastUpdated": "2022-01-07T12:45:47.338",
+      "id": "dIVt4l5vIOa",
+      "created": "2019-02-05T13:45:36.361",
+      "name": "TA First name",
+      "shortName": "TA First name",
+      "aggregationType": "NONE",
+      "displayInListNoProgram": true,
+      "pattern": "",
+      "skipSynchronization": false,
+      "generated": false,
+      "displayOnVisitSchedule": false,
+      "valueType": "TEXT",
+      "confidential": false,
+      "orgunitScope": false,
+      "unique": false,
+      "inherit": false,
+      "sharing": {
+        "owner": "tTgjgobT1oS",
+        "userGroups": {},
+        "external": false,
+        "public": "rwrwrw--",
+        "users": {}
+      },
+      "translations": [],
+      "attributeValues": [],
+      "legendSets": []
+    },
+    {
+      "code": "TA_TEST",
+      "lastUpdated": "2022-01-07T12:45:47.338",
+      "id": "fRGt4l6yIRb",
+      "created": "2019-02-05T13:45:36.361",
+      "name": "TA Test",
+      "shortName": "TA Test",
+      "aggregationType": "NONE",
+      "displayInListNoProgram": true,
+      "pattern": "",
+      "skipSynchronization": false,
+      "generated": false,
+      "displayOnVisitSchedule": false,
+      "valueType": "TEXT",
+      "confidential": false,
+      "orgunitScope": false,
+      "unique": false,
+      "inherit": false,
+      "sharing": {
+        "owner": "tTgjgobT1oS",
+        "userGroups": {},
+        "external": false,
+        "public": "rwrwrw--",
+        "users": {}
+      },
+      "translations": [],
+      "attributeValues": [],
+      "legendSets": []
+    },
     {
       "lastUpdated": "2020-05-31T11:41:22.414",
       "id": "numericAttr",
@@ -2778,10 +2941,10 @@
       "unique": false,
       "inherit": false,
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "translations": [],
       "userGroupAccesses": [],
@@ -2809,10 +2972,10 @@
       "unique": false,
       "inherit": false,
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "translations": [],
       "userGroupAccesses": [],
@@ -2840,10 +3003,10 @@
       "unique": false,
       "inherit": false,
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "translations": [],
       "userGroupAccesses": [],
@@ -2871,10 +3034,10 @@
       "unique": false,
       "inherit": false,
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "translations": [],
       "userGroupAccesses": [],
@@ -2906,7 +3069,7 @@
         "manage": true
       },
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "recipientUserGroup": {
         "id": "xfHoY6IZSWI"

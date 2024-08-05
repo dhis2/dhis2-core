@@ -36,12 +36,14 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IndirectTransactional;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
+import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preprocess.TrackerPreprocessService;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
@@ -67,7 +69,8 @@ public class DefaultTrackerImportService implements TrackerImportService {
 
   @Nonnull private final TrackerUserService trackerUserService;
 
-  private PersistenceReport commit(TrackerImportParams params, TrackerBundle trackerBundle) {
+  private PersistenceReport commit(TrackerImportParams params, TrackerBundle trackerBundle)
+      throws ForbiddenException, NotFoundException {
     if (TrackerImportStrategy.DELETE == params.getImportStrategy()) {
       return deleteBundle(trackerBundle);
     } else {
@@ -160,28 +163,29 @@ public class DefaultTrackerImportService implements TrackerImportService {
     PersistenceReport persistenceReport = trackerBundleService.commit(trackerBundle);
 
     if (!trackerBundle.isSkipSideEffects()) {
-      List<TrackerSideEffectDataBundle> sideEffectDataBundles =
+      List<TrackerNotificationDataBundle> notificationDataBundles =
           Stream.of(TrackerType.ENROLLMENT, TrackerType.EVENT)
-              .map(trackerType -> safelyGetSideEffectsDataBundles(persistenceReport, trackerType))
+              .map(trackerType -> safelyGetNotificationDataBundles(persistenceReport, trackerType))
               .flatMap(Collection::stream)
               .toList();
 
-      trackerBundleService.handleTrackerSideEffects(sideEffectDataBundles);
+      trackerBundleService.sendNotifications(notificationDataBundles);
     }
 
     return persistenceReport;
   }
 
-  private List<TrackerSideEffectDataBundle> safelyGetSideEffectsDataBundles(
+  private List<TrackerNotificationDataBundle> safelyGetNotificationDataBundles(
       PersistenceReport persistenceReport, TrackerType trackerType) {
     return Optional.ofNullable(persistenceReport)
         .map(PersistenceReport::getTypeReportMap)
         .map(reportMap -> reportMap.get(trackerType))
-        .map(TrackerTypeReport::getSideEffectDataBundles)
+        .map(TrackerTypeReport::getNotificationDataBundles)
         .orElse(Collections.emptyList());
   }
 
-  protected PersistenceReport deleteBundle(TrackerBundle trackerBundle) {
+  protected PersistenceReport deleteBundle(TrackerBundle trackerBundle)
+      throws ForbiddenException, NotFoundException {
     return trackerBundleService.delete(trackerBundle);
   }
 

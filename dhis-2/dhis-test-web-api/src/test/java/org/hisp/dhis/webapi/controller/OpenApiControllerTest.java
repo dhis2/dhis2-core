@@ -27,11 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.utils.Assertions.assertGreaterOrEqual;
-import static org.hisp.dhis.utils.Assertions.assertLessOrEqual;
+import static org.hisp.dhis.test.utils.Assertions.assertContains;
+import static org.hisp.dhis.test.utils.Assertions.assertGreaterOrEqual;
+import static org.hisp.dhis.test.utils.Assertions.assertLessOrEqual;
+import static org.hisp.dhis.test.web.WebClient.Accept;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
 
 import io.swagger.parser.OpenAPIParser;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
@@ -41,7 +44,7 @@ import java.nio.file.Path;
 import java.util.List;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.openapitools.codegen.DefaultGenerator;
 import org.openapitools.codegen.config.CodegenConfigurator;
@@ -54,7 +57,7 @@ import org.openapitools.codegen.config.CodegenConfigurator;
  *
  * @author Jan Bernitt
  */
-class OpenApiControllerTest extends DhisControllerConvenienceTest {
+class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testGetOpenApiDocumentJson() {
     JsonObject doc =
@@ -100,6 +103,14 @@ class OpenApiControllerTest extends DhisControllerConvenienceTest {
                 "/api/users/sharing"));
     assertLessOrEqual(151, doc.getObject("paths").size());
     assertLessOrEqual(80, doc.getObject("components.schemas").size());
+  }
+
+  @Test
+  void testGetOpenApiDocumentHtml_DomainFilter() {
+    String html =
+        GET("/openapi/openapi.html?domain=DataElement", Accept(TEXT_HTML_VALUE))
+            .content(TEXT_HTML_VALUE);
+    assertContains("#DataElement", html);
   }
 
   @Test

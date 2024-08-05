@@ -28,10 +28,11 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.emptySet;
-import static org.hisp.dhis.web.HttpStatus.Series.SUCCESSFUL;
-import static org.hisp.dhis.web.WebClient.Accept;
-import static org.hisp.dhis.web.WebClient.Body;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.web.HttpStatus.Series.SUCCESSFUL;
+import static org.hisp.dhis.test.web.WebClient.Accept;
+import static org.hisp.dhis.test.web.WebClient.Body;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -49,28 +50,27 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.message.FakeMessageSender;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.test.message.FakeMessageSender;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
+import org.hisp.dhis.test.webapi.json.domain.JsonImportSummary;
+import org.hisp.dhis.test.webapi.json.domain.JsonUser;
+import org.hisp.dhis.test.webapi.json.domain.JsonUserGroup;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.user.RestoreType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
-import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
-import org.hisp.dhis.webapi.json.domain.JsonUser;
-import org.hisp.dhis.webapi.json.domain.JsonUserGroup;
-import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.jboss.aerogear.security.otp.api.Base32;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -83,7 +83,7 @@ import org.springframework.security.core.session.SessionRegistry;
  *
  * @author Jan Bernitt
  */
-class UserControllerTest extends DhisControllerConvenienceTest {
+class UserControllerTest extends H2ControllerIntegrationTestBase {
   @Autowired private MessageSender messageSender;
 
   @Autowired private SystemSettingManager systemSettingManager;
@@ -92,18 +92,20 @@ class UserControllerTest extends DhisControllerConvenienceTest {
 
   @Autowired private SessionRegistry sessionRegistry;
 
-  @Autowired private UserService userService;
-
   private User peter;
 
   @Autowired ObjectMapper objectMapper;
 
   @BeforeEach
   void setUp() {
+    // TODO(DHIS2-17768 platform) intentional? you are creating 2 users with username `peter` and
+    // `Peter` and
+    // assigning it to field peter
+    // also why switch to the user and then immediately back to the admin user?
     peter = createUserWithAuth("peter");
 
     this.peter = switchToNewUser("Peter");
-    switchToSuperuser();
+    switchToAdminUser();
     assertStatus(
         HttpStatus.OK,
         PATCH(
@@ -117,7 +119,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void updateRolesShouldInvalidateUserSessions() {
-    UserDetails sessionPrincipal = userService.createUserDetails(superUser);
+    UserDetails sessionPrincipal = userService.createUserDetails(getAdminUser());
     sessionRegistry.registerNewSession("session1", sessionPrincipal);
     assertFalse(sessionRegistry.getAllSessions(sessionPrincipal, false).isEmpty());
 
@@ -127,7 +129,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
     String roleBID = userService.getUserRoleByName("ROLE_B").getUid();
 
     PATCH(
-            "/users/" + superUser.getUid(),
+            "/users/" + getAdminUid(),
             "[{'op':'add','path':'/userRoles','value':[{'id':'" + roleBID + "'}]}]")
         .content(HttpStatus.OK);
 
@@ -136,13 +138,13 @@ class UserControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void updateRolesAuthoritiesShouldInvalidateUserSessions() {
-    UserDetails sessionPrincipal = userService.createUserDetails(superUser);
+    UserDetails sessionPrincipal = userService.createUserDetails(getAdminUser());
 
     UserRole roleB = createUserRole("ROLE_B", "ALL");
     userService.addUserRole(roleB);
 
     PATCH(
-            "/users/" + superUser.getUid(),
+            "/users/" + getAdminUid(),
             "[{'op':'add','path':'/userRoles','value':[{'id':'" + roleB.getUid() + "'}]}]")
         .content(HttpStatus.OK);
 
@@ -270,7 +272,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
 
     JsonImportSummary response =
         PATCH(
-                "/users/" + superUser.getUid(),
+                "/users/" + getAdminUid(),
                 "[{'op':'add','path':'/userRoles','value':[{'id':'" + roleBID + "'}]}]")
             .content(HttpStatus.CONFLICT)
             .get("response")
@@ -668,7 +670,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
 
     manager.flush();
     manager.clear();
-    injectSecurityContextUser(getAdminUser());
+    injectAdminIntoSecurityContext();
 
     // assert lastUpdated has been updated by new user & users not empty
     JsonUserGroup userGroupUserAdded =
@@ -746,7 +748,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
     assertEquals("test", lastUpdatedByNewUser.getUsername());
 
     // switch back to admin and remove group from user
-    switchToSuperuser();
+    switchToAdminUser();
     PUT(
             "/users/" + newUser.getUid(),
             " {"
@@ -767,7 +769,7 @@ class UserControllerTest extends DhisControllerConvenienceTest {
         GET("/userGroups/" + newGroupUid).content(HttpStatus.OK).as(JsonUserGroup.class);
     JsonUser updatedByAdminAgain = userGroupUserRemoved.getLastUpdatedBy();
     assertTrue(userGroupUserRemoved.getUsers().isEmpty());
-    assertEquals(superUser.getUid(), updatedByAdminAgain.getId());
+    assertEquals(getAdminUid(), updatedByAdminAgain.getId());
     assertEquals("admin", updatedByAdminAgain.getUsername());
   }
 

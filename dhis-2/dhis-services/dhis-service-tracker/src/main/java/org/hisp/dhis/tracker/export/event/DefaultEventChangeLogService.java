@@ -27,17 +27,13 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
-import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,26 +42,16 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DefaultEventChangeLogService implements EventChangeLogService {
 
-  private final org.hisp.dhis.program.EventService eventService;
+  private final EventService eventService;
 
   private final JdbcEventChangeLogStore jdbcEventChangeLogStore;
-
-  private final TrackerAccessManager trackerAccessManager;
 
   @Override
   public Page<EventChangeLog> getEventChangeLog(
       UID eventUid, EventChangeLogOperationParams operationParams, PageParams pageParams)
-      throws NotFoundException {
-    Event event = eventService.getEvent(eventUid.getValue());
-    if (event == null) {
-      throw new NotFoundException(Event.class, eventUid.getValue());
-    }
-
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    List<String> errors = trackerAccessManager.canRead(currentUser, event, false);
-    if (!errors.isEmpty()) {
-      throw new NotFoundException(Event.class, eventUid.getValue());
-    }
+      throws NotFoundException, ForbiddenException {
+    // check existence and access
+    eventService.getEvent(eventUid);
 
     return jdbcEventChangeLogStore.getEventChangeLog(
         eventUid, operationParams.getOrder(), pageParams);

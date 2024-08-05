@@ -38,28 +38,30 @@ import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
 import org.hisp.dhis.sms.outbound.OutboundSmsStore;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-class IncomingSmsStoreTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class IncomingSmsStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private IncomingSmsStore incomingSmsStore;
 
   @Autowired private OutboundSmsStore outboundSmsStore;
 
-  @Autowired private UserService _userService;
-
   private User user;
 
-  @Override
-  public void setUpTest() {
-    this.userService = _userService;
+  @BeforeAll
+  void setUp() {
     user = makeUser("A");
     userService.addUser(user);
   }

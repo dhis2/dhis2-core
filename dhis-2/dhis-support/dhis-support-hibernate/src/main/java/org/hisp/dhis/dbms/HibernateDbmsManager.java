@@ -79,8 +79,8 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("constant");
     emptyTable("sqlview");
 
-    emptyTable("smscodes");
     emptyTable("smscommandcodes");
+    emptyTable("smscodes");
     emptyTable("smscommands");
     emptyTable("incomingsms");
 
@@ -329,8 +329,6 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("usersetting");
     emptyTable("fileresource");
     emptyTable("jobconfiguration");
-    // userinfo should be last, since many tables has a foreign key to it
-    emptyTable("userinfo");
     emptyTable("route");
 
     dropTable("analytics_rs_orgunitstructure");
@@ -353,6 +351,9 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("audit");
     emptyTable("eventhook");
     emptyTable("dataentryform");
+
+    // userinfo should be last, since many tables has a foreign key to it
+    emptyTable("userinfo");
 
     log.debug("Cleared database contents");
 

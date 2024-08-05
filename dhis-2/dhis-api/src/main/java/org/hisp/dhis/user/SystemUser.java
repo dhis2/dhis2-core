@@ -139,6 +139,12 @@ public class SystemUser implements UserDetails {
     return Set.of();
   }
 
+  @Nonnull
+  @Override
+  public Set<String> getUserEffectiveSearchOrgUnitIds() {
+    return Set.of();
+  }
+
   @Override
   public boolean hasAnyAuthority(Collection<String> auths) {
     return true;

@@ -61,6 +61,7 @@ import static org.hisp.dhis.analytics.common.ColumnHeader.PROGRAM_STAGE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.PROGRAM_STATUS;
 import static org.hisp.dhis.analytics.common.ColumnHeader.SCHEDULED_DATE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.STORED_BY;
+import static org.hisp.dhis.analytics.common.ColumnHeader.TRACKED_ENTITY;
 import static org.hisp.dhis.analytics.event.LabelMapper.getEnrollmentDateLabel;
 import static org.hisp.dhis.analytics.event.LabelMapper.getEventDateLabel;
 import static org.hisp.dhis.analytics.event.LabelMapper.getEventLabel;
@@ -91,6 +92,7 @@ import org.hisp.dhis.analytics.EventAnalyticsDimensionalItem;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
 import org.hisp.dhis.analytics.common.ColumnHeader;
+import org.hisp.dhis.analytics.common.scheme.SchemeInfo;
 import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
@@ -594,7 +596,10 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
       }
     }
 
-    schemeIdResponseMapper.applyCustomIdScheme(params, grid);
+    if (!params.isSkipMeta()) {
+      SchemeInfo schemeInfo = new SchemeInfo(schemeSettings(params), schemeData(params));
+      schemeIdResponseMapper.applyCustomIdScheme(schemeInfo, grid);
+    }
 
     // ---------------------------------------------------------------------
     // Meta-ata
@@ -752,8 +757,7 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
                   false,
                   true))
           .addHeader(
-              new GridHeader(
-                  ColumnHeader.TEI.getItem(), ColumnHeader.TEI.getName(), TEXT, false, true))
+              new GridHeader(TRACKED_ENTITY.getItem(), TRACKED_ENTITY.getName(), TEXT, false, true))
           .addHeader(
               new GridHeader(
                   PROGRAM_INSTANCE.getItem(), PROGRAM_INSTANCE.getName(), TEXT, false, true));

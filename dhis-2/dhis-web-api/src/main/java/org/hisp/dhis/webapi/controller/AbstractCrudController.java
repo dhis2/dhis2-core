@@ -36,7 +36,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -52,7 +51,10 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjects;
+import org.hisp.dhis.common.Maturity.Beta;
+import org.hisp.dhis.common.Maturity.Stable;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.PropertyNames;
 import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
@@ -82,9 +84,6 @@ import org.hisp.dhis.jsonpatch.BulkPatchManager;
 import org.hisp.dhis.jsonpatch.BulkPatchParameters;
 import org.hisp.dhis.jsonpatch.JsonPatchManager;
 import org.hisp.dhis.jsonpatch.validator.BulkPatchValidatorFactory;
-import org.hisp.dhis.patch.Patch;
-import org.hisp.dhis.patch.PatchParams;
-import org.hisp.dhis.patch.PatchService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.MetadataMergeService;
 import org.hisp.dhis.schema.validation.SchemaValidator;
@@ -98,7 +97,6 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.openapi.Api.PropertyNames;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -117,6 +115,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Stable
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @OpenApi.Document(group = OpenApi.Document.Group.MANAGE)
 public abstract class AbstractCrudController<T extends IdentifiableObject>
@@ -136,8 +135,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
   @Autowired protected MetadataMergeService metadataMergeService;
 
   @Autowired protected JsonPatchManager jsonPatchManager;
-
-  @Autowired protected PatchService patchService;
 
   @Autowired
   @Qualifier("xmlMapper")
@@ -166,6 +163,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
    * releases we might also want to support "application/json" after the old patch behavior has been
    * removed.
    */
+  @Beta
   @OpenApi.Params(WebOptions.class)
   @OpenApi.Params(MetadataImportParams.class)
   @OpenApi.Param(JsonPatch.class)
@@ -293,6 +291,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
   // POST
   // --------------------------------------------------------------------------
 
+  @Stable
   @OpenApi.Params(MetadataImportParams.class)
   @OpenApi.Param(OpenApi.EntityType.class)
   @PostMapping(consumes = APPLICATION_JSON_VALUE)
@@ -507,7 +506,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     return webMessage;
   }
 
-  @OpenApi.Param(value = Translation[].class, asProperty = "translations")
+  @OpenApi.Param(object = @OpenApi.Property(name = "translations", value = Translation[].class))
   @PutMapping(value = "/{uid}/translations")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @ResponseBody
@@ -921,20 +920,5 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     }
 
     return false;
-  }
-
-  protected Patch diff(HttpServletRequest request) throws IOException, BadRequestException {
-    ObjectMapper mapper = isJson(request) ? jsonMapper : isXml(request) ? xmlMapper : null;
-    if (mapper == null) {
-      throw new BadRequestException("Unknown payload format.");
-    }
-    JsonNode jsonNode = mapper.readTree(request.getInputStream());
-    for (JsonNode node : jsonNode) {
-      if (node.isContainerNode()) {
-        throw new BadRequestException("Payload can not contain objects or arrays.");
-      }
-    }
-
-    return patchService.diff(new PatchParams(jsonNode));
   }
 }

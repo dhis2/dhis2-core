@@ -56,6 +56,15 @@ import lombok.experimental.Accessors;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonBoolean;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonMap;
+import org.hisp.dhis.jsontree.JsonMultiMap;
+import org.hisp.dhis.jsontree.JsonNumber;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonString;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.node.config.InclusionStrategy;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.period.Period;
@@ -223,11 +232,21 @@ class DirectType {
     oneOf(InputStreamResource.class, schema -> schema.type("string").format("binary"));
     oneOf(FileResourceStream.class, schema -> schema.type("string").format("binary"));
 
-    oneOf(JsonNode.class, schema -> schema.type("object"));
+    oneOf(JsonNode.class, schema -> schema.type("any"));
     oneOf(ObjectNode.class, schema -> schema.type("object"));
     oneOf(ArrayNode.class, schema -> schema.type("array"));
     oneOf(RootNode.class, schema -> schema.type("object"));
     oneOf(JsonPointer.class, schema -> schema.type("string"));
+
+    oneOf(JsonValue.class, schema -> schema.type("any"));
+    oneOf(JsonObject.class, schema -> schema.type("object"));
+    oneOf(JsonMap.class, schema -> schema.type("object"));
+    oneOf(JsonMultiMap.class, schema -> schema.type("object"));
+    oneOf(JsonArray.class, schema -> schema.type("array"));
+    oneOf(JsonList.class, schema -> schema.type("array"));
+    oneOf(JsonString.class, schema -> schema.type("string"));
+    oneOf(JsonNumber.class, schema -> schema.type("number"));
+    oneOf(JsonBoolean.class, schema -> schema.type("boolean"));
 
     oneOf(Geometry.class, schema -> schema.type("object"));
     oneOf(WebMessageResponse.class, schema -> schema.type("object"));

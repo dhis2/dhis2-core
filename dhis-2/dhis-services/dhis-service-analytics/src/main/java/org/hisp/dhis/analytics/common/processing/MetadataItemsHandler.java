@@ -45,8 +45,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import org.hisp.dhis.analytics.common.CommonQueryRequest;
-import org.hisp.dhis.analytics.common.params.CommonParams;
+import org.hisp.dhis.analytics.common.CommonRequestParams;
+import org.hisp.dhis.analytics.common.params.CommonParamsDelegator;
+import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -85,37 +86,37 @@ public class MetadataItemsHandler {
    * respective {@link MetadataItem}.
    *
    * @param grid the {@link Grid}.
-   * @param commonParams the {@link CommonParams}.
+   * @param commonParsed the {@link CommonParsedParams}.
+   * @param commonRequestParams the {@link CommonRequestParams}.
    * @return the map of {@link MetadataItem}.
    */
-  Map<String, MetadataItem> handle(Grid grid, CommonParams commonParams) {
+  Map<String, MetadataItem> handle(
+      Grid grid, CommonParsedParams commonParsed, CommonRequestParams commonRequestParams) {
+    CommonParamsDelegator delegator = commonParsed.delegate();
     List<QueryItem> items =
-        commonParams.delegate().getAllItems().stream()
-            .filter(
-                it -> isInOriginalRequest(it.getItem().getUid(), commonParams.getOriginalRequest()))
+        delegator.getAllItems().stream()
+            .filter(it -> isInOriginalRequest(it.getItem().getUid(), commonRequestParams))
             .toList();
     Set<Option> itemOptions =
-        commonParams.delegate().getItemsOptions().stream()
-            .filter(o -> isInOriginalRequest(o.getUid(), commonParams.getOriginalRequest()))
+        delegator.getItemsOptions().stream()
+            .filter(o -> isInOriginalRequest(o.getUid(), commonRequestParams))
             .collect(toSet());
     Map<String, List<Option>> optionsPresentInGrid = getItemOptions(grid, items);
     Set<Option> optionItems = getOptionItems(grid, itemOptions, items, optionsPresentInGrid);
-    List<DimensionalObject> allDimensionalObjects =
-        commonParams.delegate().getAllDimensionalObjects();
-    List<DimensionItemKeywords.Keyword> periodKeywords =
-        commonParams.delegate().getPeriodKeywords();
-    Set<Legend> itemLegends = commonParams.delegate().getItemsLegends();
+    List<DimensionalObject> allDimensionalObjects = delegator.getAllDimensionalObjects();
+    List<DimensionItemKeywords.Keyword> periodKeywords = delegator.getPeriodKeywords();
+    Set<Legend> itemLegends = delegator.getItemsLegends();
     List<Program> programs =
-        commonParams.getPrograms().stream()
-            .filter(p -> isInOriginalRequest(p.getUid(), commonParams.getOriginalRequest()))
+        commonParsed.getPrograms().stream()
+            .filter(p -> isInOriginalRequest(p.getUid(), commonRequestParams))
             .toList();
     Set<ProgramStage> programStages =
-        commonParams.delegate().getProgramStages().stream()
-            .filter(p -> isInOriginalRequest(p.getUid(), commonParams.getOriginalRequest()))
+        delegator.getProgramStages().stream()
+            .filter(p -> isInOriginalRequest(p.getUid(), commonRequestParams))
             .collect(toSet());
-    boolean includeMetadataDetails = commonParams.isIncludeMetadataDetails();
-    DisplayProperty displayProperty = commonParams.getDisplayProperty();
-    DimensionalItemObject value = commonParams.getValue();
+    boolean includeMetadataDetails = commonRequestParams.isIncludeMetadataDetails();
+    DisplayProperty displayProperty = commonRequestParams.getDisplayProperty();
+    DimensionalItemObject value = commonRequestParams.getValue();
     Map<String, MetadataItem> metadataItemMap =
         getDimensionMetadataItemMap(
             grid,
@@ -171,15 +172,15 @@ public class MetadataItemsHandler {
    * considered to be in dimension or filter set.
    *
    * @param uid
-   * @param originalRequest the {@link CommonQueryRequest}.
+   * @param originalRequest the {@link CommonRequestParams}.
    * @return the boolean indicator.
    */
-  private boolean isInOriginalRequest(String uid, CommonQueryRequest originalRequest) {
+  private boolean isInOriginalRequest(String uid, CommonRequestParams originalRequest) {
     if (originalRequest == null) {
       return true;
     }
 
-    return originalRequest.getDimension().stream().anyMatch(uId -> uId.contains(uid))
+    return originalRequest.getAllDimensions().stream().anyMatch(uId -> uId.contains(uid))
         || originalRequest.getFilter().stream().anyMatch(uId -> uId.contains(uid))
         || originalRequest.getHeaders().stream().anyMatch(uId -> uId.contains(uid))
         || originalRequest.getProgram().stream().anyMatch(uId -> uId.contains(uid))
