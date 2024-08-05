@@ -33,29 +33,21 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 @JacksonXmlRootElement(localName = "programMessageBatch", namespace = DxfNamespaces.DXF_2_0)
-public class ProgramMessageBatch {
-  private List<ProgramMessage> programMessages = new ArrayList<>();
-
-  public ProgramMessageBatch() {}
-
-  public ProgramMessageBatch(List<ProgramMessage> programMessages) {
-    this.programMessages = programMessages;
-  }
-
+public class ProgramMessageImport {
   @JsonProperty
   @JacksonXmlElementWrapper(localName = "programMessages", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "programMessage", namespace = DxfNamespaces.DXF_2_0)
-  public List<ProgramMessage> getProgramMessages() {
-    return programMessages;
-  }
-
-  public void setProgramMessages(List<ProgramMessage> programMessages) {
-    this.programMessages = programMessages;
-  }
+  private List<ProgramMessage> programMessages = new ArrayList<>();
 }

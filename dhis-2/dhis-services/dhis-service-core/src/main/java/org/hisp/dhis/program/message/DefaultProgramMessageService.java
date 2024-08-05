@@ -39,6 +39,7 @@ import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
@@ -113,6 +114,28 @@ public class DefaultProgramMessageService implements ProgramMessageService {
   public long saveProgramMessage(ProgramMessage programMessage) {
     programMessageStore.save(programMessage);
     return programMessage.getId();
+  }
+
+  @Override
+  @Transactional
+  public void updateProgramMessage(UID uid, ProgramMessageStatus status) throws NotFoundException {
+    ProgramMessage persisted = programMessageStore.getByUid(uid.getValue());
+    if (persisted == null) {
+      throw new NotFoundException(ProgramMessage.class, uid.getValue());
+    }
+
+    persisted.setMessageStatus(status);
+    programMessageStore.update(persisted);
+  }
+
+  @Override
+  @Transactional
+  public void deleteProgramMessage(UID uid) throws NotFoundException {
+    ProgramMessage persisted = programMessageStore.getByUid(uid.getValue());
+    if (persisted == null) {
+      throw new NotFoundException(ProgramMessage.class, uid.getValue());
+    }
+    programMessageStore.delete(persisted);
   }
 
   @Override
