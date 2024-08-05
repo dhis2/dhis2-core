@@ -57,7 +57,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItemMethod;
 import org.hisp.dhis.parser.expression.ProgramExpressionParams;
-import org.hisp.dhis.parser.expression.literal.NumericLiteral;
 import org.hisp.dhis.parser.expression.literal.SqlLiteral;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -214,7 +213,7 @@ class ProgramSqlGeneratorItemsTest extends TestBase {
   // -------------------------------------------------------------------------
 
   private String testNumeric(String expression) {
-    return castString(test(expression, new NumericLiteral(), ITEM_GET_SQL));
+    return castString(test(expression, new SqlLiteral(), ITEM_GET_SQL));
   }
 
   private String test(String expression) {
