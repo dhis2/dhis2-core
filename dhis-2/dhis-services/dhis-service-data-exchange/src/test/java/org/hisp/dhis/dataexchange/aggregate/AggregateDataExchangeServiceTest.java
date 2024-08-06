@@ -37,6 +37,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
@@ -59,6 +60,7 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.security.acl.AclService;
@@ -366,5 +368,29 @@ class AggregateDataExchangeServiceTest {
 
     assertTrue(service.isPersisted(adeA));
     assertFalse(service.isPersisted(adeB));
+  }
+
+  @Test
+  void testGetSourceDataWithoutAccess() {
+    lenient()
+        .when(aclService.canDataRead(any(UserDetails.class), any(IdentifiableObject.class)))
+        .thenReturn(false);
+    assertThrows(
+        ForbiddenException.class,
+        () ->
+            service.getSourceData(
+                UserDetails.fromUser(new User()), "uid", new SourceDataQueryParams()));
+  }
+
+  @Test
+  void testGetSourceDataValueSetsWithoutAccess() {
+    lenient()
+        .when(aclService.canDataRead(any(UserDetails.class), any(IdentifiableObject.class)))
+        .thenReturn(false);
+    assertThrows(
+        ForbiddenException.class,
+        () ->
+            service.getSourceDataValueSets(
+                UserDetails.fromUser(new User()), "uid", new SourceDataQueryParams()));
   }
 }
