@@ -83,6 +83,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.predictor.Predictor;
@@ -137,6 +138,7 @@ import org.springframework.transaction.annotation.Transactional;
 class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataElementService dataElementService;
+  @Autowired private PeriodService periodService;
   @Autowired private DataElementMergeProcessor mergeProcessor;
   @Autowired private MinMaxDataElementStore minMaxDataElementStore;
   @Autowired private EventVisualizationStore eventVisualizationStore;
@@ -2275,7 +2277,9 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     p2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
     Period p3 = createPeriod(DateUtils.parseDate("2024-3-4"), DateUtils.parseDate("2024-3-4"));
     p3.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    identifiableObjectManager.save(List.of(p1, p2, p3));
+    periodService.addPeriod(p1);
+    periodService.addPeriod(p2);
+    periodService.addPeriod(p3);
 
     DataValue dv1 = createDataValue(deSource1, p1, ou1, "value1", coc1);
     DataValue dv2 = createDataValue(deSource2, p2, ou1, "value2", coc1);
@@ -2308,7 +2312,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     // given
     Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
     p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    identifiableObjectManager.save(p1);
+    periodService.addPeriod(p1);
 
     // data values have the same (period, orgUnit, coc, aoc) triggering duplicate merge path
     DataValue dv1 = createDataValue(deSource1, p1, ou1, "value1", coc1);
@@ -2358,7 +2362,9 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     p2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
     Period p3 = createPeriod(DateUtils.parseDate("2024-3-4"), DateUtils.parseDate("2024-3-4"));
     p3.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    identifiableObjectManager.save(List.of(p1, p2, p3));
+    periodService.addPeriod(p1);
+    periodService.addPeriod(p2);
+    periodService.addPeriod(p3);
 
     DataValue dv1 = createDataValue(deSource1, p1, ou1, "value1", coc1);
     DataValue dv2 = createDataValue(deSource2, p2, ou1, "value2", coc1);
@@ -2400,7 +2406,9 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     p2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
     Period p3 = createPeriod(DateUtils.parseDate("2024-3-4"), DateUtils.parseDate("2024-3-4"));
     p3.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    identifiableObjectManager.save(List.of(p1, p2, p3));
+    periodService.addPeriod(p1);
+    periodService.addPeriod(p2);
+    periodService.addPeriod(p3);
 
     DataValue dv1 = createDataValue(deSource1, p1, ou1, "value1", coc1);
     DataValue dv2 = createDataValue(deSource2, p2, ou1, "value2", coc1);
@@ -2437,7 +2445,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     // given
     Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
     p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    identifiableObjectManager.save(p1);
+    periodService.addPeriod(p1);
 
     DataValueAudit dva1 = createDataValueAudit(deSource1, "1", p1);
     DataValueAudit dva2 = createDataValueAudit(deSource1, "2", p1);
@@ -2482,7 +2490,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
     // given
     Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
     p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    identifiableObjectManager.save(p1);
+    periodService.addPeriod(p1);
 
     DataValueAudit dva1 = createDataValueAudit(deSource1, "1", p1);
     DataValueAudit dva2 = createDataValueAudit(deSource1, "2", p1);
