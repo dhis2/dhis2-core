@@ -59,8 +59,6 @@ import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
-import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.message.Message;
 import org.hisp.dhis.message.MessageConversationPriority;
 import org.hisp.dhis.message.MessageConversationStatus;
@@ -470,7 +468,7 @@ public class MessageConversationController
 
     if (!canModifyUserConversation(currentUser, currentUser)
         && (messageService.hasAccessToManageFeedbackMessages(currentUser))) {
-      throw new UpdateAccessDeniedException("Not authorized to modify this object.");
+      throw new ForbiddenException("Not authorized to modify this object.");
     }
 
     org.hisp.dhis.message.MessageConversation messageConversation =
@@ -511,7 +509,7 @@ public class MessageConversationController
 
     if (!canModifyUserConversation(currentUser, currentUser)
         && (messageService.hasAccessToManageFeedbackMessages(currentUser))) {
-      throw new UpdateAccessDeniedException("Not authorized to modify this object.");
+      throw new ForbiddenException("Not authorized to modify this object.");
     }
 
     org.hisp.dhis.message.MessageConversation messageConversation =
@@ -552,7 +550,7 @@ public class MessageConversationController
 
     if (!canModifyUserConversation(currentUser, currentUser)
         && (messageService.hasAccessToManageFeedbackMessages(currentUser))) {
-      throw new UpdateAccessDeniedException("Not authorized to modify this object.");
+      throw new ForbiddenException("Not authorized to modify this object.");
     }
 
     org.hisp.dhis.message.MessageConversation messageConversation =
@@ -607,7 +605,7 @@ public class MessageConversationController
 
     if (!canModifyUserConversation(currentUser, currentUser)
         && (messageService.hasAccessToManageFeedbackMessages(currentUser))) {
-      throw new UpdateAccessDeniedException("Not authorized to modify this object.");
+      throw new ForbiddenException("Not authorized to modify this object.");
     }
 
     org.hisp.dhis.message.MessageConversation messageConversation =
@@ -708,7 +706,7 @@ public class MessageConversationController
     }
 
     if (!canModifyUserConversation(currentUser, UserDetails.fromUser(user))) {
-      throw new UpdateAccessDeniedException("Not authorized to modify this object.");
+      throw new ForbiddenException("Not authorized to modify this object.");
     }
 
     Collection<org.hisp.dhis.message.MessageConversation> messageConversations =
@@ -763,7 +761,7 @@ public class MessageConversationController
     }
 
     if (!canModifyUserConversation(currentUser, UserDetails.fromUser(user))) {
-      throw new UpdateAccessDeniedException("Not authorized to modify this object.");
+      throw new ForbiddenException("Not authorized to modify this object.");
     }
 
     Collection<org.hisp.dhis.message.MessageConversation> messageConversations =
@@ -829,7 +827,7 @@ public class MessageConversationController
       @PathVariable(value = "user-uid") String userUid,
       @CurrentUser UserDetails currentUser,
       HttpServletResponse response)
-      throws DeleteAccessDeniedException {
+      throws ForbiddenException {
     RootNode responseNode = new RootNode("reply");
 
     User user = userService.getUser(userUid);
@@ -842,7 +840,7 @@ public class MessageConversationController
 
     if (!canModifyUserConversation(currentUser, UserDetails.fromUser(user))) {
 
-      throw new DeleteAccessDeniedException("Not authorized to modify user: " + user.getUid());
+      throw new ForbiddenException("Not authorized to modify user: " + user.getUid());
     }
 
     org.hisp.dhis.message.MessageConversation messageConversation =
@@ -876,7 +874,7 @@ public class MessageConversationController
       @RequestParam(value = "user", required = false) String userUid,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
-      throws DeleteAccessDeniedException {
+      throws ForbiddenException {
     RootNode responseNode = new RootNode("response");
 
     User user =
@@ -891,7 +889,7 @@ public class MessageConversationController
     }
 
     if (!canModifyUserConversation(currentUser, UserDetails.fromUser(user))) {
-      throw new DeleteAccessDeniedException("Not authorized to modify user: " + user.getUid());
+      throw new ForbiddenException("Not authorized to modify user: " + user.getUid());
     }
 
     Collection<org.hisp.dhis.message.MessageConversation> messageConversations =
@@ -1018,7 +1016,7 @@ public class MessageConversationController
     }
 
     if (!canModifyUserConversation(currentUser, UserDetails.fromUser(user))) {
-      throw new UpdateAccessDeniedException("Not authorized to modify this object.");
+      throw new ForbiddenException("Not authorized to modify this object.");
     }
 
     Collection<org.hisp.dhis.message.MessageConversation> messageConversations =

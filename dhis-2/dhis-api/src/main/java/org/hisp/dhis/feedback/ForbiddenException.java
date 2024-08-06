@@ -40,7 +40,7 @@ import org.hisp.dhis.webmessage.WebMessageResponse;
 @Getter
 @Accessors(chain = true)
 @OpenApi.Response(status = FORBIDDEN, value = WebMessageResponse.class)
-public final class ForbiddenException extends Exception implements Error {
+public final class ForbiddenException extends RuntimeException implements Error {
   public static <E extends RuntimeException, V> V on(Class<E> type, Supplier<V> operation)
       throws ForbiddenException {
     return Error.rethrow(type, ForbiddenException::new, operation);

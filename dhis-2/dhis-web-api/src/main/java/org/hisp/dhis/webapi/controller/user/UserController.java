@@ -89,8 +89,6 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fieldfilter.Defaults;
-import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
-import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.query.Order;
@@ -279,8 +277,7 @@ public class UserController extends AbstractCrudController<User> {
     }
 
     if (!aclService.canRead(currentUser, user)) {
-      throw new CreateAccessDeniedException(
-          "You don't have the proper permissions to access this user.");
+      throw new ForbiddenException("You don't have the proper permissions to access this user.");
     }
 
     return ResponseEntity.ok(userControllerUtils.getUserDataApprovalWorkflows(user));
@@ -873,8 +870,7 @@ public class UserController extends AbstractCrudController<User> {
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
 
     if (!aclService.canUpdate(currentUserDetails, userToModify)) {
-      throw new UpdateAccessDeniedException(
-          "You don't have the proper permissions to update this object.");
+      throw new ForbiddenException("You don't have the proper permissions to update this object.");
     }
 
     if (!userService.canAddOrUpdateUser(getUids(userToModify.getGroups()))

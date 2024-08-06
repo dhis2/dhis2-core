@@ -35,8 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
-import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
@@ -172,7 +171,7 @@ class DataApprovalWorkflowServiceTest extends PostgresIntegrationTestBase {
   void testSaveWorkFlowWithoutAuthority() {
     createUserAndInjectSecurityContext(false, null);
     assertThrows(
-        CreateAccessDeniedException.class,
+        ForbiddenException.class,
         () ->
             dataApprovalService.addWorkflow(
                 new DataApprovalWorkflow("F", periodType, newHashSet(level1, level2))));
@@ -189,7 +188,7 @@ class DataApprovalWorkflowServiceTest extends PostgresIntegrationTestBase {
   void testSaveLevelWithoutAuthority() {
     createUserAndInjectSecurityContext(false, null);
     assertThrows(
-        UpdateAccessDeniedException.class,
+        ForbiddenException.class,
         () -> dataApprovalLevelService.addDataApprovalLevel(new DataApprovalLevel("7", 1, null)));
   }
 }

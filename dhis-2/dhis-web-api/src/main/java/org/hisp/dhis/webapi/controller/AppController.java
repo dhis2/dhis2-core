@@ -59,7 +59,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
@@ -201,7 +201,7 @@ public class AppController {
     }
 
     if (!appManager.isAccessible(application)) {
-      throw new ReadAccessDeniedException("You don't have access to application " + app + ".");
+      throw new ForbiddenException("You don't have access to application " + app + ".");
     }
 
     if (application.getAppState() == AppStatus.DELETION_IN_PROGRESS) {
