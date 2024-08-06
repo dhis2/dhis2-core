@@ -41,7 +41,7 @@ import org.springframework.stereotype.Component;
 public class CaptureApp {
   public static final String NAMESPACE = "capture";
 
-  public static final String AUTHORITY = "F_capture";
+  public static final String AUTHORITY = "F_CAPTURE_DATASTORE_UPDATE";
 
   public CaptureApp(DatastoreService service) {
     service.addProtection(
