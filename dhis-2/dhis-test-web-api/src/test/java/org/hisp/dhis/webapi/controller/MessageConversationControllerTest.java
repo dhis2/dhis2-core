@@ -163,7 +163,7 @@ class MessageConversationControllerTest extends H2ControllerIntegrationTestBase 
   }
 
   @Test
-  @DisplayName("Change feedback message when in the recipient group")
+  @DisplayName("Change feedback message when not in the recipient group")
   void testChangeFeedbackMessageWithoutPermission() {
     String uid =
         assertStatus(
@@ -176,7 +176,7 @@ class MessageConversationControllerTest extends H2ControllerIntegrationTestBase 
   }
 
   @Test
-  @DisplayName("Test post message to conversation without permission")
+  @DisplayName("Post message to conversation without permission")
   void testPostToConversationWithoutPermission() {
     String uid =
         assertStatus(
@@ -197,7 +197,7 @@ class MessageConversationControllerTest extends H2ControllerIntegrationTestBase 
   }
 
   @Test
-  @DisplayName("Test add recipient without permission")
+  @DisplayName("Add recipient without permission")
   void testAddRecipientWithoutPermission() {
     String uid =
         assertStatus(
@@ -221,7 +221,7 @@ class MessageConversationControllerTest extends H2ControllerIntegrationTestBase 
   }
 
   @Test
-  @DisplayName("Test change priority without permission")
+  @DisplayName("Change priority without permission")
   void testChangePriorityWithoutPermission() {
     String uid =
         assertStatus(
@@ -245,7 +245,7 @@ class MessageConversationControllerTest extends H2ControllerIntegrationTestBase 
   }
 
   @Test
-  @DisplayName("Test change status without permission")
+  @DisplayName("Change status without permission")
   void testChangeStatusWithoutPermission() {
     String uid =
         assertStatus(
@@ -269,7 +269,7 @@ class MessageConversationControllerTest extends H2ControllerIntegrationTestBase 
   }
 
   @Test
-  @DisplayName("Test assign user without permission")
+  @DisplayName("Assign user without permission")
   void testAssignUsersWithoutPermission() {
     String uid =
         assertStatus(
@@ -293,7 +293,7 @@ class MessageConversationControllerTest extends H2ControllerIntegrationTestBase 
   }
 
   @Test
-  @DisplayName("Test delete assigned user without permission")
+  @DisplayName("Delete assigned user without permission")
   void testDeleteAssignUsersWithoutPermission() {
     String uid =
         assertStatus(
@@ -317,7 +317,7 @@ class MessageConversationControllerTest extends H2ControllerIntegrationTestBase 
   }
 
   @Test
-  @DisplayName("Test change followup without permission")
+  @DisplayName("Change followup without permission")
   void testChangeFollowupWithoutPermission() {
     String uid =
         assertStatus(
@@ -340,7 +340,7 @@ class MessageConversationControllerTest extends H2ControllerIntegrationTestBase 
   }
 
   @Test
-  @DisplayName("Test change unfollowup without permission")
+  @DisplayName("Change unfollowup without permission")
   void testChangeUnFollowupWithoutPermission() {
     String uid =
         assertStatus(
@@ -363,7 +363,7 @@ class MessageConversationControllerTest extends H2ControllerIntegrationTestBase 
   }
 
   @Test
-  @DisplayName("Test remove user from conversation without permission")
+  @DisplayName("Remove user from conversation without permission")
   void testRemoveUserWithoutPermission() {
     String uid =
         assertStatus(
@@ -384,7 +384,7 @@ class MessageConversationControllerTest extends H2ControllerIntegrationTestBase 
   }
 
   @Test
-  @DisplayName("Test remove user from conversation without permission")
+  @DisplayName("Remove user from conversation without permission")
   void testRemoveUsersBatchWithoutPermission() {
     String uid =
         assertStatus(
@@ -405,7 +405,7 @@ class MessageConversationControllerTest extends H2ControllerIntegrationTestBase 
   }
 
   @Test
-  @DisplayName("Test change read status without permission")
+  @DisplayName("Change read status without permission")
   void testChangeReadStatusWithoutPermission() {
     String uid =
         assertStatus(
