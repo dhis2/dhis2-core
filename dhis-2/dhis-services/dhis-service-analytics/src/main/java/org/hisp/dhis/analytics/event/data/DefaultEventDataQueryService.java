@@ -487,6 +487,10 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     return coordinateFields.stream().distinct().collect(Collectors.toList());
   }
 
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
   // TODO!!! remove when all fe apps stop using old names of the coordinate fields
   /**
    * Temporary only, should not be in 2.42 release!!! Retrieves an old name of the coordinate field.
@@ -509,10 +513,6 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
     return coordinateField;
   }
-
-  // -------------------------------------------------------------------------
-  // Supportive methods
-  // -------------------------------------------------------------------------
 
   private QueryItem getQueryItem(
       String dimension, String filter, Program program, EventOutputType type) {
