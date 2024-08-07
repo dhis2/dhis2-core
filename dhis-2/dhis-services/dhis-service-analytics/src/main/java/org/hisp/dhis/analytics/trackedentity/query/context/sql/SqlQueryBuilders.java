@@ -54,7 +54,8 @@ public class SqlQueryBuilders {
           'eventStatus', ev.status,
           'eventDataValues', ev.eventdatavalues))
       from analytics_te_events_${trackedEntityType} ev
-      where ev.enrollment = en.enrollment""";
+      where ev.enrollment = en.enrollment
+            and ev.trackedentity = en.trackedentity""";
 
   private static final String ENROLLMENT_QUERY =
       replace(

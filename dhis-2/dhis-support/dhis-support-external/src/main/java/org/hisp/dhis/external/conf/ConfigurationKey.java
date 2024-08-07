@@ -84,6 +84,9 @@ public enum ConfigurationKey {
   /** Analytics database platform. */
   ANALYTICS_DATABASE("analytics.database", "POSTGRESQL", false),
 
+  /** Postgres Citus extension. */
+  ANALYTICS_CITUS_EXTENSION("analytics.citus.extension", Constants.OFF, false),
+
   /** Analytics database JDBC catalog name. */
   ANALYTICS_DATABASE_CATALOG("analytics.database.catalog", "pg_dhis", false),
 

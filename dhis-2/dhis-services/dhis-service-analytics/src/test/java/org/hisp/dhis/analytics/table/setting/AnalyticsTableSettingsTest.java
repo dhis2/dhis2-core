@@ -27,12 +27,19 @@
  */
 package org.hisp.dhis.analytics.table.setting;
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CITUS_EXTENSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.analytics.table.model.Skip;
+import org.hisp.dhis.configuration.CitusSettings;
+import org.hisp.dhis.configuration.CitusSettings.PgExtension;
 import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -42,18 +49,27 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 
 @ExtendWith(MockitoExtension.class)
 class AnalyticsTableSettingsTest {
   @Mock private DhisConfigurationProvider config;
 
+  @Mock private JdbcTemplate jdbcTemplate;
+
   @Mock private SystemSettingManager systemSettings;
 
   private AnalyticsTableSettings settings;
 
+  private CitusSettings citusSettings;
+
   @BeforeEach
   public void before() {
-    settings = new AnalyticsTableSettings(config, systemSettings);
+    citusSettings = new CitusSettings(config, jdbcTemplate);
+    citusSettings.init();
+
+    settings = new AnalyticsTableSettings(config, systemSettings, citusSettings);
   }
 
   @Test
@@ -72,6 +88,37 @@ class AnalyticsTableSettingsTest {
         .thenReturn(ConfigurationKey.ANALYTICS_DATABASE.getDefaultValue());
 
     assertEquals(Database.POSTGRESQL, settings.getAnalyticsDatabase());
+  }
+
+  @Test
+  void testIsCitusEnabledWhenDisabledByConfig() {
+    when(config.isEnabled(ANALYTICS_CITUS_EXTENSION)).thenReturn(false);
+    assertFalse(citusSettings.isCitusExtensionEnabled());
+  }
+
+  @Test
+  void testIsCitusEnabledWhenNoCitusExtensionInstalled() {
+    when(config.isEnabled(ANALYTICS_CITUS_EXTENSION)).thenReturn(true);
+    mockTemplate(List.of());
+    assertFalse(citusSettings.isCitusExtensionEnabled());
+  }
+
+  @Test
+  void testIsCitusEnabledWhenInstalledButNotCreated() {
+    when(config.isEnabled(ANALYTICS_CITUS_EXTENSION)).thenReturn(true);
+    mockTemplate(List.of(new PgExtension("citus", null)));
+    assertFalse(citusSettings.isCitusExtensionEnabled());
+  }
+
+  @Test
+  void testIsCitusEnabledWhenInstalledAndCreated() {
+    when(config.isEnabled(ANALYTICS_CITUS_EXTENSION)).thenReturn(true);
+    mockTemplate(List.of(new PgExtension("citus", "V1.0")));
+    assertTrue(citusSettings.isCitusExtensionEnabled());
+  }
+
+  private void mockTemplate(List<PgExtension> objects) {
+    when(jdbcTemplate.query(any(String.class), any(RowMapper.class))).thenReturn(objects);
   }
 
   @Test

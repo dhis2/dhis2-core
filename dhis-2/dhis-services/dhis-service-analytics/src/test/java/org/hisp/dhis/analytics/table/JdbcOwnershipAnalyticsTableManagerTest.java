@@ -37,6 +37,7 @@ import static org.hisp.dhis.analytics.table.writer.JdbcOwnershipWriter.STARTDATE
 import static org.hisp.dhis.analytics.table.writer.JdbcOwnershipWriter.TRACKEDENTITY;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DATE;
+import static org.hisp.dhis.db.model.Distribution.NONE;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -171,14 +172,16 @@ class JdbcOwnershipAnalyticsTableManagerTest extends TestBase {
             AnalyticsTableType.OWNERSHIP,
             JdbcOwnershipAnalyticsTableManager.FIXED_COLS,
             Logged.UNLOGGED,
-            programA);
+            programA,
+            NONE);
 
     tableB =
         new AnalyticsTable(
             AnalyticsTableType.OWNERSHIP,
             JdbcOwnershipAnalyticsTableManager.FIXED_COLS,
             Logged.UNLOGGED,
-            programB);
+            programB,
+            NONE);
 
     partitionA = new AnalyticsTablePartition(tableA, List.of(), 1, new Date(), new Date());
   }

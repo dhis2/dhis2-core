@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics;
 
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Lars Helge Overland
@@ -42,11 +43,13 @@ public enum AnalyticsTableType {
   EVENT("analytics_event", false, true),
   ENROLLMENT("analytics_enrollment", false, false),
   OWNERSHIP("analytics_ownership", false, false),
-  TRACKED_ENTITY_INSTANCE_EVENTS("analytics_te_events", false, true),
-  TRACKED_ENTITY_INSTANCE_ENROLLMENTS("analytics_te_enrollments", false, false),
-  TRACKED_ENTITY_INSTANCE("analytics_te", false, false);
+  TRACKED_ENTITY_INSTANCE_EVENTS("analytics_te_events", false, true, "trackedentity"),
+  TRACKED_ENTITY_INSTANCE_ENROLLMENTS("analytics_te_enrollments", false, false, "trackedentity"),
+  TRACKED_ENTITY_INSTANCE("analytics_te", false, false, "trackedentity");
 
-  private final String tableName;
+  @Getter private String tableName;
+
+  @Getter private String distributionColumn;
 
   private final boolean periodDimension;
 
@@ -56,5 +59,18 @@ public enum AnalyticsTableType {
     this.tableName = tableName;
     this.periodDimension = periodDimension;
     this.latestPartition = latestPartition;
+  }
+
+  AnalyticsTableType(
+      String tableName,
+      boolean periodDimension,
+      boolean latestPartition,
+      String distributionColumn) {
+    this(tableName, periodDimension, latestPartition);
+    this.distributionColumn = distributionColumn;
+  }
+
+  public boolean isDistributed() {
+    return StringUtils.isNotBlank(distributionColumn);
   }
 }

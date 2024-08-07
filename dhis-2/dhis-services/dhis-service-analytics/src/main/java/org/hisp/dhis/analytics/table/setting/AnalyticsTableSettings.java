@@ -29,6 +29,8 @@ package org.hisp.dhis.analytics.table.setting;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.hisp.dhis.commons.util.TextUtils.format;
+import static org.hisp.dhis.db.model.Distribution.DISTRIBUTED;
+import static org.hisp.dhis.db.model.Distribution.NONE;
 import static org.hisp.dhis.db.model.Logged.LOGGED;
 import static org.hisp.dhis.db.model.Logged.UNLOGGED;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
@@ -48,7 +50,9 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.table.model.Skip;
+import org.hisp.dhis.configuration.CitusSettings;
 import org.hisp.dhis.db.model.Database;
+import org.hisp.dhis.db.model.Distribution;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -67,6 +71,8 @@ public class AnalyticsTableSettings {
 
   private final SystemSettingManager systemSettings;
 
+  private final CitusSettings citusSettings;
+
   /**
    * Returns the setting indicating whether resource and analytics tables should be logged or
    * unlogged.
@@ -82,8 +88,22 @@ public class AnalyticsTableSettings {
   }
 
   /**
+   * Based on the settings defined, it returns the expected {@link Distribution} for analytics
+   * tables creation.
+   *
+   * @return the {@link Distribution}.
+   */
+  public Distribution getDistribution() {
+    if (citusSettings.isCitusEnabled()) {
+      return DISTRIBUTED;
+    }
+
+    return NONE;
+  }
+
+  /**
    * Returns the years' offset defined for the period generation. See {@link
-   * ANALYTICS_MAX_PERIOD_YEARS_OFFSET}.
+   * org.hisp.dhis.setting.SettingKey#ANALYTICS_MAX_PERIOD_YEARS_OFFSET}.
    *
    * @return the offset defined in system settings, or null if nothing is set.
    */
