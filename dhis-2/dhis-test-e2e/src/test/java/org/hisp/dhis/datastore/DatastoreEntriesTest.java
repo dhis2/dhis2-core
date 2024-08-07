@@ -217,7 +217,6 @@ class DatastoreEntriesTest extends ApiTest {
         .update("/" + NAMESPACE + "/" + key1, getEntry("arsenal update3"))
         .validateStatus(403)
         .validate()
-        .statusCode(403)
         .body("httpStatus", equalTo("Forbidden"))
         .body("status", equalTo("ERROR"))
         .body("message", equalTo("Access denied for key 'arsenal' in namespace 'football'"));
@@ -248,7 +247,6 @@ class DatastoreEntriesTest extends ApiTest {
     getResponse
         .validate()
         .body("httpStatus", equalTo("Forbidden"))
-        .body("httpStatusCode", equalTo("403"))
         .body("status", equalTo("ERROR"))
         .body("message", equalTo("Access denied for key 'arsenal' in namespace 'football"))
         .body("errorCode", equalTo("E1006"));
@@ -451,7 +449,6 @@ class DatastoreEntriesTest extends ApiTest {
     getResponse
         .validate()
         .body("httpStatus", equalTo("Forbidden"))
-        .body("httpStatusCode", equalTo("403"))
         .body("status", equalTo("ERROR"))
         .body("message", equalTo("Access denied for key 'arsenal' in namespace 'football"))
         .body("errorCode", equalTo("E1006"));
@@ -589,7 +586,6 @@ class DatastoreEntriesTest extends ApiTest {
         .delete("/" + NAMESPACE + "/" + key1)
         .validateStatus(403)
         .validate()
-        .statusCode(403)
         .body("httpStatus", equalTo("Forbidden"))
         .body("status", equalTo("ERROR"))
         .body("message", equalTo("Access denied for key 'arsenal' in namespace 'football'"));
