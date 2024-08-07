@@ -25,59 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
+package org.hisp.dhis.appmanager;
 
-import java.util.Arrays;
-import java.util.Set;
-import java.util.stream.Collectors;
+import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
+import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
+import org.hisp.dhis.datastore.DatastoreService;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ * The main purpose (so far) of the {@link CaptureApp} component is to establish the protected
+ * {@link #NAMESPACE} in the {@link DatastoreService} so that only the app can write to it using a
+ * role having the {@link #AUTHORITY}.
  */
-public enum Authorities {
-  ALL,
-  F_CAPTURE_DATASTORE_UPDATE,
-  F_VIEW_EVENT_ANALYTICS,
-  F_METADATA_EXPORT,
-  F_METADATA_IMPORT,
-  F_EXPORT_DATA,
-  F_SKIP_DATA_IMPORT_AUDIT,
-  F_APPROVE_DATA,
-  F_APPROVE_DATA_LOWER_LEVELS,
-  F_ACCEPT_DATA_LOWER_LEVELS,
-  F_PERFORM_MAINTENANCE,
-  F_PERFORM_ANALYTICS_EXPLAIN,
-  F_LOCALE_ADD,
-  F_GENERATE_MIN_MAX_VALUES,
-  F_RUN_VALIDATION,
-  F_PREDICTOR_RUN,
-  F_SEND_EMAIL,
-  F_ORGANISATIONUNIT_MOVE,
-  F_ORGANISATION_UNIT_SPLIT,
-  F_ORGANISATION_UNIT_MERGE,
-  F_INDICATOR_TYPE_MERGE,
-  F_INDICATOR_MERGE,
-  F_INSERT_CUSTOM_JS_CSS,
-  F_VIEW_UNAPPROVED_DATA,
-  F_USER_VIEW,
-  F_REPLICATE_USER,
-  F_USER_GROUPS_READ_ONLY_ADD_MEMBERS,
-  F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS,
-  F_TEI_CASCADE_DELETE,
-  F_ENROLLMENT_CASCADE_DELETE,
-  F_UNCOMPLETE_EVENT,
-  F_EDIT_EXPIRED,
-  F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION,
-  F_VIEW_SERVER_INFO,
-  F_ORG_UNIT_PROFILE_ADD,
-  F_TRACKED_ENTITY_MERGE,
-  F_DATAVALUE_ADD,
-  F_IMPERSONATE_USER,
-  F_SYSTEM_SETTING,
-  F_MAP_EXTERNAL_LAYER_ADD,
-  F_PREVIOUS_IMPERSONATOR_AUTHORITY;
+@Component
+public class CaptureApp {
+  public static final String NAMESPACE = "capture";
 
-  public static Set<String> getAllAuthorities() {
-    return Arrays.stream(Authorities.values()).map(Authorities::name).collect(Collectors.toSet());
+  public static final String AUTHORITY = "F_CAPTURE_DATASTORE_UPDATE";
+
+  public CaptureApp(DatastoreService service) {
+    service.addProtection(
+        new DatastoreNamespaceProtection(
+            NAMESPACE, ProtectionType.NONE, ProtectionType.RESTRICTED, AUTHORITY));
   }
 }
