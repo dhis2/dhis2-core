@@ -365,7 +365,8 @@ public class MessageConversationController
       @RequestParam(value = "internal", defaultValue = "false") boolean internal,
       @RequestParam(value = "attachments", required = false) Set<String> attachments,
       @CurrentUser UserDetails currentUser,
-      HttpServletRequest request) {
+      HttpServletRequest request)
+      throws ForbiddenException {
     String metaData =
         MessageService.META_USER_AGENT + request.getHeader(ContextUtils.HEADER_USER_AGENT);
 
@@ -381,7 +382,7 @@ public class MessageConversationController
     }
 
     if (!hasAccessToMessageConversation(currentUser, conversation)) {
-      throw new AccessDeniedException("Not authorized to send messages to this conversation.");
+      throw new ForbiddenException("Not authorized to send messages to this conversation.");
     }
 
     Set<FileResource> fileResources = new HashSet<>();
@@ -422,7 +423,7 @@ public class MessageConversationController
       @PathVariable("uid") String uid,
       @RequestBody MessageConversation messageConversation,
       @CurrentUser UserDetails currentUser)
-      throws WebMessageException, ConflictException, NotFoundException {
+      throws WebMessageException, ConflictException, NotFoundException, ForbiddenException {
 
     org.hisp.dhis.message.MessageConversation conversation =
         messageService.getMessageConversation(uid);
@@ -432,7 +433,7 @@ public class MessageConversationController
     }
 
     if (!hasAccessToMessageConversation(currentUser, conversation)) {
-      throw new AccessDeniedException("Not authorized to change recipients in this conversation.");
+      throw new ForbiddenException("Not authorized to change recipients in this conversation.");
     }
 
     Set<User> additionalUsers =
@@ -481,7 +482,8 @@ public class MessageConversationController
       @PathVariable String uid,
       @RequestParam MessageConversationPriority messageConversationPriority,
       @CurrentUser UserDetails currentUser,
-      HttpServletResponse response) {
+      HttpServletResponse response)
+      throws ForbiddenException {
     RootNode responseNode = new RootNode("response");
 
     org.hisp.dhis.message.MessageConversation messageConversation =
@@ -495,7 +497,7 @@ public class MessageConversationController
     }
 
     if (!hasAccessToMessageConversation(currentUser, messageConversation)) {
-      throw new AccessDeniedException("Not authorized to change priority in this conversation.");
+      throw new ForbiddenException("Not authorized to change priority in this conversation.");
     }
 
     CollectionNode marked =
@@ -521,7 +523,8 @@ public class MessageConversationController
       @PathVariable String uid,
       @RequestParam MessageConversationStatus messageConversationStatus,
       @CurrentUser UserDetails currentUser,
-      HttpServletResponse response) {
+      HttpServletResponse response)
+      throws ForbiddenException {
     RootNode responseNode = new RootNode("response");
 
     org.hisp.dhis.message.MessageConversation messageConversation =
@@ -535,7 +538,7 @@ public class MessageConversationController
     }
 
     if (!hasAccessToMessageConversation(currentUser, messageConversation)) {
-      throw new AccessDeniedException("Not authorized to change status in this conversation.");
+      throw new ForbiddenException("Not authorized to change status in this conversation.");
     }
 
     CollectionNode marked =
@@ -561,7 +564,8 @@ public class MessageConversationController
       @PathVariable String uid,
       @RequestParam(required = false) String userId,
       @CurrentUser UserDetails currentUser,
-      HttpServletResponse response) {
+      HttpServletResponse response)
+      throws ForbiddenException {
     RootNode responseNode = new RootNode("response");
 
     org.hisp.dhis.message.MessageConversation messageConversation =
@@ -575,7 +579,7 @@ public class MessageConversationController
     }
 
     if (!hasAccessToMessageConversation(currentUser, messageConversation)) {
-      throw new AccessDeniedException("Not authorized to assign a user to this conversation.");
+      throw new ForbiddenException("Not authorized to assign a user to this conversation.");
     }
 
     User userToAssign;
@@ -613,9 +617,8 @@ public class MessageConversationController
       value = "/{uid}/assign",
       produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   public @ResponseBody RootNode removeUserAssigned(
-      @PathVariable String uid,
-      @CurrentUser UserDetails currentUser,
-      HttpServletResponse response) {
+      @PathVariable String uid, @CurrentUser UserDetails currentUser, HttpServletResponse response)
+      throws ForbiddenException {
     RootNode responseNode = new RootNode("response");
 
     org.hisp.dhis.message.MessageConversation messageConversation =
@@ -629,7 +632,7 @@ public class MessageConversationController
     }
 
     if (!hasAccessToMessageConversation(currentUser, messageConversation)) {
-      throw new AccessDeniedException(
+      throw new ForbiddenException(
           "Not authorized to remove the assigned user to this conversation.");
     }
 
@@ -652,7 +655,8 @@ public class MessageConversationController
       @PathVariable String uid,
       @RequestParam(required = false) String userUid,
       HttpServletResponse response,
-      @CurrentUser UserDetails currentUser) {
+      @CurrentUser UserDetails currentUser)
+      throws ForbiddenException {
     return modifyMessageConversationRead(
         userUid, Lists.newArrayList(uid), response, true, currentUser);
   }
@@ -664,7 +668,8 @@ public class MessageConversationController
       @RequestParam(value = "user", required = false) String userUid,
       @RequestBody List<String> uids,
       HttpServletResponse response,
-      @CurrentUser UserDetails currentUser) {
+      @CurrentUser UserDetails currentUser)
+      throws ForbiddenException {
     return modifyMessageConversationRead(userUid, uids, response, true, currentUser);
   }
 
@@ -679,7 +684,8 @@ public class MessageConversationController
       @PathVariable String uid,
       @RequestParam(required = false) String userUid,
       HttpServletResponse response,
-      @CurrentUser UserDetails currentUser) {
+      @CurrentUser UserDetails currentUser)
+      throws ForbiddenException {
     return modifyMessageConversationRead(
         userUid, Lists.newArrayList(uid), response, false, currentUser);
   }
@@ -691,7 +697,8 @@ public class MessageConversationController
       @RequestParam(value = "user", required = false) String userUid,
       @RequestBody List<String> uids,
       HttpServletResponse response,
-      @CurrentUser UserDetails currentUser) {
+      @CurrentUser UserDetails currentUser)
+      throws ForbiddenException {
     return modifyMessageConversationRead(userUid, uids, response, false, currentUser);
   }
 
@@ -763,7 +770,8 @@ public class MessageConversationController
       @RequestParam(value = "user", required = false) String userUid,
       @RequestBody List<String> uids,
       HttpServletResponse response,
-      @CurrentUser UserDetails currentUser) {
+      @CurrentUser UserDetails currentUser)
+      throws ForbiddenException {
     RootNode responseNode = new RootNode("response");
 
     User user =
@@ -789,8 +797,7 @@ public class MessageConversationController
 
     for (org.hisp.dhis.message.MessageConversation messageConversation : messageConversations) {
       if (!hasAccessToMessageConversation(currentUser, messageConversation)) {
-        throw new AccessDeniedException(
-            "Not authorized to change unfollowups in this conversation.");
+        throw new ForbiddenException("Not authorized to change unfollowups in this conversation.");
       }
     }
 
@@ -840,7 +847,7 @@ public class MessageConversationController
     }
 
     if (!hasAccessToMessageConversation(currentUser, messageConversation)) {
-      throw new AccessDeniedException("Not authorized to delete this conversation.");
+      throw new ForbiddenException("Not authorized to delete this conversation.");
     }
 
     return super.deleteObject(uid, currentUser, request, response);
@@ -859,7 +866,7 @@ public class MessageConversationController
       @PathVariable(value = "user-uid") String userUid,
       @CurrentUser UserDetails currentUser,
       HttpServletResponse response)
-      throws DeleteAccessDeniedException {
+      throws DeleteAccessDeniedException, ForbiddenException {
     RootNode responseNode = new RootNode("reply");
 
     User user = userService.getUser(userUid);
@@ -880,8 +887,7 @@ public class MessageConversationController
     }
 
     if (!hasAccessToMessageConversation(currentUser, messageConversation)) {
-      throw new AccessDeniedException(
-          "Not authorized to remove assigned users to this conversation.");
+      throw new ForbiddenException("Not authorized to remove assigned users to this conversation.");
     }
 
     CollectionNode removed = responseNode.addChild(new CollectionNode("removed"));
@@ -906,7 +912,7 @@ public class MessageConversationController
       @RequestParam(value = "user", required = false) String userUid,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
-      throws DeleteAccessDeniedException {
+      throws DeleteAccessDeniedException, ForbiddenException {
     RootNode responseNode = new RootNode("response");
 
     User user =
@@ -932,7 +938,7 @@ public class MessageConversationController
 
     for (org.hisp.dhis.message.MessageConversation messageConversation : messageConversations) {
       if (!hasAccessToMessageConversation(currentUser, messageConversation)) {
-        throw new AccessDeniedException(
+        throw new ForbiddenException(
             "Not authorized to remove assigned users to this conversation.");
       }
     }
@@ -958,7 +964,7 @@ public class MessageConversationController
       @PathVariable(value = "fileUid") String fileUid,
       @CurrentUser UserDetails currentUser,
       HttpServletResponse response)
-      throws WebMessageException {
+      throws WebMessageException, ForbiddenException {
 
     Message message = getMessage(mcUid, msgUid, currentUser);
 
@@ -1025,7 +1031,8 @@ public class MessageConversationController
       List<String> uids,
       HttpServletResponse response,
       boolean readValue,
-      UserDetails currentUser) {
+      UserDetails currentUser)
+      throws ForbiddenException {
     RootNode responseNode = new RootNode("response");
 
     User user =
@@ -1051,7 +1058,7 @@ public class MessageConversationController
 
     for (org.hisp.dhis.message.MessageConversation messageConversation : messageConversations) {
       if (!hasAccessToMessageConversation(currentUser, messageConversation)) {
-        throw new AccessDeniedException(
+        throw new ForbiddenException(
             "Not authorized to change read property of this conversation.");
       }
     }
@@ -1083,7 +1090,7 @@ public class MessageConversationController
    * @throws WebMessageException exception
    */
   private Message getMessage(String mcUid, String msgUid, UserDetails userDetails)
-      throws WebMessageException {
+      throws WebMessageException, ForbiddenException {
     org.hisp.dhis.message.MessageConversation conversation =
         messageService.getMessageConversation(mcUid);
 
@@ -1093,7 +1100,7 @@ public class MessageConversationController
     }
 
     if (!canReadMessageConversation(userDetails, conversation)) {
-      throw new AccessDeniedException("Not authorized to access this conversation.");
+      throw new ForbiddenException("Not authorized to access this conversation.");
     }
 
     List<Message> messages =
