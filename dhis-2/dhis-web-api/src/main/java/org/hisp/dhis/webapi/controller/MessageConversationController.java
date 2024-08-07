@@ -463,7 +463,8 @@ public class MessageConversationController
       @PathVariable String uid,
       @RequestParam MessageConversationPriority messageConversationPriority,
       @CurrentUser UserDetails currentUser,
-      HttpServletResponse response) {
+      HttpServletResponse response)
+      throws ForbiddenException {
     RootNode responseNode = new RootNode("response");
 
     if (!canModifyUserConversation(currentUser, currentUser)
@@ -504,7 +505,8 @@ public class MessageConversationController
       @PathVariable String uid,
       @RequestParam MessageConversationStatus messageConversationStatus,
       @CurrentUser UserDetails currentUser,
-      HttpServletResponse response) {
+      HttpServletResponse response)
+      throws ForbiddenException {
     RootNode responseNode = new RootNode("response");
 
     if (!canModifyUserConversation(currentUser, currentUser)
@@ -545,7 +547,8 @@ public class MessageConversationController
       @PathVariable String uid,
       @RequestParam(required = false) String userId,
       @CurrentUser UserDetails currentUser,
-      HttpServletResponse response) {
+      HttpServletResponse response)
+      throws ForbiddenException {
     RootNode responseNode = new RootNode("response");
 
     if (!canModifyUserConversation(currentUser, currentUser)
@@ -598,9 +601,8 @@ public class MessageConversationController
       value = "/{uid}/assign",
       produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   public @ResponseBody RootNode removeUserAssigned(
-      @PathVariable String uid,
-      @CurrentUser UserDetails currentUser,
-      HttpServletResponse response) {
+      @PathVariable String uid, @CurrentUser UserDetails currentUser, HttpServletResponse response)
+      throws ForbiddenException {
     RootNode responseNode = new RootNode("response");
 
     if (!canModifyUserConversation(currentUser, currentUser)
@@ -637,7 +639,8 @@ public class MessageConversationController
       @PathVariable String uid,
       @RequestParam(required = false) String userUid,
       HttpServletResponse response,
-      @CurrentUser UserDetails currentUser) {
+      @CurrentUser UserDetails currentUser)
+      throws ForbiddenException {
     return modifyMessageConversationRead(
         userUid, Lists.newArrayList(uid), response, true, currentUser);
   }
@@ -649,7 +652,8 @@ public class MessageConversationController
       @RequestParam(value = "user", required = false) String userUid,
       @RequestBody List<String> uids,
       HttpServletResponse response,
-      @CurrentUser UserDetails currentUser) {
+      @CurrentUser UserDetails currentUser)
+      throws ForbiddenException {
     return modifyMessageConversationRead(userUid, uids, response, true, currentUser);
   }
 
@@ -664,7 +668,8 @@ public class MessageConversationController
       @PathVariable String uid,
       @RequestParam(required = false) String userUid,
       HttpServletResponse response,
-      @CurrentUser UserDetails currentUser) {
+      @CurrentUser UserDetails currentUser)
+      throws ForbiddenException {
     return modifyMessageConversationRead(
         userUid, Lists.newArrayList(uid), response, false, currentUser);
   }
@@ -676,7 +681,8 @@ public class MessageConversationController
       @RequestParam(value = "user", required = false) String userUid,
       @RequestBody List<String> uids,
       HttpServletResponse response,
-      @CurrentUser UserDetails currentUser) {
+      @CurrentUser UserDetails currentUser)
+      throws ForbiddenException {
     return modifyMessageConversationRead(userUid, uids, response, false, currentUser);
   }
 
@@ -691,7 +697,8 @@ public class MessageConversationController
       @RequestParam(value = "user", required = false) String userUid,
       @RequestBody List<String> uids,
       HttpServletResponse response,
-      @CurrentUser UserDetails currentUser) {
+      @CurrentUser UserDetails currentUser)
+      throws ForbiddenException {
     RootNode responseNode = new RootNode("response");
 
     User user =
@@ -746,7 +753,8 @@ public class MessageConversationController
       @RequestParam(value = "user", required = false) String userUid,
       @RequestBody List<String> uids,
       HttpServletResponse response,
-      @CurrentUser UserDetails currentUser) {
+      @CurrentUser UserDetails currentUser)
+      throws ForbiddenException {
     RootNode responseNode = new RootNode("response");
 
     User user =
@@ -1001,7 +1009,8 @@ public class MessageConversationController
       List<String> uids,
       HttpServletResponse response,
       boolean readValue,
-      UserDetails currentUser) {
+      UserDetails currentUser)
+      throws ForbiddenException {
     RootNode responseNode = new RootNode("response");
 
     User user =

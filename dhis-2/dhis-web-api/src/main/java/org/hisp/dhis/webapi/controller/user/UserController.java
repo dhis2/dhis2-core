@@ -550,7 +550,8 @@ public class UserController extends AbstractCrudController<User> {
    */
   @PostMapping("/{uid}/twoFA/disabled")
   @ResponseBody
-  public WebMessage disableTwoFa(@PathVariable("uid") String uid, @CurrentUser User currentUser) {
+  public WebMessage disableTwoFa(@PathVariable("uid") String uid, @CurrentUser User currentUser)
+      throws ForbiddenException {
     List<ErrorReport> errors = new ArrayList<>();
     userService.privilegedTwoFactorDisable(currentUser, uid, errors::add);
 
@@ -851,7 +852,8 @@ public class UserController extends AbstractCrudController<User> {
    * @param disable boolean value, true for disable, false for enable
    * @throws WebMessageException thrown if "current" user is not allowed to modify the user
    */
-  private void setDisabled(String uid, boolean disable) throws WebMessageException {
+  private void setDisabled(String uid, boolean disable)
+      throws WebMessageException, ForbiddenException {
     User userToModify = userService.getUser(uid);
     checkCurrentUserCanModify(userToModify);
 
@@ -865,7 +867,8 @@ public class UserController extends AbstractCrudController<User> {
     }
   }
 
-  private void checkCurrentUserCanModify(User userToModify) throws WebMessageException {
+  private void checkCurrentUserCanModify(User userToModify)
+      throws WebMessageException, ForbiddenException {
 
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
 
@@ -881,7 +884,8 @@ public class UserController extends AbstractCrudController<User> {
     }
   }
 
-  private void setExpires(String uid, Date accountExpiry) throws WebMessageException {
+  private void setExpires(String uid, Date accountExpiry)
+      throws WebMessageException, ForbiddenException {
     User userToModify = userService.getUser(uid);
     checkCurrentUserCanModify(userToModify);
 

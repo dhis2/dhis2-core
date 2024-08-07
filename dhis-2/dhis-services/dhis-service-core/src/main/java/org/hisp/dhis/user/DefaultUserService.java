@@ -846,7 +846,7 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional
   public void privilegedTwoFactorDisable(
-      User currentUser, String userUid, Consumer<ErrorReport> errors) {
+      User currentUser, String userUid, Consumer<ErrorReport> errors) throws ForbiddenException {
     User user = getUser(userUid);
     if (user == null) {
       throw new IllegalArgumentException("User not found");
@@ -1008,7 +1008,8 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional
-  public void validateTwoFactorUpdate(boolean before, boolean after, User userToModify) {
+  public void validateTwoFactorUpdate(boolean before, boolean after, User userToModify)
+      throws ForbiddenException {
     if (before == after) {
       return;
     }

@@ -180,7 +180,7 @@ public class AppController {
   @GetMapping("/{app}/**")
   public void renderApp(
       @PathVariable("app") String app, HttpServletRequest request, HttpServletResponse response)
-      throws IOException, WebMessageException {
+      throws IOException, WebMessageException, ForbiddenException {
     String contextPath = HttpServletRequestPaths.getContextPath(request);
     App application = appManager.getApp(app, contextPath);
 

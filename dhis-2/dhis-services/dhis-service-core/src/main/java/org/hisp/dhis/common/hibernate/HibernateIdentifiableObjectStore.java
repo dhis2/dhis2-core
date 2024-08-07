@@ -54,7 +54,6 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AccessStringHelper;
@@ -66,6 +65,7 @@ import org.hisp.dhis.user.UserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.access.AccessDeniedException;
 
 /**
  * @author bobj
@@ -157,7 +157,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
       if (!checkPublicAccess(userDetails, object)) {
         AuditLogUtil.infoWrapper(log, username, object, AuditLogUtil.ACTION_CREATE_DENIED);
-        throw new ForbiddenException(object.toString());
+        throw new AccessDeniedException(object.toString());
       }
     }
 
@@ -189,7 +189,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
     if (!isUpdateAllowed(object, userDetails)) {
       AuditLogUtil.infoWrapper(log, username, object, AuditLogUtil.ACTION_UPDATE_DENIED);
-      throw new ForbiddenException(String.valueOf(object));
+      throw new AccessDeniedException(String.valueOf(object));
     }
 
     AuditLogUtil.infoWrapper(log, username, object, AuditLogUtil.ACTION_UPDATE);
@@ -224,7 +224,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
     if (!isDeleteAllowed(object, userDetails)) {
       AuditLogUtil.infoWrapper(log, username, object, AuditLogUtil.ACTION_DELETE_DENIED);
-      throw new ForbiddenException(object.toString());
+      throw new AccessDeniedException(object.toString());
     }
 
     AuditLogUtil.infoWrapper(log, username, object, AuditLogUtil.ACTION_DELETE);
@@ -240,7 +240,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     if (object != null && isReadNotAllowed(object, currentUserDetails)) {
       AuditLogUtil.infoWrapper(
           log, CurrentUserUtil.getCurrentUsername(), object, AuditLogUtil.ACTION_READ_DENIED);
-      throw new ForbiddenException(object.toString());
+      throw new AccessDeniedException(object.toString());
     }
 
     return postProcessObject(object);
@@ -363,7 +363,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     if (isReadNotAllowed(object, currentUser)) {
       AuditLogUtil.infoWrapper(
           log, CurrentUserUtil.getCurrentUsername(), object, AuditLogUtil.ACTION_READ_DENIED);
-      throw new ForbiddenException(String.valueOf(object));
+      throw new AccessDeniedException(String.valueOf(object));
     }
 
     return object;

@@ -44,6 +44,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 
 /**
@@ -505,7 +506,8 @@ public interface UserService {
    * @param userUid The user UID of the user to disable 2FA for.
    * @param errors A Consumer<ErrorReport> object that will be called if there is an error.
    */
-  void privilegedTwoFactorDisable(User currentUser, String userUid, Consumer<ErrorReport> errors);
+  void privilegedTwoFactorDisable(User currentUser, String userUid, Consumer<ErrorReport> errors)
+      throws ForbiddenException;
 
   /**
    * Checks if the input user can modify the other input user.
@@ -600,7 +602,8 @@ public interface UserService {
    * @param after The state after the update.
    * @param userToModify The user object that is being updated.
    */
-  void validateTwoFactorUpdate(boolean before, boolean after, User userToModify);
+  void validateTwoFactorUpdate(boolean before, boolean after, User userToModify)
+      throws ForbiddenException;
 
   /**
    * Get linked user accounts for the given user

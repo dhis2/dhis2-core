@@ -268,7 +268,7 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
       @RequestParam("ds") String dataSetId,
       HttpServletRequest request,
       HttpServletResponse response)
-      throws WebMessageException {
+      throws WebMessageException, ForbiddenException {
     DataSet dataSet = dataSetService.getDataSet(dataSetId);
 
     Period period = periodService.reloadPeriod(PeriodType.getPeriodFromIsoString(periodId));
