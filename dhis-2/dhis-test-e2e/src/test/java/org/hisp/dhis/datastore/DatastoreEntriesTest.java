@@ -248,7 +248,7 @@ class DatastoreEntriesTest extends ApiTest {
         .validate()
         .body("httpStatus", equalTo("Forbidden"))
         .body("status", equalTo("ERROR"))
-        .body("message", equalTo("Access denied for key 'arsenal' in namespace 'football"))
+        .body("message", equalTo("Access denied for key 'arsenal' in namespace 'football'"))
         .body("errorCode", equalTo("E1006"));
   }
 
@@ -450,7 +450,7 @@ class DatastoreEntriesTest extends ApiTest {
         .validate()
         .body("httpStatus", equalTo("Forbidden"))
         .body("status", equalTo("ERROR"))
-        .body("message", equalTo("Access denied for key 'arsenal' in namespace 'football"))
+        .body("message", equalTo("Access denied for key 'arsenal' in namespace 'football'"))
         .body("errorCode", equalTo("E1006"));
   }
 
