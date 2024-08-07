@@ -58,7 +58,6 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.AccessStringHelper;
@@ -70,6 +69,7 @@ import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -341,7 +341,7 @@ class IdentifiableObjectManagerTest extends PostgresIntegrationTestBase {
   void userDeniedCreateObject() {
     createUserAndInjectSecurityContext(false);
     DataElement dataElement = createDataElement('A');
-    assertThrows(ForbiddenException.class, () -> idObjectManager.save(dataElement));
+    assertThrows(AccessDeniedException.class, () -> idObjectManager.save(dataElement));
   }
 
   @Test
@@ -369,7 +369,7 @@ class IdentifiableObjectManagerTest extends PostgresIntegrationTestBase {
     createUserAndInjectSecurityContext(false, "F_DATAELEMENT_PRIVATE_ADD");
     DataElement dataElement = createDataElement('A');
     dataElement.setPublicAccess(AccessStringHelper.READ_WRITE);
-    assertThrows(ForbiddenException.class, () -> idObjectManager.save(dataElement, false));
+    assertThrows(AccessDeniedException.class, () -> idObjectManager.save(dataElement, false));
   }
 
   @Test
@@ -395,7 +395,7 @@ class IdentifiableObjectManagerTest extends PostgresIntegrationTestBase {
     createUserAndInjectSecurityContext(false);
     DataElement dataElement = createDataElement('A');
     dataElement.setPublicAccess(AccessStringHelper.READ_WRITE);
-    assertThrows(ForbiddenException.class, () -> idObjectManager.save(dataElement, false));
+    assertThrows(AccessDeniedException.class, () -> idObjectManager.save(dataElement, false));
   }
 
   //  @Test

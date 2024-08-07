@@ -92,7 +92,6 @@ import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -163,7 +162,7 @@ public class MessageConversationController
     }
 
     if (!canReadMessageConversation(currentUser, messageConversation)) {
-      throw new AccessDeniedException("Not authorized to access this conversation.");
+      throw new ForbiddenException("Not authorized to access this conversation.");
     }
 
     return super.getObject(uid, rpParameters, currentUser, request, response);
@@ -376,7 +375,7 @@ public class MessageConversationController
     }
 
     if (internal && !messageService.hasAccessToManageFeedbackMessages(currentUser)) {
-      throw new AccessDeniedException("Not authorized to send internal messages");
+      throw new ForbiddenException("Not authorized to send internal messages");
     }
 
     if (!hasAccessToMessageConversation(currentUser, conversation)) {
@@ -738,7 +737,7 @@ public class MessageConversationController
 
     for (org.hisp.dhis.message.MessageConversation messageConversation : messageConversations) {
       if (!hasAccessToMessageConversation(currentUser, messageConversation)) {
-        throw new AccessDeniedException("Not authorized to change followups in this conversation.");
+        throw new ForbiddenException("Not authorized to change followups in this conversation.");
       }
     }
 
