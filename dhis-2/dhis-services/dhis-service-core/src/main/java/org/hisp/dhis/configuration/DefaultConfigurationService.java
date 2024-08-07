@@ -92,7 +92,8 @@ public class DefaultConfigurationService implements ConfigurationService {
   @Transactional(readOnly = true)
   public boolean isUserInFeedbackRecipientUserGroup(UserDetails user) {
     UserGroup feedbackRecipients = getConfiguration().getFeedbackRecipients();
-    return feedbackRecipients != null
-        && user.getUserGroupIds().contains(feedbackRecipients.getUid());
+    if (feedbackRecipients == null) return false;
+    return feedbackRecipients.getMembers().stream()
+        .anyMatch(member -> member.getUid().equals(user.getUid()));
   }
 }
