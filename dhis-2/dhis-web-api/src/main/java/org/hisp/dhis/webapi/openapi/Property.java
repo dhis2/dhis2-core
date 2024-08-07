@@ -38,6 +38,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -55,6 +56,9 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.jsontree.Json;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonValue;
 
 /**
  * Extracts the properties of "record" like objects.
@@ -66,13 +70,13 @@ import org.hisp.dhis.common.OpenApi;
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 class Property {
-  private static final Map<Class<?>, Collection<Property>> PROPERTIES = new ConcurrentHashMap<>();
+  private static final Map<Class<?>, List<Property>> PROPERTIES = new ConcurrentHashMap<>();
 
   @Nonnull String name;
   @Nonnull Type type;
-  @Nonnull Member source;
+  @Nonnull AnnotatedElement source;
   @CheckForNull Boolean required;
-  @CheckForNull Object defaultValue;
+  @CheckForNull JsonValue defaultValue;
 
   private Property(Field f) {
     this(
@@ -92,11 +96,21 @@ class Property {
         defaultValue(f));
   }
 
-  static Collection<Property> getProperties(Class<?> in) {
+  private Property(JsonObject.Property p, Type type) {
+    this(
+        p.jsonName(),
+        type,
+        p.source(),
+        isRequired(p.source(), p.javaType().getType()),
+        defaultValue(p.source()));
+  }
+
+  static List<Property> getProperties(Class<?> in) {
     return PROPERTIES.computeIfAbsent(in, Property::propertiesIn);
   }
 
-  private static Collection<Property> propertiesIn(Class<?> object) {
+  private static List<Property> propertiesIn(Class<?> object) {
+    if (JsonValue.class.isAssignableFrom(object)) return propertiesInJson(object);
     // map for order by name and avoiding duplicates
     Map<String, Property> properties = new TreeMap<>();
     Consumer<Property> add = property -> properties.putIfAbsent(property.name, property);
@@ -128,6 +142,24 @@ class Property {
           .forEach(method -> addMethod.accept(method, propertyFields.get(getPropertyName(method))));
     }
     return List.copyOf(properties.values());
+  }
+
+  @SuppressWarnings("unchecked")
+  private static List<Property> propertiesInJson(Class<?> object) {
+    if (!JsonObject.class.isAssignableFrom(object)) return List.of();
+    List<Property> res = new ArrayList<>();
+    Map<String, List<JsonObject.Property>> propertiesByName =
+        JsonObject.properties((Class<? extends JsonObject>) object).stream()
+            .collect(Collectors.groupingBy(JsonObject.Property::jsonName));
+    propertiesByName.forEach(
+        (name, properties) -> {
+          JsonObject.Property p0 = properties.get(0);
+          // for 1:1 Java:JSON we can use the java type,
+          // otherwise use the JSON type (which should be the same for all usages)
+          Type type = properties.size() == 1 ? p0.javaType().getType() : p0.jsonType();
+          res.add(new Property(p0, type));
+        });
+    return List.copyOf(res);
   }
 
   private static boolean isProperty(Field source) {
@@ -200,7 +232,7 @@ class Property {
     return nameOverride.isEmpty() ? name : nameOverride;
   }
 
-  private static <T extends Member & AnnotatedElement> Boolean isRequired(T source, Class<?> type) {
+  private static Boolean isRequired(AnnotatedElement source, Type type) {
     JsonProperty a = source.getAnnotation(JsonProperty.class);
     if (a != null && a.required()) return true;
     if (a != null && !a.defaultValue().isEmpty()) return false;
@@ -208,24 +240,46 @@ class Property {
     if (a2 != null && a2.required()) return true;
     if (a2 != null && !a2.defaultValue().isEmpty()) return false;
     if (source.isAnnotationPresent(Nonnull.class)) return true;
-    return type.isPrimitive() && type != boolean.class || type.isEnum() ? true : null;
+    if (type instanceof Class<?> cls)
+      return cls.isPrimitive() && cls != boolean.class || cls.isEnum() ? true : null;
+    return null;
   }
 
   @SuppressWarnings("java:S3011")
-  private static Object defaultValue(Field source) {
-    if (source == null) return null;
-    OpenApi.Property oapiProperty = source.getAnnotation(OpenApi.Property.class);
-    if (oapiProperty != null && !oapiProperty.defaultValue().isEmpty())
-      return oapiProperty.defaultValue();
-    JsonProperty property = source.getAnnotation(JsonProperty.class);
-    if (property != null && !property.defaultValue().isEmpty()) return property.defaultValue();
+  private static JsonValue defaultValue(Field source) {
+    JsonValue defaultValue = defaultValue((AnnotatedElement) source);
+    if (defaultValue != null) return defaultValue;
     try {
       Object obj = source.getDeclaringClass().getConstructor().newInstance();
       source.setAccessible(true);
-      return source.get(obj);
+      return toJson(source.get(obj));
     } catch (Exception ex) {
       return null;
     }
+  }
+
+  private static JsonValue defaultValue(AnnotatedElement source) {
+    if (source == null) return Json.ofNull();
+    OpenApi.Property oapiProperty = source.getAnnotation(OpenApi.Property.class);
+    if (oapiProperty != null && !oapiProperty.defaultValue().isEmpty())
+      return JsonValue.of(oapiProperty.defaultValue());
+    JsonProperty property = source.getAnnotation(JsonProperty.class);
+    if (property != null && !property.defaultValue().isEmpty())
+      return JsonValue.of(property.defaultValue());
+    return null;
+  }
+
+  @SuppressWarnings("unchecked")
+  private static JsonValue toJson(Object value) {
+    if (value == null) return Json.ofNull();
+    if (value instanceof JsonValue v) return v;
+    if (value instanceof Number n) return Json.of(n);
+    if (value instanceof Boolean b) return Json.of(b);
+    if (value instanceof String s) return Json.of(s);
+    if (value instanceof Object[] arr) return Json.array(Property::toJson, arr);
+    if (value instanceof Collection<?> c) return Json.array(Property::toJson, c);
+    if (value instanceof Map<?, ?> map) return Json.object(Property::toJson, (Map<String, ?>) map);
+    return Json.of(value.toString()); // assume it is some string wrapper type
   }
 
   private static Stream<Field> fieldsIn(Class<?> type) {

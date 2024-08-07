@@ -75,6 +75,8 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Document.Group;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.jsontree.Json;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.webapi.openapi.Api.Parameter.In;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.springframework.http.HttpStatus;
@@ -464,7 +466,7 @@ final class ApiExtractor {
         RequestParam a = p.getAnnotation(RequestParam.class);
         String name = firstNonEmpty(a.name(), a.value(), p.getName());
         parameters.computeIfAbsent(
-            name, key -> newQueryParameter(endpoint, p, key, getParameterDetails(a)));
+            name, key -> newQueryParameter(endpoint, p, key, getParameterDetails(a, p)));
       } else if (p.isAnnotationPresent(RequestBody.class)) {
         RequestBody a = p.getAnnotation(RequestBody.class);
         Api.RequestBody requestBody =
@@ -581,7 +583,7 @@ final class ApiExtractor {
   }
 
   private static Api.Parameter extractParameter(Api.Endpoint endpoint, Property property) {
-    AnnotatedElement source = (AnnotatedElement) property.getSource();
+    AnnotatedElement source = property.getSource();
     Type type = property.getType();
     OpenApi.Property annotated = source.getAnnotation(OpenApi.Property.class);
     Api.Schema schema =
@@ -593,8 +595,8 @@ final class ApiExtractor {
     Api.Parameter param =
         new Api.Parameter(
             source, property.getName(), In.QUERY, false, schema, deprecated, maturity);
-    Object defaultValue = property.getDefaultValue();
-    if (defaultValue != null) param.getDefaultValue().setValue(defaultValue.toString());
+    JsonValue defaultValue = property.getDefaultValue();
+    if (defaultValue != null) param.getDefaultValue().setValue(defaultValue);
     param
         .getDescription()
         .setValue(extractDescription(source, type instanceof Class<?> c ? c : null));
@@ -730,7 +732,7 @@ final class ApiExtractor {
 
   private static Api.Property extractObjectProperty(
       Api.Endpoint endpoint, Property property, Function<Api.Schema, Api.Property> toProperty) {
-    AnnotatedElement member = (AnnotatedElement) property.getSource();
+    AnnotatedElement member = property.getSource();
     if (member.isAnnotationPresent(JsonSubTypes.class)) {
       return toProperty.apply(extractSubTypeSchema(endpoint, member));
     }
@@ -945,7 +947,7 @@ final class ApiExtractor {
     if (source.isAnnotationPresent(PathVariable.class))
       return getParameterDetails(source.getAnnotation(PathVariable.class));
     if (source.isAnnotationPresent(RequestParam.class))
-      return getParameterDetails(source.getAnnotation(RequestParam.class));
+      return getParameterDetails(source.getAnnotation(RequestParam.class), source);
     if (source.isAnnotationPresent(RequestBody.class))
       return getParameterDetails(source.getAnnotation(RequestBody.class));
     return null;
@@ -957,8 +959,9 @@ final class ApiExtractor {
     String name = firstNonEmpty(a.name(), details == null ? "" : details.name(), source.getName());
     Api.Parameter.In in = details == null ? Api.Parameter.In.QUERY : details.in();
     boolean required = details == null ? a.required() : details.required();
-    String fallbackDefaultValue = details != null ? details.defaultValue() : null;
-    String defaultValue = !a.defaultValue().isEmpty() ? a.defaultValue() : fallbackDefaultValue;
+    JsonValue fallbackDefaultValue = details != null ? details.defaultValue() : null;
+    JsonValue defaultValue =
+        !a.defaultValue().isEmpty() ? JsonValue.of(a.defaultValue()) : fallbackDefaultValue;
     return new ParameterDetails(in, name, required, defaultValue);
   }
 
@@ -973,10 +976,14 @@ final class ApiExtractor {
   }
 
   @Nonnull
-  private static ParameterDetails getParameterDetails(RequestParam a) {
+  private static ParameterDetails getParameterDetails(RequestParam a, Parameter p) {
     boolean hasDefault = !a.defaultValue().equals("\n\t\t\n\t\t\n\ue000\ue001\ue002\n\t\t\t\t\n");
     boolean required = a.required() && !hasDefault;
-    String defaultValue = hasDefault ? a.defaultValue() : null;
+    String javaDefaultValue = hasDefault ? a.defaultValue() : null;
+    Class<?> type = p.getType();
+    JsonValue defaultValue = Json.of(javaDefaultValue);
+    if ((type.isPrimitive() || type == Boolean.class || Number.class.isAssignableFrom(type))
+        && type != char.class) defaultValue = JsonValue.of(javaDefaultValue);
     return new ParameterDetails(
         In.QUERY, firstNonEmpty(a.name(), a.value()), required, defaultValue);
   }
@@ -1046,5 +1053,5 @@ final class ApiExtractor {
   }
 
   record ParameterDetails(
-      Api.Parameter.In in, String name, boolean required, String defaultValue) {}
+      Api.Parameter.In in, String name, boolean required, JsonValue defaultValue) {}
 }

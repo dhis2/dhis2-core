@@ -283,6 +283,7 @@ public @interface OpenApi {
      *
      * @return the string representation of the default value for the property (must be non-empty)
      */
+    @Language("JSON")
     String defaultValue() default "";
   }
 
@@ -332,6 +333,7 @@ public @interface OpenApi {
      *
      * @return the string representation of the default value for the property (must be non-empty)
      */
+    @Language("JSON")
     String defaultValue() default "";
   }
 

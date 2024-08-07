@@ -62,7 +62,6 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonMultiMap;
 import org.hisp.dhis.jsontree.JsonNumber;
-import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.node.config.InclusionStrategy;
@@ -75,6 +74,7 @@ import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.webapi.webdomain.EndDateTime;
 import org.hisp.dhis.webapi.webdomain.StartDateTime;
 import org.hisp.dhis.webmessage.WebMessageResponse;
+import org.intellij.lang.annotations.Language;
 import org.locationtech.jts.geom.Geometry;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.web.multipart.MultipartFile;
@@ -171,8 +171,14 @@ class DirectType {
         (k, v) -> v == null ? new DirectType(k, Map.of(), true) : new DirectType(k, v.oneOf, true));
   }
 
-  public static final String REGEX_UUID =
+  @Language("RegExp")
+  private static final String REGEX_UUID =
       "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$";
+
+  /** Note that this is an approximation of a strictly correct locale string :/ */
+  @Language("RegExp")
+  private static final String REGEX_LOCALE =
+      "^(?i)(?<lang>[a-z]{2,8})(?:_(?<script>[a-z]{4}))?(?:_(?<country>[a-z]{2}|[0-9]{3}))?(?:_(?<variant>[0-9a-z]{3,8}))?$";
 
   static {
     oneOf(byte.class, schema -> schema.type("integer").format("int8").nullable(false));
@@ -211,7 +217,9 @@ class DirectType {
                 .maxLength(11)
                 .nullable(true)
                 .pattern(UID_REGEXP));
-    oneOf(Locale.class, schema -> schema.type("string").nullable(true));
+    oneOf(
+        Locale.class,
+        schema -> schema.type("string").nullable(true).format("locale").pattern(REGEX_LOCALE));
     oneOf(Instant.class, schema -> schema.type("string").format("date-time"));
     oneOf(Instant.class, schema -> schema.type("integer").format("int64"));
     share(Instant.class);
@@ -239,7 +247,6 @@ class DirectType {
     oneOf(JsonPointer.class, schema -> schema.type("string"));
 
     oneOf(JsonValue.class, schema -> schema.type("any"));
-    oneOf(JsonObject.class, schema -> schema.type("object"));
     oneOf(JsonMap.class, schema -> schema.type("object"));
     oneOf(JsonMultiMap.class, schema -> schema.type("object"));
     oneOf(JsonArray.class, schema -> schema.type("array"));
@@ -247,6 +254,7 @@ class DirectType {
     oneOf(JsonString.class, schema -> schema.type("string"));
     oneOf(JsonNumber.class, schema -> schema.type("number"));
     oneOf(JsonBoolean.class, schema -> schema.type("boolean"));
+    // Note that JsonObject is missing as it is handled as a complex type
 
     oneOf(Geometry.class, schema -> schema.type("object"));
     oneOf(WebMessageResponse.class, schema -> schema.type("object"));

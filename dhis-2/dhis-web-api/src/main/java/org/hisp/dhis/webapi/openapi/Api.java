@@ -60,6 +60,7 @@ import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.period.Period;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -274,12 +275,13 @@ public class Api {
     @CheckForNull Maturity.Classification maturity;
 
     /**
-     * The default value in its string form.
+     * The default value as JSON.
      *
      * <p>Note that oddly enough the OpenAPI spec does not have a default value for parameters but
-     * instead uses a default value for the parameter {@link #type}.
+     * instead uses a default value for the parameter {@link #type}. This value is therefore passed
+     * on during JSON generation.
      */
-    Maybe<String> defaultValue = new Maybe<>();
+    Maybe<JsonValue> defaultValue = new Maybe<>();
 
     Maybe<String> description = new Maybe<>();
 

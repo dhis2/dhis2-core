@@ -952,11 +952,11 @@ public class OpenApiRenderer {
             appendSpan(
                 c.stream()
                     .limit(maxSize)
-                    .map(Object::toString)
+                    .map(e -> escapeHtml(e.toString()))
                     .collect(joining("</span>, <span>")));
             if (c.size() > maxSize) appendRaw("...");
           } else {
-            appendSpan(val.toString());
+            appendSpan(escapeHtml(val.toString()));
           }
         });
   }
