@@ -40,8 +40,6 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,8 +53,6 @@ public class ProgramMessageOperationParamMapper {
   private final IdentifiableObjectManager manager;
 
   private final ProgramService programService;
-
-  private final UserService userService;
 
   @Transactional(readOnly = true)
   public ProgramMessageQueryParams map(ProgramMessageOperationParams operationParams)
@@ -102,13 +98,16 @@ public class ProgramMessageOperationParamMapper {
     }
 
     List<Program> programs = programService.getCurrentUserPrograms();
+    String currentUser = CurrentUserUtil.getCurrentUsername();
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    if (currentUser != null && !programs.contains(entity.getProgram())) {
+    if (currentUser == null) {
+      throw new IllegalQueryException("CurrentUser cannot be null");
+    }
+    if (!programs.contains(entity.getProgram())) {
       throw new IllegalQueryException(
           String.format(
               "User:%s does not have access to the required program:%s",
-              currentUser.getUsername(), entity.getProgram().getName()));
+              currentUser, entity.getProgram().getName()));
     }
   }
 }

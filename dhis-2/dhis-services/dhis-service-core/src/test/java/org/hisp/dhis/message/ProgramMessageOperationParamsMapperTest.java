@@ -50,7 +50,6 @@ import org.hisp.dhis.program.message.ProgramMessageOperationParams;
 import org.hisp.dhis.program.message.ProgramMessageQueryParams;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -71,7 +70,6 @@ class ProgramMessageOperationParamsMapperTest {
 
   @Mock private IdentifiableObjectManager manager;
   @Mock private ProgramService programService;
-  @Mock private UserService userService;
   @InjectMocks private ProgramMessageOperationParamMapper subject;
 
   private User user;
@@ -91,18 +89,16 @@ class ProgramMessageOperationParamsMapperTest {
     program.setAutoFields();
 
     enrollment = new Enrollment();
-    enrollment.setAutoFields();
+    enrollment.setUid(ENROLLMENT.getValue());
     enrollment.setProgram(program);
 
     event = new Event();
-    event.setAutoFields();
+    event.setUid(EVENT.getValue());
     event.setEnrollment(enrollment);
 
     when(manager.get(eq(Enrollment.class), anyString())).thenReturn(enrollment);
     when(manager.get(eq(Event.class), anyString())).thenReturn(event);
-
     when(programService.getCurrentUserPrograms()).thenReturn(List.of(program));
-    when(userService.getUserByUsername(anyString())).thenReturn(user);
   }
 
   @Test
