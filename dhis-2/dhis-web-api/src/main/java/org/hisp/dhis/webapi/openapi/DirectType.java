@@ -58,10 +58,9 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonBoolean;
-import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.jsontree.JsonMap;
-import org.hisp.dhis.jsontree.JsonMultiMap;
+import org.hisp.dhis.jsontree.JsonDate;
 import org.hisp.dhis.jsontree.JsonNumber;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.node.config.InclusionStrategy;
@@ -247,14 +246,12 @@ class DirectType {
     oneOf(JsonPointer.class, schema -> schema.type("string"));
 
     oneOf(JsonValue.class, schema -> schema.type("any"));
-    oneOf(JsonMap.class, schema -> schema.type("object"));
-    oneOf(JsonMultiMap.class, schema -> schema.type("object"));
+    oneOf(JsonObject.class, schema -> schema.type("object"));
     oneOf(JsonArray.class, schema -> schema.type("array"));
-    oneOf(JsonList.class, schema -> schema.type("array"));
     oneOf(JsonString.class, schema -> schema.type("string"));
     oneOf(JsonNumber.class, schema -> schema.type("number"));
     oneOf(JsonBoolean.class, schema -> schema.type("boolean"));
-    // Note that JsonObject is missing as it is handled as a complex type
+    oneOf(JsonDate.class, schema -> schema.type("string").format("date-time"));
 
     oneOf(Geometry.class, schema -> schema.type("object"));
     oneOf(WebMessageResponse.class, schema -> schema.type("object"));

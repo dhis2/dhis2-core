@@ -76,6 +76,8 @@ import org.hisp.dhis.common.OpenApi.Document.Group;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.jsontree.Json;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.webapi.openapi.Api.Parameter.In;
 import org.hisp.dhis.webmessage.WebMessageResponse;
@@ -781,13 +783,16 @@ final class ApiExtractor {
       }
       Type typeArg0 = pt.getActualTypeArguments()[0];
       if (Collection.class.isAssignableFrom(rawType) && rawType.isInterface()
-          || rawType == Iterable.class) {
+          || rawType == Iterable.class
+          || rawType == Stream.class
+          || rawType == JsonList.class) {
         if (typeArg0 instanceof Class<?>)
           return extractTypeSchema(endpoint, Array.newInstance((Class<?>) typeArg0, 0).getClass());
         return Api.Schema.ofArray(source, rawType)
             .withElements(extractTypeSchema(endpoint, typeArg0));
       }
-      if (Map.class.isAssignableFrom(rawType) && rawType.isInterface()) {
+      if (Map.class.isAssignableFrom(rawType) && rawType.isInterface()
+          || rawType == JsonMap.class) {
         return Api.Schema.ofObject(source, rawType)
             .withEntries(
                 extractTypeSchema(endpoint, typeArg0),

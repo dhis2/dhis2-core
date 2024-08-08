@@ -99,7 +99,7 @@ class Property {
   private Property(JsonObject.Property p, Type type) {
     this(
         p.jsonName(),
-        type,
+        getType(p.source(), type),
         p.source(),
         isRequired(p.source(), p.javaType().getType()),
         defaultValue(p.source()));
@@ -110,7 +110,7 @@ class Property {
   }
 
   private static List<Property> propertiesIn(Class<?> object) {
-    if (JsonValue.class.isAssignableFrom(object)) return propertiesInJson(object);
+    if (JsonObject.class.isAssignableFrom(object)) return propertiesInJson(object);
     // map for order by name and avoiding duplicates
     Map<String, Property> properties = new TreeMap<>();
     Consumer<Property> add = property -> properties.putIfAbsent(property.name, property);
@@ -118,7 +118,7 @@ class Property {
     BiConsumer<Method, Field> addMethod =
         (method, field) -> add.accept(new Property(method, field));
 
-    boolean includeByDefault = object.isAnnotationPresent(OpenApi.Property.class);
+    boolean includeByDefault = isIncludeAllByDefault(object);
     Map<String, Field> propertyFields = new HashMap<>();
     fieldsIn(object).forEach(field -> propertyFields.putIfAbsent(getPropertyName(field), field));
     Set<String> ignoredFields =
@@ -142,6 +142,19 @@ class Property {
           .forEach(method -> addMethod.accept(method, propertyFields.get(getPropertyName(method))));
     }
     return List.copyOf(properties.values());
+  }
+
+  /**
+   * When {@link JsonProperty} is present all are just included by default if the type is annotated
+   * with {@link OpenApi.Property}. Otherwise, if any field or method is annotated {@link
+   * OpenApi.Property} (but none has {@link JsonProperty}) this also includes all by default.
+   */
+  private static boolean isIncludeAllByDefault(Class<?> object) {
+    if (object.isAnnotationPresent(OpenApi.Property.class)) return true;
+    if (fieldsIn(object).anyMatch(f -> f.isAnnotationPresent(JsonProperty.class))) return false;
+    if (methodsIn(object).anyMatch(m -> m.isAnnotationPresent(JsonProperty.class))) return false;
+    return fieldsIn(object).anyMatch(f -> f.isAnnotationPresent(OpenApi.Property.class))
+        || methodsIn(object).anyMatch(m -> m.isAnnotationPresent(OpenApi.Property.class));
   }
 
   @SuppressWarnings("unchecked")
@@ -208,9 +221,11 @@ class Property {
     if (source.isAnnotationPresent(OpenApi.Property.class)) {
       OpenApi.Property a = source.getAnnotation(OpenApi.Property.class);
       return a.value().length > 0 ? a.value()[0] : type;
-    } else if (type instanceof Class<?>
+    }
+    if (type instanceof Class<?>
         && ((Class<?>) type).isAnnotationPresent(OpenApi.Property.class)
         && ((Class<?>) type).getAnnotation(OpenApi.Property.class).value().length > 0) {
+      // TODO this does not allow oneOf types for Property annotations ;(
       return ((Class<?>) type).getAnnotation(OpenApi.Property.class).value()[0];
     }
     return type;
