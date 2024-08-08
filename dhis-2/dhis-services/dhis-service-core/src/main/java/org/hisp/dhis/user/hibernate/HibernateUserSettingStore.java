@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.user.hibernate;
 
+import jakarta.persistence.EntityManager;
 import java.util.List;
-import javax.persistence.EntityManager;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.hisp.dhis.user.UserSetting;

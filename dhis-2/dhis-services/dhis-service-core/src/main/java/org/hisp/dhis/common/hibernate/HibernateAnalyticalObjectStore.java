@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.common.hibernate;
 
+import jakarta.persistence.EntityManager;
 import java.util.List;
-import javax.persistence.EntityManager;
 import org.hibernate.query.Query;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.common.AnalyticalObjectStore;

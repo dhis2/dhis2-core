@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.dataelement.hibernate;
 
+import jakarta.persistence.EntityManager;
 import java.util.Collection;
 import java.util.List;
 import javax.annotation.Nonnull;
-import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;

@@ -30,10 +30,10 @@ package org.hisp.dhis.dxf2.metadata;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.xml.xpath.XPathExpressionException;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import javax.xml.xpath.XPathExpressionException;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;

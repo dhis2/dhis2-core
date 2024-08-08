@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.dbms;
 
+import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.List;
-import javax.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.springframework.jdbc.BadSqlGrammarException;

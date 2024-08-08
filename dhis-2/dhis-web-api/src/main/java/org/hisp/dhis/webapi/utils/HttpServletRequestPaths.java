@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.webapi.utils;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.servlet.http.HttpServletRequest;
 
 public class HttpServletRequestPaths {
   private static final Pattern API_VERSION = Pattern.compile("(/api/(\\d+)?/)");

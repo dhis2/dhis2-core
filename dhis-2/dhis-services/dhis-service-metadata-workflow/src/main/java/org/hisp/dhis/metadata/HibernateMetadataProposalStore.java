@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.metadata;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
 import org.springframework.stereotype.Repository;

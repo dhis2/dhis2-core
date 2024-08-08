@@ -55,7 +55,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.core.JmsTemplate;
-import org.springframework.util.SocketUtils;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

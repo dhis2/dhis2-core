@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.metadata.version;
 import static org.hisp.dhis.security.Authorities.F_METADATA_MANAGE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -37,7 +38,6 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
-import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;

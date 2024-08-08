@@ -30,11 +30,11 @@ package org.hisp.dhis.test.junit;
 import static org.hisp.dhis.test.TestBase.clearSecurityContext;
 import static org.junit.platform.commons.util.AnnotationUtils.findAnnotation;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.FlushMode;
 import org.hibernate.annotations.QueryHints;

@@ -30,7 +30,7 @@ package org.hisp.dhis.sqlview.hibernate;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.TransactionMode;
