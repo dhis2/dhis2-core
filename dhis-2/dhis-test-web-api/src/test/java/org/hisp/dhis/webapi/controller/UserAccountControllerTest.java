@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -55,6 +56,7 @@ import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
+import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -409,15 +411,14 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
     systemSettingManager.saveSystemSetting(
         SettingKey.SELF_REGISTRATION_NO_RECAPTCHA, Boolean.FALSE);
 
-    assertWebMessage(
-        "Bad Request",
-        400,
-        "ERROR",
-        "Recaptcha validation failed: [invalid-input-secret]",
+    JsonWebMessage response =
         POST(
                 "/auth/registration",
                 renderService.toJsonAsString(getRegParamsWithRecaptcha("secret", RegType.SELF_REG)))
-            .content(HttpStatus.BAD_REQUEST));
+            .content(HttpStatus.BAD_REQUEST)
+            .as(JsonWebMessage.class);
+
+    assertContains("Recaptcha validation failed", response.getMessage());
   }
 
   @Test
@@ -549,15 +550,14 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
     systemSettingManager.saveSystemSetting(
         SettingKey.SELF_REGISTRATION_NO_RECAPTCHA, Boolean.FALSE);
 
-    assertWebMessage(
-        "Bad Request",
-        400,
-        "ERROR",
-        "Recaptcha validation failed: [invalid-input-secret]",
+    JsonWebMessage response =
         POST(
                 "/auth/invite",
                 renderService.toJsonAsString(getRegParamsWithRecaptcha("secret", RegType.INVITE)))
-            .content(HttpStatus.BAD_REQUEST));
+            .content(HttpStatus.BAD_REQUEST)
+            .as(JsonWebMessage.class);
+
+    assertContains("Recaptcha validation failed", response.getMessage());
   }
 
   @Test

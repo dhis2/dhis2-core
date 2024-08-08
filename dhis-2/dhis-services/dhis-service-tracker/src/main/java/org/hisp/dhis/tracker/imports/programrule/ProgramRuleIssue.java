@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.programrule;
 
+import java.util.Arrays;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
@@ -51,10 +52,10 @@ public class ProgramRuleIssue {
   private final IssueType issueType;
 
   public static ProgramRuleIssue error(String ruleUid, ValidationCode issueCode, String... args) {
-    return new ProgramRuleIssue(ruleUid, issueCode, List.of(args), IssueType.ERROR);
+    return new ProgramRuleIssue(ruleUid, issueCode, Arrays.asList(args), IssueType.ERROR);
   }
 
   public static ProgramRuleIssue warning(String ruleUid, ValidationCode issueCode, String... args) {
-    return new ProgramRuleIssue(ruleUid, issueCode, List.of(args), IssueType.WARNING);
+    return new ProgramRuleIssue(ruleUid, issueCode, Arrays.asList(args), IssueType.WARNING);
   }
 }

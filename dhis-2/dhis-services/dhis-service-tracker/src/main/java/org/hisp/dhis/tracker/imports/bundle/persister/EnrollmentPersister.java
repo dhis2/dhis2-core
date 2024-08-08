@@ -41,6 +41,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChan
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
+import org.hisp.dhis.tracker.imports.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.imports.job.SideEffectTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -119,21 +120,7 @@ public class EnrollmentPersister
 
   @Override
   protected TrackerSideEffectDataBundle handleSideEffects(
-      TrackerBundle bundle, Enrollment enrollment) {
-    TrackerPreheat preheat = bundle.getPreheat();
-    List<SideEffectTrigger> triggers = new ArrayList<>();
-
-    if (isNew(preheat, enrollment.getUid())) {
-      triggers.add(SideEffectTrigger.ENROLLMENT);
-      if (enrollment.isCompleted()) {
-        triggers.add(SideEffectTrigger.ENROLLMENT_COMPLETION);
-      }
-    } else {
-      Enrollment exitingEnrollment = preheat.getEnrollment(enrollment.getUid());
-      if (exitingEnrollment.getStatus() != enrollment.getStatus() && enrollment.isCompleted()) {
-        triggers.add(SideEffectTrigger.ENROLLMENT_COMPLETION);
-      }
-    }
+      TrackerBundle bundle, Enrollment enrollment, List<SideEffectTrigger> triggers) {
 
     return TrackerSideEffectDataBundle.builder()
         .klass(Enrollment.class)
@@ -146,6 +133,31 @@ public class EnrollmentPersister
         .program(enrollment.getProgram())
         .triggers(triggers)
         .build();
+  }
+
+  @Override
+  protected List<SideEffectTrigger> determineSideEffectTriggers(
+      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Enrollment entity) {
+    Enrollment persistedEnrollment = preheat.getEnrollment(entity.getUid());
+    List<SideEffectTrigger> triggers = new ArrayList<>();
+
+    if (persistedEnrollment == null) {
+      // New enrollment
+      triggers.add(SideEffectTrigger.ENROLLMENT);
+
+      // New enrollment that is completed
+      if (entity.getStatus() == EnrollmentStatus.COMPLETED) {
+        triggers.add(SideEffectTrigger.ENROLLMENT_COMPLETION);
+      }
+    } else {
+      // Existing enrollment that has changed to completed
+      if (persistedEnrollment.getStatus() != entity.getStatus().getProgramStatus()
+          && entity.getStatus() == EnrollmentStatus.COMPLETED) {
+        triggers.add(SideEffectTrigger.ENROLLMENT_COMPLETION);
+      }
+    }
+
+    return triggers;
   }
 
   @Override

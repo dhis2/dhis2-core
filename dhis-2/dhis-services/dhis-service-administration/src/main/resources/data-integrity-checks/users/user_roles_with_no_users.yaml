@@ -1,0 +1,51 @@
+# Copyright (c) 2004-2022, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+name: user_roles_with_no_users
+description: User roles which have no users assigned.
+section: Users
+section_order: 5
+summary_sql: >-
+    SELECT COUNT(*) as value, 
+    100.0 * COUNT(*) / NULLIF((SELECT COUNT(*) FROM userrole), 0) as percent
+    FROM userrole
+    WHERE userroleid NOT IN (SELECT userroleid FROM userrolemembers);
+details_sql: >-
+  SELECT uid, name FROM userrole
+  WHERE userroleid NOT IN (SELECT userroleid FROM userrolemembers);
+details_id_type: userRoles
+severity: WARNING
+introduction: >
+    User roles should generally have some users assigned to them. A valid case for a user role with
+    no users would be for user roles which are newly created and have not yet been assigned to any users.
+    It is also possible that user roles may have been created without any users assigned by mistake.
+    Some user roles may have also been in use at some point in time, but are no longer in use.
+recommendation: >
+    Using the details provided, review the user roles which have no users assigned and consider whether
+    they should have users assigned. If they should have users assigned, assign the appropriate
+    users to the user roles. If they should not have users assigned, consider whether the user roles
+    are necessary and if not, delete them.

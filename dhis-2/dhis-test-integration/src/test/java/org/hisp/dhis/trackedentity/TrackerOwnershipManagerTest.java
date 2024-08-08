@@ -190,6 +190,8 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
 
   @Test
   void shouldNotHaveAccessToEnrollmentWithUserAWhenTransferredToAnotherOrgUnit() {
+    userA.setTeiSearchOrganisationUnits(Set.of(organisationUnitB));
+    userService.updateUser(userA);
     trackerOwnershipAccessManager.assignOwnership(
         entityInstanceA1, programA, organisationUnitA, false, true);
     trackerOwnershipAccessManager.transferOwnership(
@@ -285,7 +287,27 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   }
 
   @Test
+  void shouldNotHaveAccessWhenProgramProtectedAndUserNotInSearchScopeNorHasTemporaryAccess() {
+    assertFalse(trackerOwnershipAccessManager.hasAccess(userB, entityInstanceA1, programA));
+    assertFalse(
+        trackerOwnershipAccessManager.hasAccess(
+            userB, entityInstanceA1.getUid(), entityInstanceA1.getOrganisationUnit(), programA));
+
+    injectSecurityContextUser(userB);
+    ForbiddenException exception =
+        assertThrows(
+            ForbiddenException.class,
+            () ->
+                trackedEntityService.getTrackedEntity(
+                    entityInstanceA1.getUid(), programA.getUid(), defaultParams, false));
+    assertEquals(TrackerOwnershipManager.NO_READ_ACCESS_TO_ORG_UNIT, exception.getMessage());
+  }
+
+  @Test
   void shouldNotHaveAccessWhenProgramProtectedAndUserNotInCaptureScopeNorHasTemporaryAccess() {
+    userB.setTeiSearchOrganisationUnits(Set.of(organisationUnitA));
+    userService.updateUser(userB);
+
     assertFalse(trackerOwnershipAccessManager.hasAccess(userB, entityInstanceA1, programA));
     assertFalse(
         trackerOwnershipAccessManager.hasAccess(

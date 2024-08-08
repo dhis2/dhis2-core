@@ -25,48 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.node;
+package org.hisp.dhis.appmanager;
 
-import com.google.common.collect.Lists;
-import java.util.List;
+import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
+import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
+import org.hisp.dhis.datastore.DatastoreService;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * The main purpose (so far) of the {@link CaptureApp} component is to establish the protected
+ * {@link #NAMESPACE} in the {@link DatastoreService} so that only the app can write to it using a
+ * role having the {@link #AUTHORITY}.
  */
-public enum Preset {
-  ID("id", Lists.newArrayList("id")),
-  CODE("code", Lists.newArrayList("code")),
-  ID_NAME("idName", Lists.newArrayList("id", "displayName")),
-  ALL("all", Lists.newArrayList("*")),
-  IDENTIFIABLE(
-      "identifiable", Lists.newArrayList("id", "name", "code", "created", "lastUpdated", "href")),
-  NAMEABLE(
-      "nameable",
-      Lists.newArrayList(
-          "id", "name", "shortName", "description", "code", "created", "lastUpdated", "href"));
+@Component
+public class CaptureApp {
+  public static final String NAMESPACE = "capture";
 
-  private String name;
+  public static final String AUTHORITY = "F_CAPTURE_DATASTORE_UPDATE";
 
-  private List<String> fields;
-
-  Preset(String name, List<String> fields) {
-    this.name = name;
-    this.fields = fields;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public List<String> getFields() {
-    return fields;
-  }
-
-  public static Preset defaultPreset() {
-    return Preset.ID_NAME;
-  }
-
-  public static Preset defaultAssociationPreset() {
-    return Preset.ID;
+  public CaptureApp(DatastoreService service) {
+    service.addProtection(
+        new DatastoreNamespaceProtection(
+            NAMESPACE, ProtectionType.NONE, ProtectionType.RESTRICTED, AUTHORITY));
   }
 }

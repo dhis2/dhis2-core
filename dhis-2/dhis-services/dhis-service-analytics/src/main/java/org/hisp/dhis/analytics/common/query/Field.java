@@ -35,15 +35,21 @@ import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifie
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.springframework.lang.NonNull;
 
 /**
  * This class represents a {@link Renderable} field. It's mainly used for SQL query rendering and
  * headers display.
  */
 @RequiredArgsConstructor(staticName = "of", access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Slf4j
 public class Field extends BaseRenderable {
   private final String tableAlias;
 
@@ -54,6 +60,9 @@ public class Field extends BaseRenderable {
   private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
 
   private final Boolean quotingNeeded;
+
+  // A cached version of the rendered field.
+  private String renderedField;
 
   /**
    * Static constructor for a field which double quote "name" when rendered.
@@ -140,7 +149,14 @@ public class Field extends BaseRenderable {
   }
 
   @Override
-  public String render() {
+  public @NonNull String render() {
+    if (StringUtils.isBlank(renderedField)) {
+      renderedField = renderField();
+    }
+    return renderedField;
+  }
+
+  private String renderField() {
     String rendered = EMPTY;
 
     if (isNotBlank(tableAlias)) {

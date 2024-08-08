@@ -94,6 +94,7 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodTypeEnum;
@@ -122,6 +123,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   @Mock private ProgramIndicatorService programIndicatorService;
 
   @Mock private ExecutionPlanStore executionPlanStore;
+  @Mock private OrganisationUnitService organisationUnitService;
 
   private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
@@ -826,7 +828,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     ResultSet resultSet = mock(ResultSet.class);
     when(resultSet.getObject(index)).thenReturn(nullObject);
     when(resultSet.getMetaData()).thenReturn(metaData);
-
     EventQueryParams queryParams = new EventQueryParams.Builder().withSkipRounding(false).build();
 
     GridHeader header = new GridHeader("header-1", NUMBER);
