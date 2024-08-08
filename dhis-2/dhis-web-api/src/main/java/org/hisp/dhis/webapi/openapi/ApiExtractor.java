@@ -684,6 +684,7 @@ final class ApiExtractor {
    */
   private static Api.Schema extractClassSchema(Api.Endpoint endpoint, Class<?> type) {
     Api api = endpoint.getIn().getIn();
+    // TODO aren't shared class types constant, hence can be cached in a static map?
     Api.Schema s = api.getSchemas().get(type);
     if (s != null) {
       return s;
@@ -725,23 +726,25 @@ final class ApiExtractor {
     for (Property p : properties) {
       Function<Api.Schema, Api.Property> toProperty =
           t -> new Api.Property(getPropertyName(endpoint, p), p.getRequired(), t);
-      schema.addProperty(extractObjectProperty(endpoint, p, toProperty));
+      Api.Property property = extractObjectProperty(endpoint, p, toProperty);
+      property.getDescription().setValue(extractDescription(p.getSource()));
+      schema.addProperty(property);
     }
     return schema;
   }
 
   private static Api.Property extractObjectProperty(
       Api.Endpoint endpoint, Property property, Function<Api.Schema, Api.Property> toProperty) {
-    AnnotatedElement member = property.getSource();
-    if (member.isAnnotationPresent(JsonSubTypes.class)) {
-      return toProperty.apply(extractSubTypeSchema(endpoint, member));
+    AnnotatedElement source = property.getSource();
+    if (source.isAnnotationPresent(JsonSubTypes.class)) {
+      return toProperty.apply(extractSubTypeSchema(endpoint, source));
     }
-    Type type = getSubstitutedType(endpoint, property, member);
-    OpenApi.Property annotated = member.getAnnotation(OpenApi.Property.class);
+    Type type = getSubstitutedType(endpoint, property, source);
+    OpenApi.Property annotated = source.getAnnotation(OpenApi.Property.class);
     if (type instanceof Class && isGeneratorType((Class<?>) type) && annotated != null) {
       return toProperty.apply(extractGeneratorSchema(endpoint, type, annotated.value()));
     }
-    JsonSerialize serialize = member.getAnnotation(JsonSerialize.class);
+    JsonSerialize serialize = source.getAnnotation(JsonSerialize.class);
     if (serialize != null && serialize.as() != Void.class) {
       Class<?> as = serialize.as();
       Api.Property res = toProperty.apply(extractClassSchema(endpoint, as));

@@ -74,18 +74,18 @@ public interface JobRunErrors extends JsonObject {
     return get("finished", JsonDate.class);
   }
 
-  @Nonnull
+  @OpenApi.Description("""
+    The file resource used to store the job's input
+    """)
   @OpenApi.Property({UID.class, FileResource.class})
   default String file() {
     return getString("file").string();
   }
 
-  @Nonnull
-  default long filesize() {
+  default Long filesize() {
     return getNumber("filesize").longValue();
   }
 
-  @Nonnull
   default String filetype() {
     return getString("filetype").string();
   }
