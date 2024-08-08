@@ -390,17 +390,7 @@ public class OpenApiGenerator extends JsonGenerator {
     Class<?> type = schema.getRawType();
     DirectType directType = DirectType.of(type);
     if (directType != null) {
-      Class<?> source = directType.source();
-      Collection<DirectType.SimpleType> oneOf = directType.oneOf().values();
-      if (oneOf.size() == 1) {
-        generateSimpleTypeSchema(source, oneOf.iterator().next(), defaultValue);
-      } else {
-        addArrayMember(
-            "oneOf",
-            () ->
-                oneOf.forEach(
-                    t -> addObjectMember(null, () -> generateSimpleTypeSchema(source, t, null))));
-      }
+      generateDirectTypeSchema(defaultValue, directType);
       return;
     }
     Api.Schema.Type schemaType = schema.getType();
@@ -412,11 +402,7 @@ public class OpenApiGenerator extends JsonGenerator {
       return;
     }
     if (schemaType == Api.Schema.Type.ONE_OF) {
-      addArrayMember(
-          "oneOf",
-          schema.getProperties(),
-          property ->
-              addObjectMember(null, () -> generateSchemaOrRef(property.getType(), direction)));
+      generateOneOfSchema(schema, direction);
       return;
     }
     if (schemaType == Api.Schema.Type.ENUM) {
@@ -433,39 +419,11 @@ public class OpenApiGenerator extends JsonGenerator {
       return;
     }
     if (type.isArray() || schemaType == Api.Schema.Type.ARRAY) {
-      Api.Schema elements =
-          schema.getProperties().isEmpty()
-              ? api.getSchemas().get(type.getComponentType())
-              : schema.getElementType();
-      addStringMember("type", "array");
-      addObjectMember("items", () -> generateSchemaOrRef(elements, direction));
+      generateArrayTypeSchema(schema, direction, type);
       return;
     }
     if (!schema.getProperties().isEmpty()) {
-      addStringMember("type", "object");
-      if (Map.class.isAssignableFrom(type)) {
-        Api.Property key = schema.getProperties().get(0);
-        Api.Property value = schema.getProperties().get(1);
-        addObjectMember(
-            "additionalProperties", () -> generateSchemaOrRef(value.getType(), direction));
-        if (key.getType().getRawType() != String.class)
-          addStringMultilineMember(
-              "description", "keys are " + schema.getProperties().get(0).getType().getRawType());
-        return;
-      }
-      if (!schema.getRequiredProperties().isEmpty())
-        addInlineArrayMember("required", schema.getRequiredProperties());
-      addObjectMember(
-          "properties",
-          schema.getProperties(),
-          property ->
-              addObjectMember(
-                  property.getName(),
-                  () -> {
-                    generateSchemaOrRef(property.getType(), direction);
-                    addStringMember(
-                        "description", property.getDescription().orElse(NO_DESCRIPTION));
-                  }));
+      generateObjectTypeSchema(schema, direction, type);
     } else {
       addStringMember("type", "any");
       addStringMultilineMember(
@@ -476,8 +434,61 @@ public class OpenApiGenerator extends JsonGenerator {
     }
   }
 
-  private void generateSimpleTypeSchema(
-      Class<?> source, DirectType.SimpleType simpleType, JsonValue defaultValue) {
+  private void generateOneOfSchema(Api.Schema schema, Direction direction) {
+    addArrayMember(
+        "oneOf",
+        schema.getProperties(),
+        property ->
+            addObjectMember(null, () -> generateSchemaOrRef(property.getType(), direction)));
+  }
+
+  private void generateObjectTypeSchema(Api.Schema schema, Direction direction, Class<?> type) {
+    addStringMember("type", "object");
+    if (Map.class.isAssignableFrom(type)) {
+      Api.Property key = schema.getProperties().get(0);
+      Api.Property value = schema.getProperties().get(1);
+      addObjectMember(
+          "additionalProperties", () -> generateSchemaOrRef(value.getType(), direction));
+      if (key.getType().getRawType() != String.class)
+        addStringMultilineMember(
+            "description", "keys are " + schema.getProperties().get(0).getType().getRawType());
+      return;
+    }
+    if (!schema.getRequiredProperties().isEmpty())
+      addInlineArrayMember("required", schema.getRequiredProperties());
+    addObjectMember(
+        "properties",
+        schema.getProperties(),
+        property ->
+            addObjectMember(
+                property.getName(),
+                () -> {
+                  generateSchemaOrRef(property.getType(), direction);
+                  addStringMember("description", property.getDescription().orElse(NO_DESCRIPTION));
+                }));
+  }
+
+  private void generateArrayTypeSchema(Api.Schema schema, Direction direction, Class<?> type) {
+    Api.Schema elements =
+        schema.getProperties().isEmpty()
+            ? api.getSchemas().get(type.getComponentType())
+            : schema.getElementType();
+    addStringMember("type", "array");
+    addObjectMember("items", () -> generateSchemaOrRef(elements, direction));
+  }
+
+  private void generateDirectTypeSchema(JsonValue defaultValue, DirectType directType) {
+    Collection<DirectType.SimpleType> oneOf = directType.oneOf().values();
+    if (oneOf.size() == 1) {
+      generateSimpleTypeSchema(oneOf.iterator().next(), defaultValue);
+    } else {
+      addArrayMember(
+          "oneOf",
+          () -> oneOf.forEach(t -> addObjectMember(null, () -> generateSimpleTypeSchema(t, null))));
+    }
+  }
+
+  private void generateSimpleTypeSchema(DirectType.SimpleType simpleType, JsonValue defaultValue) {
     String type = simpleType.type();
     addStringMember("type", type);
     if ("array".equals(type)) {

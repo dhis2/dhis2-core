@@ -102,7 +102,7 @@ class Property {
         getType(p.source(), type),
         p.source(),
         isRequired(p.source(), p.javaType().getType()),
-        defaultValue(p.source()));
+        defaultValueFromAnnotation(p.source()));
   }
 
   static List<Property> getProperties(Class<?> in) {
@@ -247,6 +247,7 @@ class Property {
     return nameOverride.isEmpty() ? name : nameOverride;
   }
 
+  @CheckForNull
   private static Boolean isRequired(AnnotatedElement source, Type type) {
     JsonProperty a = source.getAnnotation(JsonProperty.class);
     if (a != null && a.required()) return true;
@@ -262,7 +263,7 @@ class Property {
 
   @SuppressWarnings("java:S3011")
   private static JsonValue defaultValue(Field source) {
-    JsonValue defaultValue = defaultValue((AnnotatedElement) source);
+    JsonValue defaultValue = defaultValueFromAnnotation(source);
     if (defaultValue != null) return defaultValue;
     try {
       Object obj = source.getDeclaringClass().getConstructor().newInstance();
@@ -273,7 +274,7 @@ class Property {
     }
   }
 
-  private static JsonValue defaultValue(AnnotatedElement source) {
+  private static JsonValue defaultValueFromAnnotation(AnnotatedElement source) {
     if (source == null) return Json.ofNull();
     OpenApi.Property oapiProperty = source.getAnnotation(OpenApi.Property.class);
     if (oapiProperty != null && !oapiProperty.defaultValue().isEmpty())
