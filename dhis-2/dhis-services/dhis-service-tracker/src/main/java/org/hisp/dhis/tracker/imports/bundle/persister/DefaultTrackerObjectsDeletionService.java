@@ -185,7 +185,10 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
     for (String uid : trackedEntities) {
       Entity objectReport = new Entity(TrackerType.TRACKED_ENTITY, uid);
 
-      TrackedEntity entity = teService.getTrackedEntity(uid);
+      TrackedEntity entity = manager.get(TrackedEntity.class, uid);
+      if (entity == null) {
+        throw new NotFoundException(TrackedEntity.class, uid);
+      }
       entity.setLastUpdatedByUserInfo(userInfoSnapshot);
 
       Set<Enrollment> daoEnrollments = entity.getEnrollments();

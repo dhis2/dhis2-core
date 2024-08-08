@@ -48,6 +48,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -75,7 +76,6 @@ import org.hisp.dhis.smscompression.models.SmsEvent;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -83,6 +83,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueServ
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventService;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
@@ -118,6 +119,8 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
   @Mock private EventService eventService;
 
   // Needed for this test
+
+  @Mock private org.hisp.dhis.trackedentity.TrackedEntityService apiTrackedEntityService;
 
   @Mock private TrackedEntityService trackedEntityService;
 
@@ -184,7 +187,8 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
   private DataElement dataElement;
 
   @BeforeEach
-  public void initTest() throws SmsCompressionException, ForbiddenException, NotFoundException {
+  public void initTest()
+      throws SmsCompressionException, ForbiddenException, NotFoundException, BadRequestException {
     subject =
         new EnrollmentSMSListener(
             incomingSmsService,
@@ -202,6 +206,7 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
             fileResourceService,
             config,
             attributeValueService,
+            apiTrackedEntityService,
             trackedEntityService,
             enrollmentService,
             identifiableObjectManager,
@@ -235,7 +240,6 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
         .update(any());
 
     trackedEntity.setTrackedEntityType(trackedEntityType);
-    when(trackedEntityService.getTrackedEntity(anyString())).thenReturn(trackedEntity);
     when(smsEnrollmentService.enrollTrackedEntity(any(), any(), any(), any(), any()))
         .thenReturn(enrollment);
   }

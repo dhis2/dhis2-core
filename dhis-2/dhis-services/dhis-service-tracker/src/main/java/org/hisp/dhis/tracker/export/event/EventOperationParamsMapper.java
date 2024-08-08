@@ -41,6 +41,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -84,7 +85,7 @@ class EventOperationParamsMapper {
 
   @Transactional(readOnly = true)
   public EventQueryParams map(EventOperationParams operationParams)
-      throws BadRequestException, ForbiddenException {
+      throws BadRequestException, ForbiddenException, NotFoundException {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     Program program =

@@ -47,6 +47,9 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -57,6 +60,8 @@ import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.BeforeEach;
@@ -187,14 +192,17 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void checkAccessPermissionForTeWhenTeOuInCaptureScope() {
+  void checkAccessPermissionForTeWhenTeOuInCaptureScope()
+      throws ForbiddenException, NotFoundException, BadRequestException {
     programA.setPublicAccess(AccessStringHelper.FULL);
     manager.update(programA);
     User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA));
     UserDetails userDetails = UserDetails.fromUser(user);
     trackedEntityType.setPublicAccess(AccessStringHelper.FULL);
     manager.update(trackedEntityType);
-    TrackedEntity te = trackedEntityService.getTrackedEntity(trackedEntityA.getUid());
+    TrackedEntity te =
+        trackedEntityService.getTrackedEntity(
+            trackedEntityA.getUid(), null, TrackedEntityParams.FALSE, false);
     // Can read te
     assertNoErrors(trackerAccessManager.canRead(userDetails, te));
     // can write te
@@ -202,7 +210,8 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void checkAccessPermissionForTeWhenTeOuInSearchScope() {
+  void checkAccessPermissionForTeWhenTeOuInSearchScope()
+      throws ForbiddenException, NotFoundException, BadRequestException {
     programA.setPublicAccess(AccessStringHelper.FULL);
     programA.setAccessLevel(AccessLevel.OPEN);
     manager.update(programA);
@@ -211,7 +220,9 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     UserDetails userDetails = UserDetails.fromUser(user);
     trackedEntityType.setPublicAccess(AccessStringHelper.FULL);
     manager.update(trackedEntityType);
-    TrackedEntity te = trackedEntityService.getTrackedEntity(trackedEntityA.getUid());
+    TrackedEntity te =
+        trackedEntityService.getTrackedEntity(
+            trackedEntityA.getUid(), null, TrackedEntityParams.FALSE, false);
     // Can Read
     assertNoErrors(trackerAccessManager.canRead(userDetails, te));
     // Can write
@@ -219,7 +230,8 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void checkAccessPermissionForTeWhenTeOuOutsideSearchScope() {
+  void checkAccessPermissionForTeWhenTeOuOutsideSearchScope()
+      throws ForbiddenException, NotFoundException, BadRequestException {
     programA.setPublicAccess(AccessStringHelper.FULL);
     programA.setAccessLevel(AccessLevel.OPEN);
     manager.update(programA);
@@ -227,7 +239,9 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     UserDetails userDetails = UserDetails.fromUser(user);
     trackedEntityType.setPublicAccess(AccessStringHelper.FULL);
     manager.update(trackedEntityType);
-    TrackedEntity te = trackedEntityService.getTrackedEntity(trackedEntityA.getUid());
+    TrackedEntity te =
+        trackedEntityService.getTrackedEntity(
+            trackedEntityA.getUid(), null, TrackedEntityParams.FALSE, false);
     // Cannot Read
     assertHasError(trackerAccessManager.canRead(userDetails, te), OWNERSHIP_ACCESS_DENIED);
     // Cannot write
@@ -235,7 +249,8 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void checkAccessPermissionForEnrollmentInClosedProgram() {
+  void checkAccessPermissionForEnrollmentInClosedProgram()
+      throws ForbiddenException, NotFoundException, BadRequestException {
     programA.setPublicAccess(AccessStringHelper.FULL);
     manager.update(programA);
     trackedEntityType.setPublicAccess(AccessStringHelper.FULL);
@@ -243,7 +258,9 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA));
     user.setTeiSearchOrganisationUnits(Sets.newHashSet(orgUnitA, orgUnitB));
     UserDetails userDetails = UserDetails.fromUser(user);
-    TrackedEntity te = trackedEntityService.getTrackedEntity(trackedEntityA.getUid());
+    TrackedEntity te =
+        trackedEntityService.getTrackedEntity(
+            trackedEntityA.getUid(), null, TrackedEntityParams.FALSE, false);
     Enrollment enrollment = te.getEnrollments().iterator().next();
     // Can create enrollment
     assertNoErrors(trackerAccessManager.canCreate(userDetails, enrollment, false));
@@ -277,7 +294,8 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void checkAccessPermissionForEnrollmentWhenOrgUnitIsNull() {
+  void checkAccessPermissionForEnrollmentWhenOrgUnitIsNull()
+      throws ForbiddenException, NotFoundException, BadRequestException {
     programA.setPublicAccess(AccessStringHelper.FULL);
     programA.setProgramType(ProgramType.WITHOUT_REGISTRATION);
     manager.update(programA);
@@ -286,7 +304,9 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA));
     user.setTeiSearchOrganisationUnits(Sets.newHashSet(orgUnitA, orgUnitB));
     UserDetails userDetails = UserDetails.fromUser(user);
-    TrackedEntity te = trackedEntityService.getTrackedEntity(trackedEntityA.getUid());
+    TrackedEntity te =
+        trackedEntityService.getTrackedEntity(
+            trackedEntityA.getUid(), null, TrackedEntityParams.FALSE, false);
     Enrollment enrollment = te.getEnrollments().iterator().next();
     enrollment.setOrganisationUnit(null);
     // Can create enrollment
@@ -300,7 +320,8 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void checkAccessPermissionForEnrollmentInOpenProgram() {
+  void checkAccessPermissionForEnrollmentInOpenProgram()
+      throws ForbiddenException, NotFoundException, BadRequestException {
     programA.setPublicAccess(AccessStringHelper.FULL);
     programA.setAccessLevel(AccessLevel.OPEN);
     manager.update(programA);
@@ -309,7 +330,9 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitB));
     user.setTeiSearchOrganisationUnits(Sets.newHashSet(orgUnitA, orgUnitB));
     UserDetails userDetails = UserDetails.fromUser(user);
-    TrackedEntity te = trackedEntityService.getTrackedEntity(trackedEntityA.getUid());
+    TrackedEntity te =
+        trackedEntityService.getTrackedEntity(
+            trackedEntityA.getUid(), null, TrackedEntityParams.FALSE, false);
     Enrollment enrollment = te.getEnrollments().iterator().next();
     // Cannot create enrollment if enrollmentOU falls outside capture scope
     assertHasError(trackerAccessManager.canCreate(userDetails, enrollment, false));

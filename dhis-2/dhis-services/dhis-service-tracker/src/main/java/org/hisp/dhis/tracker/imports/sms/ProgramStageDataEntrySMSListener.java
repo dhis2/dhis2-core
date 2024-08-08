@@ -40,6 +40,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -144,7 +145,7 @@ public class ProgramStageDataEntrySMSListener extends RegisterSMSListener {
           new ArrayList<>(
               enrollmentService.getEnrollments(
                   trackedEntity.getUid(), smsCommand.getProgram(), EnrollmentStatus.ACTIVE));
-    } catch (BadRequestException | ForbiddenException e) {
+    } catch (BadRequestException | ForbiddenException | NotFoundException e) {
       // TODO(tracker) Find a better error message for these exceptions
       throw new SMSProcessingException(SmsResponse.UNKNOWN_ERROR);
     }

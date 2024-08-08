@@ -33,6 +33,7 @@ import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARC
 import java.util.HashSet;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -42,7 +43,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
@@ -56,7 +56,7 @@ public class OperationsParamsValidator {
 
   private final AclService aclService;
 
-  private final TrackedEntityService trackedEntityService;
+  private final IdentifiableObjectManager manager;
 
   private final TrackedEntityTypeService trackedEntityTypeService;
 
@@ -186,7 +186,7 @@ public class OperationsParamsValidator {
       return null;
     }
 
-    TrackedEntity trackedEntity = trackedEntityService.getTrackedEntity(trackedEntityUid);
+    TrackedEntity trackedEntity = manager.get(TrackedEntity.class, trackedEntityUid);
     if (trackedEntity == null) {
       throw new BadRequestException(
           "Tracked entity is specified but does not exist: " + trackedEntityUid);

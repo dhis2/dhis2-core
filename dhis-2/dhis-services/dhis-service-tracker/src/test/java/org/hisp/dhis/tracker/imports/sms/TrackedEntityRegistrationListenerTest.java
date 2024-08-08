@@ -152,6 +152,7 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
             smsCommandService,
             trackedEntityTypeService,
             trackedEntityService,
+            manager,
             smsEnrollmentService);
 
     setUpInstances();
@@ -179,7 +180,6 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
   void testTrackedEntityRegistration() {
     // Mock for trackedEntityService
     when(trackedEntityService.createTrackedEntity(any(), any())).thenReturn(1L);
-    when(trackedEntityService.getTrackedEntity(any())).thenReturn(trackedEntity);
     when(programService.hasOrgUnit(program, organisationUnit)).thenReturn(true);
 
     // Mock for incomingSmsService

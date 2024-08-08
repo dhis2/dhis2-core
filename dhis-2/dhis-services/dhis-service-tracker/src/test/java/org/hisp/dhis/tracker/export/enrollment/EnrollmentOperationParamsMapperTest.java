@@ -43,18 +43,17 @@ import java.util.Set;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
@@ -91,10 +90,6 @@ class EnrollmentOperationParamsMapperTest {
 
   @Mock private TrackedEntityService trackedEntityService;
 
-  @Mock private TrackerAccessManager trackerAccessManager;
-
-  @Mock private AclService aclService;
-
   @Mock private OperationsParamsValidator paramsValidator;
 
   @InjectMocks private EnrollmentOperationParamsMapper mapper;
@@ -106,7 +101,7 @@ class EnrollmentOperationParamsMapperTest {
   private User user;
 
   @BeforeEach
-  void setUp() {
+  void setUp() throws ForbiddenException, BadRequestException {
     user = new User();
     user.setUsername("admin");
 
@@ -138,12 +133,18 @@ class EnrollmentOperationParamsMapperTest {
     TrackedEntity trackedEntity = new TrackedEntity();
     trackedEntity.setUid(TRACKED_ENTITY_UID);
     trackedEntity.setTrackedEntityType(trackedEntityType);
-    when(trackedEntityService.getTrackedEntity(TRACKED_ENTITY_UID)).thenReturn(trackedEntity);
+
+    when(paramsValidator.validateTrackerProgram(PROGRAM_UID, user)).thenReturn(program);
+    when(paramsValidator.validateTrackedEntityType(TRACKED_ENTITY_TYPE_UID, user))
+        .thenReturn(trackedEntityType);
+    when(paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user)).thenReturn(trackedEntity);
+    when(paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID), user))
+        .thenReturn(Set.of(orgUnit1, orgUnit2));
   }
 
   @Test
   void shouldMapWithoutFetchingNullParamsWhenParamsAreNotSpecified()
-      throws BadRequestException, ForbiddenException {
+      throws BadRequestException, ForbiddenException, NotFoundException {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnitMode(ACCESSIBLE).build();
 
@@ -156,7 +157,8 @@ class EnrollmentOperationParamsMapperTest {
   }
 
   @Test
-  void shouldMapOrderInGivenOrder() throws BadRequestException, ForbiddenException {
+  void shouldMapOrderInGivenOrder()
+      throws BadRequestException, ForbiddenException, NotFoundException {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
             .orderBy("enrollmentDate", SortDirection.ASC)
@@ -175,7 +177,7 @@ class EnrollmentOperationParamsMapperTest {
 
   @Test
   void shouldMapNullOrderingParamsWhenNoOrderingParamsAreSpecified()
-      throws BadRequestException, ForbiddenException {
+      throws BadRequestException, ForbiddenException, NotFoundException {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnitMode(ACCESSIBLE).build();
 
@@ -186,7 +188,7 @@ class EnrollmentOperationParamsMapperTest {
 
   @Test
   void shouldMapDescendantsOrgUnitModeWhenAccessibleProvided()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnitMode(ACCESSIBLE).build();
 
@@ -198,7 +200,7 @@ class EnrollmentOperationParamsMapperTest {
 
   @Test
   void shouldMapDescendantsOrgUnitModeWhenCaptureProvided()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnitMode(CAPTURE).build();
 
@@ -210,7 +212,7 @@ class EnrollmentOperationParamsMapperTest {
 
   @Test
   void shouldMapChildrenOrgUnitModeWhenChildrenProvided()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     when(organisationUnitService.isInUserHierarchy(
             orgUnit1.getUid(), user.getEffectiveSearchOrganisationUnits()))
         .thenReturn(true);

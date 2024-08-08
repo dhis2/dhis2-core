@@ -44,7 +44,6 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.deduplication.DeduplicationMergeParams;
 import org.hisp.dhis.tracker.deduplication.DeduplicationService;
@@ -55,6 +54,8 @@ import org.hisp.dhis.tracker.deduplication.PotentialDuplicate;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateCriteria;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateForbiddenException;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
@@ -162,7 +163,8 @@ public class DeduplicationController {
       throws NotFoundException,
           PotentialDuplicateConflictException,
           PotentialDuplicateForbiddenException,
-          ForbiddenException {
+          ForbiddenException,
+          BadRequestException {
     PotentialDuplicate potentialDuplicate = getPotentialDuplicateBy(id);
 
     if (potentialDuplicate.getOriginal() == null || potentialDuplicate.getDuplicate() == null) {
@@ -258,8 +260,11 @@ public class DeduplicationController {
     }
   }
 
-  private TrackedEntity getTrackedEntity(String trackedEntity) throws NotFoundException {
-    return Optional.ofNullable(trackedEntityService.getTrackedEntity(trackedEntity))
+  private TrackedEntity getTrackedEntity(String trackedEntity)
+      throws NotFoundException, ForbiddenException, BadRequestException {
+    return Optional.ofNullable(
+            trackedEntityService.getTrackedEntity(
+                trackedEntity, null, TrackedEntityParams.FALSE, false))
         .orElseThrow(
             () ->
                 new NotFoundException("No tracked entity found with id '" + trackedEntity + "'."));

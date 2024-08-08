@@ -117,14 +117,6 @@ public interface TrackedEntityService {
       Set<String> trackedEntityUIDs, Date lastUpdated, String userInfoSnapshot);
 
   /**
-   * Returns the {@link TrackedEntity} with the given UID.
-   *
-   * @param uid the UID.
-   * @return the TrackedEntity with the given UID, or null if no match.
-   */
-  TrackedEntity getTrackedEntity(String uid);
-
-  /**
    * Register a new trackedEntity
    *
    * @param trackedEntity TrackedEntity

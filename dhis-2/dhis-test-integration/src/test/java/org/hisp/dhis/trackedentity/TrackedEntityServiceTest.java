@@ -174,30 +174,6 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testSaveTrackedEntity() {
-    manager.save(trackedEntityA1);
-    manager.save(trackedEntityB1);
-    assertNotNull(trackedEntityService.getTrackedEntity(trackedEntityA1.getUid()));
-    assertNotNull(trackedEntityService.getTrackedEntity(trackedEntityB1.getUid()));
-  }
-
-  @Test
-  void testDeleteTrackedEntity() {
-    manager.save(trackedEntityA1);
-    manager.save(trackedEntityB1);
-    TrackedEntity trackedEntityA = trackedEntityService.getTrackedEntity(trackedEntityA1.getUid());
-    TrackedEntity trackedEntityB = trackedEntityService.getTrackedEntity(trackedEntityB1.getUid());
-    assertNotNull(trackedEntityA);
-    assertNotNull(trackedEntityB);
-    manager.delete(trackedEntityA1);
-    assertNull(trackedEntityService.getTrackedEntity(trackedEntityA.getUid()));
-    assertNotNull(trackedEntityService.getTrackedEntity(trackedEntityB.getUid()));
-    manager.delete(trackedEntityB1);
-    assertNull(trackedEntityService.getTrackedEntity(trackedEntityA.getUid()));
-    assertNull(trackedEntityService.getTrackedEntity(trackedEntityB.getUid()));
-  }
-
-  @Test
   void testDeleteTrackedEntityAndLinkedEnrollmentsAndEvents() throws NotFoundException {
     manager.save(trackedEntityA1);
     manager.save(enrollment);
@@ -207,51 +183,16 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     trackedEntityA1.setEnrollments(Set.of(enrollment));
     manager.update(enrollment);
     manager.update(trackedEntityA1);
-    TrackedEntity trackedEntityA = trackedEntityService.getTrackedEntity(trackedEntityA1.getUid());
+    TrackedEntity trackedEntityA = manager.get(TrackedEntity.class, trackedEntityA1.getUid());
     Enrollment psA = manager.get(Enrollment.class, enrollment.getUid());
     Event eventA = manager.get(Event.class, eventIdA);
     assertNotNull(trackedEntityA);
     assertNotNull(psA);
     assertNotNull(eventA);
     trackerObjectDeletionService.deleteTrackedEntities(List.of(trackedEntityA.getUid()));
-    assertNull(trackedEntityService.getTrackedEntity(trackedEntityA.getUid()));
+    assertNull(manager.get(TrackedEntity.class, trackedEntityA.getUid()));
     assertNull(manager.get(Enrollment.class, enrollment.getUid()));
     assertNull(manager.get(Event.class, eventIdA));
-  }
-
-  @Test
-  void testUpdateTrackedEntity() {
-    manager.save(trackedEntityA1);
-    assertNotNull(trackedEntityService.getTrackedEntity(trackedEntityA1.getUid()));
-    trackedEntityA1.setName("B");
-    manager.update(trackedEntityA1);
-    assertEquals("B", trackedEntityService.getTrackedEntity(trackedEntityA1.getUid()).getName());
-  }
-
-  @Test
-  void testGetTrackedEntityById() {
-    manager.save(trackedEntityA1);
-    manager.save(trackedEntityB1);
-    assertEquals(trackedEntityA1, trackedEntityService.getTrackedEntity(trackedEntityA1.getUid()));
-    assertEquals(trackedEntityB1, trackedEntityService.getTrackedEntity(trackedEntityB1.getUid()));
-  }
-
-  @Test
-  void testGetTrackedEntityByUid() {
-    trackedEntityA1.setUid("A1");
-    trackedEntityB1.setUid("B1");
-    manager.save(trackedEntityA1);
-    manager.save(trackedEntityB1);
-    assertEquals(trackedEntityA1, trackedEntityService.getTrackedEntity("A1"));
-    assertEquals(trackedEntityB1, trackedEntityService.getTrackedEntity("B1"));
-  }
-
-  @Test
-  void testStoredByColumnForTrackedEntity() {
-    trackedEntityA1.setStoredBy("test");
-    manager.save(trackedEntityA1);
-    TrackedEntity trackedEntity = trackedEntityService.getTrackedEntity(trackedEntityA1.getUid());
-    assertEquals("test", trackedEntity.getStoredBy());
   }
 
   @Test
