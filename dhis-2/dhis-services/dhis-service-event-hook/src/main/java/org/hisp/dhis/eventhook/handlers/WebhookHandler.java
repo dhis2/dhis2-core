@@ -28,8 +28,6 @@
 package org.hisp.dhis.eventhook.handlers;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.hisp.dhis.eventhook.Event;
 import org.hisp.dhis.eventhook.EventHook;
 import org.hisp.dhis.eventhook.Handler;

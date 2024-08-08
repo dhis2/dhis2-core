@@ -174,7 +174,7 @@
     <jts.version>1.19.0</jts.version>
 
     <!-- Apache Artemis -->
-    <artemis.version>2.35.0</artemis.version>
+    <artemis-jakarta.version>2.36.0</artemis-jakarta.version>
     <netty-all.version>4.1.111.Final</netty-all.version>
     <classgraph.version>4.8.174</classgraph.version>
 
@@ -208,7 +208,8 @@
     <commons-jexl.version>2.1.1</commons-jexl.version>
     <commons-email.version>1.6.0</commons-email.version>
     <httpcomponents-core.version>4.4.16</httpcomponents-core.version>
-    <httpcomponents-client.version>4.5.14</httpcomponents-client.version>
+    <httpcomponents-client5.version>5.3.1</httpcomponents-client5.version>
+
     <kafka.version>3.7.1</kafka.version>
 
     <!-- Monitoring -->
@@ -952,9 +953,9 @@
         </exclusions>
       </dependency>
       <dependency>
-        <groupId>org.apache.httpcomponents</groupId>
-        <artifactId>httpclient</artifactId>
-        <version>${httpcomponents-client.version}</version>
+        <groupId>org.apache.httpcomponents.client5</groupId>
+        <artifactId>httpclient5</artifactId>
+        <version>${httpcomponents-client5.version}</version>
         <exclusions>
           <exclusion>
             <groupId>commons-logging</groupId>
@@ -1414,8 +1415,8 @@
       </dependency>
       <dependency>
         <groupId>org.apache.activemq</groupId>
-        <artifactId>artemis-jms-client</artifactId>
-        <version>${artemis.version}</version>
+        <artifactId>artemis-jakarta-client</artifactId>
+        <version>${artemis-jakarta.version}</version>
         <exclusions>
           <exclusion>
             <groupId>jakarta.jms</groupId>
@@ -1425,8 +1426,8 @@
       </dependency>
       <dependency>
         <groupId>org.apache.activemq</groupId>
-        <artifactId>artemis-server</artifactId>
-        <version>${artemis.version}</version>
+        <artifactId>artemis-jakarta-server</artifactId>
+        <version>${artemis-jakarta.version}</version>
         <exclusions>
           <exclusion>
             <groupId>io.netty</groupId>
