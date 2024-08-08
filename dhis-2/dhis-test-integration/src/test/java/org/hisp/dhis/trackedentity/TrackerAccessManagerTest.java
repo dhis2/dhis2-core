@@ -250,8 +250,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void checkAccessPermissionForEnrollmentInClosedProgram()
-      throws ForbiddenException, NotFoundException, BadRequestException {
+  void checkAccessPermissionForEnrollmentInClosedProgram() {
     programA.setPublicAccess(AccessStringHelper.FULL);
     manager.update(programA);
     trackedEntityType.setPublicAccess(AccessStringHelper.FULL);
@@ -294,8 +293,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void checkAccessPermissionForEnrollmentWhenOrgUnitIsNull()
-      throws ForbiddenException, NotFoundException, BadRequestException {
+  void checkAccessPermissionForEnrollmentWhenOrgUnitIsNull() {
     programA.setPublicAccess(AccessStringHelper.FULL);
     programA.setProgramType(ProgramType.WITHOUT_REGISTRATION);
     manager.update(programA);

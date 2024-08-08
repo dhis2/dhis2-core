@@ -40,7 +40,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -232,7 +231,7 @@ class OperationsParamsValidatorTest {
 
   @Test
   void shouldReturnTrackedEntityWhenTrackedEntityUidExists()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     when(manager.get(TrackedEntity.class, TRACKED_ENTITY_UID)).thenReturn(trackedEntity);
 
     assertEquals(
@@ -255,7 +254,7 @@ class OperationsParamsValidatorTest {
 
   @Test
   void shouldReturnTrackedEntityWhenUserHasAccessToTrackedEntity()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     User user = new User();
     TrackedEntityType trackedEntityType = new TrackedEntityType("trackedEntityType", "");
     trackedEntity.setTrackedEntityType(trackedEntityType);
@@ -266,8 +265,7 @@ class OperationsParamsValidatorTest {
   }
 
   @Test
-  void shouldThrowForbiddenExceptionWhenUserHasNoAccessToTrackedEntity()
-      throws ForbiddenException, NotFoundException, BadRequestException {
+  void shouldThrowForbiddenExceptionWhenUserHasNoAccessToTrackedEntity() {
     User user = new User();
     TrackedEntityType trackedEntityType = new TrackedEntityType("trackedEntityType", "");
     trackedEntity.setTrackedEntityType(trackedEntityType);
