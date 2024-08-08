@@ -25,15 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.hibernate.exception;
+package org.hisp.dhis.appmanager;
 
-import org.springframework.security.access.AccessDeniedException;
+import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
+import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
+import org.hisp.dhis.datastore.DatastoreService;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * The main purpose (so far) of the {@link CaptureApp} component is to establish the protected
+ * {@link #NAMESPACE} in the {@link DatastoreService} so that only the app can write to it using a
+ * role having the {@link #AUTHORITY}.
  */
-public class CreateAccessDeniedException extends AccessDeniedException {
-  public CreateAccessDeniedException(String msg) {
-    super(msg);
+@Component
+public class CaptureApp {
+  public static final String NAMESPACE = "capture";
+
+  public static final String AUTHORITY = "F_CAPTURE_DATASTORE_UPDATE";
+
+  public CaptureApp(DatastoreService service) {
+    service.addProtection(
+        new DatastoreNamespaceProtection(
+            NAMESPACE, ProtectionType.NONE, ProtectionType.RESTRICTED, AUTHORITY));
   }
 }
