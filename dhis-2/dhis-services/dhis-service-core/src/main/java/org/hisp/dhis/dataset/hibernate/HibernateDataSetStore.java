@@ -30,11 +30,11 @@ package org.hisp.dhis.dataset.hibernate;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.collect.Lists;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import java.util.Collection;
 import java.util.List;
 import javax.annotation.Nonnull;
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;

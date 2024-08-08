@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.security.utils;
 
+import jakarta.crypto.SecretKey;
+import jakarta.crypto.spec.SecretKeySpec;
 import java.math.BigInteger;
 import java.security.KeyFactory;
 import java.security.KeyPair;
@@ -42,8 +44,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>

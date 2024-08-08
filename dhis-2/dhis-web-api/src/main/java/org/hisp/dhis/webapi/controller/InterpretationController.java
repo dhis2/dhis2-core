@@ -32,12 +32,12 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import com.google.common.collect.Lists;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;

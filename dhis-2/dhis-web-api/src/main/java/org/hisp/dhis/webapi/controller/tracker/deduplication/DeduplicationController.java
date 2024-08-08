@@ -30,9 +30,9 @@ package org.hisp.dhis.webapi.controller.tracker.deduplication;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.Optional;
-import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;

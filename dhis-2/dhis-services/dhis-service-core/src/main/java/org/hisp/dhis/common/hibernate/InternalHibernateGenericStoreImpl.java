@@ -29,16 +29,16 @@ package org.hisp.dhis.common.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hisp.dhis.common.BaseIdentifiableObject;

@@ -32,11 +32,11 @@ import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.hisp.dhis.test.web.WebClientUtils.failOnException;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 
+import jakarta.servlet.http.Cookie;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
-import javax.servlet.http.Cookie;
 import lombok.Getter;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;

@@ -33,6 +33,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
 import com.google.common.collect.Sets;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
@@ -40,7 +41,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;

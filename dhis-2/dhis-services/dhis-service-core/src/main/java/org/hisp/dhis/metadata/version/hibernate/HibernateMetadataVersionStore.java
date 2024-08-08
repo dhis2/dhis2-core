@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.metadata.version.hibernate;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import java.util.Date;
 import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionStore;

@@ -39,9 +39,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import jakarta.persistence.EntityManager;
 import java.io.File;
 import java.util.Map;
-import javax.persistence.EntityManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.fileresource.events.FileDeletedEvent;
 import org.hisp.dhis.fileresource.events.FileSavedEvent;

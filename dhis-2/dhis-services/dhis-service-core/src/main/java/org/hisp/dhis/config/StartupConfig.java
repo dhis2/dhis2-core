@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.config;
 
-import javax.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityManagerFactory;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataelement.DataElementDefaultDimensionPopulator;

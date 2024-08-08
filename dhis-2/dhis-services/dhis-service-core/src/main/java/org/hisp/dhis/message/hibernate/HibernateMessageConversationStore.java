@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.message.hibernate;
 
+import jakarta.persistence.EntityManager;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.persistence.EntityManager;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.message.Message;

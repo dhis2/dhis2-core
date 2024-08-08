@@ -32,9 +32,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;

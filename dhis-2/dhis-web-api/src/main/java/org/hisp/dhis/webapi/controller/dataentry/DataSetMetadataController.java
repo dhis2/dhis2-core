@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.controller.dataentry;
 import static org.hisp.dhis.webapi.utils.ContextUtils.getEtag;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;

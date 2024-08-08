@@ -32,10 +32,10 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Date;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.j2ee.servlets.BaseHttpServlet;
 import net.sf.jasperreports.j2ee.servlets.ImageServlet;

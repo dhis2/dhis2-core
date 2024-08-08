@@ -33,7 +33,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.cache;
 
-import javax.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityManagerFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SessionFactory;
 import org.hibernate.stat.Statistics;

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.utils;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 public class HeaderUtils {
   public static final String X_CONTENT_TYPE_OPTIONS_VALUE = "nosniff";

@@ -32,6 +32,7 @@ import static java.util.stream.Collectors.toSet;
 import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
 
 import com.vladmihalcea.hibernate.type.array.StringArrayType;
+import jakarta.persistence.EntityManager;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -39,7 +40,6 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;

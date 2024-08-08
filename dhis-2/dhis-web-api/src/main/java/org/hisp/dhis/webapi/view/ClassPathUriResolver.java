@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.webapi.view;
 
+import jakarta.xml.transform.Source;
+import jakarta.xml.transform.TransformerException;
+import jakarta.xml.transform.URIResolver;
+import jakarta.xml.transform.stream.StreamSource;
 import java.io.IOException;
-import javax.xml.transform.Source;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.URIResolver;
-import javax.xml.transform.stream.StreamSource;
 import org.springframework.core.io.ClassPathResource;
 
 /**

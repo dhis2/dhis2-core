@@ -35,13 +35,13 @@ import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
-import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.dimension.AnalyticsDimensionService;
 import org.hisp.dhis.common.BaseDimensionalItemObject;

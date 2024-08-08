@@ -28,12 +28,12 @@
 package org.hisp.dhis.merge.dataelement;
 
 import com.google.common.collect.ImmutableList;
+import jakarta.persistence.EntityManager;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
-import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;

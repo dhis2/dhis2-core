@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.Optional;
-import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.feedback.BadRequestException;

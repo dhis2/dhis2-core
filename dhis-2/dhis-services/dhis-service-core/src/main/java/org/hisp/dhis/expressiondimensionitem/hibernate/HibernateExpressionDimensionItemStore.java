@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.expressiondimensionitem.hibernate;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.security.acl.AclService;

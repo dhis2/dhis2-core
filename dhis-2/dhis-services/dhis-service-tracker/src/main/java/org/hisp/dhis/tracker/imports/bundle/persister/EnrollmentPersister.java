@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
+import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import javax.persistence.EntityManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;

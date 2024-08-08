@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 import static org.hisp.dhis.webapi.utils.HeaderUtils.X_CONTENT_TYPE_OPTIONS_VALUE;
 import static org.hisp.dhis.webapi.utils.HeaderUtils.X_XSS_PROTECTION_VALUE;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;

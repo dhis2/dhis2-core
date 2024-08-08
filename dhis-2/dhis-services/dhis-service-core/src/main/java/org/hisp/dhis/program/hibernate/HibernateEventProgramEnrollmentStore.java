@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.program.hibernate;
 
+import jakarta.persistence.EntityManager;
 import java.util.List;
-import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
 import org.hisp.dhis.program.Enrollment;

@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.category.hibernate;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryStore;
 import org.hisp.dhis.common.DataDimensionType;

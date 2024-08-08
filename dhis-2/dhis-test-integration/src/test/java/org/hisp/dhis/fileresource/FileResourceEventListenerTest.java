@@ -34,10 +34,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import jakarta.persistence.EntityManager;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
-import javax.persistence.EntityManager;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
 import org.hisp.dhis.fileresource.hibernate.HibernateFileResourceStore;

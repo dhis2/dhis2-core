@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.filter;
 
-import javax.servlet.Filter;
+import jakarta.servlet.Filter;
 import org.hisp.dhis.condition.RedisDisabledCondition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;

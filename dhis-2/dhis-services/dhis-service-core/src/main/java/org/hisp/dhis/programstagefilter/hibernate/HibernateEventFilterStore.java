@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.programstagefilter.hibernate;
 
+import jakarta.persistence.EntityManager;
 import java.util.List;
-import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.programstagefilter.EventFilter;
 import org.hisp.dhis.programstagefilter.EventFilterStore;

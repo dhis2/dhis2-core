@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.webapi.security.config;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import javax.servlet.http.HttpServletRequest;
 import javax.sql.DataSource;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;

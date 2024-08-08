@@ -47,7 +47,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.activemq</groupId>
-      <artifactId>artemis-server</artifactId>
+      <artifactId>artemis-jakarta-server</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.geronimo.specs</groupId>
@@ -55,7 +55,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.activemq</groupId>
-      <artifactId>artemis-jms-client</artifactId>
+      <artifactId>artemis-jakarta-client</artifactId>
     </dependency>
 
     <dependency>
@@ -72,7 +72,7 @@
     </dependency>
     <dependency>
       <groupId>org.hibernate</groupId>
-      <artifactId>hibernate-core</artifactId>
+      <artifactId>hibernate-core-jakarta</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -123,8 +123,8 @@
       <artifactId>commons-lang3</artifactId>
     </dependency>
     <dependency>
-      <groupId>javax.persistence</groupId>
-      <artifactId>javax.persistence-api</artifactId>
+      <groupId>jakarta.persistence</groupId>
+      <artifactId>jakarta.persistence-api</artifactId>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>

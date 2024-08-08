@@ -27,15 +27,15 @@
  */
 package org.hisp.dhis.webapi.filter;
 
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebFilter;
+import jakarta.servlet.annotation.WebInitParam;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.regex.Pattern;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebFilter;
-import javax.servlet.annotation.WebInitParam;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Assert;
 import org.springframework.web.filter.ShallowEtagHeaderFilter;

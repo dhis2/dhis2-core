@@ -29,6 +29,7 @@ package org.hisp.dhis.fileresource;
 
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
+import jakarta.persistence.EntityManager;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,7 +43,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;

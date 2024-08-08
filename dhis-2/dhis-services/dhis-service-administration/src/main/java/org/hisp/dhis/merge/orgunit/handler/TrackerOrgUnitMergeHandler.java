@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.merge.orgunit.handler;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;

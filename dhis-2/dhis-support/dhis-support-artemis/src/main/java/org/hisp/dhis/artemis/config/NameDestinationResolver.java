@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.artemis.config;
 
+import jakarta.jms.Destination;
+import jakarta.jms.JMSException;
+import jakarta.jms.Queue;
+import jakarta.jms.Session;
 import javax.annotation.Nonnull;
-import javax.jms.Destination;
-import javax.jms.JMSException;
-import javax.jms.Queue;
-import javax.jms.Session;
 import org.springframework.jms.support.destination.DestinationResolver;
 import org.springframework.stereotype.Component;
 

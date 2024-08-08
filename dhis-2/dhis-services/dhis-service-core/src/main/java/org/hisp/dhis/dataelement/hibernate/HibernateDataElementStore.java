@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.dataelement.hibernate;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import java.util.List;
 import java.util.function.Function;
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.ValueType;

@@ -30,14 +30,14 @@ package org.hisp.dhis.config;
 import static org.hisp.dhis.external.conf.ConfigurationKey.USE_QUERY_CACHE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.USE_SECOND_LEVEL_CACHE;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.SharedCacheMode;
+import jakarta.persistence.ValidationMode;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.SharedCacheMode;
-import javax.persistence.ValidationMode;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;

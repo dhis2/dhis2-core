@@ -32,10 +32,10 @@ import static org.hisp.dhis.security.Authorities.F_MOBILE_SENDSMS;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;

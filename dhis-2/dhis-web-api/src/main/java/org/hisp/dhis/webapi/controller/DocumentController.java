@@ -30,9 +30,9 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
-import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.common.cache.CacheStrategy;

@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.security;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.external.conf.ConfigurationKey;

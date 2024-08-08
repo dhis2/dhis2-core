@@ -29,7 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsService;
 import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
 import org.hisp.dhis.common.DhisApiVersion;

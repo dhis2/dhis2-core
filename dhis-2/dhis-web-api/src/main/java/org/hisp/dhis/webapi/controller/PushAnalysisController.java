@@ -29,8 +29,8 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DhisApiVersion;

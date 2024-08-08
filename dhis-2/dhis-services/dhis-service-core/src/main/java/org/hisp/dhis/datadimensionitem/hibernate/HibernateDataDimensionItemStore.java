@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.datadimensionitem.hibernate;
 
+import jakarta.persistence.EntityManager;
 import java.util.List;
-import javax.persistence.EntityManager;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.hibernate.HibernateGenericStore;

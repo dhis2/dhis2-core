@@ -28,11 +28,11 @@
 package org.hisp.dhis.tracker.imports.preheat.supplier.strategy;
 
 import com.google.common.collect.Lists;
+import jakarta.persistence.EntityManager;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.persistence.EntityManager;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.note.Note;

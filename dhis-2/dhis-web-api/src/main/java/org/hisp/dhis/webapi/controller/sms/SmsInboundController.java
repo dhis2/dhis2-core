@@ -34,12 +34,12 @@ import static org.hisp.dhis.security.Authorities.F_MOBILE_SENDSMS;
 import static org.hisp.dhis.security.Authorities.F_MOBILE_SETTINGS;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.common.OrderParams;

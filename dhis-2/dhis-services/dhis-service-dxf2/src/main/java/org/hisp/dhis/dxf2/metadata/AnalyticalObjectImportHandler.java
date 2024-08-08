@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.schema.Schema;

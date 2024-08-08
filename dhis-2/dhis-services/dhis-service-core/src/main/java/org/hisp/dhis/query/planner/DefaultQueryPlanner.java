@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.query.planner;
 
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.CodeGenerator;

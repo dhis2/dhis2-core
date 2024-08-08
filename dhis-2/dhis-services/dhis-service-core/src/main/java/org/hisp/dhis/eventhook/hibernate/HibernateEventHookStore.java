@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.eventhook.hibernate;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.eventhook.EventHook;
 import org.hisp.dhis.eventhook.EventHookStore;

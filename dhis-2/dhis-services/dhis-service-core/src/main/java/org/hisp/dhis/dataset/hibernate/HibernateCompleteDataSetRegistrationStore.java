@@ -29,12 +29,12 @@ package org.hisp.dhis.dataset.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
 import java.util.Date;
 import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationStore;

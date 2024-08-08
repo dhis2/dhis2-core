@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.reservedvalue.hibernate;
 
+import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.stream.IntStream;
-import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.reservedvalue.SequentialNumberCounterStore;
 import org.springframework.stereotype.Repository;

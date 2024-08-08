@@ -27,14 +27,14 @@
  */
 package org.hisp.dhis.webapi.security.apikey;
 
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenAttribute;
 import org.hisp.dhis.security.apikey.ApiTokenAuthenticationToken;

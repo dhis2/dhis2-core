@@ -31,10 +31,10 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_HIBERNATE_
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.jpa.HibernateMetrics;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceException;
 import java.util.Collections;
 import java.util.Map;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.PersistenceException;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.external.conf.ConfigurationKey;

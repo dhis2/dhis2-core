@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.period;
 
+import jakarta.persistence.EntityManagerFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import javax.persistence.EntityManagerFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SessionFactory;

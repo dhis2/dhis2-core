@@ -31,12 +31,12 @@ import static org.springframework.http.MediaType.parseMediaType;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import jakarta.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
-import javax.servlet.http.HttpServletRequest;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.DefaultRequestInfoService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;

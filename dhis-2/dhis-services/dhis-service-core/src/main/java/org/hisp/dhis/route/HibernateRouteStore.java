@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.route;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.context.ApplicationEventPublisher;

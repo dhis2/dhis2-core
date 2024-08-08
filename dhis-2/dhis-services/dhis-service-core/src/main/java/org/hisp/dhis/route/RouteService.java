@@ -31,6 +31,7 @@ import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCR
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -39,7 +40,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import javax.annotation.Nonnull;
-import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;

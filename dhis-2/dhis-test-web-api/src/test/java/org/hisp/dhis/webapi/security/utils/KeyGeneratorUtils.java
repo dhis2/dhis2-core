@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.security.utils;
 
+import jakarta.crypto.KeyGenerator;
+import jakarta.crypto.SecretKey;
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -34,8 +36,6 @@ import java.security.spec.ECFieldFp;
 import java.security.spec.ECParameterSpec;
 import java.security.spec.ECPoint;
 import java.security.spec.EllipticCurve;
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.test;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import lombok.Getter;
 import org.hisp.dhis.test.config.IntegrationTestBaseConfig;
 import org.hisp.dhis.test.config.PostgresDhisTestConfig;

@@ -34,11 +34,11 @@ import static org.hisp.dhis.security.Authorities.F_LOCALE_ADD;
 import static org.hisp.dhis.security.Authorities.F_LOCALE_DELETE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;

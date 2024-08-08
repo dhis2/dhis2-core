@@ -30,9 +30,9 @@ package org.hisp.dhis.dxf2.metadata.collection;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
 
+import jakarta.persistence.EntityManager;
 import java.util.Collection;
 import java.util.List;
-import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;

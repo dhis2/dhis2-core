@@ -28,13 +28,13 @@
 package org.hisp.dhis.webapi.service;
 
 import com.google.common.collect.Lists;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;

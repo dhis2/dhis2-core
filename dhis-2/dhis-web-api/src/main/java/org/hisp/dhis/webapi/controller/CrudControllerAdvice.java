@@ -38,6 +38,8 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import io.github.classgraph.ClassGraph;
+import jakarta.persistence.PersistenceException;
+import jakarta.servlet.ServletException;
 import java.beans.PropertyEditorSupport;
 import java.text.MessageFormat;
 import java.util.Arrays;
@@ -48,8 +50,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
-import javax.persistence.PersistenceException;
-import javax.servlet.ServletException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;

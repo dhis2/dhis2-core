@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.common;
 
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PreDestroy;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
 

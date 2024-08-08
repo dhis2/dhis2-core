@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.webapi.service;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

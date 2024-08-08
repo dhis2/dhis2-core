@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.datastatistics.hibernate;
 
+import jakarta.persistence.EntityManager;
 import java.util.Date;
 import java.util.List;
-import javax.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.datastatistics.AggregatedStatistics;

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.security;
 
-import javax.xml.bind.DatatypeConverter;
+import jakarta.xml.bind.DatatypeConverter;
 import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.security.core.Authentication;
 

@@ -33,12 +33,12 @@ import static org.hisp.dhis.setting.SettingKey.COUNT_PASSIVE_DASHBOARD_VIEWS_IN_
 import static org.hisp.dhis.system.util.SqlUtils.escape;
 import static org.hisp.dhis.util.DateUtils.asSqlDate;
 
+import jakarta.persistence.EntityManager;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import javax.persistence.EntityManager;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.datastatistics.DataStatisticsEvent;
 import org.hisp.dhis.datastatistics.DataStatisticsEventStore;

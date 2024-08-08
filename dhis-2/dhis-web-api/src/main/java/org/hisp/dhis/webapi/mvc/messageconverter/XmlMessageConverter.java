@@ -31,8 +31,8 @@ import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.XM
 import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.XML_SUPPORTED_MEDIA_TYPES;
 import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.XML_ZIP_SUPPORTED_MEDIA_TYPES;
 
+import jakarta.servlet.http.HttpServletRequest;
 import javax.annotation.Nonnull;
-import javax.servlet.http.HttpServletRequest;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;

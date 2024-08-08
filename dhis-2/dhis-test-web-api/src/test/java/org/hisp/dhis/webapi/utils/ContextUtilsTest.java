@@ -55,8 +55,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Calendar;
-import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.cache.CacheStrategy;
