@@ -91,15 +91,6 @@ class EventProgramEnrollmentServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetEnrollmentsByProgram() {
-    List<Enrollment> enrollments = eventProgramEnrollmentService.getEnrollments(programA);
-    assertContainsOnly(List.of(enrollmentA, enrollmentC), enrollments);
-
-    enrollments = eventProgramEnrollmentService.getEnrollments(programB);
-    assertContainsOnly(List.of(enrollmentB), enrollments);
-  }
-
-  @Test
   void shouldReturnEnrollmentsWhenGettingEnrollmentsOfAnEventProgram() {
     assertContainsOnly(
         List.of(eventProgramEnrollment),
@@ -107,7 +98,22 @@ class EventProgramEnrollmentServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldReturnNoEnrollmentsWhenGettingEnrollmentsOfATrackerProgram() {
+  void shouldNotReturnEnrollmentsWhenGettingEnrollmentsOfATrackerProgram() {
+    assertEquals(enrollmentA, manager.get(Enrollment.class, enrollmentA.getUid()));
+    assertEquals(enrollmentB, manager.get(Enrollment.class, enrollmentB.getUid()));
+    assertIsEmpty(eventProgramEnrollmentService.getEnrollments(programA));
+    assertIsEmpty(eventProgramEnrollmentService.getEnrollments(programB));
+  }
+
+  @Test
+  void shouldReturnEnrollmentsWhenGettingEnrollmentsOfAnEventProgramByStatus() {
+    assertContainsOnly(
+        List.of(eventProgramEnrollment),
+        eventProgramEnrollmentService.getEnrollments(eventProgram, ACTIVE));
+  }
+
+  @Test
+  void shouldReturnNoEnrollmentsWhenGettingEnrollmentsOfATrackerProgramByStatus() {
     assertEquals(enrollmentA, manager.get(Enrollment.class, enrollmentA.getUid()));
     assertIsEmpty(eventProgramEnrollmentService.getEnrollments(programA, ACTIVE));
   }

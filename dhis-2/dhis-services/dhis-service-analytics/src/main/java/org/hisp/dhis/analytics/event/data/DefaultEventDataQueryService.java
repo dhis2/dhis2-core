@@ -435,6 +435,10 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       boolean defaultCoordinateFallback) {
     List<String> coordinateFields = new ArrayList<>();
 
+    // TODO!!! remove when all fe apps stop using old names of coordinate fields
+    coordinateField = mapCoordinateField(coordinateField);
+    fallbackCoordinateField = mapCoordinateField(fallbackCoordinateField);
+
     if (coordinateField == null) {
       coordinateFields.add(StringUtils.EMPTY);
     } else if (COL_NAME_GEOMETRY_LIST.contains(coordinateField)) {
@@ -486,6 +490,29 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
   // -------------------------------------------------------------------------
   // Supportive methods
   // -------------------------------------------------------------------------
+
+  // TODO!!! remove when all fe apps stop using old names of the coordinate fields
+  /**
+   * Temporary only, should not be in 2.42 release!!! Retrieves an old name of the coordinate field.
+   *
+   * @param coordinateField a name of the coordinate field
+   * @return old name of the coordinate field.
+   */
+  private String mapCoordinateField(String coordinateField) {
+    if ("pigeometry".equalsIgnoreCase(coordinateField)) {
+      return COL_NAME_ENROLLMENT_GEOMETRY;
+    }
+
+    if ("psigeometry".equalsIgnoreCase(coordinateField)) {
+      return COL_NAME_EVENT_GEOMETRY;
+    }
+
+    if ("teigeometry".equalsIgnoreCase(coordinateField)) {
+      return COL_NAME_TRACKED_ENTITY_GEOMETRY;
+    }
+
+    return coordinateField;
+  }
 
   private QueryItem getQueryItem(
       String dimension, String filter, Program program, EventOutputType type) {
