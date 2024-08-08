@@ -48,7 +48,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -187,8 +186,7 @@ class EnrollmentSMSListenerTest extends CompressionSMSListenerTest {
   private DataElement dataElement;
 
   @BeforeEach
-  public void initTest()
-      throws SmsCompressionException, ForbiddenException, NotFoundException, BadRequestException {
+  public void initTest() throws SmsCompressionException, ForbiddenException, NotFoundException {
     subject =
         new EnrollmentSMSListener(
             incomingSmsService,
