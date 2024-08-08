@@ -579,8 +579,6 @@ final class ApiExtractor {
     if (shared == null) return defaultName;
     if (!shared.value()) return null;
     if (!shared.name().isEmpty()) return shared.name();
-    if (shared.pattern() != OpenApi.Shared.Pattern.DEFAULT)
-      return String.format(shared.pattern().getTemplate(), type.getSimpleName());
     return type.getSimpleName();
   }
 
