@@ -38,6 +38,7 @@ import java.util.function.Function;
 import lombok.Getter;
 import lombok.Setter;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.jsontree.Json;
 import org.junit.jupiter.api.Test;
 
 class PropertyTest {
@@ -105,8 +106,8 @@ class PropertyTest {
         Property.getProperties(DefaultProperty.class).stream()
             .collect(toMap(Property::getName, Function.identity()));
     assertEquals(3, properties.size());
-    assertEquals("hello", properties.get("initial").getDefaultValue());
-    assertEquals("42", properties.get("annotated").getDefaultValue());
-    assertEquals("true", properties.get("annotatedOpenApi").getDefaultValue());
+    assertEquals(Json.of("hello"), properties.get("initial").getDefaultValue());
+    assertEquals(Json.of(42), properties.get("annotated").getDefaultValue());
+    assertEquals(Json.of(true), properties.get("annotatedOpenApi").getDefaultValue());
   }
 }

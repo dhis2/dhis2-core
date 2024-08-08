@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.view;
 
-import static org.hisp.dhis.common.OpenApi.Shared.Pattern.TRACKER;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -40,7 +38,7 @@ import org.hisp.dhis.common.UID;
 /**
  * @author Enrico Colasante
  */
-@OpenApi.Shared(pattern = TRACKER)
+@OpenApi.Shared(name = "TrackerUser")
 @OpenApi.Identifiable(as = org.hisp.dhis.user.User.class)
 @Data
 @Builder

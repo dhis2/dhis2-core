@@ -234,14 +234,14 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   @Nonnull
   @Override
   @Transactional(readOnly = true)
-  public List<JsonObject> findJobRunErrors(@Nonnull JobRunErrorsParams params) {
+  public List<JobRunErrors> findJobRunErrors(@Nonnull JobRunErrorsParams params) {
     return jobConfigurationStore
         .findJobRunErrors(params)
         .map(json -> errorEntryWithMessages(json, params))
         .toList();
   }
 
-  private JsonObject errorEntryWithMessages(String json, JobRunErrorsParams params) {
+  private JobRunErrors errorEntryWithMessages(String json, JobRunErrorsParams params) {
     JsonObject entry = JsonMixed.of(json);
     List<JsonNode> flatErrors = new ArrayList<>();
     JobType type = entry.getString("type").parsed(JobType::valueOf);
@@ -267,13 +267,14 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
                                 .forEach(error -> flatErrors.add(errorWithMessage(type, error)))));
 
     return JsonMixed.of(
-        errors
-            .node()
-            .replaceWith(createArray(arr -> flatErrors.forEach(arr::addElement)))
-            .addMembers(
-                obj ->
-                    obj.addString("codes", errorCodeNamespace)
-                        .addMember("input", getJobInput(params, fileResourceId))));
+            errors
+                .node()
+                .replaceWith(createArray(arr -> flatErrors.forEach(arr::addElement)))
+                .addMembers(
+                    obj ->
+                        obj.addString("codes", errorCodeNamespace)
+                            .addMember("input", getJobInput(params, fileResourceId))))
+        .as(JobRunErrors.class);
   }
 
   private JsonNode getJobInput(JobRunErrorsParams params, String fileResourceId) {

@@ -75,6 +75,10 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Document.Group;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.jsontree.Json;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonMap;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.webapi.openapi.Api.Parameter.In;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.springframework.http.HttpStatus;
@@ -464,7 +468,7 @@ final class ApiExtractor {
         RequestParam a = p.getAnnotation(RequestParam.class);
         String name = firstNonEmpty(a.name(), a.value(), p.getName());
         parameters.computeIfAbsent(
-            name, key -> newQueryParameter(endpoint, p, key, getParameterDetails(a)));
+            name, key -> newQueryParameter(endpoint, p, key, getParameterDetails(a, p)));
       } else if (p.isAnnotationPresent(RequestBody.class)) {
         RequestBody a = p.getAnnotation(RequestBody.class);
         Api.RequestBody requestBody =
@@ -575,13 +579,11 @@ final class ApiExtractor {
     if (shared == null) return defaultName;
     if (!shared.value()) return null;
     if (!shared.name().isEmpty()) return shared.name();
-    if (shared.pattern() != OpenApi.Shared.Pattern.DEFAULT)
-      return String.format(shared.pattern().getTemplate(), type.getSimpleName());
     return type.getSimpleName();
   }
 
   private static Api.Parameter extractParameter(Api.Endpoint endpoint, Property property) {
-    AnnotatedElement source = (AnnotatedElement) property.getSource();
+    AnnotatedElement source = property.getSource();
     Type type = property.getType();
     OpenApi.Property annotated = source.getAnnotation(OpenApi.Property.class);
     Api.Schema schema =
@@ -593,8 +595,8 @@ final class ApiExtractor {
     Api.Parameter param =
         new Api.Parameter(
             source, property.getName(), In.QUERY, false, schema, deprecated, maturity);
-    Object defaultValue = property.getDefaultValue();
-    if (defaultValue != null) param.getDefaultValue().setValue(defaultValue.toString());
+    JsonValue defaultValue = property.getDefaultValue();
+    if (defaultValue != null) param.getDefaultValue().setValue(defaultValue);
     param
         .getDescription()
         .setValue(extractDescription(source, type instanceof Class<?> c ? c : null));
@@ -682,6 +684,7 @@ final class ApiExtractor {
    */
   private static Api.Schema extractClassSchema(Api.Endpoint endpoint, Class<?> type) {
     Api api = endpoint.getIn().getIn();
+    // TODO aren't shared class types constant, hence can be cached in a static map?
     Api.Schema s = api.getSchemas().get(type);
     if (s != null) {
       return s;
@@ -723,23 +726,25 @@ final class ApiExtractor {
     for (Property p : properties) {
       Function<Api.Schema, Api.Property> toProperty =
           t -> new Api.Property(getPropertyName(endpoint, p), p.getRequired(), t);
-      schema.addProperty(extractObjectProperty(endpoint, p, toProperty));
+      Api.Property property = extractObjectProperty(endpoint, p, toProperty);
+      property.getDescription().setValue(extractDescription(p.getSource()));
+      schema.addProperty(property);
     }
     return schema;
   }
 
   private static Api.Property extractObjectProperty(
       Api.Endpoint endpoint, Property property, Function<Api.Schema, Api.Property> toProperty) {
-    AnnotatedElement member = (AnnotatedElement) property.getSource();
-    if (member.isAnnotationPresent(JsonSubTypes.class)) {
-      return toProperty.apply(extractSubTypeSchema(endpoint, member));
+    AnnotatedElement source = property.getSource();
+    if (source.isAnnotationPresent(JsonSubTypes.class)) {
+      return toProperty.apply(extractSubTypeSchema(endpoint, source));
     }
-    Type type = getSubstitutedType(endpoint, property, member);
-    OpenApi.Property annotated = member.getAnnotation(OpenApi.Property.class);
+    Type type = getSubstitutedType(endpoint, property, source);
+    OpenApi.Property annotated = source.getAnnotation(OpenApi.Property.class);
     if (type instanceof Class && isGeneratorType((Class<?>) type) && annotated != null) {
       return toProperty.apply(extractGeneratorSchema(endpoint, type, annotated.value()));
     }
-    JsonSerialize serialize = member.getAnnotation(JsonSerialize.class);
+    JsonSerialize serialize = source.getAnnotation(JsonSerialize.class);
     if (serialize != null && serialize.as() != Void.class) {
       Class<?> as = serialize.as();
       Api.Property res = toProperty.apply(extractClassSchema(endpoint, as));
@@ -779,13 +784,16 @@ final class ApiExtractor {
       }
       Type typeArg0 = pt.getActualTypeArguments()[0];
       if (Collection.class.isAssignableFrom(rawType) && rawType.isInterface()
-          || rawType == Iterable.class) {
+          || rawType == Iterable.class
+          || rawType == Stream.class
+          || rawType == JsonList.class) {
         if (typeArg0 instanceof Class<?>)
           return extractTypeSchema(endpoint, Array.newInstance((Class<?>) typeArg0, 0).getClass());
         return Api.Schema.ofArray(source, rawType)
             .withElements(extractTypeSchema(endpoint, typeArg0));
       }
-      if (Map.class.isAssignableFrom(rawType) && rawType.isInterface()) {
+      if (Map.class.isAssignableFrom(rawType) && rawType.isInterface()
+          || rawType == JsonMap.class) {
         return Api.Schema.ofObject(source, rawType)
             .withEntries(
                 extractTypeSchema(endpoint, typeArg0),
@@ -945,7 +953,7 @@ final class ApiExtractor {
     if (source.isAnnotationPresent(PathVariable.class))
       return getParameterDetails(source.getAnnotation(PathVariable.class));
     if (source.isAnnotationPresent(RequestParam.class))
-      return getParameterDetails(source.getAnnotation(RequestParam.class));
+      return getParameterDetails(source.getAnnotation(RequestParam.class), source);
     if (source.isAnnotationPresent(RequestBody.class))
       return getParameterDetails(source.getAnnotation(RequestBody.class));
     return null;
@@ -957,8 +965,9 @@ final class ApiExtractor {
     String name = firstNonEmpty(a.name(), details == null ? "" : details.name(), source.getName());
     Api.Parameter.In in = details == null ? Api.Parameter.In.QUERY : details.in();
     boolean required = details == null ? a.required() : details.required();
-    String fallbackDefaultValue = details != null ? details.defaultValue() : null;
-    String defaultValue = !a.defaultValue().isEmpty() ? a.defaultValue() : fallbackDefaultValue;
+    JsonValue fallbackDefaultValue = details != null ? details.defaultValue() : null;
+    JsonValue defaultValue =
+        !a.defaultValue().isEmpty() ? JsonValue.of(a.defaultValue()) : fallbackDefaultValue;
     return new ParameterDetails(in, name, required, defaultValue);
   }
 
@@ -973,10 +982,14 @@ final class ApiExtractor {
   }
 
   @Nonnull
-  private static ParameterDetails getParameterDetails(RequestParam a) {
+  private static ParameterDetails getParameterDetails(RequestParam a, Parameter p) {
     boolean hasDefault = !a.defaultValue().equals("\n\t\t\n\t\t\n\ue000\ue001\ue002\n\t\t\t\t\n");
     boolean required = a.required() && !hasDefault;
-    String defaultValue = hasDefault ? a.defaultValue() : null;
+    String javaDefaultValue = hasDefault ? a.defaultValue() : null;
+    Class<?> type = p.getType();
+    JsonValue defaultValue = Json.of(javaDefaultValue);
+    if ((type.isPrimitive() || type == Boolean.class || Number.class.isAssignableFrom(type))
+        && type != char.class) defaultValue = JsonValue.of(javaDefaultValue);
     return new ParameterDetails(
         In.QUERY, firstNonEmpty(a.name(), a.value()), required, defaultValue);
   }
@@ -1046,5 +1059,5 @@ final class ApiExtractor {
   }
 
   record ParameterDetails(
-      Api.Parameter.In in, String name, boolean required, String defaultValue) {}
+      Api.Parameter.In in, String name, boolean required, JsonValue defaultValue) {}
 }

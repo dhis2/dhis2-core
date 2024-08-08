@@ -227,8 +227,6 @@ public class OpenApiTool implements ToolProvider {
     if (type.isAnnotationPresent(OpenApi.Shared.class)) {
       OpenApi.Shared shared = type.getAnnotation(OpenApi.Shared.class);
       if (!shared.name().isEmpty()) return shared.name();
-      if (shared.pattern() != OpenApi.Shared.Pattern.DEFAULT)
-        return shared.pattern().getTemplate().formatted(type.getSimpleName());
     }
     return type.getSimpleName();
   }

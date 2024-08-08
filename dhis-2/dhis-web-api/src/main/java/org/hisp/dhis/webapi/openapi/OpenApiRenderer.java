@@ -952,11 +952,11 @@ public class OpenApiRenderer {
             appendSpan(
                 c.stream()
                     .limit(maxSize)
-                    .map(Object::toString)
+                    .map(e -> escapeHtml(e.toString()))
                     .collect(joining("</span>, <span>")));
             if (c.size() > maxSize) appendRaw("...");
           } else {
-            appendSpan(val.toString());
+            appendSpan(escapeHtml(val.toString()));
           }
         });
   }
@@ -1252,8 +1252,10 @@ public class OpenApiRenderer {
 
   private void renderSchemaDetails(
       SchemaObject schema, boolean isDeclaration, boolean skipDefault) {
-    if (schema.isRef() || (!isDeclaration && schema.isShared()))
+    if (schema.isRef() || (!isDeclaration && schema.isShared())) {
+      appendTag("header", markdownToHTML(schema.description(), Set.of()));
       return; // summary already gave all that is needed
+    }
     if (schema.isFlat()) return;
     if (schema.$type() != null) {
       Set<String> names =

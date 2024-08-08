@@ -37,6 +37,8 @@ import java.util.function.UnaryOperator;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
+import org.hisp.dhis.jsontree.JsonString;
+import org.hisp.dhis.jsontree.JsonValue;
 
 /**
  * A utility to generate JSON based on simple {@link Runnable} callbacks for nesting of arrays and
@@ -316,6 +318,16 @@ public class JsonGenerator {
     appendMemberName(name);
     out.append(value);
     appendMemberSeparator();
+  }
+
+  final void addRawMember(String name, JsonValue value) {
+    if (value != null
+        && !value.isNull()
+        && !(value.isString() && value.as(JsonString.class).string("").isEmpty())) {
+      appendMemberName(name);
+      out.append(value.toJson());
+      appendMemberSeparator();
+    }
   }
 
   private void appendItems(Runnable items) {
