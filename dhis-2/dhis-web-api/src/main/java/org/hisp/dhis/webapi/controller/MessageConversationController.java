@@ -60,7 +60,6 @@ import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.message.Message;
 import org.hisp.dhis.message.MessageConversationPriority;
 import org.hisp.dhis.message.MessageConversationStatus;
@@ -93,7 +92,6 @@ import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -150,7 +148,6 @@ public class MessageConversationController
       HttpServletRequest request,
       HttpServletResponse response)
       throws ForbiddenException, NotFoundException {
-
     org.hisp.dhis.message.MessageConversation messageConversation =
         messageService.getMessageConversation(uid);
 
@@ -165,7 +162,7 @@ public class MessageConversationController
     }
 
     if (!canReadMessageConversation(currentUser, messageConversation)) {
-      throw new AccessDeniedException("Not authorized to access this conversation.");
+      throw new ForbiddenException("Not authorized to access this conversation.");
     }
 
     return super.getObject(uid, rpParameters, currentUser, request, response);
@@ -378,7 +375,7 @@ public class MessageConversationController
     }
 
     if (internal && !messageService.hasAccessToManageFeedbackMessages(currentUser)) {
-      throw new AccessDeniedException("Not authorized to send internal messages");
+      throw new ForbiddenException("Not authorized to send internal messages");
     }
 
     if (!hasAccessToMessageConversation(currentUser, conversation)) {
@@ -713,7 +710,8 @@ public class MessageConversationController
       @RequestParam(value = "user", required = false) String userUid,
       @RequestBody List<String> uids,
       HttpServletResponse response,
-      @CurrentUser UserDetails currentUser) {
+      @CurrentUser UserDetails currentUser)
+      throws ForbiddenException {
     RootNode responseNode = new RootNode("response");
 
     User user =
@@ -739,7 +737,7 @@ public class MessageConversationController
 
     for (org.hisp.dhis.message.MessageConversation messageConversation : messageConversations) {
       if (!hasAccessToMessageConversation(currentUser, messageConversation)) {
-        throw new AccessDeniedException("Not authorized to change followups in this conversation.");
+        throw new ForbiddenException("Not authorized to change followups in this conversation.");
       }
     }
 
@@ -866,7 +864,7 @@ public class MessageConversationController
       @PathVariable(value = "user-uid") String userUid,
       @CurrentUser UserDetails currentUser,
       HttpServletResponse response)
-      throws DeleteAccessDeniedException, ForbiddenException {
+      throws ForbiddenException {
     RootNode responseNode = new RootNode("reply");
 
     User user = userService.getUser(userUid);
@@ -912,7 +910,7 @@ public class MessageConversationController
       @RequestParam(value = "user", required = false) String userUid,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
-      throws DeleteAccessDeniedException, ForbiddenException {
+      throws ForbiddenException {
     RootNode responseNode = new RootNode("response");
 
     User user =
@@ -1068,6 +1066,7 @@ public class MessageConversationController
     marked.setWrapping(false);
 
     for (org.hisp.dhis.message.MessageConversation conversation : messageConversations) {
+
       boolean success = (readValue ? conversation.markRead(user) : conversation.markUnread(user));
       if (success) {
         messageService.updateMessageConversation(conversation);

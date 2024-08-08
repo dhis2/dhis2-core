@@ -40,8 +40,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.common.HashUtils;
-import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
-import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -163,7 +162,7 @@ class ApiTokenServiceImplTest extends PostgresIntegrationTestBase {
     assertEquals(tokenB.getKey(), tokenA.getKey());
     tokenB.addIpToAllowedList("1.1.1.1");
     switchToOtherUser();
-    assertThrows(UpdateAccessDeniedException.class, () -> apiTokenService.update(tokenB));
+    assertThrows(ForbiddenException.class, () -> apiTokenService.update(tokenB));
   }
 
   @Test
@@ -181,7 +180,7 @@ class ApiTokenServiceImplTest extends PostgresIntegrationTestBase {
     final ApiToken tokenB = apiTokenService.getByKey(tokenA.getKey());
     assertEquals(tokenB.getKey(), tokenA.getKey());
     switchToOtherUser();
-    assertThrows(DeleteAccessDeniedException.class, () -> apiTokenService.delete(tokenB));
+    assertThrows(ForbiddenException.class, () -> apiTokenService.delete(tokenB));
   }
 
   private void switchToOtherUser() {

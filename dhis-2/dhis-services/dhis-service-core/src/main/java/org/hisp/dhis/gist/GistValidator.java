@@ -38,11 +38,11 @@ import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.gist.GistQuery.Owner;
-import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.RelativePropertyContext;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
+import org.springframework.security.access.AccessDeniedException;
 
 /**
  * Validates a {@link GistQuery} for consistency and access restrictions.
@@ -74,7 +74,7 @@ final class GistValidator {
       return;
     }
     if (!access.canReadObject(owner.getType(), owner.getId())) {
-      throw new ReadAccessDeniedException(
+      throw new AccessDeniedException(
           String.format(
               "User not allowed to view %s %s", owner.getType().getSimpleName(), owner.getId()));
     }
@@ -216,7 +216,7 @@ final class GistValidator {
         }
       }
       if (!access.canFilterByAccessOfUser(ids[0])) {
-        throw new ReadAccessDeniedException(
+        throw new AccessDeniedException(
             String.format(
                 "Filtering by user access in filter `%s` requires permissions to manage the user %s.",
                 f, ids[0]));
@@ -257,13 +257,13 @@ final class GistValidator {
     return new IllegalArgumentException(String.format(message, filter.toString()));
   }
 
-  private ReadAccessDeniedException createNoReadAccess(
+  private AccessDeniedException createNoReadAccess(
       Field field, Class<? extends PrimaryKeyObject> ownerType) {
     if (ownerType == null) {
-      return new ReadAccessDeniedException(
+      return new AccessDeniedException(
           String.format("Property `%s` is not readable.", field.getPropertyPath()));
     }
-    return new ReadAccessDeniedException(
+    return new AccessDeniedException(
         String.format(
             "Field `%s` is not readable as user is not allowed to view objects of type %s.",
             field.getPropertyPath(), ownerType.getSimpleName()));
