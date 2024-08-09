@@ -37,7 +37,7 @@ import java.io.IOException;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
-import org.hisp.dhis.test.config.MinIOConfiguration;
+import org.hisp.dhis.test.config.MinIOTestConfig;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -52,7 +52,7 @@ import org.springframework.test.context.ContextConfiguration;
  * Test class configured for use cases when DHIS2 is configured to use MinIO storage. The default
  * storage is the local filesystem.
  */
-@ContextConfiguration(classes = {MinIOConfiguration.class})
+@ContextConfiguration(classes = {MinIOTestConfig.class})
 class AppManagerTest extends PostgresIntegrationTestBase {
 
   @Autowired AppManager appManager;

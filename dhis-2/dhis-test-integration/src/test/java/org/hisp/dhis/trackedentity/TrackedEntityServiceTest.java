@@ -206,7 +206,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     enrollment.setEvents(Set.of(event));
     trackedEntityA1.setEnrollments(Set.of(enrollment));
     manager.update(enrollment);
-    trackedEntityService.updateTrackedEntity(trackedEntityA1);
+    manager.update(trackedEntityA1);
     TrackedEntity trackedEntityA = trackedEntityService.getTrackedEntity(trackedEntityA1.getUid());
     Enrollment psA = manager.get(Enrollment.class, enrollment.getUid());
     Event eventA = manager.get(Event.class, eventIdA);
@@ -224,7 +224,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     manager.save(trackedEntityA1);
     assertNotNull(trackedEntityService.getTrackedEntity(trackedEntityA1.getUid()));
     trackedEntityA1.setName("B");
-    trackedEntityService.updateTrackedEntity(trackedEntityA1);
+    manager.update(trackedEntityA1);
     assertEquals("B", trackedEntityService.getTrackedEntity(trackedEntityA1.getUid()).getName());
   }
 
@@ -369,13 +369,13 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     // lastupdated is automatically set by the store; update entities in a certain order and
     //   expect
     // that to be returned
-    trackedEntityService.updateTrackedEntity(trackedEntityD1);
+    manager.update(trackedEntityD1);
     Thread.sleep(1000);
-    trackedEntityService.updateTrackedEntity(trackedEntityB1);
+    manager.update(trackedEntityB1);
     Thread.sleep(1000);
-    trackedEntityService.updateTrackedEntity(trackedEntityC1);
+    manager.update(trackedEntityC1);
     Thread.sleep(1000);
-    trackedEntityService.updateTrackedEntity(trackedEntityA1);
+    manager.update(trackedEntityA1);
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
     params.setOrgUnits(Set.of(organisationUnit));
@@ -400,13 +400,13 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     // lastupdated is automatically set by the store; update entities in a certain order and
     //   expect
     // that to be returned
-    trackedEntityService.updateTrackedEntity(trackedEntityD1);
+    manager.update(trackedEntityD1);
     Thread.sleep(1000);
-    trackedEntityService.updateTrackedEntity(trackedEntityB1);
+    manager.update(trackedEntityB1);
     Thread.sleep(1000);
-    trackedEntityService.updateTrackedEntity(trackedEntityC1);
+    manager.update(trackedEntityC1);
     Thread.sleep(1000);
-    trackedEntityService.updateTrackedEntity(trackedEntityA1);
+    manager.update(trackedEntityA1);
 
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
 

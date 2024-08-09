@@ -25,15 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.hibernate.exception;
+package org.hisp.dhis.leader.election;
 
-import org.springframework.security.access.AccessDeniedException;
+import org.hisp.dhis.condition.RedisDisabledCondition;
+import org.hisp.dhis.condition.RedisEnabledCondition;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Configures leaderManager that takes care of node leader elections.
+ *
+ * @author Ameen Mohamed
  */
-public class ReadAccessDeniedException extends AccessDeniedException {
-  public ReadAccessDeniedException(String msg) {
-    super(msg);
+@Configuration
+public class LeaderElectionConfig {
+  @Autowired private DhisConfigurationProvider dhisConfigurationProvider;
+
+  @Bean(name = "leaderManager")
+  @Conditional(RedisEnabledCondition.class)
+  public LeaderManager redisLeaderManager(
+      @Autowired(required = false) @Qualifier("stringRedisTemplate")
+          StringRedisTemplate stringRedisTemplate) {
+    return new RedisLeaderManager(stringRedisTemplate, dhisConfigurationProvider);
+  }
+
+  @Bean(name = "leaderManager")
+  @Conditional(RedisDisabledCondition.class)
+  public LeaderManager noOpLeaderManager() {
+    return new NoOpLeaderManager(dhisConfigurationProvider);
   }
 }

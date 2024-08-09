@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,38 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.leader.election;
+package org.hisp.dhis.eventhook;
 
-import org.hisp.dhis.condition.RedisDisabledCondition;
-import org.hisp.dhis.condition.RedisEnabledCondition;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import java.util.concurrent.Executor;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
- * Configures leaderManager that takes care of node leader elections.
- *
- * @author Ameen Mohamed
+ * @author Morten Olav Hansen
  */
 @Configuration
-public class LeaderElectionConfiguration {
-  @Autowired private DhisConfigurationProvider dhisConfigurationProvider;
+public class EventHookConfig {
+  @Bean(name = "eventHookTaskExecutor")
+  public Executor eventHookPoolTaskExecutor() {
+    final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 
-  @Bean(name = "leaderManager")
-  @Conditional(RedisEnabledCondition.class)
-  public LeaderManager redisLeaderManager(
-      @Autowired(required = false) @Qualifier("stringRedisTemplate")
-          StringRedisTemplate stringRedisTemplate) {
-    return new RedisLeaderManager(stringRedisTemplate, dhisConfigurationProvider);
-  }
+    // setting static defaults for now, we might to make this configurable in dhis.conf in the
+    // future
+    executor.setCorePoolSize(50);
+    executor.setMaxPoolSize(500);
+    executor.setQueueCapacity(5000);
+    executor.setThreadNamePrefix("EventHook-");
+    executor.initialize();
 
-  @Bean(name = "leaderManager")
-  @Conditional(RedisDisabledCondition.class)
-  public LeaderManager noOpLeaderManager() {
-    return new NoOpLeaderManager(dhisConfigurationProvider);
+    return executor;
   }
 }

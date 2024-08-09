@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,39 +27,26 @@
  */
 package org.hisp.dhis.test.config;
 
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.core.session.SessionRegistry;
-import org.springframework.security.core.session.SessionRegistryImpl;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.ldap.authentication.LdapAuthenticator;
-import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * Use this configuration for tests relying on MinIO storage running in a Docker container. e.g. add
+ * to test class like `@ContextConfiguration(classes = {MinIODhisConfiguration.class})`
+ *
+ * @author david mackessy
  */
 @Configuration
-@ComponentScan("org.hisp.dhis")
-public class IntegrationBaseConfiguration {
-  @Bean
-  public static SessionRegistry sessionRegistry() {
-    return new SessionRegistryImpl();
-  }
+public class MinIOTestConfig {
 
+  /**
+   * Config class for MinIO setup, which reuses the existing Postgres properties.
+   *
+   * @return dhisConfigurationProvider
+   */
   @Bean
-  public LdapAuthenticator ldapAuthenticator() {
-    return authentication -> null;
-  }
-
-  @Bean
-  public LdapAuthoritiesPopulator ldapAuthoritiesPopulator() {
-    return (dirContextOperations, s) -> null;
-  }
-
-  @Bean
-  public PasswordEncoder encoder() {
-    return new BCryptPasswordEncoder();
+  public DhisConfigurationProvider dhisConfigurationProvider() {
+    return new MinIOConfigurationProvider(new PostgresDhisConfigurationProvider().getProperties());
   }
 }

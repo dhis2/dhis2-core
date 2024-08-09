@@ -28,7 +28,6 @@
 package org.hisp.dhis.program;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -37,7 +36,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -50,7 +48,6 @@ import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.program.message.ProgramMessageStore;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -67,15 +64,11 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private OrganisationUnitService orgUnitService;
 
-  @Autowired private TrackedEntityService trackedEntityService;
-
   @Autowired private ProgramService programService;
 
   @Autowired private ProgramStageService programStageService;
 
   @Autowired private IdentifiableObjectManager manager;
-
-  @Autowired private CategoryService categoryService;
 
   private Enrollment enrollmentA;
 
@@ -182,8 +175,7 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
     pmsgA.setUid(uidA);
     pmsgB.setUid(uidB);
     pmsgC.setUid(uidC);
-    params = new ProgramMessageQueryParams();
-    params.setOrganisationUnit(orgUnits);
+    params = ProgramMessageQueryParams.builder().organisationUnit(orgUnits).build();
   }
 
   @Test
@@ -210,16 +202,6 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
     long pmsgAId = pmsgA.getId();
     programMessageStore.delete(pmsgA);
     assertNull(programMessageStore.get(pmsgAId));
-  }
-
-  @Test
-  void testProgramMessageExists() {
-    programMessageStore.save(pmsgA);
-    programMessageStore.save(pmsgB);
-    assertTrue(programMessageStore.exists(pmsgA.getUid()));
-    assertTrue(programMessageStore.exists(pmsgB.getUid()));
-    assertFalse(programMessageStore.exists("22343"));
-    assertFalse(programMessageStore.exists(null));
   }
 
   @Test

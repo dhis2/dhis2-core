@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,15 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.hibernate.exception;
+package org.hisp.dhis.program.message;
 
-import org.springframework.security.access.AccessDeniedException;
+import java.util.Date;
+import java.util.Set;
+import lombok.Builder;
+import lombok.Getter;
+import org.hisp.dhis.common.UID;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Zubair Asghar
  */
-public class DeleteAccessDeniedException extends AccessDeniedException {
-  public DeleteAccessDeniedException(String msg) {
-    super(msg);
-  }
+@Getter
+@Builder
+public class ProgramMessageOperationParams {
+  private Set<String> ou;
+
+  private UID enrollment;
+
+  private UID event;
+
+  private ProgramMessageStatus messageStatus;
+
+  private Date afterDate;
+
+  private Date beforeDate;
+
+  private Integer page;
+
+  private Integer pageSize;
 }

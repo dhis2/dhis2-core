@@ -39,7 +39,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 @Configuration
 @RequiredArgsConstructor
-public class JdbcOrgUnitAssociationStoreConfiguration {
+public class JdbcOrgUnitAssociationStoreConfig {
+
   @Bean
   public JdbcOrgUnitAssociationsStore jdbcProgramOrgUnitAssociationsStore(
       JdbcTemplate jdbcTemplate, CacheProvider cacheProvider, UserService userService) {

@@ -25,30 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook;
+package org.hisp.dhis.test.config;
 
-import java.util.concurrent.Executor;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.ldap.authentication.LdapAuthenticator;
+import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 
 /**
- * @author Morten Olav Hansen
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Configuration
-public class EventHookConfiguration {
-  @Bean(name = "eventHookTaskExecutor")
-  public Executor eventHookPoolTaskExecutor() {
-    final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+@ComponentScan("org.hisp.dhis")
+public class IntegrationTestBaseConfig {
+  @Bean
+  public static SessionRegistry sessionRegistry() {
+    return new SessionRegistryImpl();
+  }
 
-    // setting static defaults for now, we might to make this configurable in dhis.conf in the
-    // future
-    executor.setCorePoolSize(50);
-    executor.setMaxPoolSize(500);
-    executor.setQueueCapacity(5000);
-    executor.setThreadNamePrefix("EventHook-");
-    executor.initialize();
+  @Bean
+  public LdapAuthenticator ldapAuthenticator() {
+    return authentication -> null;
+  }
 
-    return executor;
+  @Bean
+  public LdapAuthoritiesPopulator ldapAuthoritiesPopulator() {
+    return (dirContextOperations, s) -> null;
+  }
+
+  @Bean
+  public PasswordEncoder encoder() {
+    return new BCryptPasswordEncoder();
   }
 }

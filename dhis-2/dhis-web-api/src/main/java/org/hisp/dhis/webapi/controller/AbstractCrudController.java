@@ -36,7 +36,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -85,9 +84,6 @@ import org.hisp.dhis.jsonpatch.BulkPatchManager;
 import org.hisp.dhis.jsonpatch.BulkPatchParameters;
 import org.hisp.dhis.jsonpatch.JsonPatchManager;
 import org.hisp.dhis.jsonpatch.validator.BulkPatchValidatorFactory;
-import org.hisp.dhis.patch.Patch;
-import org.hisp.dhis.patch.PatchParams;
-import org.hisp.dhis.patch.PatchService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.MetadataMergeService;
 import org.hisp.dhis.schema.validation.SchemaValidator;
@@ -139,8 +135,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
   @Autowired protected MetadataMergeService metadataMergeService;
 
   @Autowired protected JsonPatchManager jsonPatchManager;
-
-  @Autowired protected PatchService patchService;
 
   @Autowired
   @Qualifier("xmlMapper")
@@ -926,20 +920,5 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     }
 
     return false;
-  }
-
-  protected Patch diff(HttpServletRequest request) throws IOException, BadRequestException {
-    ObjectMapper mapper = isJson(request) ? jsonMapper : isXml(request) ? xmlMapper : null;
-    if (mapper == null) {
-      throw new BadRequestException("Unknown payload format.");
-    }
-    JsonNode jsonNode = mapper.readTree(request.getInputStream());
-    for (JsonNode node : jsonNode) {
-      if (node.isContainerNode()) {
-        throw new BadRequestException("Payload can not contain objects or arrays.");
-      }
-    }
-
-    return patchService.diff(new PatchParams(jsonNode));
   }
 }

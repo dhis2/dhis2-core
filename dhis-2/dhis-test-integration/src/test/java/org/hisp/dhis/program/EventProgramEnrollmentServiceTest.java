@@ -27,40 +27,32 @@
  */
 package org.hisp.dhis.program;
 
+import static org.hisp.dhis.program.EnrollmentStatus.ACTIVE;
+import static org.hisp.dhis.program.ProgramType.WITHOUT_REGISTRATION;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.sharing.Sharing;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
-@Transactional
 class EventProgramEnrollmentServiceTest extends PostgresIntegrationTestBase {
-
-  @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private EventProgramEnrollmentService eventProgramEnrollmentService;
 
-  @Autowired private ProgramService programService;
-
-  @Autowired private OrganisationUnitService organisationUnitService;
-
-  @Autowired private TrackedEntityService trackedEntityService;
+  @Autowired private IdentifiableObjectManager manager;
 
   private Program programA;
 
   private Program programB;
+
+  private Program eventProgram;
 
   private Enrollment enrollmentA;
 
@@ -68,50 +60,61 @@ class EventProgramEnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   private Enrollment enrollmentC;
 
+  private Enrollment eventProgramEnrollment;
+
   @BeforeEach
   void setUp() {
+    programA = createProgram('A');
+    manager.save(programA);
+    programB = createProgram('B');
+    manager.save(programB);
+    eventProgram = createProgram('C');
+    eventProgram.setProgramType(WITHOUT_REGISTRATION);
+    manager.save(eventProgram);
+
     OrganisationUnit organisationUnitA = createOrganisationUnit('A');
-    organisationUnitService.addOrganisationUnit(organisationUnitA);
+    manager.save(organisationUnitA);
     OrganisationUnit organisationUnitB = createOrganisationUnit('B');
-    organisationUnitService.addOrganisationUnit(organisationUnitB);
+    manager.save(organisationUnitB);
 
-    TrackedEntity trackedEntityA = createTrackedEntity(organisationUnitA);
-    manager.save(trackedEntityA);
-    TrackedEntity trackedEntityB = createTrackedEntity(organisationUnitB);
-    manager.save(trackedEntityB);
+    TrackedEntity trackedEntity = createTrackedEntity(organisationUnitA);
+    manager.save(trackedEntity);
 
-    programA = createProgram('A', new HashSet<>(), organisationUnitA);
-    programService.addProgram(programA);
-    programA.setSharing(Sharing.builder().publicAccess("rwrw----").build());
-    programService.updateProgram(programA);
-
-    programB = createProgram('B', new HashSet<>(), organisationUnitA);
-    programService.addProgram(programB);
-
-    enrollmentA = createEnrollment(programA, trackedEntityA, organisationUnitA);
+    enrollmentA = createEnrollment(programA, trackedEntity, organisationUnitA);
     manager.save(enrollmentA);
-
-    enrollmentB = createEnrollment(programB, trackedEntityA, organisationUnitB);
+    enrollmentB = createEnrollment(programB, trackedEntity, organisationUnitB);
     manager.save(enrollmentB);
-
-    enrollmentC = createEnrollment(programA, trackedEntityA, organisationUnitB);
+    enrollmentC = createEnrollment(programA, trackedEntity, organisationUnitB);
     manager.save(enrollmentC);
-
-    User user =
-        createAndAddUser(
-            false, "user", Set.of(organisationUnitA), Set.of(organisationUnitA), "F_EXPORT_DATA");
-    user.setTeiSearchOrganisationUnits(Set.of(organisationUnitA, organisationUnitB));
-    user.setOrganisationUnits(Set.of(organisationUnitA));
-
-    injectSecurityContextUser(user);
+    eventProgramEnrollment = createEnrollment(eventProgram, trackedEntity, organisationUnitA);
+    manager.save(eventProgramEnrollment);
   }
 
   @Test
-  void testGetEnrollmentsByProgram() {
-    List<Enrollment> enrollments = eventProgramEnrollmentService.getEnrollments(programA);
-    assertContainsOnly(List.of(enrollmentA, enrollmentC), enrollments);
+  void shouldReturnEnrollmentsWhenGettingEnrollmentsOfAnEventProgram() {
+    assertContainsOnly(
+        List.of(eventProgramEnrollment),
+        eventProgramEnrollmentService.getEnrollments(eventProgram, ACTIVE));
+  }
 
-    enrollments = eventProgramEnrollmentService.getEnrollments(programB);
-    assertContainsOnly(List.of(enrollmentB), enrollments);
+  @Test
+  void shouldNotReturnEnrollmentsWhenGettingEnrollmentsOfATrackerProgram() {
+    assertEquals(enrollmentA, manager.get(Enrollment.class, enrollmentA.getUid()));
+    assertEquals(enrollmentB, manager.get(Enrollment.class, enrollmentB.getUid()));
+    assertIsEmpty(eventProgramEnrollmentService.getEnrollments(programA));
+    assertIsEmpty(eventProgramEnrollmentService.getEnrollments(programB));
+  }
+
+  @Test
+  void shouldReturnEnrollmentsWhenGettingEnrollmentsOfAnEventProgramByStatus() {
+    assertContainsOnly(
+        List.of(eventProgramEnrollment),
+        eventProgramEnrollmentService.getEnrollments(eventProgram, ACTIVE));
+  }
+
+  @Test
+  void shouldReturnNoEnrollmentsWhenGettingEnrollmentsOfATrackerProgramByStatus() {
+    assertEquals(enrollmentA, manager.get(Enrollment.class, enrollmentA.getUid()));
+    assertIsEmpty(eventProgramEnrollmentService.getEnrollments(programA, ACTIVE));
   }
 }

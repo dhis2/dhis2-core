@@ -25,28 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.config;
+package org.hisp.dhis.webapi.controller.message;
 
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import java.util.Date;
+import java.util.Set;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.message.ProgramMessageStatus;
 
 /**
- * Use this configuration for tests relying on MinIO storage running in a Docker container. e.g. add
- * to test class like `@ContextConfiguration(classes = {MinIODhisConfiguration.class})`
- *
- * @author david mackessy
+ * @author Zubair Asghar
  */
-@Configuration
-public class MinIOConfiguration {
+@OpenApi.Shared(name = "ProgramMessageRequestParams")
+@Data
+@NoArgsConstructor
+public class ProgramMessageRequestParams {
+  private Set<String> ou;
 
-  /**
-   * Config class for MinIO setup, which reuses the existing Postgres properties.
-   *
-   * @return dhisConfigurationProvider
-   */
-  @Bean
-  public DhisConfigurationProvider dhisConfigurationProvider() {
-    return new MinIOConfigurationProvider(new PostgresDhisConfigurationProvider().getProperties());
-  }
+  @Deprecated(since = "2.41")
+  @OpenApi.Property(value = Enrollment.class)
+  private UID programInstance;
+
+  @OpenApi.Property({UID.class, Enrollment.class})
+  private UID enrollment;
+
+  @Deprecated(since = "2.41")
+  @OpenApi.Property(value = Event.class)
+  private UID programStageInstance;
+
+  @OpenApi.Property({UID.class, Event.class})
+  private UID event;
+
+  private ProgramMessageStatus messageStatus;
+
+  private Date afterDate;
+
+  private Date beforeDate;
+
+  @OpenApi.Property(defaultValue = "1")
+  private Integer page;
+
+  @OpenApi.Property(defaultValue = "50")
+  private Integer pageSize;
 }

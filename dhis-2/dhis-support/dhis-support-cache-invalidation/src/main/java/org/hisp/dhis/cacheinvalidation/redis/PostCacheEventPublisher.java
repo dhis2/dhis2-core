@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.cacheinvalidation.redis;
 
-import static org.hisp.dhis.cacheinvalidation.redis.CacheInvalidationConfiguration.CHANNEL_NAME;
-import static org.hisp.dhis.cacheinvalidation.redis.CacheInvalidationConfiguration.EXCLUDE_LIST;
+import static org.hisp.dhis.cacheinvalidation.redis.CacheInvalidationConfig.CHANNEL_NAME;
+import static org.hisp.dhis.cacheinvalidation.redis.CacheInvalidationConfig.EXCLUDE_LIST;
 
 import java.io.Serializable;
 import lombok.extern.slf4j.Slf4j;
@@ -48,7 +48,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 /**
@@ -58,7 +57,6 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-@Profile({"!test", "!test-h2"})
 @Conditional(value = CacheInvalidationEnabledCondition.class)
 public class PostCacheEventPublisher
     implements PostCommitUpdateEventListener,
