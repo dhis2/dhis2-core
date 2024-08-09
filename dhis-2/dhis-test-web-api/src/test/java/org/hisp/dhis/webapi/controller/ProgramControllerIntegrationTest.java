@@ -89,7 +89,7 @@ class ProgramControllerIntegrationTest extends DhisControllerIntegrationTest {
   }
 
   @Test
-  void testCopyProgramEnrollments() {
+  void shouldNotCopyTrackerProgramEnrollmentsWhenCopyingProgram() {
     OrganisationUnit orgUnit = orgUnitService.getOrganisationUnit(ORG_UNIT_UID);
     User user = createAndAddUser(true, "user", Set.of(orgUnit), Set.of(orgUnit));
     injectSecurityContextUser(user);
@@ -154,7 +154,7 @@ class ProgramControllerIntegrationTest extends DhisControllerIntegrationTest {
             .filter(enrollment -> enrollment.getProgram().equals(PROGRAM_UID))
             .collect(Collectors.toSet());
 
-    assertEquals(2, enrollments.size());
+    assertEquals(1, enrollments.size());
     assertEquals(1, originalProgramEnrollments.size());
   }
 
