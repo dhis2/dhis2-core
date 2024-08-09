@@ -35,6 +35,20 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.springframework.context.annotation.Bean;
 import org.testcontainers.containers.MinIOContainer;
 
+/**
+ * Use this configuration for tests relying on MinIO storage running in a Docker container. The
+ * container is stopped after the tests in the class have completed. Just add to test class like
+ *
+ * <p>@ExtendWith(MinIOTestExtension.class)
+ *
+ * <p>@ContextConfiguration(classes = {MinIOConfig.class})
+ *
+ * <p>If there are many uses of this extension then it should be considered whether keeping the
+ * container up for the entirety of the tests is more preferable, rather than starting/stopping
+ * multiple containers.
+ *
+ * @author david mackessy
+ */
 public class MinIOTestExtension implements AfterAllCallback {
 
   private static final String S3_URL;
