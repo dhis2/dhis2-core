@@ -69,7 +69,7 @@ public class ProgramNotificationTemplateRequestParamsMapper {
   }
 
   private void validateRequestParams(ProgramNotificationTemplateRequestParams requestParams)
-      throws ConflictException, BadRequestException {
+      throws ConflictException {
 
     if (requestParams.getProgram() == null && requestParams.getProgramStage() == null) {
       throw new ConflictException("Program or ProgramStage must be specified.");
