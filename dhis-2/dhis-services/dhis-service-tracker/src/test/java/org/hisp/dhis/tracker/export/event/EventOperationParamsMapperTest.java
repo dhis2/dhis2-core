@@ -69,7 +69,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -209,7 +208,7 @@ class EventOperationParamsMapperTest {
 
   @Test
   void shouldMapGivenAttributeCategoryOptionsWhenUserHasAccessToCategoryCombo()
-      throws BadRequestException, ForbiddenException, NotFoundException {
+      throws BadRequestException, ForbiddenException {
     EventOperationParams operationParams =
         eventBuilder
             .attributeCategoryCombo("NeU85luyD4w")
@@ -228,7 +227,7 @@ class EventOperationParamsMapperTest {
   }
 
   @Test
-  void testMappingAssignedUser() throws BadRequestException, ForbiddenException, NotFoundException {
+  void testMappingAssignedUser() throws BadRequestException, ForbiddenException {
     EventOperationParams operationParams =
         eventBuilder
             .assignedUsers(Set.of("IsdLBTOBzMi", "l5ab8q5skbB"))
@@ -245,8 +244,7 @@ class EventOperationParamsMapperTest {
   }
 
   @Test
-  void shouldMapAttributeFilters()
-      throws BadRequestException, ForbiddenException, NotFoundException {
+  void shouldMapAttributeFilters() throws BadRequestException, ForbiddenException {
     TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
     tea1.setUid(TEA_1_UID);
     TrackedEntityAttribute tea2 = new TrackedEntityAttribute();
@@ -293,8 +291,7 @@ class EventOperationParamsMapperTest {
   }
 
   @Test
-  void shouldMapOrderInGivenOrder()
-      throws BadRequestException, ForbiddenException, NotFoundException {
+  void shouldMapOrderInGivenOrder() throws BadRequestException, ForbiddenException {
     TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
     tea1.setUid(TEA_1_UID);
     when(trackedEntityAttributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(tea1);
@@ -359,8 +356,7 @@ class EventOperationParamsMapperTest {
   }
 
   @Test
-  void shouldMapDataElementFilters()
-      throws BadRequestException, ForbiddenException, NotFoundException {
+  void shouldMapDataElementFilters() throws BadRequestException, ForbiddenException {
     DataElement de1 = new DataElement();
     de1.setUid(DE_1_UID);
     when(dataElementService.getDataElement(DE_1_UID)).thenReturn(de1);
@@ -424,7 +420,7 @@ class EventOperationParamsMapperTest {
   @MethodSource
   void shouldMapOrgUnitWhenProgramProvidedAndRequestedOrgUnitInSearchScope(
       OrganisationUnitSelectionMode orgUnitMode, AccessLevel accessLevel)
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     Program program = new Program();
     program.setAccessLevel(accessLevel);
 
@@ -460,7 +456,7 @@ class EventOperationParamsMapperTest {
 
   @Test
   void shouldMapOrgUnitWhenModeAllProgramProvidedAndRequestedOrgUnitInSearchScope()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     Program program = new Program();
     program.setAccessLevel(OPEN);
 
@@ -520,7 +516,7 @@ class EventOperationParamsMapperTest {
   @ParameterizedTest
   @ValueSource(strings = {"admin", "superuser"})
   void shouldMapOrgUnitAndModeWhenModeAllAndUserIsAuthorized(String userName)
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
 
     User mappedUser = userMap.get(userName);
     mappedUser.setUsername(userName);
@@ -537,7 +533,7 @@ class EventOperationParamsMapperTest {
 
   @Test
   void shouldIncludeRelationshipsWhenFieldPathIncludeRelationships()
-      throws BadRequestException, ForbiddenException, NotFoundException {
+      throws BadRequestException, ForbiddenException {
     User mappedUser = userMap.get("admin");
     mappedUser.setUsername("admin");
 
@@ -552,7 +548,7 @@ class EventOperationParamsMapperTest {
 
   @Test
   void shouldNotIncludeRelationshipsWhenFieldPathDoNotIncludeRelationships()
-      throws BadRequestException, ForbiddenException, NotFoundException {
+      throws BadRequestException, ForbiddenException {
     User mappedUser = userMap.get("admin");
     mappedUser.setUsername("admin");
 
