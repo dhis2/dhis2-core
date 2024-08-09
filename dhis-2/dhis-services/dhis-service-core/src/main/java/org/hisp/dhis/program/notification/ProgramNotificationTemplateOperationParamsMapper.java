@@ -74,8 +74,7 @@ public class ProgramNotificationTemplateOperationParamsMapper {
         .orElseThrow(
             () ->
                 new IllegalQueryException(
-                    String.format(
-                        "%s with ID %s does not exist.",
-                        klass.getSimpleName(), objectId.getValue())));
+                    "%s with ID %s does not exist."
+                        .formatted(klass.getSimpleName(), objectId.getValue())));
   }
 }
