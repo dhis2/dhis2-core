@@ -131,7 +131,7 @@ class ProgramNotificationTemplateOperationParamsMapperTest {
               mapper.map(operationParams);
             });
     assertEquals(
-        String.format("Program with ID %s does not exist.", invalidProgram.getValue()),
+        "Program with ID %s does not exist.".formatted(invalidProgram.getValue()),
         exception.getMessage());
   }
 
@@ -150,7 +150,7 @@ class ProgramNotificationTemplateOperationParamsMapperTest {
               mapper.map(operationParams);
             });
     assertEquals(
-        String.format("ProgramStage with ID %s does not exist.", invalidProgramStage.getValue()),
+        "ProgramStage with ID %s does not exist.".formatted(invalidProgramStage.getValue()),
         exception.getMessage());
   }
 }
