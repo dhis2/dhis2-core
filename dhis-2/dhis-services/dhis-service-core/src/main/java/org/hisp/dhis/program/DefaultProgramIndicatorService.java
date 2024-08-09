@@ -423,11 +423,8 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
             .reportingEndDate(endDate)
             .dataElementAndAttributeIdentifiers(uids)
             .build();
-
     CommonExpressionVisitor visitor = newVisitor(ITEM_GET_SQL, params, progParams);
-
     visitor.setExpressionLiteral(new SqlLiteral());
-
     String sql = castString(Parser.visit(expression, visitor));
 
     return (tableAlias != null
