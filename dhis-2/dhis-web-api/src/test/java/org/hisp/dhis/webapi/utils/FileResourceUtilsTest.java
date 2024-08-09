@@ -31,10 +31,10 @@ import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
-import jakarta.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
+import javax.imageio.ImageIO;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

@@ -1409,20 +1409,9 @@
 
       <!-- Apache Artemis -->
       <dependency>
-        <groupId>org.apache.geronimo.specs</groupId>
-        <artifactId>geronimo-jms_2.0_spec</artifactId>
-        <version>1.0-alpha-2</version>
-      </dependency>
-      <dependency>
         <groupId>org.apache.activemq</groupId>
         <artifactId>artemis-jakarta-client</artifactId>
         <version>${artemis-jakarta.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>jakarta.jms</groupId>
-            <artifactId>jakarta.jms-api</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.activemq</groupId>

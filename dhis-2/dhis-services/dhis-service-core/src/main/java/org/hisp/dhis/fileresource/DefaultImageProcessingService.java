@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.fileresource;
 
-import jakarta.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -37,6 +36,7 @@ import java.io.InputStream;
 import java.net.URLConnection;
 import java.util.EnumMap;
 import java.util.Map;
+import javax.imageio.ImageIO;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.imgscalr.Scalr;

@@ -42,8 +42,11 @@ import java.util.function.Function;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.core5.http.io.SocketConfig;
+import org.apache.hc.core5.util.Timeout;
 import org.hisp.dhis.common.auth.ApiTokenAuth;
 import org.hisp.dhis.common.auth.Auth;
 import org.hisp.dhis.common.auth.HttpBasicAuth;
@@ -110,18 +113,29 @@ public class RouteService {
           "etag");
 
   static {
-    HttpComponentsClientHttpRequestFactory requestFactory =
-        new HttpComponentsClientHttpRequestFactory();
-    requestFactory.setConnectionRequestTimeout(1_000);
-    requestFactory.setConnectTimeout(5_000);
-    requestFactory.setReadTimeout(10_000);
-    requestFactory.setBufferRequestBody(true);
+    // Connect timeout
+    ConnectionConfig connectionConfig =
+        ConnectionConfig.custom().setConnectTimeout(Timeout.ofMilliseconds(5_000)).build();
 
-    HttpClient httpClient = HttpClientBuilder.create().disableCookieManagement().build();
+    // Socket timeout
+    SocketConfig socketConfig =
+        SocketConfig.custom().setSoTimeout(Timeout.ofMilliseconds(10_000)).build();
 
-    requestFactory.setHttpClient(httpClient);
+    // Connection request timeout
+    RequestConfig requestConfig =
+        RequestConfig.custom().setConnectionRequestTimeout(Timeout.ofMilliseconds(1_000)).build();
 
-    restTemplate.setRequestFactory(requestFactory);
+    PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+    connectionManager.setDefaultSocketConfig(socketConfig);
+    connectionManager.setDefaultConnectionConfig(connectionConfig);
+
+    org.apache.hc.client5.http.classic.HttpClient httpClient =
+        org.apache.hc.client5.http.impl.classic.HttpClientBuilder.create()
+            .setConnectionManager(connectionManager)
+            .setDefaultRequestConfig(requestConfig)
+            .build();
+
+    restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory(httpClient));
   }
 
   /**
@@ -192,7 +206,7 @@ public class RouteService {
     String body = StreamUtils.copyToString(request.getInputStream(), StandardCharsets.UTF_8);
     HttpEntity<String> entity = new HttpEntity<>(body, headers);
     HttpMethod httpMethod =
-        Objects.requireNonNullElse(HttpMethod.resolve(request.getMethod()), HttpMethod.GET);
+        Objects.requireNonNullElse(HttpMethod.valueOf(request.getMethod()), HttpMethod.GET);
     String targetUri = uriComponentsBuilder.toUriString();
 
     log.info(

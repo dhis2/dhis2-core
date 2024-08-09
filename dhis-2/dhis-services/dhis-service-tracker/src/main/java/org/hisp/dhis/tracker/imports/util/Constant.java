@@ -28,9 +28,9 @@
 package org.hisp.dhis.tracker.imports.util;
 
 import com.google.common.collect.ImmutableSet;
-import jakarta.imageio.ImageIO;
 import java.beans.Introspector;
 import java.util.Set;
+import javax.imageio.ImageIO;
 import org.hisp.dhis.tracker.imports.preheat.supplier.strategy.GenericStrategy;
 
 public class Constant {

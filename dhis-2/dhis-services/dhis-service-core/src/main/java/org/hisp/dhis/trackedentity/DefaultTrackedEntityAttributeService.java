@@ -30,7 +30,6 @@ package org.hisp.dhis.trackedentity;
 import static java.util.stream.Collectors.toList;
 
 import com.google.common.collect.ImmutableSet;
-import jakarta.imageio.ImageIO;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +37,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
+import javax.imageio.ImageIO;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.QueryItem;
