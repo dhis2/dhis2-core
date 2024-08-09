@@ -238,8 +238,7 @@ class ProgramNotificationTemplateControllerTest extends H2ControllerIntegrationT
             .string();
 
     assertStartsWith(
-        String.format(
-            "%s with ID %s does not exist.", Program.class.getSimpleName(), invalidProgram),
+        "%s with ID %s does not exist.".formatted(Program.class.getSimpleName(), invalidProgram),
         message);
   }
 
@@ -253,9 +252,8 @@ class ProgramNotificationTemplateControllerTest extends H2ControllerIntegrationT
             .string();
 
     assertStartsWith(
-        String.format(
-            "%s with ID %s does not exist.",
-            ProgramStage.class.getSimpleName(), invalidProgramStage),
+        "%s with ID %s does not exist."
+            .formatted(ProgramStage.class.getSimpleName(), invalidProgramStage),
         message);
   }
 }
