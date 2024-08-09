@@ -83,8 +83,9 @@ pipeline {
                 FLYWAY_REPAIR_BEFORE_MIGRATION = "true"
                 INSTANCE_TTL = "315360000"
                 STARTUP_PROBE_FAILURE_THRESHOLD = "50"
-                LIVENESS_PROBE_TIMEOUT_SECONDS = "3"
-                READINESS_PROBE_TIMEOUT_SECONDS = "3"
+                LIVENESS_PROBE_TIMEOUT_SECONDS = "5"
+                READINESS_PROBE_TIMEOUT_SECONDS = "5"
+                CORE_RESOURCES_REQUESTS_MEMORY = "2500Mi"
             }
 
             steps {
