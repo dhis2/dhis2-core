@@ -47,5 +47,8 @@
         <!-- <Logger name="org.springframework.test.context.cache" level="debug">-->
         <!--     <AppenderRef ref="console"/>-->
         <!-- </Logger>-->
+<!--        <Logger name="org.springframework.beans.factory.support.DefaultListableBeanFactory" level="debug" additivity="false">-->
+<!--            <AppenderRef ref="console"/>-->
+<!--        </Logger>-->
     </Loggers>
 </Configuration>

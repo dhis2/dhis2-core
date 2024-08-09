@@ -33,7 +33,7 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * Use this configuration for tests relying on MinIO storage running in a Docker container. e.g. add
- * to test class like `@ContextConfiguration(classes = {MinIODhisConfiguration.class})`
+ * to test class like {@code @ContextConfiguration(classes = {MinIOTestConfig.class})}.
  *
  * @author david mackessy
  */
