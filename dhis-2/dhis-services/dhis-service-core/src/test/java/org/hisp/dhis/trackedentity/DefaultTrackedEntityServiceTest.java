@@ -97,8 +97,7 @@ class DefaultTrackedEntityServiceTest {
             organisationUnitService,
             aclService,
             trackedEntityChangeLogService,
-            attributeValueAuditService,
-            manager);
+            attributeValueAuditService);
 
     User user = new User();
     user.setUsername("test");

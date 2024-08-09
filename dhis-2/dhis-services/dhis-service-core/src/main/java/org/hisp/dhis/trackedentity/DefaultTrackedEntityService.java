@@ -45,7 +45,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.changelog.ChangeLogType;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -71,8 +70,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultTrackedEntityService implements TrackedEntityService {
   private final TrackedEntityStore trackedEntityStore;
 
-  private final TrackedEntityAttributeValueService attributeValueService;
-
   private final TrackedEntityAttributeService attributeService;
 
   private final TrackedEntityTypeService trackedEntityTypeService;
@@ -85,8 +82,6 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
   private final UserService userService;
 
-  private final IdentifiableObjectManager manager;
-
   public DefaultTrackedEntityService(
       UserService userService,
       TrackedEntityStore trackedEntityStore,
@@ -96,8 +91,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
       OrganisationUnitService organisationUnitService,
       AclService aclService,
       TrackedEntityChangeLogService trackedEntityChangeLogService,
-      TrackedEntityAttributeValueChangeLogService attributeValueAuditService,
-      IdentifiableObjectManager manager) {
+      TrackedEntityAttributeValueChangeLogService attributeValueAuditService) {
     checkNotNull(trackedEntityStore);
     checkNotNull(attributeValueService);
     checkNotNull(attributeService);
@@ -109,13 +103,11 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
     this.userService = userService;
     this.trackedEntityStore = trackedEntityStore;
-    this.attributeValueService = attributeValueService;
     this.attributeService = attributeService;
     this.trackedEntityTypeService = trackedEntityTypeService;
     this.organisationUnitService = organisationUnitService;
     this.aclService = aclService;
     this.trackedEntityChangeLogService = trackedEntityChangeLogService;
-    this.manager = manager;
   }
 
   @Override

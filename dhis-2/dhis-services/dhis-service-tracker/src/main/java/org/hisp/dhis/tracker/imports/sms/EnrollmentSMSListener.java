@@ -243,7 +243,7 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
       return SmsResponse.WARN_DVERR.setList(errorUIDs);
     }
 
-    if (attributeValues == null || attributeValues.isEmpty()) {
+    if (attributeValues.isEmpty()) {
       // TODO: Is this correct handling?
       return SmsResponse.WARN_AVEMPTY;
     }
