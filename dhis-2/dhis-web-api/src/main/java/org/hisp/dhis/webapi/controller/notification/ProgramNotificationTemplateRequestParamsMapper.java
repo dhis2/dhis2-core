@@ -41,7 +41,6 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class ProgramNotificationTemplateRequestParamsMapper {
-
   public ProgramNotificationTemplateOperationParams map(
       ProgramNotificationTemplateRequestParams requestParams)
       throws ConflictException, BadRequestException {

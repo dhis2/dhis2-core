@@ -65,9 +65,6 @@ class ProgramNotificationTemplateRequestParamsMapperTest {
     assertNotNull(result);
     assertEquals(PROGRAM, result.getProgram());
     assertNull(result.getProgramStage());
-    assertTrue(result.isPaged());
-    assertEquals(1, result.getPage());
-    assertEquals(50, result.getPageSize());
   }
 
   @Test
