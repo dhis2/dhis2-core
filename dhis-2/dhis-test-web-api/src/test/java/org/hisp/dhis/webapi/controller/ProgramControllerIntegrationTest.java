@@ -28,16 +28,24 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationsStore;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.web.WebClient;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.webapi.controller.tracker.JsonEnrollment;
+import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +62,11 @@ class ProgramControllerIntegrationTest extends DhisControllerIntegrationTest {
 
   @Autowired private ObjectMapper jsonMapper;
 
+  @Autowired private OrganisationUnitService orgUnitService;
+
   public static final String PROGRAM_UID = "PrZMWi7rBga";
+
+  public static final String ORG_UNIT_UID = "Orgunit1000";
 
   @BeforeEach
   public void testSetup() throws JsonProcessingException {
@@ -74,6 +86,76 @@ class ProgramControllerIntegrationTest extends DhisControllerIntegrationTest {
         .content(HttpStatus.CREATED);
 
     POST("/metadata", WebClient.Body("program/create_program.json")).content(HttpStatus.OK);
+  }
+
+  @Test
+  void shouldNotCopyTrackerProgramEnrollmentsWhenCopyingProgram() {
+    OrganisationUnit orgUnit = orgUnitService.getOrganisationUnit(ORG_UNIT_UID);
+    User user = createAndAddUser(true, "user", Set.of(orgUnit), Set.of(orgUnit));
+    injectSecurityContextUser(user);
+
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/trackedEntityTypes",
+            "{'description': 'add TET for Enrollment test','id':'TEType10000','name':'Tracked Entity Type 1'}"));
+
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/trackedEntityAttributes/",
+            "{'name':'attrA', 'id':'TEAttr10000','shortName':'attrA', 'valueType':'TEXT', 'aggregationType':'NONE'}"));
+
+    String teiId =
+        assertStatus(
+            HttpStatus.OK,
+            POST(
+                "/trackedEntityInstances",
+                "{\n"
+                    + "  'trackedEntityType': 'TEType10000',\n"
+                    + "  'program': 'PrZMWi7rBga',\n"
+                    + "  'status': 'ACTIVE',\n"
+                    + "  'orgUnit': '"
+                    + ORG_UNIT_UID
+                    + "',\n"
+                    + "  'enrollmentDate': '2023-06-16',\n"
+                    + "  'incidentDate': '2023-06-16'\n"
+                    + "}"));
+
+    POST(
+            "/enrollments",
+            "{\n"
+                + "  'trackedEntityInstance': '"
+                + teiId
+                + "',\n"
+                + "  'program': 'PrZMWi7rBga',\n"
+                + "  'status': 'ACTIVE',\n"
+                + "  'orgUnit': '"
+                + ORG_UNIT_UID
+                + "',\n"
+                + "  'enrollmentDate': '2023-06-16',\n"
+                + "  'incidentDate': '2023-06-16'\n"
+                + "}")
+        .content(HttpStatus.CREATED);
+
+    POST("/programs/%s/copy".formatted(PROGRAM_UID))
+        .content(HttpStatus.CREATED)
+        .as(JsonWebMessage.class);
+
+    JsonWebMessage enrollmentsForOrgUnit =
+        GET("/tracker/enrollments?orgUnit=%s".formatted(ORG_UNIT_UID))
+            .content(HttpStatus.OK)
+            .as(JsonWebMessage.class);
+
+    JsonList<JsonEnrollment> enrollments =
+        enrollmentsForOrgUnit.getList("enrollments", JsonEnrollment.class);
+    Set<JsonEnrollment> originalProgramEnrollments =
+        enrollments.stream()
+            .filter(enrollment -> enrollment.getProgram().equals(PROGRAM_UID))
+            .collect(Collectors.toSet());
+
+    assertEquals(1, enrollments.size());
+    assertEquals(1, originalProgramEnrollments.size());
   }
 
   @Test
