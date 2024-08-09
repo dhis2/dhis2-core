@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
+    
+    
+    <package>org.hisp.dhis.sms.command.code</package>
+    
+    <entity class="SMSCode" metadata-complete="true">
+        <table name="smscodes"/>
+        
+        <attributes>
+            <id name="id">
+                <column name="smscodeid"/>
+            </id>
+            <basic name="code" fetch="EAGER" optional="true"/>
+            <basic name="formula" fetch="EAGER" optional="true"/>
+            <basic name="compulsory" fetch="EAGER" optional="true"/>
+            <many-to-one name="dataElement" target-entity="org.hisp.dhis.dataelement.DataElement" fetch="LAZY" optional="true">
+                <join-column name="dataelementid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_dataelement_dataelementid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="trackedEntityAttribute" target-entity="org.hisp.dhis.trackedentity.TrackedEntityAttribute" fetch="LAZY" optional="true">
+                <join-column name="trackedentityattributeid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_trackedentityattribute_trackedentityattributeid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="optionId" target-entity="org.hisp.dhis.category.CategoryOptionCombo" fetch="LAZY" optional="true">
+                <join-column name="optionid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_categoryoptioncombo_categoryoptioncomboid"/>
+                <cascade/>
+            </many-to-one>
+        </attributes>
+    </entity>
+</entity-mappings>

@@ -52,6 +52,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import javax.persistence.AttributeConverter;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.usertype.ParameterizedType;
@@ -65,7 +66,8 @@ import org.postgresql.util.PGobject;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @author Stian Sandvold <stian@dhis2.org>
  */
-public class JsonBinaryType implements UserType, ParameterizedType {
+public class JsonBinaryType
+    implements UserType, ParameterizedType, AttributeConverter<String, Object> {
   public static final ObjectMapper MAPPER = new ObjectMapper();
 
   public static final TypeReference<Map<String, Object>> MAP_STRING_OBJECT_TYPE_REFERENCE =
@@ -290,5 +292,15 @@ public class JsonBinaryType implements UserType, ParameterizedType {
 
   protected <T> T readValue(JsonParser p) throws IOException {
     return reader.readValue(p);
+  }
+
+  @Override
+  public Object convertToDatabaseColumn(String attribute) {
+    return convertJsonToObject(attribute);
+  }
+
+  @Override
+  public String convertToEntityAttribute(Object dbData) {
+    return convertObjectToJson(dbData);
   }
 }

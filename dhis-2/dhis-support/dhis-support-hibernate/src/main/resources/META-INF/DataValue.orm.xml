@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
+ <entity class="org.hisp.dhis.datavalue.DataValue" metadata-complete="true">
+        <table name="datavalue"/>
+
+        <attributes>
+            <basic name="value" fetch="EAGER" optional="true"/>
+            <basic name="storedBy" fetch="EAGER" optional="true">
+                <column name="storedby" unique="false"/>
+            </basic>
+            <basic name="created" fetch="EAGER" optional="false">
+                <column name="created" unique="false" nullable="false"/>
+            </basic>
+            <basic name="lastUpdated" fetch="EAGER" optional="false">
+                <column name="lastupdated" unique="false" nullable="false"/>
+            </basic>
+            <basic name="comment" fetch="EAGER" optional="true"/>
+            <basic name="followup" fetch="EAGER" optional="true"/>
+            <basic name="deleted" fetch="EAGER" optional="true">
+                <column name="deleted" unique="false"/>
+            </basic>
+            <many-to-one name="dataElement" target-entity="org.hisp.dhis.dataelement.DataElement" fetch="LAZY" id="true">
+                <join-column name="dataelementid"/>
+                <foreign-key name="fk_datavalue_dataelementid"/>
+            </many-to-one>
+            <many-to-one name="period" target-entity="org.hisp.dhis.period.Period" fetch="LAZY" id="true">
+                <join-column name="periodid"/>
+                <foreign-key name="fk_datavalue_periodid"/>
+            </many-to-one>
+            <many-to-one name="source" target-entity="org.hisp.dhis.organisationunit.OrganisationUnit" fetch="LAZY" id="true">
+                <join-column name="sourceid"/>
+                <foreign-key name="fk_datavalue_organisationunitid"/>
+            </many-to-one>
+            <many-to-one name="categoryOptionCombo" target-entity="org.hisp.dhis.category.CategoryOptionCombo" fetch="LAZY" id="true">
+                <join-column name="categoryoptioncomboid"/>
+                <foreign-key name="fk_datavalue_categoryoptioncomboid"/>
+            </many-to-one>
+            <many-to-one name="attributeOptionCombo" target-entity="org.hisp.dhis.category.CategoryOptionCombo" fetch="LAZY" id="true">
+                <join-column name="attributeoptioncomboid"/>
+                <foreign-key name="fk_datavalue_attributeoptioncomboid"/>
+            </many-to-one>
+        </attributes>
+    </entity>
+</entity-mappings>

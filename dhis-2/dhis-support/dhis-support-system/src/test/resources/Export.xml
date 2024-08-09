@@ -140,7 +140,7 @@
             <alternativeName>AlternativeNameA</alternativeName>
             <shortName>ShortNameA</shortName>
             <code>CodeA</code>
-            <description>DescriptionA</description>
+            
             <active>true</active>
             <type>int</type>
             <aggregationOperator>sum</aggregationOperator>
@@ -153,7 +153,7 @@
             <alternativeName>AlternativeNameB</alternativeName>
             <shortName>ShortNameB</shortName>
             <code>CodeB</code>
-            <description>DescriptionB</description>
+            
             <active>true</active>
             <type>int</type>
             <aggregationOperator>sum</aggregationOperator>
@@ -166,7 +166,7 @@
             <alternativeName>AlternativeNameC</alternativeName>
             <shortName>ShortNameC</shortName>
             <code>CodeC</code>
-            <description>DescriptionC</description>
+            
             <active>true</active>
             <type>int</type>
             <aggregationOperator>sum</aggregationOperator>
@@ -253,7 +253,7 @@
             <alternativeName>AlternativeNameA</alternativeName>
             <shortName>ShortNameA</shortName>
             <code>CodeA</code>
-            <description>DescriptionA</description>
+            
             <annualized>false</annualized>
             <indicatorType>65</indicatorType>
             <numerator>Numerator</numerator>
@@ -270,7 +270,7 @@
             <alternativeName>AlternativeNameB</alternativeName>
             <shortName>ShortNameB</shortName>
             <code>CodeB</code>
-            <description>DescriptionB</description>
+            
             <annualized>false</annualized>
             <indicatorType>65</indicatorType>
             <numerator>Numerator</numerator>
@@ -287,7 +287,7 @@
             <alternativeName>AlternativeNameC</alternativeName>
             <shortName>ShortNameC</shortName>
             <code>CodeC</code>
-            <description>DescriptionC</description>
+            
             <annualized>false</annualized>
             <indicatorType>65</indicatorType>
             <numerator>Numerator</numerator>
@@ -512,21 +512,21 @@
         <groupSet>
             <id>65</id>
             <name>OrganisationUnitGroupSetA</name>
-            <description>DescriptionA</description>
+            
             <compulsory>true</compulsory>
             <exclusive>true</exclusive>
         </groupSet>
         <groupSet>
             <id>66</id>
             <name>OrganisationUnitGroupSetB</name>
-            <description>DescriptionB</description>
+            
             <compulsory>true</compulsory>
             <exclusive>true</exclusive>
         </groupSet>
         <groupSet>
             <id>67</id>
             <name>OrganisationUnitGroupSetC</name>
-            <description>DescriptionC</description>
+            
             <compulsory>true</compulsory>
             <exclusive>true</exclusive>
         </groupSet>
@@ -572,7 +572,7 @@
     <validationRules>
         <validationRule>
             <name>ValidationRuleA</name>
-            <description>DescriptionA</description>
+            
             <type>absolute</type>
             <operator>equal_to</operator>
             <leftSideExpression>[A.65]+[B.65]</leftSideExpression>
@@ -582,7 +582,7 @@
         </validationRule>
         <validationRule>
             <name>ValidationRuleB</name>
-            <description>DescriptionB</description>
+            
             <type>absolute</type>
             <operator>equal_to</operator>
             <leftSideExpression>[A.65]+[B.65]</leftSideExpression>
@@ -592,7 +592,7 @@
         </validationRule>
         <validationRule>
             <name>ValidationRuleC</name>
-            <description>DescriptionC</description>
+            
             <type>absolute</type>
             <operator>equal_to</operator>
             <leftSideExpression>[A.65]+[B.65]</leftSideExpression>

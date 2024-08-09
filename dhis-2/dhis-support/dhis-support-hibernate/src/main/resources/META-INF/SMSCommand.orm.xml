@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
+    
+    
+    <package>org.hisp.dhis.sms.command</package>
+    
+    <entity class="org.hisp.dhis.sms.command.SMSCommand" metadata-complete="true">
+        <table name="smscommands"/>
+        
+        <attributes>
+            <id name="id">
+                <column name="smscommandid"/>
+            </id>
+            <basic name="uid" fetch="EAGER" optional="true">
+                <column name="uid" unique="false" length="11"/>
+            </basic>
+            <basic name="created" fetch="EAGER" optional="true"/>
+            <basic name="lastUpdated" fetch="EAGER" optional="true"/>
+            <basic name="name" fetch="EAGER" optional="true"/>
+            <basic name="parserType" fetch="EAGER" optional="true"/>
+            <basic name="separator" fetch="EAGER" optional="true">
+                <column name="separatorkey" unique="false"/>
+            </basic>
+            <basic name="codeValueSeparator" fetch="EAGER" optional="true">
+                <column name="codeseparator" unique="false"/>
+            </basic>
+            <basic name="defaultMessage" fetch="EAGER" optional="true"/>
+            <basic name="receivedMessage" fetch="EAGER" optional="true"/>
+            <basic name="wrongFormatMessage" fetch="EAGER" optional="true"/>
+            <basic name="noUserMessage" fetch="EAGER" optional="true"/>
+            <basic name="moreThanOneOrgUnitMessage" fetch="EAGER" optional="true"/>
+            <basic name="successMessage" fetch="EAGER" optional="true"/>
+            <basic name="currentPeriodUsedForReporting" fetch="EAGER" optional="true"/>
+            <basic name="completenessMethod" fetch="EAGER" optional="true">
+                <column name="completenessmethod" unique="false"/>
+            </basic>
+            <many-to-one name="dataset" target-entity="org.hisp.dhis.dataset.DataSet" fetch="LAZY" optional="true">
+                <join-column name="datasetid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_dataset_datasetid"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="userGroup" target-entity="org.hisp.dhis.user.UserGroup" fetch="LAZY" optional="true">
+                <join-column name="usergroupid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_smscommand_usergroup"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="program" target-entity="org.hisp.dhis.program.Program" fetch="LAZY" optional="true">
+                <join-column name="programid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_smscommand_program"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="programStage" target-entity="org.hisp.dhis.program.ProgramStage" fetch="LAZY" optional="true">
+                <join-column name="programstageid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_smscommand_programstage"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-many name="codes" target-entity="org.hisp.dhis.sms.command.code.SMSCode">
+              
+            </many-to-many>
+            <many-to-many name="specialCharacters" target-entity="org.hisp.dhis.sms.command.SMSSpecialCharacter">
+              
+            </many-to-many>
+        </attributes>
+    </entity>
+</entity-mappings>

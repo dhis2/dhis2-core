@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
+ <entity class="org.hisp.dhis.dataelement.DataElementOperand" metadata-complete="true" cacheable="true">
+        <table name="dataelementoperand"/>
+        
+        <attributes>
+            <id name="id">
+                <column name="dataelementoperandid"/>
+            </id>
+            <many-to-one name="dataElement" target-entity="org.hisp.dhis.dataelement.DataElement" fetch="LAZY" optional="true">
+                <join-column name="dataelementid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_dataelementoperand_dataelement"/>
+                <cascade/>
+            </many-to-one>
+            <many-to-one name="categoryOptionCombo" target-entity="org.hisp.dhis.category.CategoryOptionCombo" fetch="LAZY" optional="true">
+                <join-column name="categoryoptioncomboid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_dataelementoperand_dataelementcategoryoptioncombo"/>
+                <cascade/>
+            </many-to-one>
+        </attributes>
+    </entity>
+</entity-mappings>

@@ -33,6 +33,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Properties;
+import javax.persistence.AttributeConverter;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.usertype.ParameterizedType;
@@ -58,7 +59,8 @@ import org.jasypt.encryption.pbe.PBEStringEncryptor;
  *
  * @author Halvdan Hoem Grelland
  */
-public class EncryptedStringUserType implements UserType, ParameterizedType {
+public class EncryptedStringUserType
+    implements UserType, ParameterizedType, AttributeConverter<String, String> {
   public static final String PARAMETER_ENCRYPTOR = "encryptor";
 
   private static final int[] sqlTypes = new int[] {Types.VARCHAR};
@@ -152,5 +154,21 @@ public class EncryptedStringUserType implements UserType, ParameterizedType {
     if (encryptor == null) {
       encryptor = HibernateEncryptorRegistry.getInstance().getEncryptor(encryptorName);
     }
+  }
+
+  @Override
+  public String convertToDatabaseColumn(String attribute) {
+    ensureEncryptorInit();
+    if (attribute == null) {
+      return null;
+    } else {
+      return encryptor.encrypt(attribute.toString());
+    }
+  }
+
+  @Override
+  public String convertToEntityAttribute(String dbData) {
+    ensureEncryptorInit();
+    return dbData == null ? null : encryptor.decrypt(dbData);
   }
 }

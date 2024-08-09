@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm" >
+ <entity class="org.hisp.dhis.period.Period" metadata-complete="true" cacheable="true">
+        <table name="period"/>
+        
+        <attributes>
+            <id name="id">
+                <column name="periodid"/>
+            </id>
+            <basic name="startDate" fetch="EAGER" optional="false">
+                <column name="startdate" unique="false" nullable="false"/>
+            </basic>
+            <basic name="endDate" fetch="EAGER" optional="false">
+                <column name="enddate" unique="false" nullable="false"/>
+            </basic>
+            <many-to-one name="periodType" target-entity="org.hisp.dhis.period.PeriodType" fetch="EAGER" optional="true">
+                <join-column name="periodtypeid" unique="false" nullable="true" insertable="true" updatable="true"/>
+                <foreign-key name="fk_period_periodtypeid"/>
+                <cascade/>
+            </many-to-one>
+        </attributes>
+    </entity>
+</entity-mappings>

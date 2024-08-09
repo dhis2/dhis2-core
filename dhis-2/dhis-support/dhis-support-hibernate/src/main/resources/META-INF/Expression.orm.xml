@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<entity-mappings version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm">
+ <entity class="org.hisp.dhis.expression.Expression" metadata-complete="true" cacheable="true">
+        <table name="expression"/>
+        
+        <attributes>
+            <id name="id">
+                <column name="expressionid"/>
+            </id>
+            <basic name="description" fetch="EAGER" optional="true"/>
+            <basic name="expression" fetch="EAGER" optional="true"/>
+            <basic name="slidingWindow" fetch="EAGER" optional="true"/>
+            <basic name="missingValueStrategy" fetch="EAGER" optional="true">
+                <column name="missingvaluestrategy" unique="false" length="100"/>
+            </basic>
+            <basic name="translations" fetch="EAGER" optional="true"/>
+        </attributes>
+    </entity>
+</entity-mappings>
