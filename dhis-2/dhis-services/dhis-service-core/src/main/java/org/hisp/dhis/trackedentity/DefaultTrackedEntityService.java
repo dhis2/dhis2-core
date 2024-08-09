@@ -52,7 +52,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -468,23 +467,6 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
         || (params.hasAttributes()
             && params.getAttributes().size()
                 < params.getTrackedEntityType().getMinAttributesRequiredToSearch());
-  }
-
-  @Override
-  @Transactional
-  public long createTrackedEntity(
-      TrackedEntity trackedEntity, Set<TrackedEntityAttributeValue> attributeValues) {
-    trackedEntityStore.save(trackedEntity);
-    long id = trackedEntity.getId();
-
-    for (TrackedEntityAttributeValue pav : attributeValues) {
-      attributeValueService.addTrackedEntityAttributeValue(pav);
-      trackedEntity.getTrackedEntityAttributeValues().add(pav);
-    }
-
-    manager.update(trackedEntity);
-
-    return id;
   }
 
   @Override
