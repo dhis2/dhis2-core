@@ -65,7 +65,7 @@ public class MinIOTestExtension implements AfterAllCallback {
     S3_URL = MIN_IO_CONTAINER.getS3URL();
   }
 
-  public static class MinIOConfig {
+  public static class DhisConfig {
     @Bean
     public DhisConfigurationProvider dhisConfigurationProvider() {
       Properties properties = new Properties();

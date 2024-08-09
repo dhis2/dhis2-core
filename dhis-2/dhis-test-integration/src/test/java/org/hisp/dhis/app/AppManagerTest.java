@@ -39,7 +39,7 @@ import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.test.junit.MinIOTestExtension;
-import org.hisp.dhis.test.junit.MinIOTestExtension.MinIOConfig;
+import org.hisp.dhis.test.junit.MinIOTestExtension.DhisConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,7 +55,7 @@ import org.springframework.test.context.ContextConfiguration;
  * storage is the local filesystem.
  */
 @ExtendWith(MinIOTestExtension.class)
-@ContextConfiguration(classes = {MinIOConfig.class})
+@ContextConfiguration(classes = {DhisConfig.class})
 class AppManagerTest extends PostgresIntegrationTestBase {
 
   @Autowired AppManager appManager;
