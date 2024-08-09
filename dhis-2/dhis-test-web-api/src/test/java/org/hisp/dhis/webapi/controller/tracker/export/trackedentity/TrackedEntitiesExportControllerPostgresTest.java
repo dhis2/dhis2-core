@@ -57,7 +57,6 @@ import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
@@ -86,8 +85,6 @@ class TrackedEntitiesExportControllerPostgresTest extends PostgresControllerInte
 
   @Autowired private TrackerImportService trackerImportService;
 
-  @Autowired private TrackedEntityService trackedEntityService;
-
   @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
 
   private TrackedEntity trackedEntity;
@@ -106,7 +103,7 @@ class TrackedEntitiesExportControllerPostgresTest extends PostgresControllerInte
     assertNoDataErrors(
         trackerImportService.importTracker(params, fromJson("tracker/single_te.json")));
 
-    trackedEntity = trackedEntityService.getTrackedEntity("IOR1AXXl24H");
+    trackedEntity = manager.get(TrackedEntity.class, "IOR1AXXl24H");
 
     JsonWebMessage importResponse =
         POST("/tracker?async=false&importStrategy=UPDATE", createJsonPayload(2))

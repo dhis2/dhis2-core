@@ -38,6 +38,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -136,7 +137,7 @@ public class SimpleEventSMSListener extends EventSavingSMSListener {
     try {
       enrollments =
           new ArrayList<>(enrollmentService.getEnrollments(null, program, EnrollmentStatus.ACTIVE));
-    } catch (ForbiddenException | BadRequestException e) {
+    } catch (ForbiddenException | BadRequestException | NotFoundException e) {
       // TODO(tracker) Find a better error message for these exceptions
       throw new SMSProcessingException(SmsResponse.UNKNOWN_ERROR);
     }

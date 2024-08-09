@@ -33,13 +33,14 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
@@ -69,9 +70,10 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
       UID programUid,
       TrackedEntityChangeLogOperationParams operationParams,
       PageParams pageParams)
-      throws NotFoundException {
+      throws NotFoundException, ForbiddenException, BadRequestException {
     TrackedEntity trackedEntity =
-        trackedEntityService.getTrackedEntity(trackedEntityUid.getValue());
+        trackedEntityService.getTrackedEntity(
+            trackedEntityUid.getValue(), null, TrackedEntityParams.FALSE, false);
     if (trackedEntity == null) {
       throw new NotFoundException(TrackedEntity.class, trackedEntityUid.getValue());
     }

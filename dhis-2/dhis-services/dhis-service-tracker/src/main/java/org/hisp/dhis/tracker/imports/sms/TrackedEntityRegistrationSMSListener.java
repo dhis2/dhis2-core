@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -50,7 +51,6 @@ import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.UserService;
@@ -67,7 +67,9 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
 
   private final TrackedEntityTypeService trackedEntityTypeService;
 
-  private final TrackedEntityService trackedEntityService;
+  private final org.hisp.dhis.trackedentity.TrackedEntityService apiTrackedEntityService;
+
+  private final IdentifiableObjectManager manager;
 
   private final ProgramService programService;
 
@@ -81,12 +83,14 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
       @Qualifier("smsMessageSender") MessageSender smsSender,
       SMSCommandService smsCommandService,
       TrackedEntityTypeService trackedEntityTypeService,
-      TrackedEntityService trackedEntityService,
+      org.hisp.dhis.trackedentity.TrackedEntityService apiTrackedEntityService,
+      IdentifiableObjectManager manager,
       SMSEnrollmentService smsEnrollmentService) {
     super(dataElementCategoryService, userService, incomingSmsService, smsSender);
     this.smsCommandService = smsCommandService;
     this.trackedEntityTypeService = trackedEntityTypeService;
-    this.trackedEntityService = trackedEntityService;
+    this.apiTrackedEntityService = apiTrackedEntityService;
+    this.manager = manager;
     this.programService = programService;
     this.smsEnrollmentService = smsEnrollmentService;
   }
@@ -127,16 +131,13 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
             });
 
     if (!patientAttributeValues.isEmpty()) {
-      trackedEntityService.createTrackedEntity(trackedEntity, patientAttributeValues);
+      apiTrackedEntityService.createTrackedEntity(trackedEntity, patientAttributeValues);
     } else {
       sendFeedback("No TrackedEntityAttribute found", senderPhoneNumber, WARNING);
     }
 
     smsEnrollmentService.enrollTrackedEntity(
-        trackedEntityService.getTrackedEntity(trackedEntity.getUid()),
-        program,
-        orgUnit,
-        occurredDate);
+        manager.get(TrackedEntity.class, trackedEntity.getUid()), program, orgUnit, occurredDate);
 
     sendFeedback(
         StringUtils.defaultIfBlank(

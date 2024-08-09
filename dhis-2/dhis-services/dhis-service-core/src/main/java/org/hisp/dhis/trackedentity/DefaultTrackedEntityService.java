@@ -495,15 +495,6 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
         trackedEntityUIDs, lastUpdated, userInfoSnapshot);
   }
 
-  @Override
-  @Transactional
-  public TrackedEntity getTrackedEntity(String uid) {
-    TrackedEntity te = trackedEntityStore.getByUid(uid);
-    addTrackedEntityAudit(te, CurrentUserUtil.getCurrentUsername(), ChangeLogType.READ);
-
-    return te;
-  }
-
   private boolean isLocalSearch(TrackedEntityQueryParams params, User user) {
     Set<OrganisationUnit> localOrgUnits = user.getOrganisationUnits();
 

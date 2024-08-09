@@ -29,6 +29,8 @@ package org.hisp.dhis.tracker.export.trackedentity;
 
 import java.util.Set;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
@@ -45,7 +47,7 @@ public interface TrackedEntityChangeLogService {
       UID programUid,
       TrackedEntityChangeLogOperationParams operationParams,
       PageParams pageParams)
-      throws NotFoundException;
+      throws NotFoundException, ForbiddenException, BadRequestException;
 
   /**
    * Fields the {@link #getTrackedEntityChangeLog(UID, UID, TrackedEntityChangeLogOperationParams,

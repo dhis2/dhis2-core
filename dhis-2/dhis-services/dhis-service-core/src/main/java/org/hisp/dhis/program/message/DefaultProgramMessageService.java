@@ -47,7 +47,7 @@ import org.hisp.dhis.outboundmessage.OutboundMessageBatchService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,8 +64,6 @@ public class DefaultProgramMessageService implements ProgramMessageService {
   private final ProgramMessageStore programMessageStore;
 
   private final OrganisationUnitService organisationUnitService;
-
-  private final TrackedEntityService trackedEntityService;
 
   private final OutboundMessageBatchService messageBatchService;
 
@@ -164,7 +162,7 @@ public class DefaultProgramMessageService implements ProgramMessageService {
     }
 
     if (recipients.getTrackedEntity() != null
-        && trackedEntityService.getTrackedEntity(recipients.getTrackedEntity().getUid()) == null) {
+        && getEntity(TrackedEntity.class, recipients.getTrackedEntity()) == null) {
       violations.add("Tracked entity does not exist");
     }
 
