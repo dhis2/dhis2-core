@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,18 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event;
+package org.hisp.dhis.webapi.controller.notification;
 
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.webapi.controller.tracker.export.PageRequestParams;
 
-/** Created by zubair on 02.07.17. */
-@Controller
-@RequestMapping("/api/dataSetNotificationTemplates")
-@ApiVersion(include = {DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-public class DataSetNotificationTemplateController
-    extends AbstractCrudController<DataSetNotificationTemplate> {}
+/**
+ * @author Zubair Asghar
+ */
+@Data
+@NoArgsConstructor
+public class ProgramNotificationTemplateRequestParams implements PageRequestParams {
+  private UID program;
+
+  private UID programStage;
+
+  private Integer page;
+
+  private Integer pageSize;
+
+  private Boolean totalPages = false;
+
+  @Deprecated(since = "2.41")
+  private Boolean skipPaging;
+
+  // TODO(tracker): set paging=true once skipPaging is removed. Both cannot have a default right
+  // now. This would lead to invalid parameters if the user passes the other param i.e.
+  // skipPaging==paging.
+  // PageRequestParams.isPaged handles the default case of skipPaging==paging==null => paging
+  // enabled
+  private Boolean paging;
+}

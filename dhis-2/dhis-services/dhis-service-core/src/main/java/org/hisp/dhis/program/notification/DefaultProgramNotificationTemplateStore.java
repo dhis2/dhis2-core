@@ -45,7 +45,6 @@ public class DefaultProgramNotificationTemplateStore
     extends HibernateIdentifiableObjectStore<ProgramNotificationTemplate>
     implements ProgramNotificationTemplateStore {
   private static final String PROGRAM_ID = "pid";
-
   private static final String PROGRAM_STAGE_ID = "psid";
 
   public DefaultProgramNotificationTemplateStore(
@@ -63,10 +62,10 @@ public class DefaultProgramNotificationTemplateStore
   }
 
   @Override
-  public int countProgramNotificationTemplates(ProgramNotificationTemplateParam param) {
+  public int countProgramNotificationTemplates(ProgramNotificationTemplateQueryParams param) {
     Query query =
         nativeSynchronizedQuery(
-            "select count(*) from programnotificationtemplate where programstageid = :psid or  programid = :pid");
+            "select count(*) from programnotificationtemplate where programstageid = :psid or programid = :pid");
     query.setParameter(
         PROGRAM_STAGE_ID, param.hasProgramStage() ? param.getProgramStage().getId() : 0);
     query.setParameter(PROGRAM_ID, param.hasProgram() ? param.getProgram().getId() : 0);
@@ -76,11 +75,10 @@ public class DefaultProgramNotificationTemplateStore
 
   @Override
   public List<ProgramNotificationTemplate> getProgramNotificationTemplates(
-      ProgramNotificationTemplateParam param) {
+      ProgramNotificationTemplateQueryParams param) {
     NativeQuery<ProgramNotificationTemplate> query =
         nativeSynchronizedTypedQuery(
-            "select * from programnotificationtemplate where programstageid = :psid or  programid = :pid");
-
+            "select * from programnotificationtemplate where programstageid = :psid or programid = :pid");
     query.setParameter(
         PROGRAM_STAGE_ID, param.hasProgramStage() ? param.getProgramStage().getId() : 0);
     query.setParameter(PROGRAM_ID, param.hasProgram() ? param.getProgram().getId() : 0);
@@ -90,7 +88,6 @@ public class DefaultProgramNotificationTemplateStore
 
   @Override
   public List<ProgramNotificationTemplate> getByDataElement(Collection<DataElement> dataElements) {
-    // language=hql
     String hql =
         """
         from ProgramNotificationTemplate pnt

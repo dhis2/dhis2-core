@@ -44,8 +44,8 @@ public interface ProgramNotificationTemplateService {
   void delete(ProgramNotificationTemplate programNotificationTemplate);
 
   int countProgramNotificationTemplates(
-      ProgramNotificationTemplateParam programNotificationTemplateParam);
+      ProgramNotificationTemplateOperationParams programNotificationTemplateParam);
 
   List<ProgramNotificationTemplate> getProgramNotificationTemplates(
-      ProgramNotificationTemplateParam programNotificationTemplateParam);
+      ProgramNotificationTemplateOperationParams programNotificationTemplateParam);
 }

@@ -28,6 +28,7 @@
 package org.hisp.dhis.program.notification;
 
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,13 +36,11 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Zubair Asghar
  */
 @Service("org.hisp.dhis.program.ProgramNotificationTemplateService")
+@RequiredArgsConstructor
 public class DefaultProgramNotificationTemplateService
     implements ProgramNotificationTemplateService {
   private final ProgramNotificationTemplateStore store;
-
-  public DefaultProgramNotificationTemplateService(ProgramNotificationTemplateStore store) {
-    this.store = store;
-  }
+  private final ProgramNotificationTemplateOperationParamsMapper paramsMapper;
 
   @Override
   @Transactional(readOnly = true)
@@ -75,14 +74,17 @@ public class DefaultProgramNotificationTemplateService
 
   @Override
   @Transactional(readOnly = true)
-  public int countProgramNotificationTemplates(ProgramNotificationTemplateParam param) {
-    return store.countProgramNotificationTemplates(param);
+  public int countProgramNotificationTemplates(ProgramNotificationTemplateOperationParams param) {
+    ProgramNotificationTemplateQueryParams queryParams = paramsMapper.map(param);
+    return store.countProgramNotificationTemplates(queryParams);
   }
 
   @Override
   @Transactional(readOnly = true)
   public List<ProgramNotificationTemplate> getProgramNotificationTemplates(
-      ProgramNotificationTemplateParam programNotificationTemplateParam) {
-    return store.getProgramNotificationTemplates(programNotificationTemplateParam);
+      ProgramNotificationTemplateOperationParams operationParams) {
+    ProgramNotificationTemplateQueryParams queryParams = paramsMapper.map(operationParams);
+
+    return store.getProgramNotificationTemplates(queryParams);
   }
 }
