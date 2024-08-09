@@ -56,10 +56,12 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.period.RelativePeriodEnum;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -145,10 +147,23 @@ public class EnrollmentAnalyticsController {
     return analyticsService.getEnrollments(params);
   }
 
+  @OpenApi.Ignore
+  @Deprecated(since = "2.42", forRemoval = true)
   @SneakyThrows
   @GetMapping("/aggregate/{program}.xml")
-  public void getAggregateXml(
+  public void getAggregateXmlOutdated(
       @PathVariable String program,
+      EnrollmentAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response) {
+    getAggregateXml(program, criteria, apiVersion, response);
+  }
+
+  @OpenApi.Response(String.class)
+  @SneakyThrows
+  @GetMapping(value = "/aggregate/enrollments.xml")
+  public void getAggregateXml(
+      @OpenApi.Param({UID.class, Program.class}) @RequestParam String program,
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
@@ -164,10 +179,23 @@ public class EnrollmentAnalyticsController {
     GridUtils.toXml(grid, response.getOutputStream());
   }
 
+  @OpenApi.Ignore
+  @Deprecated(since = "2.42", forRemoval = true)
   @SneakyThrows
   @GetMapping("/aggregate/{program}.xls")
-  public void getAggregateXls(
+  public void getAggregateXlsOutdated(
       @PathVariable String program,
+      EnrollmentAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response) {
+    getAggregateXls(program, criteria, apiVersion, response);
+  }
+
+  @OpenApi.Response(String.class)
+  @SneakyThrows
+  @GetMapping(value = "/aggregate/enrollments.xls")
+  public void getAggregateXls(
+      @OpenApi.Param({UID.class, Program.class}) @RequestParam String program,
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
@@ -183,10 +211,23 @@ public class EnrollmentAnalyticsController {
     GridUtils.toXls(grid, response.getOutputStream());
   }
 
+  @OpenApi.Ignore
+  @Deprecated(since = "2.42", forRemoval = true)
   @SneakyThrows
   @GetMapping("/aggregate/{program}.csv")
-  public void getAggregateCsv(
+  public void getAggregateCsvOutdated(
       @PathVariable String program,
+      EnrollmentAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response) {
+    getAggregateCsv(program, criteria, apiVersion, response);
+  }
+
+  @OpenApi.Response(String.class)
+  @SneakyThrows
+  @GetMapping(value = "/aggregate/enrollments.csv")
+  public void getAggregateCsv(
+      @OpenApi.Param({UID.class, Program.class}) @RequestParam String program,
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
@@ -202,10 +243,23 @@ public class EnrollmentAnalyticsController {
     GridUtils.toCsv(grid, response.getWriter());
   }
 
+  @OpenApi.Ignore
+  @Deprecated(since = "2.42", forRemoval = true)
   @SneakyThrows
   @GetMapping("/aggregate/{program}.html")
-  public void getAggregateHtml(
+  public void getAggregateHtmlOutdated(
       @PathVariable String program,
+      EnrollmentAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response) {
+    getAggregateHtml(program, criteria, apiVersion, response);
+  }
+
+  @OpenApi.Response(String.class)
+  @SneakyThrows
+  @GetMapping(value = "/aggregate/enrollments.html")
+  public void getAggregateHtml(
+      @OpenApi.Param({UID.class, Program.class}) @RequestParam String program,
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
@@ -221,10 +275,23 @@ public class EnrollmentAnalyticsController {
     GridUtils.toHtml(grid, response.getWriter());
   }
 
+  @OpenApi.Ignore
+  @Deprecated(since = "2.42", forRemoval = true)
   @SneakyThrows
   @GetMapping("/aggregate/{program}.html+css")
-  public void getAggregateHtmlCss(
+  public void getAggregateHtmlCssOutdated(
       @PathVariable String program,
+      EnrollmentAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response) {
+    getAggregateHtmlCss(program, criteria, apiVersion, response);
+  }
+
+  @OpenApi.Response(String.class)
+  @SneakyThrows
+  @GetMapping(value = "/aggregate/enrollments.html+css")
+  public void getAggregateHtmlCss(
+      @OpenApi.Param({UID.class, Program.class}) @RequestParam String program,
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
@@ -279,10 +346,23 @@ public class EnrollmentAnalyticsController {
     return analyticsService.getEnrollments(params);
   }
 
+  @OpenApi.Ignore
+  @Deprecated(since = "2.42", forRemoval = true)
   @SneakyThrows
   @GetMapping("/query/{program}.xml")
-  public void getQueryXml(
+  public void getQueryXmlOutdated(
       @PathVariable String program,
+      EnrollmentAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response) {
+    getQueryXml(program, criteria, apiVersion, response);
+  }
+
+  @OpenApi.Response(String.class)
+  @SneakyThrows
+  @GetMapping("/query/enrollments.xml")
+  public void getQueryXml(
+      @OpenApi.Param({UID.class, Program.class}) @RequestParam String program,
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
@@ -298,10 +378,23 @@ public class EnrollmentAnalyticsController {
     GridUtils.toXml(grid, response.getOutputStream());
   }
 
+  @OpenApi.Ignore
+  @Deprecated(since = "2.42", forRemoval = true)
   @SneakyThrows
   @GetMapping("/query/{program}.xls")
-  public void getQueryXls(
+  public void getQueryXlsOutdated(
       @PathVariable String program,
+      EnrollmentAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response) {
+    getQueryXls(program, criteria, apiVersion, response);
+  }
+
+  @OpenApi.Response(String.class)
+  @SneakyThrows
+  @GetMapping("/query/enrollments.xls")
+  public void getQueryXls(
+      @OpenApi.Param({UID.class, Program.class}) @RequestParam String program,
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
@@ -317,10 +410,23 @@ public class EnrollmentAnalyticsController {
     GridUtils.toXls(grid, response.getOutputStream());
   }
 
+  @OpenApi.Ignore
+  @Deprecated(since = "2.42", forRemoval = true)
   @SneakyThrows
   @GetMapping("/query/{program}.csv")
-  public void getQueryCsv(
+  public void getQueryCsvOutdated(
       @PathVariable String program,
+      EnrollmentAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response) {
+    getQueryCsv(program, criteria, apiVersion, response);
+  }
+
+  @OpenApi.Response(String.class)
+  @SneakyThrows
+  @GetMapping("/query/enrollments.csv")
+  public void getQueryCsv(
+      @OpenApi.Param({UID.class, Program.class}) @RequestParam String program,
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
@@ -336,10 +442,23 @@ public class EnrollmentAnalyticsController {
     GridUtils.toCsv(grid, response.getWriter());
   }
 
+  @OpenApi.Ignore
+  @Deprecated(since = "2.42", forRemoval = true)
   @SneakyThrows
   @GetMapping("/query/{program}.html")
-  public void getQueryHtml(
+  public void getQueryHtmlOutdated(
       @PathVariable String program,
+      EnrollmentAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response) {
+    getQueryHtml(program, criteria, apiVersion, response);
+  }
+
+  @OpenApi.Response(String.class)
+  @SneakyThrows
+  @GetMapping("/query/enrollments.html")
+  public void getQueryHtml(
+      @OpenApi.Param({UID.class, Program.class}) @RequestParam String program,
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
@@ -355,10 +474,23 @@ public class EnrollmentAnalyticsController {
     GridUtils.toHtml(grid, response.getWriter());
   }
 
+  @OpenApi.Ignore
+  @Deprecated(since = "2.42", forRemoval = true)
   @SneakyThrows
   @GetMapping("/query/{program}.html+css")
-  public void getQueryHtmlCss(
+  public void getQueryHtmlCssOutdated(
       @PathVariable String program,
+      EnrollmentAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response) {
+    getQueryHtmlCss(program, criteria, apiVersion, response);
+  }
+
+  @OpenApi.Response(String.class)
+  @SneakyThrows
+  @GetMapping("/query/enrollments.html+css")
+  public void getQueryHtmlCss(
+      @OpenApi.Param({UID.class, Program.class}) @RequestParam String program,
       EnrollmentAnalyticsQueryCriteria criteria,
       DhisApiVersion apiVersion,
       HttpServletResponse response) {
