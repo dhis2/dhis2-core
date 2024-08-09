@@ -105,15 +105,15 @@ public abstract class SmsGateway {
     try {
       response = restTemplate.exchange(urlTemplate, httpMethod, request, klass);
 
-      statusCode = response.getStatusCode();
+      statusCode = HttpStatus.resolve(response.getStatusCode().value());
     } catch (HttpClientErrorException ex) {
       log.error("Sms request client error", ex);
 
-      statusCode = ex.getStatusCode();
+      statusCode = HttpStatus.resolve(ex.getStatusCode().value());
     } catch (HttpServerErrorException ex) {
       log.error("Sms request server error", ex);
 
-      statusCode = ex.getStatusCode();
+      statusCode = HttpStatus.resolve(ex.getStatusCode().value());
     } catch (Exception ex) {
       log.error("Sms request error", ex);
 
