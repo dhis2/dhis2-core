@@ -78,13 +78,6 @@ public class ProgramNotificationTemplateRequestParamsMapper {
     if (requestParams.getProgram() != null && requestParams.getProgramStage() != null) {
       throw new ConflictException("Program and ProgramStage cannot be processed together.");
     }
-
-    if (requestParams.getPaging() != null
-        && requestParams.getSkipPaging() != null
-        && requestParams.getPaging().equals(requestParams.getSkipPaging())) {
-      throw new BadRequestException(
-          "Paging can either be enabled or disabled. Prefer 'paging' as 'skipPaging' will be removed.");
-    }
   }
 
   private boolean determinePaging(ProgramNotificationTemplateRequestParams requestParams) {
