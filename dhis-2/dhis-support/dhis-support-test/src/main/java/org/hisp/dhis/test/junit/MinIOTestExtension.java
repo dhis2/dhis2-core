@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,17 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.config;
+package org.hisp.dhis.test.junit;
 
 import java.util.Properties;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.test.config.PostgresDhisConfigurationProvider;
+import org.junit.jupiter.api.extension.AfterAllCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.springframework.context.annotation.Bean;
 import org.testcontainers.containers.MinIOContainer;
 
-/**
- * Config provider for MinIO store usage (overriding the default file system storage).
- *
- * @author david mackessy
- */
-public class MinIOConfigurationProvider extends TestDhisConfigurationProvider {
+public class MinIOTestExtension implements AfterAllCallback {
 
   private static final String S3_URL;
   private static final String MINIO_USER = "testuser";
@@ -51,17 +51,25 @@ public class MinIOConfigurationProvider extends TestDhisConfigurationProvider {
     S3_URL = MIN_IO_CONTAINER.getS3URL();
   }
 
-  public MinIOConfigurationProvider(Properties dhisConfig) {
-    setMinIOProperties(dhisConfig);
+  public static class MinIOConfig {
+    @Bean
+    public DhisConfigurationProvider dhisConfigurationProvider() {
+      Properties properties = new Properties();
+      properties.put("filestore.provider", "s3");
+      properties.put("filestore.container", "dhis2");
+      properties.put("filestore.location", "eu-west-1");
+      properties.put("filestore.endpoint", S3_URL);
+      properties.put("filestore.identity", MINIO_USER);
+      properties.put("filestore.secret", MINIO_PASSWORD);
+
+      PostgresDhisConfigurationProvider pgDhisConfig = new PostgresDhisConfigurationProvider();
+      pgDhisConfig.addProperties(properties);
+      return pgDhisConfig;
+    }
   }
 
-  public void setMinIOProperties(Properties properties) {
-    properties.put("filestore.provider", "s3");
-    properties.put("filestore.container", "dhis2");
-    properties.put("filestore.location", "eu-west-1");
-    properties.put("filestore.endpoint", S3_URL);
-    properties.put("filestore.identity", MINIO_USER);
-    properties.put("filestore.secret", MINIO_PASSWORD);
-    this.properties = properties;
+  @Override
+  public void afterAll(ExtensionContext context) {
+    MIN_IO_CONTAINER.stop();
   }
 }
