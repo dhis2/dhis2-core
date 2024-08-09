@@ -32,13 +32,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import lombok.Getter;
 import org.hisp.dhis.cache.CacheInvalidationMessagePublisherTest.Config;
 import org.hisp.dhis.cacheinvalidation.redis.CacheInvalidationMessagePublisher;
 import org.hisp.dhis.cacheinvalidation.redis.CacheInvalidationPreStartupRoutine;
 import org.hisp.dhis.cacheinvalidation.redis.PostCacheEventPublisher;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.test.config.PostgresDhisConfigurationProvider;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,15 +50,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
-import org.springframework.security.core.session.SessionRegistry;
-import org.springframework.security.core.session.SessionRegistryImpl;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@ActiveProfiles("cache-invalidation-test")
 @ContextConfiguration(
     classes = {
       Config.class,
@@ -63,8 +63,13 @@ class CacheInvalidationMessagePublisherTest extends PostgresIntegrationTestBase 
 
   static class Config {
     @Bean
-    public static SessionRegistry sessionRegistry() {
-      return new SessionRegistryImpl();
+    public DhisConfigurationProvider dhisConfigurationProvider() {
+      Properties override = new Properties();
+      override.put(ConfigurationKey.REDIS_CACHE_INVALIDATION_ENABLED, "true");
+      PostgresDhisConfigurationProvider postgresDhisConfigurationProvider =
+          new PostgresDhisConfigurationProvider();
+      postgresDhisConfigurationProvider.addProperties(override);
+      return postgresDhisConfigurationProvider;
     }
 
     @Bean

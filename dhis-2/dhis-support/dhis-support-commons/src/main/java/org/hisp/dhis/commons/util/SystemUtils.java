@@ -48,14 +48,6 @@ public class SystemUtils {
     return Arrays.asList(profiles).contains("cache-test");
   }
 
-  public static boolean isCacheInvalidationInTest(String[] profiles) {
-    return Arrays.asList(profiles).contains("cache-invalidation-test");
-  }
-
-  public static boolean isUserImpersonationInTest(String[] profiles) {
-    return Arrays.asList(profiles).contains("impersonate-user-test");
-  }
-
   public static boolean isAuditTest(String[] profiles) {
     return Arrays.asList(profiles).contains("test-audit");
   }
