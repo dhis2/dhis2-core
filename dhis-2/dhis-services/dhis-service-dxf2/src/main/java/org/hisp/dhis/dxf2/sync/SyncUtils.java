@@ -47,6 +47,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -291,7 +292,7 @@ public class SyncUtils {
     HttpEntity<String> request = getBasicAuthRequestEntity(username, password);
 
     ResponseEntity<String> response;
-    HttpStatus sc;
+    HttpStatusCode sc;
     String st = null;
     AvailabilityStatus status;
 
@@ -299,7 +300,7 @@ public class SyncUtils {
       response = restTemplate.exchange(url, HttpMethod.GET, request, String.class);
       sc = response.getStatusCode();
     } catch (HttpClientErrorException | HttpServerErrorException ex) {
-      sc = ex.getStatusCode();
+      sc = HttpStatus.resolve(ex.getStatusCode().value());
       st = ex.getStatusText();
     } catch (ResourceAccessException ex) {
       return new AvailabilityStatus(false, "Network is unreachable", HttpStatus.BAD_GATEWAY);

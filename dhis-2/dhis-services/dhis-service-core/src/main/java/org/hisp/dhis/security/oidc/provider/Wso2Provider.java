@@ -95,7 +95,7 @@ public class Wso2Provider extends AbstractOidcProvider {
     builder.clientName(wso2ClientId);
     builder.clientId(wso2ClientId);
     builder.clientSecret(wso2ClientSecret);
-    builder.clientAuthenticationMethod(ClientAuthenticationMethod.BASIC);
+    builder.clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC);
     builder.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE);
     builder.scope("openid", "profile", DEFAULT_MAPPING_CLAIM);
     builder.authorizationUri(providerBaseUrl + "/oauth2/authorize");

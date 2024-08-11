@@ -226,7 +226,7 @@ public class RouteService {
         "Request {} {} responded with HTTP status {} via route {} ({})",
         httpMethod,
         targetUri,
-        response.getStatusCode().toString(),
+        response.getStatusCode(),
         route.getName(),
         route.getUid());
 

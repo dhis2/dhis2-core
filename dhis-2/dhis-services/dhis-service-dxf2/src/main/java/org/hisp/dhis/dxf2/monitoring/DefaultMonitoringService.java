@@ -43,7 +43,7 @@ import org.hisp.dhis.system.util.HttpHeadersBuilder;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
@@ -138,7 +138,7 @@ public class DefaultMonitoringService implements MonitoringService {
     HttpEntity<SystemInfo> requestEntity = new HttpEntity<>(systemInfo, headersBuilder.build());
 
     ResponseEntity<String> response = null;
-    HttpStatus sc = null;
+    HttpStatusCode sc = null;
 
     try {
       response = restTemplate.postForEntity(target.getUrl(), requestEntity, String.class);

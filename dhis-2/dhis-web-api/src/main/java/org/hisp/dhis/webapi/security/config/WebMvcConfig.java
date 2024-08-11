@@ -83,7 +83,7 @@ import org.springframework.web.accept.FixedContentNegotiationStrategy;
 import org.springframework.web.accept.HeaderContentNegotiationStrategy;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.multipart.MultipartResolver;
-import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.DelegatingWebMvcConfiguration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -158,7 +158,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
 
   @Bean
   public MultipartResolver multipartResolver() {
-    return new CommonsMultipartResolver();
+    return new StandardServletMultipartResolver();
   }
 
   @Bean

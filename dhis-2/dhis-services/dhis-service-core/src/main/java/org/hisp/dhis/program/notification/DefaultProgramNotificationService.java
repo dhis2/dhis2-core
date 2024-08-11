@@ -358,7 +358,7 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
   @Override
   protected void preProcessPredicates(
       CriteriaBuilder builder,
-      List<Function<Root<Event>, javax.persistence.criteria.Predicate>> predicates) {
+      List<Function<Root<Event>, jakarta.persistence.criteria.Predicate>> predicates) {
     predicates.add(root -> builder.equal(root.get("deleted"), false));
   }
 

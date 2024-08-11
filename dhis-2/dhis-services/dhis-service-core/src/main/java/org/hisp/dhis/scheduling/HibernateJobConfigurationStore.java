@@ -31,7 +31,7 @@ import static java.lang.Math.max;
 import static java.util.stream.Collectors.toSet;
 import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
 
-import com.vladmihalcea.hibernate.type.array.StringArrayType;
+import io.hypersistence.utils.hibernate.type.array.StringArrayType;
 import jakarta.persistence.EntityManager;
 import java.util.Date;
 import java.util.List;

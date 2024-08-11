@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.hibernate.dialect;
 
-import com.vladmihalcea.hibernate.type.array.StringArrayType;
+import io.hypersistence.utils.hibernate.type.array.StringArrayType;
 import java.sql.Types;
 import org.hibernate.dialect.function.StandardSQLFunction;
 import org.hibernate.spatial.dialect.postgis.PostgisPG95Dialect;

@@ -119,7 +119,7 @@ public class HibernateValidationResultStore extends HibernateGenericStore<Valida
       hql.append(helper.whereAnd()).append(" vr.notificationSent = :notificationSent ");
     }
 
-    Query<ValidationResult> query = entityManager.createQuery(hql.toString());
+    Query<ValidationResult> query = getSession().createQuery(hql.toString());
 
     if (!isEmpty(request.getOu())) {
       query.setParameter("unitsUids", request.getOu());
