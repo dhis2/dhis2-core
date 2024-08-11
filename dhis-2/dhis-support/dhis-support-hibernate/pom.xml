@@ -56,9 +56,8 @@
       <classifier>jakarta</classifier>
     </dependency>
     <dependency>
-      <groupId>com.vladmihalcea</groupId>
-      <artifactId>hibernate-types-52</artifactId>
-      <version>${hibernate-types.version}</version>
+      <groupId>io.hypersistence</groupId>
+      <artifactId>hypersistence-utils-hibernate-55</artifactId>
     </dependency>
     <dependency>
       <groupId>com.mchange</groupId>
