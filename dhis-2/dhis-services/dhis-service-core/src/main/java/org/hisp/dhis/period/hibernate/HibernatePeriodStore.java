@@ -225,7 +225,7 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
     CriteriaQuery<PeriodType> query = builder.createQuery(PeriodType.class);
     query.select(query.from(periodType));
 
-    return getSession().createQuery(query).setCacheable(true).uniqueResult();
+    return entityManager.createQuery(query).setCacheable(true).uniqueResult();
   }
 
   @Override
@@ -235,7 +235,7 @@ public class HibernatePeriodStore extends HibernateIdentifiableObjectStore<Perio
     CriteriaQuery<PeriodType> query = builder.createQuery(PeriodType.class);
     query.select(query.from(PeriodType.class));
 
-    return getSession().createQuery(query).setCacheable(true).getResultList();
+    return entityManager.createQuery(query).setCacheable(true).getResultList();
   }
 
   @Override

@@ -119,14 +119,14 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
   public void deleteDataValues(OrganisationUnit organisationUnit) {
     String hql = "delete from DataValue d where d.source = :source";
 
-    getSession().createQuery(hql).setParameter("source", organisationUnit).executeUpdate();
+    entityManager.createQuery(hql).setParameter("source", organisationUnit).executeUpdate();
   }
 
   @Override
   public void deleteDataValues(DataElement dataElement) {
     String hql = "delete from DataValue d where d.dataElement = :dataElement";
 
-    getSession().createQuery(hql).setParameter("dataElement", dataElement).executeUpdate();
+    entityManager.createQuery(hql).setParameter("dataElement", dataElement).executeUpdate();
   }
 
   @Override

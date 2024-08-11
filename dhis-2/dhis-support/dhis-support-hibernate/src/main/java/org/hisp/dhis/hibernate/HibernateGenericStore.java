@@ -210,6 +210,16 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
     return list != null && !list.isEmpty() ? list.get(0) : null;
   }
 
+  protected <V> V getSingleResult(Query<V> typedQuery) {
+    List<V> list = typedQuery.getResultList();
+
+    if (list != null && list.size() > 1) {
+      throw new NonUniqueResultException("More than one entity found for query");
+    }
+
+    return list != null && !list.isEmpty() ? list.get(0) : null;
+  }
+
   protected <V> V getSingleResult(NativeQuery<V> nativeQuery) {
     List<V> list = nativeQuery.getResultList();
 
@@ -448,7 +458,7 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
 
     query.where(builder.or(predicates.toArray(new Predicate[predicates.size()])));
 
-    return getSession().createQuery(query).list();
+    return entityManager.createQuery(query).getResultList();
   }
 
   @Nonnull
@@ -486,7 +496,7 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
 
     query.where(builder.or(predicates.toArray(new Predicate[predicates.size()])));
 
-    List<String> result = getSession().createQuery(query).list();
+    List<String> result = entityManager.createQuery(query).getResultList();
 
     return convertListJsonToListObject(
         JsonAttributeValueBinaryType.MAPPER, result, AttributeValue.class);
@@ -514,7 +524,7 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
 
     query.where(builder.or(predicates.toArray(new Predicate[predicates.size()])));
 
-    return getSession().createQuery(query).getSingleResult();
+    return entityManager.createQuery(query).getSingleResult();
   }
 
   @Nonnull
@@ -550,7 +560,7 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
                 builder.literal(attribute.getUid()))
             .isNotNull());
 
-    return getSession().createQuery(query).list();
+    return entityManager.createQuery(query).getResultList();
   }
 
   @Nonnull
@@ -570,7 +580,7 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
                 builder.literal(attribute.getUid()),
                 builder.literal("value")),
             value));
-    return getSession().createQuery(query).list();
+    return entityManager.createQuery(query).getResultList();
   }
 
   @Nonnull
@@ -599,7 +609,7 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
                 builder.literal("value")),
             value));
 
-    List<String> result = getSession().createQuery(query).list();
+    List<String> result = entityManager.createQuery(query).getResultList();
 
     return convertListJsonToListObject(
         JsonAttributeValueBinaryType.MAPPER, result, AttributeValue.class);
@@ -622,7 +632,7 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
                 builder.literal(attributeValue.getAttribute().getUid()),
                 builder.literal("value")),
             attributeValue.getValue()));
-    return getSession().createQuery(query).list();
+    return entityManager.createQuery(query).getResultList();
   }
 
   @Override
@@ -659,7 +669,7 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
                 builder.literal("value"))
             .in(values));
 
-    return getSession().createQuery(query).list();
+    return entityManager.createQuery(query).getResultList();
   }
 
   @Override
@@ -668,8 +678,8 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
     String template =
         "update %s set attributevalues = jsonb_strip_nulls("
             + "jsonb_set(cast(attributevalues as jsonb), '{%s}', cast(:value as jsonb), :createMissing))";
-    return getSession()
-        .createSQLQuery(format(template, getClazz().getSimpleName(), attribute.getUid()))
+    return entityManager
+        .createNativeQuery(format(template, getClazz().getSimpleName(), attribute.getUid()))
         .setParameter("value", newValue)
         .setParameter("createMissing", createMissing)
         .executeUpdate();

@@ -63,6 +63,6 @@ public class HibernateDocumentStore extends HibernateIdentifiableObjectStore<Doc
     query.select(builder.count(root));
     query.where(builder.equal(root.get(BaseIdentifiableObject_.CREATED_BY), user));
 
-    return getSession().createQuery(query).getSingleResult();
+    return entityManager.createQuery(query).getSingleResult();
   }
 }

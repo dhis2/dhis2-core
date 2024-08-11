@@ -172,7 +172,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
 
     String hql = "delete from DataApproval d where d.organisationUnit = :unit";
 
-    getSession().createQuery(hql).setParameter("unit", organisationUnit).executeUpdate();
+    entityManager.createQuery(hql).setParameter("unit", organisationUnit).executeUpdate();
   }
 
   @Override

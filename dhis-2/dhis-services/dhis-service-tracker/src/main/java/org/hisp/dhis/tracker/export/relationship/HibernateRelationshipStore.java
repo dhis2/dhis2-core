@@ -163,7 +163,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
       T entity, RelationshipQueryParams queryParams, PageParams pageParams) {
     CriteriaQuery<Relationship> criteriaQuery = criteriaQuery(entity, queryParams);
 
-    TypedQuery<Relationship> query = getSession().createQuery(criteriaQuery);
+    TypedQuery<Relationship> query = entityManager.createQuery(criteriaQuery);
 
     if (pageParams != null) {
       query.setFirstResult((pageParams.getPage() - 1) * pageParams.getPageSize());
@@ -194,7 +194,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
         whereConditionPredicates(
             entity, builder, criteriaQuery, root, queryParams.isIncludeDeleted()));
 
-    return getSession().createQuery(criteriaQuery).getSingleResult().longValue();
+    return entityManager.createQuery(criteriaQuery).getSingleResult().longValue();
   }
 
   private <T extends SoftDeletableObject> CriteriaQuery<Relationship> criteriaQuery(

@@ -40,7 +40,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Session;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.common.adapter.Sharing_;
@@ -352,8 +351,7 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
     query.where(builder.equal(root.get("uid"), userUid));
     query.select(builder.array(root.get("uid"), root.join("groups", JoinType.LEFT).get("uid")));
 
-    Session session = getSession();
-    List<Object[]> results = session.createQuery(query).getResultList();
+    List<Object[]> results = entityManager.createQuery(query).getResultList();
 
     CurrentUserGroupInfo currentUserGroupInfo = new CurrentUserGroupInfo();
     currentUserGroupInfo.setUserUID(userUid);

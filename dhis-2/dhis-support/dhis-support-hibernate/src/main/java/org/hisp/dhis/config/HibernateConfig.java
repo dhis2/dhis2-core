@@ -42,9 +42,9 @@ import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.hibernate.SessionFactory;
-import org.hibernate.cache.ehcache.ConfigSettings;
-import org.hibernate.cache.ehcache.MissingCacheStrategy;
-import org.hibernate.cache.ehcache.internal.EhcacheRegionFactory;
+import org.hibernate.cache.jcache.ConfigSettings;
+import org.hibernate.cache.jcache.MissingCacheStrategy;
+import org.hibernate.cache.jcache.internal.JCacheRegionFactory;
 import org.hibernate.cfg.AvailableSettings;
 import org.hisp.dhis.cache.DefaultHibernateCacheManager;
 import org.hisp.dhis.dbms.DbmsManager;
@@ -147,7 +147,7 @@ public class HibernateConfig {
 
     if (dhisConfig.getProperty(USE_SECOND_LEVEL_CACHE).equals("true")) {
       properties.put(AvailableSettings.USE_SECOND_LEVEL_CACHE, "true");
-      properties.put(AvailableSettings.CACHE_REGION_FACTORY, EhcacheRegionFactory.class.getName());
+      properties.put(AvailableSettings.CACHE_REGION_FACTORY, JCacheRegionFactory.class.getName());
       properties.put(AvailableSettings.USE_QUERY_CACHE, dhisConfig.getProperty(USE_QUERY_CACHE));
       properties.put(ConfigSettings.MISSING_CACHE_STRATEGY, MissingCacheStrategy.CREATE);
     }

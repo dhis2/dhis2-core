@@ -84,6 +84,6 @@ public class HibernateProgramTrackedEntityAttributeStore
     query.where(root.get("program").in(programs));
     query.distinct(true);
 
-    return getSession().createQuery(query).getResultList();
+    return entityManager.createQuery(query).getResultList();
   }
 }

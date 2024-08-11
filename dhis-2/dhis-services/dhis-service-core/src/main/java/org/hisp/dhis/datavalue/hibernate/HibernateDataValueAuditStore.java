@@ -94,14 +94,14 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
   public void deleteDataValueAudits(OrganisationUnit organisationUnit) {
     String hql = "delete from DataValueAudit d where d.organisationUnit = :unit";
 
-    getSession().createQuery(hql).setParameter("unit", organisationUnit).executeUpdate();
+    entityManager.createQuery(hql).setParameter("unit", organisationUnit).executeUpdate();
   }
 
   @Override
   public void deleteDataValueAudits(DataElement dataElement) {
     String hql = "delete from DataValueAudit d where d.dataElement = :dataElement";
 
-    getSession().createQuery(hql).setParameter("dataElement", dataElement).executeUpdate();
+    entityManager.createQuery(hql).setParameter("dataElement", dataElement).executeUpdate();
   }
 
   @Override

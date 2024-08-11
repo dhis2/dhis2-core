@@ -127,14 +127,14 @@ public class HibernateCompleteDataSetRegistrationStore
   public void deleteCompleteDataSetRegistrations(DataSet dataSet) {
     String hql = "delete from CompleteDataSetRegistration c where c.dataSet = :dataSet";
 
-    getSession().createQuery(hql).setParameter("dataSet", dataSet).executeUpdate();
+    entityManager.createQuery(hql).setParameter("dataSet", dataSet).executeUpdate();
   }
 
   @Override
   public void deleteCompleteDataSetRegistrations(OrganisationUnit unit) {
     String hql = "delete from CompleteDataSetRegistration c where c.source = :source";
 
-    getSession().createQuery(hql).setParameter("source", unit).executeUpdate();
+    entityManager.createQuery(hql).setParameter("source", unit).executeUpdate();
   }
 
   @Override
@@ -152,6 +152,6 @@ public class HibernateCompleteDataSetRegistrationStore
     query.select(builder.countDistinct(root));
     query.where(builder.greaterThanOrEqualTo(root.get("lastUpdated"), lastUpdated));
 
-    return Math.toIntExact(getSession().createQuery(query).getSingleResult());
+    return Math.toIntExact(entityManager.createQuery(query).getSingleResult());
   }
 }

@@ -97,7 +97,7 @@ public class DefaultGistService implements GistService, GistBuilder.GistBuilderS
         fetchWithParameters(
             query,
             queryBuilder,
-            getSession().createQuery(queryBuilder.buildFetchHQL(), Object[].class));
+            entityManager.createQuery(queryBuilder.buildFetchHQL(), Object[].class));
     return queryBuilder.transform(rows);
   }
 
@@ -119,7 +119,7 @@ public class DefaultGistService implements GistService, GistBuilder.GistBuilderS
         GistBuilder countBuilder = createCountBuilder(query, context, access, this);
         total =
             countWithParameters(
-                countBuilder, getSession().createQuery(countBuilder.buildCountHQL(), Long.class));
+                countBuilder, entityManager.createQuery(countBuilder.buildCountHQL(), Long.class));
       }
     }
     if (schema.hasApiEndpoint()) {

@@ -65,6 +65,6 @@ public class HibernateTrackedEntityTypeAttributeStore
     query.where(root.get("trackedEntityType").in(trackedEntityTypes));
     query.distinct(true);
 
-    return getSession().createQuery(query).getResultList();
+    return entityManager.createQuery(query).getResultList();
   }
 }

@@ -698,7 +698,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
     query.orderBy(builder.desc(root.get("lastUpdated")));
 
-    TypedQuery<Date> typedQuery = getSession().createQuery(query);
+    TypedQuery<Date> typedQuery = entityManager.createQuery(query);
 
     typedQuery.setMaxResults(1);
 
@@ -810,7 +810,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     query.select(root.get("uid"));
     query.where(builder.lessThan(root.get("created"), date));
 
-    TypedQuery<String> typedQuery = getSession().createQuery(query);
+    TypedQuery<String> typedQuery = entityManager.createQuery(query);
     typedQuery.setHint(JpaQueryUtils.HIBERNATE_CACHEABLE_HINT, true);
 
     return typedQuery.getResultList();
@@ -955,7 +955,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
       return false;
     }
     query.where(builder.or(predicates.toArray(new Predicate[0])));
-    return !getSession().createQuery(query).setMaxResults(1).getResultList().isEmpty();
+    return !entityManager.createQuery(query).setMaxResults(1).getResultList().isEmpty();
   }
 
   /**

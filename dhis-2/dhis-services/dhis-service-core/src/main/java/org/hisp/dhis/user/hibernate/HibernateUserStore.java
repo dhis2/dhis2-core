@@ -453,7 +453,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
             builder.equal(user.get(DISABLED_COLUMN), false),
             builder.lessThanOrEqualTo(user.get("lastLogin"), inactiveSince)));
     update.set(DISABLED_COLUMN, true);
-    return getSession().createQuery(update).executeUpdate();
+    return entityManager.createQuery(update).executeUpdate();
   }
 
   @Override

@@ -107,7 +107,7 @@ class HibernatePotentialDuplicateStore
 
     countCriteriaQuery.where(getQueryPredicates(query, cb, root));
 
-    TypedQuery<Long> relationshipTypedQuery = getSession().createQuery(countCriteriaQuery);
+    TypedQuery<Long> relationshipTypedQuery = entityManager.createQuery(countCriteriaQuery);
 
     return relationshipTypedQuery.getSingleResult().intValue();
   }
@@ -130,7 +130,7 @@ class HibernatePotentialDuplicateStore
                         : cb.desc(root.get(order.getField())))
             .toList());
 
-    TypedQuery<PotentialDuplicate> relationshipTypedQuery = getSession().createQuery(cq);
+    TypedQuery<PotentialDuplicate> relationshipTypedQuery = entityManager.createQuery(cq);
 
     if (criteria.isPagingRequest()) {
       relationshipTypedQuery.setFirstResult(criteria.getFirstResult());

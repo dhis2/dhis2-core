@@ -29,6 +29,7 @@ package org.hisp.dhis.trackedentity.hibernate;
 
 import com.google.common.collect.Sets;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -155,10 +156,13 @@ public class HibernateTrackedEntityAttributeStore
   @Override
   @SuppressWarnings({"unchecked", "rawtypes"})
   public Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes() {
-    Query query =
-        getSession().createQuery("select trackedEntityTypeAttributes from TrackedEntityType");
+    TypedQuery<TrackedEntityTypeAttribute> query =
+        entityManager.createQuery(
+            "select trackedEntityTypeAttributes from TrackedEntityType",
+            TrackedEntityTypeAttribute.class);
 
-    Set<TrackedEntityTypeAttribute> trackedEntityTypeAttributes = new HashSet<>(query.list());
+    Set<TrackedEntityTypeAttribute> trackedEntityTypeAttributes =
+        new HashSet<>(query.getResultList());
 
     return trackedEntityTypeAttributes.stream()
         .map(TrackedEntityTypeAttribute::getTrackedEntityAttribute)
@@ -198,9 +202,11 @@ public class HibernateTrackedEntityAttributeStore
   public Map<Program, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByProgram() {
     Map<Program, Set<TrackedEntityAttribute>> result = new HashMap<>();
 
-    Query query = getSession().createQuery("select p.programAttributes from Program p");
+    TypedQuery<ProgramTrackedEntityAttribute> query =
+        entityManager.createQuery(
+            "select p.programAttributes from Program p", ProgramTrackedEntityAttribute.class);
 
-    List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes = query.list();
+    List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes = query.getResultList();
 
     for (ProgramTrackedEntityAttribute programTrackedEntityAttribute :
         programTrackedEntityAttributes) {
