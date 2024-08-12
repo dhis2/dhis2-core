@@ -249,8 +249,6 @@ public class DefaultProgramMessageService implements ProgramMessageService {
       return null;
     }
 
-    if (klass.isInstance(TrackedEntity.class)) {}
-
     return manager.get(klass, entity.getUid());
   }
 
