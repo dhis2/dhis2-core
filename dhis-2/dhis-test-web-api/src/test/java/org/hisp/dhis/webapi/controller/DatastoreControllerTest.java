@@ -46,6 +46,7 @@ import org.hisp.dhis.datastore.DatastoreEntry;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
 import org.hisp.dhis.datastore.DatastoreService;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.web.HttpStatus;
@@ -353,7 +354,7 @@ class DatastoreControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void testAddKeyJsonValue_Encrypt() {
+  void testAddKeyJsonValue_Encrypt() throws ForbiddenException {
     assertStatus(HttpStatus.CREATED, POST("/dataStore/pets/cat?encrypt=true", "{}"));
     // there is no way to see in the exposed metadata that a value is
     // encrypted, user service

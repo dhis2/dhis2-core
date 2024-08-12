@@ -51,10 +51,10 @@ import java.util.Set;
 import java.util.function.Consumer;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.Stats;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
-import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
@@ -284,8 +284,7 @@ class UserControllerTest {
 
     Exception ex =
         assertThrows(
-            UpdateAccessDeniedException.class,
-            () -> userController.expireUser(user.getUid(), new Date()));
+            ForbiddenException.class, () -> userController.expireUser(user.getUid(), new Date()));
     assertEquals("You don't have the proper permissions to update this object.", ex.getMessage());
   }
 
