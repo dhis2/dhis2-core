@@ -155,7 +155,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     String accessedBy = user != null ? user.getUsername() : CurrentUserUtil.getCurrentUsername();
 
     for (TrackedEntity te : trackedEntities) {
-      addTrackedEntityAudit(te, accessedBy, ChangeLogType.SEARCH);
+      trackedEntityChangeLogService.addTrackedEntityChangeLog(te, accessedBy, ChangeLogType.SEARCH);
     }
 
     return trackedEntities;
@@ -520,17 +520,5 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     }
 
     return true;
-  }
-
-  private void addTrackedEntityAudit(
-      TrackedEntity trackedEntity, String username, ChangeLogType changeLogType) {
-    if (username != null
-        && trackedEntity != null
-        && trackedEntity.getTrackedEntityType() != null
-        && trackedEntity.getTrackedEntityType().isAllowAuditLog()) {
-      TrackedEntityChangeLog trackedEntityChangeLog =
-          new TrackedEntityChangeLog(trackedEntity.getUid(), username, changeLogType);
-      trackedEntityChangeLogService.addTrackedEntityChangeLog(trackedEntityChangeLog);
-    }
   }
 }

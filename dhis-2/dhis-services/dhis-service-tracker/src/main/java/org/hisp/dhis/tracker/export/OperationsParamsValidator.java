@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.tracker.export;
 
+import static org.hisp.dhis.changelog.ChangeLogType.READ;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -43,6 +45,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
@@ -61,6 +64,8 @@ public class OperationsParamsValidator {
   private final TrackedEntityTypeService trackedEntityTypeService;
 
   private final OrganisationUnitService organisationUnitService;
+
+  private final TrackedEntityChangeLogService trackedEntityChangeLogService;
 
   /**
    * Validates the user is authorized and/or has the necessary configuration set up in case the org
@@ -186,11 +191,14 @@ public class OperationsParamsValidator {
       return null;
     }
 
+    // TODO(tracker) Are these validations enough? Should we check for ownership too?
     TrackedEntity trackedEntity = manager.get(TrackedEntity.class, trackedEntityUid);
     if (trackedEntity == null) {
       throw new BadRequestException(
           "Tracked entity is specified but does not exist: " + trackedEntityUid);
     }
+    trackedEntityChangeLogService.addTrackedEntityChangeLog(
+        trackedEntity, getCurrentUsername(), READ);
 
     if (trackedEntity.getTrackedEntityType() != null
         && !aclService.canDataRead(user, trackedEntity.getTrackedEntityType())) {

@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.program.message;
 
+import static org.hisp.dhis.changelog.ChangeLogType.READ;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -34,6 +37,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.formula.functions.T;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -48,6 +52,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -74,6 +79,8 @@ public class DefaultProgramMessageService implements ProgramMessageService {
   private final AclService aclService;
 
   private final ProgramMessageOperationParamMapper operationParamMapper;
+
+  private final TrackedEntityChangeLogService trackedEntityChangeLogService;
 
   // -------------------------------------------------------------------------
   // Implementation methods
@@ -161,9 +168,14 @@ public class DefaultProgramMessageService implements ProgramMessageService {
       violations.add("Enrollment or event must be specified");
     }
 
-    if (recipients.getTrackedEntity() != null
-        && getEntity(TrackedEntity.class, recipients.getTrackedEntity()) == null) {
-      violations.add("Tracked entity does not exist");
+    if (recipients.getTrackedEntity() != null) {
+      TrackedEntity trackedEntity = getEntity(TrackedEntity.class, recipients.getTrackedEntity());
+      if (trackedEntity == null) {
+        violations.add("Tracked entity does not exist");
+      }
+
+      trackedEntityChangeLogService.addTrackedEntityChangeLog(
+          trackedEntity, getCurrentUsername(), READ);
     }
 
     if (recipients.getOrganisationUnit() != null
@@ -236,6 +248,8 @@ public class DefaultProgramMessageService implements ProgramMessageService {
     if (entity == null) {
       return null;
     }
+
+    if (klass.isInstance(TrackedEntity.class)) {}
 
     return manager.get(klass, entity.getUid());
   }

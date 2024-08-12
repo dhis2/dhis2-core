@@ -30,6 +30,7 @@ package org.hisp.dhis.trackedentity;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.scheduling.annotation.Async;
@@ -51,8 +52,16 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
   @Override
   @Async
   @Transactional
-  public void addTrackedEntityChangeLog(TrackedEntityChangeLog trackedEntityChangeLog) {
-    trackedEntityChangeLogStore.addTrackedEntityChangeLog(trackedEntityChangeLog);
+  public void addTrackedEntityChangeLog(
+      TrackedEntity trackedEntity, String username, ChangeLogType changeLogType) {
+    if (username != null
+        && trackedEntity != null
+        && trackedEntity.getTrackedEntityType() != null
+        && trackedEntity.getTrackedEntityType().isAllowAuditLog()) {
+      TrackedEntityChangeLog trackedEntityChangeLog =
+          new TrackedEntityChangeLog(trackedEntity.getUid(), username, changeLogType);
+      trackedEntityChangeLogStore.addTrackedEntityChangeLog(trackedEntityChangeLog);
+    }
   }
 
   @Override

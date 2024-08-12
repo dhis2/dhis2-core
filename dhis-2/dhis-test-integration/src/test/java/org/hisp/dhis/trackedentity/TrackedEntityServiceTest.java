@@ -49,12 +49,12 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -115,6 +115,10 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   @BeforeEach
   void setUp() {
     trackedEntityType = createTrackedEntityType('A');
+    trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
+    trackedEntityType.setSharing(Sharing.builder().publicAccess("rwrw----").build());
+    manager.update(trackedEntityType);
+
     TrackedEntityAttribute attrD = createTrackedEntityAttribute('D');
     TrackedEntityAttribute attrE = createTrackedEntityAttribute('E');
     TrackedEntityAttribute filtF = createTrackedEntityAttribute('F');
@@ -140,8 +144,12 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     trackedEntityB1.setUid(TE_B_UID);
     trackedEntityC1.setUid(TE_C_UID);
     trackedEntityD1.setUid(TE_D_UID);
+    trackedEntityA1.setTrackedEntityType(trackedEntityType);
     program = createProgram('A', new HashSet<>(), organisationUnit);
+    program.setTrackedEntityType(trackedEntityType);
     programService.addProgram(program);
+    program.setSharing(Sharing.builder().publicAccess("rwrw----").build());
+    manager.update(program);
     ProgramStage stageA = createProgramStage('A', program);
     stageA.setSortOrder(1);
     programStageService.saveProgramStage(stageA);
@@ -161,8 +169,6 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     event = createEvent(stageA, enrollment, organisationUnit);
     event.setUid(EVENT_A_UID);
 
-    trackedEntityType.setPublicAccess(AccessStringHelper.FULL);
-    trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
     attributeService.addTrackedEntityAttribute(attrD);
     attributeService.addTrackedEntityAttribute(attrE);
     attributeService.addTrackedEntityAttribute(filtF);
@@ -170,6 +176,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
     User user = createUserWithAuth("testUser");
     user.setTeiSearchOrganisationUnits(Set.of(organisationUnit));
+    userService.addUser(user);
     injectSecurityContextUser(user);
   }
 
