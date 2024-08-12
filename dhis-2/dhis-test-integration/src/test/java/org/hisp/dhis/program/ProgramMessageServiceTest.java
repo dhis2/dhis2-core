@@ -74,24 +74,16 @@ class ProgramMessageServiceTest extends PostgresIntegrationTestBase {
   private ProgramMessageOperationParams params;
 
   private ProgramMessage programMessageA;
-
   private ProgramMessage programMessageB;
-
   private ProgramMessage programMessageC;
 
   private ProgramMessageRecipients recipientA;
   private ProgramMessageRecipients recipientB;
   private ProgramMessageRecipients recipientC;
 
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
   @Autowired private ProgramMessageService programMessageService;
-
   @Autowired private OrganisationUnitService orgUnitService;
-
   @Autowired private IdentifiableObjectManager manager;
-
   @Autowired private ProgramService programService;
 
   @BeforeEach

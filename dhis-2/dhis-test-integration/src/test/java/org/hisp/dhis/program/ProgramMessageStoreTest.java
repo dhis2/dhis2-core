@@ -82,7 +82,6 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
   private Event eventA;
 
   private ProgramMessage programMessageA;
-
   private ProgramMessage programMessageB;
 
   private final String notificationTemplate = CodeGenerator.generateUid();

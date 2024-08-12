@@ -98,7 +98,6 @@ public class ProgramMessageOperationParamMapper {
     }
 
     List<Program> programs = programService.getCurrentUserPrograms();
-
     String currentUser = CurrentUserUtil.getCurrentUsername();
 
     if (currentUser == null) {
