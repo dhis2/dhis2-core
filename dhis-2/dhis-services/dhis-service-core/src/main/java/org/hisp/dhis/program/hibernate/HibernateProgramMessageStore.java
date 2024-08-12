@@ -100,6 +100,9 @@ public class HibernateProgramMessageStore extends HibernateIdentifiableObjectSto
     if (params.getBeforeDate() != null) {
       hql.append(helper.whereAnd()).append("pm.processeddate < :beforeDate");
     }
+    if (params.hasOrganisationUnit()) {
+      hql.append(helper.whereAnd()).append("pm.organisationUnit in (:orgUnits)");
+    }
 
     Query<ProgramMessage> query = getQuery(hql.toString());
 
@@ -117,6 +120,9 @@ public class HibernateProgramMessageStore extends HibernateIdentifiableObjectSto
     }
     if (params.getBeforeDate() != null) {
       query.setParameter("beforeDate", params.getBeforeDate());
+    }
+    if (params.hasOrganisationUnit()) {
+      query.setParameter("orgUnits", params.getOrganisationUnit());
     }
 
     return query;
