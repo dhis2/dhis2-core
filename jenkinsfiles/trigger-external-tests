@@ -1,0 +1,142 @@
+#!/usr/bin/env groovy
+
+@Library('pipeline-library') _
+
+pipeline {
+    agent {
+        label 'ec2-jdk17'
+    }
+
+    options {
+        buildDiscarder(logRotator(daysToKeepStr: '5'))
+        timeout(time: 60)
+        disableConcurrentBuilds()
+    }
+
+    parameters {
+        string(name: 'DHIS2_VERSION', defaultValue: '', description: 'DHIS2 core version to use for deployment. If left empty, it will be derived from the Git branch.')
+        string(name: 'DB_VERSION', defaultValue: '', description: 'Database version to use. If left empty, it will be derived from the DHIS2 version.')
+    }
+
+    environment {
+        HTTP = "http --check-status"
+        MAVEN_OPTS = '-Xms1024m -Xmx4096m -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125'
+        DOCKER_IMAGE_TAG = "${params.DHIS2_VERSION ? params.DHIS2_VERSION.replace('SNAPSHOT', 'rc') : env.GIT_BRANCH}"
+        DB_VERSION_TAG = "${params.DB_VERSION ? params.DB_VERSION : DOCKER_IMAGE_TAG}"
+        IMAGE_TAG = "${DOCKER_IMAGE_TAG}"
+        IMAGE_REPOSITORY = 'core'
+        IM_REPO_URL = 'https://github.com/dhis2-sre/im-manager'
+        IM_ENVIRONMENT = 'im.dhis2.org'
+        IM_HOST = "https://api.$IM_ENVIRONMENT"
+        INSTANCE_GROUP_NAME = 'qa'
+        DATABASE_GROUP_NAME = 'test-dbs'
+        INSTANCE_NAME = "core-${env.GIT_BRANCH.replaceAll("\\P{Alnum}", "").toLowerCase()}-$BUILD_NUMBER"
+        INSTANCE_DOMAIN = "https://${INSTANCE_GROUP_NAME}.$IM_ENVIRONMENT"
+        INSTANCE_URL = "$INSTANCE_DOMAIN/$INSTANCE_NAME"
+        LIVENESS_PROBE_TIMEOUT_SECONDS = 3
+        READINESS_PROBE_TIMEOUT_SECONDS = 3
+        STARTUP_PROBE_FAILURE_THRESHOLD = 50
+        CORE_RESOURCES_REQUESTS_CPU = '900m'
+        DB_RESOURCES_REQUESTS_CPU = '900m'
+        CORE_RESOURCES_REQUESTS_MEMORY = '2500Mi'
+        DB_RESOURCES_REQUESTS_MEMORY = '500Mi'
+        DHIS2_CREDENTIALS = credentials('dhis2-default')
+    }
+
+    stages {
+        stage('Deploy DHIS2 instance') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'e2e-im-user', passwordVariable: 'PASSWORD', usernameVariable: 'USER_EMAIL')]) {
+                        dir('im-manager') {
+                            gitHelper.sparseCheckout(IM_REPO_URL, "${gitHelper.getLatestTag(IM_REPO_URL)}", '/scripts')
+
+                            dir('scripts/databases') {
+                                env.DATABASE_ID = sh(
+                                    returnStdout: true,
+                                    script: "./list.sh | jq -r '.[] | select(.name == \"$DATABASE_GROUP_NAME\") .databases[] | select(.name == \"sierra-leone/${DB_VERSION_TAG}.sql.gz\") .id'"
+                                ).trim()
+
+                                if (!env.DATABASE_ID) {
+                                    echo "Couldn't find database for $DB_VERSION_TAG"
+
+                                    try {
+                                        env.DATABASE_ID = sh(
+                                            returnStdout: true,
+                                            script: "./upload.sh $DATABASE_GROUP_NAME \"sierra-leone/${DB_VERSION_TAG}.sql.gz\" ${DB_VERSION_TAG}.sql.gz | jq -r '.id'"
+                                        ).trim()
+                                    } catch (err) {
+                                        echo "Couldn't download or upload database for ${DB_VERSION_TAG}: ${err}"
+
+                                        DHIS2_SHORT_VERSION = DB_VERSION_TAG.split('\\.').take(2).join('.')
+                                        env.DATABASE_ID = sh(
+                                            returnStdout: true,
+                                            script: "./list.sh | jq -r '.[] | select(.name == \"$DATABASE_GROUP_NAME\") .databases[] | select(.name == \"sierra-leone/${DHIS2_SHORT_VERSION}.sql.gz\") .id'"
+                                        ).trim()
+                                    }
+                                }
+
+                                sh '[ -n "$DATABASE_ID" ]'
+                                echo "DATABASE_ID is $DATABASE_ID"
+                            }
+
+                            dir('scripts/instances') {
+                                description = "DHIS 2 instance for ${env.GIT_BRANCH}"
+                                sh """
+                                    ./findByName.sh $INSTANCE_GROUP_NAME $INSTANCE_NAME | jq --exit-status 'has("id")' && \
+                                    ./restart.sh \$(./findByName.sh $INSTANCE_GROUP_NAME $INSTANCE_NAME | jq '.instances[] | select(.stackName=="dhis2-core") | .id') || \
+                                    IMAGE_TAG=${DOCKER_IMAGE_TAG} IMAGE_REPOSITORY=${IMAGE_REPOSITORY} ./deploy-dhis2.sh $INSTANCE_GROUP_NAME $INSTANCE_NAME $description
+                                """
+
+                                timeout(5) {
+                                    waitFor.statusOk("$INSTANCE_URL/$INSTANCE_NAME")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Trigger Cypress Tests') {
+            steps {
+                script {
+                    def repos = ['dhis2/line-listing-app']
+                    def event_type = 'cypress-test-trigger'
+                    def payload = [
+                        dhis2_version: env.DOCKER_IMAGE_TAG,
+                        instance_url: "$INSTANCE_URL"
+                    ]
+                    
+                    repos.each { repo ->
+                        withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
+                            sh """
+                                curl -X POST \
+                                -H "Accept: application/vnd.github.v3+json" \
+                                -H "Authorization: token $GITHUB_TOKEN" \
+                                https://api.github.com/repos/${repo}/dispatches \
+                                -d '{ "event_type": "${event_type}", "client_payload": ${groovy.json.JsonOutput.toJson(payload)} }'
+                            """
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            archiveArtifacts artifacts: '**/target/surefire-reports/TEST-*.xml'
+
+            script {
+                gitHelper.setCommitStatus("${env.DHIS2_COMMIT_SHA}", "${env.DHIS2_REPO_URL}")
+            }
+        }
+
+        aborted {
+            script {
+                slack.sendTimedoutMessage()
+            }
+        }
+    }
+}
