@@ -46,6 +46,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
@@ -94,6 +95,8 @@ class OperationsParamsValidatorTest {
   @Mock private AclService aclService;
 
   @Mock private IdentifiableObjectManager manager;
+
+  @Mock private TrackedEntityChangeLogService trackedEntityChangeLogService;
 
   @InjectMocks private OperationsParamsValidator paramsValidator;
 
