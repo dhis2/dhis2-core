@@ -208,6 +208,11 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
    */
   private transient UserSettings settings;
 
+  /**
+   * User's verified email.
+   */
+  private String verifiedEmail;
+
   public User() {
     this.lastLogin = null;
     this.passwordLastUpdated = new Date();
@@ -1194,5 +1199,13 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
 
   public static String username(UserDetails user, String defaultValue) {
     return user != null ? user.getUsername() : defaultValue;
+  }
+
+  public void setVerifiedEmail(String verifiedEmail) {
+    this.verifiedEmail = verifiedEmail;
+  }
+
+  public String getVerifiedEmail() {
+    return null;
   }
 }
