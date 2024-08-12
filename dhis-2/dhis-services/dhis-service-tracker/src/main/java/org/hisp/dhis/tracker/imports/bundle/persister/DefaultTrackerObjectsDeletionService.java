@@ -188,10 +188,8 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
     for (String uid : trackedEntities) {
       Entity objectReport = new Entity(TrackerType.TRACKED_ENTITY, uid);
 
-      TrackedEntity entity;
-      try {
-        entity = trackedEntityService.getTrackedEntity(uid, null, TrackedEntityParams.FALSE, false);
-      } catch (NotFoundException | ForbiddenException | BadRequestException e) {
+      TrackedEntity entity = manager.get(TrackedEntity.class, uid);
+      if (entity == null) {
         throw new NotFoundException(TrackedEntity.class, uid);
       }
 

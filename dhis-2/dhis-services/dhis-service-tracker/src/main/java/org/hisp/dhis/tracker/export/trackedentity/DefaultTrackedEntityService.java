@@ -54,7 +54,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -101,8 +100,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   private final EnrollmentService enrollmentService;
 
   private final EventService eventService;
-
-  private final AclService aclService;
 
   private final FileResourceService fileResourceService;
 
@@ -211,7 +208,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   @Override
   public TrackedEntity getTrackedEntity(
       String uid, String programIdentifier, TrackedEntityParams params, boolean includeDeleted)
-      throws NotFoundException, ForbiddenException, BadRequestException {
+      throws NotFoundException, ForbiddenException {
     Program program = null;
 
     if (StringUtils.isNotEmpty(programIdentifier)) {
