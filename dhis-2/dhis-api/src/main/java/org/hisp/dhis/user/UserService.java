@@ -46,7 +46,6 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Chau Thu Tran
@@ -868,13 +867,11 @@ public interface UserService {
 
   CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID);
 
-  String generateEmailVerificationToken(User user, String email);
+  boolean sendEmailVerificationToken(User user, String requestUrl);
 
   boolean verifyEmail(String token);
 
-  User getUserByVerificationToken(String token);
-
-  void sendEmailVerificationToken(User user, String email, String token);
-
   boolean isEmailVerified(User currentUser);
+
+  User getUserByVerificationToken(String token);
 }

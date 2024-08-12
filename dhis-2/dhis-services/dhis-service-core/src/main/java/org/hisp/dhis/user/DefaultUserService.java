@@ -40,9 +40,7 @@ import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Calendar;
@@ -113,7 +111,7 @@ import org.springframework.web.client.RestTemplate;
 @Lazy
 @Service("org.hisp.dhis.user.UserService")
 public class DefaultUserService implements UserService {
-  private static final long EMAIL_TOKEN_EXPIRY_HOURS = 1;
+  private static final long EMAIL_TOKEN_EXPIRY_MILLIS = 3600000;
 
   private final UserStore userStore;
   private final UserGroupService userGroupService;
@@ -1521,40 +1519,62 @@ public class DefaultUserService implements UserService {
         || aclService.canDataRead(CurrentUserUtil.getCurrentUserDetails(), identifiableObject);
   }
 
-
+  @Override
   @Transactional
-  @Override public String generateEmailVerificationToken(User user, String email) {
-    String token = CodeGenerator.generateCode(16);
-    LocalDateTime expiryDate = LocalDateTime.now().plusHours(EMAIL_TOKEN_EXPIRY_HOURS);
-    String encodedToken = token + "|" + expiryDate.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+  public boolean sendEmailVerificationToken(User user, String requestUrl) {
+    String token = CodeGenerator.getRandomSecureToken();
 
+    String encodedToken = token + "|" + (System.currentTimeMillis() + EMAIL_TOKEN_EXPIRY_MILLIS);
     user.setVerifiedEmail(encodedToken);
     updateUser(user);
 
-    return token;
+    String applicationTitle = systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE);
+    if (applicationTitle == null || applicationTitle.isEmpty()) {
+      applicationTitle = DEFAULT_APPLICATION_TITLE;
+    }
+
+    Map<String, Object> vars = new HashMap<>();
+    vars.put("applicationTitle", applicationTitle);
+    vars.put("requestUrl", requestUrl + "/api/account/verifyEmail");
+    vars.put("token", token);
+    vars.put("username", user.getUsername());
+    vars.put("email", user.getEmail());
+    I18n i18n =
+        i18nManager.getI18n(
+            ObjectUtils.firstNonNull(
+                (Locale)
+                    userSettingService.getUserSetting(UserSettingKey.UI_LOCALE, user.getUsername()),
+                LocaleManager.DEFAULT_LOCALE));
+    vars.put("i18n", i18n);
+
+    VelocityManager vm = new VelocityManager();
+    String messageBody = vm.render(vars, "verify_email_body_template_" + "v1");
+    String messageSubject = i18n.getString("verify_email_subject");
+
+    emailMessageSender.sendMessage(messageSubject, messageBody, null, null, Set.of(user), true);
+    return true;
   }
 
-  @Override public boolean verifyEmail(String token) {
+  @Override
+  @Transactional
+  public boolean verifyEmail(String token) {
     User user = getUserByVerificationToken(token);
     if (user == null) {
       return false;
     }
-
     String[] tokenParts = user.getVerifiedEmail().split("\\|");
     if (tokenParts.length != 2) {
       return false;
     }
-
-    LocalDateTime expiryDate =
-        LocalDateTime.parse(tokenParts[1], DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-    if (LocalDateTime.now().isAfter(expiryDate)) {
+    if (System.currentTimeMillis() > Long.parseLong(tokenParts[1])) {
+      return false;
+    }
+    // Someone else could have verified the same email with another account in the meantime
+    if (getUserByVerifiedEmail(user.getEmail()) != null) {
       return false;
     }
 
-    
-
     user.setVerifiedEmail(user.getEmail());
-
     updateUser(user);
     return true;
   }
@@ -1564,20 +1584,13 @@ public class DefaultUserService implements UserService {
     return userStore.getUserByVerificationToken(token);
   }
 
-  @Override public void sendEmailVerificationToken(User user, String email, String token) {
-    String subject = "Email Verification";
-    String body = "Your email verification token is: " + token;
-    emailMessageSender.sendMessage(subject, body, null, null, Set.of(user), true);
-
-    emailMessageSender.sendMessage(
-        messageSubject, messageBody, null, null, Set.of(persistedUser), true);
+  @Override
+  public boolean isEmailVerified(User user) {
+    return user.getEmail().equals(user.getVerifiedEmail());
   }
 
-  @Override public boolean isEmailVerified(User currentUser) {
-    return currentUser.getEmail().equals(currentUser.getVerifiedEmail());
-  }
-
-  @Override public User getUserByVerifiedEmail(String email) {
+  @Override
+  public User getUserByVerifiedEmail(String email) {
     return userStore.getVerifiedEmail(email);
   }
 }

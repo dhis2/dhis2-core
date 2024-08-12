@@ -613,30 +613,27 @@ public class AccountController {
 
   @PostMapping("/sendEmailVerification")
   @ResponseStatus(HttpStatus.CREATED)
-  public void sendEmailVerification(@CurrentUser User currentUser, @RequestParam String email)
+  public void sendEmailVerification(@CurrentUser User currentUser, HttpServletRequest request)
       throws WebMessageException, ConflictException {
-
-    if (userService.getUserByVerificationToken(email) != null
-        && !email.equals(currentUser.getEmail())) {
+    if (Strings.isNullOrEmpty(currentUser.getEmail())) {
+      throw new ConflictException("Email is not set");
+    }
+    if (userService.isEmailVerified(currentUser)) {
+      throw new ConflictException("Email is already verified");
+    }
+    if (userService.getUserByVerifiedEmail(currentUser.getEmail()) != null) {
       throw new ConflictException("Email is already in use by another account");
     }
 
-    if(userService.isEmailVerified(currentUser)) {
-      throw new ConflictException("Email is already verified");
-    }
-
-    String token = userService.generateEmailVerificationToken(currentUser, email);
-    userService.sendEmailVerificationToken(currentUser, email, token);
+    userService.sendEmailVerificationToken(
+        currentUser, HttpServletRequestPaths.getContextPath(request));
   }
 
   @GetMapping("/verifyEmail")
   @ResponseStatus(HttpStatus.OK)
   public void verifyEmail(@RequestParam String token)
       throws WebMessageException, ConflictException {
-
-    boolean verified = userService.verifyEmail(token);
-
-    if (!verified) {
+    if (!userService.verifyEmail(token)) {
       throw new ConflictException("Verification token is invalid");
     }
   }

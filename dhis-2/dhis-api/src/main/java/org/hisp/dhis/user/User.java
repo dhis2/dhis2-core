@@ -208,9 +208,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
    */
   private transient UserSettings settings;
 
-  /**
-   * User's verified email.
-   */
+  /** User's verified email. */
   private String verifiedEmail;
 
   public User() {
@@ -1184,6 +1182,16 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
     this.avatar = avatar;
   }
 
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getVerifiedEmail() {
+    return this.verifiedEmail;
+  }
+
+  public void setVerifiedEmail(String verifiedEmail) {
+    this.verifiedEmail = verifiedEmail;
+  }
+
   public static String username(User user) {
     // TODO: MAS get rid of this default value use of "system-process"
     return username(user, "system-process");
@@ -1199,13 +1207,5 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
 
   public static String username(UserDetails user, String defaultValue) {
     return user != null ? user.getUsername() : defaultValue;
-  }
-
-  public void setVerifiedEmail(String verifiedEmail) {
-    this.verifiedEmail = verifiedEmail;
-  }
-
-  public String getVerifiedEmail() {
-    return null;
   }
 }

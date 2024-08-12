@@ -31,6 +31,8 @@
 
     <property name="email" length="160" />
 
+    <property name="verifiedEmail" />
+
     <property name="phoneNumber" length="80" />
 
     <property name="jobTitle" length="160" />
