@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,37 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.message;
+package org.hisp.dhis.webapi.controller.message;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.util.ArrayList;
-import java.util.List;
-import org.hisp.dhis.common.DxfNamespaces;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hisp.dhis.program.message.ProgramMessageStatus;
 
 /**
- * @author Zubair <rajazubair.asghar@gmail.com>
+ * @author Zubair Asghar
  */
-@JacksonXmlRootElement(localName = "programMessageBatch", namespace = DxfNamespaces.DXF_2_0)
-public class ProgramMessageBatch {
-  private List<ProgramMessage> programMessages = new ArrayList<>();
+@Getter
+@Setter
+@NoArgsConstructor
+public class ProgramMessageUpdateRequest {
 
-  public ProgramMessageBatch() {}
-
-  public ProgramMessageBatch(List<ProgramMessage> programMessages) {
-    this.programMessages = programMessages;
-  }
-
-  @JsonProperty
-  @JacksonXmlElementWrapper(localName = "programMessages", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "programMessage", namespace = DxfNamespaces.DXF_2_0)
-  public List<ProgramMessage> getProgramMessages() {
-    return programMessages;
-  }
-
-  public void setProgramMessages(List<ProgramMessage> programMessages) {
-    this.programMessages = programMessages;
-  }
+  @JsonProperty(required = true)
+  private ProgramMessageStatus status;
 }
