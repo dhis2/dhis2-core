@@ -150,7 +150,7 @@ public class RelationshipSMSListener extends CompressionSMSListener {
 
     // TODO: Are there values we need to account for in relationships?
 
-    identifiableObjectManager.save(rel);
+    manager.save(rel);
 
     return SmsResponse.SUCCESS;
   }

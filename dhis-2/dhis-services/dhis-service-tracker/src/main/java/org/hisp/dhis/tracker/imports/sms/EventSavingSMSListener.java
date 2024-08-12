@@ -260,7 +260,7 @@ public abstract class EventSavingSMSListener extends CompressionSMSListener {
       CategoryOptionCombo aoc = categoryService.getDefaultCategoryOptionCombo();
       event.setAttributeOptionCombo(aoc);
     }
-    identifiableObjectManager.save(event);
+    manager.save(event);
 
     for (Map.Entry<DataElement, EventDataValue> entry : dataElementEventDataValueMap.entrySet()) {
       entry.getValue().setAutoFields();

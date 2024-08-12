@@ -33,6 +33,8 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -49,6 +51,8 @@ import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogServi
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.relationship.RelationshipQueryParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipStore;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.imports.report.Entity;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -61,6 +65,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeletionService {
   private final IdentifiableObjectManager manager;
+
+  private final TrackedEntityService trackedEntityService;
 
   private final RelationshipStore relationshipStore;
 
@@ -182,10 +188,13 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
     for (String uid : trackedEntities) {
       Entity objectReport = new Entity(TrackerType.TRACKED_ENTITY, uid);
 
-      TrackedEntity entity = manager.get(TrackedEntity.class, uid);
-      if (entity == null) {
+      TrackedEntity entity;
+      try {
+        entity = trackedEntityService.getTrackedEntity(uid, null, TrackedEntityParams.FALSE, false);
+      } catch (NotFoundException | ForbiddenException | BadRequestException e) {
         throw new NotFoundException(TrackedEntity.class, uid);
       }
+
       entity.setLastUpdatedByUserInfo(userInfoSnapshot);
 
       Set<Enrollment> daoEnrollments = entity.getEnrollments();

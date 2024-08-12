@@ -95,8 +95,6 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
 
   private final SMSEnrollmentService smsEnrollmentService;
 
-  private final IdentifiableObjectManager manager;
-
   public EnrollmentSMSListener(
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
@@ -139,7 +137,6 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
     this.enrollmentService = enrollmentService;
     this.attributeValueService = attributeValueService;
     this.smsEnrollmentService = smsEnrollmentService;
-    this.manager = manager;
   }
 
   @Override
@@ -173,7 +170,7 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
     }
 
     TrackedEntity trackedEntity;
-    boolean teExists = identifiableObjectManager.exists(TrackedEntity.class, teUid.getUid());
+    boolean teExists = this.manager.exists(TrackedEntity.class, teUid.getUid());
 
     if (teExists) {
       log.info("Tracked entity exists: '{}'. Updating.", teUid);
@@ -198,12 +195,20 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
     if (teExists) {
       updateAttributeValues(attributeValues, trackedEntity.getTrackedEntityAttributeValues());
       trackedEntity.setTrackedEntityAttributeValues(attributeValues);
-      manager.update(trackedEntity);
+      this.manager.update(trackedEntity);
     } else {
       apiTrackedEntityService.createTrackedEntity(trackedEntity, attributeValues);
     }
 
-    TrackedEntity te = manager.get(TrackedEntity.class, teUid.getUid());
+    TrackedEntity te;
+    try {
+      te =
+          trackedEntityService.getTrackedEntity(
+              teUid.getUid(), null, TrackedEntityParams.FALSE, false);
+    } catch (NotFoundException | ForbiddenException | BadRequestException e) {
+      // TODO(tracker) Improve this error message
+      throw new SMSProcessingException(SmsResponse.INVALID_TEI.set(trackedEntity.getUid()));
+    }
 
     Enrollment enrollment = null;
     try {
@@ -231,7 +236,7 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
 
     enrollment.setStatus(getCoreEnrollmentStatus(subm.getEnrollmentStatus()));
     enrollment.setGeometry(convertGeoPointToGeometry(subm.getCoordinates()));
-    identifiableObjectManager.update(enrollment);
+    this.manager.update(enrollment);
 
     // We now check if the enrollment has events to process
     List<Object> errorUIDs = new ArrayList<>();
@@ -242,7 +247,7 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
     }
     enrollment.setStatus(getCoreEnrollmentStatus(subm.getEnrollmentStatus()));
     enrollment.setGeometry(convertGeoPointToGeometry(subm.getCoordinates()));
-    identifiableObjectManager.update(enrollment);
+    this.manager.update(enrollment);
 
     if (!errorUIDs.isEmpty()) {
       return SmsResponse.WARN_DVERR.setList(errorUIDs);
