@@ -72,6 +72,7 @@ import org.hisp.dhis.common.PasswordGenerator;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.email.EmailResponse;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -82,6 +83,7 @@ import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.period.Cal;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.PasswordManager;
@@ -1551,8 +1553,10 @@ public class DefaultUserService implements UserService {
     String messageBody = vm.render(vars, "verify_email_body_template_" + "v1");
     String messageSubject = i18n.getString("verify_email_subject");
 
-    emailMessageSender.sendMessage(messageSubject, messageBody, null, null, Set.of(user), true);
-    return true;
+    OutboundMessageResponse status =
+        emailMessageSender.sendMessage(messageSubject, messageBody, null, null, Set.of(user), true);
+
+    return status.getResponseObject() == EmailResponse.SENT;
   }
 
   @Override

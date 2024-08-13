@@ -28,16 +28,23 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.test.message.FakeMessageSender;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
@@ -51,6 +58,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class AccountControllerTest extends PostgresControllerIntegrationTestBase {
   @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private MessageSender messageSender;
 
   @Test
   void testRecoverAccount_NotEnabled() {
@@ -212,6 +220,101 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
     JsonMixed response = GET("/account/linkedAccounts").content(HttpStatus.OK);
     JsonList<JsonObject> users = response.getList("users", JsonObject.class);
     assertEquals(1, users.size());
+  }
+
+  @Test
+  void testSendEmailVerification() {
+    User currentUser = switchToNewUser("clark");
+    String emailAddress = currentUser.getEmail();
+    assertStatus(HttpStatus.CREATED, POST("/account/sendEmailVerification"));
+    OutboundMessage emailMessage = assertMessageSendTo(emailAddress);
+    String token = extractTokenFromEmailText(emailMessage.getText());
+    assertValidToken(token);
+
+    currentUser = userService.getUser(currentUser.getId());
+    assertFalse(userService.isEmailVerified(currentUser));
+  }
+
+  @Test
+  void testVerifyEmailWithToken() {
+    User currentUser = switchToNewUser("clark");
+    String emailAddress = currentUser.getEmail();
+    assertStatus(HttpStatus.CREATED, POST("/account/sendEmailVerification"));
+    OutboundMessage emailMessage = assertMessageSendTo(emailAddress);
+    String token = extractTokenFromEmailText(emailMessage.getText());
+    assertValidToken(token);
+
+    assertStatus(HttpStatus.OK, GET("/account/verifyEmail?token=" + token));
+    currentUser = userService.getUser(currentUser.getId());
+    assertTrue(userService.isEmailVerified(currentUser));
+  }
+
+  @Test
+  void testVerifyWithBadToken() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Verification token is invalid",
+        GET("/account/verifyEmail?token=eviltoken").content(HttpStatus.CONFLICT));
+  }
+
+  @Test
+  void testSendEmailWithoutEmail() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Email is not set",
+        POST("/account/sendEmailVerification").content(HttpStatus.CONFLICT));
+  }
+
+  @Test
+  void testSendEmailIsAlreadyVerifiedBySameUser() {
+    User currentUser = switchToNewUser("clark");
+    currentUser.setVerifiedEmail(currentUser.getEmail());
+    userService.updateUser(currentUser);
+
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Email is already verified",
+        POST("/account/sendEmailVerification").content(HttpStatus.CONFLICT));
+  }
+
+  @Test
+  void testSendEmailIsAlreadyVerifiedByAnotherUser() {
+    User currentUser = switchToNewUser("clark");
+    currentUser.setVerifiedEmail(currentUser.getEmail());
+    userService.updateUser(currentUser);
+
+    User anotherUser = switchToNewUser("lex");
+    anotherUser.setEmail(currentUser.getEmail());
+
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Email is already in use by another account",
+        POST("/account/sendEmailVerification").content(HttpStatus.CONFLICT));
+  }
+
+  private void assertValidToken(String token) {
+    User user = userService.getUserByVerificationToken(token);
+    assertNotNull(user);
+  }
+
+  private OutboundMessage assertMessageSendTo(String email) {
+    List<OutboundMessage> messagesByEmail =
+        ((FakeMessageSender) messageSender).getMessagesByEmail(email);
+    assertFalse(messagesByEmail.isEmpty());
+    return messagesByEmail.get(0);
+  }
+
+  private String extractTokenFromEmailText(String message) {
+    int tokenPos = message.indexOf("?token=");
+    return message.substring(tokenPos + 7, message.indexOf('\n', tokenPos)).trim();
   }
 
   private static void assertMessage(String key, String value, String message, JsonMixed response) {
