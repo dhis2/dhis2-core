@@ -267,6 +267,7 @@ public class DeduplicationController {
     TrackedEntity trackedEntity = manager.get(TrackedEntity.class, trackedEntityUid);
     trackedEntityChangeLogService.addTrackedEntityChangeLog(
         trackedEntity, getCurrentUsername(), READ);
+    // TODO(tracker) Do we need to apply ACL here?
     return Optional.ofNullable(trackedEntity)
         .orElseThrow(
             () ->
