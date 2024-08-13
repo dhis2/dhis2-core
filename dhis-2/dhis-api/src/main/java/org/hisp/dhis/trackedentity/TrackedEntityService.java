@@ -98,20 +98,6 @@ public interface TrackedEntityService {
       boolean skipAccessValidation,
       boolean skipSearchScopeValidation);
 
-  /**
-   * Returns a list tracked entity primary key ids based on the given TrackedEntityQueryParams.
-   *
-   * @param params the TrackedEntityQueryParams.
-   * @param skipAccessValidation If true, access validation is skipped. Should be set to true only
-   *     for internal tasks (e.g. currently used by synchronization job)
-   * @param skipSearchScopeValidation if true, search scope validation is skipped.
-   * @return List of TE IDs matching the params
-   */
-  List<Long> getTrackedEntityIds(
-      TrackedEntityQueryParams params,
-      boolean skipAccessValidation,
-      boolean skipSearchScopeValidation);
-
   /** */
   void updateTrackedEntityLastUpdated(
       Set<String> trackedEntityUIDs, Date lastUpdated, String userInfoSnapshot);

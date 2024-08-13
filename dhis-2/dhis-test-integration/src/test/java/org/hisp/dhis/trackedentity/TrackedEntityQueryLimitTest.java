@@ -156,7 +156,7 @@ class TrackedEntityQueryLimitTest extends PostgresIntegrationTestBase {
 
     assertThrows(
         IllegalQueryException.class,
-        () -> trackedEntityService.getTrackedEntityIds(params, false, false),
+        () -> trackedEntityService.getTrackedEntities(params, false, false),
         String.format(
             "Only one parameter of '%s' and '%s' must be specified. Prefer '%s' as '%s' will be removed.",
             SettingKey.TRACKED_ENTITY_MAX_LIMIT.getName(),
@@ -177,7 +177,8 @@ class TrackedEntityQueryLimitTest extends PostgresIntegrationTestBase {
     params.setUserWithAssignedUsers(null, user, null);
     params.setSkipPaging(true);
 
-    List<Long> trackedEntities = trackedEntityService.getTrackedEntityIds(params, false, false);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(params, false, false);
 
     assertNotEmpty(trackedEntities);
     assertEquals(2, trackedEntities.size());
@@ -195,15 +196,11 @@ class TrackedEntityQueryLimitTest extends PostgresIntegrationTestBase {
     params.setUserWithAssignedUsers(null, user, null);
     params.setSkipPaging(true);
 
-    List<Long> trackedEntities = trackedEntityService.getTrackedEntityIds(params, false, false);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(params, false, false);
 
     assertContainsOnly(
-        List.of(
-            trackedEntity1.getId(),
-            trackedEntity2.getId(),
-            trackedEntity3.getId(),
-            trackedEntity4.getId()),
-        trackedEntities);
+        List.of(trackedEntity1, trackedEntity2, trackedEntity3, trackedEntity4), trackedEntities);
   }
 
   @Test
@@ -215,15 +212,11 @@ class TrackedEntityQueryLimitTest extends PostgresIntegrationTestBase {
     params.setUserWithAssignedUsers(null, user, null);
     params.setSkipPaging(true);
 
-    List<Long> trackedEntities = trackedEntityService.getTrackedEntityIds(params, false, false);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(params, false, false);
 
     assertContainsOnly(
-        List.of(
-            trackedEntity1.getId(),
-            trackedEntity2.getId(),
-            trackedEntity3.getId(),
-            trackedEntity4.getId()),
-        trackedEntities);
+        List.of(trackedEntity1, trackedEntity2, trackedEntity3, trackedEntity4), trackedEntities);
   }
 
   @Test
@@ -238,15 +231,11 @@ class TrackedEntityQueryLimitTest extends PostgresIntegrationTestBase {
     params.setUserWithAssignedUsers(null, user, null);
     params.setSkipPaging(true);
 
-    List<Long> trackedEntities = trackedEntityService.getTrackedEntityIds(params, false, false);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(params, false, false);
 
     assertContainsOnly(
-        List.of(
-            trackedEntity1.getId(),
-            trackedEntity2.getId(),
-            trackedEntity3.getId(),
-            trackedEntity4.getId()),
-        trackedEntities);
+        List.of(trackedEntity1, trackedEntity2, trackedEntity3, trackedEntity4), trackedEntities);
   }
 
   @Test
@@ -261,7 +250,8 @@ class TrackedEntityQueryLimitTest extends PostgresIntegrationTestBase {
     params.setUserWithAssignedUsers(null, user, null);
     params.setSkipPaging(true);
 
-    List<Long> trackedEntities = trackedEntityService.getTrackedEntityIds(params, false, false);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(params, false, false);
 
     assertNotEmpty(trackedEntities);
     assertEquals(2, trackedEntities.size());
@@ -279,7 +269,8 @@ class TrackedEntityQueryLimitTest extends PostgresIntegrationTestBase {
     params.setUserWithAssignedUsers(null, user, null);
     params.setSkipPaging(true);
 
-    List<Long> trackedEntities = trackedEntityService.getTrackedEntityIds(params, false, false);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(params, false, false);
 
     assertNotEmpty(trackedEntities);
     assertEquals(2, trackedEntities.size());

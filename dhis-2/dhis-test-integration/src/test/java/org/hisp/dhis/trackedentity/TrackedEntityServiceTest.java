@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -269,15 +270,12 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     params.setOrgUnits(Set.of(organisationUnit));
     params.setOrders(List.of(new OrderParam("createdAt", SortDirection.ASC)));
 
-    List<Long> trackedEntityIdList = trackedEntityService.getTrackedEntityIds(params, true, true);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(params, true, true);
 
-    assertEquals(
-        List.of(
-            trackedEntityC1.getId(),
-            trackedEntityB1.getId(),
-            trackedEntityA1.getId(),
-            trackedEntityD1.getId()),
-        trackedEntityIdList);
+    assertContainsOnly(
+        List.of(trackedEntityC1, trackedEntityB1, trackedEntityA1, trackedEntityD1),
+        trackedEntities);
   }
 
   @Test
@@ -295,15 +293,12 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     params.setOrgUnits(Set.of(organisationUnit));
     params.setOrders(List.of(new OrderParam("createdAt", SortDirection.DESC)));
 
-    List<Long> trackedEntityIdList = trackedEntityService.getTrackedEntityIds(params, true, true);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(params, true, true);
 
-    assertEquals(
-        List.of(
-            trackedEntityD1.getId(),
-            trackedEntityA1.getId(),
-            trackedEntityB1.getId(),
-            trackedEntityC1.getId()),
-        trackedEntityIdList);
+    assertContainsOnly(
+        List.of(trackedEntityD1, trackedEntityA1, trackedEntityB1, trackedEntityC1),
+        trackedEntities);
   }
 
   @Test
@@ -321,15 +316,12 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     params.setOrgUnits(Set.of(organisationUnit));
     params.setOrders(List.of(new OrderParam("createdAt", SortDirection.ASC)));
 
-    List<Long> trackedEntityIdList = trackedEntityService.getTrackedEntityIds(params, true, true);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(params, true, true);
 
-    assertEquals(
-        List.of(
-            trackedEntityC1.getId(),
-            trackedEntityB1.getId(),
-            trackedEntityA1.getId(),
-            trackedEntityD1.getId()),
-        trackedEntityIdList);
+    assertContainsOnly(
+        List.of(trackedEntityC1, trackedEntityB1, trackedEntityA1, trackedEntityD1),
+        trackedEntities);
   }
 
   @Test
@@ -350,15 +342,12 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     params.setOrgUnits(Set.of(organisationUnit));
     params.setOrders(List.of(new OrderParam("createdAt", SortDirection.DESC)));
 
-    List<Long> trackedEntityIdList = trackedEntityService.getTrackedEntityIds(params, true, true);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(params, true, true);
 
-    assertEquals(
-        List.of(
-            trackedEntityD1.getId(),
-            trackedEntityA1.getId(),
-            trackedEntityB1.getId(),
-            trackedEntityC1.getId()),
-        trackedEntityIdList);
+    assertContainsOnly(
+        List.of(trackedEntityD1, trackedEntityA1, trackedEntityB1, trackedEntityC1),
+        trackedEntities);
   }
 
   @Test
@@ -381,15 +370,12 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     params.setOrgUnits(Set.of(organisationUnit));
     params.setOrders(List.of(new OrderParam("updatedAt", SortDirection.ASC)));
 
-    List<Long> trackedEntityIdList = trackedEntityService.getTrackedEntityIds(params, true, true);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(params, true, true);
 
-    assertEquals(
-        List.of(
-            trackedEntityD1.getId(),
-            trackedEntityB1.getId(),
-            trackedEntityC1.getId(),
-            trackedEntityA1.getId()),
-        trackedEntityIdList);
+    assertContainsOnly(
+        List.of(trackedEntityD1, trackedEntityB1, trackedEntityC1, trackedEntityA1),
+        trackedEntities);
   }
 
   @Test
@@ -413,15 +399,12 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     params.setOrgUnits(Set.of(organisationUnit));
     params.setOrders(List.of(new OrderParam("updatedAt", SortDirection.DESC)));
 
-    List<Long> trackedEntityIdList = trackedEntityService.getTrackedEntityIds(params, true, true);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(params, true, true);
 
-    assertEquals(
-        List.of(
-            trackedEntityA1.getId(),
-            trackedEntityC1.getId(),
-            trackedEntityB1.getId(),
-            trackedEntityD1.getId()),
-        trackedEntityIdList);
+    assertContainsOnly(
+        List.of(trackedEntityA1, trackedEntityC1, trackedEntityB1, trackedEntityD1),
+        trackedEntities);
   }
 
   @Test
@@ -435,15 +418,12 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     params.setOrgUnits(Set.of(organisationUnit));
     params.setOrders(List.of(new OrderParam("trackedEntity", SortDirection.DESC)));
 
-    List<Long> trackedEntityIdList = trackedEntityService.getTrackedEntityIds(params, true, true);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(params, true, true);
 
-    assertEquals(
-        List.of(
-            trackedEntityD1.getId(),
-            trackedEntityC1.getId(),
-            trackedEntityB1.getId(),
-            trackedEntityA1.getId()),
-        trackedEntityIdList);
+    assertContainsOnly(
+        List.of(trackedEntityD1, trackedEntityC1, trackedEntityB1, trackedEntityA1),
+        trackedEntities);
   }
 
   @Test
@@ -461,15 +441,12 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     params.setOrgUnits(Set.of(organisationUnit));
     params.setOrders(List.of(new OrderParam("updatedAtClient", SortDirection.DESC)));
 
-    List<Long> trackedEntityIdList = trackedEntityService.getTrackedEntityIds(params, true, true);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(params, true, true);
 
-    assertEquals(
-        List.of(
-            trackedEntityD1.getId(),
-            trackedEntityA1.getId(),
-            trackedEntityB1.getId(),
-            trackedEntityC1.getId()),
-        trackedEntityIdList);
+    assertContainsOnly(
+        List.of(trackedEntityD1, trackedEntityA1, trackedEntityB1, trackedEntityC1),
+        trackedEntities);
   }
 
   @Test
@@ -487,15 +464,12 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     params.setOrgUnits(Set.of(organisationUnit));
     params.setOrders(List.of(new OrderParam("enrolledAt", SortDirection.DESC)));
 
-    List<Long> trackedEntityIdList = trackedEntityService.getTrackedEntityIds(params, true, true);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(params, true, true);
 
-    assertEquals(
-        List.of(
-            trackedEntityB1.getId(),
-            trackedEntityD1.getId(),
-            trackedEntityC1.getId(),
-            trackedEntityA1.getId()),
-        trackedEntityIdList);
+    assertContainsOnly(
+        List.of(trackedEntityB1, trackedEntityD1, trackedEntityC1, trackedEntityA1),
+        trackedEntities);
   }
 
   @Test
@@ -520,15 +494,12 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             new OrderParam("inactive", SortDirection.DESC),
             new OrderParam("enrolledAt", SortDirection.DESC)));
 
-    List<Long> trackedEntityIdList = trackedEntityService.getTrackedEntityIds(params, true, true);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(params, true, true);
 
-    assertEquals(
-        List.of(
-            trackedEntityB1.getId(),
-            trackedEntityA1.getId(),
-            trackedEntityD1.getId(),
-            trackedEntityC1.getId()),
-        trackedEntityIdList);
+    assertContainsOnly(
+        List.of(trackedEntityB1, trackedEntityA1, trackedEntityD1, trackedEntityC1),
+        trackedEntities);
   }
 
   @Test
@@ -539,15 +510,12 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
     params.setOrgUnits(Set.of(organisationUnit));
 
-    List<Long> trackedEntityIdList = trackedEntityService.getTrackedEntityIds(params, true, true);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(params, true, true);
 
-    assertEquals(
-        List.of(
-            trackedEntityA1.getId(),
-            trackedEntityB1.getId(),
-            trackedEntityC1.getId(),
-            trackedEntityD1.getId()),
-        trackedEntityIdList);
+    assertContainsOnly(
+        List.of(trackedEntityA1, trackedEntityB1, trackedEntityC1, trackedEntityD1),
+        trackedEntities);
   }
 
   @Test
@@ -566,15 +534,12 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     params.setOrders(List.of(new OrderParam(trackedEntityAttribute.getUid(), SortDirection.ASC)));
     params.setAttributes(List.of(new QueryItem(trackedEntityAttribute)));
 
-    List<Long> trackedEntityIdList = trackedEntityService.getTrackedEntityIds(params, true, true);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(params, true, true);
 
-    assertEquals(
-        List.of(
-            trackedEntityB1.getId(),
-            trackedEntityD1.getId(),
-            trackedEntityA1.getId(),
-            trackedEntityC1.getId()),
-        trackedEntityIdList);
+    assertContainsOnly(
+        List.of(trackedEntityB1, trackedEntityD1, trackedEntityA1, trackedEntityC1),
+        trackedEntities);
   }
 
   @Test
@@ -602,15 +567,12 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             new OrderParam("inactive", SortDirection.ASC)));
     params.setAttributes(List.of(new QueryItem(trackedEntityAttribute)));
 
-    List<Long> trackedEntityIdList = trackedEntityService.getTrackedEntityIds(params, true, true);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(params, true, true);
 
-    assertEquals(
-        List.of(
-            trackedEntityB1.getId(),
-            trackedEntityA1.getId(),
-            trackedEntityD1.getId(),
-            trackedEntityC1.getId()),
-        trackedEntityIdList);
+    assertContainsOnly(
+        List.of(trackedEntityB1, trackedEntityA1, trackedEntityD1, trackedEntityC1),
+        trackedEntities);
   }
 
   @Test
@@ -631,15 +593,12 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     params.setOrgUnits(Set.of(organisationUnit));
     params.setOrders(List.of(new OrderParam(tea.getUid(), SortDirection.DESC)));
 
-    List<Long> trackedEntityIdList = trackedEntityService.getTrackedEntityIds(params, true, true);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(params, true, true);
 
-    assertEquals(
-        List.of(
-            trackedEntityB1.getId(),
-            trackedEntityC1.getId(),
-            trackedEntityD1.getId(),
-            trackedEntityA1.getId()),
-        trackedEntityIdList);
+    assertContainsOnly(
+        List.of(trackedEntityB1, trackedEntityC1, trackedEntityD1, trackedEntityA1),
+        trackedEntities);
   }
 
   @Test
@@ -660,15 +619,12 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     params.setOrgUnits(Set.of(organisationUnit));
     params.setOrders(List.of(new OrderParam(tea.getUid(), SortDirection.ASC)));
 
-    List<Long> trackedEntityIdList = trackedEntityService.getTrackedEntityIds(params, true, true);
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(params, true, true);
 
-    assertEquals(
-        List.of(
-            trackedEntityA1.getId(),
-            trackedEntityD1.getId(),
-            trackedEntityC1.getId(),
-            trackedEntityB1.getId()),
-        trackedEntityIdList);
+    assertContainsOnly(
+        List.of(trackedEntityA1, trackedEntityD1, trackedEntityC1, trackedEntityB1),
+        trackedEntities);
   }
 
   private void addEnrollment(TrackedEntity trackedEntity, Date enrollmentDate, char programStage) {
