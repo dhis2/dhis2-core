@@ -296,19 +296,17 @@ public class DefaultDataQueryService implements DataQueryService {
     } else if (currentUser != null && params != null && params.getUserOrgUnitType() != null) {
       switch (params.getUserOrgUnitType()) {
         case DATA_CAPTURE:
-          units.addAll(currentUser.getOrganisationUnits().stream().sorted().collect(toList()));
+          units.addAll(currentUser.getOrganisationUnits().stream().sorted().toList());
           break;
         case DATA_OUTPUT:
-          units.addAll(
-              currentUser.getDataViewOrganisationUnits().stream().sorted().collect(toList()));
+          units.addAll(currentUser.getDataViewOrganisationUnits().stream().sorted().toList());
           break;
         case TEI_SEARCH:
-          units.addAll(
-              currentUser.getTeiSearchOrganisationUnits().stream().sorted().collect(toList()));
+          units.addAll(currentUser.getTeiSearchOrganisationUnits().stream().sorted().toList());
           break;
       }
     } else if (currentUser != null) {
-      units.addAll(currentUser.getOrganisationUnits().stream().sorted().collect(toList()));
+      units.addAll(currentUser.getOrganisationUnits().stream().sorted().toList());
     }
 
     return units;

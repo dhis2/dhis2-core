@@ -56,6 +56,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
+import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.OrgUnitField;
@@ -75,6 +76,7 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.RequestTypeAware;
+import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -143,8 +145,11 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
     Locale locale = (Locale) userSettingService.getUserSetting(UserSettingKey.DB_LOCALE);
 
+    DataQueryParams dataQueryParams =
+        DataQueryParams.newBuilder().withUserOrgUnitType(UserOrgUnitType.DATA_OUTPUT).build();
+
     List<OrganisationUnit> userOrgUnits =
-        dataQueryService.getUserOrgUnits(null, request.getUserOrgUnit());
+        dataQueryService.getUserOrgUnits(dataQueryParams, request.getUserOrgUnit());
 
     Program pr = programService.getProgram(request.getProgram());
 
