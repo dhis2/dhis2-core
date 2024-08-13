@@ -58,7 +58,7 @@ public class PotentialDuplicatesEnrollmentsTests extends PotentialDuplicatesApiT
   }
 
   @Test
-  public void shouldNotBeMergedWhenBothTrackedEntitysEnrolledInSameProgram() {
+  public void shouldNotBeMergedWhenBothTrackedEntitiesEnrolledInSameProgram() {
     String teA =
         createTrackedEntityWithEnrollmentsAndEvents(Constants.TRACKER_PROGRAM_ID, "nlXNK4b7LVr")
             .extractImportedTrackedEntities()
