@@ -80,7 +80,7 @@ public class HibernateDeletedObjectStore implements DeletedObjectStore {
 
   @Override
   public int count(DeletedObjectQuery query) {
-    CriteriaBuilder builder = getCurrentSession().getCriteriaBuilder();
+    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 
     CriteriaQuery<Long> criteriaQuery = builder.createQuery(Long.class);
 

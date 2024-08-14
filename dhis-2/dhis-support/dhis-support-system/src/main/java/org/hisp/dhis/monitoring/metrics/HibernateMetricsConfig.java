@@ -30,10 +30,10 @@ package org.hisp.dhis.monitoring.metrics;
 import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_HIBERNATE_ENABLED;
 
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.binder.jpa.HibernateMetrics;
+import io.micrometer.core.instrument.binder.jpa.HibernateQueryMetrics;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceException;
-import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
@@ -61,10 +61,10 @@ public class HibernateMetricsConfig {
       String beanName, EntityManagerFactory entityManagerFactory, MeterRegistry registry) {
     String entityManagerFactoryName = getEntityManagerFactoryName(beanName);
     try {
-      new HibernateMetrics(
+      new HibernateQueryMetrics(
               entityManagerFactory.unwrap(SessionFactory.class),
               entityManagerFactoryName,
-              Collections.emptyList())
+              List.of())
           .bindTo(registry);
     } catch (PersistenceException ex) {
       // Continue

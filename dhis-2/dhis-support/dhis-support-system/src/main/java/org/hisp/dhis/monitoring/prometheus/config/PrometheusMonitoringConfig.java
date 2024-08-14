@@ -51,13 +51,14 @@ public class PrometheusMonitoringConfig {
 
   @Bean
   public PrometheusConfig prometheusConfig(PrometheusProperties prometheusProperties) {
-    return new PrometheusPropertiesConfigAdapter(prometheusProperties);
+    return (PrometheusConfig) new PrometheusPropertiesConfigAdapter(prometheusProperties);
   }
 
   @Bean
   public PrometheusMeterRegistry prometheusMeterRegistry(
       PrometheusConfig prometheusConfig, CollectorRegistry collectorRegistry, Clock clock) {
-    return new PrometheusMeterRegistry(prometheusConfig, collectorRegistry, clock);
+    return new io.micrometer.prometheus.PrometheusMeterRegistry(
+        prometheusConfig, collectorRegistry, clock);
   }
 
   @Bean

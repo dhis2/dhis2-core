@@ -215,8 +215,7 @@
     <kafka.version>3.7.1</kafka.version>
 
     <!-- Monitoring -->
-    <micrometer-spring-legacy.version>1.3.20</micrometer-spring-legacy.version>
-    <micrometer.version>1.12.6</micrometer.version>
+    <micrometer.version>1.13.3</micrometer.version>
 
     <!-- Logging -->
     <log4j.version>2.23.1</log4j.version>
@@ -1453,10 +1452,6 @@
             <artifactId>netty-codec-socks</artifactId>
           </exclusion>
           <exclusion>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-jakarta9</artifactId>
-          </exclusion>
-          <exclusion>
             <groupId>io.netty</groupId>
             <artifactId>netty-buffer</artifactId>
           </exclusion>
@@ -1766,13 +1761,18 @@
 
       <!-- Monitoring -->
       <dependency>
-        <groupId>io.micrometer</groupId>
-        <artifactId>micrometer-spring-legacy</artifactId>
-        <version>${micrometer-spring-legacy.version}</version>
+        <groupId>org.hibernate</groupId>
+        <artifactId>hibernate-micrometer</artifactId>
+        <version>${hibernate.version}</version>
       </dependency>
       <dependency>
         <groupId>io.micrometer</groupId>
         <artifactId>micrometer-registry-prometheus</artifactId>
+        <version>${micrometer.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.micrometer</groupId>
+        <artifactId>micrometer-registry-prometheus-simpleclient</artifactId>
         <version>${micrometer.version}</version>
       </dependency>
       <dependency>
