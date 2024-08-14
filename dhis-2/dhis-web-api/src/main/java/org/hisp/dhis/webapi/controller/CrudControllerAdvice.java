@@ -452,19 +452,22 @@ public class CrudControllerAdvice {
   @ExceptionHandler(HttpStatusCodeException.class)
   @ResponseBody
   public WebMessage httpStatusCodeExceptionHandler(HttpStatusCodeException ex) {
-    return createWebMessage(ex.getMessage(), Status.ERROR, ex.getStatusCode());
+    return createWebMessage(
+        ex.getMessage(), Status.ERROR, HttpStatus.resolve(ex.getStatusCode().value()));
   }
 
   @ExceptionHandler(HttpClientErrorException.class)
   @ResponseBody
   public WebMessage httpClientErrorExceptionHandler(HttpClientErrorException ex) {
-    return createWebMessage(ex.getMessage(), Status.ERROR, ex.getStatusCode());
+    return createWebMessage(
+        ex.getMessage(), Status.ERROR, HttpStatus.resolve(ex.getStatusCode().value()));
   }
 
   @ExceptionHandler(HttpServerErrorException.class)
   @ResponseBody
   public WebMessage httpServerErrorExceptionHandler(HttpServerErrorException ex) {
-    return createWebMessage(ex.getMessage(), Status.ERROR, ex.getStatusCode());
+    return createWebMessage(
+        ex.getMessage(), Status.ERROR, HttpStatus.resolve(ex.getStatusCode().value()));
   }
 
   @ExceptionHandler(HttpRequestMethodNotSupportedException.class)

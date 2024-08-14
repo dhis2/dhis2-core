@@ -239,6 +239,10 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
     return typedQuery.getResultList();
   }
 
+  protected final List<T> getList(Query<T> typedQuery) {
+    return typedQuery.getResultList();
+  }
+
   /**
    * Get List objects return by querying given JpaQueryParameters with Pagination
    *

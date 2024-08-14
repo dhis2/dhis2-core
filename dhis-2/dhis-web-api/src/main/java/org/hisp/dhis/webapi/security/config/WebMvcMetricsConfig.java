@@ -47,6 +47,7 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 /**
@@ -54,7 +55,7 @@ import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
  */
 @Configuration
 @Conditional(WebMvcMetricsConfig.WebMvcMetricsEnabledCondition.class)
-public class WebMvcMetricsConfig {
+public class WebMvcMetricsConfig implements WebMvcConfigurer {
   @Bean
   public DefaultWebMvcTagsProvider servletTagsProvider() {
     return new DefaultWebMvcTagsProvider();

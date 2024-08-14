@@ -70,12 +70,6 @@
     <dependency>
       <groupId>io.hypersistence</groupId>
       <artifactId>hypersistence-utils-hibernate-55</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>org.hibernate</groupId>
-          <artifactId>hibernate-core</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.mchange</groupId>

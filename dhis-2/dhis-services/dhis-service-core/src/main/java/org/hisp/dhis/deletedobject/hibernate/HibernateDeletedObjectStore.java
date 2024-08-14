@@ -28,13 +28,13 @@
 package org.hisp.dhis.deletedobject.hibernate;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.List;
 import org.hibernate.Session;
-import org.hibernate.query.Query;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.deletedobject.DeletedObject;
 import org.hisp.dhis.deletedobject.DeletedObjectQuery;
@@ -92,14 +92,14 @@ public class HibernateDeletedObjectStore implements DeletedObjectStore {
 
     if (!predicate.getExpressions().isEmpty()) criteriaQuery.where(predicate);
 
-    Query<Long> typedQuery = getCurrentSession().createQuery(criteriaQuery);
+    TypedQuery<Long> typedQuery = entityManager.createQuery(criteriaQuery);
 
     return typedQuery.getSingleResult().intValue();
   }
 
   @Override
   public List<DeletedObject> query(DeletedObjectQuery query) {
-    CriteriaBuilder builder = getCurrentSession().getCriteriaBuilder();
+    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 
     CriteriaQuery<DeletedObject> criteriaQuery = builder.createQuery(DeletedObject.class);
 
@@ -111,7 +111,7 @@ public class HibernateDeletedObjectStore implements DeletedObjectStore {
 
     if (!predicate.getExpressions().isEmpty()) criteriaQuery.where(predicate);
 
-    Query<DeletedObject> typedQuery = getCurrentSession().createQuery(criteriaQuery);
+    TypedQuery<DeletedObject> typedQuery = entityManager.createQuery(criteriaQuery);
 
     if (!query.isSkipPaging()) {
       Pager pager = query.getPager();
@@ -119,7 +119,7 @@ public class HibernateDeletedObjectStore implements DeletedObjectStore {
       typedQuery.setMaxResults(pager.getPageSize());
     }
 
-    return typedQuery.list();
+    return typedQuery.getResultList();
   }
 
   private Predicate buildCriteria(

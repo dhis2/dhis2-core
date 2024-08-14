@@ -106,7 +106,7 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
 
   @Override
   public List<DataValueAudit> getDataValueAudits(DataValueAuditQueryParams params) {
-    CriteriaBuilder builder = getSession().getCriteriaBuilder();
+    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 
     JpaQueryParameters<DataValueAudit> queryParams =
         newJpaParameters()
@@ -124,7 +124,7 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
 
   @Override
   public int countDataValueAudits(DataValueAuditQueryParams params) {
-    CriteriaBuilder builder = getSession().getCriteriaBuilder();
+    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 
     List<Function<Root<DataValueAudit>, Predicate>> predicates =
         getDataValueAuditPredicates(builder, params);
