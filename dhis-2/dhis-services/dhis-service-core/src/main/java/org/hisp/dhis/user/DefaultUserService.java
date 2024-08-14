@@ -1584,16 +1584,19 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
+  @Transactional
   public User getUserByVerificationToken(String token) {
     return userStore.getUserByVerificationToken(token);
   }
 
   @Override
+  @Transactional
   public boolean isEmailVerified(User user) {
     return user.getEmail().equals(user.getVerifiedEmail());
   }
 
   @Override
+  @Transactional
   public User getUserByVerifiedEmail(String email) {
     return userStore.getVerifiedEmail(email);
   }
