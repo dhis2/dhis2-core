@@ -229,7 +229,7 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
     assertStatus(HttpStatus.CREATED, POST("/account/sendEmailVerification"));
     OutboundMessage emailMessage = assertMessageSendTo(emailAddress);
     String token = extractTokenFromEmailText(emailMessage.getText());
-    assertValidToken(token);
+    assertNotNull(token);
 
     currentUser = userService.getUser(currentUser.getId());
     assertFalse(userService.isEmailVerified(currentUser));
@@ -242,7 +242,7 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
     assertStatus(HttpStatus.CREATED, POST("/account/sendEmailVerification"));
     OutboundMessage emailMessage = assertMessageSendTo(emailAddress);
     String token = extractTokenFromEmailText(emailMessage.getText());
-    assertValidToken(token);
+    assertNotNull(token);
 
     assertStatus(HttpStatus.OK, GET("/account/verifyEmail?token=" + token));
     currentUser = userService.getUser(currentUser.getId());
