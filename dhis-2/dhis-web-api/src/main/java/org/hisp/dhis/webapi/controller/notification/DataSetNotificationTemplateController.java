@@ -25,45 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.notification;
+package org.hisp.dhis.webapi.controller.notification;
 
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate;
+import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
 
-/**
- * @author Zubair Asghar
- */
-@Getter
-@Setter
-@EqualsAndHashCode(callSuper = false)
-@NoArgsConstructor
-public class ProgramNotificationTemplateParam extends BaseNotificationParam {
-  @Builder
-  public ProgramNotificationTemplateParam(
-      Integer page,
-      Integer pageSize,
-      boolean skipPaging,
-      Program program,
-      ProgramStage programStage) {
-    super(page, pageSize, skipPaging);
-    this.program = program;
-    this.programStage = programStage;
-  }
-
-  private Program program;
-
-  private ProgramStage programStage;
-
-  public boolean hasProgram() {
-    return this.program != null;
-  }
-
-  public boolean hasProgramStage() {
-    return this.programStage != null;
-  }
-}
+/** Created by zubair on 02.07.17. */
+@Controller
+@RequestMapping("/api/dataSetNotificationTemplates")
+@ApiVersion(include = {DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class DataSetNotificationTemplateController
+    extends AbstractCrudController<DataSetNotificationTemplate> {}
