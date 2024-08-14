@@ -47,7 +47,6 @@ import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -128,8 +127,6 @@ class ProgramNotificationTemplateControllerTest extends H2ControllerIntegrationT
     assertEquals(1, page.getPageCount());
   }
 
-  @Disabled(
-      "  TODO(tracker): https://dhis2.atlassian.net/browse/DHIS2-16522 pagination is not implemented in the store")
   @Test
   void shouldGetPaginatedItemsWithNonDefaults() {
     JsonPage page =
