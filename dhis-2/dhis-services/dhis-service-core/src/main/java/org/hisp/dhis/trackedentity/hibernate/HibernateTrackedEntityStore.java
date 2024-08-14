@@ -28,7 +28,6 @@
 package org.hisp.dhis.trackedentity.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.Comparator.comparing;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
@@ -144,29 +143,6 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
 
     this.organisationUnitStore = organisationUnitStore;
     this.systemSettingManager = systemSettingManager;
-  }
-
-  @Override
-  public List<TrackedEntity> getTrackedEntities(TrackedEntityQueryParams params) {
-    List<Long> teIds = getTrackedEntityIds(params);
-    List<TrackedEntity> sortedTe = new ArrayList<>();
-    List<List<Long>> idsPartitions = Lists.partition(Lists.newArrayList(teIds), 20000);
-
-    for (List<Long> idsPartition : idsPartitions) {
-      if (!idsPartition.isEmpty()) {
-        List<TrackedEntity> trackedEntities =
-            getSession()
-                .createQuery(TE_HQL_BY_IDS, TrackedEntity.class)
-                .setParameter("ids", idsPartition)
-                .list();
-
-        trackedEntities.sort(comparing(te -> idsPartition.indexOf(te.getId())));
-
-        sortedTe.addAll(trackedEntities);
-      }
-    }
-
-    return sortedTe;
   }
 
   @Override

@@ -38,8 +38,6 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 public interface TrackedEntityStore extends IdentifiableObjectStore<TrackedEntity> {
   String ID = TrackedEntityStore.class.getName();
 
-  List<TrackedEntity> getTrackedEntities(TrackedEntityQueryParams params);
-
   List<Long> getTrackedEntityIds(TrackedEntityQueryParams params);
 
   int getTrackedEntityCountWithMaxTeLimit(TrackedEntityQueryParams params);
