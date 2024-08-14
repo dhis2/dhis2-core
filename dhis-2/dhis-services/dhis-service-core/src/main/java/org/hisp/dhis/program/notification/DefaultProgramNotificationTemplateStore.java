@@ -71,7 +71,7 @@ public class DefaultProgramNotificationTemplateStore
       sql.append(sqlHelper.whereAnd()).append(" programid = :programId");
     }
 
-    if (param.hasProgram()) {
+    if (param.hasProgramStage()) {
       sql.append(sqlHelper.whereAnd()).append(" programstageid = :programStageId");
     }
 
@@ -95,11 +95,11 @@ public class DefaultProgramNotificationTemplateStore
     StringBuilder sql = new StringBuilder("select * from programnotificationtemplate ");
 
     if (param.hasProgram()) {
-      sql.append(sqlHelper.whereAnd()).append(" programid = :programId");
+      sql.append(sqlHelper.whereAnd()).append(" programid = :programId ");
     }
 
-    if (param.hasProgram()) {
-      sql.append(sqlHelper.whereAnd()).append(" programstageid = :programStageId");
+    if (param.hasProgramStage()) {
+      sql.append(sqlHelper.whereAnd()).append(" programstageid = :programStageId ");
     }
 
     sql.append(" ORDER BY ").append(DEFAULT_ORDER);

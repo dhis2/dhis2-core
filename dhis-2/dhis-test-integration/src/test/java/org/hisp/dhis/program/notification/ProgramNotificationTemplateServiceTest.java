@@ -27,9 +27,8 @@
  */
 package org.hisp.dhis.program.notification;
 
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import org.hisp.dhis.common.CodeGenerator;
@@ -113,22 +112,18 @@ class ProgramNotificationTemplateServiceTest extends PostgresIntegrationTestBase
   }
 
   @Test
-  void testGetProgramNotificationTemplates() {
+  void shouldGetProgramNotificationTemplates() {
     ProgramNotificationTemplateOperationParams param =
         ProgramNotificationTemplateOperationParams.builder()
             .program(UID.of(program.getUid()))
             .build();
     List<ProgramNotificationTemplate> templates =
         programNotificationTemplateService.getProgramNotificationTemplates(param);
-    assertFalse(templates.isEmpty());
-    assertEquals(2, templates.size());
-    assertTrue(templates.contains(pnt1));
-    assertTrue(templates.contains(pnt2));
-    assertFalse(templates.contains(pnt3));
+    assertContainsOnly(List.of(pnt1, pnt2, pnt3), templates);
   }
 
   @Test
-  void testCountProgramNotificationTemplates() {
+  void shouldCountProgramNotificationTemplates() {
     ProgramNotificationTemplateOperationParams param =
         ProgramNotificationTemplateOperationParams.builder()
             .program(UID.of(program.getUid()))
