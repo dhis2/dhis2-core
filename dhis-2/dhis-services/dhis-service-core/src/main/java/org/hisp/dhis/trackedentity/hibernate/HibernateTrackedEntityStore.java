@@ -100,8 +100,6 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.trackedentity.TrackedEntityStore")
 public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<TrackedEntity>
     implements TrackedEntityStore {
-  private static final String TE_HQL_BY_IDS = "from TrackedEntity as te where te.id in (:ids)";
-
   private static final String OFFSET = "OFFSET";
 
   private static final String LIMIT = "LIMIT";
