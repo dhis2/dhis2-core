@@ -45,6 +45,8 @@ public class DefaultProgramNotificationTemplateStore
     extends HibernateIdentifiableObjectStore<ProgramNotificationTemplate>
     implements ProgramNotificationTemplateStore {
 
+  private static final String DEFAULT_ORDER = " programnotificationtemplateid desc ";
+
   public DefaultProgramNotificationTemplateStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
@@ -99,6 +101,8 @@ public class DefaultProgramNotificationTemplateStore
     if (param.hasProgram()) {
       sql.append(sqlHelper.whereAnd()).append(" programstageid = :programStageId");
     }
+
+    sql.append(" ORDER BY ").append(DEFAULT_ORDER);
 
     NativeQuery<ProgramNotificationTemplate> query = nativeSynchronizedTypedQuery(sql.toString());
 
