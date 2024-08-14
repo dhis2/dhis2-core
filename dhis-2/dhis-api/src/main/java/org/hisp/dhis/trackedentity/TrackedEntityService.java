@@ -85,20 +85,6 @@ public interface TrackedEntityService {
   String SEPARATOR = "_";
 
   /**
-   * Returns a list with tracked entity values based on the given TrackedEntityQueryParams.
-   *
-   * @param params the TrackedEntityQueryParams.
-   * @param skipAccessValidation If true, access validation is skipped. Should be set to true only
-   *     for internal tasks (e.g. currently used by synchronization job)
-   * @param skipSearchScopeValidation if true, search scope validation is skipped.
-   * @return List of TEs matching the params
-   */
-  List<TrackedEntity> getTrackedEntities(
-      TrackedEntityQueryParams params,
-      boolean skipAccessValidation,
-      boolean skipSearchScopeValidation);
-
-  /**
    * Returns a list tracked entity primary key ids based on the given TrackedEntityQueryParams.
    *
    * @param params the TrackedEntityQueryParams.

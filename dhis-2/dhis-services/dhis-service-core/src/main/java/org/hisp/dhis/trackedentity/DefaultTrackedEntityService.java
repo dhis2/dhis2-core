@@ -121,48 +121,6 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<TrackedEntity> getTrackedEntities(
-      TrackedEntityQueryParams params,
-      boolean skipAccessValidation,
-      boolean skipSearchScopeValidation) {
-    if (params.isOrQuery() && !params.hasAttributes() && !params.hasProgram()) {
-      Collection<TrackedEntityAttribute> attributes =
-          attributeService.getTrackedEntityAttributesDisplayInListNoProgram();
-      params.addAttributes(QueryItem.getQueryItems(attributes));
-      params.addFiltersIfNotExist(QueryItem.getQueryItems(attributes));
-    }
-
-    decideAccess(params);
-    // AccessValidation should be skipped only and only if it is internal
-    // service that runs the task (for example sync job)
-    if (!skipAccessValidation) {
-      validate(params);
-    }
-
-    if (!skipSearchScopeValidation) {
-      validateSearchScope(params);
-    }
-
-    List<TrackedEntity> trackedEntities = trackedEntityStore.getTrackedEntities(params);
-
-    User user = params.getUser();
-    trackedEntities =
-        trackedEntities.stream()
-            .filter((te) -> aclService.canDataRead(user, te.getTrackedEntityType()))
-            .collect(Collectors.toList());
-
-    // Avoiding NullPointerException
-    String accessedBy = user != null ? user.getUsername() : CurrentUserUtil.getCurrentUsername();
-
-    for (TrackedEntity te : trackedEntities) {
-      addTrackedEntityAudit(te, accessedBy, ChangeLogType.SEARCH);
-    }
-
-    return trackedEntities;
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public List<Long> getTrackedEntityIds(
       TrackedEntityQueryParams params,
       boolean skipAccessValidation,
