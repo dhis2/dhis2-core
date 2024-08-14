@@ -207,7 +207,7 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
 
     MockHttpServletRequestBuilder request =
         MockMvcRequestBuilders.request(
-            org.springframework.http.HttpMethod.resolve(method.name()), makeApiUrl(url));
+            org.springframework.http.HttpMethod.valueOf(method.name()), makeApiUrl(url));
 
     for (Header header : headers) {
       request.header(header.getName(), header.getValue());
