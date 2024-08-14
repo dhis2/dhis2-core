@@ -300,11 +300,6 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
         POST("/account/sendEmailVerification").content(HttpStatus.CONFLICT));
   }
 
-  private void assertValidToken(String token) {
-    User user = userService.getUserByVerificationToken(token);
-    assertNotNull(user);
-  }
-
   private OutboundMessage assertMessageSendTo(String email) {
     List<OutboundMessage> messagesByEmail =
         ((FakeMessageSender) messageSender).getMessagesByEmail(email);
