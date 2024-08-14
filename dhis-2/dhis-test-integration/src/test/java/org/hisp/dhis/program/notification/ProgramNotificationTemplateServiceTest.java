@@ -119,7 +119,7 @@ class ProgramNotificationTemplateServiceTest extends PostgresIntegrationTestBase
             .build();
     List<ProgramNotificationTemplate> templates =
         programNotificationTemplateService.getProgramNotificationTemplates(param);
-    assertContainsOnly(List.of(pnt1, pnt2, pnt3), templates);
+    assertContainsOnly(List.of(pnt1, pnt2), templates);
   }
 
   @Test
