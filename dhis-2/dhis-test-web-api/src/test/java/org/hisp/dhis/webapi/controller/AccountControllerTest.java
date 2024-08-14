@@ -250,6 +250,22 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   @Test
+  void testVerifyEmailWithTokenTwice() {
+    User currentUser = switchToNewUser("clark");
+    String emailAddress = currentUser.getEmail();
+    assertStatus(HttpStatus.CREATED, POST("/account/sendEmailVerification"));
+    OutboundMessage emailMessage = assertMessageSendTo(emailAddress);
+    String token = extractTokenFromEmailText(emailMessage.getText());
+    assertNotNull(token);
+
+    assertStatus(HttpStatus.OK, GET("/account/verifyEmail?token=" + token));
+    currentUser = userService.getUser(currentUser.getId());
+    assertTrue(userService.isEmailVerified(currentUser));
+
+    assertStatus(HttpStatus.CONFLICT, GET("/account/verifyEmail?token=" + token));
+  }
+
+  @Test
   void testVerifyWithBadToken() {
     assertWebMessage(
         "Conflict",
