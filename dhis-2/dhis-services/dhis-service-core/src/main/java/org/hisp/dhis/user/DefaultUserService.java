@@ -1598,6 +1598,6 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional
   public User getUserByVerifiedEmail(String email) {
-    return userStore.getVerifiedEmail(email);
+    return userStore.getuserByVerifiedEmail(email);
   }
 }
