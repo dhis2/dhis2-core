@@ -164,7 +164,7 @@ public class DefaultProgramService implements ProgramService {
 
   @Override
   public boolean hasOrgUnit(Program program, OrganisationUnit organisationUnit) {
-    return this.programStore.hasOrgUnit(program, organisationUnit);
+    return programStore.hasOrgUnit(program, organisationUnit);
   }
 
   @Override

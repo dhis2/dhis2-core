@@ -35,6 +35,7 @@ import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
@@ -61,6 +62,7 @@ import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
@@ -141,6 +143,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     programA = createProgram('A');
     programA.setAccessLevel(AccessLevel.PROTECTED);
     programA.setTrackedEntityType(trackedEntityType);
+    programA.setOrganisationUnits(Set.of(organisationUnitA, organisationUnitB));
     programService.addProgram(programA);
     UserAccess userAccess = new UserAccess(userA.getUid(), FULL);
     programA.setSharing(new Sharing(FULL, userAccess));
@@ -291,6 +294,19 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
                 org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance
                     ::getTrackedEntityInstance)
             .collect(Collectors.toList()));
+  }
+
+  @Test
+  void shouldNotTransferOwnershipWhenOrgUnitNotAssociatedToProgram() {
+    OrganisationUnit notAssociatedOrgUnit = createOrganisationUnit('C');
+    organisationUnitService.addOrganisationUnit(notAssociatedOrgUnit);
+    Exception exception =
+        assertThrows(
+            AccessDeniedException.class,
+            () -> transferOwnership(entityInstanceA1, programA, notAssociatedOrgUnit));
+    assertEquals(
+        "User does not have access to change ownership for the entity-program combination",
+        exception.getMessage());
   }
 
   @Test
