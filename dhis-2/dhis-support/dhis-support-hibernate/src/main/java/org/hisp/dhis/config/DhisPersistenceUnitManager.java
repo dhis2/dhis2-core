@@ -68,7 +68,6 @@ public class DhisPersistenceUnitManager implements PersistenceUnitManager {
   public PersistenceUnitInfo obtainDefaultPersistenceUnitInfo() throws IllegalStateException {
     return DhisPersistenceUnitInfo.builder()
         .nonJtaDataSource(dataSource)
-        .jtaDataSource(dataSource)
         .persistenceProviderClassName(HibernatePersistenceProvider.class.getName())
         .persistenceUnitName("dhis")
         .properties(getAdditionalProperties(dhisConfig))
