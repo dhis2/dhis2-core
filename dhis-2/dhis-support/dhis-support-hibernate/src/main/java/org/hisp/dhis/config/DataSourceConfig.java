@@ -90,13 +90,12 @@ public class DataSourceConfig {
   }
 
   @Primary
-  @Bean
-  public DataSource dataSource(DhisConfigurationProvider config, DataSource actualDataSource) {
-    return createLoggingDataSource(config, actualDataSource);
+  @Bean("actualDataSource")
+  public DataSource dataSource(DhisConfigurationProvider config) {
+    return createLoggingDataSource(config, actualDataSource(config));
   }
 
-  @Bean
-  public DataSource actualDataSource(DhisConfigurationProvider config) {
+  private DataSource actualDataSource(DhisConfigurationProvider config) {
     String jdbcUrl = config.getProperty(ConfigurationKey.CONNECTION_URL);
     String username = config.getProperty(ConfigurationKey.CONNECTION_USERNAME);
     String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);

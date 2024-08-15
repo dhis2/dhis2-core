@@ -50,6 +50,7 @@ import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Created by zubair@dhis2.org on 11.08.17. */
@@ -71,7 +72,7 @@ public abstract class CommandSMSListener extends BaseSMSListener {
       CategoryService dataElementCategoryService,
       UserService userService,
       IncomingSmsService incomingSmsService,
-      MessageSender smsSender) {
+      @Qualifier("smsMessageSender") MessageSender smsSender) {
     super(incomingSmsService, smsSender);
     checkNotNull(dataElementCategoryService);
     checkNotNull(userService);

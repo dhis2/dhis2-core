@@ -95,6 +95,7 @@ import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.jboss.aerogear.security.otp.api.Base32;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
@@ -133,7 +134,7 @@ public class DefaultUserService implements UserService {
   public DefaultUserService(
       UserSettingService userSettingService,
       RestTemplate restTemplate,
-      MessageSender emailMessageSender,
+      @Qualifier("emailMessageSender") MessageSender emailMessageSender,
       I18nManager i18nManager,
       ObjectMapper jsonMapper,
       UserStore userStore,

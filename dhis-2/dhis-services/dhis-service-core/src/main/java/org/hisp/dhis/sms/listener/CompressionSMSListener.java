@@ -64,6 +64,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
@@ -92,7 +93,7 @@ public abstract class CompressionSMSListener extends BaseSMSListener {
 
   public CompressionSMSListener(
       IncomingSmsService incomingSmsService,
-      MessageSender smsSender,
+      @Qualifier("smsMessageSender") MessageSender smsSender,
       UserService userService,
       TrackedEntityTypeService trackedEntityTypeService,
       TrackedEntityAttributeService trackedEntityAttributeService,

@@ -43,6 +43,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccountExpiryInfo;
 import org.hisp.dhis.user.UserService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
@@ -65,7 +66,7 @@ public class AccountExpiryAlertJob implements Job {
 
   private final UserService userService;
 
-  private final MessageSender emailMessageSender;
+  private final @Qualifier("emailMessageSender") MessageSender emailMessageSender;
 
   private final SystemSettingManager systemSettingManager;
 

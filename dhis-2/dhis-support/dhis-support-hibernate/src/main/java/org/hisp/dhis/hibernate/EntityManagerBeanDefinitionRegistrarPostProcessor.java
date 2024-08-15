@@ -35,47 +35,59 @@ import java.util.HashSet;
 import java.util.Set;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.ListableBeanFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
-import org.springframework.beans.factory.support.AutowireCandidateQualifier;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.orm.jpa.AbstractEntityManagerFactoryBean;
 
 /** This class allows injecting {@link jakarta.persistence.EntityManager} using Constructor. */
 public class EntityManagerBeanDefinitionRegistrarPostProcessor implements BeanFactoryPostProcessor {
+
   @Override
   public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory)
       throws BeansException {
-    if (!(beanFactory instanceof BeanDefinitionRegistry)) {
+    if (!ConfigurableListableBeanFactory.class.isInstance(beanFactory)) {
       return;
     }
-
-    for (String emfName : getEntityManagerFactoryBeanNames(beanFactory)) {
-      if (emfName.equals("sessionFactory")) {
-        continue;
-      }
-      BeanDefinitionBuilder builder =
-          BeanDefinitionBuilder.rootBeanDefinition(
-              "org.springframework.orm.jpa.SharedEntityManagerCreator");
-      builder.setFactoryMethod("createSharedEntityManager");
-      builder.addConstructorArgReference(emfName);
-
-      AbstractBeanDefinition emBeanDefinition = builder.getRawBeanDefinition();
-      AbstractBeanDefinition emfBeanDefinition =
-          (AbstractBeanDefinition) beanFactory.getBeanDefinition(emfName);
-
-      emBeanDefinition.addQualifier(new AutowireCandidateQualifier(Qualifier.class, emfName));
-      emBeanDefinition.setScope(emfBeanDefinition.getScope());
-      emBeanDefinition.setSource(emfBeanDefinition.getSource());
-
-      BeanDefinitionReaderUtils.registerWithGeneratedName(
-          emBeanDefinition, (BeanDefinitionRegistry) beanFactory);
-    }
+    //
+    //    for (EntityManagerFactoryBeanDefinition definition :
+    // getEntityManagerFactoryBeanDefinitions(factory)) {
+    //
+    //      BeanFactory definitionFactory = definition.getBeanFactory();
+    //      if (!(definitionFactory instanceof BeanDefinitionRegistry)) {
+    //        continue;
+    //      }
   }
+
+  //
+  //  @Override
+  //  public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory)
+  //      throws BeansException {
+  //    if (!(beanFactory instanceof BeanDefinitionRegistry)) {
+  //      return;
+  //    }
+  //
+  //    for (String emfName : getEntityManagerFactoryBeanNames(beanFactory)) {
+  //      if (emfName.equals("sessionFactory")) {
+  //        continue;
+  //      }
+  //      BeanDefinitionBuilder builder =
+  //          BeanDefinitionBuilder.rootBeanDefinition(
+  //              "org.springframework.orm.jpa.SharedEntityManagerCreator");
+  //      builder.setFactoryMethod("createSharedEntityManager");
+  //      builder.addConstructorArgReference(emfName);
+  //
+  //      AbstractBeanDefinition emBeanDefinition = builder.getRawBeanDefinition();
+  //      AbstractBeanDefinition emfBeanDefinition =
+  //          (AbstractBeanDefinition) beanFactory.getBeanDefinition(emfName);
+  //
+  //      emBeanDefinition.addQualifier(new AutowireCandidateQualifier(Qualifier.class, emfName));
+  //      emBeanDefinition.setScope(emfBeanDefinition.getScope());
+  //      emBeanDefinition.setSource(emfBeanDefinition.getSource());
+  //
+  //      BeanDefinitionReaderUtils.registerWithGeneratedName(
+  //          emBeanDefinition, (BeanDefinitionRegistry) beanFactory);
+  //    }
+  //  }
 
   /**
    * Return all bean names for bean definitions that will result in an {@link EntityManagerFactory}

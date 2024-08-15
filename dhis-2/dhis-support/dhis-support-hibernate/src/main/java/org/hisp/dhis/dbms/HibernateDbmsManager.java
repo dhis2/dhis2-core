@@ -30,18 +30,18 @@ package org.hisp.dhis.dbms;
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
-import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
-@Component
 @Slf4j
+@AllArgsConstructor
 public class HibernateDbmsManager implements DbmsManager {
   // -------------------------------------------------------------------------
   // Dependencies
@@ -49,21 +49,9 @@ public class HibernateDbmsManager implements DbmsManager {
 
   private JdbcTemplate jdbcTemplate;
 
-  public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
-    this.jdbcTemplate = jdbcTemplate;
-  }
-
   private EntityManager entityManager;
 
-  public void setEntityManager(EntityManager entityManager) {
-    this.entityManager = entityManager;
-  }
-
   private HibernateCacheManager cacheManager;
-
-  public void setCacheManager(HibernateCacheManager cacheManager) {
-    this.cacheManager = cacheManager;
-  }
 
   // -------------------------------------------------------------------------
   // DbmsManager implementation

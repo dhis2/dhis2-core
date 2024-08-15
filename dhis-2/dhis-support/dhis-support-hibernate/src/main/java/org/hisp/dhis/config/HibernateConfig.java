@@ -27,41 +27,27 @@
  */
 package org.hisp.dhis.config;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.USE_QUERY_CACHE;
-import static org.hisp.dhis.external.conf.ConfigurationKey.USE_SECOND_LEVEL_CACHE;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.SharedCacheMode;
-import jakarta.persistence.ValidationMode;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ArrayUtils;
 import org.hibernate.SessionFactory;
-import org.hibernate.cache.jcache.ConfigSettings;
-import org.hibernate.cache.jcache.MissingCacheStrategy;
-import org.hibernate.cache.jcache.internal.JCacheRegionFactory;
-import org.hibernate.cfg.AvailableSettings;
+import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.hisp.dhis.cache.DefaultHibernateCacheManager;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dbms.HibernateDbmsManager;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.hibernate.EntityManagerBeanDefinitionRegistrarPostProcessor;
-import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.SharedEntityManagerCreator;
+import org.springframework.orm.jpa.persistenceunit.PersistenceUnitManager;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -103,81 +89,43 @@ public class HibernateConfig {
       JdbcTemplate jdbcTemplate,
       DefaultHibernateCacheManager cacheManager,
       EntityManager entityManager) {
-    HibernateDbmsManager hibernateDbmsManager = new HibernateDbmsManager();
-    hibernateDbmsManager.setCacheManager(cacheManager);
-    hibernateDbmsManager.setEntityManager(entityManager);
-    hibernateDbmsManager.setJdbcTemplate(jdbcTemplate);
-    return hibernateDbmsManager;
+    return new HibernateDbmsManager(jdbcTemplate, entityManager, cacheManager);
   }
 
+  //  @Bean
+  //  public BeanFactoryPostProcessor entityManagerBeanDefinitionRegistrarPostProcessor() {
+  //    return new EntityManagerBeanDefinitionRegistrarPostProcessor();
+  //  }
+
   @Bean
-  public BeanFactoryPostProcessor entityManagerBeanDefinitionRegistrarPostProcessor() {
-    return new EntityManagerBeanDefinitionRegistrarPostProcessor();
+  public EntityManager sharedEntityManager(EntityManagerFactory emf) {
+    return SharedEntityManagerCreator.createSharedEntityManager(emf);
   }
 
   @Bean
   @DependsOn({"flyway"})
   public EntityManagerFactory entityManagerFactory(
-      DhisConfigurationProvider dhisConfig, DataSource dataSource) {
+      DhisConfigurationProvider dhisConfig,
+      @Qualifier("actualDataSource") DataSource dataSource,
+      PersistenceUnitManager persistenceUnitManager) {
     HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
     adapter.setDatabasePlatform(dhisConfig.getProperty(ConfigurationKey.CONNECTION_DIALECT));
     adapter.setGenerateDdl(shouldGenerateDDL(dhisConfig));
     LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
     factory.setJpaVendorAdapter(adapter);
-    factory.setPersistenceUnitName("dhis");
-    factory.setPersistenceProvider(new org.hibernate.jpa.HibernatePersistenceProvider());
+    factory.setPersistenceProviderClass(HibernatePersistenceProvider.class);
+    factory.setPersistenceUnitManager(persistenceUnitManager);
+    factory.setPersistenceProvider(new HibernatePersistenceProvider());
     factory.setDataSource(dataSource);
     factory.setPackagesToScan("org.hisp.dhis");
-    factory.setSharedCacheMode(SharedCacheMode.ENABLE_SELECTIVE);
-    factory.setValidationMode(ValidationMode.AUTO);
-    factory.setJpaProperties(getAdditionalProperties(dhisConfig));
-    factory.setMappingResources(loadResources());
     factory.afterPropertiesSet();
     return factory.getObject();
   }
 
-  /**
-   * Returns additional properties to be used by the {@link LocalContainerEntityManagerFactoryBean}
-   */
-  private Properties getAdditionalProperties(DhisConfigurationProvider dhisConfig) {
-    Properties properties = new Properties();
-    properties.put(
-        "hibernate.current_session_context_class",
-        "org.springframework.orm.hibernate5.SpringSessionContext");
-
-    if (dhisConfig.getProperty(USE_SECOND_LEVEL_CACHE).equals("true")) {
-      properties.put(AvailableSettings.USE_SECOND_LEVEL_CACHE, "true");
-      properties.put(AvailableSettings.CACHE_REGION_FACTORY, JCacheRegionFactory.class.getName());
-      properties.put(AvailableSettings.USE_QUERY_CACHE, dhisConfig.getProperty(USE_QUERY_CACHE));
-      properties.put(ConfigSettings.MISSING_CACHE_STRATEGY, MissingCacheStrategy.CREATE);
-    }
-
-    // TODO: this is anti-pattern and should be turn off
-    properties.put("hibernate.allow_update_outside_transaction", "true");
-
-    return properties;
-  }
-
-  /**
-   * Loads all the hibernate mapping files from the classpath
-   *
-   * @return Array of Strings representing the mapping files
-   */
-  private String[] loadResources() {
-    try {
-      PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-      Resource[] resources = resolver.getResources("classpath*:org/hisp/dhis/**/*.hbm.xml");
-
-      List<String> list = new ArrayList<>();
-      for (Resource resource : resources) {
-        String url = resource.getURL().toString();
-        list.add(url);
-      }
-      return list.toArray(new String[0]);
-    } catch (IOException e) {
-      log.error(e.getMessage(), e);
-    }
-    return ArrayUtils.EMPTY_STRING_ARRAY;
+  @Bean
+  public PersistenceUnitManager persistenceUnitManager(
+      DhisConfigurationProvider dhisConfig, @Qualifier("actualDataSource") DataSource dataSource) {
+    return new DhisPersistenceUnitManager(dhisConfig, dataSource);
   }
 
   /**

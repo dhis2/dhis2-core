@@ -39,6 +39,7 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,7 +58,7 @@ public class DefaultEmailService implements EmailService {
   // Dependencies
   // -------------------------------------------------------------------------
 
-  private final MessageSender emailMessageSender;
+  private final @Qualifier("emailMessageSender") MessageSender emailMessageSender;
 
   private final UserService userService;
 

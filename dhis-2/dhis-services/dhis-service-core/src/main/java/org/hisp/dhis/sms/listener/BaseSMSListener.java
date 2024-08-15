@@ -38,6 +38,7 @@ import org.hisp.dhis.sms.incoming.IncomingSmsListener;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.smscompression.SmsResponse;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
@@ -61,7 +62,9 @@ public abstract class BaseSMSListener implements IncomingSmsListener {
 
   protected final MessageSender smsSender;
 
-  protected BaseSMSListener(IncomingSmsService incomingSmsService, MessageSender smsSender) {
+  protected BaseSMSListener(
+      IncomingSmsService incomingSmsService,
+      @Qualifier("smsMessageSender") MessageSender smsSender) {
     checkNotNull(incomingSmsService);
     checkNotNull(smsSender);
 
