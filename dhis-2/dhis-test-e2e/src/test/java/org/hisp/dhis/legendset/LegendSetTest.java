@@ -22,7 +22,6 @@ class LegendSetTest extends ApiTest {
 
   @BeforeAll
   public void init() {
-    //
     metadataActions = new MetadataActions();
     legendSetActions = new RestApiActions("legendSets");
     dataSetActions = new RestApiActions("dataSets");
