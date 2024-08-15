@@ -33,10 +33,8 @@ import java.util.Date;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.changelog.ChangeLogType;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -51,11 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultTrackedEntityService implements TrackedEntityService {
   private final TrackedEntityStore trackedEntityStore;
 
-  private final TrackedEntityAttributeValueService attributeValueService;
-
   private final TrackedEntityChangeLogService trackedEntityChangeLogService;
-
-  private final IdentifiableObjectManager manager;
 
   public DefaultTrackedEntityService(
       TrackedEntityStore trackedEntityStore,
@@ -65,8 +59,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
       OrganisationUnitService organisationUnitService,
       AclService aclService,
       TrackedEntityChangeLogService trackedEntityChangeLogService,
-      TrackedEntityAttributeValueChangeLogService attributeValueAuditService,
-      IdentifiableObjectManager manager) {
+      TrackedEntityAttributeValueChangeLogService attributeValueAuditService) {
     checkNotNull(trackedEntityStore);
     checkNotNull(attributeValueService);
     checkNotNull(attributeService);
@@ -77,26 +70,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     checkNotNull(attributeValueAuditService);
 
     this.trackedEntityStore = trackedEntityStore;
-    this.attributeValueService = attributeValueService;
     this.trackedEntityChangeLogService = trackedEntityChangeLogService;
-    this.manager = manager;
-  }
-
-  @Override
-  @Transactional
-  public long createTrackedEntity(
-      TrackedEntity trackedEntity, Set<TrackedEntityAttributeValue> attributeValues) {
-    trackedEntityStore.save(trackedEntity);
-    long id = trackedEntity.getId();
-
-    for (TrackedEntityAttributeValue pav : attributeValues) {
-      attributeValueService.addTrackedEntityAttributeValue(pav);
-      trackedEntity.getTrackedEntityAttributeValues().add(pav);
-    }
-
-    manager.update(trackedEntity);
-
-    return id;
   }
 
   @Override
