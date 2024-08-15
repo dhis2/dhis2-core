@@ -43,9 +43,6 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
@@ -172,8 +169,7 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
   }
 
   @Test
-  void testTrackedEntityRegistration()
-      throws ForbiddenException, NotFoundException, BadRequestException {
+  void testTrackedEntityRegistration() {
     // Mock for trackedEntityService
     when(programService.hasOrgUnit(program, organisationUnit)).thenReturn(true);
 

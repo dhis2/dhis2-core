@@ -84,8 +84,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Component("org.hisp.dhis.tracker.sms.EnrollmentSMSListener")
 @Transactional
 public class EnrollmentSMSListener extends EventSavingSMSListener {
-  private final org.hisp.dhis.trackedentity.TrackedEntityService apiTrackedEntityService;
-
   private final TrackedEntityService trackedEntityService;
 
   private final EnrollmentService enrollmentService;
@@ -112,7 +110,6 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
       FileResourceService fileResourceService,
       DhisConfigurationProvider config,
       TrackedEntityAttributeValueService attributeValueService,
-      org.hisp.dhis.trackedentity.TrackedEntityService apiTrackedEntityService,
       TrackedEntityService trackedEntityService,
       EnrollmentService enrollmentService,
       IdentifiableObjectManager manager,
@@ -132,7 +129,6 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
         dataValueAuditService,
         fileResourceService,
         config);
-    this.apiTrackedEntityService = apiTrackedEntityService;
     this.trackedEntityService = trackedEntityService;
     this.programStageService = programStageService;
     this.enrollmentService = enrollmentService;
