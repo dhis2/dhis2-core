@@ -116,19 +116,17 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       TrackedEntityProgramOwner teProgramOwner =
           trackedEntityProgramOwnerService.getTrackedEntityProgramOwner(trackedEntity, program);
 
-      if (teProgramOwner != null) {
-        if (!teProgramOwner.getOrganisationUnit().equals(orgUnit)) {
-          ProgramOwnershipHistory programOwnershipHistory =
-              new ProgramOwnershipHistory(
-                  program,
-                  trackedEntity,
-                  teProgramOwner.getOrganisationUnit(),
-                  teProgramOwner.getLastUpdated(),
-                  teProgramOwner.getCreatedBy());
-          programOwnershipHistoryService.addProgramOwnershipHistory(programOwnershipHistory);
-          trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
-              trackedEntity, program, orgUnit);
-        }
+      if (teProgramOwner != null && !teProgramOwner.getOrganisationUnit().equals(orgUnit)) {
+        ProgramOwnershipHistory programOwnershipHistory =
+            new ProgramOwnershipHistory(
+                program,
+                trackedEntity,
+                teProgramOwner.getOrganisationUnit(),
+                teProgramOwner.getLastUpdated(),
+                teProgramOwner.getCreatedBy());
+        programOwnershipHistoryService.addProgramOwnershipHistory(programOwnershipHistory);
+        trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
+            trackedEntity, program, orgUnit);
       }
 
       ownerCache.invalidate(getOwnershipCacheKey(trackedEntity::getId, program));
