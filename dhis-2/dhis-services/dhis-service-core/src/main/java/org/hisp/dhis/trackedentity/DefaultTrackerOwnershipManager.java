@@ -45,6 +45,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramOwnershipHistory;
 import org.hisp.dhis.program.ProgramOwnershipHistoryService;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTempOwner;
 import org.hisp.dhis.program.ProgramTempOwnerService;
 import org.hisp.dhis.program.ProgramTempOwnershipAudit;
@@ -81,6 +82,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
   private final OrganisationUnitService organisationUnitService;
 
+  private final ProgramService programService;
+
   private final TrackedEntityInstanceService trackedEntityInstanceService;
 
   private final DhisConfigurationProvider config;
@@ -94,6 +97,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       ProgramOwnershipHistoryService programOwnershipHistoryService,
       TrackedEntityInstanceService trackedEntityInstanceService,
       OrganisationUnitService organisationUnitService,
+      ProgramService programService,
       DhisConfigurationProvider config,
       Environment env) {
     checkNotNull(currentUserService);
@@ -113,6 +117,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     this.programTempOwnerService = programTempOwnerService;
     this.organisationUnitService = organisationUnitService;
     this.trackedEntityInstanceService = trackedEntityInstanceService;
+    this.programService = programService;
     this.config = config;
     this.ownerCache = cacheProvider.createProgramOwnerCache();
     this.tempOwnerCache = cacheProvider.createProgramTempOwnerCache();
@@ -140,8 +145,9 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       return;
     }
 
-    if (hasAccess(currentUserService.getCurrentUser(), entityInstance, program)
-        || skipAccessValidation) {
+    if ((hasAccess(currentUserService.getCurrentUser(), entityInstance, program)
+            || skipAccessValidation)
+        && programService.hasOrgUnit(program, orgUnit)) {
       TrackedEntityProgramOwner teProgramOwner =
           trackedEntityProgramOwnerService.getTrackedEntityProgramOwner(
               entityInstance.getId(), program.getId());
