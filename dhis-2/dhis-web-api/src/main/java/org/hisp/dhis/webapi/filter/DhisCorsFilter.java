@@ -54,15 +54,15 @@ import org.springframework.web.util.UriComponentsBuilder;
  */
 @Slf4j
 @Component
-public class CorsFilter implements Filter, InitializingBean {
-  private static CorsFilter instance;
+public class DhisCorsFilter implements Filter, InitializingBean {
+  private static DhisCorsFilter instance;
 
   @Override
   public void afterPropertiesSet() throws Exception {
     instance = this;
   }
 
-  public static CorsFilter get() {
+  public static DhisCorsFilter get() {
     return instance;
   }
 

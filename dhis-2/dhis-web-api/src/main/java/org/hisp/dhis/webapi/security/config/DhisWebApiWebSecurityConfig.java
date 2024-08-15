@@ -48,8 +48,8 @@ import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
-import org.hisp.dhis.webapi.filter.CorsFilter;
 import org.hisp.dhis.webapi.filter.CspFilter;
+import org.hisp.dhis.webapi.filter.DhisCorsFilter;
 import org.hisp.dhis.webapi.security.Http401LoginUrlAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthManager;
 import org.hisp.dhis.webapi.security.apikey.Dhis2ApiTokenFilter;
@@ -419,7 +419,6 @@ public class DhisWebApiWebSecurityConfig {
         .and()
         ////////////////////
         .sessionManagement()
-        .requireExplicitAuthenticationStrategy(true)
         .sessionFixation()
         .migrateSession()
         .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
@@ -453,7 +452,7 @@ public class DhisWebApiWebSecurityConfig {
   }
 
   private void configureCorsFilter(HttpSecurity http) {
-    http.addFilterBefore(CorsFilter.get(), BasicAuthenticationFilter.class);
+    http.addFilterBefore(DhisCorsFilter.get(), BasicAuthenticationFilter.class);
   }
 
   private void configureApiTokenAuthorizationFilter(HttpSecurity http) {
