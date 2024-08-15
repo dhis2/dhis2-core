@@ -49,8 +49,11 @@ public class HibernateEventProgramEnrollmentStore implements EventProgramEnrollm
     try (Session session = entityManager.unwrap(Session.class)) {
 
       return session
-          .createQuery("from Enrollment e where e.program.uid = :programUid", Enrollment.class)
+          .createQuery(
+              "from Enrollment e where e.program.uid = :programUid and e.program.programType = :programType",
+              Enrollment.class)
           .setParameter("programUid", program.getUid())
+          .setParameter("programType", ProgramType.WITHOUT_REGISTRATION)
           .list();
     }
   }

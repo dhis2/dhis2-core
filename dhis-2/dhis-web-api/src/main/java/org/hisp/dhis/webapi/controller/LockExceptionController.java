@@ -51,7 +51,6 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPreset;
-import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.node.NodeUtils;
@@ -269,7 +268,7 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
       @RequestParam("ds") String dataSetId,
       HttpServletRequest request,
       HttpServletResponse response)
-      throws WebMessageException {
+      throws WebMessageException, ForbiddenException {
     DataSet dataSet = dataSetService.getDataSet(dataSetId);
 
     Period period = periodService.reloadPeriod(PeriodType.getPeriodFromIsoString(periodId));
@@ -286,8 +285,7 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
     }
 
     if (!aclService.canDelete(CurrentUserUtil.getCurrentUserDetails(), dataSet)) {
-      throw new ReadAccessDeniedException(
-          "You don't have the proper permissions to delete this object.");
+      throw new ForbiddenException("You don't have the proper permissions to delete this object.");
     }
 
     if (organisationUnit != null) {

@@ -29,8 +29,8 @@ package org.hisp.dhis.program.message;
 
 import java.util.Date;
 import java.util.Set;
+import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 
@@ -38,7 +38,7 @@ import org.hisp.dhis.program.Event;
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
 @Data
-@NoArgsConstructor
+@Builder
 public class ProgramMessageQueryParams {
   private Set<String> organisationUnit;
 
@@ -60,7 +60,7 @@ public class ProgramMessageQueryParams {
   // Logic
   // -------------------------------------------------------------------------
 
-  public boolean hasOrignisationUnit() {
+  public boolean hasOrganisationUnit() {
     return organisationUnit != null;
   }
 
