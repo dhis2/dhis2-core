@@ -28,6 +28,7 @@
 package org.hisp.dhis.trackedentity.hibernate;
 
 import com.google.common.collect.Lists;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
