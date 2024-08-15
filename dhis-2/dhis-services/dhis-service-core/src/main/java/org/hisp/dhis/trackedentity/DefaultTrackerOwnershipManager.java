@@ -104,10 +104,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
   @Override
   @Transactional
   public void transferOwnership(
-      TrackedEntity trackedEntity,
-      Program program,
-      OrganisationUnit orgUnit,
-      boolean createIfNotExists) {
+      TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit) {
     if (trackedEntity == null || program == null || orgUnit == null) {
       return;
     }
@@ -132,9 +129,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
           trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
               trackedEntity, program, orgUnit);
         }
-      } else if (createIfNotExists) {
-        trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
-            trackedEntity, program, orgUnit);
       }
 
       ownerCache.invalidate(getOwnershipCacheKey(trackedEntity::getId, program));

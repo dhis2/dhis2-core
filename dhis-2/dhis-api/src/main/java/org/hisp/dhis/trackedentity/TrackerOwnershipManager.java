@@ -47,11 +47,7 @@ public interface TrackerOwnershipManager {
    * @param program The program object
    * @param orgUnit The org unit that has to become the owner
    */
-  void transferOwnership(
-      TrackedEntity trackedEntity,
-      Program program,
-      OrganisationUnit orgUnit,
-      boolean createIfNotExists);
+  void transferOwnership(TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit);
 
   /**
    * @param trackedEntity The tracked entity object

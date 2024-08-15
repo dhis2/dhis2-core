@@ -249,7 +249,7 @@ class OwnershipTest extends TrackerTest {
     TrackedEntity trackedEntity = manager.get(TrackedEntity.class, "IOR1AXXl24H");
     OrganisationUnit ou = manager.get(OrganisationUnit.class, "B1nCbRV3qtP");
     Program pgm = manager.get(Program.class, "BFcipDERJnf");
-    trackerOwnershipManager.transferOwnership(trackedEntity, pgm, ou, false);
+    trackerOwnershipManager.transferOwnership(trackedEntity, pgm, ou);
     params.setImportStrategy(TrackerImportStrategy.CREATE);
     trackerObjects.getEnrollments().get(0).setEnrollment(CodeGenerator.generateUid());
     updatedReport = trackerImportService.importTracker(params, trackerObjects);
@@ -281,7 +281,7 @@ class OwnershipTest extends TrackerTest {
     TrackerImportParams params =
         TrackerImportParams.builder().userId(nonSuperUser.getUid()).build();
     TrackerObjects trackerObjects = fromJson("tracker/ownership_enrollment.json");
-    trackerOwnershipManager.transferOwnership(trackedEntity, pgm, ou, false);
+    trackerOwnershipManager.transferOwnership(trackedEntity, pgm, ou);
     params.setImportStrategy(TrackerImportStrategy.DELETE);
     ImportReport updatedReport = trackerImportService.importTracker(params, trackerObjects);
     assertEquals(1, updatedReport.getStats().getIgnored());
@@ -294,7 +294,7 @@ class OwnershipTest extends TrackerTest {
     TrackedEntity trackedEntity = manager.get(TrackedEntity.class, "IOR1AXXl24H");
     OrganisationUnit ou = manager.get(OrganisationUnit.class, "B1nCbRV3qtP");
     Program pgm = manager.get(Program.class, "BFcipDERJnf");
-    trackerOwnershipManager.transferOwnership(trackedEntity, pgm, ou, false);
+    trackerOwnershipManager.transferOwnership(trackedEntity, pgm, ou);
     TrackerImportParams params =
         TrackerImportParams.builder().userId(nonSuperUser.getUid()).build();
     TrackerObjects trackerObjects = fromJson("tracker/ownership_enrollment.json");

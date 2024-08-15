@@ -309,7 +309,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     trackerOwnershipAccessManager.assignOwnership(
         trackedEntityFrom, program, orgUnitA, false, true);
 
-    trackerOwnershipAccessManager.transferOwnership(trackedEntityFrom, program, orgUnitB, true);
+    trackerOwnershipAccessManager.transferOwnership(trackedEntityFrom, program, orgUnitB);
 
     TrackedEntity trackedEntityTo = createTrackedEntity(orgUnitA);
     trackedEntityTo.setTrackedEntityType(trackedEntityType);
