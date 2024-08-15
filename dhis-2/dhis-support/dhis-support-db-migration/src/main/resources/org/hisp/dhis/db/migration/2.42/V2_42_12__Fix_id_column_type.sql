@@ -1,0 +1,1 @@
+ALTER TABLE programruleaction ALTER COLUMN notificationtemplateid TYPE BIGINT;
