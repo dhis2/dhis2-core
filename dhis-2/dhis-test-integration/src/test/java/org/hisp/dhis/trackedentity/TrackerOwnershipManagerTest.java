@@ -512,9 +512,13 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
   void shouldNotTransferOwnershipWhenOrgUnitNotAssociatedToProgram() {
     OrganisationUnit notAssociatedOrgUnit = createOrganisationUnit('C');
     organisationUnitService.addOrganisationUnit(notAssociatedOrgUnit);
-    assertThrows(
-        AccessDeniedException.class,
-        () -> transferOwnership(trackedEntityA1, programA, notAssociatedOrgUnit));
+    Exception exception =
+        assertThrows(
+            AccessDeniedException.class,
+            () -> transferOwnership(trackedEntityA1, programA, notAssociatedOrgUnit));
+    assertEquals(
+        "User does not have access to change ownership for the entity-program combination",
+        exception.getMessage());
   }
 
   @Test
