@@ -41,13 +41,13 @@ import org.springframework.stereotype.Repository;
 
 /** Created by zubair@dhis2.org on 16.11.17. */
 @Repository("org.hisp.dhis.program.ProgramNotificationTemplateStore")
-public class DefaultProgramNotificationTemplateStore
+public class HibernateProgramNotificationTemplateStore
     extends HibernateIdentifiableObjectStore<ProgramNotificationTemplate>
     implements ProgramNotificationTemplateStore {
 
   private static final String DEFAULT_ORDER = " programnotificationtemplateid desc ";
 
-  public DefaultProgramNotificationTemplateStore(
+  public HibernateProgramNotificationTemplateStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
@@ -75,7 +75,7 @@ public class DefaultProgramNotificationTemplateStore
       sql.append(sqlHelper.whereAnd()).append(" programstageid = :programStageId");
     }
 
-    NativeQuery<Number> query = nativeSynchronizedQuery(sql.toString());
+    NativeQuery<Long> query = nativeSynchronizedQuery(sql.toString());
 
     if (param.hasProgram()) {
       query.setParameter("programId", param.getProgram().getId());
