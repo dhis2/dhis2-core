@@ -41,7 +41,11 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
@@ -61,6 +65,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -97,13 +102,15 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
 
   @Mock private TrackedEntityTypeService trackedEntityTypeService;
 
-  @Mock private org.hisp.dhis.trackedentity.TrackedEntityService apiTrackedEntityService;
-
   @Mock private TrackedEntityService trackedEntityService;
 
   @Mock private ProgramService programService;
 
+  @Mock private IdentifiableObjectManager manager;
+
   @Mock private SMSEnrollmentService smsEnrollmentService;
+
+  @Mock private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
   private TrackedEntityRegistrationSMSListener subject;
 
@@ -138,9 +145,10 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
             smsSender,
             smsCommandService,
             trackedEntityTypeService,
-            apiTrackedEntityService,
             trackedEntityService,
-            smsEnrollmentService);
+            smsEnrollmentService,
+            manager,
+            trackedEntityAttributeValueService);
 
     setUpInstances();
 
@@ -164,9 +172,9 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
   }
 
   @Test
-  void testTrackedEntityRegistration() {
+  void testTrackedEntityRegistration()
+      throws ForbiddenException, NotFoundException, BadRequestException {
     // Mock for trackedEntityService
-    when(apiTrackedEntityService.createTrackedEntity(any(), any())).thenReturn(1L);
     when(programService.hasOrgUnit(program, organisationUnit)).thenReturn(true);
 
     // Mock for incomingSmsService

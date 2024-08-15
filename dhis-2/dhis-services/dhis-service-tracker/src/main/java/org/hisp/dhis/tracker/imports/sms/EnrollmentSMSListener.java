@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.imports.sms;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -197,7 +198,14 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
       trackedEntity.setTrackedEntityAttributeValues(attributeValues);
       this.manager.update(trackedEntity);
     } else {
-      apiTrackedEntityService.createTrackedEntity(trackedEntity, attributeValues);
+      manager.save(trackedEntity);
+
+      for (TrackedEntityAttributeValue pav : attributeValues) {
+        attributeValueService.addTrackedEntityAttributeValue(pav);
+        trackedEntity.getTrackedEntityAttributeValues().add(pav);
+      }
+
+      manager.update(trackedEntity);
     }
 
     TrackedEntity te;
@@ -253,7 +261,7 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
       return SmsResponse.WARN_DVERR.setList(errorUIDs);
     }
 
-    if (attributeValues == null || attributeValues.isEmpty()) {
+    if (attributeValues.isEmpty()) {
       // TODO: Is this correct handling?
       return SmsResponse.WARN_AVEMPTY;
     }
@@ -301,7 +309,7 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
   private Set<TrackedEntityAttributeValue> getSMSAttributeValues(
       EnrollmentSmsSubmission submission, TrackedEntity trackedEntity) {
     if (submission.getValues() == null) {
-      return null;
+      return Collections.emptySet();
     }
     return submission.getValues().stream()
         .map(v -> createTrackedEntityValue(v, trackedEntity))

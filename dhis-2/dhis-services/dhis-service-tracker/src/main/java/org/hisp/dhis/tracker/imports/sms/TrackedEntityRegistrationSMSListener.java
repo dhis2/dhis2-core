@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -57,6 +58,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.UserService;
@@ -73,13 +75,15 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
 
   private final TrackedEntityTypeService trackedEntityTypeService;
 
-  private final org.hisp.dhis.trackedentity.TrackedEntityService apiTrackedEntityService;
-
   private final TrackedEntityService trackedEntityService;
 
   private final ProgramService programService;
 
   private final SMSEnrollmentService smsEnrollmentService;
+
+  private final IdentifiableObjectManager manager;
+
+  private final TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
   public TrackedEntityRegistrationSMSListener(
       ProgramService programService,
@@ -89,16 +93,18 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
       @Qualifier("smsMessageSender") MessageSender smsSender,
       SMSCommandService smsCommandService,
       TrackedEntityTypeService trackedEntityTypeService,
-      org.hisp.dhis.trackedentity.TrackedEntityService apiTrackedEntityService,
       TrackedEntityService trackedEntityService,
-      SMSEnrollmentService smsEnrollmentService) {
+      SMSEnrollmentService smsEnrollmentService,
+      IdentifiableObjectManager manager,
+      TrackedEntityAttributeValueService trackedEntityAttributeValueService) {
     super(dataElementCategoryService, userService, incomingSmsService, smsSender);
     this.smsCommandService = smsCommandService;
     this.trackedEntityTypeService = trackedEntityTypeService;
-    this.apiTrackedEntityService = apiTrackedEntityService;
     this.trackedEntityService = trackedEntityService;
     this.programService = programService;
     this.smsEnrollmentService = smsEnrollmentService;
+    this.manager = manager;
+    this.trackedEntityAttributeValueService = trackedEntityAttributeValueService;
   }
 
   @Override
@@ -137,7 +143,14 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
             });
 
     if (!patientAttributeValues.isEmpty()) {
-      apiTrackedEntityService.createTrackedEntity(trackedEntity, patientAttributeValues);
+      manager.save(trackedEntity);
+
+      for (TrackedEntityAttributeValue pav : patientAttributeValues) {
+        trackedEntityAttributeValueService.addTrackedEntityAttributeValue(pav);
+        trackedEntity.getTrackedEntityAttributeValues().add(pav);
+      }
+
+      manager.update(trackedEntity);
     } else {
       sendFeedback("No TrackedEntityAttribute found", senderPhoneNumber, WARNING);
     }
