@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,63 +27,34 @@
  */
 package org.hisp.dhis.system.util;
 
-import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.core5.http.io.SocketConfig;
+import org.apache.hc.core5.util.Timeout;
 
-/** Created by vanyas on 3/15/16. */
-public class DhisHttpResponse {
-  private HttpResponse httpResponse;
+public class HttpClientUtils {
 
-  private String response;
+  public static CloseableHttpClient createCloseableHttpClient(Timeout connectionTimeout) {
+    // Connect timeout
+    ConnectionConfig connectionConfig =
+        ConnectionConfig.custom().setConnectTimeout(Timeout.ofMilliseconds(5_000)).build();
 
-  private int statusCode;
+    SocketConfig socketConfig =
+        SocketConfig.custom().setSoTimeout(Timeout.ofMilliseconds(10_000)).build();
 
-  // -------------------------------------------------------------------------
-  // Constructor
-  // -------------------------------------------------------------------------
+    RequestConfig requestConfig =
+        RequestConfig.custom().setConnectTimeout(connectionTimeout).build();
 
-  public DhisHttpResponse(HttpResponse httpResponse, String response, int statusCode) {
-    super();
-    this.httpResponse = httpResponse;
-    this.response = response;
-    this.statusCode = statusCode;
-  }
+    PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+    connectionManager.setDefaultSocketConfig(socketConfig);
+    connectionManager.setDefaultConnectionConfig(connectionConfig);
 
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
-
-  public HttpResponse getHttpResponse() {
-    return httpResponse;
-  }
-
-  public void setHttpResponse(HttpResponse httpResponse) {
-    this.httpResponse = httpResponse;
-  }
-
-  public String getResponse() {
-    return response;
-  }
-
-  public void setResponse(String response) {
-    this.response = response;
-  }
-
-  public int getStatusCode() {
-    return statusCode;
-  }
-
-  public void setStatusCode(int statusCode) {
-    this.statusCode = statusCode;
-  }
-
-  @Override
-  public String toString() {
-    return "DhisHttpResponse [httpResponse="
-        + httpResponse
-        + ", response="
-        + response
-        + " statusCode="
-        + statusCode
-        + "]";
+    return HttpClientBuilder.create()
+        .setConnectionManager(connectionManager)
+        .setDefaultRequestConfig(requestConfig)
+        .build();
   }
 }

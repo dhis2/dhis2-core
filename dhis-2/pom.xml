@@ -210,7 +210,7 @@
     <commons-codec.version>1.17.1</commons-codec.version>
     <commons-jexl.version>2.1.1</commons-jexl.version>
     <commons-email.version>1.6.0</commons-email.version>
-    <httpcomponents-core.version>4.4.16</httpcomponents-core.version>
+    <httpcomponents-core.version>5.2.5</httpcomponents-core.version>
     <httpcomponents-client5.version>5.3.1</httpcomponents-client5.version>
 
     <kafka.version>3.7.1</kafka.version>
@@ -634,6 +634,10 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava-jdk5</artifactId>
           </exclusion>
+          <exclusion>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+          </exclusion>
         </exclusions>
       </dependency>
       <dependency>
@@ -972,8 +976,8 @@
         </exclusions>
       </dependency>
       <dependency>
-        <groupId>org.apache.httpcomponents</groupId>
-        <artifactId>httpcore</artifactId>
+        <groupId>org.apache.httpcomponents.core5</groupId>
+        <artifactId>httpcore5</artifactId>
         <version>${httpcomponents-core.version}</version>
       </dependency>
 
