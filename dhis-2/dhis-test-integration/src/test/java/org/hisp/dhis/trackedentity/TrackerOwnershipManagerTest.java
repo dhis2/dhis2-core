@@ -62,6 +62,7 @@ import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.utils.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
@@ -493,6 +494,19 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     List<String> trackedEntities = getTrackedEntities(operationParams);
 
     assertContainsOnly(List.of(entityInstanceA1.getUid()), trackedEntities);
+  }
+
+  @Test
+  void shouldNotTransferOwnershipWhenOrgUnitNotAssociatedToProgram() {
+    OrganisationUnit notAssociatedOrgUnit = createOrganisationUnit('C');
+    organisationUnitService.addOrganisationUnit(notAssociatedOrgUnit);
+    Exception exception =
+        assertThrows(
+            AccessDeniedException.class,
+            () -> transferOwnership(entityInstanceA1, programA, notAssociatedOrgUnit));
+    assertEquals(
+        "User does not have access to change ownership for the entity-program combination",
+        exception.getMessage());
   }
 
   @Test
