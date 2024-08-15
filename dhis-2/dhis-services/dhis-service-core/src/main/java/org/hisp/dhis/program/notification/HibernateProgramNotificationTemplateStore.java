@@ -75,7 +75,7 @@ public class HibernateProgramNotificationTemplateStore
       sql.append(sqlHelper.whereAnd()).append(" programstageid = :programStageId");
     }
 
-    NativeQuery<Long> query = nativeSynchronizedQuery(sql.toString());
+    NativeQuery<Number> query = nativeSynchronizedQuery(sql.toString());
 
     if (param.hasProgram()) {
       query.setParameter("programId", param.getProgram().getId());
