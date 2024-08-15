@@ -41,6 +41,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramOwnershipHistory;
 import org.hisp.dhis.program.ProgramOwnershipHistoryService;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTempOwner;
 import org.hisp.dhis.program.ProgramTempOwnerService;
 import org.hisp.dhis.program.ProgramTempOwnershipAudit;
@@ -67,6 +68,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
   private final ProgramOwnershipHistoryService programOwnershipHistoryService;
   private final DhisConfigurationProvider config;
   private final UserService userService;
+  private final ProgramService programService;
 
   public DefaultTrackerOwnershipManager(
       UserService userService,
@@ -75,6 +77,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       ProgramTempOwnershipAuditService programTempOwnershipAuditService,
       ProgramTempOwnerService programTempOwnerService,
       ProgramOwnershipHistoryService programOwnershipHistoryService,
+      ProgramService programService,
       DhisConfigurationProvider config) {
 
     this.userService = userService;
@@ -82,6 +85,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     this.programTempOwnershipAuditService = programTempOwnershipAuditService;
     this.programOwnershipHistoryService = programOwnershipHistoryService;
     this.programTempOwnerService = programTempOwnerService;
+    this.programService = programService;
     this.config = config;
     this.ownerCache = cacheProvider.createProgramOwnerCache();
     this.tempOwnerCache = cacheProvider.createProgramTempOwnerCache();
@@ -103,7 +107,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       TrackedEntity trackedEntity,
       Program program,
       OrganisationUnit orgUnit,
-      boolean skipAccessValidation,
       boolean createIfNotExists) {
     if (trackedEntity == null || program == null || orgUnit == null) {
       return;
@@ -111,7 +114,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
-    if (hasAccess(currentUser, trackedEntity, program) || skipAccessValidation) {
+    if (hasAccess(currentUser, trackedEntity, program)
+        && programService.hasOrgUnit(program, orgUnit)) {
       TrackedEntityProgramOwner teProgramOwner =
           trackedEntityProgramOwnerService.getTrackedEntityProgramOwner(trackedEntity, program);
 

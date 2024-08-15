@@ -297,6 +297,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     Program program = protectedProgram('P', trackedEntityType, orgUnitA);
     program.getSharing().setOwner(user); // set metadata access to the program
     program.setProgramStages(Set.of(programStage));
+    program.setOrganisationUnits(Set.of(orgUnitA, orgUnitB));
     manager.save(program, false);
 
     TrackedEntity trackedEntityFrom = createTrackedEntity(orgUnitA);
@@ -308,8 +309,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     trackerOwnershipAccessManager.assignOwnership(
         trackedEntityFrom, program, orgUnitA, false, true);
 
-    trackerOwnershipAccessManager.transferOwnership(
-        trackedEntityFrom, program, orgUnitB, false, true);
+    trackerOwnershipAccessManager.transferOwnership(trackedEntityFrom, program, orgUnitB, true);
 
     TrackedEntity trackedEntityTo = createTrackedEntity(orgUnitA);
     trackedEntityTo.setTrackedEntityType(trackedEntityType);

@@ -46,13 +46,11 @@ public interface TrackerOwnershipManager {
    * @param trackedEntity The tracked entity object
    * @param program The program object
    * @param orgUnit The org unit that has to become the owner
-   * @param skipAccessValidation whether ownership access validation has to be skipped or not.
    */
   void transferOwnership(
       TrackedEntity trackedEntity,
       Program program,
       OrganisationUnit orgUnit,
-      boolean skipAccessValidation,
       boolean createIfNotExists);
 
   /**

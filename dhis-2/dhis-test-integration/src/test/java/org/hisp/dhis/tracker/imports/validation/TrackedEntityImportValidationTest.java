@@ -251,7 +251,7 @@ class TrackedEntityImportValidationTest extends TrackerTest {
     TrackedEntity te = manager.get(TrackedEntity.class, "Kj6vYde4LHh");
     OrganisationUnit orgUnit = manager.get(OrganisationUnit.class, "QfUVllTs6cW");
     Program program = manager.get(Program.class, "E8o1E9tAppy");
-    trackerOwnershipManager.transferOwnership(te, program, orgUnit, true, false);
+    trackerOwnershipManager.transferOwnership(te, program, orgUnit, false);
     manager.flush();
     manager.clear();
     ImportReport importReport = deleteTransferredTrackedEntity(userService.getUser(USER_10));
@@ -272,7 +272,7 @@ class TrackedEntityImportValidationTest extends TrackerTest {
     TrackedEntity te = manager.get(TrackedEntity.class, "Kj6vYde4LHh");
     OrganisationUnit orgUnit = manager.get(OrganisationUnit.class, "QfUVllTs6cW");
     Program program = manager.get(Program.class, "E8o1E9tAppy");
-    trackerOwnershipManager.transferOwnership(te, program, orgUnit, true, false);
+    trackerOwnershipManager.transferOwnership(te, program, orgUnit, false);
     manager.flush();
     manager.clear();
     ImportReport importReport = deleteTransferredTrackedEntity(userService.getUser(USER_9));
@@ -292,7 +292,7 @@ class TrackedEntityImportValidationTest extends TrackerTest {
     TrackedEntity te = manager.get(TrackedEntity.class, "Kj6vYde4LHh");
     OrganisationUnit orgUnit = manager.get(OrganisationUnit.class, "QfUVllTs6cW");
     Program program = manager.get(Program.class, "E8o1E9tAppy");
-    trackerOwnershipManager.transferOwnership(te, program, orgUnit, true, false);
+    trackerOwnershipManager.transferOwnership(te, program, orgUnit, false);
     manager.flush();
     manager.clear();
     ImportReport importReport = deleteTransferredTrackedEntity(userService.getUser(USER_7));
@@ -318,7 +318,7 @@ class TrackedEntityImportValidationTest extends TrackerTest {
     TrackedEntity te = manager.get(TrackedEntity.class, "KKKKj6vYdes");
     OrganisationUnit orgUnit = manager.get(OrganisationUnit.class, "QfUVllTs6cW");
     Program program = manager.get(Program.class, "E8o1E9tAppy");
-    trackerOwnershipManager.transferOwnership(te, program, orgUnit, true, false);
+    trackerOwnershipManager.transferOwnership(te, program, orgUnit, false);
     manager.flush();
     manager.clear();
     importReport = updateTransferredTrackedEntity(USER_10, "KKKKj6vYdes");
@@ -338,7 +338,7 @@ class TrackedEntityImportValidationTest extends TrackerTest {
     TrackedEntity te = manager.get(TrackedEntity.class, "Kj6vYde4LHh");
     OrganisationUnit orgUnit = manager.get(OrganisationUnit.class, "QfUVllTs6cW");
     Program program = manager.get(Program.class, "E8o1E9tAppy");
-    trackerOwnershipManager.transferOwnership(te, program, orgUnit, true, false);
+    trackerOwnershipManager.transferOwnership(te, program, orgUnit, false);
     manager.flush();
     manager.clear();
     ImportReport importReport = updateTransferredTrackedEntity(USER_9, "Kj6vYde4LHh");
