@@ -47,6 +47,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -235,7 +236,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void checkAccessPermissionForEnrollmentInClosedProgram() {
+  void checkAccessPermissionForEnrollmentInClosedProgram() throws ForbiddenException {
     programA.setPublicAccess(AccessStringHelper.FULL);
     manager.update(programA);
     trackedEntityType.setPublicAccess(AccessStringHelper.FULL);
@@ -301,7 +302,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void checkAccessPermissionForEnrollmentInOpenProgram() {
+  void checkAccessPermissionForEnrollmentInOpenProgram() throws ForbiddenException {
     programA.setPublicAccess(AccessStringHelper.FULL);
     programA.setAccessLevel(AccessLevel.OPEN);
     manager.update(programA);
@@ -349,7 +350,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void checkAccessPermissionsForEventInClosedProgram() {
+  void checkAccessPermissionsForEventInClosedProgram() throws ForbiddenException {
     programA.setPublicAccess(AccessStringHelper.FULL);
     programStageA.setPublicAccess(AccessStringHelper.FULL);
     programStageB.setPublicAccess(AccessStringHelper.FULL);
@@ -395,7 +396,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void checkAccessPermissionsForEventInOpenProgram() {
+  void checkAccessPermissionsForEventInOpenProgram() throws ForbiddenException {
     programA.setPublicAccess(AccessStringHelper.FULL);
     programA.setAccessLevel(AccessLevel.OPEN);
     programStageA.setPublicAccess(AccessStringHelper.FULL);

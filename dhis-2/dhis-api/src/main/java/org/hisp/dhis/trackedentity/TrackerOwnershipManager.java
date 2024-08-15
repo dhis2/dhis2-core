@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
@@ -47,7 +48,8 @@ public interface TrackerOwnershipManager {
    * @param program The program object
    * @param orgUnit The org unit that has to become the owner
    */
-  void transferOwnership(TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit);
+  void transferOwnership(TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit)
+      throws ForbiddenException;
 
   /**
    * @param trackedEntity The tracked entity object
