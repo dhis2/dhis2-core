@@ -158,7 +158,7 @@ class TimeFieldSqlRendererTest extends TestBase {
     EventQueryParams params =
         new EventQueryParams.Builder()
             .addDimension(new BaseDimensionalObject(PERIOD_DIM_ID, PERIOD, List.of(peA, peB, peC)))
-            .withTimeField(OCCURRED_DATE.getEnrollmentColumnName())
+            .withTimeField(OCCURRED_DATE.getEventAndEnrollmentColumnName())
             .build();
 
     params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
@@ -183,7 +183,7 @@ class TimeFieldSqlRendererTest extends TestBase {
         new EventQueryParams.Builder()
             .addDimension(
                 new BaseDimensionalObject(PERIOD_DIM_ID, PERIOD, List.of(march, september)))
-            .withTimeField(SCHEDULED_DATE.getEnrollmentColumnName())
+            .withTimeField(SCHEDULED_DATE.getEventAndEnrollmentColumnName())
             .withStartEndDatesForPeriods()
             .build();
 

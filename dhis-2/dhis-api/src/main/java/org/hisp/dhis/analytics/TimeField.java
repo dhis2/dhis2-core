@@ -37,8 +37,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /** Enum that maps database column names to their respective "business" names. */
+@RequiredArgsConstructor
 public enum TimeField {
   EVENT_DATE("occurreddate"),
   ENROLLMENT_DATE("enrollmentdate"),
@@ -50,9 +52,8 @@ public enum TimeField {
   CREATED("created"),
   LAST_UPDATED("lastupdated");
 
+  @Getter private final String eventAndEnrollmentColumnName;
   @Getter private final String trackedEntityColumnName;
-  @Getter private final String enrollmentColumnName;
-  @Getter private final String eventColumnName;
 
   public static final Collection<String> DEFAULT_TIME_FIELDS =
       List.of(EVENT_DATE.name(), LAST_UPDATED.name(), ENROLLMENT_DATE.name());
@@ -69,14 +70,7 @@ public enum TimeField {
 
   TimeField(final String field) {
     this.trackedEntityColumnName = field;
-    this.enrollmentColumnName = field;
-    this.eventColumnName = field;
-  }
-
-  TimeField(final String field, final String trackedEntityField) {
-    this.trackedEntityColumnName = trackedEntityField;
-    this.enrollmentColumnName = field;
-    this.eventColumnName = field;
+    this.eventAndEnrollmentColumnName = field;
   }
 
   public static Optional<TimeField> of(final String timeField) {
@@ -85,7 +79,7 @@ public enum TimeField {
 
   private static Optional<TimeField> from(final String field) {
     return Arrays.stream(values())
-        .filter(tf -> tf.getEnrollmentColumnName().equals(field))
+        .filter(tf -> tf.getEventAndEnrollmentColumnName().equals(field))
         .findFirst();
   }
 
@@ -94,8 +88,8 @@ public enum TimeField {
   }
 
   public boolean supportsRawPeriod() {
-    return isNotBlank(eventColumnName)
-        && from(eventColumnName).isPresent()
-        && TIME_FIELDS_SUPPORT_RAW_PERIODS.contains(from(eventColumnName).get());
+    return isNotBlank(eventAndEnrollmentColumnName)
+        && from(eventAndEnrollmentColumnName).isPresent()
+        && TIME_FIELDS_SUPPORT_RAW_PERIODS.contains(from(eventAndEnrollmentColumnName).get());
   }
 }

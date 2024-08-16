@@ -661,7 +661,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         "Last value aggregation type query must have value dimension or a program indicator");
 
     String timeCol = quoteAlias(params.getTimeFieldAsFieldFallback());
-    String createdCol = quoteAlias(TimeField.CREATED.getEnrollmentColumnName());
+    String createdCol = quoteAlias(TimeField.CREATED.getEventAndEnrollmentColumnName());
     String partitionByClause = getFirstOrLastValuePartitionByClause(params);
     String order =
         params.getAggregationTypeFallback().isFirstPeriodAggregationType() ? "asc" : "desc";
