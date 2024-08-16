@@ -62,7 +62,6 @@ import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.utils.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDeniedException;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
@@ -191,7 +190,8 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   }
 
   @Test
-  void shouldNotHaveAccessToEnrollmentWithUserAWhenTransferredToAnotherOrgUnit() {
+  void shouldNotHaveAccessToEnrollmentWithUserAWhenTransferredToAnotherOrgUnit()
+      throws ForbiddenException {
     userA.setTeiSearchOrganisationUnits(Set.of(organisationUnitB));
     userService.updateUser(userA);
     trackerOwnershipAccessManager.assignOwnership(
@@ -365,7 +365,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   }
 
   @Test
-  void shouldNotHaveAccessWhenProgramOpenAndUserNotInSearchScope() {
+  void shouldNotHaveAccessWhenProgramOpenAndUserNotInSearchScope() throws ForbiddenException {
     programA.setAccessLevel(AccessLevel.OPEN);
     programService.updateProgram(programA);
     trackerOwnershipAccessManager.transferOwnership(
@@ -502,10 +502,12 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     organisationUnitService.addOrganisationUnit(notAssociatedOrgUnit);
     Exception exception =
         assertThrows(
-            AccessDeniedException.class,
+            ForbiddenException.class,
             () -> transferOwnership(entityInstanceA1, programA, notAssociatedOrgUnit));
     assertEquals(
-        "User does not have access to change ownership for the entity-program combination",
+        String.format(
+            "The program %s is not associated to the org unit %s",
+            programA.getUid(), notAssociatedOrgUnit.getUid()),
         exception.getMessage());
   }
 
@@ -532,7 +534,8 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   }
 
   private void transferOwnership(
-      TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit) {
+      TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit)
+      throws ForbiddenException {
     trackerOwnershipAccessManager.transferOwnership(trackedEntity, program, orgUnit, false, true);
   }
 

@@ -283,7 +283,8 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void shouldNotReturnRelationshipWhenTeIsTransferredAndUserHasNoAccessToAtLeastOneProgram() {
+  void shouldNotReturnRelationshipWhenTeIsTransferredAndUserHasNoAccessToAtLeastOneProgram()
+      throws ForbiddenException {
     injectSecurityContextUser(getAdminUser());
 
     TrackedEntityType trackedEntityType = createTrackedEntityType('X');

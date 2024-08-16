@@ -36,6 +36,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.ProgramService;
@@ -90,7 +91,7 @@ public class TrackerOwnershipController {
       @RequestParam(required = false) UID trackedEntity,
       @RequestParam String program,
       @RequestParam String ou)
-      throws BadRequestException {
+      throws BadRequestException, ForbiddenException {
     UID trackedEntityUid =
         validateMandatoryDeprecatedUidParameter(
             "trackedEntityInstance", trackedEntityInstance, "trackedEntity", trackedEntity);

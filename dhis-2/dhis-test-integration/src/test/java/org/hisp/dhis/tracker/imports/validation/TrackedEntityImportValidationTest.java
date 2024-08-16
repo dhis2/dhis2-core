@@ -41,6 +41,7 @@ import static org.hisp.dhis.tracker.imports.validation.Users.USER_9;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -229,7 +230,7 @@ class TrackedEntityImportValidationTest extends TrackerTest {
 
   @Test
   void shouldFailToDeleteWhenUserHasAccessToRegistrationUnitAndTEWasTransferred()
-      throws IOException {
+      throws IOException, ForbiddenException {
     TrackerObjects trackerObjects = fromJson("tracker/validations/enrollments_te_te-data.json");
     TrackerImportParams params = new TrackerImportParams();
     assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
@@ -249,7 +250,7 @@ class TrackedEntityImportValidationTest extends TrackerTest {
   @Test
   void
       shouldFailToDeleteWhenTEWasTransferredAndUserHasAccessToTransferredOrgUnitAndTEOUIsNotInCaptureScope()
-          throws IOException {
+          throws IOException, ForbiddenException {
     TrackerObjects trackerObjects = fromJson("tracker/validations/enrollments_te_te-data.json");
     TrackerImportParams params = new TrackerImportParams();
     assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
@@ -268,7 +269,7 @@ class TrackedEntityImportValidationTest extends TrackerTest {
 
   @Test
   void shouldDeleteWhenTEWasTransferredAndUserHasAccessToTransferredOrgUnitAndTEOUIsInCaptureScope()
-      throws IOException {
+      throws IOException, ForbiddenException {
     TrackerObjects trackerObjects = fromJson("tracker/validations/enrollments_te_te-data.json");
     TrackerImportParams params = new TrackerImportParams();
     assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
@@ -287,7 +288,7 @@ class TrackedEntityImportValidationTest extends TrackerTest {
 
   @Test
   void shouldFailToUpdateWhenUserHasAccessToRegistrationUnitAndTEWasTransferred()
-      throws IOException {
+      throws IOException, ForbiddenException {
     TrackerObjects trackerObjects = fromJson("tracker/validations/enrollments_te_te-data.json");
     assertNoErrors(trackerImportService.importTracker(new TrackerImportParams(), trackerObjects));
     trackerObjects = fromJson("tracker/validations/enrollments_te_enrollments-data_2.json");
@@ -309,7 +310,8 @@ class TrackedEntityImportValidationTest extends TrackerTest {
   }
 
   @Test
-  void shouldUpdateWhenTEWasTransferredAndUserHasAccessToTransferredOrgUnit() throws IOException {
+  void shouldUpdateWhenTEWasTransferredAndUserHasAccessToTransferredOrgUnit()
+      throws IOException, ForbiddenException {
     TrackerObjects trackerObjects = fromJson("tracker/validations/enrollments_te_te-data.json");
     TrackerImportParams params = new TrackerImportParams();
     assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
