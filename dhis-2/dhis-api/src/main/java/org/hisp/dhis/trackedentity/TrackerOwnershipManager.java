@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
@@ -53,7 +54,8 @@ public interface TrackerOwnershipManager {
       Program program,
       OrganisationUnit orgUnit,
       boolean skipAccessValidation,
-      boolean createIfNotExists);
+      boolean createIfNotExists)
+      throws ForbiddenException;
 
   /**
    * @param entityInstance The tracked entity instance object

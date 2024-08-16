@@ -143,6 +143,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     programA = createProgram('A');
     programA.setAccessLevel(AccessLevel.PROTECTED);
     programA.setTrackedEntityType(trackedEntityType);
+    programA.setOrganisationUnits(Set.of(organisationUnitA, organisationUnitB));
     programService.addProgram(programA);
     programA.setSharing(Sharing.builder().publicAccess(AccessStringHelper.FULL).build());
     programService.updateProgram(programA);
@@ -189,7 +190,8 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   }
 
   @Test
-  void shouldNotHaveAccessToEnrollmentWithUserAWhenTransferredToAnotherOrgUnit() {
+  void shouldNotHaveAccessToEnrollmentWithUserAWhenTransferredToAnotherOrgUnit()
+      throws ForbiddenException {
     userA.setTeiSearchOrganisationUnits(Set.of(organisationUnitB));
     userService.updateUser(userA);
     trackerOwnershipAccessManager.assignOwnership(
@@ -363,7 +365,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   }
 
   @Test
-  void shouldNotHaveAccessWhenProgramOpenAndUserNotInSearchScope() {
+  void shouldNotHaveAccessWhenProgramOpenAndUserNotInSearchScope() throws ForbiddenException {
     programA.setAccessLevel(AccessLevel.OPEN);
     programService.updateProgram(programA);
     trackerOwnershipAccessManager.transferOwnership(
@@ -495,6 +497,21 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   }
 
   @Test
+  void shouldNotTransferOwnershipWhenOrgUnitNotAssociatedToProgram() {
+    OrganisationUnit notAssociatedOrgUnit = createOrganisationUnit('C');
+    organisationUnitService.addOrganisationUnit(notAssociatedOrgUnit);
+    Exception exception =
+        assertThrows(
+            ForbiddenException.class,
+            () -> transferOwnership(entityInstanceA1, programA, notAssociatedOrgUnit));
+    assertEquals(
+        String.format(
+            "The program %s is not associated to the org unit %s",
+            programA.getUid(), notAssociatedOrgUnit.getUid()),
+        exception.getMessage());
+  }
+
+  @Test
   void shouldFindTrackedEntityWhenProgramSuppliedAndUserIsOwner()
       throws ForbiddenException, BadRequestException, NotFoundException {
     assignOwnership(entityInstanceA1, programA, organisationUnitA);
@@ -517,7 +534,8 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   }
 
   private void transferOwnership(
-      TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit) {
+      TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit)
+      throws ForbiddenException {
     trackerOwnershipAccessManager.transferOwnership(trackedEntity, program, orgUnit, false, true);
   }
 

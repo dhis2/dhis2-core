@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -236,7 +237,7 @@ class OwnershipTest extends TrackerTest {
   }
 
   @Test
-  void testCreateEnrollmentWithoutOwnership() throws IOException {
+  void testCreateEnrollmentWithoutOwnership() throws IOException, ForbiddenException {
     injectSecurityContextUser(userService.getUser(nonSuperUser.getUid()));
     TrackerImportParams params =
         TrackerImportParams.builder().userId(nonSuperUser.getUid()).build();
@@ -274,7 +275,7 @@ class OwnershipTest extends TrackerTest {
   }
 
   @Test
-  void testDeleteEnrollmentWithoutOwnership() throws IOException {
+  void testDeleteEnrollmentWithoutOwnership() throws IOException, ForbiddenException {
     // Change ownership
     TrackedEntity te = manager.get(TrackedEntity.class, "IOR1AXXl24H");
     OrganisationUnit ou = manager.get(OrganisationUnit.class, "B1nCbRV3qtP");
@@ -290,7 +291,7 @@ class OwnershipTest extends TrackerTest {
   }
 
   @Test
-  void testUpdateEnrollmentWithoutOwnership() throws IOException {
+  void testUpdateEnrollmentWithoutOwnership() throws IOException, ForbiddenException {
     // Change ownership
     TrackedEntity te = manager.get(TrackedEntity.class, "IOR1AXXl24H");
     OrganisationUnit ou = manager.get(OrganisationUnit.class, "B1nCbRV3qtP");

@@ -283,7 +283,8 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void shouldNotReturnRelationshipWhenTeIsTransferredAndUserHasNoAccessToAtLeastOneProgram() {
+  void shouldNotReturnRelationshipWhenTeIsTransferredAndUserHasNoAccessToAtLeastOneProgram()
+      throws ForbiddenException {
     injectSecurityContextUser(getAdminUser());
 
     TrackedEntityType trackedEntityType = createTrackedEntityType('X');
@@ -292,6 +293,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
     Program program = protectedProgram('P', trackedEntityType, orgUnitA);
     program.getSharing().setOwner(user); // set metadata access to the program
     program.setProgramStages(Set.of(programStage));
+    program.setOrganisationUnits(Set.of(orgUnitA, orgUnitB));
     manager.save(program, false);
 
     TrackedEntity trackedEntityFrom = createTrackedEntity(orgUnitA);
