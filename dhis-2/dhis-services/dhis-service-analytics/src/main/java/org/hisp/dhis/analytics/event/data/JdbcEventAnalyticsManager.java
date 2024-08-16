@@ -129,7 +129,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
   @Override
   public Grid getEvents(EventQueryParams params, Grid grid, int maxLimit) {
-    String sql = getEventsOrEnrollmentsSql(params, maxLimit);
+    String sql = getAggregatedEnrollmentsSql(params, maxLimit);
 
     if (params.analyzeOnly()) {
       withExceptionHandling(
@@ -256,7 +256,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     } else {
       count =
           withExceptionHandling(() -> jdbcTemplate.queryForObject(finalSqlValue, Long.class))
-              .orElse(0l);
+              .orElse(0L);
     }
 
     return count;

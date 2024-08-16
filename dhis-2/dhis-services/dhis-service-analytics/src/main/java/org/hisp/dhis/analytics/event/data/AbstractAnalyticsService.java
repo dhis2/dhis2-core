@@ -48,6 +48,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentifiers;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.common.ValueType.COORDINATE;
+import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
 
@@ -123,6 +124,7 @@ public abstract class AbstractAnalyticsService {
             .flatMap(dk -> dk.getKeywords().stream())
             .collect(toList());
 
+    List<DimensionalObject> periods = getPeriods(params);
     params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
     // ---------------------------------------------------------------------
@@ -132,6 +134,16 @@ public abstract class AbstractAnalyticsService {
     Grid grid = createGridWithHeaders(params);
 
     for (DimensionalObject dimension : params.getDimensions()) {
+      grid.addHeader(
+          new GridHeader(
+              dimension.getDimension(),
+              dimension.getDimensionDisplayName(),
+              ValueType.TEXT,
+              false,
+              true));
+    }
+
+    for (DimensionalObject dimension : periods) {
       grid.addHeader(
           new GridHeader(
               dimension.getDimension(),
@@ -211,7 +223,14 @@ public abstract class AbstractAnalyticsService {
     long count = 0;
 
     if (!params.isSkipData() || params.analyzeOnly()) {
-      count = addEventData(grid, params);
+      if (!periods.isEmpty()) {
+        params =
+            new EventQueryParams.Builder(params)
+                .withPeriods(
+                    periods.stream().flatMap(p -> p.getItems().stream()).collect(toList()), EMPTY)
+                .build();
+      }
+      count = addData(grid, params);
     }
 
     // ---------------------------------------------------------------------
@@ -319,7 +338,7 @@ public abstract class AbstractAnalyticsService {
 
   protected abstract Grid createGridWithHeaders(EventQueryParams params);
 
-  protected abstract long addEventData(Grid grid, EventQueryParams params);
+  protected abstract long addData(Grid grid, EventQueryParams params);
 
   private void maybeApplyHeaders(EventQueryParams params, Grid grid) {
     if (params.hasHeaders()) {
@@ -684,6 +703,16 @@ public abstract class AbstractAnalyticsService {
     }
 
     return dimensionUids;
+  }
+
+  /**
+   * retrieve all periods as list of dimensional objects
+   *
+   * @param params
+   * @return {@link EventQueryParams} object
+   */
+  protected List<DimensionalObject> getPeriods(EventQueryParams params) {
+    return List.of();
   }
 
   /**
