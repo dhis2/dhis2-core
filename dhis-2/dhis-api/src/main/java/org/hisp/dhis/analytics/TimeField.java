@@ -46,7 +46,6 @@ public enum TimeField {
   ENROLLMENT_DATE("enrollmentdate"),
   INCIDENT_DATE("incidentdate", "occurreddate"),
   OCCURRED_DATE("occurreddate"),
-  // Not a typo, different naming convention between FE and database
   SCHEDULED_DATE("scheduleddate"),
   COMPLETED_DATE("completeddate"),
   CREATED("created"),
