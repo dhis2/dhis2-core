@@ -62,8 +62,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -71,7 +71,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
 
 /**
  * @author Zubair Asghar.
@@ -106,11 +105,9 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
 
   @Mock private IdentifiableObjectManager manager;
 
-  @Mock private TrackerOwnershipManager trackerOwnershipAccessManager;
-
-  @Mock private ApplicationEventPublisher eventPublisher;
-
   @Mock private SMSEnrollmentService smsEnrollmentService;
+
+  @Mock private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
   private TrackedEntityRegistrationSMSListener subject;
 
@@ -152,7 +149,9 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
             smsCommandService,
             trackedEntityTypeService,
             trackedEntityService,
-            smsEnrollmentService);
+            smsEnrollmentService,
+            manager,
+            trackedEntityAttributeValueService);
 
     setUpInstances();
 
@@ -178,7 +177,6 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
   @Test
   void testTrackedEntityRegistration() {
     // Mock for trackedEntityService
-    when(trackedEntityService.createTrackedEntity(any(), any())).thenReturn(1L);
     when(trackedEntityService.getTrackedEntity(any())).thenReturn(trackedEntity);
     when(programService.hasOrgUnit(program, organisationUnit)).thenReturn(true);
 

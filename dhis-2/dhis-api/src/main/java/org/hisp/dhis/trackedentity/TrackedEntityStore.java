@@ -28,7 +28,6 @@
 package org.hisp.dhis.trackedentity;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
@@ -37,12 +36,6 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
  */
 public interface TrackedEntityStore extends IdentifiableObjectStore<TrackedEntity> {
   String ID = TrackedEntityStore.class.getName();
-
-  List<TrackedEntity> getTrackedEntities(TrackedEntityQueryParams params);
-
-  List<Long> getTrackedEntityIds(TrackedEntityQueryParams params);
-
-  int getTrackedEntityCountWithMaxTeLimit(TrackedEntityQueryParams params);
 
   void updateTrackedEntityLastUpdated(
       Set<String> trackedEntityUIDs, Date lastUpdated, String userInfoSnapshot);
