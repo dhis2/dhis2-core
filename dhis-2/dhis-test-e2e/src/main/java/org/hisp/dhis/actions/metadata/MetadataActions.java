@@ -30,6 +30,7 @@ package org.hisp.dhis.actions.metadata;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import java.io.File;
 import org.hisp.dhis.actions.RestApiActions;
@@ -53,6 +54,12 @@ public class MetadataActions extends RestApiActions {
     ApiResponse response = postFile(file, queryParamsBuilder);
     response.validate().statusCode(200);
 
+    return new MetadataApiResponse(response);
+  }
+
+  public MetadataApiResponse importMetadata(String metadata) {
+    JsonObject json = new Gson().fromJson(metadata, JsonObject.class);
+    ApiResponse response = importMetadata(json);
     return new MetadataApiResponse(response);
   }
 
