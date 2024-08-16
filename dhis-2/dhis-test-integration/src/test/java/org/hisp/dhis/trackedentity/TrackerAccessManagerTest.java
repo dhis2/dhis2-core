@@ -39,7 +39,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.ws.rs.ForbiddenException;
 import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -347,7 +346,7 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest {
   }
 
   @Test
-  void checkAccessPermissionsForEventInClosedProgram() throws ForbiddenException {
+  void checkAccessPermissionsForEventInClosedProgram() {
     programA.setPublicAccess(AccessStringHelper.FULL);
     programStageA.setPublicAccess(AccessStringHelper.FULL);
     programStageB.setPublicAccess(AccessStringHelper.FULL);
@@ -388,7 +387,7 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest {
   }
 
   @Test
-  void checkAccessPermissionsForEventInOpenProgram() throws ForbiddenException {
+  void checkAccessPermissionsForEventInOpenProgram() {
     programA.setPublicAccess(AccessStringHelper.FULL);
     programA.setAccessLevel(AccessLevel.OPEN);
     programStageA.setPublicAccess(AccessStringHelper.FULL);

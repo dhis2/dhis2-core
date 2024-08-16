@@ -43,7 +43,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.ws.rs.ForbiddenException;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.events.EnrollmentEventsParams;
@@ -245,7 +244,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   }
 
   @Test
-  void shouldFindTrackedEntityWhenTransferredToAccessibleOrgUnit() throws ForbiddenException {
+  void shouldFindTrackedEntityWhenTransferredToAccessibleOrgUnit() {
     transferOwnership(entityInstanceA1, programA, organisationUnitB);
     injectSecurityContext(userB);
     TrackedEntityInstanceQueryParams params =
@@ -265,7 +264,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   }
 
   @Test
-  void shouldNotFindTrackedEntityWhenTransferredToInaccessibleOrgUnit() throws ForbiddenException {
+  void shouldNotFindTrackedEntityWhenTransferredToInaccessibleOrgUnit() {
     transferOwnership(entityInstanceA1, programA, organisationUnitB);
 
     injectSecurityContext(userA);
@@ -278,8 +277,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   }
 
   @Test
-  void shouldFindTrackedEntityWhenTransferredToInaccessibleOrgUnitIfSuperUser()
-      throws ForbiddenException {
+  void shouldFindTrackedEntityWhenTransferredToInaccessibleOrgUnitIfSuperUser() {
     transferOwnership(entityInstanceA1, programA, organisationUnitB);
     TrackedEntityInstanceQueryParams params =
         createOperationParams(superUser, null, entityInstanceA1.getTrackedEntityType());
@@ -346,8 +344,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   }
 
   @Test
-  void shouldHaveAccessToEnrollmentWithSuperUserWhenTransferredToOwnOrgUnit()
-      throws ForbiddenException {
+  void shouldHaveAccessToEnrollmentWithSuperUserWhenTransferredToOwnOrgUnit() {
     TrackedEntityInstanceQueryParams params = createOperationParams(superUser, programA, null);
     trackerOwnershipAccessManager.assignOwnership(
         entityInstanceA1, programA, organisationUnitA, false, true);
@@ -369,8 +366,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   }
 
   @Test
-  void shouldFindTrackedEntityWhenTransferredToAccessibleOrgUnitAndSuperUser()
-      throws ForbiddenException {
+  void shouldFindTrackedEntityWhenTransferredToAccessibleOrgUnitAndSuperUser() {
     TrackedEntityInstanceQueryParams params =
         createOperationParams(superUser, null, entityInstanceA1.getTrackedEntityType());
     trackerOwnershipAccessManager.assignOwnership(
