@@ -32,6 +32,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.ProgramService;
@@ -81,7 +82,8 @@ public class TrackerOwnershipController {
   public WebMessage updateTrackerProgramOwner(
       @RequestParam String trackedEntityInstance,
       @RequestParam String program,
-      @RequestParam String ou) {
+      @RequestParam String ou)
+      throws ForbiddenException {
     trackerOwnershipAccessManager.transferOwnership(
         trackedEntityInstanceService.getTrackedEntityInstance(trackedEntityInstance),
         programService.getProgram(program),
