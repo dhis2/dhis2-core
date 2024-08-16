@@ -73,10 +73,10 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
 
     List<Function<EventQueryParams, List<EventQueryParams>>> groupers =
         new ImmutableList.Builder<Function<EventQueryParams, List<EventQueryParams>>>()
-            .add(q -> groupByQueryItems(q))
-            .add(q -> groupByOrgUnitLevel(q))
-            .add(q -> groupByPeriodType(q))
-            .add(q -> groupByPeriod(q))
+            .add(this::groupByQueryItems)
+            .add(this::groupByOrgUnitLevel)
+            .add(this::groupByPeriodType)
+            .add(this::groupByPeriod)
             .build();
 
     for (Function<EventQueryParams, List<EventQueryParams>> grouper : groupers) {
@@ -120,7 +120,7 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
             : PartitionUtils.getPartitions(params.getAllPeriods());
 
     String baseName =
-        params.hasEnrollmentProgramIndicatorDimension()
+        params.hasEnrollmentProgramIndicatorDimension() || params.isAggregatedEnrollments()
             ? AnalyticsTableType.ENROLLMENT.getTableName()
             : AnalyticsTableType.EVENT.getTableName();
 
