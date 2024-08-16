@@ -65,7 +65,7 @@ public class ProgramMessageRequestParamMapper {
         .beforeDate(params.getBeforeDate())
         .page(params.getPage())
         .pageSize(params.getPageSize())
-        .organisationUnit(params.getOu())
+        .organisationUnits(params.getOu())
         .build();
   }
 }

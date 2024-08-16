@@ -28,6 +28,8 @@
 package org.hisp.dhis.program.message;
 
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.Builder;
 import lombok.Data;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -40,7 +42,7 @@ import org.hisp.dhis.program.Event;
 @Data
 @Builder
 public class ProgramMessageQueryParams {
-  private OrganisationUnit organisationUnit;
+  @Builder.Default private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
   private ProgramMessageStatus messageStatus;
 
@@ -61,7 +63,7 @@ public class ProgramMessageQueryParams {
   // -------------------------------------------------------------------------
 
   public boolean hasOrganisationUnit() {
-    return organisationUnit != null;
+    return organisationUnits != null && !organisationUnits.isEmpty();
   }
 
   public boolean hasEnrollment() {

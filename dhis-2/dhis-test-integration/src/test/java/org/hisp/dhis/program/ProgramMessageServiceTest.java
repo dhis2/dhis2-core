@@ -40,6 +40,7 @@ import java.util.Set;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -174,7 +175,7 @@ class ProgramMessageServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldReturnProgramMessagesByEnrollment() throws NotFoundException {
+  void shouldReturnProgramMessagesByEnrollment() throws NotFoundException, BadRequestException {
     programMessageService.saveProgramMessage(programMessageA);
     programMessageService.saveProgramMessage(programMessageB);
 
@@ -193,7 +194,7 @@ class ProgramMessageServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldReturnProgramMessagesByOrgUnit() throws NotFoundException {
+  void shouldReturnProgramMessagesByOrgUnit() throws NotFoundException, BadRequestException {
     programMessageService.saveProgramMessage(programMessageA);
     programMessageService.saveProgramMessage(programMessageB);
     programMessageService.saveProgramMessage(programMessageC);
@@ -201,7 +202,7 @@ class ProgramMessageServiceTest extends PostgresIntegrationTestBase {
     List<ProgramMessage> programMessages =
         programMessageService.getProgramMessages(
             ProgramMessageOperationParams.builder()
-                .organisationUnit(UID.of(ouA.getUid()))
+                .organisationUnits(Set.of(UID.of(ouA)))
                 .enrollment(UID.of(enrollmentA))
                 .build());
 

@@ -40,6 +40,7 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -103,7 +104,7 @@ class ProgramMessageOperationParamsMapperTest {
   }
 
   @Test
-  void shouldMapEnrollmentUIDToEnrollmentObject() throws NotFoundException {
+  void shouldMapEnrollmentUIDToEnrollmentObject() throws NotFoundException, BadRequestException {
     ProgramMessageQueryParams queryParams =
         subject.map(ProgramMessageOperationParams.builder().enrollment(ENROLLMENT).build());
 
@@ -111,7 +112,7 @@ class ProgramMessageOperationParamsMapperTest {
   }
 
   @Test
-  void shouldMapEventUIDToEnrollmentObject() throws NotFoundException {
+  void shouldMapEventUIDToEnrollmentObject() throws NotFoundException, BadRequestException {
     ProgramMessageQueryParams queryParams =
         subject.map(ProgramMessageOperationParams.builder().event(EVENT).build());
 

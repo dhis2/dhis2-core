@@ -28,6 +28,8 @@
 package org.hisp.dhis.program.message;
 
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.Builder;
 import lombok.Getter;
 import org.hisp.dhis.common.UID;
@@ -36,9 +38,9 @@ import org.hisp.dhis.common.UID;
  * @author Zubair Asghar
  */
 @Getter
-@Builder
+@Builder(toBuilder = true)
 public class ProgramMessageOperationParams {
-  private UID organisationUnit;
+  @Builder.Default private Set<UID> organisationUnits = new HashSet<>();
 
   private UID enrollment;
 

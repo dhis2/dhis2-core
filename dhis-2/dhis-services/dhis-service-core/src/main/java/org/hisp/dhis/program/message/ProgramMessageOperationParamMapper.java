@@ -27,15 +27,19 @@
  */
 package org.hisp.dhis.program.message;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
@@ -54,13 +58,22 @@ public class ProgramMessageOperationParamMapper {
   private final IdentifiableObjectManager manager;
 
   private final ProgramService programService;
+  private final OrganisationUnitService organisationUnitService;
 
   @Transactional(readOnly = true)
   public ProgramMessageQueryParams map(ProgramMessageOperationParams operationParams)
-      throws NotFoundException {
+      throws NotFoundException, BadRequestException {
     Enrollment enrollment = getEntity(operationParams.getEnrollment(), Enrollment.class);
     Event event = getEntity(operationParams.getEvent(), Event.class);
-    OrganisationUnit ou = getEntity(operationParams.getOrganisationUnit(), OrganisationUnit.class);
+
+    Set<OrganisationUnit> ous = new HashSet<>();
+    for (UID orgUnitUid : operationParams.getOrganisationUnits()) {
+      OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(orgUnitUid.getValue());
+      if (orgUnit == null) {
+        throw new BadRequestException("Organisation unit does not exist: " + orgUnitUid);
+      }
+      ous.add(orgUnit);
+    }
 
     currentUserHasAccess(enrollment, event);
 
@@ -72,7 +85,7 @@ public class ProgramMessageOperationParamMapper {
         .beforeDate(operationParams.getBeforeDate())
         .page(operationParams.getPage())
         .pageSize(operationParams.getPageSize())
-        .organisationUnit(ou)
+        .organisationUnits(ous)
         .build();
   }
 
