@@ -69,7 +69,9 @@ class TrackerOwnershipControllerTest extends DhisControllerConvenienceTest {
             HttpStatus.CREATED,
             POST(
                 "/programs/",
-                "{'name':'P1', 'shortName':'P1', 'programType':'WITHOUT_REGISTRATION'}"));
+                "{'name':'P1', 'shortName':'P1', 'programType':'WITHOUT_REGISTRATION', 'organisationUnits': [{'id':'"
+                    + ouId
+                    + "'}]}"));
   }
 
   @Test
