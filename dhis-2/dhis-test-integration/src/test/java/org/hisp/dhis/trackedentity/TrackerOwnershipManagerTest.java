@@ -35,6 +35,7 @@ import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
@@ -43,6 +44,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.AccessLevel;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.events.EnrollmentEventsParams;
 import org.hisp.dhis.dxf2.events.EnrollmentParams;
 import org.hisp.dhis.dxf2.events.EventParams;
@@ -141,6 +143,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     programA = createProgram('A');
     programA.setAccessLevel(AccessLevel.PROTECTED);
     programA.setTrackedEntityType(trackedEntityType);
+    programA.setOrganisationUnits(Set.of(organisationUnitA, organisationUnitB));
     programService.addProgram(programA);
     UserAccess userAccess = new UserAccess(userA.getUid(), FULL);
     programA.setSharing(new Sharing(FULL, userAccess));
@@ -291,6 +294,21 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
                 org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance
                     ::getTrackedEntityInstance)
             .collect(Collectors.toList()));
+  }
+
+  @Test
+  void shouldNotTransferOwnershipWhenOrgUnitNotAssociatedToProgram() {
+    OrganisationUnit notAssociatedOrgUnit = createOrganisationUnit('C');
+    organisationUnitService.addOrganisationUnit(notAssociatedOrgUnit);
+    Exception exception =
+        assertThrows(
+            IllegalQueryException.class,
+            () -> transferOwnership(entityInstanceA1, programA, notAssociatedOrgUnit));
+    assertEquals(
+        String.format(
+            "The program %s is not associated to the org unit %s",
+            programA.getUid(), notAssociatedOrgUnit.getUid()),
+        exception.getMessage());
   }
 
   @Test
