@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.emptySet;
+import static org.hisp.dhis.external.conf.ConfigurationKey.LINKED_ACCOUNTS_ENABLED;
 import static org.hisp.dhis.test.web.HttpStatus.Series.SUCCESSFUL;
 import static org.hisp.dhis.test.web.WebClient.Accept;
 import static org.hisp.dhis.test.web.WebClient.Body;
@@ -47,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -92,12 +94,15 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private SessionRegistry sessionRegistry;
 
-  private User peter;
-
   @Autowired ObjectMapper objectMapper;
+
+  @Autowired private DhisConfigurationProvider config;
+
+  private User peter;
 
   @BeforeEach
   void setUp() {
+
     // TODO(DHIS2-17768 platform) intentional? you are creating 2 users with username `peter` and
     // `Peter` and
     // assigning it to field peter
@@ -188,8 +193,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  @DisplayName(
-      "Make sure an update after first setting OpenID works, has special handling logic in UserObjectBundleHook.")
+  @DisplayName("Check updates after setting an OpenID value works")
   void testSetOpenIdThenUpdate() {
     assertStatus(
         HttpStatus.OK,
@@ -207,6 +211,60 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
             "/users/{id}",
             peter.getUid() + "?importReportMode=ERRORS",
             Body("[{'op': 'add', 'path': '/openId', 'value': 'mapping value'}]")));
+  }
+
+  @Test
+  @DisplayName(
+      "Check you can set same OpenID value on multiple accounts when linked accounts are enabled")
+  void testSetOpenIdThenUpdateWithLinkedAccountsEnabled() {
+    config.getProperties().put(LINKED_ACCOUNTS_ENABLED.getKey(), "on");
+
+    User wendy = createUserWithAuth("wendy");
+
+    assertStatus(
+        HttpStatus.OK,
+        PATCH(
+            "/users/{id}",
+            peter.getUid() + "?importReportMode=ERRORS",
+            Body("[{'op': 'add', 'path': '/openId', 'value': 'peter@mail.org'}]")));
+
+    assertStatus(
+        HttpStatus.OK,
+        PATCH(
+            "/users/{id}",
+            wendy.getUid() + "?importReportMode=ERRORS",
+            Body("[{'op': 'add', 'path': '/openId', 'value': 'peter@mail.org'}]")));
+  }
+
+  @Test
+  @DisplayName(
+      "Check you can't set same OpenID value on multiple accounts when linked accounts are disabled")
+  void testSetOpenIdThenUpdateWithLinkedAccountsDisabled() {
+    config.getProperties().put(LINKED_ACCOUNTS_ENABLED.getKey(), "off");
+
+    User wendy = createUserWithAuth("wendy");
+
+    assertStatus(
+        HttpStatus.OK,
+        PATCH(
+            "/users/{id}",
+            peter.getUid() + "?importReportMode=ERRORS",
+            Body("[{'op': 'add', 'path': '/openId', 'value': 'peter@mail.org'}]")));
+
+    JsonImportSummary response =
+        PATCH(
+                "/users/{id}",
+                wendy.getUid() + "?importReportMode=ERRORS",
+                Body("[{'op': 'add', 'path': '/openId', 'value': 'peter@mail.org'}]"))
+            .content(HttpStatus.CONFLICT)
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    assertEquals(
+        "Property `OIDC mapping value` already exists, was given `peter@mail.org`.",
+        response
+            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4054)
+            .getMessage());
   }
 
   /**
