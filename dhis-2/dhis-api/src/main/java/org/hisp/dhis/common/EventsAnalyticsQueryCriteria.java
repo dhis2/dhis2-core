@@ -69,8 +69,14 @@ public class EventsAnalyticsQueryCriteria extends AnalyticsPagingCriteria {
   /** Time interval for scheduled date; */
   private String scheduledDate;
 
-  /** Time interval for incident date; */
-  private String incidentDate;
+  /**
+   * Time interval for incident date;
+   *
+   * @deprecated use @see {@link #occurredDate} instead
+   */
+  @Deprecated private String incidentDate;
+
+  private String occurredDate;
 
   /** Time interval for last updated date; */
   private String lastUpdated;

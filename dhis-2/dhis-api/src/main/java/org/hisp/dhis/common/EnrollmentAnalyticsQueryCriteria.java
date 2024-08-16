@@ -50,8 +50,14 @@ public class EnrollmentAnalyticsQueryCriteria extends AnalyticsPagingCriteria {
   /** Date interval for enrollment date; */
   private String enrollmentDate;
 
-  /** Time interval for incident date; */
-  private String incidentDate;
+  /**
+   * Time interval for incident date;
+   *
+   * @deprecated use @see {@link #occurredDate} instead
+   */
+  @Deprecated private String incidentDate;
+
+  private String occurredDate;
 
   /** Time interval for last updated date; */
   private String lastUpdated;

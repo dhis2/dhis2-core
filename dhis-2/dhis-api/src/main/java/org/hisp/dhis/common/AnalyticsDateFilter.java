@@ -58,11 +58,20 @@ public enum AnalyticsDateFilter {
       EventsAnalyticsQueryCriteria::getScheduledDate,
       null,
       CommonRequestParams::getScheduledDate),
+  /**
+   * @deprecated use {@link #OCCURRED_DATE} instead. Kept for backward compatibility.
+   */
+  @Deprecated
   INCIDENT_DATE(
       TimeField.INCIDENT_DATE,
       EventsAnalyticsQueryCriteria::getIncidentDate,
       EnrollmentAnalyticsQueryCriteria::getIncidentDate,
       CommonRequestParams::getIncidentDate),
+  OCCURRED_DATE(
+      TimeField.OCCURRED_DATE,
+      EventsAnalyticsQueryCriteria::getOccurredDate,
+      EnrollmentAnalyticsQueryCriteria::getOccurredDate,
+      CommonRequestParams::getOccurredDate),
   LAST_UPDATED(
       TimeField.LAST_UPDATED,
       EventsAnalyticsQueryCriteria::getLastUpdated,

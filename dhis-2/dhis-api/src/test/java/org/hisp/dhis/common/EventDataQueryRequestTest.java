@@ -48,7 +48,7 @@ public class EventDataQueryRequestTest {
   @Test
   void testDimensionRefactoringOnlyWhenQuery() {
     EventsAnalyticsQueryCriteria criteria = new EventsAnalyticsQueryCriteria();
-    criteria.setIncidentDate("YESTERDAY");
+    criteria.setOccurredDate("YESTERDAY");
     criteria.setDimension(Set.of("pe:TODAY"));
 
     EventDataQueryRequest eventDataQueryRequest =
@@ -62,10 +62,10 @@ public class EventDataQueryRequestTest {
             .build();
 
     assertEquals(
-        eventDataQueryRequest.getDimension(), Set.of(Set.of("pe:TODAY;YESTERDAY:INCIDENT_DATE")));
+        eventDataQueryRequest.getDimension(), Set.of(Set.of("pe:TODAY;YESTERDAY:OCCURRED_DATE")));
 
     criteria = new EventsAnalyticsQueryCriteria();
-    criteria.setIncidentDate("TODAY");
+    criteria.setOccurredDate("TODAY");
     criteria.setDimension(new HashSet<>());
 
     eventDataQueryRequest = EventDataQueryRequest.builder().fromCriteria(criteria).build();
@@ -77,7 +77,7 @@ public class EventDataQueryRequestTest {
             .fromCriteria((EventsAnalyticsQueryCriteria) criteria.withEndpointAction(QUERY))
             .build();
 
-    assertEquals(eventDataQueryRequest.getDimension(), Set.of(Set.of("pe:TODAY:INCIDENT_DATE")));
+    assertEquals(eventDataQueryRequest.getDimension(), Set.of(Set.of("pe:TODAY:OCCURRED_DATE")));
   }
 
   @Test
@@ -102,7 +102,7 @@ public class EventDataQueryRequestTest {
   @Test
   void testEnrollmentMultiOptionsAreCorrectlyParsed() {
     EnrollmentAnalyticsQueryCriteria criteria = new EnrollmentAnalyticsQueryCriteria();
-    criteria.setIncidentDate("202111,2021;TODAY");
+    criteria.setOccurredDate("202111,2021;TODAY");
     criteria.setEnrollmentDate("LAST_YEAR");
     criteria.setDimension(new HashSet<>(Set.of("pe:LAST_MONTH")));
 
@@ -115,14 +115,14 @@ public class EventDataQueryRequestTest {
         eventDataQueryRequest.getDimension(),
         Set.of(
             Set.of(
-                "pe:LAST_MONTH;LAST_YEAR:ENROLLMENT_DATE;202111:INCIDENT_DATE;2021:INCIDENT_DATE;TODAY:INCIDENT_DATE")));
+                "pe:LAST_MONTH;LAST_YEAR:ENROLLMENT_DATE;202111:OCCURRED_DATE;2021:OCCURRED_DATE;TODAY:OCCURRED_DATE")));
   }
 
   @Test
   void testAggregateEnrollmentMultiOptionsAreCorrectlyParsed() {
     // Given
     EnrollmentAnalyticsQueryCriteria criteria = new EnrollmentAnalyticsQueryCriteria();
-    criteria.setIncidentDate("202111,2021;TODAY");
+    criteria.setOccurredDate("202111,2021;TODAY");
     criteria.setEnrollmentDate("LAST_YEAR");
     criteria.setDimension(new HashSet<>(Set.of("pe:LAST_MONTH")));
 
@@ -138,7 +138,7 @@ public class EventDataQueryRequestTest {
         eventDataQueryRequest.getDimension(),
         Set.of(
             Set.of(
-                "pe:LAST_MONTH;LAST_YEAR:ENROLLMENT_DATE;202111:INCIDENT_DATE;2021:INCIDENT_DATE;TODAY:INCIDENT_DATE")));
+                "pe:LAST_MONTH;LAST_YEAR:ENROLLMENT_DATE;202111:OCCURRED_DATE;2021:OCCURRED_DATE;TODAY:OCCURRED_DATE")));
   }
 
   @ParameterizedTest

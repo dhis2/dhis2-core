@@ -40,7 +40,12 @@ class JsonEnrollment {
 
   private LocalDateTime enrollmentDate;
 
+  /**
+   * @deprecated use @see {@link #occurredDate} instead
+   */
   private LocalDateTime incidentDate;
+
+  private LocalDateTime occurredDate;
 
   private LocalDateTime endDate;
 

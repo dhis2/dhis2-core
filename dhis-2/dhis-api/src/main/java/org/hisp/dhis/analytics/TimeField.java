@@ -42,7 +42,8 @@ import lombok.Getter;
 public enum TimeField {
   EVENT_DATE("occurreddate"),
   ENROLLMENT_DATE("enrollmentdate"),
-  INCIDENT_DATE("incidentdate"),
+  INCIDENT_DATE("occurreddate"),
+  OCCURRED_DATE("occurreddate"),
   // Not a typo, different naming convention between FE and database
   SCHEDULED_DATE("scheduleddate"),
   COMPLETED_DATE("completeddate"),

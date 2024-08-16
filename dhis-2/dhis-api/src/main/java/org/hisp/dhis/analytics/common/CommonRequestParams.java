@@ -215,7 +215,12 @@ public class CommonRequestParams {
 
   private Set<String> scheduledDate = new LinkedHashSet<>();
 
-  private Set<String> incidentDate = new LinkedHashSet<>();
+  /**
+   * @deprecated use {@link #occurredDate} instead. Kept for backward compatibility.
+   */
+  @Deprecated private Set<String> incidentDate = new LinkedHashSet<>();
+
+  private Set<String> occurredDate = new LinkedHashSet<>();
 
   private Set<String> lastUpdated = new LinkedHashSet<>();
 
