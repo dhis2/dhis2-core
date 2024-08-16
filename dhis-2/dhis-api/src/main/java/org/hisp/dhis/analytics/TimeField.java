@@ -38,6 +38,7 @@ import java.util.Optional;
 import java.util.Set;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 /** Enum that maps database column names to their respective "business" names. */
 @RequiredArgsConstructor
@@ -87,8 +88,14 @@ public enum TimeField {
   }
 
   public boolean supportsRawPeriod() {
-    return isNotBlank(eventAndEnrollmentColumnName)
-        && from(eventAndEnrollmentColumnName).isPresent()
-        && TIME_FIELDS_SUPPORT_RAW_PERIODS.contains(from(eventAndEnrollmentColumnName).get());
+    return Optional.of(eventAndEnrollmentColumnName)
+        .filter(StringUtils::isNotBlank)
+        .flatMap(TimeField::from)
+        .map(this::supportsRawPeriods)
+        .orElse(false);
+  }
+
+  private boolean supportsRawPeriods(TimeField timeField) {
+    return TIME_FIELDS_SUPPORT_RAW_PERIODS.contains(timeField);
   }
 }
