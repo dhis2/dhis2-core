@@ -108,9 +108,9 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
     }
 
     User existingUserWithMatchingOpenID = userService.getUserByOpenId(user.getOpenId());
-    boolean linkedIsAccountsDisabled =
+    boolean linkedAccountsDisabled =
         dhisConfig.isDisabled(ConfigurationKey.LINKED_ACCOUNTS_ENABLED);
-    if (linkedIsAccountsDisabled
+    if (linkedAccountsDisabled
         && (existingUserWithMatchingOpenID != null
             && !existingUserWithMatchingOpenID.getUid().equals(user.getUid()))) {
       addReports.accept(
