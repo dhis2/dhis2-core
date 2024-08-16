@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -93,6 +94,140 @@ public class EnrollmentAnalyticsController {
   @Nonnull private DimensionMapperService dimensionMapperService;
 
   @Nonnull private final SystemSettingManager systemSettingManager;
+
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')")
+  @GetMapping(
+      value = "/aggregate/{program}/explain",
+      produces = {APPLICATION_JSON_VALUE, "application/javascript"})
+  public @ResponseBody Grid getExplainAggregateJson( // JSON, JSONP
+      @PathVariable String program,
+      EnrollmentAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response) {
+    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, true, AGGREGATE);
+
+    Grid grid = analyticsService.getEnrollments(params);
+    contextUtils.configureResponse(
+        response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING);
+
+    if (params.analyzeOnly()) {
+      String key = params.getExplainOrderId();
+      grid.addPerformanceMetrics(executionPlanStore.getExecutionPlans(key));
+    }
+
+    return grid;
+  }
+
+  @GetMapping(
+      value = "/aggregate/{program}",
+      produces = {APPLICATION_JSON_VALUE, "application/javascript"})
+  public @ResponseBody Grid getAggregateJson( // JSON, JSONP
+      @PathVariable String program,
+      EnrollmentAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response) {
+    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
+
+    contextUtils.configureResponse(
+        response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING);
+
+    return analyticsService.getEnrollments(params);
+  }
+
+  @SneakyThrows
+  @GetMapping("/aggregate/{program}.xml")
+  public void getAggregateXml(
+      @PathVariable String program,
+      EnrollmentAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response) {
+    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
+
+    contextUtils.configureResponse(
+        response,
+        ContextUtils.CONTENT_TYPE_XML,
+        CacheStrategy.RESPECT_SYSTEM_SETTING,
+        "enrollments.xml",
+        false);
+    Grid grid = analyticsService.getEnrollments(params);
+    GridUtils.toXml(grid, response.getOutputStream());
+  }
+
+  @SneakyThrows
+  @GetMapping("/aggregate/{program}.xls")
+  public void getAggregateXls(
+      @PathVariable String program,
+      EnrollmentAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response) {
+    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
+
+    contextUtils.configureResponse(
+        response,
+        ContextUtils.CONTENT_TYPE_EXCEL,
+        CacheStrategy.RESPECT_SYSTEM_SETTING,
+        "enrollments.xls",
+        true);
+    Grid grid = analyticsService.getEnrollments(params);
+    GridUtils.toXls(grid, response.getOutputStream());
+  }
+
+  @SneakyThrows
+  @GetMapping("/aggregate/{program}.csv")
+  public void getAggregateCsv(
+      @PathVariable String program,
+      EnrollmentAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response) {
+    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
+
+    contextUtils.configureResponse(
+        response,
+        ContextUtils.CONTENT_TYPE_CSV,
+        CacheStrategy.RESPECT_SYSTEM_SETTING,
+        "enrollments.csv",
+        true);
+    Grid grid = analyticsService.getEnrollments(params);
+    GridUtils.toCsv(grid, response.getWriter());
+  }
+
+  @SneakyThrows
+  @GetMapping("/aggregate/{program}.html")
+  public void getAggregateHtml(
+      @PathVariable String program,
+      EnrollmentAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response) {
+    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
+
+    contextUtils.configureResponse(
+        response,
+        ContextUtils.CONTENT_TYPE_HTML,
+        CacheStrategy.RESPECT_SYSTEM_SETTING,
+        "enrollments.html",
+        false);
+    Grid grid = analyticsService.getEnrollments(params);
+    GridUtils.toHtml(grid, response.getWriter());
+  }
+
+  @SneakyThrows
+  @GetMapping("/aggregate/{program}.html+css")
+  public void getAggregateHtmlCss(
+      @PathVariable String program,
+      EnrollmentAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response) {
+    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
+
+    contextUtils.configureResponse(
+        response,
+        ContextUtils.CONTENT_TYPE_HTML,
+        CacheStrategy.RESPECT_SYSTEM_SETTING,
+        "enrollments.html",
+        false);
+    Grid grid = analyticsService.getEnrollments(params);
+    GridUtils.toHtmlCss(grid, response.getWriter());
+  }
 
   @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')")
   @GetMapping(

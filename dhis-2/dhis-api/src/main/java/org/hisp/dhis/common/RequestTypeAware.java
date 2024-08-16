@@ -61,6 +61,10 @@ public class RequestTypeAware {
     return AGGREGATE == endpointAction;
   }
 
+  public boolean isEnrollmentEndpointItem() {
+    return EndpointItem.ENROLLMENT == endpointItem;
+  }
+
   public enum EndpointAction {
     AGGREGATE,
     QUERY,
