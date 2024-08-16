@@ -47,7 +47,7 @@ class JsonEnrollment {
 
   private LocalDateTime occurredDate;
 
-  private LocalDateTime endDate;
+  private LocalDateTime completedDate;
 
   private String orgUnitUid;
 

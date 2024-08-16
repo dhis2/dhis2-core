@@ -66,7 +66,7 @@ public class SqlQueryBuilders {
                              'enrollmentDate', en.enrollmentdate,
                              'incidentDate', en.occurreddate,
                              'occurredDate', en.occurreddate,
-                             'endDate', en.enddate,
+                             'completedDate', en.completeddate,
                              'orgUnitUid', en.ou,
                              'orgUnitName', en.ouname,
                              'orgUnitCode', en.oucode,
