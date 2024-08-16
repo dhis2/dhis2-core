@@ -108,11 +108,12 @@ public class DataSetDeletionHandler extends DeletionHandler {
   }
 
   private void deleteLegendSet(LegendSet legendSet) {
-    for (DataSet dataSet : idObjectManager.getAllNoAcl(DataSet.class)) {
-      for (LegendSet ls : dataSet.getLegendSets()) {
-        if (legendSet.equals(ls)) {
-          dataSet.getLegendSets().remove(ls);
-          idObjectManager.updateNoAcl(dataSet);
+    for (DataSet ds : idObjectManager.getAllNoAcl(DataSet.class)) {
+      Iterator<LegendSet> lsIterator = ds.getLegendSets().iterator();
+      while (lsIterator.hasNext()) {
+        if (legendSet.equals(lsIterator.next())) {
+          lsIterator.remove();
+          idObjectManager.updateNoAcl(ds);
         }
       }
     }
