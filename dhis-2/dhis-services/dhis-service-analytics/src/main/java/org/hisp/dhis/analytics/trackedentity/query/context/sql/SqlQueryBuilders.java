@@ -46,7 +46,7 @@ public class SqlQueryBuilders {
           'programStageUid', ev.programstage,
           'eventUid', ev.event,
           'occurredDate', ev.occurreddate,
-          'dueDate', ev.scheduleddate,
+          'scheduledDate', ev.scheduleddate,
           'orgUnitUid', ev.ou,
           'orgUnitName', ev.ouname,
           'orgUnitCode', ev.oucode,

@@ -100,17 +100,17 @@ class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
 
   private String getTimeCol(Optional<TimeField> timeField, EventOutputType outputType) {
     if (timeField.isPresent()) {
-      return sqlBuilder.quoteAx(timeField.get().getField());
+      return sqlBuilder.quoteAx(timeField.get().getEventColumnName());
     } else if (ENROLLMENT == outputType) {
-      return sqlBuilder.quoteAx(ENROLLMENT_DATE.getField());
+      return sqlBuilder.quoteAx(ENROLLMENT_DATE.getEnrollmentColumnName());
     } else {
       // EVENTS
-      return sqlBuilder.quoteAx(EVENT_DATE.getField());
+      return sqlBuilder.quoteAx(EVENT_DATE.getEventColumnName());
     }
   }
 
   private String toSqlCondition(Period period, TimeField timeField) {
-    String timeCol = sqlBuilder.quoteAx(timeField.getField());
+    String timeCol = sqlBuilder.quoteAx(timeField.getEventColumnName());
     return "( "
         + timeCol
         + " >= '"

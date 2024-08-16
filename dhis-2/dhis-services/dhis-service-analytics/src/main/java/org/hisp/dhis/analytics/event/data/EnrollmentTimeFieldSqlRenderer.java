@@ -85,7 +85,7 @@ class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
 
   @Override
   protected String getColumnName(Optional<TimeField> timeField, EventOutputType outputType) {
-    return timeField.orElse(TimeField.ENROLLMENT_DATE).getField();
+    return timeField.orElse(TimeField.ENROLLMENT_DATE).getEnrollmentColumnName();
   }
 
   @Override
@@ -162,7 +162,7 @@ class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
   }
 
   private String toSqlCondition(Period period, TimeField timeField) {
-    String timeCol = sqlBuilder.quoteAx(timeField.getField());
+    String timeCol = sqlBuilder.quoteAx(timeField.getEnrollmentColumnName());
     return "( "
         + timeCol
         + " >= '"

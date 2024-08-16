@@ -1344,7 +1344,9 @@ public class DataQueryParams {
    * enumeration, the field (column) value is returned.
    */
   public String getTimeFieldAsField() {
-    return TimeField.fieldIsValid(timeField) ? TimeField.valueOf(timeField).getField() : timeField;
+    return TimeField.fieldIsValid(timeField)
+        ? TimeField.valueOf(timeField).getEnrollmentColumnName()
+        : timeField;
   }
 
   /**
@@ -1353,7 +1355,8 @@ public class DataQueryParams {
    * specified.
    */
   public String getTimeFieldAsFieldFallback() {
-    return ObjectUtils.firstNonNull(getTimeFieldAsField(), TimeField.EVENT_DATE.getField());
+    return ObjectUtils.firstNonNull(
+        getTimeFieldAsField(), TimeField.EVENT_DATE.getEnrollmentColumnName());
   }
 
   /** Indicates whether this object has a program. */
