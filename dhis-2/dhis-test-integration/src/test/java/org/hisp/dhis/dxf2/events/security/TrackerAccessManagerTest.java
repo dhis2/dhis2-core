@@ -39,6 +39,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import javax.ws.rs.ForbiddenException;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.CodeGenerator;
@@ -50,7 +51,6 @@ import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -241,7 +241,7 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest {
   }
 
   @Test
-  void checkAccessPermissionForEnrollmentInClosedProgram() throws ForbiddenException {
+  void checkAccessPermissionForEnrollmentInClosedProgram() {
     programA.setPublicAccess(AccessStringHelper.FULL);
     manager.update(programA);
     trackedEntityType.setPublicAccess(AccessStringHelper.FULL);
@@ -304,7 +304,7 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest {
   }
 
   @Test
-  void checkAccessPermissionForEnrollmentInOpenProgram() throws ForbiddenException {
+  void checkAccessPermissionForEnrollmentInOpenProgram() {
     programA.setPublicAccess(AccessStringHelper.FULL);
     programA.setAccessLevel(AccessLevel.OPEN);
     manager.update(programA);

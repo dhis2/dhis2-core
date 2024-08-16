@@ -43,13 +43,14 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.ws.rs.ForbiddenException;
 import org.hisp.dhis.common.AccessLevel;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.events.EnrollmentEventsParams;
 import org.hisp.dhis.dxf2.events.EnrollmentParams;
 import org.hisp.dhis.dxf2.events.EventParams;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceEnrollmentParams;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -188,7 +189,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   }
 
   @Test
-  void testTransferOwnership() throws ForbiddenException {
+  void testTransferOwnership() {
     trackerOwnershipAccessManager.assignOwnership(
         entityInstanceA1, programA, organisationUnitA, false, true);
     assertTrue(trackerOwnershipAccessManager.hasAccess(userA, entityInstanceA1, programA));
@@ -303,7 +304,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     organisationUnitService.addOrganisationUnit(notAssociatedOrgUnit);
     Exception exception =
         assertThrows(
-            ForbiddenException.class,
+            IllegalQueryException.class,
             () -> transferOwnership(entityInstanceA1, programA, notAssociatedOrgUnit));
     assertEquals(
         String.format(
@@ -392,8 +393,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   }
 
   private void transferOwnership(
-      TrackedEntityInstance trackedEntity, Program program, OrganisationUnit orgUnit)
-      throws ForbiddenException {
+      TrackedEntityInstance trackedEntity, Program program, OrganisationUnit orgUnit) {
     trackerOwnershipAccessManager.transferOwnership(trackedEntity, program, orgUnit, false, true);
   }
 
