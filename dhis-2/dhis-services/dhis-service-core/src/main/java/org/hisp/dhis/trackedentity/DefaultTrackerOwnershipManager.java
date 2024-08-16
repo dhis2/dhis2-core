@@ -160,17 +160,19 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
           trackedEntityProgramOwnerService.getTrackedEntityProgramOwner(
               entityInstance.getId(), program.getId());
 
-      if (teProgramOwner != null && !teProgramOwner.getOrganisationUnit().equals(orgUnit)) {
-        ProgramOwnershipHistory programOwnershipHistory =
-            new ProgramOwnershipHistory(
-                program,
-                entityInstance,
-                teProgramOwner.getOrganisationUnit(),
-                teProgramOwner.getLastUpdated(),
-                teProgramOwner.getCreatedBy());
-        programOwnershipHistoryService.addProgramOwnershipHistory(programOwnershipHistory);
-        trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
-            entityInstance, program, orgUnit);
+      if (teProgramOwner != null) {
+        if (!teProgramOwner.getOrganisationUnit().equals(orgUnit)) {
+          ProgramOwnershipHistory programOwnershipHistory =
+              new ProgramOwnershipHistory(
+                  program,
+                  entityInstance,
+                  teProgramOwner.getOrganisationUnit(),
+                  teProgramOwner.getLastUpdated(),
+                  teProgramOwner.getCreatedBy());
+          programOwnershipHistoryService.addProgramOwnershipHistory(programOwnershipHistory);
+          trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
+              entityInstance, program, orgUnit);
+        }
       } else if (createIfNotExists) {
         trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
             entityInstance, program, orgUnit);
