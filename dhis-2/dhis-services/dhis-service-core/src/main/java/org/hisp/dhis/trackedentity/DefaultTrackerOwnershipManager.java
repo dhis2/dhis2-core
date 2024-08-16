@@ -40,11 +40,13 @@ import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.dxf2.events.event.EventContext;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramOwnershipHistory;
 import org.hisp.dhis.program.ProgramOwnershipHistoryService;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTempOwner;
 import org.hisp.dhis.program.ProgramTempOwnerService;
 import org.hisp.dhis.program.ProgramTempOwnershipAudit;
@@ -81,6 +83,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
   private final OrganisationUnitService organisationUnitService;
 
+  private final ProgramService programService;
+
   private final TrackedEntityInstanceService trackedEntityInstanceService;
 
   private final DhisConfigurationProvider config;
@@ -94,6 +98,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       ProgramOwnershipHistoryService programOwnershipHistoryService,
       TrackedEntityInstanceService trackedEntityInstanceService,
       OrganisationUnitService organisationUnitService,
+      ProgramService programService,
       DhisConfigurationProvider config,
       Environment env) {
     checkNotNull(currentUserService);
@@ -113,6 +118,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     this.programTempOwnerService = programTempOwnerService;
     this.organisationUnitService = organisationUnitService;
     this.trackedEntityInstanceService = trackedEntityInstanceService;
+    this.programService = programService;
     this.config = config;
     this.ownerCache = cacheProvider.createProgramOwnerCache();
     this.tempOwnerCache = cacheProvider.createProgramTempOwnerCache();
@@ -135,13 +141,21 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       Program program,
       OrganisationUnit orgUnit,
       boolean skipAccessValidation,
-      boolean createIfNotExists) {
+      boolean createIfNotExists)
+      throws ForbiddenException {
     if (entityInstance == null || program == null || orgUnit == null) {
       return;
     }
 
     if (hasAccess(currentUserService.getCurrentUser(), entityInstance, program)
         || skipAccessValidation) {
+      if (!programService.hasOrgUnit(program, orgUnit)) {
+        throw new ForbiddenException(
+            String.format(
+                "The program %s is not associated to the org unit %s",
+                program.getUid(), orgUnit.getUid()));
+      }
+
       TrackedEntityProgramOwner teProgramOwner =
           trackedEntityProgramOwnerService.getTrackedEntityProgramOwner(
               entityInstance.getId(), program.getId());
