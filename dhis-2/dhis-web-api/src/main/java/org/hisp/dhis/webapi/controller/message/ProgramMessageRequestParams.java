@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.message;
 
 import java.util.Date;
-import java.util.Set;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
@@ -44,7 +43,7 @@ import org.hisp.dhis.program.message.ProgramMessageStatus;
 @Data
 @NoArgsConstructor
 public class ProgramMessageRequestParams {
-  private Set<String> ou;
+  private UID ou;
 
   @Deprecated(since = "2.41")
   @OpenApi.Property(value = Enrollment.class)

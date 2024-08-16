@@ -28,9 +28,9 @@
 package org.hisp.dhis.program.message;
 
 import java.util.Date;
-import java.util.Set;
 import lombok.Builder;
 import lombok.Data;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 
@@ -40,7 +40,7 @@ import org.hisp.dhis.program.Event;
 @Data
 @Builder
 public class ProgramMessageQueryParams {
-  private Set<String> organisationUnit;
+  private OrganisationUnit organisationUnit;
 
   private ProgramMessageStatus messageStatus;
 

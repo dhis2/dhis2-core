@@ -28,7 +28,6 @@
 package org.hisp.dhis.program.message;
 
 import java.util.Date;
-import java.util.Set;
 import lombok.Builder;
 import lombok.Getter;
 import org.hisp.dhis.common.UID;
@@ -39,7 +38,7 @@ import org.hisp.dhis.common.UID;
 @Getter
 @Builder
 public class ProgramMessageOperationParams {
-  private Set<String> ou;
+  private UID organisationUnit;
 
   private UID enrollment;
 

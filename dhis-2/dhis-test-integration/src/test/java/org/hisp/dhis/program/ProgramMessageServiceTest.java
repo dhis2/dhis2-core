@@ -71,8 +71,6 @@ class ProgramMessageServiceTest extends PostgresIntegrationTestBase {
 
   private ProgramMessageStatus messageStatus = ProgramMessageStatus.OUTBOUND;
 
-  private ProgramMessageOperationParams params;
-
   private ProgramMessage programMessageA;
   private ProgramMessage programMessageB;
   private ProgramMessage programMessageC;
@@ -116,7 +114,7 @@ class ProgramMessageServiceTest extends PostgresIntegrationTestBase {
     recipientB = new ProgramMessageRecipients();
     recipientB.setPhoneNumbers(phoneNumberListA);
     recipientC = new ProgramMessageRecipients();
-    recipientC.setPhoneNumbers(phoneNumberListA);
+    recipientC.setOrganisationUnit(ouA);
 
     programMessageA =
         createProgramMessage(TEXT, SUBJECT, recipientA, messageStatus, Set.of(DeliveryChannel.SMS));
@@ -127,13 +125,7 @@ class ProgramMessageServiceTest extends PostgresIntegrationTestBase {
     programMessageB.setEnrollment(enrollmentA);
     programMessageC =
         createProgramMessage(TEXT, SUBJECT, recipientC, messageStatus, Set.of(DeliveryChannel.SMS));
-
-    params =
-        ProgramMessageOperationParams.builder()
-            .ou(Set.of())
-            .enrollment(UID.of(enrollmentA))
-            .messageStatus(messageStatus)
-            .build();
+    programMessageC.setEnrollment(enrollmentA);
   }
 
   // -------------------------------------------------------------------------
@@ -182,13 +174,38 @@ class ProgramMessageServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldReturnProgramMessagesByQuery() throws NotFoundException {
+  void shouldReturnProgramMessagesByEnrollment() throws NotFoundException {
     programMessageService.saveProgramMessage(programMessageA);
     programMessageService.saveProgramMessage(programMessageB);
 
-    List<ProgramMessage> programMessages = programMessageService.getProgramMessages(params);
+    List<ProgramMessage> programMessages =
+        programMessageService.getProgramMessages(
+            ProgramMessageOperationParams.builder()
+                .enrollment(UID.of(enrollmentA))
+                .messageStatus(messageStatus)
+                .build());
 
     assertContainsOnly(List.of(programMessageA, programMessageB), programMessages);
+    assertEquals(
+        Set.of(DeliveryChannel.SMS),
+        programMessages.get(0).getDeliveryChannels(),
+        "The delivery channels should match the expected channels");
+  }
+
+  @Test
+  void shouldReturnProgramMessagesByOrgUnit() throws NotFoundException {
+    programMessageService.saveProgramMessage(programMessageA);
+    programMessageService.saveProgramMessage(programMessageB);
+    programMessageService.saveProgramMessage(programMessageC);
+
+    List<ProgramMessage> programMessages =
+        programMessageService.getProgramMessages(
+            ProgramMessageOperationParams.builder()
+                .organisationUnit(UID.of(ouA.getUid()))
+                .enrollment(UID.of(enrollmentA))
+                .build());
+
+    assertContainsOnly(List.of(programMessageC), programMessages);
     assertEquals(
         Set.of(DeliveryChannel.SMS),
         programMessages.get(0).getDeliveryChannels(),

@@ -35,6 +35,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
@@ -59,6 +60,7 @@ public class ProgramMessageOperationParamMapper {
       throws NotFoundException {
     Enrollment enrollment = getEntity(operationParams.getEnrollment(), Enrollment.class);
     Event event = getEntity(operationParams.getEvent(), Event.class);
+    OrganisationUnit ou = getEntity(operationParams.getOrganisationUnit(), OrganisationUnit.class);
 
     currentUserHasAccess(enrollment, event);
 
@@ -70,7 +72,7 @@ public class ProgramMessageOperationParamMapper {
         .beforeDate(operationParams.getBeforeDate())
         .page(operationParams.getPage())
         .pageSize(operationParams.getPageSize())
-        .organisationUnit(operationParams.getOu())
+        .organisationUnit(ou)
         .build();
   }
 
