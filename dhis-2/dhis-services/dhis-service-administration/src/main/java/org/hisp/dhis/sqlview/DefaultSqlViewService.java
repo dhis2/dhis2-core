@@ -29,11 +29,13 @@ package org.hisp.dhis.sqlview;
 
 import static org.hisp.dhis.sqlview.SqlView.CURRENT_USERNAME_VARIABLE;
 import static org.hisp.dhis.sqlview.SqlView.CURRENT_USER_ID_VARIABLE;
+import static org.hisp.dhis.sqlview.SqlView.ILLEGAL_KEYWORDS;
 import static org.hisp.dhis.sqlview.SqlView.STANDARD_VARIABLES;
 import static org.hisp.dhis.sqlview.SqlView.getInvalidQueryParams;
 import static org.hisp.dhis.sqlview.SqlView.getInvalidQueryValues;
 
 import com.google.common.collect.Sets;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -397,7 +399,7 @@ public class DefaultSqlViewService implements SqlViewService {
       error = new ErrorMessage(ErrorCode.E4310);
     }
 
-    if (sql.matches(SqlView.getIllegalKeywordsRegex())) {
+    if (containsIllegalKeyWord(sql)) {
       error = new ErrorMessage(ErrorCode.E4311);
     }
 
@@ -409,6 +411,10 @@ public class DefaultSqlViewService implements SqlViewService {
 
       throw new IllegalQueryException(error);
     }
+  }
+
+  private boolean containsIllegalKeyWord(String sql) {
+    return Arrays.stream(sql.split(" ")).anyMatch(ILLEGAL_KEYWORDS::contains);
   }
 
   @Override
