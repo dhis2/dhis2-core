@@ -263,7 +263,7 @@ public class DimensionParam implements UidObject {
     /**
      * @deprecated use {@link #OCCURREDDATE} instead. Kept for backward compatibility.
      */
-    @Deprecated
+    @Deprecated(since = "2.42")
     INCIDENTDATE(
         "Incident Date",
         DATETIME,

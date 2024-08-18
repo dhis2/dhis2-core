@@ -194,8 +194,7 @@ public class CommonRequestParams {
    *
    * @deprecated use {@link #enrollmentStatus} instead
    */
-  @Deprecated(since = "2.42")
-  private Set<String> programStatus = new LinkedHashSet<>();
+  @Deprecated private Set<String> programStatus = new LinkedHashSet<>();
 
   /** The enrollment statuses to filter on. */
   private Set<String> enrollmentStatus = new LinkedHashSet<>();
@@ -219,7 +218,8 @@ public class CommonRequestParams {
   /**
    * @deprecated use {@link #occurredDate} instead. Kept for backward compatibility.
    */
-  @Deprecated private Set<String> incidentDate = new LinkedHashSet<>();
+  @Deprecated(since = "2.42")
+  private Set<String> incidentDate = new LinkedHashSet<>();
 
   private Set<String> occurredDate = new LinkedHashSet<>();
 

@@ -61,7 +61,7 @@ public enum AnalyticsDateFilter {
   /**
    * @deprecated use {@link #OCCURRED_DATE} instead. Kept for backward compatibility.
    */
-  @Deprecated
+  @Deprecated(since = "2.42")
   INCIDENT_DATE(
       TimeField.INCIDENT_DATE,
       EventsAnalyticsQueryCriteria::getIncidentDate,
