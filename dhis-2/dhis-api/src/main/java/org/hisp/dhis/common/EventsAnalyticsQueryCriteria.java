@@ -75,6 +75,8 @@ public class EventsAnalyticsQueryCriteria extends AnalyticsPagingCriteria {
    * @deprecated use @see {@link #occurredDate} instead
    */
   @Deprecated(since = "2.42")
+  private String incidentDate;
+
   private String occurredDate;
 
   /** Time interval for last updated date; */
