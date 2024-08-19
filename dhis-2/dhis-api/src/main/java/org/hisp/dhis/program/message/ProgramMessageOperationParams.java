@@ -25,43 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.config;
+package org.hisp.dhis.program.message;
 
-import java.util.Properties;
-import org.testcontainers.containers.MinIOContainer;
+import java.util.Date;
+import java.util.Set;
+import lombok.Builder;
+import lombok.Getter;
+import org.hisp.dhis.common.UID;
 
 /**
- * Config provider for MinIO store usage (overriding the default file system storage).
- *
- * @author david mackessy
+ * @author Zubair Asghar
  */
-public class MinIOConfigurationProvider extends TestDhisConfigurationProvider {
+@Getter
+@Builder
+public class ProgramMessageOperationParams {
+  private Set<String> ou;
 
-  private static final String S3_URL;
-  private static final String MINIO_USER = "testuser";
-  private static final String MINIO_PASSWORD = "testpassword";
-  private static final MinIOContainer MIN_IO_CONTAINER;
+  private UID enrollment;
 
-  static {
-    MIN_IO_CONTAINER =
-        new MinIOContainer("minio/minio:RELEASE.2024-07-16T23-46-41Z")
-            .withUserName(MINIO_USER)
-            .withPassword(MINIO_PASSWORD);
-    MIN_IO_CONTAINER.start();
-    S3_URL = MIN_IO_CONTAINER.getS3URL();
-  }
+  private UID event;
 
-  public MinIOConfigurationProvider(Properties dhisConfig) {
-    setMinIOProperties(dhisConfig);
-  }
+  private ProgramMessageStatus messageStatus;
 
-  public void setMinIOProperties(Properties properties) {
-    properties.put("filestore.provider", "s3");
-    properties.put("filestore.container", "dhis2");
-    properties.put("filestore.location", "eu-west-1");
-    properties.put("filestore.endpoint", S3_URL);
-    properties.put("filestore.identity", MINIO_USER);
-    properties.put("filestore.secret", MINIO_PASSWORD);
-    this.properties = properties;
-  }
+  private Date afterDate;
+
+  private Date beforeDate;
+
+  private Integer page;
+
+  private Integer pageSize;
 }

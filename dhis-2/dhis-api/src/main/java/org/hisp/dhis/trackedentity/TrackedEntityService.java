@@ -28,9 +28,7 @@
 package org.hisp.dhis.trackedentity;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 
 /**
  * This interface is responsible for retrieving tracked entities (TE). The query methods accepts a
@@ -84,34 +82,6 @@ public interface TrackedEntityService {
 
   String SEPARATOR = "_";
 
-  /**
-   * Returns a list with tracked entity values based on the given TrackedEntityQueryParams.
-   *
-   * @param params the TrackedEntityQueryParams.
-   * @param skipAccessValidation If true, access validation is skipped. Should be set to true only
-   *     for internal tasks (e.g. currently used by synchronization job)
-   * @param skipSearchScopeValidation if true, search scope validation is skipped.
-   * @return List of TEs matching the params
-   */
-  List<TrackedEntity> getTrackedEntities(
-      TrackedEntityQueryParams params,
-      boolean skipAccessValidation,
-      boolean skipSearchScopeValidation);
-
-  /**
-   * Returns a list tracked entity primary key ids based on the given TrackedEntityQueryParams.
-   *
-   * @param params the TrackedEntityQueryParams.
-   * @param skipAccessValidation If true, access validation is skipped. Should be set to true only
-   *     for internal tasks (e.g. currently used by synchronization job)
-   * @param skipSearchScopeValidation if true, search scope validation is skipped.
-   * @return List of TE IDs matching the params
-   */
-  List<Long> getTrackedEntityIds(
-      TrackedEntityQueryParams params,
-      boolean skipAccessValidation,
-      boolean skipSearchScopeValidation);
-
   /** */
   void updateTrackedEntityLastUpdated(
       Set<String> trackedEntityUIDs, Date lastUpdated, String userInfoSnapshot);
@@ -123,14 +93,4 @@ public interface TrackedEntityService {
    * @return the TrackedEntity with the given UID, or null if no match.
    */
   TrackedEntity getTrackedEntity(String uid);
-
-  /**
-   * Register a new trackedEntity
-   *
-   * @param trackedEntity TrackedEntity
-   * @param attributeValues Set of attribute values
-   * @return The error code after registering trackedEntity
-   */
-  long createTrackedEntity(
-      TrackedEntity trackedEntity, Set<TrackedEntityAttributeValue> attributeValues);
 }

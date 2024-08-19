@@ -58,6 +58,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -131,7 +132,7 @@ public class DefaultOrgUnitProfileService implements OrgUnitProfileService {
 
   @Override
   @Transactional
-  public void saveOrgUnitProfile(OrgUnitProfile profile) {
+  public void saveOrgUnitProfile(OrgUnitProfile profile) throws ForbiddenException {
     DatastoreEntry entry = new DatastoreEntry(ORG_UNIT_PROFILE_KEY, ORG_UNIT_PROFILE_NAMESPACE);
 
     try {
@@ -157,7 +158,7 @@ public class DefaultOrgUnitProfileService implements OrgUnitProfileService {
 
   @Override
   @Transactional(readOnly = true)
-  public OrgUnitProfile getOrgUnitProfile() {
+  public OrgUnitProfile getOrgUnitProfile() throws ForbiddenException {
     DatastoreEntry value = dataStore.getEntry(ORG_UNIT_PROFILE_NAMESPACE, ORG_UNIT_PROFILE_KEY);
 
     if (value == null) {
@@ -174,7 +175,8 @@ public class DefaultOrgUnitProfileService implements OrgUnitProfileService {
 
   @Override
   @Transactional(readOnly = true)
-  public OrgUnitProfileData getOrgUnitProfileData(String orgUnit, @Nullable String isoPeriod) {
+  public OrgUnitProfileData getOrgUnitProfileData(String orgUnit, @Nullable String isoPeriod)
+      throws ForbiddenException {
     // If profile is empty, only fixed info will be included
 
     OrgUnitProfile profile = getOrgUnitProfile();
