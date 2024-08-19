@@ -1063,6 +1063,4 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
     assertNull(userByUsername.getSecret());
   }
-
-
 }

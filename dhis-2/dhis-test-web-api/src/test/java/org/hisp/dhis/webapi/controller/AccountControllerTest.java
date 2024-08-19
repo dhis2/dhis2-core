@@ -50,7 +50,6 @@ import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link AccountController} using (mocked) REST requests.
@@ -227,7 +226,6 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   @Test
-  @Transactional
   void testVerifyEmailWithTokenTwice() {
     User user = switchToNewUser("kent");
 
