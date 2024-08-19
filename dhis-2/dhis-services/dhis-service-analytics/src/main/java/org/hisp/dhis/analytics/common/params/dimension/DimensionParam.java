@@ -379,7 +379,7 @@ public class DimensionParam implements UidObject {
       return Stream.<BiPredicate<StaticDimension, String>>of(
               // First checks if the value matches the name.
               (sd, v) -> equalsIgnoreCase(sd.name(), v),
-              // then check if the value matches the normalized name
+              // Then checks if the value matches the normalized name.
               (sd, v) -> equalsIgnoreCase(sd.normalizedName(), v),
               // and finally check if the value matches the column name
               (sd, v) -> equalsIgnoreCase(sd.columnName, v))
