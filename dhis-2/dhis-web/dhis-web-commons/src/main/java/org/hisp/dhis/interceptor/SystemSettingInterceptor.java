@@ -54,6 +54,7 @@ public class SystemSettingInterceptor implements Interceptor {
           SettingKey.APPLICATION_TITLE,
           SettingKey.APPLICATION_INTRO,
           SettingKey.APPLICATION_NOTIFICATION,
+          SettingKey.MOBILE_APPLICATION_NOTIFICATION,
           SettingKey.APPLICATION_FOOTER,
           SettingKey.APPLICATION_RIGHT_FOOTER,
           SettingKey.FLAG,
