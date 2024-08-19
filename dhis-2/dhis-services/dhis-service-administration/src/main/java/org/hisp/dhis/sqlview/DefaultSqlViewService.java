@@ -418,16 +418,17 @@ public class DefaultSqlViewService implements SqlViewService {
     Pattern illegalKeywordsRegex = SqlView.getIllegalKeywordsRegex();
     Matcher matcher = illegalKeywordsRegex.matcher(sql);
     List<MatchResult> matches = matcher.results().toList();
-    return !matches.isEmpty() || !keywordInQuotes(matches, sql);
+    if (matches.isEmpty()) return false;
+    return !keywordInQuotes(matches, sql);
   }
 
   private boolean keywordInQuotes(List<MatchResult> matchResults, String sql) {
     for (MatchResult match : matchResults) {
       // if the match is the first or last char then it cannot be surrounded by quotes
       if (match.start() == 0 || match.end() == sql.length() - 1) return false;
-      if (inQuotes(sql, match.start(), match.end())) return true;
+      if (!inQuotes(sql, match.start(), match.end())) return false;
     }
-    return false;
+    return true;
   }
 
   /**

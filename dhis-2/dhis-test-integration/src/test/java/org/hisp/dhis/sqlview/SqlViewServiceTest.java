@@ -43,7 +43,6 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -184,12 +183,35 @@ class SqlViewServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("Query containing an illegal keyword (UPDATE) surrounded by quotes is allowed")
-  void testValidateIllegalKeywordsInQuotes() {
+  @DisplayName("Query containing illegal keywords (UPDATE & DELETE) in quotes is allowed")
+  void validateIllegalKeywordsInQuotes() {
     SqlView sqlView =
-        getSqlView("SELECT * FROM trackedentitydatavalueaudit WHERE audittype = 'UPDATE';");
+        getSqlView(
+            """
+            SELECT * FROM trackedentitydatavalueaudit
+            WHERE audittype = 'UPDATE'
+            AND audittype = "DELETE";
+            """);
 
     assertDoesNotThrow(() -> sqlViewService.validateSqlView(sqlView, null, null));
+  }
+
+  @Test
+  @DisplayName(
+      "Query containing 1 illegal keyword (UPDATE) in quotes and 1 illegal keyword (DELETE) not in quotes is not allowed")
+  void validateIllegalKeywordsNotInQuotes() {
+    SqlView sqlView =
+        getSqlView(
+            """
+            SELECT * FROM trackedentitydatavalueaudit
+            WHERE audittype = 'UPDATE'
+            AND audittype = DELETE;
+            """);
+
+    assertIllegalQueryEx(
+        assertThrows(
+            IllegalQueryException.class, () -> sqlViewService.validateSqlView(sqlView, null, null)),
+        ErrorCode.E4311);
   }
 
   @Test
@@ -383,7 +405,6 @@ class SqlViewServiceTest extends PostgresIntegrationTestBase {
     assertEquals("SQL query contains variable names that are invalid: `[typö]`", ex.getMessage());
   }
 
-  @Disabled("TODO(DHIS2-17768 platform) enable again")
   @Test
   void testGetSqlViewGrid() {
     Map<String, String> variables = new HashMap<>();
