@@ -28,6 +28,7 @@
 package org.hisp.dhis.sqlview;
 
 import static java.util.Collections.singletonMap;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
@@ -43,6 +44,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -179,6 +181,15 @@ class SqlViewServiceTest extends PostgresIntegrationTestBase {
         assertThrows(
             IllegalQueryException.class, () -> sqlViewService.validateSqlView(sqlView, null, null)),
         ErrorCode.E4311);
+  }
+
+  @Test
+  @DisplayName("Query containing an illegal keyword (UPDATE) surrounded by quotes is allowed")
+  void testValidateIllegalKeywordsInQuotes() {
+    SqlView sqlView =
+        getSqlView("SELECT * FROM trackedentitydatavalueaudit WHERE audittype = 'UPDATE';");
+
+    assertDoesNotThrow(() -> sqlViewService.validateSqlView(sqlView, null, null));
   }
 
   @Test

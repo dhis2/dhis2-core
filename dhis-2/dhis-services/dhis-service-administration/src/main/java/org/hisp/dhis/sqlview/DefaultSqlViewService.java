@@ -29,17 +29,18 @@ package org.hisp.dhis.sqlview;
 
 import static org.hisp.dhis.sqlview.SqlView.CURRENT_USERNAME_VARIABLE;
 import static org.hisp.dhis.sqlview.SqlView.CURRENT_USER_ID_VARIABLE;
-import static org.hisp.dhis.sqlview.SqlView.ILLEGAL_KEYWORDS;
 import static org.hisp.dhis.sqlview.SqlView.STANDARD_VARIABLES;
 import static org.hisp.dhis.sqlview.SqlView.getInvalidQueryParams;
 import static org.hisp.dhis.sqlview.SqlView.getInvalidQueryValues;
 
 import com.google.common.collect.Sets;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.MatchResult;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -399,7 +400,7 @@ public class DefaultSqlViewService implements SqlViewService {
       error = new ErrorMessage(ErrorCode.E4310);
     }
 
-    if (containsIllegalKeyWord(sql)) {
+    if (containsIllegalKeyword(sql)) {
       error = new ErrorMessage(ErrorCode.E4311);
     }
 
@@ -413,8 +414,44 @@ public class DefaultSqlViewService implements SqlViewService {
     }
   }
 
-  private boolean containsIllegalKeyWord(String sql) {
-    return Arrays.stream(sql.split(" ")).anyMatch(ILLEGAL_KEYWORDS::contains);
+  private boolean containsIllegalKeyword(String sql) {
+    Pattern illegalKeywordsRegex = SqlView.getIllegalKeywordsRegex();
+    Matcher matcher = illegalKeywordsRegex.matcher(sql);
+    List<MatchResult> matches = matcher.results().toList();
+    return !matches.isEmpty() || !keywordInQuotes(matches, sql);
+  }
+
+  private boolean keywordInQuotes(List<MatchResult> matchResults, String sql) {
+    for (MatchResult match : matchResults) {
+      // if the match is the first or last char then it cannot be surrounded by quotes
+      if (match.start() == 0 || match.end() == sql.length() - 1) return false;
+      if (inQuotes(sql, match.start(), match.end())) return true;
+    }
+    return false;
+  }
+
+  /**
+   * Method checking if the string passed in contains a word surrounded by either singles quotes or
+   * double quotes. Some examples:
+   *
+   * <p>string contains 'word' in quotes => true
+   *
+   * <p>string contains word in "quotes" => true
+   *
+   * <p>string contains word' in quotes => false
+   *
+   * <p>"string contains word in quotes => false
+   *
+   * <p>string contains word in quotes => false
+   *
+   * @param str full string which may or may not contain quoted words.
+   * @param start the starting char index of the word to be checked
+   * @param end the ending char index of the word to be checked
+   * @return true if the characters match quotes
+   */
+  public static boolean inQuotes(@Nonnull String str, int start, int end) {
+    return (str.charAt(start - 1) == '\'' && str.charAt(end) == '\'')
+        || (str.charAt(start - 1) == '"' && str.charAt(end) == '"');
   }
 
   @Override

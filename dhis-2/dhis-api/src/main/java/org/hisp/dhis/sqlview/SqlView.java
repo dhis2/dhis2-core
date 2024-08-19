@@ -201,16 +201,17 @@ public class SqlView extends BaseIdentifiableObject implements Cacheable, Metada
     return regex.append(")(\\W.*)?$").toString();
   }
 
-  public static String getIllegalKeywordsRegex() {
-    StringBuilder regex = new StringBuilder("^(.*\\W)?(");
+  public static Pattern getIllegalKeywordsRegex() {
+    StringBuilder regex = new StringBuilder("(");
 
     for (String word : ILLEGAL_KEYWORDS) {
-      regex.append(word).append(REGEX_SEP);
+      regex.append("\\b").append(word).append("\\b").append(REGEX_SEP);
     }
 
     regex.delete(regex.length() - 1, regex.length());
 
-    return regex.append(")(\\W.*)?$").toString();
+    regex.append(")");
+    return Pattern.compile(regex.toString());
   }
 
   /** Indicates whether this SQL view is a query. */
