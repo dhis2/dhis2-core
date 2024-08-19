@@ -620,7 +620,26 @@ final class ApiExtractor {
       obj.addProperty(
           new Api.Property(p.name(), p.required(), extractSchema(endpoint, null, p.value())));
     }
-    return obj;
+    return obj.complete();
+  }
+
+  /**
+   * Most types can be shared for any generated document. However, some type may use type variables
+   * which are substituted differently depending on the endpoint where the type is used. Such types
+   * cannot be shared as a JVM singleton.
+   *
+   * <p>In theory some generator type might be stable, but it is difficult analysing and there is
+   * little to gain.
+   *
+   * @param type a type as used in a schema
+   * @return true, if a schema generated for the provided type can be shared as JVM singleton
+   */
+  private static boolean isSingletonType(Class<?> type) {
+    // TODO make a special handling for a fixed UID type as that is stable and does occur a fair
+    // bit?
+    return !isGeneratorType(type)
+        && type != OpenApi.EntityType.class
+        && type != OpenApi.EntityType[].class;
   }
 
   private static boolean isGeneratorType(Class<?> type) {
@@ -648,7 +667,9 @@ final class ApiExtractor {
       Api.Schema shared = genTypes.putIfAbsent(ofType, schema);
       if (shared != null) schema = shared; // this makes sure the same instance is reused
     }
-    return type == genType ? schema : Api.Schema.ofArray(type, type).withElements(schema);
+    return type == genType
+        ? schema
+        : Api.Schema.ofArray(type, type).withElements(schema).complete();
   }
 
   private static String getGeneratorTypeSharedName(Class<?> genType, Api.Schema schema) {
@@ -684,7 +705,8 @@ final class ApiExtractor {
    */
   private static Api.Schema extractClassSchema(Api.Endpoint endpoint, Class<?> type) {
     Api api = endpoint.getIn().getIn();
-    // TODO aren't shared class types constant, hence can be cached in a static map?
+    // TODO aren't class types constant, hence can be cached in a static map?
+    // unless they depend on the endpoint, which is the case if they use a generator type
     Api.Schema s = api.getSchemas().get(type);
     if (s != null) {
       return s;
@@ -705,7 +727,7 @@ final class ApiExtractor {
       Api.Schema schema = Api.Schema.ofArray(type);
       // eventually this will resolve the simple element type
       schema.withElements(extractClassSchema(endpoint, type.getComponentType()));
-      return schema;
+      return schema.complete();
     }
     if (type.isEnum()) {
       List<String> values =
@@ -730,7 +752,7 @@ final class ApiExtractor {
       property.getDescription().setValue(extractDescription(p.getSource()));
       schema.addProperty(property);
     }
-    return schema;
+    return schema.complete();
   }
 
   private static Api.Property extractObjectProperty(
@@ -758,7 +780,8 @@ final class ApiExtractor {
       Api.Property res =
           toProperty.apply(
               Api.Schema.ofArray(type, (Class<?>) pt.getRawType())
-                  .withElements(extractClassSchema(endpoint, contentAs)));
+                  .withElements(extractClassSchema(endpoint, contentAs))
+                  .complete());
       res.getOriginalType().setValue(extractTypeSchema(endpoint, type));
       return res;
     }
@@ -790,14 +813,16 @@ final class ApiExtractor {
         if (typeArg0 instanceof Class<?>)
           return extractTypeSchema(endpoint, Array.newInstance((Class<?>) typeArg0, 0).getClass());
         return Api.Schema.ofArray(source, rawType)
-            .withElements(extractTypeSchema(endpoint, typeArg0));
+            .withElements(extractTypeSchema(endpoint, typeArg0))
+            .complete();
       }
       if (Map.class.isAssignableFrom(rawType) && rawType.isInterface()
           || rawType == JsonMap.class) {
         return Api.Schema.ofObject(source, rawType)
             .withEntries(
                 extractTypeSchema(endpoint, typeArg0),
-                extractTypeSchema(endpoint, pt.getActualTypeArguments()[1]));
+                extractTypeSchema(endpoint, pt.getActualTypeArguments()[1]))
+            .complete();
       }
       if (rawType == ResponseEntity.class) {
         // just unpack, presents of ResponseEntity is hidden

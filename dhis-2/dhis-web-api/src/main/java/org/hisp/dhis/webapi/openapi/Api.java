@@ -44,6 +44,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -55,6 +56,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.Value;
+import lombok.With;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -389,11 +391,11 @@ public class Api {
 
     public static Schema ofAny(java.lang.reflect.Type source) {
       if (source != Object.class) log.warn("OpenAPI failed to analyse the type: " + source);
-      return new Schema(Type.ANY, source, Object.class, null);
+      return new Schema(Type.ANY, source, Object.class, null).asSingleton();
     }
 
     public static Schema ofUID(Class<?> of) {
-      return new Schema(Type.UID, of, of, null);
+      return new Schema(Type.UID, of, of, null).asSingleton();
     }
 
     public static Schema ofOneOf(List<Class<?>> types, Function<Class<?>, Schema> toSchema) {
@@ -405,13 +407,13 @@ public class Api {
           type ->
               oneOf.addProperty(
                   new Property(oneOf.properties.size() + "", null, toSchema.apply(type))));
-      return oneOf;
+      return oneOf.complete();
     }
 
     public static Schema ofEnum(Class<?> source, Class<?> of, List<String> values) {
       Schema schema = new Schema(Type.ENUM, source, of, null);
       schema.getValues().addAll(values);
-      return schema;
+      return schema.asSingleton();
     }
 
     public static Schema ofObject(Class<?> type) {
@@ -431,7 +433,7 @@ public class Api {
     }
 
     public static Schema ofSimple(Class<?> type) {
-      return new Schema(Type.SIMPLE, type, type, null);
+      return new Schema(Type.SIMPLE, type, type, null).asSingleton();
     }
 
     @SuppressWarnings("unchecked")
@@ -466,6 +468,10 @@ public class Api {
 
     /** Is empty for primitive types */
     @EqualsAndHashCode.Include List<Property> properties = new ArrayList<>();
+
+    /** Marks this schema as a JVM wide singleton instance for the source */
+    @With(AccessLevel.PRIVATE)
+    AtomicBoolean singleton = new AtomicBoolean(false);
 
     /** Enum values in case this is an enum schema. */
     List<String> values = new ArrayList<>();
@@ -507,6 +513,10 @@ public class Api {
       return !direction.isPresent();
     }
 
+    public boolean isSingleton() {
+      return singleton.get();
+    }
+
     /**
      * True for object schemas that have an identifier that can reference to a persisted object
      * value.
@@ -527,6 +537,8 @@ public class Api {
     }
 
     Api.Schema addProperty(Property property) {
+      if (isSingleton())
+        throw new IllegalStateException("Cannot change a schema once it is marked as singleton");
       properties.add(property);
       Schema schema = property.getType();
       if (!direction.isPresent()
@@ -549,6 +561,15 @@ public class Api {
     Api.Schema withEntries(Schema keyType, Schema valueType) {
       return addProperty(new Api.Property("keys", true, keyType))
           .addProperty(new Api.Property("values", true, valueType));
+    }
+
+    private Api.Schema asSingleton() {
+      if (source == rawType) singleton.set(true);
+      return this;
+    }
+
+    Api.Schema complete() {
+      return properties.stream().allMatch(p -> p.type.isSingleton()) ? asSingleton() : this;
     }
   }
 }
