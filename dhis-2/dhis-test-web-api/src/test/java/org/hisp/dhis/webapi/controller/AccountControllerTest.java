@@ -204,6 +204,9 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testGetLinkedAccounts() {
+    createUserWithAuth("usera");
+    createUserWithAuth("userb");
+
     String openId = "email@provider.com";
     List<User> allUsers = userService.getAllUsers();
     for (User user : allUsers) {
@@ -213,7 +216,7 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
 
     JsonMixed response = GET("/account/linkedAccounts").content(HttpStatus.OK);
     JsonList<JsonObject> users = response.getList("users", JsonObject.class);
-    assertEquals(1, users.size());
+    assertEquals(3, users.size());
   }
 
   private static void assertMessage(String key, String value, String message, JsonMixed response) {
