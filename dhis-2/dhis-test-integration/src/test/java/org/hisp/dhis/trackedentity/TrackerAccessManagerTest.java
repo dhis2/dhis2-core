@@ -85,8 +85,6 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
 
   @Autowired private CategoryService categoryService;
 
-  private CategoryOptionCombo coA;
-
   private TrackedEntity trackedEntityA;
 
   private OrganisationUnit orgUnitA;
@@ -107,7 +105,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   void setUp() {
-    coA = categoryService.getDefaultCategoryOptionCombo();
+    CategoryOptionCombo coA = categoryService.getDefaultCategoryOptionCombo();
     orgUnitA = createOrganisationUnit('A');
     orgUnitB = createOrganisationUnit('B');
     manager.save(orgUnitA);
@@ -262,7 +260,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
         "User has no create access to organisation unit:");
     enrollment.setOrganisationUnit(orgUnitA);
     // Transferring ownership to orgUnitB. user is no longer owner
-    trackerOwnershipManager.assignOwnership(trackedEntityA, programA, orgUnitA, false, true);
+    trackerOwnershipManager.assignOwnership(trackedEntity, programA, orgUnitA, false, true);
     trackerOwnershipManager.transferOwnership(trackedEntity, programA, orgUnitB);
     // Cannot create enrollment if not owner
     assertHasError(
