@@ -1522,7 +1522,7 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
-  @Transactional(readOnly = true)
+  @Transactional
   public String generateAndSetNewEmailVerificationToken(User user) {
     String token = CodeGenerator.getRandomSecureToken();
     String encodedToken = token + "|" + (System.currentTimeMillis() + EMAIL_TOKEN_EXPIRY_MILLIS);
@@ -1532,7 +1532,6 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
-  @Transactional
   public boolean sendEmailVerificationToken(User user, String token, String requestUrl) {
     String applicationTitle = systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE);
     if (applicationTitle == null || applicationTitle.isEmpty()) {
@@ -1589,19 +1588,18 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
-  @Transactional
+  @Transactional(readOnly = true)
   public User getUserByVerificationToken(String token) {
     return userStore.getUserByVerificationToken(token);
   }
 
   @Override
-  @Transactional
   public boolean isEmailVerified(User user) {
     return user.getEmail().equals(user.getVerifiedEmail());
   }
 
   @Override
-  @Transactional
+  @Transactional(readOnly = true)
   public User getUserByVerifiedEmail(String email) {
     return userStore.getUserByVerifiedEmail(email);
   }
