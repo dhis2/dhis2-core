@@ -419,12 +419,19 @@ public class DefaultSqlViewService implements SqlViewService {
     Matcher matcher = illegalKeywordsRegex.matcher(sql);
     List<MatchResult> matches = matcher.results().toList();
     if (matches.isEmpty()) return false;
-    return !keywordInQuotes(matches, sql);
+    return !isQuotedWord(matches, sql);
   }
 
-  private boolean keywordInQuotes(List<MatchResult> matchResults, String sql) {
+  /**
+   * Iterate through regex MatchResults, checking if the match is in quotes.
+   *
+   * @param matchResults list of MatchResults
+   * @param sql sql query
+   * @return true if all matches are in quotes, otherwise false
+   */
+  private boolean isQuotedWord(List<MatchResult> matchResults, String sql) {
     for (MatchResult match : matchResults) {
-      // if the match is the first or last char then it cannot be surrounded by quotes
+      // if match starts at first char/ends at last char then it cannot be surrounded by quotes
       if (match.start() == 0 || match.end() == sql.length() - 1) return false;
       if (!inQuotes(sql, match.start(), match.end())) return false;
     }
