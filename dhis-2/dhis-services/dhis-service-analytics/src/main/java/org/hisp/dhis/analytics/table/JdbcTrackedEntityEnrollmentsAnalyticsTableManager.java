@@ -118,19 +118,19 @@ public class JdbcTrackedEntityEnrollmentsAnalyticsTableManager extends AbstractJ
               .selectExpression("en.status")
               .build(),
           AnalyticsTableColumn.builder()
-              .name("engeometry")
+              .name("enrollmentgeometry")
               .dataType(GEOMETRY)
               .selectExpression("en.geometry")
               .indexType(IndexType.GIST)
               .build(),
           AnalyticsTableColumn.builder()
-              .name("enlongitude")
+              .name("enrollmentlongitude")
               .dataType(DOUBLE)
               .selectExpression(
                   "case when 'POINT' = GeometryType(en.geometry) then ST_X(en.geometry) end")
               .build(),
           AnalyticsTableColumn.builder()
-              .name("enlatitude")
+              .name("enrollmentlatitude")
               .dataType(DOUBLE)
               .selectExpression(
                   "case when 'POINT' = GeometryType(en.geometry) then ST_Y(en.geometry) end")

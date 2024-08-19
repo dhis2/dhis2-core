@@ -110,7 +110,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
           "createdbydisplayname",
           "lastupdatedbydisplayname",
           "lastupdated",
-          "ST_AsGeoJSON(engeometry)",
+          "ST_AsGeoJSON(enrollmentgeometry)",
           "longitude",
           "latitude",
           "ouname",
