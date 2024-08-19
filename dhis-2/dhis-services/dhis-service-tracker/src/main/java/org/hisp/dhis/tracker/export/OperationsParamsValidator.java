@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.export;
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
@@ -78,7 +77,7 @@ public class OperationsParamsValidator {
       throws BadRequestException {
     switch (orgUnitMode) {
       case ALL -> validateUserCanSearchOrgUnitModeALL();
-      case SELECTED, ACCESSIBLE, DESCENDANTS, CHILDREN -> validateUserScope(program, orgUnitMode);
+      case SELECTED, ACCESSIBLE, DESCENDANTS, CHILDREN -> validateUserScope(program);
       case CAPTURE -> validateCaptureScope();
     }
   }
@@ -91,8 +90,7 @@ public class OperationsParamsValidator {
     }
   }
 
-  private static void validateUserScope(Program program, OrganisationUnitSelectionMode orgUnitMode)
-      throws BadRequestException {
+  private static void validateUserScope(Program program) throws BadRequestException {
 
     if (program != null && (program.isClosed() || program.isProtected())) {
       if (getCurrentUserDetails().getUserOrgUnitIds().isEmpty()) {

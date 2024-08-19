@@ -70,8 +70,6 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackerOwnershipManager trackerOwnershipAccessManager;
 
-  @Autowired private TrackerAccessManager trackerAccessManager;
-
   @Autowired
   private org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService trackedEntityService;
 
@@ -485,7 +483,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
   void shouldFindTrackedEntityWhenTransferredToInaccessibleOrgUnitIfHasReadAccessToOtherProgram()
       throws ForbiddenException, BadRequestException, NotFoundException {
     transferOwnership(trackedEntityA1, programA, organisationUnitB);
-    programB.setSharing(Sharing.builder().publicAccess(AccessStringHelper.DATA_READ).build());
+    programB.setSharing(Sharing.builder().publicAccess("rwrw----").build());
     programService.updateProgram(programB);
     injectSecurityContext(userDetailsA);
 
