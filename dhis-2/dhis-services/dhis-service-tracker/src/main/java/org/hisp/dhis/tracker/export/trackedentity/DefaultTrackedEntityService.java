@@ -74,7 +74,6 @@ import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.TrackedEntityAggregate;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -479,7 +478,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
         operationParams.getTrackedEntityParams(),
         operationParams.isIncludeDeleted());
 
-    addSearchAudit(trackedEntities, queryParams.getUser());
+    addSearchAudit(trackedEntities);
 
     return trackedEntities;
   }
@@ -503,7 +502,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
         operationParams.getTrackedEntityParams(),
         operationParams.isIncludeDeleted());
 
-    addSearchAudit(trackedEntities, queryParams.getUser());
+    addSearchAudit(trackedEntities);
 
     return ids.withItems(trackedEntities);
   }
@@ -611,12 +610,10 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     return to;
   }
 
-  private void addSearchAudit(List<TrackedEntity> trackedEntities, User user) {
+  private void addSearchAudit(List<TrackedEntity> trackedEntities) {
     if (trackedEntities.isEmpty()) {
       return;
     }
-    final String accessedBy =
-        user != null ? user.getUsername() : CurrentUserUtil.getCurrentUsername();
     Map<String, TrackedEntityType> tetMap =
         trackedEntityTypeService.getAllTrackedEntityType().stream()
             .collect(Collectors.toMap(TrackedEntityType::getUid, t -> t));
@@ -626,7 +623,10 @@ class DefaultTrackedEntityService implements TrackedEntityService {
             .filter(Objects::nonNull)
             .filter(te -> te.getTrackedEntityType() != null)
             .filter(te -> tetMap.get(te.getTrackedEntityType().getUid()).isAllowAuditLog())
-            .map(te -> new TrackedEntityChangeLog(te.getUid(), accessedBy, ChangeLogType.SEARCH))
+            .map(
+                te ->
+                    new TrackedEntityChangeLog(
+                        te.getUid(), CurrentUserUtil.getCurrentUsername(), ChangeLogType.SEARCH))
             .toList();
 
     if (!auditable.isEmpty()) {

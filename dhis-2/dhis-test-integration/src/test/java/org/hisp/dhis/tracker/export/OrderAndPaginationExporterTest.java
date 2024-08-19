@@ -147,7 +147,6 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .organisationUnits(Set.of(orgUnit.getUid()))
             .orgUnitMode(DESCENDANTS)
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .user(importUser)
             .orderBy(UID.of("numericAttr"), SortDirection.ASC)
             .build();
 
@@ -183,7 +182,6 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .organisationUnits(Set.of(orgUnit.getUid()))
             .orgUnitMode(DESCENDANTS)
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .user(importUser)
             .orderBy(UID.of("numericAttr"), SortDirection.ASC)
             .build();
 
@@ -228,7 +226,6 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .orgUnitMode(SELECTED)
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .user(importUser)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -248,7 +245,6 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .orgUnitMode(SELECTED)
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .user(importUser)
             .orderBy("created", SortDirection.ASC)
             .build();
 
@@ -281,7 +277,6 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .orgUnitMode(SELECTED)
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .user(importUser)
             .orderBy("created", SortDirection.DESC)
             .build();
 
@@ -311,7 +306,6 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .orgUnitMode(SELECTED)
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .user(importUser)
             .orderBy("createdAtClient", SortDirection.DESC)
             .build();
 
@@ -329,7 +323,6 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .orgUnitMode(SELECTED)
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .user(importUser)
             .orderBy("createdAtClient", SortDirection.ASC)
             .build();
 
@@ -347,7 +340,6 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .orgUnitMode(SELECTED)
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .user(importUser)
             .orderBy("enrollment.enrollmentDate", SortDirection.ASC)
             .build();
 
@@ -365,7 +357,6 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .orgUnitMode(SELECTED)
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .user(importUser)
             .orderBy("enrollment.enrollmentDate", SortDirection.DESC)
             .build();
 
@@ -387,7 +378,6 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
             .programUid("BFcipDERJnf")
-            .user(importUser)
             .orderBy("enrollment.enrollmentDate", SortDirection.DESC)
             .build();
 
@@ -405,7 +395,6 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .orgUnitMode(SELECTED)
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .user(importUser)
             .orderBy(UID.of("toDelete000"), SortDirection.ASC)
             .orderBy("enrollment.enrollmentDate", SortDirection.ASC)
             .build();
@@ -424,7 +413,6 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .orgUnitMode(SELECTED)
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .user(importUser)
             .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
             .build();
 
@@ -442,7 +430,6 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .orgUnitMode(SELECTED)
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .user(importUser)
             .orderBy(UID.of("toUpdate000"), SortDirection.DESC)
             .build();
 
@@ -459,7 +446,6 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .organisationUnits(Set.of(orgUnit.getUid()))
             .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .user(importUser)
             .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
             .filters(Map.of("numericAttr", List.of(new QueryFilter(QueryOperator.LT, "75"))))
             .build();
@@ -477,7 +463,6 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .organisationUnits(Set.of(orgUnit.getUid()))
             .orgUnitMode(SELECTED)
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .user(importUser)
             .filters(Map.of("numericAttr", List.of(new QueryFilter(QueryOperator.LT, "75"))))
             .orderBy(UID.of("numericAttr"), SortDirection.DESC)
             .build();
@@ -498,7 +483,6 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .trackedEntityUids(
                 Set.of(
                     "dUE514NMOlo", "QS6w44flWAf")) // TE QS6w44flWAf without attribute notUpdated0
-            .user(importUser)
             .orderBy(UID.of("notUpdated0"), SortDirection.DESC)
             .build();
 
@@ -519,7 +503,6 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .orgUnitMode(SELECTED)
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .user(importUser)
             .orderBy(UID.of("toDelete000"), SortDirection.DESC)
             .orderBy(UID.of("numericAttr"), SortDirection.ASC)
             .build();
@@ -538,7 +521,6 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .orgUnitMode(SELECTED)
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .user(importUser)
             .orderBy(UID.of("toDelete000"), SortDirection.DESC)
             .orderBy(UID.of("numericAttr"), SortDirection.DESC)
             .build();
@@ -558,7 +540,6 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .orgUnitMode(SELECTED)
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .user(importUser)
             .orderBy("inactive", SortDirection.DESC)
             .build();
 
@@ -577,7 +558,6 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .orgUnitMode(SELECTED)
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
-            .user(importUser)
             .orderBy("inactive", SortDirection.ASC)
             .build();
 
