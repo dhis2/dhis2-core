@@ -381,7 +381,7 @@ public class DimensionParam implements UidObject {
               (sd, v) -> equalsIgnoreCase(sd.name(), v),
               // Then checks if the value matches the normalized name.
               (sd, v) -> equalsIgnoreCase(sd.normalizedName(), v),
-              // and finally check if the value matches the column name
+              // And finally checks if the value matches the column name.
               (sd, v) -> equalsIgnoreCase(sd.columnName, v))
           .map(
               predicate ->
