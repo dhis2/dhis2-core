@@ -34,7 +34,9 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.test.TestBase.injectSecurityContext;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -55,6 +57,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
@@ -63,6 +66,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -147,7 +151,12 @@ class EnrollmentOperationParamsMapperTest {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnitMode(ACCESSIBLE).build();
 
-    mapper.map(operationParams);
+    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
+      userUtilMockedStatic
+          .when(CurrentUserUtil::getCurrentUserDetails)
+          .thenReturn(UserDetails.fromUser(user));
+      mapper.map(operationParams);
+    }
 
     verifyNoInteractions(programService);
     verifyNoInteractions(organisationUnitService);
@@ -164,13 +173,18 @@ class EnrollmentOperationParamsMapperTest {
             .orgUnitMode(ACCESSIBLE)
             .build();
 
-    EnrollmentQueryParams params = mapper.map(operationParams);
+    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
+      userUtilMockedStatic
+          .when(CurrentUserUtil::getCurrentUserDetails)
+          .thenReturn(UserDetails.fromUser(user));
+      EnrollmentQueryParams params = mapper.map(operationParams);
 
-    assertEquals(
-        List.of(
-            new Order("enrollmentDate", SortDirection.ASC),
-            new Order("created", SortDirection.DESC)),
-        params.getOrder());
+      assertEquals(
+          List.of(
+              new Order("enrollmentDate", SortDirection.ASC),
+              new Order("created", SortDirection.DESC)),
+          params.getOrder());
+    }
   }
 
   @Test
@@ -179,33 +193,52 @@ class EnrollmentOperationParamsMapperTest {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnitMode(ACCESSIBLE).build();
 
-    EnrollmentQueryParams params = mapper.map(operationParams);
+    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
+      userUtilMockedStatic
+          .when(CurrentUserUtil::getCurrentUserDetails)
+          .thenReturn(UserDetails.fromUser(user));
+      EnrollmentQueryParams params = mapper.map(operationParams);
 
-    assertIsEmpty(params.getOrder());
+      assertIsEmpty(params.getOrder());
+    }
   }
 
   @Test
   void shouldMapDescendantsOrgUnitModeWhenAccessibleProvided()
       throws ForbiddenException, BadRequestException {
+    when(userService.getUserByUsername(any())).thenReturn(user);
+
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnitMode(ACCESSIBLE).build();
 
-    EnrollmentQueryParams params = mapper.map(operationParams);
+    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
+      userUtilMockedStatic
+          .when(CurrentUserUtil::getCurrentUserDetails)
+          .thenReturn(UserDetails.fromUser(user));
+      EnrollmentQueryParams params = mapper.map(operationParams);
 
-    assertEquals(DESCENDANTS, params.getOrganisationUnitMode());
-    assertEquals(user.getEffectiveSearchOrganisationUnits(), params.getOrganisationUnits());
+      assertEquals(DESCENDANTS, params.getOrganisationUnitMode());
+      assertEquals(user.getEffectiveSearchOrganisationUnits(), params.getOrganisationUnits());
+    }
   }
 
   @Test
   void shouldMapDescendantsOrgUnitModeWhenCaptureProvided()
       throws ForbiddenException, BadRequestException {
+    when(userService.getUserByUsername(any())).thenReturn(user);
+
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnitMode(CAPTURE).build();
 
-    EnrollmentQueryParams params = mapper.map(operationParams);
+    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
+      userUtilMockedStatic
+          .when(CurrentUserUtil::getCurrentUserDetails)
+          .thenReturn(UserDetails.fromUser(user));
+      EnrollmentQueryParams params = mapper.map(operationParams);
 
-    assertEquals(DESCENDANTS, params.getOrganisationUnitMode());
-    assertEquals(user.getOrganisationUnits(), params.getOrganisationUnits());
+      assertEquals(DESCENDANTS, params.getOrganisationUnitMode());
+      assertEquals(user.getOrganisationUnits(), params.getOrganisationUnits());
+    }
   }
 
   @Test
@@ -224,8 +257,13 @@ class EnrollmentOperationParamsMapperTest {
             .orgUnitMode(CHILDREN)
             .build();
 
-    EnrollmentQueryParams params = mapper.map(operationParams);
+    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
+      userUtilMockedStatic
+          .when(CurrentUserUtil::getCurrentUserDetails)
+          .thenReturn(UserDetails.fromUser(user));
+      EnrollmentQueryParams params = mapper.map(operationParams);
 
-    assertEquals(CHILDREN, params.getOrganisationUnitMode());
+      assertEquals(CHILDREN, params.getOrganisationUnitMode());
+    }
   }
 }
