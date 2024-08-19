@@ -53,7 +53,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
@@ -258,8 +260,18 @@ public class DimensionParam implements UidObject {
         "Organisation Unit Name Hierarchy", TEXT, ORGANISATION_UNIT, ORG_UNIT_NAME_HIERARCHY),
     ENROLLMENTDATE("Enrollment Date", DATETIME, DimensionParamObjectType.PERIOD),
     ENDDATE("End Date", DATETIME, DimensionParamObjectType.PERIOD),
-    INCIDENTDATE("Incident Date", DATETIME, DimensionParamObjectType.PERIOD),
-    OCCURREDDATE("Execution Date", DATETIME, DimensionParamObjectType.PERIOD),
+    /**
+     * @deprecated use {@link #OCCURREDDATE} instead. Kept for backward compatibility.
+     */
+    @Deprecated(since = "2.42")
+    INCIDENTDATE(
+        "Incident Date",
+        DATETIME,
+        DimensionParamObjectType.PERIOD,
+        null,
+        "occurreddate",
+        "incidentdate"),
+    OCCURREDDATE("Occurred Date", DATETIME, DimensionParamObjectType.PERIOD),
     LASTUPDATED(DATETIME, DimensionParamObjectType.PERIOD, TrackedEntityStaticField.LAST_UPDATED),
     LASTUPDATEDBYDISPLAYNAME("Last Updated By", TEXT, STATIC),
     CREATED("Created", DATETIME, DimensionParamObjectType.PERIOD),
@@ -361,12 +373,23 @@ public class DimensionParam implements UidObject {
     }
 
     public static Optional<StaticDimension> of(String value) {
-      return Arrays.stream(StaticDimension.values())
-          .filter(
-              sd ->
-                  equalsIgnoreCase(sd.columnName, value)
-                      || equalsIgnoreCase(sd.name(), value)
-                      || equalsIgnoreCase(sd.normalizedName(), value))
+
+      // List of predicates to match the value with the static dimension.
+      // Finally check if the value matches the column name.
+      return Stream.<BiPredicate<StaticDimension, String>>of(
+              // First checks if the value matches the name.
+              (sd, v) -> equalsIgnoreCase(sd.name(), v),
+              // Then checks if the value matches the normalized name.
+              (sd, v) -> equalsIgnoreCase(sd.normalizedName(), v),
+              // And finally checks if the value matches the column name.
+              (sd, v) -> equalsIgnoreCase(sd.columnName, v))
+          .map(
+              predicate ->
+                  Arrays.stream(StaticDimension.values())
+                      .filter(sd -> predicate.test(sd, value))
+                      .findFirst())
+          .filter(Optional::isPresent)
+          .map(Optional::get)
           .findFirst();
     }
 
