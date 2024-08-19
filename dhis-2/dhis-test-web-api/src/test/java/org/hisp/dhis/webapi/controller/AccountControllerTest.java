@@ -36,7 +36,6 @@ import java.util.Set;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.test.web.HttpStatus;
@@ -52,7 +51,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class AccountControllerTest extends PostgresControllerIntegrationTestBase {
   @Autowired private SystemSettingManager systemSettingManager;
-  @Autowired private MessageSender messageSender;
 
   @Test
   void testRecoverAccount_NotEnabled() {

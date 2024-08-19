@@ -211,6 +211,9 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
   /** User's verified email. */
   private String verifiedEmail;
 
+  /** User's email verification token. */
+  private String emailVerificationToken;
+
   public User() {
     this.lastLogin = null;
     this.passwordLastUpdated = new Date();
@@ -1190,6 +1193,16 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
 
   public void setVerifiedEmail(String verifiedEmail) {
     this.verifiedEmail = verifiedEmail;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getEmailVerificationToken() {
+    return this.emailVerificationToken;
+  }
+
+  public void setEmailVerificationToken(String emailVerificationToken) {
+    this.emailVerificationToken = emailVerificationToken;
   }
 
   public static String username(User user) {

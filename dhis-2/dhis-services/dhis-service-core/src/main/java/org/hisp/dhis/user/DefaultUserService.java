@@ -1522,14 +1522,18 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
-  @Transactional
-  public boolean sendEmailVerificationToken(User user, String requestUrl) {
+  @Transactional(readOnly = true)
+  public String generateAndSetNewEmailVerificationToken(User user) {
     String token = CodeGenerator.getRandomSecureToken();
-
     String encodedToken = token + "|" + (System.currentTimeMillis() + EMAIL_TOKEN_EXPIRY_MILLIS);
-    user.setVerifiedEmail(encodedToken);
+    user.setEmailVerificationToken(encodedToken);
     updateUser(user);
+    return token;
+  }
 
+  @Override
+  @Transactional
+  public boolean sendEmailVerificationToken(User user, String token, String requestUrl) {
     String applicationTitle = systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE);
     if (applicationTitle == null || applicationTitle.isEmpty()) {
       applicationTitle = DEFAULT_APPLICATION_TITLE;
@@ -1566,7 +1570,7 @@ public class DefaultUserService implements UserService {
     if (user == null) {
       return false;
     }
-    String[] tokenParts = user.getVerifiedEmail().split("\\|");
+    String[] tokenParts = user.getEmailVerificationToken().split("\\|");
     if (tokenParts.length != 2) {
       return false;
     }
@@ -1578,6 +1582,7 @@ public class DefaultUserService implements UserService {
       return false;
     }
 
+    user.setEmailVerificationToken(null);
     user.setVerifiedEmail(user.getEmail());
     updateUser(user);
     return true;
@@ -1598,6 +1603,6 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional
   public User getUserByVerifiedEmail(String email) {
-    return userStore.getuserByVerifiedEmail(email);
+    return userStore.getUserByVerifiedEmail(email);
   }
 }

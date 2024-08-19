@@ -40,6 +40,7 @@ import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Strings;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -560,6 +561,43 @@ public class UserController extends AbstractCrudController<User> {
     }
 
     return WebMessageUtils.errorReports(errors);
+  }
+
+  @PostMapping("/{uid}/sendEmailVerification")
+  @ResponseStatus(HttpStatus.CREATED)
+  public void sendEmailVerification(@CurrentUser User currentUser, HttpServletRequest request)
+      throws ConflictException {
+    if (Strings.isNullOrEmpty(currentUser.getEmail())) {
+      throw new ConflictException("Email is not set");
+    }
+    if (userService.isEmailVerified(currentUser)) {
+      throw new ConflictException("Email is already verified");
+    }
+    if (userService.getUserByVerifiedEmail(currentUser.getEmail()) != null) {
+      throw new ConflictException("Email is already in use by another account");
+    }
+
+    // Generate a new email verification token and send it, we do this in two steps:
+    // 1. Generate and save the token to the user
+    // 2. Send the token to the user's email
+    // This is because email delivery is unreliable can fail/respond false even if email is sent,
+    // and true if email is not sent/received.
+    String token = userService.generateAndSetNewEmailVerificationToken(currentUser);
+    boolean successfullySent =
+        userService.sendEmailVerificationToken(
+            currentUser, token, HttpServletRequestPaths.getContextPath(request));
+
+    if (!successfullySent) {
+      throw new ConflictException("Failed to send email verification token");
+    }
+  }
+
+  @GetMapping("/{uid}/verifyEmail")
+  @ResponseStatus(HttpStatus.OK)
+  public void verifyEmail(@RequestParam String token) throws ConflictException {
+    if (!userService.verifyEmail(token)) {
+      throw new ConflictException("Verification token is invalid");
+    }
   }
 
   // -------------------------------------------------------------------------

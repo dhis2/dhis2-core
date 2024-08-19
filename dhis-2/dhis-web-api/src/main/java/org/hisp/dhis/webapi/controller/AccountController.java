@@ -56,7 +56,6 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.PasswordManager;
@@ -79,7 +78,6 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.hisp.dhis.webapi.webdomain.user.UserLookups;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -92,7 +90,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
  * @author Lars Helge Overland
@@ -609,36 +606,5 @@ public class AccountController {
     }
 
     return auths;
-  }
-
-  @PostMapping("/sendEmailVerification")
-  @ResponseStatus(HttpStatus.CREATED)
-  public void sendEmailVerification(@CurrentUser User currentUser, HttpServletRequest request)
-      throws ConflictException {
-    if (Strings.isNullOrEmpty(currentUser.getEmail())) {
-      throw new ConflictException("Email is not set");
-    }
-    if (userService.isEmailVerified(currentUser)) {
-      throw new ConflictException("Email is already verified");
-    }
-    if (userService.getUserByVerifiedEmail(currentUser.getEmail()) != null) {
-      throw new ConflictException("Email is already in use by another account");
-    }
-
-    boolean successfullySent =
-        userService.sendEmailVerificationToken(
-            currentUser, HttpServletRequestPaths.getContextPath(request));
-
-    if (!successfullySent) {
-      throw new ConflictException("Failed to send email verification token");
-    }
-  }
-
-  @GetMapping("/verifyEmail")
-  @ResponseStatus(HttpStatus.OK)
-  public void verifyEmail(@RequestParam String token) throws ConflictException {
-    if (!userService.verifyEmail(token)) {
-      throw new ConflictException("Verification token is invalid");
-    }
   }
 }

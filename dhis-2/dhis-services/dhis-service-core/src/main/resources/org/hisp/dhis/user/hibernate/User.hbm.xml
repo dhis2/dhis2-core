@@ -33,6 +33,8 @@
 
     <property name="verifiedEmail" />
 
+    <property name="emailVerificationToken" />
+
     <property name="phoneNumber" length="80" />
 
     <property name="jobTitle" length="160" />
