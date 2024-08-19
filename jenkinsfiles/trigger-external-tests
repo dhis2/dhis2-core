@@ -102,7 +102,7 @@ pipeline {
             steps {
                 script {
                     def repos = ['dhis2/line-listing-app']
-                    def event_type = 'cypress-test-trigger'
+                    def event_type = 'apps-e2e-tests-trigger'
                     def payload = [
                         dhis2_version: env.DOCKER_IMAGE_TAG,
                         instance_url: "$INSTANCE_URL"
