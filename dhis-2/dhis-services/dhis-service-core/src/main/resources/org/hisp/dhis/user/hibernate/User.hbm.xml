@@ -121,7 +121,7 @@
 
     <property name="externalAuth" column="externalauth" />
 
-    <property name="openId" column="openid" unique="true" type="text" />
+    <property name="openId" column="openid" type="text" />
 
     <property name="ldapId" column="ldapid" unique="true" type="text" />
 
