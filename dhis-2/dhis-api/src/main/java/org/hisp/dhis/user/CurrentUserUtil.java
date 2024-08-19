@@ -131,6 +131,9 @@ public class CurrentUserUtil {
   @Nullable
   @SuppressWarnings("unchecked")
   public static <T> T getUserSetting(UserSettingKey key) {
+    if (!hasCurrentUser()) {
+      return null;
+    }
     UserDetails currentUser = getCurrentUserDetails();
     return (T) currentUser.getUserSettings().get(key.getName());
   }
@@ -144,6 +147,9 @@ public class CurrentUserUtil {
    */
   @SuppressWarnings("unchecked")
   public static <T> T getUserSetting(UserSettingKey key, @Nonnull T defaultValue) {
+    if (!hasCurrentUser()) {
+      return defaultValue;
+    }
     UserDetails currentUser = getCurrentUserDetails();
     Map<String, Serializable> userSettings = currentUser.getUserSettings();
     Serializable setting = userSettings.get(key.getName());
