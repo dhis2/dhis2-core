@@ -37,10 +37,12 @@ import org.hibernate.Hibernate;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramOwnershipHistory;
 import org.hisp.dhis.program.ProgramOwnershipHistoryService;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTempOwner;
 import org.hisp.dhis.program.ProgramTempOwnerService;
 import org.hisp.dhis.program.ProgramTempOwnershipAudit;
@@ -67,6 +69,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
   private final ProgramOwnershipHistoryService programOwnershipHistoryService;
   private final DhisConfigurationProvider config;
   private final UserService userService;
+  private final ProgramService programService;
 
   public DefaultTrackerOwnershipManager(
       UserService userService,
@@ -75,6 +78,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       ProgramTempOwnershipAuditService programTempOwnershipAuditService,
       ProgramTempOwnerService programTempOwnerService,
       ProgramOwnershipHistoryService programOwnershipHistoryService,
+      ProgramService programService,
       DhisConfigurationProvider config) {
 
     this.userService = userService;
@@ -82,6 +86,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     this.programTempOwnershipAuditService = programTempOwnershipAuditService;
     this.programOwnershipHistoryService = programOwnershipHistoryService;
     this.programTempOwnerService = programTempOwnerService;
+    this.programService = programService;
     this.config = config;
     this.ownerCache = cacheProvider.createProgramOwnerCache();
     this.tempOwnerCache = cacheProvider.createProgramTempOwnerCache();
@@ -100,36 +105,35 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
   @Override
   @Transactional
   public void transferOwnership(
-      TrackedEntity trackedEntity,
-      Program program,
-      OrganisationUnit orgUnit,
-      boolean skipAccessValidation,
-      boolean createIfNotExists) {
+      TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit)
+      throws ForbiddenException {
     if (trackedEntity == null || program == null || orgUnit == null) {
       return;
     }
 
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
-    if (hasAccess(currentUser, trackedEntity, program) || skipAccessValidation) {
+    if (hasAccess(currentUser, trackedEntity, program)) {
+      if (!programService.hasOrgUnit(program, orgUnit)) {
+        throw new ForbiddenException(
+            String.format(
+                "The program %s is not associated to the org unit %s",
+                program.getUid(), orgUnit.getUid()));
+      }
+
       TrackedEntityProgramOwner teProgramOwner =
           trackedEntityProgramOwnerService.getTrackedEntityProgramOwner(trackedEntity, program);
 
-      if (teProgramOwner != null) {
-        if (!teProgramOwner.getOrganisationUnit().equals(orgUnit)) {
-          ProgramOwnershipHistory programOwnershipHistory =
-              new ProgramOwnershipHistory(
-                  program,
-                  trackedEntity,
-                  teProgramOwner.getOrganisationUnit(),
-                  teProgramOwner.getLastUpdated(),
-                  teProgramOwner.getCreatedBy());
-          programOwnershipHistoryService.addProgramOwnershipHistory(programOwnershipHistory);
-          trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
-              trackedEntity, program, orgUnit);
-        }
-      } else if (createIfNotExists) {
-        trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+      if (teProgramOwner != null && !teProgramOwner.getOrganisationUnit().equals(orgUnit)) {
+        ProgramOwnershipHistory programOwnershipHistory =
+            new ProgramOwnershipHistory(
+                program,
+                trackedEntity,
+                teProgramOwner.getOrganisationUnit(),
+                teProgramOwner.getLastUpdated(),
+                teProgramOwner.getCreatedBy());
+        programOwnershipHistoryService.addProgramOwnershipHistory(programOwnershipHistory);
+        trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
             trackedEntity, program, orgUnit);
       }
 
