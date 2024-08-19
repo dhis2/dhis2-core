@@ -451,9 +451,8 @@ public class DefaultMessageService implements MessageService {
   @Override
   @Transactional(readOnly = true)
   public boolean hasAccessToManageFeedbackMessages(UserDetails userDetails) {
-    userDetails = (userDetails != null ? userDetails : CurrentUserUtil.getCurrentUserDetails());
-    return configurationService.isUserInFeedbackRecipientUserGroup(userDetails)
-        || userDetails.isAuthorized(ALL);
+    boolean isInGroup = configurationService.isUserInFeedbackRecipientUserGroup(userDetails);
+    return isInGroup || userDetails.isAuthorized(ALL);
   }
 
   // -------------------------------------------------------------------------

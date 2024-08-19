@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,15 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.hibernate.exception;
+package org.hisp.dhis.webapi.controller.message;
 
-import org.springframework.security.access.AccessDeniedException;
+import java.util.Date;
+import java.util.Set;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.message.ProgramMessageStatus;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Zubair Asghar
  */
-public class CreateAccessDeniedException extends AccessDeniedException {
-  public CreateAccessDeniedException(String msg) {
-    super(msg);
-  }
+@OpenApi.Shared(name = "ProgramMessageRequestParams")
+@Data
+@NoArgsConstructor
+public class ProgramMessageRequestParams {
+  private Set<String> ou;
+
+  @Deprecated(since = "2.41")
+  @OpenApi.Property(value = Enrollment.class)
+  private UID programInstance;
+
+  @OpenApi.Property({UID.class, Enrollment.class})
+  private UID enrollment;
+
+  @Deprecated(since = "2.41")
+  @OpenApi.Property(value = Event.class)
+  private UID programStageInstance;
+
+  @OpenApi.Property({UID.class, Event.class})
+  private UID event;
+
+  private ProgramMessageStatus messageStatus;
+
+  private Date afterDate;
+
+  private Date beforeDate;
+
+  @OpenApi.Property(defaultValue = "1")
+  private Integer page;
+
+  @OpenApi.Property(defaultValue = "50")
+  private Integer pageSize;
 }

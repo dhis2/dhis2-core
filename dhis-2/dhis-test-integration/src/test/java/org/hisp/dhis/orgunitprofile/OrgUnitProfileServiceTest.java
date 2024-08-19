@@ -48,6 +48,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datastore.DatastoreService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
@@ -104,7 +105,7 @@ class OrgUnitProfileServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testSave() {
+  void testSave() throws ForbiddenException {
     OrgUnitProfile orgUnitProfile =
         createOrgUnitProfile(
             Lists.newArrayList("Attribute1", "Attribute2"),
@@ -122,7 +123,7 @@ class OrgUnitProfileServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testUpdateOrgUnitProfile() {
+  void testUpdateOrgUnitProfile() throws ForbiddenException {
     OrgUnitProfile orgUnitProfile =
         createOrgUnitProfile(
             Lists.newArrayList("Attribute1", "Attribute2"),
@@ -145,7 +146,7 @@ class OrgUnitProfileServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetProfileDataWithoutOrgUnitProfile() {
+  void testGetProfileDataWithoutOrgUnitProfile() throws ForbiddenException {
     Attribute attribute = createAttribute('A');
     attribute.setOrganisationUnitAttribute(true);
     manager.save(attribute);
@@ -185,7 +186,7 @@ class OrgUnitProfileServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetProfileDataWithOrgUnitProfile() {
+  void testGetProfileDataWithOrgUnitProfile() throws ForbiddenException {
     Attribute attribute = createAttribute('A');
     attribute.setOrganisationUnitAttribute(true);
     manager.save(attribute);
@@ -276,7 +277,7 @@ class OrgUnitProfileServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testDeletionHandling() {
+  void testDeletionHandling() throws ForbiddenException {
     OrganisationUnitGroupSet groupSet = createOrganisationUnitGroupSet('A');
 
     manager.save(groupSet);
