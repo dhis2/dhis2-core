@@ -17,7 +17,7 @@
     <build.time>${maven.build.timestamp}</build.time>
     <mainClass>org.hisp.dhis.web.tomcat.Main</mainClass>
     <tomcat.version>10.1.28</tomcat.version>
-    <spring-boot-maven-plugin.version>3.3.1</spring-boot-maven-plugin.version>
+    <spring-boot-maven-plugin.version>3.3.2</spring-boot-maven-plugin.version>
     <env>default</env>
   </properties>
 

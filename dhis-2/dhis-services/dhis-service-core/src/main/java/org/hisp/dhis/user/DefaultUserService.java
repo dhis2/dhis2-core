@@ -72,6 +72,7 @@ import org.hisp.dhis.common.PasswordGenerator;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.email.EmailResponse;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -82,6 +83,7 @@ import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.period.Cal;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.PasswordManager;
@@ -112,6 +114,8 @@ import org.springframework.web.client.RestTemplate;
 @Lazy
 @Service("org.hisp.dhis.user.UserService")
 public class DefaultUserService implements UserService {
+  private static final long EMAIL_TOKEN_EXPIRY_MILLIS = 3600000;
+
   private final UserStore userStore;
   private final UserGroupService userGroupService;
   private final UserRoleStore userRoleStore;
@@ -1516,5 +1520,88 @@ public class DefaultUserService implements UserService {
   public boolean canDataRead(IdentifiableObject identifiableObject) {
     return !aclService.isSupported(identifiableObject)
         || aclService.canDataRead(CurrentUserUtil.getCurrentUserDetails(), identifiableObject);
+  }
+
+  @Override
+  @Transactional
+  public String generateAndSetNewEmailVerificationToken(User user) {
+    String token = CodeGenerator.getRandomSecureToken();
+    String encodedToken = token + "|" + (System.currentTimeMillis() + EMAIL_TOKEN_EXPIRY_MILLIS);
+    user.setEmailVerificationToken(encodedToken);
+    updateUser(user);
+    return token;
+  }
+
+  @Override
+  public boolean sendEmailVerificationToken(User user, String token, String requestUrl) {
+    String applicationTitle = systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE);
+    if (applicationTitle == null || applicationTitle.isEmpty()) {
+      applicationTitle = DEFAULT_APPLICATION_TITLE;
+    }
+
+    Map<String, Object> vars = new HashMap<>();
+    vars.put("applicationTitle", applicationTitle);
+    vars.put("requestUrl", requestUrl + "/api/account/verifyEmail");
+    vars.put("token", token);
+    vars.put("username", user.getUsername());
+    vars.put("email", user.getEmail());
+    I18n i18n =
+        i18nManager.getI18n(
+            ObjectUtils.firstNonNull(
+                (Locale)
+                    userSettingService.getUserSetting(UserSettingKey.UI_LOCALE, user.getUsername()),
+                LocaleManager.DEFAULT_LOCALE));
+    vars.put("i18n", i18n);
+
+    VelocityManager vm = new VelocityManager();
+    String messageBody = vm.render(vars, "verify_email_body_template_" + "v1");
+    String messageSubject = i18n.getString("verify_email_subject");
+
+    OutboundMessageResponse status =
+        emailMessageSender.sendMessage(messageSubject, messageBody, null, null, Set.of(user), true);
+
+    return status.getResponseObject() == EmailResponse.SENT;
+  }
+
+  @Override
+  @Transactional
+  public boolean verifyEmail(String token) {
+    User user = getUserByVerificationToken(token);
+    if (user == null) {
+      return false;
+    }
+    String[] tokenParts = user.getEmailVerificationToken().split("\\|");
+    if (tokenParts.length != 2) {
+      return false;
+    }
+    if (System.currentTimeMillis() > Long.parseLong(tokenParts[1])) {
+      return false;
+    }
+    // Someone else could have verified the same email with another account in the meantime
+    if (getUserByVerifiedEmail(user.getEmail()) != null) {
+      return false;
+    }
+
+    user.setEmailVerificationToken(null);
+    user.setVerifiedEmail(user.getEmail());
+    updateUser(user);
+    return true;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public User getUserByVerificationToken(String token) {
+    return userStore.getUserByVerificationToken(token);
+  }
+
+  @Override
+  public boolean isEmailVerified(User user) {
+    return user.getEmail().equals(user.getVerifiedEmail());
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public User getUserByVerifiedEmail(String email) {
+    return userStore.getUserByVerifiedEmail(email);
   }
 }

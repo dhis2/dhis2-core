@@ -89,7 +89,7 @@ public abstract class CompressionSMSListener extends BaseSMSListener {
 
   protected final DataElementService dataElementService;
 
-  protected final IdentifiableObjectManager identifiableObjectManager;
+  protected final IdentifiableObjectManager manager;
 
   public CompressionSMSListener(
       IncomingSmsService incomingSmsService,
@@ -101,7 +101,7 @@ public abstract class CompressionSMSListener extends BaseSMSListener {
       OrganisationUnitService organisationUnitService,
       CategoryService categoryService,
       DataElementService dataElementService,
-      IdentifiableObjectManager identifiableObjectManager) {
+      IdentifiableObjectManager manager) {
     super(incomingSmsService, smsSender);
     this.userService = userService;
     this.trackedEntityTypeService = trackedEntityTypeService;
@@ -110,7 +110,7 @@ public abstract class CompressionSMSListener extends BaseSMSListener {
     this.organisationUnitService = organisationUnitService;
     this.categoryService = categoryService;
     this.dataElementService = dataElementService;
-    this.identifiableObjectManager = identifiableObjectManager;
+    this.manager = manager;
   }
 
   @Override
@@ -206,7 +206,7 @@ public abstract class CompressionSMSListener extends BaseSMSListener {
 
   private List<SmsMetadata.Id> getTypeUidsBefore(
       Class<? extends IdentifiableObject> klass, Date lastSyncDate) {
-    return identifiableObjectManager.getUidsCreatedBefore(klass, lastSyncDate).stream()
+    return manager.getUidsCreatedBefore(klass, lastSyncDate).stream()
         .map(Id::new)
         .collect(Collectors.toList());
   }

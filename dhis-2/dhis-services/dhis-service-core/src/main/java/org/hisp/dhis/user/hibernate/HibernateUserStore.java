@@ -622,4 +622,21 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
       update(user);
     }
   }
+
+  @Override
+  public User getUserByVerificationToken(String token) {
+    Query<User> query =
+        getSession()
+            .createQuery("from User u where u.emailVerificationToken like :token", User.class);
+    query.setParameter("token", token + "%");
+    return query.uniqueResult();
+  }
+
+  @Override
+  public User getUserByVerifiedEmail(String email) {
+    Query<User> query =
+        getSession().createQuery("from User u where u.verifiedEmail = :email", User.class);
+    query.setParameter("email", email);
+    return query.uniqueResult();
+  }
 }

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
@@ -46,14 +47,9 @@ public interface TrackerOwnershipManager {
    * @param trackedEntity The tracked entity object
    * @param program The program object
    * @param orgUnit The org unit that has to become the owner
-   * @param skipAccessValidation whether ownership access validation has to be skipped or not.
    */
-  void transferOwnership(
-      TrackedEntity trackedEntity,
-      Program program,
-      OrganisationUnit orgUnit,
-      boolean skipAccessValidation,
-      boolean createIfNotExists);
+  void transferOwnership(TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit)
+      throws ForbiddenException;
 
   /**
    * @param trackedEntity The tracked entity object

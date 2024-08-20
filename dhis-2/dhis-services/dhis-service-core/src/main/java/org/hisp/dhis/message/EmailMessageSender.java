@@ -127,6 +127,7 @@ public class EmailMessageSender implements MessageSender {
               emailConfig.getPassword(),
               emailConfig.isTls(),
               emailConfig.getFrom());
+
       email.setSubject(getPrefixedSubject(subject));
       email.setTextMsg(plainContent);
       email.setHtmlMsg(htmlContent);

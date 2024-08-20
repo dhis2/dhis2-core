@@ -103,12 +103,12 @@ public class JdbcTrackedEntityEnrollmentsAnalyticsTableManager extends AbstractJ
               .selectExpression("en.enrollmentdate")
               .build(),
           AnalyticsTableColumn.builder()
-              .name("enddate")
+              .name("completeddate")
               .dataType(TIMESTAMP)
               .selectExpression("en.completeddate")
               .build(),
           AnalyticsTableColumn.builder()
-              .name("incidentdate")
+              .name("occurreddate")
               .dataType(TIMESTAMP)
               .selectExpression("en.occurreddate")
               .build(),
