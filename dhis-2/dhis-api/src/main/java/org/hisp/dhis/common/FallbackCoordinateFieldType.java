@@ -32,8 +32,8 @@ package org.hisp.dhis.common;
  */
 public enum FallbackCoordinateFieldType {
   OU_GEOMETRY("ougeometry"),
-  EVENT_GEOMETRY("evgeometry"),
-  ENROLLMENT_GEOMETRY("engeometry"),
+  EVENT_GEOMETRY("eventgeometry"),
+  ENROLLMENT_GEOMETRY("enrollmentgeometry"),
   TRACKED_ENTITY_GEOMETRY("tegeometry");
 
   private final String value;

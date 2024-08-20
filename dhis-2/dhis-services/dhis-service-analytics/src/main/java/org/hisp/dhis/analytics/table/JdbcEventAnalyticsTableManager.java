@@ -237,7 +237,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               .selectExpression("en.status")
               .build(),
           AnalyticsTableColumn.builder()
-              .name("evgeometry")
+              .name("eventgeometry")
               .dataType(GEOMETRY)
               .selectExpression("ev.geometry")
               .indexType(IndexType.GIST)
@@ -284,7 +284,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               .indexType(IndexType.GIST)
               .build(),
           AnalyticsTableColumn.builder()
-              .name("engeometry")
+              .name("enrollmentgeometry")
               .dataType(GEOMETRY)
               .selectExpression("en.geometry")
               .indexType(IndexType.GIST)
