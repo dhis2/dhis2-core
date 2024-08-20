@@ -109,6 +109,26 @@ public class TrackedEntityQueryDownloadTest extends AnalyticsApiTest {
   }
 
   @Test
+  void queryWithXlsxDownload() {
+    // Given
+    final String TYPE = "application/vnd.ms-excel";
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=ou:ImspTQPwCqd")
+            .add("program=IpHINAT79UW")
+            .add("relativePeriodDate=2016-01-01");
+
+    // When
+    ApiResponse response =
+        analyticsTrackedEntityActions.query().get("nEenWmSyUEp.xlsx", TYPE, TYPE, params);
+
+    // Then
+    response.validate().statusCode(200).contentType(TYPE);
+
+    assertTrue(isNotBlank(response.getAsString()));
+  }
+
+  @Test
   void queryWithCsvDownload() {
     // Given
     final String TYPE = "application/csv";
