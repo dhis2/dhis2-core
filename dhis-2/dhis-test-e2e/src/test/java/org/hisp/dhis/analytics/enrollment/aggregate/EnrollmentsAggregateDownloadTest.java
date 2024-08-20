@@ -92,6 +92,31 @@ public class EnrollmentsAggregateDownloadTest extends AnalyticsApiTest {
   }
 
   @Test
+  void queryWithXlsxDownload() {
+    // Given
+    final String TYPE = "application/vnd.ms-excel";
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=ou:O6uvpzGd5pu;kJq2mPyFEHo")
+            .add("dimension=pe:THIS_YEAR")
+            .add("dimension=A03MvHHogjR.cejWyOfXge6")
+            .add("stage=A03MvHHogjR")
+            .add("program=IpHINAT79UW")
+            .add("displayProperty=SHORTNAME")
+            .add("totalPages=false")
+            .add("outputType=ENROLLMENT");
+
+    // When
+    ApiResponse response =
+        analyticsEnrollmentsActions.query().get("IpHINAT79UW.xlsx", TYPE, TYPE, params);
+
+    // Then
+    response.validate().statusCode(200).contentType(TYPE);
+
+    assertTrue(isNotBlank(response.getAsString()));
+  }
+
+  @Test
   void queryWithCsvDownload() {
     // Given
     final String TYPE = "application/csv";
