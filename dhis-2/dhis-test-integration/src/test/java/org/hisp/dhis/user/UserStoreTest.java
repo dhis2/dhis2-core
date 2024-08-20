@@ -229,16 +229,19 @@ class UserStoreTest extends SingleSetupIntegrationTestBase {
     User userB = makeUser("B");
     User userC = makeUser("C");
     User userD = makeUser("D");
+    User userE = makeUser("E");
 
     userA.setOpenId(openId1);
     userB.setOpenId(openId1);
     userC.setOpenId(openId1);
-    userD.setOpenId(openId2);
+    userD.setOpenId(openId1);
+    userE.setOpenId(openId2);
 
     userA.setLastLogin(parseDate("2024-07-01"));
     userB.setLastLogin(parseDate("2024-07-02"));
     userC.setLastLogin(parseDate("2024-07-03"));
-    userD.setLastLogin(parseDate("2024-07-04"));
+    userD.setLastLogin(null);
+    userE.setLastLogin(parseDate("2024-07-04"));
 
     userC.setDisabled(true);
 
@@ -246,6 +249,7 @@ class UserStoreTest extends SingleSetupIntegrationTestBase {
     userStore.save(userB);
     userStore.save(userC);
     userStore.save(userD);
+    userStore.save(userE);
 
     User foundUser = userStore.getUserByOpenId(openId1);
     assertEquals(userB.getUid(), foundUser.getUid());

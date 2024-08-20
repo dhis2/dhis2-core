@@ -151,10 +151,15 @@ public interface UserStore extends IdentifiableObjectStore<User> {
   List<User> getUserByUsernames(Collection<String> usernames);
 
   /**
-   * Retrieves the User associated with the User with the given open ID.
+   * Retrieves the most recently-used enabled User associated with the given open ID.
+   *
+   * <p>This only returns enabled users.
+   *
+   * <p>A newly-created User (last login is null) will only be returned if there is no enabled User
+   * with the given open ID and a non-null last login.
    *
    * @param openId open ID.
-   * @return the User or null if there is no match.
+   * @return the User or null if there is no enabled user match.
    */
   @CheckForNull
   User getUserByOpenId(@Nonnull String openId);
