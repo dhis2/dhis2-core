@@ -42,6 +42,7 @@ import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.util.RelationshipUtils;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -237,7 +238,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldNotReturnRelationshipByTrackedEntityIfUserHasNoAccessToTrackedEntityType()
-      throws ForbiddenException, NotFoundException {
+      throws ForbiddenException, NotFoundException, BadRequestException {
 
     Relationship accessible = relationship(teA, teB);
     relationship(teA, inaccessibleTe, teToInaccessibleTeType);
@@ -254,7 +255,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldNotReturnRelationshipByEnrollmentIfUserHasNoAccessToRelationshipType()
-      throws ForbiddenException, NotFoundException {
+      throws ForbiddenException, NotFoundException, BadRequestException {
     Relationship accessible = relationship(teA, enrollmentA);
     relationship(teB, enrollmentA, teToInaccessibleEnType);
 
@@ -273,7 +274,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldNotReturnRelationshipByEventIfUserHasNoAccessToProgramStage()
-      throws ForbiddenException, NotFoundException {
+      throws ForbiddenException, NotFoundException, BadRequestException {
     Relationship accessible = relationship(teA, eventA);
     relationship(eventA, inaccessibleEvent);
 
@@ -334,7 +335,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldExcludeRelationshipWhenProgramIsProtectedAndUserHasNoAccess()
-      throws ForbiddenException, NotFoundException {
+      throws ForbiddenException, NotFoundException, BadRequestException {
     injectAdminIntoSecurityContext();
 
     TrackedEntity trackedEntityFrom = createTrackedEntity(orgUnitA);

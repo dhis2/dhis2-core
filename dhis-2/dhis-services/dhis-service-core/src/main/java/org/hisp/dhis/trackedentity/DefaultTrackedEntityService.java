@@ -32,12 +32,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Date;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,8 +46,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("org.hisp.dhis.trackedentity.TrackedEntityService")
 public class DefaultTrackedEntityService implements TrackedEntityService {
   private final TrackedEntityStore trackedEntityStore;
-
-  private final TrackedEntityChangeLogService trackedEntityChangeLogService;
 
   public DefaultTrackedEntityService(
       TrackedEntityStore trackedEntityStore,
@@ -70,7 +66,6 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     checkNotNull(attributeValueAuditService);
 
     this.trackedEntityStore = trackedEntityStore;
-    this.trackedEntityChangeLogService = trackedEntityChangeLogService;
   }
 
   @Override
@@ -79,25 +74,5 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
       Set<String> trackedEntityUIDs, Date lastUpdated, String userInfoSnapshot) {
     trackedEntityStore.updateTrackedEntityLastUpdated(
         trackedEntityUIDs, lastUpdated, userInfoSnapshot);
-  }
-
-  @Override
-  @Transactional
-  public TrackedEntity getTrackedEntity(String uid) {
-    TrackedEntity te = trackedEntityStore.getByUid(uid);
-    addTrackedEntityAudit(te, CurrentUserUtil.getCurrentUsername());
-
-    return te;
-  }
-
-  private void addTrackedEntityAudit(TrackedEntity trackedEntity, String username) {
-    if (username != null
-        && trackedEntity != null
-        && trackedEntity.getTrackedEntityType() != null
-        && trackedEntity.getTrackedEntityType().isAllowAuditLog()) {
-      TrackedEntityChangeLog trackedEntityChangeLog =
-          new TrackedEntityChangeLog(trackedEntity.getUid(), username, ChangeLogType.READ);
-      trackedEntityChangeLogService.addTrackedEntityChangeLog(trackedEntityChangeLog);
-    }
   }
 }
