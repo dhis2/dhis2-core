@@ -407,7 +407,7 @@ public class Api {
           type ->
               oneOf.addProperty(
                   new Property(oneOf.properties.size() + "", null, toSchema.apply(type))));
-      return oneOf.complete();
+      return oneOf.sealed();
     }
 
     public static Schema ofEnum(Class<?> source, Class<?> of, List<String> values) {
@@ -469,7 +469,7 @@ public class Api {
     /** Is empty for primitive types */
     @EqualsAndHashCode.Include List<Property> properties = new ArrayList<>();
 
-    /** Marks this schema as a JVM wide singleton instance for the source */
+    /** Marks this schema as a candidate for JVM wide singleton instance for the {@link #source} */
     @With(AccessLevel.PRIVATE)
     AtomicBoolean singleton = new AtomicBoolean(false);
 
@@ -525,6 +525,13 @@ public class Api {
       return identifyAs != null;
     }
 
+    public boolean isMap() {
+      return type == Type.OBJECT
+          && properties.size() == 2
+          && properties.get(0).name.equals("_keys")
+          && properties.get(1).name.equals("_values");
+    }
+
     Set<String> getRequiredProperties() {
       return getProperties().stream()
           .filter(property -> Boolean.TRUE.equals(property.getRequired()))
@@ -559,8 +566,8 @@ public class Api {
     }
 
     Api.Schema withEntries(Schema keyType, Schema valueType) {
-      return addProperty(new Api.Property("keys", true, keyType))
-          .addProperty(new Api.Property("values", true, valueType));
+      return addProperty(new Api.Property("_keys", true, keyType))
+          .addProperty(new Api.Property("_values", true, valueType));
     }
 
     private Api.Schema asSingleton() {
@@ -568,7 +575,14 @@ public class Api {
       return this;
     }
 
-    Api.Schema complete() {
+    /**
+     * Called for arrays and objects once all properties have been added to them and the schema
+     * declaration is complete. All other schema types can and implicitly do make this evaluation at
+     * construction time.
+     *
+     * @return this type in a finalised state
+     */
+    Api.Schema sealed() {
       return properties.stream().allMatch(p -> p.type.isSingleton()) ? asSingleton() : this;
     }
   }

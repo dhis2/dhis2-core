@@ -178,7 +178,7 @@ public class OpenApiTool implements ToolProvider {
   private Integer generateDocument(
       String filename, PrintWriter out, PrintWriter err, ApiExtractor.Scope scope) {
     try {
-      Api api = ApiExtractor.extractApi(scope);
+      Api api = ApiExtractor.extractApi(new ApiExtractor.Configuration(scope, false));
 
       ApiIntegrator.integrateApi(
           api, ApiIntegrator.Configuration.builder().failOnNameClash(true).build());

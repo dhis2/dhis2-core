@@ -119,6 +119,14 @@ public class OpenApiController {
       Declarations can be logically inconsistent; for example a parameter that is both required and has a default value.
       Either this is ignored and only logs a warning (`false`) or the generation fails (`true`)""")
     boolean failOnInconsistency = false;
+
+    @OpenApi.Description(
+        """
+      Annotations that narrow the rendered type to one of the super-types of the type declared will be ignored
+      and as a consequence types occur fully expanded (with all their properties).
+      Note that this does not affect types that are re-defined as a different type using annotations.""")
+    @Maturity.Beta
+    boolean expandedRefs = false;
   }
 
   /*
@@ -220,7 +228,7 @@ public class OpenApiController {
    * JSON
    */
 
-  @OpenApi.Response(String.class)
+  @OpenApi.Response(OpenApiObject.class)
   @GetMapping(value = "/{path}/openapi.json", produces = APPLICATION_JSON_VALUE)
   public void getPathOpenApiJson(
       @PathVariable String path,
@@ -299,7 +307,9 @@ public class OpenApiController {
   private Api getApiUncached(OpenApiGenerationParams generation, OpenApiScopeParams scope) {
     Api api =
         ApiExtractor.extractApi(
-            new ApiExtractor.Scope(getAllControllerClasses(), scope.path, scope.domain));
+            new ApiExtractor.Configuration(
+                new ApiExtractor.Scope(getAllControllerClasses(), scope.path, scope.domain),
+                generation.expandedRefs));
     ApiIntegrator.integrateApi(
         api,
         ApiIntegrator.Configuration.builder()

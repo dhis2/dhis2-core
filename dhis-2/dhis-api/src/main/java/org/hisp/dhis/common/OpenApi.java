@@ -140,6 +140,9 @@ public @interface OpenApi {
   /**
    * Kind as a higher order type bucket to group objects of similar role. This is purely for display
    * purposes showing types (schemas) of same kind in the same group.
+   *
+   * <p>When annotated on a top level type the enclosed types are also associated with the same kind
+   * unless they have a varying annotation on their own.
    */
   @Inherited
   @Retention(RetentionPolicy.RUNTIME)

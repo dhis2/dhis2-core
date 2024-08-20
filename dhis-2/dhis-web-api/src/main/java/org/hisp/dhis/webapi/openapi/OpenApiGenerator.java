@@ -444,7 +444,7 @@ public class OpenApiGenerator extends JsonGenerator {
 
   private void generateObjectTypeSchema(Api.Schema schema, Direction direction, Class<?> type) {
     addStringMember("type", "object");
-    if (Map.class.isAssignableFrom(type)) {
+    if (schema.isMap()) {
       Api.Property key = schema.getProperties().get(0);
       Api.Property value = schema.getProperties().get(1);
       addObjectMember(

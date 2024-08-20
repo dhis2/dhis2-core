@@ -32,6 +32,7 @@ import static java.util.stream.Collectors.toUnmodifiableSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -52,6 +53,7 @@ import org.intellij.lang.annotations.Language;
  * @author Jan Bernitt
  * @since 2.42
  */
+@OpenApi.Kind("OpenAPI document")
 public interface OpenApiObject extends JsonObject {
 
   @Required
