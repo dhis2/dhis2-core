@@ -568,7 +568,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   @Test
   void shouldReturnPaginatedEnrollmentsGivenNonDefaultPageSize()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(orgUnit.getUid()))
@@ -600,7 +600,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   @Test
   void shouldReturnPaginatedEnrollmentsGivenNonDefaultPageSizeAndTotalPages()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(orgUnit.getUid()))
@@ -632,7 +632,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   @Test
   void shouldOrderEnrollmentsByPrimaryKeyDescByDefault()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     Enrollment nxP7UnKhomJ = get(Enrollment.class, "nxP7UnKhomJ");
     Enrollment TvctPPhpD8z = get(Enrollment.class, "TvctPPhpD8z");
     List<String> expected =
@@ -653,7 +653,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldOrderEnrollmentsByEnrolledAtAsc() throws ForbiddenException, BadRequestException {
+  void shouldOrderEnrollmentsByEnrolledAtAsc()
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(orgUnit.getUid()))
@@ -667,7 +668,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldOrderEnrollmentsByEnrolledAtDesc() throws ForbiddenException, BadRequestException {
+  void shouldOrderEnrollmentsByEnrolledAtDesc()
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
             .orgUnitUids(Set.of(orgUnit.getUid()))
@@ -682,7 +684,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   @Test
   void shouldReturnPaginatedEventsWithNotesGivenNonDefaultPageSize()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EventOperationParams operationParams =
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
@@ -708,7 +710,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnPaginatedEventsWithTotalPages() throws ForbiddenException, BadRequestException {
+  void shouldReturnPaginatedEventsWithTotalPages()
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EventOperationParams params =
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
@@ -725,7 +728,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   @Test
   void shouldReturnPaginatedPublicEventsWithMultipleCategoryOptionsGivenNonDefaultPageSize()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     OrganisationUnit orgUnit = get(OrganisationUnit.class, "DiszpKrYNg8");
     Program program = get(Program.class, "iS7eutanDry");
 
@@ -755,7 +758,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   @Test
   void shouldReturnPaginatedEventsWithMultipleCategoryOptionsGivenNonDefaultPageSizeAndTotalPages()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     OrganisationUnit orgUnit = get(OrganisationUnit.class, "DiszpKrYNg8");
     Program program = get(Program.class, "iS7eutanDry");
 
@@ -775,7 +778,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldOrderEventsByPrimaryKeyDescByDefault() throws ForbiddenException, BadRequestException {
+  void shouldOrderEventsByPrimaryKeyDescByDefault()
+      throws ForbiddenException, BadRequestException, NotFoundException {
     Event d9PbzJY8bJM = get(Event.class, "D9PbzJY8bJM");
     Event pTzf9KYMk72 = get(Event.class, "pTzf9KYMk72");
     List<String> expected =
@@ -792,7 +796,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldOrderEventsByEnrollmentProgramUIDAsc() throws ForbiddenException, BadRequestException {
+  void shouldOrderEventsByEnrollmentProgramUIDAsc()
+      throws ForbiddenException, BadRequestException, NotFoundException {
     Event pTzf9KYMk72 =
         get(Event.class, "pTzf9KYMk72"); // enrolled in program BFcipDERJnf with registration
     Event QRYjLTiJTrA =
@@ -817,7 +822,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   @Test
   void shouldOrderEventsByEnrollmentProgramUIDDesc()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     Event pTzf9KYMk72 =
         get(Event.class, "pTzf9KYMk72"); // enrolled in program BFcipDERJnf with registration
     Event QRYjLTiJTrA =
@@ -843,7 +848,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldOrderEventsByAttributeAsc() throws ForbiddenException, BadRequestException {
+  void shouldOrderEventsByAttributeAsc()
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EventOperationParams params =
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
@@ -856,7 +862,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldOrderEventsByAttributeDesc() throws ForbiddenException, BadRequestException {
+  void shouldOrderEventsByAttributeDesc()
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EventOperationParams params =
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
@@ -870,7 +877,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   @Test
   void shouldOrderEventsByAttributeAndNotFilterOutEventsWithATrackedEntityWithoutThatAttribute()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EventOperationParams params =
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
@@ -888,7 +895,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldOrderEventsByMultipleAttributesDesc() throws ForbiddenException, BadRequestException {
+  void shouldOrderEventsByMultipleAttributesDesc()
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EventOperationParams params =
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
@@ -902,7 +910,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldOrderEventsByMultipleAttributesAsc() throws ForbiddenException, BadRequestException {
+  void shouldOrderEventsByMultipleAttributesAsc()
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EventOperationParams params =
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
@@ -922,7 +931,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   @Test
   void shouldReturnPaginatedEventsOrderedByMultipleAttributesWhenGivenNonDefaultPageSize()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EventOperationParams operationParams =
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
@@ -948,7 +957,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldOrderEventsByProgramStageUidDesc() throws ForbiddenException, BadRequestException {
+  void shouldOrderEventsByProgramStageUidDesc()
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EventOperationParams params =
         eventParamsBuilder
             .orgUnitUid("uoNW0E3xXUy")
@@ -961,7 +971,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldOrderEventsByProgramStageUidAsc() throws ForbiddenException, BadRequestException {
+  void shouldOrderEventsByProgramStageUidAsc()
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EventOperationParams params =
         eventParamsBuilder
             .orgUnitUid("uoNW0E3xXUy")
@@ -974,7 +985,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldOrderEventsByTrackedEntityUidDesc() throws ForbiddenException, BadRequestException {
+  void shouldOrderEventsByTrackedEntityUidDesc()
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EventOperationParams params =
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
@@ -987,7 +999,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldOrderEventsByTrackedEntityUidAsc() throws ForbiddenException, BadRequestException {
+  void shouldOrderEventsByTrackedEntityUidAsc()
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EventOperationParams params =
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
@@ -1001,7 +1014,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   @Test
   void shouldOrderEventsByAttributeOptionComboUidDesc()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EventOperationParams params =
         eventParamsBuilder
             .orgUnitUid("DiszpKrYNg8")
@@ -1016,7 +1029,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   @Test
   void shouldOrderEventsByAttributeOptionComboUidAsc()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EventOperationParams params =
         eventParamsBuilder
             .orgUnitUid("DiszpKrYNg8")
@@ -1030,7 +1043,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldOrderEventsByOccurredAtDesc() throws ForbiddenException, BadRequestException {
+  void shouldOrderEventsByOccurredAtDesc()
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EventOperationParams params =
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
@@ -1043,7 +1057,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldOrderEventsByOccurredAtAsc() throws ForbiddenException, BadRequestException {
+  void shouldOrderEventsByOccurredAtAsc()
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EventOperationParams params =
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
@@ -1057,7 +1072,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   @Test
   void shouldOrderEventsByCreatedAtClientInAscOrder()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EventOperationParams params =
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
@@ -1072,7 +1087,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   @Test
   void shouldOrderEventsByCreatedAtClientInDescOrder()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EventOperationParams params =
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
@@ -1087,7 +1102,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   @Test
   void shouldOrderEventsByUpdatedAtClientInAscOrder()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EventOperationParams params =
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
@@ -1102,7 +1117,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   @Test
   void shouldOrderEventsByUpdatedAtClientInDescOrder()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EventOperationParams params =
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
@@ -1117,7 +1132,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   @Test
   void shouldOrderEventsRespectingOrderWhenAttributeOrderSuppliedBeforeOrderParam()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EventOperationParams params =
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
@@ -1132,7 +1147,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   @Test
   void shouldOrderEventsRespectingOrderWhenOrderParamSuppliedBeforeAttributeOrder()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EventOperationParams params =
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
@@ -1147,7 +1162,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   @Test
   void shouldOrderEventsRespectingOrderWhenDataElementSuppliedBeforeOrderParam()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EventOperationParams params =
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
@@ -1163,7 +1178,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   @Test
   void shouldOrderEventsRespectingOrderWhenOrderParamSuppliedBeforeDataElement()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EventOperationParams params =
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
@@ -1178,7 +1193,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   @Test
   void shouldOrderEventsByDataElementAndNotFilterOutEventsWithoutThatDataElement()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EventOperationParams params =
         eventParamsBuilder
             .orgUnitUid(orgUnit.getUid())
@@ -1218,7 +1233,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   @MethodSource("orderByFieldInDescendingOrderWhenModeSelected")
   void shouldOrderEventsByFieldInDescendingOrderWhenModeSelected(
       String field, String firstEvent, String secondEvent)
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
 
     eventParamsBuilder.orgUnitMode(SELECTED);
     eventParamsBuilder.orgUnitUid(orgUnit.getUid());
@@ -1232,7 +1247,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   @MethodSource("orderByFieldInAscendingOrderWhenModeSelected")
   void shouldOrderEventsByFieldInAscendingOrderWhenModeSelected(
       String field, String firstEvent, String secondEvent)
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
 
     eventParamsBuilder.orgUnitMode(SELECTED);
     eventParamsBuilder.orgUnitUid(orgUnit.getUid());
@@ -1264,7 +1279,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   @MethodSource("orderByFieldInDescendingOrderWhenModeDescendants")
   void shouldOrderByFieldInDescendingOrderWhenModeDescendants(
       String field, String firstEvent, String secondEvent)
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
 
     eventParamsBuilder.orgUnitMode(DESCENDANTS);
     eventParamsBuilder.orgUnitUid("RojfDTBhoGC");
@@ -1278,7 +1293,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   @MethodSource("orderByFieldInAscendingOrderWhenModeDescendants")
   void shouldOrderByFieldInAscendingOrderWhenModeDescendants(
       String field, String firstEvent, String secondEvent)
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
 
     eventParamsBuilder.orgUnitMode(DESCENDANTS);
     eventParamsBuilder.orgUnitUid("RojfDTBhoGC");
@@ -1290,7 +1305,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   @Test
   void shouldOrderRelationshipsByPrimaryKeyDescByDefault()
-      throws ForbiddenException, NotFoundException {
+      throws ForbiddenException, NotFoundException, BadRequestException {
     Relationship oLT07jKRu9e = get(Relationship.class, "oLT07jKRu9e");
     Relationship yZxjxJli9mO = get(Relationship.class, "yZxjxJli9mO");
     List<String> expected =
@@ -1312,7 +1327,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   @Test
   void shouldOrderRelationshipsByUpdatedAtClientInDescOrder()
-      throws ForbiddenException, NotFoundException {
+      throws ForbiddenException, NotFoundException, BadRequestException {
     RelationshipOperationParams params =
         RelationshipOperationParams.builder()
             .type(TrackerType.EVENT)
@@ -1327,7 +1342,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   @Test
   void shouldOrderRelationshipsByUpdatedAtClientInAscOrder()
-      throws ForbiddenException, NotFoundException {
+      throws ForbiddenException, NotFoundException, BadRequestException {
     RelationshipOperationParams params =
         RelationshipOperationParams.builder()
             .type(TrackerType.EVENT)
@@ -1342,7 +1357,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   @Test
   void shouldReturnPaginatedRelationshipsGivenNonDefaultPageSize()
-      throws ForbiddenException, NotFoundException {
+      throws ForbiddenException, NotFoundException, BadRequestException {
     // relationships can only be ordered by created date which is not under our control during
     // testing
     // pagination is tested using default order by primary key desc. We thus need to get the
@@ -1387,7 +1402,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   @Test
   void shouldReturnPaginatedRelationshipsGivenNonDefaultPageSizeAndTotalPages()
-      throws ForbiddenException, NotFoundException {
+      throws ForbiddenException, NotFoundException, BadRequestException {
     // relationships can only be ordered by created date which is not under our control during
     // testing
     // pagination is tested using default order by primary key desc. We thus need to get the
@@ -1431,7 +1446,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldOrderRelationshipsByCreatedAsc() throws ForbiddenException, NotFoundException {
+  void shouldOrderRelationshipsByCreatedAsc()
+      throws ForbiddenException, NotFoundException, BadRequestException {
     Relationship oLT07jKRu9e = get(Relationship.class, "oLT07jKRu9e");
     Relationship yZxjxJli9mO = get(Relationship.class, "yZxjxJli9mO");
 
@@ -1460,7 +1476,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldOrderRelationshipsByCreatedDesc() throws ForbiddenException, NotFoundException {
+  void shouldOrderRelationshipsByCreatedDesc()
+      throws ForbiddenException, NotFoundException, BadRequestException {
     Relationship oLT07jKRu9e = get(Relationship.class, "oLT07jKRu9e");
     Relationship yZxjxJli9mO = get(Relationship.class, "yZxjxJli9mO");
 
@@ -1521,22 +1538,22 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   private List<String> getEnrollments(EnrollmentOperationParams params)
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     return uids(enrollmentService.getEnrollments(params));
   }
 
   private List<String> getEvents(EventOperationParams params)
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     return uids(eventService.getEvents(params));
   }
 
   private List<String> getEvents(EventOperationParams params, PageParams pageParams)
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     return uids(eventService.getEvents(params, pageParams).getItems());
   }
 
   private List<String> getRelationships(RelationshipOperationParams params)
-      throws ForbiddenException, NotFoundException {
+      throws ForbiddenException, NotFoundException, BadRequestException {
     return uids(relationshipService.getRelationships(params));
   }
 

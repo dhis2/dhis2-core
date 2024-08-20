@@ -248,7 +248,7 @@ class DefaultEnrollmentService implements EnrollmentService {
   @Override
   public List<Enrollment> getEnrollments(
       String trackedEntityUid, Program program, EnrollmentStatus enrollmentStatus)
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder()
             .trackedEntityUid(trackedEntityUid)
@@ -262,7 +262,7 @@ class DefaultEnrollmentService implements EnrollmentService {
 
   @Override
   public List<Enrollment> getEnrollments(EnrollmentOperationParams params)
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EnrollmentQueryParams queryParams = paramsMapper.map(params);
 
     return getEnrollments(
@@ -274,7 +274,7 @@ class DefaultEnrollmentService implements EnrollmentService {
 
   @Override
   public Page<Enrollment> getEnrollments(EnrollmentOperationParams params, PageParams pageParams)
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     EnrollmentQueryParams queryParams = paramsMapper.map(params);
 
     Page<Enrollment> enrollmentsPage = enrollmentStore.getEnrollments(queryParams, pageParams);

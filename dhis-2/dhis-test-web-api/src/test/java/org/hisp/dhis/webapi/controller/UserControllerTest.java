@@ -1016,7 +1016,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   private OutboundMessage assertMessageSendTo(String email) {
     List<OutboundMessage> messagesByEmail =
         ((FakeMessageSender) messageSender).getMessagesByEmail(email);
-    assertTrue(messagesByEmail.size() > 0);
+    assertFalse(messagesByEmail.isEmpty());
     return messagesByEmail.get(0);
   }
 

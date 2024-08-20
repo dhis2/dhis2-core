@@ -213,4 +213,8 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    * @param activeUsername the username of the user to set as active
    */
   void setActiveLinkedAccounts(@Nonnull String actingUser, @Nonnull String activeUsername);
+
+  User getUserByVerificationToken(String token);
+
+  User getUserByVerifiedEmail(String email);
 }

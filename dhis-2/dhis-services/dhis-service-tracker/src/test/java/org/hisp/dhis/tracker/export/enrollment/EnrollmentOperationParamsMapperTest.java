@@ -49,14 +49,12 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -95,10 +93,6 @@ class EnrollmentOperationParamsMapperTest {
 
   @Mock private TrackedEntityService trackedEntityService;
 
-  @Mock private TrackerAccessManager trackerAccessManager;
-
-  @Mock private AclService aclService;
-
   @Mock private OperationsParamsValidator paramsValidator;
 
   @InjectMocks private EnrollmentOperationParamsMapper mapper;
@@ -110,7 +104,7 @@ class EnrollmentOperationParamsMapperTest {
   private User user;
 
   @BeforeEach
-  void setUp() {
+  void setUp() throws ForbiddenException, BadRequestException {
     user = new User();
     user.setUsername("admin");
 
@@ -142,7 +136,13 @@ class EnrollmentOperationParamsMapperTest {
     TrackedEntity trackedEntity = new TrackedEntity();
     trackedEntity.setUid(TRACKED_ENTITY_UID);
     trackedEntity.setTrackedEntityType(trackedEntityType);
-    when(trackedEntityService.getTrackedEntity(TRACKED_ENTITY_UID)).thenReturn(trackedEntity);
+
+    when(paramsValidator.validateTrackerProgram(PROGRAM_UID, user)).thenReturn(program);
+    when(paramsValidator.validateTrackedEntityType(TRACKED_ENTITY_TYPE_UID, user))
+        .thenReturn(trackedEntityType);
+    when(paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user)).thenReturn(trackedEntity);
+    when(paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID), user))
+        .thenReturn(Set.of(orgUnit1, orgUnit2));
   }
 
   @Test

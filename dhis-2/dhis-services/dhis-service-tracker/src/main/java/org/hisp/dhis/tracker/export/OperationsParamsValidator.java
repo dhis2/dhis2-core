@@ -33,6 +33,7 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -42,7 +43,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -57,11 +58,13 @@ public class OperationsParamsValidator {
 
   private final AclService aclService;
 
-  private final TrackedEntityService trackedEntityService;
+  private final IdentifiableObjectManager manager;
 
   private final TrackedEntityTypeService trackedEntityTypeService;
 
   private final OrganisationUnitService organisationUnitService;
+
+  private final TrackedEntityChangeLogService trackedEntityChangeLogService;
 
   /**
    * Validates the user is authorized and/or has the necessary configuration set up in case the org
@@ -178,11 +181,14 @@ public class OperationsParamsValidator {
       return null;
     }
 
-    TrackedEntity trackedEntity = trackedEntityService.getTrackedEntity(trackedEntityUid);
+    // TODO(tracker) Are these validations enough? Should we check for ownership too?
+    TrackedEntity trackedEntity = manager.get(TrackedEntity.class, trackedEntityUid);
     if (trackedEntity == null) {
       throw new BadRequestException(
           "Tracked entity is specified but does not exist: " + trackedEntityUid);
     }
+    trackedEntityChangeLogService.addTrackedEntityChangeLog(
+        trackedEntity, getCurrentUsername(), READ);
 
     if (trackedEntity.getTrackedEntityType() != null
         && !aclService.canDataRead(user, trackedEntity.getTrackedEntityType())) {

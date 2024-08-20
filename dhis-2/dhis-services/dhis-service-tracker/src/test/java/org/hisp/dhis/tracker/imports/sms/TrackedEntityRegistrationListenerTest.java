@@ -59,11 +59,11 @@ import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -111,13 +111,9 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
 
   private TrackedEntityRegistrationSMSListener subject;
 
-  private TrackedEntity trackedEntity;
-
   private TrackedEntityAttribute trackedEntityAttribute;
 
   private TrackedEntityAttributeValue trackedEntityAttributeValue;
-
-  private ProgramTrackedEntityAttribute programTrackedEntityAttribute;
 
   private Program program;
 
@@ -127,13 +123,11 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
 
   private SMSCommand teRegistrationCommand;
 
-  private SMSCode smsCode;
-
   private IncomingSms incomingSms;
 
   private IncomingSms updatedIncomingSms;
 
-  private OutboundMessageResponse response = new OutboundMessageResponse();
+  private final OutboundMessageResponse response = new OutboundMessageResponse();
 
   private String message = "";
 
@@ -177,7 +171,6 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
   @Test
   void testTrackedEntityRegistration() {
     // Mock for trackedEntityService
-    when(trackedEntityService.getTrackedEntity(any())).thenReturn(trackedEntity);
     when(programService.hasOrgUnit(program, organisationUnit)).thenReturn(true);
 
     // Mock for incomingSmsService
@@ -218,14 +211,14 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
     user.setPhoneNumber(ORIGINATOR);
     user.setOrganisationUnits(Sets.newHashSet(organisationUnit));
 
-    programTrackedEntityAttribute =
+    ProgramTrackedEntityAttribute programTrackedEntityAttribute =
         createProgramTrackedEntityAttribute(program, trackedEntityAttribute);
     trackedEntityAttribute = createTrackedEntityAttribute('A', ValueType.TEXT);
     program.getProgramAttributes().add(programTrackedEntityAttribute);
     program.getOrganisationUnits().add(organisationUnit);
     program.setTrackedEntityType(trackedEntityType);
 
-    trackedEntity = createTrackedEntity(organisationUnit);
+    TrackedEntity trackedEntity = createTrackedEntity(organisationUnit);
     trackedEntity.getTrackedEntityAttributeValues().add(trackedEntityAttributeValue);
     trackedEntity.setOrganisationUnit(organisationUnit);
     trackedEntity.setTrackedEntityType(trackedEntityType);
@@ -234,7 +227,7 @@ class TrackedEntityRegistrationListenerTest extends TestBase {
         createTrackedEntityAttributeValue('A', trackedEntity, trackedEntityAttribute);
     trackedEntityAttributeValue.setValue(ATTRIBUTE_VALUE);
 
-    smsCode = new SMSCode();
+    SMSCode smsCode = new SMSCode();
     smsCode.setCode("attr");
     smsCode.setTrackedEntityAttribute(trackedEntityAttribute);
 
