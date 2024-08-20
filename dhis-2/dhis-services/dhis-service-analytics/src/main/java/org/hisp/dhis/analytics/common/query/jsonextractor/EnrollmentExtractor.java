@@ -43,9 +43,16 @@ enum EnrollmentExtractor {
   ENROLLMENTDATE(
       DimensionParam.StaticDimension.ENROLLMENTDATE,
       a -> JsonExtractorUtils.getFormattedDate(a.getEnrollmentDate())),
+  /**
+   * @deprecated use {@link #OCCURREDDATE} instead. Kept for backward compatibility.
+   */
+  @Deprecated
   INCIDENTDATE(
       DimensionParam.StaticDimension.INCIDENTDATE,
       a -> JsonExtractorUtils.getFormattedDate(a.getIncidentDate())),
+  OCCURREDDATE(
+      DimensionParam.StaticDimension.OCCURREDDATE,
+      a -> JsonExtractorUtils.getFormattedDate(a.getOccurredDate())),
   OUNAME(DimensionParam.StaticDimension.OUNAME, JsonEnrollment::getOrgUnitName),
   OUCODE(DimensionParam.StaticDimension.OUCODE, JsonEnrollment::getOrgUnitCode),
   OUNAMEHIERARCHY(
