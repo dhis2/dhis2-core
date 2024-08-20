@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.UserInfoSnapshot;
@@ -75,6 +76,8 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
   private final TrackerObjectDeletionService deletionService;
 
   private List<NotificationHandlerService> notificationHandlers = new ArrayList<>();
+
+  private IdentifiableObjectManager manager;
 
   @Autowired(required = false)
   public void setNotificationHandlers(List<NotificationHandlerService> notificationHandlers) {
