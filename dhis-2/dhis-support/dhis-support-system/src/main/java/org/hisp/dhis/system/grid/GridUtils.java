@@ -279,25 +279,24 @@ public class GridUtils {
 
   /** Writes a XLS (Excel workbook) representation of the given Grid to the given OutputStream. */
   public static void toXls(Grid grid, OutputStream out) throws IOException {
-    Workbook workbook = new HSSFWorkbook();
-
-    String sheetName =
-        filenameEncode(StringUtils.defaultIfEmpty(grid.getTitle(), XLS_SHEET_PREFIX + 1));
-
-    toXlsInternal(
-        grid,
-        workbook.createSheet(sheetName),
-        createHeaderCellStyle(workbook),
-        createCellStyle(workbook));
-
-    workbook.write(out);
-    workbook.close();
+    toWorkbook(new HSSFWorkbook(), grid, out);
   }
 
   /** Writes a XLSX (Excel workbook) representation of the given Grid to the given OutputStream. */
   public static void toXlsx(Grid grid, OutputStream out) throws IOException {
-    Workbook workbook = new XSSFWorkbook();
+    toWorkbook(new XSSFWorkbook(), grid, out);
+  }
 
+  /**
+   * Write the workbook of the analytics grid to the output stream.
+   *
+   * @param workbook the {@link Workbook}
+   * @param grid the {@link Grid}
+   * @param out the {@link OutputStream}
+   * @throws IOException
+   */
+  private static void toWorkbook(Workbook workbook, Grid grid, OutputStream out)
+      throws IOException {
     String sheetName =
         filenameEncode(StringUtils.defaultIfEmpty(grid.getTitle(), XLS_SHEET_PREFIX + 1));
 
