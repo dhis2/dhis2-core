@@ -72,6 +72,8 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
@@ -100,6 +102,7 @@ import org.hisp.dhis.webapi.strategy.old.tracker.imports.TrackedEntityInstanceSt
 import org.hisp.dhis.webapi.strategy.old.tracker.imports.request.TrackerEntityInstanceRequest;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
+import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -148,6 +151,8 @@ public class TrackedEntityInstanceController {
   private final TrackedEntityInstanceCriteriaMapper criteriaMapper;
 
   private final TrackedEntityInstanceStrategyHandler trackedEntityInstanceStrategyHandler;
+
+  private final DhisConfigurationProvider config;
 
   // -------------------------------------------------------------------------
   // READ
@@ -599,6 +604,8 @@ public class TrackedEntityInstanceController {
   private void setHttpResponse(HttpServletResponse response, FileResource fileResource) {
     response.setContentType(fileResource.getContentType());
     response.setContentLengthLong(fileResource.getContentLength());
-    response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName());
+    response.setHeader(
+        HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileResource.getName());
+    HeaderUtils.setSecurityHeaders(response, config.getProperty(ConfigurationKey.CSP_HEADER_VALUE));
   }
 }
