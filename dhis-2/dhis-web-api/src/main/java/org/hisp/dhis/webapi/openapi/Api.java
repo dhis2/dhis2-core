@@ -213,7 +213,10 @@ public class Api {
 
     @EqualsAndHashCode.Include String name;
     OpenApi.Document.Group group;
+
     Maybe<String> description = new Maybe<>();
+    List<String> authorities = new ArrayList<>(0);
+
     Boolean deprecated;
     @CheckForNull Maturity.Classification maturity;
 

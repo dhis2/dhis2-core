@@ -79,6 +79,7 @@ import org.hisp.dhis.jsontree.Json;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonValue;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.openapi.Api.Parameter.In;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.springframework.http.HttpStatus;
@@ -260,6 +261,7 @@ final class ApiExtractor {
         new Api.Endpoint(controller, source, entityType, name, group, deprecated, maturity);
 
     endpoint.getDescription().setIfAbsent(extractDescription(source));
+    extractEndpointAuthorities(endpoint);
 
     mapping.path().stream()
         .map(path -> path.endsWith("/") ? path.substring(0, path.length() - 1) : path)
@@ -273,6 +275,15 @@ final class ApiExtractor {
     endpoint.getResponses().putAll(extractResponses(endpoint, mapping, consumes));
 
     return endpoint;
+  }
+
+  private static void extractEndpointAuthorities(Api.Endpoint endpoint) {
+    Method source = endpoint.getSource();
+    if (source.isAnnotationPresent(RequiresAuthority.class)) {
+      Stream.of(source.getAnnotation(RequiresAuthority.class).anyOf())
+          .map(Enum::name)
+          .forEach(auth -> endpoint.getAuthorities().add(auth));
+    }
   }
 
   @CheckForNull

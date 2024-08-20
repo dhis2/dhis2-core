@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -234,6 +235,11 @@ public interface OpenApiObject extends JsonObject {
 
     default String x_maturity() {
       return getString("x-maturity").string();
+    }
+
+    default List<String> x_auth() {
+      JsonArray auth = getArray("x-auth");
+      return auth.isUndefined() || auth.isEmpty() ? List.of() : auth.stringValues();
     }
 
     default List<String> tags() {

@@ -796,6 +796,7 @@ public class OpenApiRenderer {
           renderBoxToolbar(null);
           appendTag("header", markdownToHTML(op.description(), op.parameterNames()));
           renderLabelledValue("operationId", op.operationId());
+          if (!op.x_auth().isEmpty()) renderLabelledValue("authorities", op.x_auth());
           if (!op.tags().isEmpty()) renderLabelledValue("tags", op.tags(), "", 0);
           renderParameters(op);
           renderRequestBody(op);

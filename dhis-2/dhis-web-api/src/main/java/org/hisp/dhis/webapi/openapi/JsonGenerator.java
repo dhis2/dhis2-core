@@ -213,13 +213,13 @@ public class JsonGenerator {
   }
 
   final void addArrayMember(String name, Collection<String> values) {
+    if (values.isEmpty()) return;
     addArrayMember(name, values, value -> addStringMember(null, value));
   }
 
   final <E> void addArrayMember(String name, Collection<E> items, Consumer<E> forEach) {
-    if (!items.isEmpty()) {
-      addArrayMember(name, () -> items.forEach(forEach));
-    }
+    if (items.isEmpty()) return;
+    addArrayMember(name, () -> items.forEach(forEach));
   }
 
   final void addArrayMember(String name, Runnable addElements) {
@@ -242,6 +242,7 @@ public class JsonGenerator {
    * an inline array
    */
   final void addInlineArrayMember(String name, Collection<String> values) {
+    if (values.isEmpty()) return;
     appendMemberName(name);
     out.append(language.arrayInlineStart);
     int i = 0;

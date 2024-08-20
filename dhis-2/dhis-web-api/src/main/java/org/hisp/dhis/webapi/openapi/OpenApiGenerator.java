@@ -232,6 +232,7 @@ public class OpenApiGenerator extends JsonGenerator {
           addStringMember("operationId", getUniqueOperationId(endpoint));
           addStringMember("x-package", endpoint.getIn().getDomain().getSimpleName());
           addStringMember("x-group", endpoint.getGroup().tag());
+          addInlineArrayMember("x-auth", endpoint.getAuthorities());
           addInlineArrayMember("tags", List.copyOf(tags));
           addArrayMember(
               "parameters", endpoint.getParameters().values(), this::generateParameterOrRef);
