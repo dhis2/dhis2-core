@@ -74,6 +74,7 @@ import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.velocity.VelocityContext;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
@@ -279,6 +280,23 @@ public class GridUtils {
   /** Writes a XLS (Excel workbook) representation of the given Grid to the given OutputStream. */
   public static void toXls(Grid grid, OutputStream out) throws IOException {
     Workbook workbook = new HSSFWorkbook();
+
+    String sheetName =
+        filenameEncode(StringUtils.defaultIfEmpty(grid.getTitle(), XLS_SHEET_PREFIX + 1));
+
+    toXlsInternal(
+        grid,
+        workbook.createSheet(sheetName),
+        createHeaderCellStyle(workbook),
+        createCellStyle(workbook));
+
+    workbook.write(out);
+    workbook.close();
+  }
+
+  /** Writes a XLSX (Excel workbook) representation of the given Grid to the given OutputStream. */
+  public static void toXlsx(Grid grid, OutputStream out) throws IOException {
+    Workbook workbook = new XSSFWorkbook();
 
     String sheetName =
         filenameEncode(StringUtils.defaultIfEmpty(grid.getTitle(), XLS_SHEET_PREFIX + 1));
