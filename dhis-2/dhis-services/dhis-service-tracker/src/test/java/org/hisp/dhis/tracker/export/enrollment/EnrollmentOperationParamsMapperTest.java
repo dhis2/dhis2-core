@@ -137,11 +137,11 @@ class EnrollmentOperationParamsMapperTest {
     trackedEntity.setUid(TRACKED_ENTITY_UID);
     trackedEntity.setTrackedEntityType(trackedEntityType);
 
-    when(paramsValidator.validateTrackerProgram(PROGRAM_UID, user)).thenReturn(program);
-    when(paramsValidator.validateTrackedEntityType(TRACKED_ENTITY_TYPE_UID, user))
+    when(paramsValidator.validateTrackerProgram(PROGRAM_UID)).thenReturn(program);
+    when(paramsValidator.validateTrackedEntityType(TRACKED_ENTITY_TYPE_UID))
         .thenReturn(trackedEntityType);
     when(paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user)).thenReturn(trackedEntity);
-    when(paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID), user))
+    when(paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID)))
         .thenReturn(Set.of(orgUnit1, orgUnit2));
   }
 
