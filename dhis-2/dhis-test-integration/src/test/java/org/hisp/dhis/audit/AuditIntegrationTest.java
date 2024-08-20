@@ -112,7 +112,7 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
     manager.save(ou);
     manager.save(attribute);
     TrackedEntity trackedEntity = createTrackedEntity('A', ou, attribute);
-    trackedEntityService.addTrackedEntity(trackedEntity);
+    manager.save(trackedEntity);
     AuditQuery query = AuditQuery.builder().uid(Sets.newHashSet(trackedEntity.getUid())).build();
     await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 0);
     List<Audit> audits = auditService.getAudits(query);
@@ -131,7 +131,7 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
     manager.save(ou);
     manager.save(attribute);
     TrackedEntity trackedEntity = createTrackedEntity('A', ou, attribute);
-    trackedEntityService.addTrackedEntity(trackedEntity);
+    manager.save(trackedEntity);
     TrackedEntityAttributeValue dataValue =
         createTrackedEntityAttributeValue('A', trackedEntity, attribute);
     attributeValueService.addTrackedEntityAttributeValue(dataValue);

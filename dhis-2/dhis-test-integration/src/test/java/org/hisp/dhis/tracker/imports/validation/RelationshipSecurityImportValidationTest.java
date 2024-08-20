@@ -34,7 +34,6 @@ import static org.hisp.dhis.tracker.imports.validation.Users.USER_12;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4020;
 
 import java.io.IOException;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.TrackerTest;
@@ -49,8 +48,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class RelationshipSecurityImportValidationTest extends TrackerTest {
-
-  @Autowired protected EnrollmentService enrollmentService;
 
   @Autowired private TrackerImportService trackerImportService;
 

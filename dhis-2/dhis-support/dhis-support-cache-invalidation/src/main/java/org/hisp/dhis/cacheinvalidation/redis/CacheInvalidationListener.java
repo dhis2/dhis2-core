@@ -48,11 +48,9 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 /**
@@ -63,7 +61,6 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-@Profile({"!test", "!test-h2"})
 @Conditional(value = CacheInvalidationEnabledCondition.class)
 public class CacheInvalidationListener extends BaseCacheEvictionService
     implements RedisPubSubListener<String, String> {
@@ -75,7 +72,6 @@ public class CacheInvalidationListener extends BaseCacheEvictionService
       QueryCacheManager queryCacheManager,
       IdentifiableObjectManager idObjectManager,
       TrackedEntityAttributeService trackedEntityAttributeService,
-      TrackedEntityService trackedEntityService,
       PeriodService periodService,
       @Qualifier("cacheInvalidationServerId") String serverInstanceId) {
     super(
@@ -84,7 +80,6 @@ public class CacheInvalidationListener extends BaseCacheEvictionService
         queryCacheManager,
         idObjectManager,
         trackedEntityAttributeService,
-        trackedEntityService,
         periodService);
 
     this.serverInstanceId = serverInstanceId;
@@ -221,7 +216,7 @@ public class CacheInvalidationListener extends BaseCacheEvictionService
 
     TrackedEntityAttribute trackedEntityAttribute =
         trackedEntityAttributeService.getTrackedEntityAttribute(trackedEntityAttributeId);
-    TrackedEntity trackedEntity = trackedEntityService.getTrackedEntity(trackedEntityId);
+    TrackedEntity trackedEntity = idObjectManager.get(TrackedEntity.class, trackedEntityId);
 
     return new TrackedEntityAttributeValue(trackedEntityAttribute, trackedEntity);
   }

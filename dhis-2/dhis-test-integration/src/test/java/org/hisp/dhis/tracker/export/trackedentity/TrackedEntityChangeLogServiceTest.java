@@ -40,6 +40,8 @@ import org.awaitility.Awaitility;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -185,7 +187,7 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
 
     Exception exception =
         assertThrows(
-            NotFoundException.class,
+            ForbiddenException.class,
             () ->
                 trackedEntityChangeLogService.getTrackedEntityChangeLog(
                     UID.of(trackedEntity.getUid()),
@@ -194,7 +196,7 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
                     defaultPageParams));
 
     assertEquals(
-        String.format("TrackedEntity with id %s could not be found.", trackedEntity.getUid()),
+        String.format("User has no access to TrackedEntity:%s", trackedEntity.getUid()),
         exception.getMessage());
   }
 
@@ -203,12 +205,11 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
     Program program = createAndAddProgram('B');
     injectSecurityContextUser(user);
 
-    programOwnerService.createOrUpdateTrackedEntityProgramOwner(
-        trackedEntity.getUid(), program.getUid(), orgUnitB.getUid());
+    programOwnerService.createOrUpdateTrackedEntityProgramOwner(trackedEntity, program, orgUnitB);
 
     Exception exception =
         assertThrows(
-            NotFoundException.class,
+            ForbiddenException.class,
             () ->
                 trackedEntityChangeLogService.getTrackedEntityChangeLog(
                     UID.of(trackedEntity.getUid()),
@@ -216,17 +217,17 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
                     defaultOperationParams,
                     defaultPageParams));
     assertEquals(
-        String.format("TrackedEntity with id %s could not be found.", trackedEntity.getUid()),
+        String.format("User has no access to TrackedEntity:%s", trackedEntity.getUid()),
         exception.getMessage());
   }
 
   @Test
-  void shouldReturnChangeLogsWhenTrackedEntityAttributeValueIsCreated() throws NotFoundException {
+  void shouldReturnChangeLogsWhenTrackedEntityAttributeValueIsCreated()
+      throws NotFoundException, ForbiddenException, BadRequestException {
     updateAttributeValue(trackedEntityAttributeValue, ChangeLogType.CREATE, "new value");
     Program program = createAndAddProgram('C');
 
-    programOwnerService.createOrUpdateTrackedEntityProgramOwner(
-        trackedEntity.getUid(), program.getUid(), orgUnitA.getUid());
+    programOwnerService.createOrUpdateTrackedEntityProgramOwner(trackedEntity, program, orgUnitA);
 
     createAndPersistProgramAttribute(program, trackedEntityAttribute);
 
@@ -245,12 +246,12 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldReturnChangeLogsWhenTrackedEntityAttributeValueIsDeleted() throws NotFoundException {
+  void shouldReturnChangeLogsWhenTrackedEntityAttributeValueIsDeleted()
+      throws NotFoundException, ForbiddenException, BadRequestException {
     updateAttributeValue(trackedEntityAttributeValue, ChangeLogType.DELETE, "value");
     Program program = createAndAddProgram('D');
 
-    programOwnerService.createOrUpdateTrackedEntityProgramOwner(
-        trackedEntity.getUid(), program.getUid(), orgUnitA.getUid());
+    programOwnerService.createOrUpdateTrackedEntityProgramOwner(trackedEntity, program, orgUnitA);
 
     createAndPersistProgramAttribute(program, trackedEntityAttribute);
 
@@ -267,12 +268,12 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldReturnChangeLogsWhenTrackedEntityAttributeValueIsUpdated() throws NotFoundException {
+  void shouldReturnChangeLogsWhenTrackedEntityAttributeValueIsUpdated()
+      throws NotFoundException, ForbiddenException, BadRequestException {
     updateAttributeValue(trackedEntityAttributeValue, ChangeLogType.UPDATE, "updated value");
     Program program = createAndAddProgram('E');
 
-    programOwnerService.createOrUpdateTrackedEntityProgramOwner(
-        trackedEntity.getUid(), program.getUid(), orgUnitA.getUid());
+    programOwnerService.createOrUpdateTrackedEntityProgramOwner(trackedEntity, program, orgUnitA);
 
     createAndPersistProgramAttribute(program, trackedEntityAttribute);
 
@@ -295,12 +296,11 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnChangeLogsWhenTrackedEntityAttributeValueIsUpdatedTwiceInARow()
-      throws NotFoundException {
+      throws NotFoundException, ForbiddenException, BadRequestException {
     updateAttributeValue(trackedEntityAttributeValue, ChangeLogType.UPDATE, "updated value");
     updateAttributeValue(trackedEntityAttributeValue, ChangeLogType.UPDATE, "latest updated value");
     Program program = createAndAddProgram('F');
-    programOwnerService.createOrUpdateTrackedEntityProgramOwner(
-        trackedEntity.getUid(), program.getUid(), orgUnitA.getUid());
+    programOwnerService.createOrUpdateTrackedEntityProgramOwner(trackedEntity, program, orgUnitA);
 
     createAndPersistProgramAttribute(program, trackedEntityAttribute);
 
@@ -329,13 +329,12 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnChangeLogsWhenTrackedEntityAttributeValueIsCreatedUpdatedAndDeleted()
-      throws NotFoundException {
+      throws NotFoundException, ForbiddenException, BadRequestException {
     updateAttributeValue(trackedEntityAttributeValue, ChangeLogType.CREATE, "new value");
     updateAttributeValue(trackedEntityAttributeValue, ChangeLogType.UPDATE, "updated value");
     updateAttributeValue(trackedEntityAttributeValue, ChangeLogType.DELETE, "updated value");
     Program program = createAndAddProgram('G');
-    programOwnerService.createOrUpdateTrackedEntityProgramOwner(
-        trackedEntity.getUid(), program.getUid(), orgUnitA.getUid());
+    programOwnerService.createOrUpdateTrackedEntityProgramOwner(trackedEntity, program, orgUnitA);
 
     createAndPersistProgramAttribute(program, trackedEntityAttribute);
 
@@ -363,7 +362,8 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldReturnChangeLogsFromAccessibleTEAWhenProgramNotSpecified() throws NotFoundException {
+  void shouldReturnChangeLogsFromAccessibleTEAWhenProgramNotSpecified()
+      throws NotFoundException, ForbiddenException, BadRequestException {
     updateAttributeValue(trackedEntityAttributeValue, ChangeLogType.CREATE, "new value");
     TrackedEntityTypeAttribute trackedEntityTypeAttribute =
         new TrackedEntityTypeAttribute(trackedEntityType, trackedEntityAttribute);
@@ -383,13 +383,12 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnChangeLogsFromSpecifiedProgramOnlyWhenMultipleLogsExist()
-      throws NotFoundException {
+      throws NotFoundException, ForbiddenException, BadRequestException {
     updateAttributeValue(trackedEntityAttributeValue, ChangeLogType.CREATE, "new value");
     updateAttributeValue(outOfScopeTrackedEntityAttributeValue, ChangeLogType.CREATE, "new value");
     Program program = createAndAddProgram('C');
 
-    programOwnerService.createOrUpdateTrackedEntityProgramOwner(
-        trackedEntity.getUid(), program.getUid(), orgUnitA.getUid());
+    programOwnerService.createOrUpdateTrackedEntityProgramOwner(trackedEntity, program, orgUnitA);
 
     createAndPersistProgramAttribute(program, trackedEntityAttribute);
 
@@ -484,6 +483,7 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   private Program createAndAddProgram(char uniqueCharacter) {
     Program program = createProgram(uniqueCharacter);
+    program.setTrackedEntityType(trackedEntityType);
     programService.addProgram(program);
 
     return program;

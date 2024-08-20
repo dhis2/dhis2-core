@@ -33,11 +33,9 @@ import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_2;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_4;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
@@ -58,8 +56,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 class EnrollmentImportValidationTest extends TrackerTest {
-
-  @Autowired protected EnrollmentService enrollmentService;
 
   @Autowired private TrackerImportService trackerImportService;
 
@@ -117,14 +113,6 @@ class EnrollmentImportValidationTest extends TrackerTest {
                               .get(e.getProgram().getIdentifier())
                               .getOrganisationUnit()));
             });
-  }
-
-  @Test
-  void testDisplayIncidentDateTrueButDateValueIsInvalid() {
-    // TODO(DHIS2-17768 tracker) what are we testing here? should we not call the importer?
-    assertThrows(
-        IOException.class,
-        () -> fromJson("tracker/validations/enrollments_error-displayIncident.json"));
   }
 
   @Test

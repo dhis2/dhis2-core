@@ -208,6 +208,11 @@ public class CopyService {
     return stageMappings;
   }
 
+  /**
+   * This method copies enrollments of event programs only, as these kinds of enrollments act as
+   * placeholders and are considered metadata. It won't copy enrollments of tracker programs because
+   * those are actual data.
+   */
   private void copyEnrollments(Program original, Program copy) {
     List<Enrollment> enrollments =
         copyList(copy, eventProgramEnrollmentService.getEnrollments(original), Enrollment.copyOf);

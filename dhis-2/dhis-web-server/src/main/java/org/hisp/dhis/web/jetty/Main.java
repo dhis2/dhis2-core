@@ -102,7 +102,7 @@ public class Main extends EmbeddedJettyBase {
 
   private static AnnotationConfigWebApplicationContext getWebApplicationContext() {
     AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
-    context.register(JettyStartupTimerSpringConfiguration.class);
+    context.register(JettyStartupTimerSpringConfig.class);
     return context;
   }
 

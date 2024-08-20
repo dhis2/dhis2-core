@@ -68,7 +68,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
-import org.hisp.dhis.program.EnrollmentStore;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
@@ -113,9 +112,7 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
 
   private final MessageService messageService;
 
-  private final EnrollmentStore enrollmentStore;
-
-  private final IdentifiableObjectManager identifiableObjectManager;
+  private final IdentifiableObjectManager manager;
 
   private final NotificationMessageRenderer<Enrollment> programNotificationRenderer;
 
@@ -128,8 +125,7 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
   public DefaultProgramNotificationService(
       ProgramMessageService programMessageService,
       MessageService messageService,
-      EnrollmentStore enrollmentStore,
-      IdentifiableObjectManager identifiableObjectManager,
+      IdentifiableObjectManager manager,
       NotificationMessageRenderer<Enrollment> programNotificationRenderer,
       NotificationMessageRenderer<Event> programStageNotificationRenderer,
       ProgramNotificationTemplateService notificationTemplateService,
@@ -140,8 +136,7 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
     super(entityManager, jdbcTemplate, publisher, Event.class, false);
     this.programMessageService = programMessageService;
     this.messageService = messageService;
-    this.enrollmentStore = enrollmentStore;
-    this.identifiableObjectManager = identifiableObjectManager;
+    this.manager = manager;
     this.programNotificationRenderer = programNotificationRenderer;
     this.programStageNotificationRenderer = programStageNotificationRenderer;
     this.notificationTemplateService = notificationTemplateService;
@@ -180,7 +175,7 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
         progress.runStage(
             List.of(),
             () ->
-                identifiableObjectManager.getAll(ProgramNotificationInstance.class).stream()
+                manager.getAll(ProgramNotificationInstance.class).stream()
                     .map(this::withTemplate)
                     .filter(this::hasTemplate)
                     .filter(IS_SCHEDULED_BY_PROGRAM_RULE)
@@ -293,19 +288,21 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
   @Override
   @Transactional
   public void sendEventCompletionNotifications(long eventId) {
-    sendEventNotifications(identifiableObjectManager.get(Event.class, eventId));
+    sendEventNotifications(manager.get(Event.class, eventId));
   }
 
   @Override
   @Transactional
   public void sendEnrollmentCompletionNotifications(long enrollment) {
-    sendEnrollmentNotifications(enrollmentStore.get(enrollment), NotificationTrigger.COMPLETION);
+    sendEnrollmentNotifications(
+        manager.get(Enrollment.class, enrollment), NotificationTrigger.COMPLETION);
   }
 
   @Override
   @Transactional
   public void sendEnrollmentNotifications(long enrollment) {
-    sendEnrollmentNotifications(enrollmentStore.get(enrollment), NotificationTrigger.ENROLLMENT);
+    sendEnrollmentNotifications(
+        manager.get(Enrollment.class, enrollment), NotificationTrigger.ENROLLMENT);
   }
 
   @Override
@@ -430,7 +427,7 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
   }
 
   private List<ProgramNotificationTemplate> getScheduledTemplates() {
-    return identifiableObjectManager.getAll(ProgramNotificationTemplate.class).stream()
+    return manager.getAll(ProgramNotificationTemplate.class).stream()
         .filter(n -> n.getNotificationTrigger().isScheduled())
         .collect(toList());
   }

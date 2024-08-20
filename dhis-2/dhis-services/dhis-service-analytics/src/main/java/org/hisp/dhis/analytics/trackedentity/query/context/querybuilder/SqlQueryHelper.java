@@ -139,7 +139,7 @@ class SqlQueryHelper {
                       "selectedEventField", "event",
                       "dataElementField", field.render())));
     }
-    if (dimId.isEventDimension() && !isDataElement(dimId)) {
+    if (dimId.isEventDimension()) {
       return () ->
           replace(
               EVENT_ORDER_BY_SUBQUERY,

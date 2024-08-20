@@ -41,7 +41,6 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -53,8 +52,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 class PotentialDuplicateStoreRelationshipTest extends PostgresIntegrationTestBase {
 
   @Autowired private HibernatePotentialDuplicateStore potentialDuplicateStore;
-
-  @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private RelationshipTypeService relationshipTypeService;
 
@@ -86,10 +83,10 @@ class PotentialDuplicateStoreRelationshipTest extends PostgresIntegrationTestBas
     duplicate = createTrackedEntity(ou);
     extra1 = createTrackedEntity(ou);
     extra2 = createTrackedEntity(ou);
-    trackedEntityService.addTrackedEntity(original);
-    trackedEntityService.addTrackedEntity(duplicate);
-    trackedEntityService.addTrackedEntity(extra1);
-    trackedEntityService.addTrackedEntity(extra2);
+    manager.save(original);
+    manager.save(duplicate);
+    manager.save(extra1);
+    manager.save(extra2);
     relationshipTypeBiDirectional = createRelationshipType('A');
     relationshipTypeUniDirectional = createRelationshipType('B');
     relationshipTypeBiDirectional.setBidirectional(true);
@@ -147,12 +144,12 @@ class PotentialDuplicateStoreRelationshipTest extends PostgresIntegrationTestBas
     manager.save(uni2);
     manager.save(uni3);
     manager.save(uni4);
-    original = trackedEntityService.getTrackedEntity(original.getUid());
-    duplicate = trackedEntityService.getTrackedEntity(duplicate.getUid());
+    original = manager.get(TrackedEntity.class, original.getUid());
+    duplicate = manager.get(TrackedEntity.class, duplicate.getUid());
     List<String> relationships = Lists.newArrayList(uni3.getUid());
     potentialDuplicateStore.moveRelationships(original, duplicate, relationships);
-    trackedEntityService.updateTrackedEntity(original);
-    trackedEntityService.updateTrackedEntity(duplicate);
+    manager.update(original);
+    manager.update(duplicate);
     Relationship _uni1 = getRelationship(uni1.getUid());
     Relationship _uni2 = getRelationship(uni2.getUid());
     Relationship _uni3 = getRelationship(uni3.getUid());

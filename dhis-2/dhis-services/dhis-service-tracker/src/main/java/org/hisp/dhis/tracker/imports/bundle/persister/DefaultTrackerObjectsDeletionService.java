@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
+import static org.hisp.dhis.changelog.ChangeLogType.READ;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -42,8 +45,9 @@ import org.hisp.dhis.program.notification.ProgramNotificationInstanceParam;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.tracker.TrackerType;
@@ -60,15 +64,17 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeletionService {
-  private final TrackedEntityService teService;
-
   private final IdentifiableObjectManager manager;
+
+  private final TrackedEntityChangeLogService trackedEntityChangeLogService;
 
   private final RelationshipStore relationshipStore;
 
   private final TrackedEntityAttributeValueService attributeValueService;
 
   private final TrackedEntityDataValueChangeLogService dataValueChangeLogService;
+
+  private final TrackedEntityAttributeValueChangeLogService attributeValueAuditService;
 
   private final ProgramNotificationInstanceService programNotificationInstanceService;
 
@@ -113,7 +119,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
       manager.delete(enrollment);
 
-      teService.updateTrackedEntity(te);
+      manager.update(te);
 
       typeReport.getStats().incDeleted();
       typeReport.addEntity(objectReport);
@@ -157,7 +163,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
         TrackedEntity entity = event.getEnrollment().getTrackedEntity();
         entity.setLastUpdatedByUserInfo(userInfoSnapshot);
 
-        teService.updateTrackedEntity(entity);
+        manager.update(entity);
 
         Enrollment enrollment = event.getEnrollment();
         enrollment.setLastUpdatedByUserInfo(userInfoSnapshot);
@@ -182,7 +188,12 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
     for (String uid : trackedEntities) {
       Entity objectReport = new Entity(TrackerType.TRACKED_ENTITY, uid);
 
-      TrackedEntity entity = teService.getTrackedEntity(uid);
+      TrackedEntity entity = manager.get(TrackedEntity.class, uid);
+      if (entity == null) {
+        throw new NotFoundException(TrackedEntity.class, uid);
+      }
+      trackedEntityChangeLogService.addTrackedEntityChangeLog(entity, getCurrentUsername(), READ);
+
       entity.setLastUpdatedByUserInfo(userInfoSnapshot);
 
       Set<Enrollment> daoEnrollments = entity.getEnrollments();
@@ -209,7 +220,9 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
         attributeValueService.deleteTrackedEntityAttributeValue(attributeValue);
       }
 
-      teService.deleteTrackedEntity(entity);
+      attributeValueAuditService.deleteTrackedEntityAttributeValueChangeLogs(entity);
+
+      manager.delete(entity);
 
       typeReport.getStats().incDeleted();
       typeReport.addEntity(objectReport);

@@ -193,7 +193,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityfilter.EntityQueryCriteria;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityFilter;
 import org.hisp.dhis.trackerdataview.TrackerDataView;
-import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -1840,13 +1839,16 @@ public abstract class TestBase {
       ProgramMessageRecipients recipients,
       ProgramMessageStatus status,
       Set<DeliveryChannel> channels) {
-    return ProgramMessage.builder()
-        .text(text)
-        .subject(subject)
-        .recipients(recipients)
-        .messageStatus(status)
-        .deliveryChannels(channels)
-        .build();
+
+    ProgramMessage pm = new ProgramMessage();
+    pm.setAutoFields();
+    pm.setText(text);
+    pm.setSubject(subject);
+    pm.setRecipients(recipients);
+    pm.setMessageStatus(status);
+    pm.setDeliveryChannels(channels);
+
+    return pm;
   }
 
   public static ProgramIndicator createProgramIndicator(
@@ -2659,21 +2661,6 @@ public abstract class TestBase {
     }
 
     user = userService.getUser(user.getUid());
-
-    CurrentUserGroupInfo currentUserGroupInfo = userService.getCurrentUserGroupInfo(user.getUid());
-    if (user.getGroups().size() != currentUserGroupInfo.getUserGroupUIDs().size()) {
-      String msg =
-          String.format(
-              "User '%s' getGroups().size() has %d groups, but  getUserGroupUIDs() returns %d groups!",
-              user.getUsername(),
-              user.getGroups().size(),
-              currentUserGroupInfo.getUserGroupUIDs().size());
-
-      log.error(msg);
-
-      throw new RuntimeException(msg);
-    }
-
     UserDetails userDetails = userService.createUserDetails(user);
 
     injectSecurityContext(userDetails);

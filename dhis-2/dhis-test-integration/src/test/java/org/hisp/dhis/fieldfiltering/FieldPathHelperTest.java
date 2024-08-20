@@ -58,7 +58,7 @@ class FieldPathHelperTest extends PostgresIntegrationTestBase {
   void testApplySimplePreset() {
     Map<String, FieldPath> fieldMapPath = new HashMap<>();
 
-    FieldPath owner = new FieldPath(FieldPreset.SIMPLE, List.of(), false, true);
+    FieldPath owner = new FieldPath(FieldPreset.SIMPLE.getName(), List.of(), false, true);
 
     helper.applyPresets(List.of(owner), fieldMapPath, DataElement.class);
 
@@ -81,7 +81,7 @@ class FieldPathHelperTest extends PostgresIntegrationTestBase {
   void testApplyIdentifiablePreset() {
     Map<String, FieldPath> fieldMapPath = new HashMap<>();
 
-    FieldPath owner = new FieldPath(FieldPreset.IDENTIFIABLE, List.of(), false, true);
+    FieldPath owner = new FieldPath(FieldPreset.IDENTIFIABLE.getName(), List.of(), false, true);
 
     helper.applyPresets(List.of(owner), fieldMapPath, DataElement.class);
 
@@ -125,7 +125,7 @@ class FieldPathHelperTest extends PostgresIntegrationTestBase {
 
     // then only matching exclusions should have been applied
     // and fields starting with 'user' should still be present
-    assertEquals(58, result.size()); // all user properties
+    assertEquals(60, result.size()); // all user properties
     assertTrue(
         result.stream()
             .map(FieldPath::getName)
@@ -137,7 +137,7 @@ class FieldPathHelperTest extends PostgresIntegrationTestBase {
   @DisplayName("nameable field filter for DataElement returns expected fields")
   void nameableFieldFilterTest() {
     // given
-    FieldPath fieldPath = new FieldPath(Preset.NAMEABLE.getName(), List.of());
+    FieldPath fieldPath = new FieldPath(FieldPreset.NAMEABLE.getName(), List.of());
     Map<String, FieldPath> fieldPathMap = new HashMap<>();
 
     // when
@@ -146,7 +146,7 @@ class FieldPathHelperTest extends PostgresIntegrationTestBase {
     // then
     assertEquals(7, fieldPathMap.size());
     assertTrue(
-        Preset.NAMEABLE
+        FieldPreset.NAMEABLE
             .getFields()
             .containsAll(fieldPathMap.values().stream().map(FieldPath::getName).toList()));
   }
@@ -155,7 +155,7 @@ class FieldPathHelperTest extends PostgresIntegrationTestBase {
   @DisplayName("persisted field filter for DataElement returns fields")
   void persistedFieldFilterTest() {
     // given
-    FieldPath fieldPath = new FieldPath(FieldPreset.PERSISTED, List.of());
+    FieldPath fieldPath = new FieldPath(FieldPreset.PERSISTED.getName(), List.of());
     Map<String, FieldPath> fieldPathMap = new HashMap<>();
 
     // when

@@ -42,11 +42,11 @@ import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.util.RelationshipUtils;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -73,8 +73,6 @@ import org.springframework.transaction.annotation.Transactional;
 class RelationshipServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired protected UserService _userService;
-
-  @Autowired private EnrollmentService enrollmentService;
 
   @Autowired private RelationshipService relationshipService;
 
@@ -163,15 +161,19 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     program.setProgramStages(Set.of(programStage, inaccessibleProgramStage));
     manager.save(program, false);
 
-    enrollmentA =
-        enrollmentService.enrollTrackedEntity(
-            teA, program, enrollmentDate, enrollmentDate, orgUnitA);
+    enrollmentA = createEnrollment(program, teA, orgUnitA);
+    manager.save(enrollmentA);
+    teA.getEnrollments().add(enrollmentA);
+    manager.update(teA);
+
     eventA = createEvent(programStage, enrollmentA, orgUnitA);
     eventA.setOccurredDate(enrollmentDate);
     manager.save(eventA);
 
-    Enrollment enrollmentB =
-        enrollmentService.enrollTrackedEntity(teB, program, new Date(), new Date(), orgUnitA);
+    Enrollment enrollmentB = createEnrollment(program, teB, orgUnitA);
+    manager.save(enrollmentB);
+    teA.getEnrollments().add(enrollmentB);
+    manager.update(teA);
     inaccessibleEvent = createEvent(inaccessibleProgramStage, enrollmentB, orgUnitA);
     inaccessibleEvent.setOccurredDate(enrollmentDate);
     manager.save(inaccessibleEvent);
@@ -236,7 +238,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldNotReturnRelationshipByTrackedEntityIfUserHasNoAccessToTrackedEntityType()
-      throws ForbiddenException, NotFoundException {
+      throws ForbiddenException, NotFoundException, BadRequestException {
 
     Relationship accessible = relationship(teA, teB);
     relationship(teA, inaccessibleTe, teToInaccessibleTeType);
@@ -253,7 +255,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldNotReturnRelationshipByEnrollmentIfUserHasNoAccessToRelationshipType()
-      throws ForbiddenException, NotFoundException {
+      throws ForbiddenException, NotFoundException, BadRequestException {
     Relationship accessible = relationship(teA, enrollmentA);
     relationship(teB, enrollmentA, teToInaccessibleEnType);
 
@@ -272,7 +274,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldNotReturnRelationshipByEventIfUserHasNoAccessToProgramStage()
-      throws ForbiddenException, NotFoundException {
+      throws ForbiddenException, NotFoundException, BadRequestException {
     Relationship accessible = relationship(teA, eventA);
     relationship(eventA, inaccessibleEvent);
 
@@ -287,7 +289,8 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldNotReturnRelationshipWhenTeIsTransferredAndUserHasNoAccessToAtLeastOneProgram() {
+  void shouldNotReturnRelationshipWhenTeIsTransferredAndUserHasNoAccessToAtLeastOneProgram()
+      throws ForbiddenException {
     injectAdminIntoSecurityContext();
 
     TrackedEntityType trackedEntityType = createTrackedEntityType('X');
@@ -296,6 +299,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     Program program = protectedProgram('P', trackedEntityType, orgUnitA);
     program.getSharing().setOwner(user); // set metadata access to the program
     program.setProgramStages(Set.of(programStage));
+    program.setOrganisationUnits(Set.of(orgUnitA, orgUnitB));
     manager.save(program, false);
 
     TrackedEntity trackedEntityFrom = createTrackedEntity(orgUnitA);
@@ -307,8 +311,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     trackerOwnershipAccessManager.assignOwnership(
         trackedEntityFrom, program, orgUnitA, false, true);
 
-    trackerOwnershipAccessManager.transferOwnership(
-        trackedEntityFrom, program, orgUnitB, false, true);
+    trackerOwnershipAccessManager.transferOwnership(trackedEntityFrom, program, orgUnitB);
 
     TrackedEntity trackedEntityTo = createTrackedEntity(orgUnitA);
     trackedEntityTo.setTrackedEntityType(trackedEntityType);
@@ -332,7 +335,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldExcludeRelationshipWhenProgramIsProtectedAndUserHasNoAccess()
-      throws ForbiddenException, NotFoundException {
+      throws ForbiddenException, NotFoundException, BadRequestException {
     injectAdminIntoSecurityContext();
 
     TrackedEntity trackedEntityFrom = createTrackedEntity(orgUnitA);

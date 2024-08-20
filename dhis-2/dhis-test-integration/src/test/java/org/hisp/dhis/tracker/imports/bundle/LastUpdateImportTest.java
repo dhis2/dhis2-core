@@ -43,7 +43,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
@@ -56,12 +55,10 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-@Disabled(
-    "TODO(DHIS2-17768 tracker) failed to lazily initialize a collection of role: org.hisp.dhis.user.User.dataViewOrganisationUnits")
 class LastUpdateImportTest extends TrackerTest {
   @Autowired private TrackerImportService trackerImportService;
 
@@ -103,6 +100,11 @@ class LastUpdateImportTest extends TrackerTest {
 
     organisationUnit =
         manager.get(OrganisationUnit.class, trackedEntity.getOrgUnit().getIdentifier());
+  }
+
+  @BeforeEach
+  void setupUser() {
+    injectSecurityContextUser(importUser);
   }
 
   @Test
@@ -158,8 +160,8 @@ class LastUpdateImportTest extends TrackerTest {
             "Data integrity error for tracked entity %s. The lastUpdated date has not been updated after the import",
             trackedEntity.getUid()));
     assertEquals(
+        importUser.getUid(),
         entityAfterUpdate.getLastUpdatedByUserInfo().getUid(),
-        UserInfoSnapshot.from(importUser).getUid(),
         String.format(
             "Data integrity error for tracked entity %s. The lastUpdatedByUserinfo has not been saved during the import",
             trackedEntity.getUid()));
@@ -193,8 +195,8 @@ class LastUpdateImportTest extends TrackerTest {
             "Data integrity error for tracked entity %s. The lastUpdated date has not been updated after the import",
             trackedEntity.getUid()));
     assertEquals(
+        importUser.getUid(),
         entityAfterUpdate.getLastUpdatedByUserInfo().getUid(),
-        UserInfoSnapshot.from(importUser).getUid(),
         String.format(
             "Data integrity error for tracked entity %s. The lastUpdatedByUserinfo has not been saved during the import",
             trackedEntity.getUid()));
@@ -319,8 +321,8 @@ class LastUpdateImportTest extends TrackerTest {
         () -> assertTrue(enrollmentAfterDeletion.isDeleted()),
         () ->
             assertEquals(
+                user.getUid(),
                 entityAfterDeletion.getLastUpdatedByUserInfo().getUid(),
-                UserInfoSnapshot.from(user).getUid(),
                 String.format(
                     "Data integrity error for tracked entity %s. The lastUpdatedByUserinfo has not been saved during the import",
                     trackedEntity.getUid())),
@@ -333,8 +335,8 @@ class LastUpdateImportTest extends TrackerTest {
                     enrollment.getUid())),
         () ->
             assertEquals(
+                user.getUid(),
                 enrollmentAfterDeletion.getLastUpdatedByUserInfo().getUid(),
-                UserInfoSnapshot.from(user).getUid(),
                 String.format(
                     "Data integrity error for enrollment %s. The lastUpdatedByUserinfo has not been saved during the import",
                     enrollment.getUid())),
@@ -348,8 +350,8 @@ class LastUpdateImportTest extends TrackerTest {
                     event.getUid())),
         () ->
             assertEquals(
+                user.getUid(),
                 eventAfterDeletion.getLastUpdatedByUserInfo().getUid(),
-                UserInfoSnapshot.from(user).getUid(),
                 String.format(
                     "Data integrity error for event %s. The lastUpdatedByUserinfo has not been saved during the import",
                     event.getUid())));
@@ -394,8 +396,8 @@ class LastUpdateImportTest extends TrackerTest {
                     trackedEntity.getUid())),
         () ->
             assertEquals(
+                user.getUid(),
                 entityAfterDeletion.getLastUpdatedByUserInfo().getUid(),
-                UserInfoSnapshot.from(user).getUid(),
                 String.format(
                     "Data integrity error for tracked entity %s. The lastUpdatedByUserinfo has not been saved during the import",
                     trackedEntity.getUid())),
@@ -408,8 +410,8 @@ class LastUpdateImportTest extends TrackerTest {
                     enrollment.getUid())),
         () ->
             assertEquals(
+                user.getUid(),
                 enrollmentAfterDeletion.getLastUpdatedByUserInfo().getUid(),
-                UserInfoSnapshot.from(user).getUid(),
                 String.format(
                     "Data integrity error for enrollment %s. The lastUpdatedByUserinfo has not been saved during the import",
                     enrollment.getUid())),
@@ -423,8 +425,8 @@ class LastUpdateImportTest extends TrackerTest {
                     event.getUid())),
         () ->
             assertEquals(
+                user.getUid(),
                 eventAfterDeletion.getLastUpdatedByUserInfo().getUid(),
-                UserInfoSnapshot.from(user).getUid(),
                 String.format(
                     "Data integrity error for event %s. The lastUpdatedByUserinfo has not been saved during the import",
                     event.getUid())));
@@ -465,8 +467,8 @@ class LastUpdateImportTest extends TrackerTest {
                     event.getUid())),
         () ->
             assertEquals(
+                user.getUid(),
                 eventAfterDeletion.getLastUpdatedByUserInfo().getUid(),
-                UserInfoSnapshot.from(user).getUid(),
                 String.format(
                     "Data integrity error for event %s. The lastUpdatedByUserinfo has not been saved during the import",
                     event.getUid())));

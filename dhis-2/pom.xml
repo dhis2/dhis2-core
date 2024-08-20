@@ -70,7 +70,6 @@
     <minimum-maven.version>3.6.0</minimum-maven.version>
     <minimum-java.version>17</minimum-java.version>
 
-    <snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
     <sonar.organization>dhis2</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     <surefireArgLine>-Xmx2024m</surefireArgLine>
@@ -115,7 +114,7 @@
     <com.google.zxing.javase.version>3.5.3</com.google.zxing.javase.version>
 
     <!-- Spring -->
-    <spring.version>5.3.37</spring.version>
+    <spring.version>5.3.39</spring.version>
     <spring-data-redis.version>2.7.18</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.4</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
@@ -123,10 +122,10 @@
     <spring-restdocs.version>2.0.8.RELEASE</spring-restdocs.version>
     <spring-ldap.version>2.4.1</spring-ldap.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
-    <lettuce.version>6.3.2.RELEASE</lettuce.version>
+    <lettuce.version>6.4.0.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-database-postgresql.version>10.16.0</flyway-database-postgresql.version>
+    <flyway-database-postgresql.version>10.17.0</flyway-database-postgresql.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <hibernate-types.version>2.21.1</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
@@ -199,13 +198,13 @@
     <cron-utils.version>9.2.1</cron-utils.version>
     <commons-collections4.version>4.4</commons-collections4.version>
     <commons-beanutils.version>1.9.4</commons-beanutils.version>
-    <commons-lang3.version>3.15.0</commons-lang3.version>
+    <commons-lang3.version>3.16.0</commons-lang3.version>
     <commons-text.version>1.12.0</commons-text.version>
     <commons-fileupload.version>1.5</commons-fileupload.version>
     <commons-math3.version>3.6.1</commons-math3.version>
     <commons-validator.version>1.9.0</commons-validator.version>
     <commons-io.version>2.16.1</commons-io.version>
-    <commons-codec.version>1.17.0</commons-codec.version>
+    <commons-codec.version>1.17.1</commons-codec.version>
     <commons-jexl.version>2.1.1</commons-jexl.version>
     <commons-email.version>1.6.0</commons-email.version>
     <httpcomponents-core.version>4.4.16</httpcomponents-core.version>
@@ -225,7 +224,7 @@
     <mockito.version>5.2.0</mockito.version>
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>2.2</hamcrest.version>
-    <testcontainers.version>1.20.0</testcontainers.version>
+    <testcontainers.version>1.20.1</testcontainers.version>
     <jsonassert.version>1.5.3</jsonassert.version>
     <awaitility.version>4.2.1</awaitility.version>
     <swagger.version>2.1.21</swagger.version>
@@ -235,11 +234,11 @@
     <javax.persistence-api.version>2.2</javax.persistence-api.version>
 
     <!-- Maven plugin versions -->
-    <maven-surefire-plugin.version>3.3.1</maven-surefire-plugin.version>
+    <maven-surefire-plugin.version>3.4.0</maven-surefire-plugin.version>
     <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
     <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
     <maven-failsafe-plugin.version>3.3.1</maven-failsafe-plugin.version>
-    <maven-javadoc-plugin.version>3.7.0</maven-javadoc-plugin.version>
+    <maven-javadoc-plugin.version>3.8.0</maven-javadoc-plugin.version>
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
     <maven-enforcer-plugin.version>3.5.0</maven-enforcer-plugin.version>
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
@@ -254,7 +253,7 @@
     <jai-imageio.version>1.1.1</jai-imageio.version>
     <gson.version>2.11.0</gson.version>
     <semver4j.version>3.1.0</semver4j.version>
-    <opentelemetry.version>2.5.0</opentelemetry.version>
+    <opentelemetry.version>2.6.0</opentelemetry.version>
   </properties>
 
   <dependencyManagement>

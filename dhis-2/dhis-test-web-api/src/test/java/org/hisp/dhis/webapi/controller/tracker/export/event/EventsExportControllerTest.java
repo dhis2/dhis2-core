@@ -44,6 +44,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -53,6 +54,7 @@ import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.webapi.controller.tracker.export.event.EventsExportControllerTest.Config;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -63,10 +65,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ContextConfiguration;
 
-@ContextConfiguration(classes = EventsExportControllerTest.Configuration.class)
+@ContextConfiguration(classes = Config.class)
 class EventsExportControllerTest extends H2ControllerIntegrationTestBase {
 
-  static class Configuration {
+  static class Config {
     @Bean
     public EventService eventService() {
       EventService eventService = mock(EventService.class);
@@ -168,7 +170,7 @@ class EventsExportControllerTest extends H2ControllerIntegrationTestBase {
   @MethodSource
   void shouldMatchContentTypeAndAttachment_whenEndpointForCompressedEventJsonIsInvoked(
       String url, String expectedContentType, String expectedAttachment, String encoding)
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
 
     when(eventService.getEvents(any())).thenReturn(List.of());
     injectSecurityContextUser(user);

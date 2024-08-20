@@ -28,9 +28,7 @@
 package org.hisp.dhis.trackedentity;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 
 /**
  * This interface is responsible for retrieving tracked entities (TE). The query methods accepts a
@@ -84,99 +82,7 @@ public interface TrackedEntityService {
 
   String SEPARATOR = "_";
 
-  /**
-   * Returns a list with tracked entity values based on the given TrackedEntityQueryParams.
-   *
-   * @param params the TrackedEntityQueryParams.
-   * @param skipAccessValidation If true, access validation is skipped. Should be set to true only
-   *     for internal tasks (e.g. currently used by synchronization job)
-   * @param skipSearchScopeValidation if true, search scope validation is skipped.
-   * @return List of TEs matching the params
-   */
-  List<TrackedEntity> getTrackedEntities(
-      TrackedEntityQueryParams params,
-      boolean skipAccessValidation,
-      boolean skipSearchScopeValidation);
-
-  /**
-   * Returns a list tracked entity primary key ids based on the given TrackedEntityQueryParams.
-   *
-   * @param params the TrackedEntityQueryParams.
-   * @param skipAccessValidation If true, access validation is skipped. Should be set to true only
-   *     for internal tasks (e.g. currently used by synchronization job)
-   * @param skipSearchScopeValidation if true, search scope validation is skipped.
-   * @return List of TE IDs matching the params
-   */
-  List<Long> getTrackedEntityIds(
-      TrackedEntityQueryParams params,
-      boolean skipAccessValidation,
-      boolean skipSearchScopeValidation);
-
-  /**
-   * Adds an {@link TrackedEntity}
-   *
-   * @param trackedEntity The TrackedEntity to add.
-   * @return A generated unique id of the added {@link TrackedEntity}.
-   */
-  long addTrackedEntity(TrackedEntity trackedEntity);
-
-  /**
-   * Soft deletes a {@link TrackedEntity}.
-   *
-   * @param trackedEntity the TrackedEntity to delete.
-   */
-  void deleteTrackedEntity(TrackedEntity trackedEntity);
-
-  /**
-   * Updates a {@link TrackedEntity}.
-   *
-   * @param trackedEntity the TrackedEntity to update.
-   */
-  void updateTrackedEntity(TrackedEntity trackedEntity);
-
   /** */
   void updateTrackedEntityLastUpdated(
       Set<String> trackedEntityUIDs, Date lastUpdated, String userInfoSnapshot);
-
-  /**
-   * Returns a {@link TrackedEntity}.
-   *
-   * @param id the id of the TrackedEntity to return.
-   * @return the TrackedEntity with the given id
-   */
-  TrackedEntity getTrackedEntity(long id);
-
-  /**
-   * Returns the {@link TrackedEntity} with the given UID.
-   *
-   * @param uid the UID.
-   * @return the TrackedEntity with the given UID, or null if no match.
-   */
-  TrackedEntity getTrackedEntity(String uid);
-
-  /**
-   * Checks for the existence of a TE by UID. Deleted values are not taken into account.
-   *
-   * @param uid Event UID to check for
-   * @return true/false depending on result
-   */
-  boolean trackedEntityExists(String uid);
-
-  /**
-   * Checks for the existence of a TE by UID. Takes into account also the deleted values.
-   *
-   * @param uid Event UID to check for
-   * @return true/false depending on result
-   */
-  boolean trackedEntityExistsIncludingDeleted(String uid);
-
-  /**
-   * Register a new trackedEntity
-   *
-   * @param trackedEntity TrackedEntity
-   * @param attributeValues Set of attribute values
-   * @return The error code after registering trackedEntity
-   */
-  long createTrackedEntity(
-      TrackedEntity trackedEntity, Set<TrackedEntityAttributeValue> attributeValues);
 }

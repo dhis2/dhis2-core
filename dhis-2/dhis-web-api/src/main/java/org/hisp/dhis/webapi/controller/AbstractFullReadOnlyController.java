@@ -76,7 +76,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
-import org.hisp.dhis.fieldfiltering.Preset;
+import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
@@ -208,7 +208,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
 
     if (fields.isEmpty()) {
-      fields.addAll(Preset.defaultPreset().getFields());
+      fields.addAll(FieldPreset.defaultPreset().getFields());
     }
 
     WebOptions options = new WebOptions(rpParameters);
@@ -277,7 +277,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     WebMetadata metadata = new WebMetadata();
 
     if (fields.isEmpty() || fields.contains("*") || fields.contains(":all")) {
-      fields.addAll(Preset.defaultPreset().getFields());
+      fields.addAll(FieldPreset.defaultPreset().getFields());
     }
 
     // only support metadata

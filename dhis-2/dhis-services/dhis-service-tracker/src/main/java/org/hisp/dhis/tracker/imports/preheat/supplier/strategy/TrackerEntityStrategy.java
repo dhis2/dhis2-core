@@ -27,37 +27,60 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.supplier.strategy;
 
+import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nonnull;
-import lombok.RequiredArgsConstructor;
+import javax.persistence.EntityManager;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityStore;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.mappers.TrackedEntityMapper;
 import org.hisp.dhis.tracker.imports.preheat.supplier.DetachUtils;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Luciano Fiandesio
  */
-@RequiredArgsConstructor
 @Component
 @StrategyFor(
     value = org.hisp.dhis.tracker.imports.domain.TrackedEntity.class,
     mapper = TrackedEntityMapper.class)
-public class TrackerEntityStrategy implements ClassBasedSupplierStrategy {
-  @Nonnull private TrackedEntityStore trackedEntityStore;
+public class TrackerEntityStrategy extends HibernateGenericStore<TrackedEntity>
+    implements ClassBasedSupplierStrategy {
+
+  public TrackerEntityStrategy(
+      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
+    super(entityManager, jdbcTemplate, publisher, TrackedEntity.class, false);
+  }
 
   @Override
   public void add(List<List<String>> splitList, TrackerPreheat preheat) {
     for (List<String> ids : splitList) {
-      // Fetch all Tracked Entity present in the payload
-      List<TrackedEntity> trackedEntities = trackedEntityStore.getIncludingDeleted(ids);
+      List<TrackedEntity> trackedEntities = getIncludingDeleted(ids);
 
-      // Add to preheat
       preheat.putTrackedEntities(
           DetachUtils.detach(
               this.getClass().getAnnotation(StrategyFor.class).mapper(), trackedEntities));
     }
+  }
+
+  private List<TrackedEntity> getIncludingDeleted(List<String> uids) {
+    List<TrackedEntity> trackedEntities = new ArrayList<>();
+    List<List<String>> uidsPartitions = Lists.partition(uids, 20000);
+
+    for (List<String> uidsPartition : uidsPartitions) {
+      if (!uidsPartition.isEmpty()) {
+        trackedEntities.addAll(
+            getSession()
+                .createQuery(
+                    "from TrackedEntity as te where te.uid in (:uids)", TrackedEntity.class)
+                .setParameter("uids", uidsPartition)
+                .list());
+      }
+    }
+
+    return trackedEntities;
   }
 }

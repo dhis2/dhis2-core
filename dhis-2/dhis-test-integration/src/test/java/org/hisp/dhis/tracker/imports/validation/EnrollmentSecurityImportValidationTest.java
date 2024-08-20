@@ -364,7 +364,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
       TrackedEntityType trackedEntityType, OrganisationUnit orgUnit) {
     TrackedEntity trackedEntity = createTrackedEntity('T', orgUnit);
     trackedEntity.setTrackedEntityType(trackedEntityType);
-    trackedEntityService.addTrackedEntity(trackedEntity);
+    manager.save(trackedEntity);
 
     return trackedEntity;
   }

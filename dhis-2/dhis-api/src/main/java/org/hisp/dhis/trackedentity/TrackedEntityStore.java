@@ -28,7 +28,6 @@
 package org.hisp.dhis.trackedentity;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
@@ -37,36 +36,6 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
  */
 public interface TrackedEntityStore extends IdentifiableObjectStore<TrackedEntity> {
   String ID = TrackedEntityStore.class.getName();
-
-  List<TrackedEntity> getTrackedEntities(TrackedEntityQueryParams params);
-
-  List<Long> getTrackedEntityIds(TrackedEntityQueryParams params);
-
-  int getTrackedEntityCountWithMaxTeLimit(TrackedEntityQueryParams params);
-
-  /**
-   * Checks for the existence of a TE by UID. Deleted TEs are not taken into account.
-   *
-   * @param uid Event UID to check for.
-   * @return true/false depending on result.
-   */
-  boolean exists(String uid);
-
-  /**
-   * Checks for the existence of a TE by UID. Takes into account also the deleted TEs.
-   *
-   * @param uid Event UID to check for.
-   * @return true/false depending on result.
-   */
-  boolean existsIncludingDeleted(String uid);
-
-  /**
-   * Fetches TrackedEntity matching the given list of UIDs
-   *
-   * @param uids a List of UID
-   * @return a List containing the TrackedEntity matching the given parameters list
-   */
-  List<TrackedEntity> getIncludingDeleted(List<String> uids);
 
   void updateTrackedEntityLastUpdated(
       Set<String> trackedEntityUIDs, Date lastUpdated, String userInfoSnapshot);

@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.dbms;
 
-import java.util.List;
-
 /**
  * @author Lars Helge Overland
  */
@@ -42,8 +40,4 @@ public interface DbmsManager {
   void flushSession();
 
   void emptyTable(String table);
-
-  boolean tableExists(String tableName);
-
-  List<List<Object>> getTableContent(String table);
 }

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.user;
 
+import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -241,5 +242,40 @@ class UserStoreTest extends PostgresIntegrationTestBase {
     Map<String, String> emailsByUsername =
         userStore.getUserGroupUserEmailsByUsername(group.getUid());
     assertEquals(Map.of("usernamea", "emaila", "usernameb", "emailb"), emailsByUsername);
+  }
+
+  @Test
+  void testGetUserByOpenId() {
+    String openId1 = "ABC";
+    String openId2 = "DEF";
+
+    User userA = makeUser("A");
+    User userB = makeUser("B");
+    User userC = makeUser("C");
+    User userD = makeUser("D");
+    User userE = makeUser("E");
+
+    userA.setOpenId(openId1);
+    userB.setOpenId(openId1);
+    userC.setOpenId(openId1);
+    userD.setOpenId(openId1);
+    userE.setOpenId(openId2);
+
+    userA.setLastLogin(parseDate("2024-07-01"));
+    userB.setLastLogin(parseDate("2024-07-02"));
+    userC.setLastLogin(parseDate("2024-07-03"));
+    userD.setLastLogin(null);
+    userE.setLastLogin(parseDate("2024-07-04"));
+
+    userC.setDisabled(true);
+
+    userStore.save(userA);
+    userStore.save(userB);
+    userStore.save(userC);
+    userStore.save(userD);
+    userStore.save(userE);
+
+    User foundUser = userStore.getUserByOpenId(openId1);
+    assertEquals(userB.getUid(), foundUser.getUid());
   }
 }

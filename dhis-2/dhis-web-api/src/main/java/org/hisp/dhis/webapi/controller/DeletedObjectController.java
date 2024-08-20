@@ -38,7 +38,7 @@ import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
-import org.hisp.dhis.fieldfiltering.Preset;
+import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.security.RequiresAuthority;
@@ -80,7 +80,7 @@ public class DeletedObjectController {
     query.setTotal(totalDeletedObjects);
 
     if (fields.isEmpty()) {
-      fields.addAll(Preset.ALL.getFields());
+      fields.addAll(FieldPreset.ALL.getFields());
     }
 
     List<DeletedObject> deletedObjects = deletedObjectService.getDeletedObjects(query);
