@@ -35,6 +35,9 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -46,15 +49,18 @@ import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.listener.CommandSMSListener;
+import org.hisp.dhis.sms.listener.SMSProcessingException;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.sms.parse.SMSParserException;
+import org.hisp.dhis.smscompression.SmsResponse;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -149,11 +155,17 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
       sendFeedback("No TrackedEntityAttribute found", senderPhoneNumber, WARNING);
     }
 
-    smsEnrollmentService.enrollTrackedEntity(
-        trackedEntityService.getTrackedEntity(trackedEntity.getUid()),
-        program,
-        orgUnit,
-        occurredDate);
+    try {
+      smsEnrollmentService.enrollTrackedEntity(
+          trackedEntityService.getTrackedEntity(
+              trackedEntity.getUid(), null, TrackedEntityParams.FALSE, false),
+          program,
+          orgUnit,
+          occurredDate);
+    } catch (NotFoundException | ForbiddenException | BadRequestException e) {
+      // TODO(tracker) Improve this error message
+      throw new SMSProcessingException(SmsResponse.INVALID_TEI.set(trackedEntity.getUid()));
+    }
 
     sendFeedback(
         StringUtils.defaultIfBlank(
