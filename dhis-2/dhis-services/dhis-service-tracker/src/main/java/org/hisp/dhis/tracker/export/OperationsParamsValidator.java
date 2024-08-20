@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.tracker.export;
 
+import static org.hisp.dhis.changelog.ChangeLogType.READ;
 import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
 import java.util.HashSet;
 import java.util.Set;
