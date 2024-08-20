@@ -45,7 +45,7 @@ public class AnalyticsOutlierDetectionActions extends RestApiActions {
   }
 
   public AnalyticsOutlierDetectionActions query() {
-    return new AnalyticsOutlierDetectionActions(".xlsx");
+    return new AnalyticsOutlierDetectionActions("");
   }
 
   public AnalyticsOutlierDetectionActions download(String fileExtension) {
