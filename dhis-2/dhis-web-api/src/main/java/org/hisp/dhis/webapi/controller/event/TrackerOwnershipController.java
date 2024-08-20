@@ -99,9 +99,7 @@ public class TrackerOwnershipController {
         trackedEntityService.getTrackedEntity(
             trackedEntityUid.getValue(), null, TrackedEntityParams.FALSE, false),
         programService.getProgram(program),
-        organisationUnitService.getOrganisationUnit(ou),
-        false,
-        false);
+        organisationUnitService.getOrganisationUnit(ou));
     return ok("Ownership transferred");
   }
 
