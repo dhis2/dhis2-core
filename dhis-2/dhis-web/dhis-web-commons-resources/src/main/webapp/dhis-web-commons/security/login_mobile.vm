@@ -45,6 +45,12 @@
 <div class="header-box" align="center"><a href="account.action">Create an account</a></div>
 #end
 
+#if ( $keyMobileApplicationNotification )
+<div id="mobileNotificationArea">
+	$!{keyMobileApplicationNotification}
+</div>
+#end
+
 </form>
 </div>
 </div>

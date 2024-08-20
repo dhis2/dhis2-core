@@ -67,6 +67,7 @@ public enum SettingKey {
   APPLICATION_TITLE("applicationTitle", "DHIS 2", String.class, false, true),
   APPLICATION_INTRO("keyApplicationIntro", true),
   APPLICATION_NOTIFICATION("keyApplicationNotification", true),
+  MOBILE_APPLICATION_NOTIFICATION("keyMobileApplicationNotification", false),
   APPLICATION_FOOTER("keyApplicationFooter", true),
   APPLICATION_RIGHT_FOOTER("keyApplicationRightFooter", true),
   FLAG("keyFlag", "dhis2", String.class),
