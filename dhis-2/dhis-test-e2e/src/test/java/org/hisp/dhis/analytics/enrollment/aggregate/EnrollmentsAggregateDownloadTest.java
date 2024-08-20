@@ -58,7 +58,7 @@ public class EnrollmentsAggregateDownloadTest extends AnalyticsApiTest {
 
     // When
     ApiResponse response =
-        analyticsEnrollmentsActions.query().get("IpHINAT79UW.xml", TYPE, TYPE, params);
+        analyticsEnrollmentsActions.aggregate().get("IpHINAT79UW.xml", TYPE, TYPE, params);
 
     // Then
     response.validate().statusCode(200).contentType(TYPE);
@@ -83,7 +83,7 @@ public class EnrollmentsAggregateDownloadTest extends AnalyticsApiTest {
 
     // When
     ApiResponse response =
-        analyticsEnrollmentsActions.query().get("IpHINAT79UW.xls", TYPE, TYPE, params);
+        analyticsEnrollmentsActions.aggregate().get("IpHINAT79UW.xls", TYPE, TYPE, params);
 
     // Then
     response.validate().statusCode(200).contentType(TYPE);
@@ -108,7 +108,7 @@ public class EnrollmentsAggregateDownloadTest extends AnalyticsApiTest {
 
     // When
     ApiResponse response =
-        analyticsEnrollmentsActions.query().get("IpHINAT79UW.xlsx", TYPE, TYPE, params);
+        analyticsEnrollmentsActions.aggregate().get("IpHINAT79UW.xlsx", TYPE, TYPE, params);
 
     // Then
     response.validate().statusCode(200).contentType(TYPE);
@@ -133,7 +133,7 @@ public class EnrollmentsAggregateDownloadTest extends AnalyticsApiTest {
 
     // When
     ApiResponse response =
-        analyticsEnrollmentsActions.query().get("IpHINAT79UW.csv", TYPE, TYPE, params);
+        analyticsEnrollmentsActions.aggregate().get("IpHINAT79UW.csv", TYPE, TYPE, params);
 
     response.validate().statusCode(200).contentType(TYPE);
 
@@ -157,7 +157,7 @@ public class EnrollmentsAggregateDownloadTest extends AnalyticsApiTest {
     // When
     ApiResponse response =
         analyticsEnrollmentsActions
-            .query()
+            .aggregate()
             .get("IpHINAT79UW.html", HTML.toString(), HTML.toString(), params);
 
     // Then
@@ -183,7 +183,7 @@ public class EnrollmentsAggregateDownloadTest extends AnalyticsApiTest {
     // When
     ApiResponse response =
         analyticsEnrollmentsActions
-            .query()
+            .aggregate()
             .get("IpHINAT79UW.html+css", HTML.toString(), HTML.toString(), params);
 
     // Then

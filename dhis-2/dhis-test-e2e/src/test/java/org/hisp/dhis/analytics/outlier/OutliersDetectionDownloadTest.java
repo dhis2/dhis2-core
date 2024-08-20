@@ -25,38 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event.query;
+package org.hisp.dhis.analytics.outlier;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.AnalyticsApiTest;
-import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEventActions;
+import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsOutlierDetectionActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.Test;
 
-public class EventsQueryDownloadTest extends AnalyticsApiTest {
-  private final AnalyticsEventActions analyticsEventActions = new AnalyticsEventActions();
+public class OutliersDetectionDownloadTest extends AnalyticsApiTest {
+  private AnalyticsOutlierDetectionActions actions = new AnalyticsOutlierDetectionActions();
 
   @Test
   void queryWithXlsxDownload() {
     // Given
     final String TYPE = "application/vnd.ms-excel";
-    // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
-            .add("dimension=pe:LAST_12_MONTHS,ou:ImspTQPwCqd")
-            .add("stage=dBwrot7S420")
-            .add("displayProperty=NAME")
-            .add("outputType=EVENT")
-            .add("totalPages=false")
-            .add("desc=lastupdated")
-            .add("relativePeriodDate=2022-09-27");
+            .add("endDate=2023-01-02")
+            .add("ou=O6uvpzGd5pu,fdc6uOvgoji")
+            .add("maxResults=30")
+            .add("sortOrder=ASC")
+            .add("orderBy=zscore")
+            .add("threshold=3")
+            .add("startDate=2022-06-01")
+            .add("ds=BfMAe6Itzgt")
+            .add("algorithm=Z_SCORE");
 
     // When
-    ApiResponse response =
-        analyticsEventActions.query().get("lxAQ7Zs9VYR.xlsx", JSON, JSON, params);
+    ApiResponse response = actions.download("xlsx").get(params);
 
     // Then
     response.validate().statusCode(200).contentType(TYPE);

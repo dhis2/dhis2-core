@@ -55,7 +55,7 @@ public class EventsAggregateDownloadTest extends AnalyticsApiTest {
 
     // When
     ApiResponse response =
-        analyticsEventActions.aggregate().get("IpHINAT79UW.xlsx", TYPE, TYPE, params);
+        analyticsEventActions.aggregate().get("qDkgAbB5Jlk.xlsx", JSON, JSON, params);
 
     // Then
     response.validate().statusCode(200).contentType(TYPE);

@@ -57,7 +57,6 @@ public class AnalyticsAggregateDownloadTest extends AnalyticsApiTest {
 
     // Then
     response.validate().statusCode(200).contentType(TYPE);
-
     assertTrue(isNotBlank(response.getAsString()));
   }
 }
