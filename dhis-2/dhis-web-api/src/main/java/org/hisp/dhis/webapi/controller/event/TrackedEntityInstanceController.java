@@ -545,8 +545,7 @@ public class TrackedEntityInstanceController {
   private void setHttpResponse(HttpServletResponse response, FileResource fileResource) {
     response.setContentType(fileResource.getContentType());
     response.setContentLengthLong(fileResource.getContentLength());
-    response.setHeader(
-        HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileResource.getName());
+    response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName());
     HeaderUtils.setSecurityHeaders(response, config.getProperty(ConfigurationKey.CSP_HEADER_VALUE));
   }
 }
