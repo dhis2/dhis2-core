@@ -55,6 +55,7 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityEnrollmentParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
+import org.hisp.dhis.tracker.ownership.TrackerOwnershipManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
