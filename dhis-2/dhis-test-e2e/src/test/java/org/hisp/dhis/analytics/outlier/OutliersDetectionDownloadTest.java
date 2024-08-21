@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,36 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.analytics.outlier;
 
-import lombok.Getter;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * @author Lars Helge Overland
- */
-@Getter
-public enum AnalyticsTableType {
-  DATA_VALUE("analytics", true, true),
-  COMPLETENESS("analytics_completeness", true, true),
-  COMPLETENESS_TARGET("analytics_completenesstarget", false, false),
-  ORG_UNIT_TARGET("analytics_orgunittarget", false, false),
-  VALIDATION_RESULT("analytics_validationresult", true, false),
-  EVENT("analytics_event", false, true),
-  ENROLLMENT("analytics_enrollment", false, false),
-  OWNERSHIP("analytics_ownership", false, false),
-  TRACKED_ENTITY_INSTANCE_EVENTS("analytics_te_event", false, true),
-  TRACKED_ENTITY_INSTANCE_ENROLLMENTS("analytics_te_enrollment", false, false),
-  TRACKED_ENTITY_INSTANCE("analytics_te", false, false);
+import org.hisp.dhis.AnalyticsApiTest;
+import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsOutlierDetectionActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
+import org.junit.jupiter.api.Test;
 
-  private final String tableName;
+public class OutliersDetectionDownloadTest extends AnalyticsApiTest {
+  private AnalyticsOutlierDetectionActions actions = new AnalyticsOutlierDetectionActions();
 
-  private final boolean periodDimension;
+  @Test
+  void queryWithXlsxDownload() {
+    // Given
+    final String TYPE = "application/vnd.ms-excel";
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("endDate=2023-01-02")
+            .add("ou=O6uvpzGd5pu,fdc6uOvgoji")
+            .add("maxResults=30")
+            .add("sortOrder=ASC")
+            .add("orderBy=zscore")
+            .add("threshold=3")
+            .add("startDate=2022-06-01")
+            .add("ds=BfMAe6Itzgt")
+            .add("algorithm=Z_SCORE");
 
-  private final boolean latestPartition;
+    // When
+    ApiResponse response = actions.download("xlsx").get(params);
 
-  AnalyticsTableType(String tableName, boolean periodDimension, boolean latestPartition) {
-    this.tableName = tableName;
-    this.periodDimension = periodDimension;
-    this.latestPartition = latestPartition;
+    // Then
+    response.validate().statusCode(200).contentType(TYPE);
+
+    assertTrue(isNotBlank(response.getAsString()));
   }
 }

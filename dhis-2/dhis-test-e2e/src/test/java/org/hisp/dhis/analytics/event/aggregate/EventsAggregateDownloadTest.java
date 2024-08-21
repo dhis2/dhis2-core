@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,36 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.analytics.event.aggregate;
 
-import lombok.Getter;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * @author Lars Helge Overland
- */
-@Getter
-public enum AnalyticsTableType {
-  DATA_VALUE("analytics", true, true),
-  COMPLETENESS("analytics_completeness", true, true),
-  COMPLETENESS_TARGET("analytics_completenesstarget", false, false),
-  ORG_UNIT_TARGET("analytics_orgunittarget", false, false),
-  VALIDATION_RESULT("analytics_validationresult", true, false),
-  EVENT("analytics_event", false, true),
-  ENROLLMENT("analytics_enrollment", false, false),
-  OWNERSHIP("analytics_ownership", false, false),
-  TRACKED_ENTITY_INSTANCE_EVENTS("analytics_te_event", false, true),
-  TRACKED_ENTITY_INSTANCE_ENROLLMENTS("analytics_te_enrollment", false, false),
-  TRACKED_ENTITY_INSTANCE("analytics_te", false, false);
+import org.hisp.dhis.AnalyticsApiTest;
+import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEventActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
+import org.junit.jupiter.api.Test;
 
-  private final String tableName;
+public class EventsAggregateDownloadTest extends AnalyticsApiTest {
+  private final AnalyticsEventActions analyticsEventActions = new AnalyticsEventActions();
 
-  private final boolean periodDimension;
+  @Test
+  void aggregateWithXlsxDownload() {
+    // Given
+    final String TYPE = "application/vnd.ms-excel";
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add(
+                "dimension=ou:ImspTQPwCqd,pe:LAST_12_MONTHS,C0aLZo75dgJ.B6TnnFMgmCk,C0aLZo75dgJ.Z1rLc1rVHK8,C0aLZo75dgJ.CklPZdOd6H1")
+            .add("filter=C0aLZo75dgJ.vTKipVM0GsX,C0aLZo75dgJ.h5FuguPFF2j,C0aLZo75dgJ.aW66s2QSosT")
+            .add("stage=C0aLZo75dgJ")
+            .add("displayProperty=NAME")
+            .add("outputType=ENROLLMENT")
+            .add("totalPages=false");
 
-  private final boolean latestPartition;
+    // When
+    ApiResponse response =
+        analyticsEventActions.aggregate().get("qDkgAbB5Jlk.xlsx", JSON, JSON, params);
 
-  AnalyticsTableType(String tableName, boolean periodDimension, boolean latestPartition) {
-    this.tableName = tableName;
-    this.periodDimension = periodDimension;
-    this.latestPartition = latestPartition;
+    // Then
+    response.validate().statusCode(200).contentType(TYPE);
+
+    assertTrue(isNotBlank(response.getAsString()));
   }
 }

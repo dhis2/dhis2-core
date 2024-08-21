@@ -196,7 +196,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
               .selectExpression("ous.level")
               .build(),
           AnalyticsTableColumn.builder()
-              .name("engeometry")
+              .name("enrollmentgeometry")
               .dataType(GEOMETRY)
               .selectExpression("en.geometry")
               .indexType(IndexType.GIST)
