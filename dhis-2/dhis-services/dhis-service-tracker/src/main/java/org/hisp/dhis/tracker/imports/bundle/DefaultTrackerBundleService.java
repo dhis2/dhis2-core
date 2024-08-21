@@ -132,6 +132,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
   }
 
   @Override
+  @Transactional
   public void postCommit(TrackerBundle bundle) {
     updateTrackedEntitiesLastUpdated(bundle);
   }
