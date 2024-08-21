@@ -1029,10 +1029,6 @@ public class DefaultUserService implements UserService {
 
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
 
-    if (currentUserDetails == null) {
-      throw new ForbiddenException("No current user in session, can not update user.");
-    }
-
     // Current user can not update their own 2FA settings, must use
     // /2fa/enable or disable API, even if they are admin.
     if (currentUserDetails.getUid().equals(userToModify.getUid())) {

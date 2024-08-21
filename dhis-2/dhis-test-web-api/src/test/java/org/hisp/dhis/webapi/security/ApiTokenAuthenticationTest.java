@@ -220,7 +220,6 @@ class ApiTokenAuthenticationTest extends ControllerWithApiTokenAuthTestBase {
     ApiKeyTokenGenerator.TokenWrapper wrapper = createNewToken();
     final String plaintext = new String(wrapper.getPlaintextToken());
 
-    UserDetails currentUserDetails1 = CurrentUserUtil.getCurrentUserDetails();
     assertEquals(usera, wrapper.getApiToken().getCreatedBy());
 
     // Do a request to cache the token
@@ -229,7 +228,6 @@ class ApiTokenAuthenticationTest extends ControllerWithApiTokenAuthTestBase {
 
     ApiToken token = wrapper.getApiToken();
     injectSecurityContextUser(usera);
-    UserDetails currentUserDetails2 = CurrentUserUtil.getCurrentUserDetails();
     apiTokenService.delete(token);
 
     assertEquals(

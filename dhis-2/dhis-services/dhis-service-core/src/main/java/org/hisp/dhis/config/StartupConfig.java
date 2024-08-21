@@ -65,9 +65,11 @@ public class StartupConfig {
 
   @Bean("org.hisp.dhis.dataelement.DataElementDefaultDimensionPopulator")
   public DataElementDefaultDimensionPopulator dataElementDefaultDimensionPopulator(
-      DataElementService dataElementService, CategoryService categoryService) {
+      DataElementService dataElementService,
+      CategoryService categoryService,
+      UserService userService) {
     DataElementDefaultDimensionPopulator populator =
-        new DataElementDefaultDimensionPopulator(dataElementService, categoryService);
+        new DataElementDefaultDimensionPopulator(dataElementService, categoryService, userService);
     populator.setName("DataElementDefaultDimensionPopulator");
     populator.setRunlevel(4);
     return populator;

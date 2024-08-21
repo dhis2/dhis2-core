@@ -421,7 +421,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   @Override
   @CheckForNull
   public T getByUniqueAttributeValue(
-      @Nonnull Attribute attribute, @Nonnull String value, @CheckForNull UserDetails user) {
+      @Nonnull Attribute attribute, @Nonnull String value, @Nonnull UserDetails user) {
     if (StringUtils.isEmpty(value) || !attribute.isUnique()) {
       return null;
     }

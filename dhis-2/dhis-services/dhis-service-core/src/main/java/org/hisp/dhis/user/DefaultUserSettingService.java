@@ -136,11 +136,9 @@ public class DefaultUserSettingService implements UserSettingService {
   @Transactional
   public void deleteUserSetting(UserSettingKey key) {
     String currentUsername = CurrentUserUtil.getCurrentUsername();
-    if (currentUsername != null) {
-      UserSetting setting = userSettingStore.getUserSetting(currentUsername, key.getName());
-      if (setting != null) {
-        deleteUserSetting(setting);
-      }
+    UserSetting setting = userSettingStore.getUserSetting(currentUsername, key.getName());
+    if (setting != null) {
+      deleteUserSetting(setting);
     }
   }
 

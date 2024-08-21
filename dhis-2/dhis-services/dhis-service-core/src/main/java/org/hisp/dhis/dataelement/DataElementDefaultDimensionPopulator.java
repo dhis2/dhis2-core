@@ -36,6 +36,11 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 import org.hisp.dhis.user.SystemUser;
+import org.hisp.dhis.user.UserService;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * When storing DataValues without associated dimensions there is a need to refer to a default
@@ -53,15 +58,18 @@ public class DataElementDefaultDimensionPopulator extends TransactionContextStar
   // -------------------------------------------------------------------------
 
   private final DataElementService dataElementService;
-
   private final CategoryService categoryService;
+  private final UserService userService;
 
   public DataElementDefaultDimensionPopulator(
-      DataElementService dataElementService, CategoryService categoryService) {
+      DataElementService dataElementService,
+      CategoryService categoryService,
+      UserService userService) {
     checkNotNull(dataElementService);
     checkNotNull(categoryService);
     this.dataElementService = dataElementService;
     this.categoryService = categoryService;
+    this.userService = userService;
   }
 
   // -------------------------------------------------------------------------
@@ -70,30 +78,30 @@ public class DataElementDefaultDimensionPopulator extends TransactionContextStar
 
   @Override
   public void executeInTransaction() {
+
     SystemUser actingUser = new SystemUser();
+    Authentication authentication =
+        new UsernamePasswordAuthenticationToken(actingUser, "", actingUser.getAuthorities());
+    SecurityContext context = SecurityContextHolder.createEmptyContext();
+    context.setAuthentication(authentication);
+    SecurityContextHolder.setContext(context);
 
     Category defaultCategory =
         categoryService.getCategoryByName(Category.DEFAULT_NAME, new SystemUser());
 
     if (defaultCategory == null) {
       categoryService.generateDefaultDimension(actingUser);
-
       defaultCategory = categoryService.getCategoryByName(Category.DEFAULT_NAME, new SystemUser());
-
       log.info("Added default category");
     }
 
     categoryService.updateCategory(defaultCategory, actingUser);
-
     String defaultName = CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
-
     CategoryCombo categoryCombo = categoryService.getCategoryComboByName(defaultName);
 
     if (categoryCombo == null) {
       categoryService.generateDefaultDimension(actingUser);
-
       log.info("Added default dataelement dimension");
-
       categoryCombo = categoryService.getCategoryComboByName(defaultName);
     }
 
@@ -107,7 +115,6 @@ public class DataElementDefaultDimensionPopulator extends TransactionContextStar
     for (DataElement dataElement : dataElements) {
       if (dataElement.getCategoryCombo() == null) {
         dataElement.setCategoryCombo(categoryCombo);
-
         dataElementService.updateDataElement(dataElement);
       }
     }
