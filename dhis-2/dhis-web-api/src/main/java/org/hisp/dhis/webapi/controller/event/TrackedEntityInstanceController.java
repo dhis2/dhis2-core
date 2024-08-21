@@ -130,6 +130,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
 public class TrackedEntityInstanceController {
+  private static final String FILE_CONTENT_DISPOSITION = "attachment; filename=";
+
+  private static final String IMAGE_CONTENT_DISPOSITION = "filename=";
+
   private final TrackedEntityInstanceService trackedEntityInstanceService;
 
   private final org.hisp.dhis.trackedentity.TrackedEntityInstanceService instanceService;
@@ -254,7 +258,7 @@ public class TrackedEntityInstanceController {
     FileResourceUtils.setImageFileDimensions(
         fileResource, MoreObjects.firstNonNull(dimension, ImageFileDimension.ORIGINAL));
 
-    setHttpResponse(response, fileResource);
+    setImageHttpResponse(response, fileResource);
 
     try (InputStream inputStream = fileResourceService.getFileResourceContent(fileResource)) {
       BufferedImage img = ImageIO.read(inputStream);
@@ -319,7 +323,7 @@ public class TrackedEntityInstanceController {
 
     validateFileResource(fileResource, value);
 
-    setHttpResponse(response, fileResource);
+    setFileHttpResponse(response, fileResource);
 
     try {
       fileResourceService.copyFileResourceContent(fileResource, response.getOutputStream());
@@ -601,11 +605,20 @@ public class TrackedEntityInstanceController {
     }
   }
 
-  private void setHttpResponse(HttpServletResponse response, FileResource fileResource) {
+  private void setFileHttpResponse(HttpServletResponse response, FileResource fileResource) {
+    setHttpResponse(response, fileResource, FILE_CONTENT_DISPOSITION);
+  }
+
+  private void setImageHttpResponse(HttpServletResponse response, FileResource fileResource) {
+    setHttpResponse(response, fileResource, IMAGE_CONTENT_DISPOSITION);
+  }
+
+  private void setHttpResponse(
+      HttpServletResponse response, FileResource fileResource, String contentDisposition) {
     response.setContentType(fileResource.getContentType());
     response.setContentLengthLong(fileResource.getContentLength());
     response.setHeader(
-        HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileResource.getName());
+        HttpHeaders.CONTENT_DISPOSITION, contentDisposition + fileResource.getName());
     HeaderUtils.setSecurityHeaders(response, config.getProperty(ConfigurationKey.CSP_HEADER_VALUE));
   }
 }
