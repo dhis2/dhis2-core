@@ -59,17 +59,14 @@ public class DataElementDefaultDimensionPopulator extends TransactionContextStar
 
   private final DataElementService dataElementService;
   private final CategoryService categoryService;
-  private final UserService userService;
 
   public DataElementDefaultDimensionPopulator(
       DataElementService dataElementService,
-      CategoryService categoryService,
-      UserService userService) {
+      CategoryService categoryService) {
     checkNotNull(dataElementService);
     checkNotNull(categoryService);
     this.dataElementService = dataElementService;
     this.categoryService = categoryService;
-    this.userService = userService;
   }
 
   // -------------------------------------------------------------------------
@@ -78,13 +75,12 @@ public class DataElementDefaultDimensionPopulator extends TransactionContextStar
 
   @Override
   public void executeInTransaction() {
-
     SystemUser actingUser = new SystemUser();
-    Authentication authentication =
-        new UsernamePasswordAuthenticationToken(actingUser, "", actingUser.getAuthorities());
-    SecurityContext context = SecurityContextHolder.createEmptyContext();
-    context.setAuthentication(authentication);
-    SecurityContextHolder.setContext(context);
+//    Authentication authentication =
+//        new UsernamePasswordAuthenticationToken(actingUser, "", actingUser.getAuthorities());
+//    SecurityContext context = SecurityContextHolder.createEmptyContext();
+//    context.setAuthentication(authentication);
+//    SecurityContextHolder.setContext(context);
 
     Category defaultCategory =
         categoryService.getCategoryByName(Category.DEFAULT_NAME, new SystemUser());

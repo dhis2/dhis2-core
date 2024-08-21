@@ -69,7 +69,7 @@ public class StartupConfig {
       CategoryService categoryService,
       UserService userService) {
     DataElementDefaultDimensionPopulator populator =
-        new DataElementDefaultDimensionPopulator(dataElementService, categoryService, userService);
+        new DataElementDefaultDimensionPopulator(dataElementService, categoryService);
     populator.setName("DataElementDefaultDimensionPopulator");
     populator.setRunlevel(4);
     return populator;
