@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.e2e.actions.analytics;
+package org.hisp.dhis.analytics.outlier;
 
-import org.hisp.dhis.test.e2e.actions.RestApiActions;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * Provides tracked entities endpoints/operations associated to the parent
- * "analytics/outlierDetection".
- *
- * @author maikel arabori
- */
-public class AnalyticsOutlierDetectionActions extends RestApiActions {
-  public AnalyticsOutlierDetectionActions() {
-    super("/analytics/outlierDetection");
-  }
+import org.hisp.dhis.AnalyticsApiTest;
+import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsOutlierDetectionActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
+import org.junit.jupiter.api.Test;
 
-  public AnalyticsOutlierDetectionActions(String endpoint) {
-    super("/analytics/outlierDetection" + endpoint);
-  }
+public class OutliersDetectionDownloadTest extends AnalyticsApiTest {
+  private AnalyticsOutlierDetectionActions actions = new AnalyticsOutlierDetectionActions();
 
-  public AnalyticsOutlierDetectionActions query() {
-    return new AnalyticsOutlierDetectionActions("");
-  }
+  @Test
+  void queryWithXlsxDownload() {
+    // Given
+    final String TYPE = "application/vnd.ms-excel";
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("endDate=2023-01-02")
+            .add("ou=O6uvpzGd5pu,fdc6uOvgoji")
+            .add("maxResults=30")
+            .add("sortOrder=ASC")
+            .add("orderBy=zscore")
+            .add("threshold=3")
+            .add("startDate=2022-06-01")
+            .add("ds=BfMAe6Itzgt")
+            .add("algorithm=Z_SCORE");
 
-  public AnalyticsOutlierDetectionActions download(String fileExtension) {
-    return new AnalyticsOutlierDetectionActions("." + fileExtension);
+    // When
+    ApiResponse response = actions.download("xlsx").get(params);
+
+    // Then
+    response.validate().statusCode(200).contentType(TYPE);
+
+    assertTrue(isNotBlank(response.getAsString()));
   }
 }

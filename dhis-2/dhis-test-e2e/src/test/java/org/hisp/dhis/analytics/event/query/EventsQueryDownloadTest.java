@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,18 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentity;
+package org.hisp.dhis.analytics.event.query;
 
-import java.util.Date;
-import java.util.Set;
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * @author Abyot Asalefew Gizaw
- */
-public interface TrackedEntityStore extends IdentifiableObjectStore<TrackedEntity> {
-  String ID = TrackedEntityStore.class.getName();
+import org.hisp.dhis.AnalyticsApiTest;
+import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEventActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
+import org.junit.jupiter.api.Test;
 
-  void updateTrackedEntityLastUpdated(
-      Set<String> trackedEntityUIDs, Date lastUpdated, String userInfoSnapshot);
+public class EventsQueryDownloadTest extends AnalyticsApiTest {
+  private final AnalyticsEventActions analyticsEventActions = new AnalyticsEventActions();
+
+  @Test
+  void queryWithXlsxDownload() {
+    // Given
+    final String TYPE = "application/vnd.ms-excel";
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=pe:LAST_12_MONTHS,ou:ImspTQPwCqd")
+            .add("stage=dBwrot7S420")
+            .add("displayProperty=NAME")
+            .add("outputType=EVENT")
+            .add("totalPages=false")
+            .add("desc=lastupdated")
+            .add("relativePeriodDate=2022-09-27");
+
+    // When
+    ApiResponse response =
+        analyticsEventActions.query().get("lxAQ7Zs9VYR.xlsx", JSON, JSON, params);
+
+    // Then
+    response.validate().statusCode(200).contentType(TYPE);
+
+    assertTrue(isNotBlank(response.getAsString()));
+  }
 }

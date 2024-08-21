@@ -182,6 +182,24 @@ public class EventAnalyticsController {
         response.getOutputStream());
   }
 
+  @GetMapping(value = "/aggregate/{program}.xlsx")
+  public void getAggregateXlsx(
+      @PathVariable String program,
+      EventsAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response)
+      throws Exception {
+    GridUtils.toXlsx(
+        getAggregatedGridWithAttachment(
+            criteria,
+            program,
+            apiVersion,
+            ContextUtils.CONTENT_TYPE_EXCEL,
+            "events.xlsx",
+            response),
+        response.getOutputStream());
+  }
+
   @GetMapping(value = "/aggregate/{program}.csv")
   public void getAggregateCsv(
       @PathVariable String program,
@@ -365,6 +383,25 @@ public class EventAnalyticsController {
             apiVersion,
             ContextUtils.CONTENT_TYPE_EXCEL,
             "events.xls",
+            true,
+            response),
+        response.getOutputStream());
+  }
+
+  @GetMapping(value = "/query/{program}.xlsx")
+  public void getQueryXlsx(
+      @PathVariable String program,
+      EventsAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response)
+      throws Exception {
+    GridUtils.toXlsx(
+        getListGridWithAttachment(
+            criteria,
+            program,
+            apiVersion,
+            ContextUtils.CONTENT_TYPE_EXCEL,
+            "events.xlsx",
             true,
             response),
         response.getOutputStream());

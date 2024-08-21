@@ -184,6 +184,25 @@ public class EnrollmentAnalyticsController {
   }
 
   @SneakyThrows
+  @GetMapping("/aggregate/{program}.xlsx")
+  public void getAggregateXlsx(
+      @PathVariable String program,
+      EnrollmentAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response) {
+    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
+
+    contextUtils.configureResponse(
+        response,
+        ContextUtils.CONTENT_TYPE_EXCEL,
+        CacheStrategy.RESPECT_SYSTEM_SETTING,
+        "enrollments.xlsx",
+        true);
+    Grid grid = analyticsService.getEnrollments(params);
+    GridUtils.toXlsx(grid, response.getOutputStream());
+  }
+
+  @SneakyThrows
   @GetMapping("/aggregate/{program}.csv")
   public void getAggregateCsv(
       @PathVariable String program,
@@ -315,6 +334,25 @@ public class EnrollmentAnalyticsController {
         true);
     Grid grid = analyticsService.getEnrollments(params);
     GridUtils.toXls(grid, response.getOutputStream());
+  }
+
+  @SneakyThrows
+  @GetMapping("/query/{program}.xlsx")
+  public void getQueryXlsx(
+      @PathVariable String program,
+      EnrollmentAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response) {
+    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, QUERY);
+
+    contextUtils.configureResponse(
+        response,
+        ContextUtils.CONTENT_TYPE_EXCEL,
+        CacheStrategy.RESPECT_SYSTEM_SETTING,
+        "enrollments.xlsx",
+        true);
+    Grid grid = analyticsService.getEnrollments(params);
+    GridUtils.toXlsx(grid, response.getOutputStream());
   }
 
   @SneakyThrows

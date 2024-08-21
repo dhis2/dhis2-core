@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import static org.hisp.dhis.trackedentity.TrackerOwnershipManager.NO_READ_ACCESS_TO_ORG_UNIT;
-import static org.hisp.dhis.trackedentity.TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED;
-import static org.hisp.dhis.trackedentity.TrackerOwnershipManager.PROGRAM_ACCESS_CLOSED;
+import static org.hisp.dhis.trackedentity.ApiTrackerOwnershipManager.NO_READ_ACCESS_TO_ORG_UNIT;
+import static org.hisp.dhis.trackedentity.ApiTrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED;
+import static org.hisp.dhis.trackedentity.ApiTrackerOwnershipManager.PROGRAM_ACCESS_CLOSED;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,7 +62,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
   private final AclService aclService;
-  private final TrackerOwnershipManager ownershipAccessManager;
+  private final ApiTrackerOwnershipManager ownershipAccessManager;
   private final ProgramService programService;
 
   /**
