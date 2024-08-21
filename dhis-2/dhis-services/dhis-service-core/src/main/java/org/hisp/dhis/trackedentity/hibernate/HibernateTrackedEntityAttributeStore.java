@@ -158,7 +158,7 @@ public class HibernateTrackedEntityAttributeStore
   public Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes() {
     TypedQuery<TrackedEntityTypeAttribute> query =
         entityManager.createQuery(
-            "select trackedEntityTypeAttributes from TrackedEntityType",
+            "select distinct tea from TrackedEntityType tet inner join tet.trackedEntityTypeAttributes tea",
             TrackedEntityTypeAttribute.class);
 
     Set<TrackedEntityTypeAttribute> trackedEntityTypeAttributes =
@@ -204,7 +204,8 @@ public class HibernateTrackedEntityAttributeStore
 
     TypedQuery<ProgramTrackedEntityAttribute> query =
         entityManager.createQuery(
-            "select p.programAttributes from Program p", ProgramTrackedEntityAttribute.class);
+            "select distinct pa from Program p inner join p.programAttributes pa",
+            ProgramTrackedEntityAttribute.class);
 
     List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes = query.getResultList();
 
