@@ -683,13 +683,11 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     orgUnits.append("AND (");
 
     for (OrganisationUnit organisationUnit : params.getOrgUnits()) {
-      if (organisationUnit != null) {
-        orgUnits
-            .append(orHlp.or())
-            .append("OU.path LIKE '")
-            .append(organisationUnit.getPath())
-            .append("%'");
-      }
+      orgUnits
+          .append(orHlp.or())
+          .append("OU.path LIKE '")
+          .append(organisationUnit.getPath())
+          .append("%'");
     }
 
     orgUnits.append(") ");
@@ -704,19 +702,16 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     orgUnits.append("AND (");
 
     for (OrganisationUnit organisationUnit : params.getOrgUnits()) {
-
-      if (organisationUnit != null) {
-        orgUnits
-            .append(orHlp.or())
-            .append(" OU.path LIKE '")
-            .append(organisationUnit.getPath())
-            .append("%'")
-            .append(" AND (ou.hierarchylevel = ")
-            .append(organisationUnit.getHierarchyLevel())
-            .append(" OR ou.hierarchylevel = ")
-            .append((organisationUnit.getHierarchyLevel() + 1))
-            .append(")");
-      }
+      orgUnits
+          .append(orHlp.or())
+          .append(" OU.path LIKE '")
+          .append(organisationUnit.getPath())
+          .append("%'")
+          .append(" AND (ou.hierarchylevel = ")
+          .append(organisationUnit.getHierarchyLevel())
+          .append(" OR ou.hierarchylevel = ")
+          .append((organisationUnit.getHierarchyLevel() + 1))
+          .append(")");
     }
 
     orgUnits.append(") ");
