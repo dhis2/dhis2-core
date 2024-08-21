@@ -39,9 +39,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.trackedentity.ApiTrackerOwnershipManager;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
-import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
@@ -65,7 +65,7 @@ import org.springframework.stereotype.Component;
 class SecurityOwnershipValidator implements Validator<Enrollment> {
 
   @Nonnull private final AclService aclService;
-  @Nonnull private final TrackerOwnershipManager ownershipAccessManager;
+  @Nonnull private final ApiTrackerOwnershipManager ownershipAccessManager;
 
   @Override
   public void validate(Reporter reporter, TrackerBundle bundle, Enrollment enrollment) {
