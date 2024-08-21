@@ -27,22 +27,22 @@
  */
 package org.hisp.dhis.helpers.file;
 
-import jakarta.xml.parsers.DocumentBuilderFactory;
-import jakarta.xml.parsers.ParserConfigurationException;
-import jakarta.xml.transform.Transformer;
-import jakarta.xml.transform.TransformerConfigurationException;
-import jakarta.xml.transform.TransformerException;
-import jakarta.xml.transform.TransformerFactory;
-import jakarta.xml.transform.dom.DOMSource;
-import jakarta.xml.transform.stream.StreamResult;
-import jakarta.xml.xpath.XPath;
-import jakarta.xml.xpath.XPathConstants;
-import jakarta.xml.xpath.XPathExpressionException;
-import jakarta.xml.xpath.XPathFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.function.Function;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 import org.hisp.dhis.test.e2e.actions.IdGenerator;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
