@@ -143,7 +143,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       ownerCache.invalidate(getOwnershipCacheKey(trackedEntity::getId, program));
     } else {
       log.error("Unauthorized attempt to change ownership");
-      throw new AccessDeniedException(
+      throw new ForbiddenException(
           "User does not have access to change ownership for the entity-program combination");
     }
   }
