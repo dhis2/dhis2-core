@@ -47,7 +47,6 @@ import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.trackedentity.ApiTrackerOwnershipManager;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -55,6 +54,7 @@ import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.tracker.ownership.TrackerOwnershipManager;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
@@ -66,7 +66,7 @@ import org.springframework.transaction.annotation.Transactional;
 class DefaultEnrollmentService implements EnrollmentService {
   private final EnrollmentStore enrollmentStore;
 
-  private final ApiTrackerOwnershipManager trackerOwnershipAccessManager;
+  private final TrackerOwnershipManager trackerOwnershipAccessManager;
 
   private final TrackedEntityAttributeService trackedEntityAttributeService;
 

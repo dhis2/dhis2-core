@@ -29,7 +29,6 @@ package org.hisp.dhis.trackedentity;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.user.UserDetails;
 
 /**
@@ -55,22 +54,6 @@ public interface ApiTrackerOwnershipManager {
 
   boolean hasAccess(
       UserDetails user, String trackedEntity, OrganisationUnit organisationUnit, Program program);
-
-  /**
-   * Ownership check can be skipped if the user is superuser or if the program type is without
-   * registration.
-   *
-   * @return true if ownership check can be skipped.
-   */
-  boolean canSkipOwnershipCheck(UserDetails user, Program program);
-
-  /**
-   * Ownership check can be skipped if the user is superuser or if the program type is without
-   * registration.
-   *
-   * @return true if ownership check can be skipped.
-   */
-  boolean canSkipOwnershipCheck(UserDetails user, ProgramType programType);
 
   /**
    * Checks whether the owner of the TE/program pair resides within the user search scope.

@@ -51,7 +51,6 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.test.TestBase;
-import org.hisp.dhis.trackedentity.ApiTrackerOwnershipManager;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -61,6 +60,7 @@ import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
+import org.hisp.dhis.tracker.ownership.TrackerOwnershipManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.BeforeEach;
@@ -92,7 +92,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
 
   @Mock private AclService aclService;
 
-  @Mock private ApiTrackerOwnershipManager ownershipAccessManager;
+  @Mock private TrackerOwnershipManager ownershipAccessManager;
 
   private UserDetails user;
 

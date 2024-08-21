@@ -51,7 +51,6 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.ApiTrackerOwnershipManager;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -62,6 +61,7 @@ import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 import org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors;
+import org.hisp.dhis.tracker.ownership.TrackerOwnershipManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
@@ -79,7 +79,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       "Event {} has no organisation unit assigned, so we skip user validation";
 
   @Nonnull private final AclService aclService;
-  @Nonnull private final ApiTrackerOwnershipManager ownershipAccessManager;
+  @Nonnull private final TrackerOwnershipManager ownershipAccessManager;
 
   @Override
   public void validate(

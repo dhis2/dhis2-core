@@ -108,14 +108,11 @@ public class DefaultApiTrackerOwnershipManager implements ApiTrackerOwnershipMan
     };
   }
 
-  @Override
-  public boolean canSkipOwnershipCheck(UserDetails user, Program program) {
-    return program == null || canSkipOwnershipCheck(user, program.getProgramType());
-  }
-
-  @Override
-  public boolean canSkipOwnershipCheck(UserDetails user, ProgramType programType) {
-    return user == null || user.isSuper() || ProgramType.WITHOUT_REGISTRATION == programType;
+  private boolean canSkipOwnershipCheck(UserDetails user, Program program) {
+    return user == null
+        || user.isSuper()
+        || program == null
+        || ProgramType.WITHOUT_REGISTRATION == program.getProgramType();
   }
 
   @Override
@@ -214,8 +211,6 @@ public class DefaultApiTrackerOwnershipManager implements ApiTrackerOwnershipMan
   /**
    * Returns key used to store and retrieve cached records for ownership
    *
-   * @param trackedEntityIdSupplier
-   * @param program
    * @return a String representing a record of ownership
    */
   private String getOwnershipCacheKey(LongSupplier trackedEntityIdSupplier, Program program) {
@@ -225,8 +220,6 @@ public class DefaultApiTrackerOwnershipManager implements ApiTrackerOwnershipMan
   /**
    * Returns key used to store and retrieve cached records for ownership
    *
-   * @param teUid
-   * @param programUid
    * @return a String representing a record of ownership
    */
   private String getTempOwnershipCacheKey(String teUid, String programUid, String userUid) {
