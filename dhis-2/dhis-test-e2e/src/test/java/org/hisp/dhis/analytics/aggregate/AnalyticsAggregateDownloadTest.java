@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.e2e.actions.analytics;
+package org.hisp.dhis.analytics.aggregate;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.test.e2e.actions.RestApiActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
+import org.junit.jupiter.api.Test;
 
-/**
- * Provides tracked entities endpoints/operations associated to the parent
- * "analytics/outlierDetection".
- *
- * @author maikel arabori
- */
-public class AnalyticsOutlierDetectionActions extends RestApiActions {
-  public AnalyticsOutlierDetectionActions() {
-    super("/analytics/outlierDetection");
-  }
+public class AnalyticsAggregateDownloadTest extends AnalyticsApiTest {
 
-  public AnalyticsOutlierDetectionActions(String endpoint) {
-    super("/analytics/outlierDetection" + endpoint);
-  }
+  @Test
+  void queryWithXlsxDownload() {
+    // Given
+    final String TYPE = "application/vnd.ms-excel";
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=pe:THIS_YEAR")
+            .add("skipData=false")
+            .add("includeNumDen=false")
+            .add("displayProperty=NAME")
+            .add("skipMeta=false")
+            .add("dimension=dx:Uvn6LCg7dVU;sB79w2hiLp8,ou:USER_ORGUNIT;USER_ORGUNIT_CHILDREN")
+            .add("relativePeriodDate=2022-01-01");
+    // When
+    RestApiActions analyticsActions = new RestApiActions("analytics.xlsx");
+    ApiResponse response = analyticsActions.get(params);
 
-  public AnalyticsOutlierDetectionActions query() {
-    return new AnalyticsOutlierDetectionActions("");
-  }
-
-  public AnalyticsOutlierDetectionActions download(String fileExtension) {
-    return new AnalyticsOutlierDetectionActions("." + fileExtension);
+    // Then
+    response.validate().statusCode(200).contentType(TYPE);
+    assertTrue(isNotBlank(response.getAsString()));
   }
 }

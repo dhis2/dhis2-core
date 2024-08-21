@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.e2e.actions.analytics;
+package org.hisp.dhis.analytics.enrollment.query;
 
-import org.hisp.dhis.test.e2e.actions.RestApiActions;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * Provides tracked entities endpoints/operations associated to the parent
- * "analytics/outlierDetection".
- *
- * @author maikel arabori
- */
-public class AnalyticsOutlierDetectionActions extends RestApiActions {
-  public AnalyticsOutlierDetectionActions() {
-    super("/analytics/outlierDetection");
-  }
+import org.hisp.dhis.AnalyticsApiTest;
+import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEnrollmentsActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
+import org.junit.jupiter.api.Test;
 
-  public AnalyticsOutlierDetectionActions(String endpoint) {
-    super("/analytics/outlierDetection" + endpoint);
-  }
+public class EnrollmentsQueryDownloadTest extends AnalyticsApiTest {
+  private AnalyticsEnrollmentsActions analyticsEnrollmentsActions =
+      new AnalyticsEnrollmentsActions();
 
-  public AnalyticsOutlierDetectionActions query() {
-    return new AnalyticsOutlierDetectionActions("");
-  }
+  @Test
+  void queryWithXlsxDownload() {
+    // Given
+    final String TYPE = "application/vnd.ms-excel";
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=pe:LAST_12_MONTHS,ou:ImspTQPwCqd,A03MvHHogjR.UXz7xuGCEhU")
+            .add("stage=A03MvHHogjR")
+            .add("displayProperty=NAME")
+            .add("outputType=ENROLLMENT")
+            .add("asc=A03MvHHogjR.UXz7xuGCEhU,lastupdated")
+            .add("totalPages=false")
+            .add("pageSize=100")
+            .add("page=1")
+            .add("relativePeriodDate=2022-09-27");
 
-  public AnalyticsOutlierDetectionActions download(String fileExtension) {
-    return new AnalyticsOutlierDetectionActions("." + fileExtension);
+    // When
+    ApiResponse response =
+        analyticsEnrollmentsActions.query().get("IpHINAT79UW.xlsx", TYPE, TYPE, params);
+
+    // Then
+    response.validate().statusCode(200).contentType(TYPE);
+
+    assertTrue(isNotBlank(response.getAsString()));
   }
 }
