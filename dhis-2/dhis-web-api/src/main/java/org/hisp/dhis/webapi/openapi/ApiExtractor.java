@@ -72,7 +72,6 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.OpenApi.Document.Group;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.jsontree.Json;
@@ -253,7 +252,7 @@ final class ApiExtractor {
 
     Boolean deprecated = source.isAnnotationPresent(Deprecated.class) ? Boolean.TRUE : null;
 
-    Group group = getEndpointGroup(source);
+    String group = getEndpointGroup(source);
 
     Maturity.Classification maturity = getMaturity(source);
 
@@ -299,15 +298,13 @@ final class ApiExtractor {
     return null;
   }
 
-  private static Group getEndpointGroup(Method source) {
-    Group group = Group.DEFAULT;
-    if (source.getDeclaringClass().isAnnotationPresent(OpenApi.Document.class))
-      group = source.getDeclaringClass().getAnnotation(OpenApi.Document.class).group();
-    if (source.isAnnotationPresent(OpenApi.Document.class)) {
-      Group overlay = source.getAnnotation(OpenApi.Document.class).group();
-      if (overlay != Group.DEFAULT) group = overlay;
-    }
-    return group == Group.DEFAULT ? Group.MISC : group;
+  @CheckForNull
+  private static String getEndpointGroup(Method source) {
+    OpenApi.Document doc = source.getAnnotation(OpenApi.Document.class);
+    if (doc != null && !doc.group().isEmpty()) return doc.group();
+    doc = source.getDeclaringClass().getAnnotation(OpenApi.Document.class);
+    if (doc != null && !doc.group().isEmpty()) return doc.group();
+    return null;
   }
 
   private Map<HttpStatus, Api.Response> extractResponses(

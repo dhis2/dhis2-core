@@ -223,7 +223,6 @@ public class OpenApiGenerator extends JsonGenerator {
   }
 
   private void generateOperation(RequestMethod method, Api.Endpoint endpoint) {
-    Set<String> tags = Set.of(endpoint.getGroup().tag());
     addObjectMember(
         method.name().toLowerCase(),
         () -> {
@@ -233,9 +232,9 @@ public class OpenApiGenerator extends JsonGenerator {
           addStringMultilineMember("description", endpoint.getDescription().orElse(NO_DESCRIPTION));
           addStringMember("operationId", getUniqueOperationId(endpoint));
           addStringMember("x-package", endpoint.getIn().getDomain().getSimpleName());
-          addStringMember("x-group", endpoint.getGroup().tag());
+          addStringMember("x-group", endpoint.getGroup());
           addInlineArrayMember("x-auth", endpoint.getAuthorities());
-          addInlineArrayMember("tags", List.copyOf(tags));
+          addInlineArrayMember("tags", List.of()); // TODO add tag support again
           addArrayMember(
               "parameters", endpoint.getParameters().values(), this::generateParameterOrRef);
           if (endpoint.getRequestBody().isPresent()) {

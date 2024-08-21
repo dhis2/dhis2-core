@@ -391,14 +391,7 @@ public class ApiIntegrator {
    */
 
   private void aggregateTags() {
-    api.getUsedGroups()
-        .forEach(
-            group -> {
-              String name = group.tag();
-              Api.Tag tag = new Api.Tag(name);
-              tag.getDescription().setValue(group.getDescription());
-              api.getTags().put(name, tag);
-            });
+    // Note: not tags support for time being
   }
 
   private static void describeController(Api.Controller controller) {

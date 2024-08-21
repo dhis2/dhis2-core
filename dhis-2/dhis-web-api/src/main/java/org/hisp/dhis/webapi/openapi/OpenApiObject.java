@@ -230,7 +230,7 @@ public interface OpenApiObject extends JsonObject {
     }
 
     default String x_group() {
-      return getString("x-group").string();
+      return getString("x-group").string("misc");
     }
 
     default String x_maturity() {

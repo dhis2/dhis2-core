@@ -193,25 +193,9 @@ public @interface OpenApi {
   @Retention(RetentionPolicy.RUNTIME)
   @interface Document {
 
-    @Getter
-    @RequiredArgsConstructor
-    enum Group {
-      DEFAULT("Default"),
-      QUERY("Query"),
-      MANAGE("Management"),
-      CONFIG("Configuration"),
-      MISC("Miscellaneous");
-
-      @Language("markdown")
-      private final String description;
-
-      /**
-       * @return the name of the OpenAPI tag used for this group
-       */
-      public String tag() {
-        return name().toLowerCase();
-      }
-    }
+    String GROUP_QUERY = "query";
+    String GROUP_MANAGE = "management";
+    String GROUP_CONFIG = "configuration";
 
     /**
      * Alternative to {@link #domain()} for a "manual" override. Takes precedence when non-empty.
@@ -236,7 +220,7 @@ public @interface OpenApi {
      *
      * @return type of group used
      */
-    Group group() default Group.DEFAULT;
+    String group() default "";
   }
 
   @Target({ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER})

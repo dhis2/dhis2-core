@@ -124,16 +124,6 @@ public class Api {
   Map<Class<?>, Map<Class<?>, Schema>> generatorSchemas =
       new ConcurrentSkipListMap<>(comparing(Class::getName));
 
-  /**
-   * @return all {@link OpenApi.Document.Group}s used in the {@link Api}
-   */
-  Set<OpenApi.Document.Group> getUsedGroups() {
-    Set<OpenApi.Document.Group> used = EnumSet.noneOf(OpenApi.Document.Group.class);
-    controllers.forEach(
-        controller -> controller.endpoints.forEach(endpoint -> used.add(endpoint.getGroup())));
-    return used;
-  }
-
   @Data
   @NoArgsConstructor
   @AllArgsConstructor
@@ -212,7 +202,7 @@ public class Api {
     @ToString.Exclude Class<?> entityType;
 
     @EqualsAndHashCode.Include String name;
-    OpenApi.Document.Group group;
+    @CheckForNull String group;
 
     Maybe<String> description = new Maybe<>();
     List<String> authorities = new ArrayList<>(0);
