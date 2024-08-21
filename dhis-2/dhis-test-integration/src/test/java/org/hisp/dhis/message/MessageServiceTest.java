@@ -150,12 +150,16 @@ class MessageServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testSendFeedback() {
+    User adminUser = getAdminUser();
+    injectSecurityContextUser(adminUser);
+    User user = createUserWithAuth("feedback", "ALL");
+    injectSecurityContextUser(user);
     long id = messageService.sendTicketMessage("Subject", "Text", "Meta");
     MessageConversation conversation = messageService.getMessageConversation(id);
     assertNotNull(conversation);
     assertEquals("Subject", conversation.getSubject());
     assertEquals(1, conversation.getMessages().size());
-    assertTrue(conversation.getMessages().iterator().next().getText().equals("Text"));
+    assertEquals("Text", conversation.getMessages().iterator().next().getText());
   }
 
   @Test

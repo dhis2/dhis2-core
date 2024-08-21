@@ -253,8 +253,14 @@ public class DefaultUserSettingService implements UserSettingService {
       return SerializableOptional.empty();
     }
 
-    String realUsername = username.orElseGet(CurrentUserUtil::getCurrentUsername);
+    boolean isAuthenticated = CurrentUserUtil.hasCurrentUser();
+    if (username.isEmpty() && !isAuthenticated) {
+      username = Optional.of("system");
+    } else if (username.isEmpty()) {
+      username = Optional.of(CurrentUserUtil.getCurrentUsername());
+    }
 
+    String realUsername = username.get();
     String cacheKey = getCacheKey(key.getName(), realUsername);
 
     SerializableOptional result =

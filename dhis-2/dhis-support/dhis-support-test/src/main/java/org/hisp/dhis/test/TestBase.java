@@ -2910,6 +2910,12 @@ public abstract class TestBase {
     return user;
   }
 
+  /**
+   * Used by setupAdminUser() in SpringIntegrationTestExtension.class, to set up the base admin user
+   * for all tests.
+   *
+   * @return the admin user
+   */
   protected User preCreateInjectAdminUser() {
     UserRole role = createUserRole("Superuser", "ALL");
     role.setUid("yrB6vc5Ip3r");

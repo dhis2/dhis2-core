@@ -349,9 +349,14 @@ public class DefaultUserService implements UserService {
 
     if (!params.hasUser()) {
       // TODO: MAS: Refactor to use userDetails instead of User in params
-      String currentUsername = CurrentUserUtil.getCurrentUsername();
-      User currentUser = getUserByUsername(currentUsername);
-      params.setUser(currentUser);
+      boolean hasCurrentUser = CurrentUserUtil.hasCurrentUser();
+      if (!hasCurrentUser) {
+        params.setUser(null);
+      } else {
+        String currentUsername = CurrentUserUtil.getCurrentUsername();
+        User currentUser = getUserByUsername(currentUsername);
+        params.setUser(currentUser);
+      }
     }
 
     if (params.hasUser() && params.getUser().isSuper()) {

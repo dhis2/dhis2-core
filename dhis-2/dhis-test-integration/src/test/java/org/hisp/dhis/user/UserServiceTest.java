@@ -519,6 +519,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
 
     UserQueryParams params = getDefaultParams().addOrganisationUnit(unitA);
     clearSecurityContext();
+
     List<User> users = userService.getUsers(params);
     assertContainsOnly(List.of(userA, userC), users);
     assertEquals(2, userService.getUserCount(params));
