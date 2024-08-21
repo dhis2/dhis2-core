@@ -522,7 +522,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   public User getUserByOpenId(@Nonnull String openId) {
     Query<User> query =
         getQuery(
-            "from User u where u.disabled = false and u.openId = :openId order by u.lastLogin desc");
+            "from User u where u.disabled = false and u.openId = :openId order by coalesce(u.lastLogin,'0001-01-01') desc");
     query.setParameter("openId", openId);
     List<User> list = query.getResultList();
     return list.isEmpty() ? null : list.get(0);

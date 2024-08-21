@@ -116,7 +116,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
           + "createdbydisplayname"
           + ","
           + "lastupdatedbydisplayname"
-          + ",lastupdated,ST_AsGeoJSON(engeometry),longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus";
+          + ",lastupdated,ST_AsGeoJSON(enrollmentgeometry),longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus";
 
   private final BeanRandomizer rnd = BeanRandomizer.create();
 
@@ -250,7 +250,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     String dataElementUid = dataElementA.getUid();
 
     String expected =
-        "select enrollment,trackedentity,enrollmentdate,incidentdate,storedby,createdbydisplayname,lastupdatedbydisplayname,lastupdated,ST_AsGeoJSON(engeometry),longitude,latitude,"
+        "select enrollment,trackedentity,enrollmentdate,incidentdate,storedby,createdbydisplayname,lastupdatedbydisplayname,lastupdated,ST_AsGeoJSON(enrollmentgeometry),longitude,latitude,"
             + "ouname,ounamehierarchy,oucode,enrollmentstatus,ax.\"quarterly\",ax.\"ou\","
             + "(select \""
             + dataElementUid
