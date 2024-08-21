@@ -242,6 +242,10 @@ public class Api {
     String getEntityTypeName() {
       return entityType == null ? "?" : entityType.getSimpleName();
     }
+
+    OpenApi.Since getSince() {
+      return source == null ? null : source.getAnnotation(OpenApi.Since.class);
+    }
   }
 
   @Value
@@ -317,6 +321,10 @@ public class Api {
     String getFullName() {
       return isShared() ? sharedName.getValue() + "." + name : name;
     }
+
+    OpenApi.Since getSince() {
+      return source.getAnnotation(OpenApi.Since.class);
+    }
   }
 
   @Value
@@ -355,6 +363,9 @@ public class Api {
   @EqualsAndHashCode(onlyExplicitlyIncluded = true)
   @AllArgsConstructor(access = AccessLevel.PRIVATE)
   static class Property {
+
+    @CheckForNull @ToString.Exclude AnnotatedElement source;
+
     @EqualsAndHashCode.Include String name;
 
     Boolean required;
@@ -378,12 +389,17 @@ public class Api {
      */
     @ToString.Exclude Maybe<Schema> originalType = new Maybe<>();
 
-    public Property(String name, Boolean required, Schema type) {
-      this(name, required, type, new Maybe<>());
+    OpenApi.Since getSince() {
+      return source == null ? null : source.getAnnotation(OpenApi.Since.class);
+    }
+
+    public Property(
+        @CheckForNull AnnotatedElement source, String name, Boolean required, Schema type) {
+      this(source, name, required, type, new Maybe<>());
     }
 
     Property withType(Schema type) {
-      return type == this.type ? this : new Property(name, required, type, description);
+      return type == this.type ? this : new Property(source, name, required, type, description);
     }
   }
 
@@ -409,7 +425,7 @@ public class Api {
       types.forEach(
           type ->
               oneOf.addProperty(
-                  new Property(oneOf.properties.size() + "", null, toSchema.apply(type))));
+                  new Property(null, oneOf.properties.size() + "", null, toSchema.apply(type))));
       return oneOf.sealed();
     }
 
@@ -565,12 +581,12 @@ public class Api {
     }
 
     Api.Schema withElements(Schema componentType) {
-      return addProperty(new Property("components", true, componentType));
+      return addProperty(new Property(null, "components", true, componentType));
     }
 
     Api.Schema withEntries(Schema keyType, Schema valueType) {
-      return addProperty(new Api.Property("_keys", true, keyType))
-          .addProperty(new Api.Property("_values", true, valueType));
+      return addProperty(new Api.Property(null, "_keys", true, keyType))
+          .addProperty(new Api.Property(null, "_values", true, valueType));
     }
 
     private Api.Schema asSingleton() {

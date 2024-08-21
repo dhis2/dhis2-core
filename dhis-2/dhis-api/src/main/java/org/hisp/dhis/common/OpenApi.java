@@ -239,6 +239,15 @@ public @interface OpenApi {
     Group group() default Group.DEFAULT;
   }
 
+  @Target({ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER})
+  @Retention(RetentionPolicy.RUNTIME)
+  @interface Since {
+    /**
+     * @return the 2.xx version when the annotated element was introduced
+     */
+    int value();
+  }
+
   /**
    * Annotate a controller type to ignore the entire controller.
    *

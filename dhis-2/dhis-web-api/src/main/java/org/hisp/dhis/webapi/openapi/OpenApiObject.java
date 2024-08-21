@@ -237,6 +237,10 @@ public interface OpenApiObject extends JsonObject {
       return getString("x-maturity").string();
     }
 
+    default String x_since() {
+      return getString("x-since").string();
+    }
+
     default List<String> x_auth() {
       JsonArray auth = getArray("x-auth");
       return auth.isUndefined() || auth.isEmpty() ? List.of() : auth.stringValues();
@@ -364,6 +368,10 @@ public interface OpenApiObject extends JsonObject {
       return getBoolean("deprecated").booleanValue(false);
     }
 
+    default String x_since() {
+      return getString("x-since").string();
+    }
+
     default SchemaObject schema() {
       return get("schema", SchemaObject.class).resolve();
     }
@@ -479,6 +487,10 @@ public interface OpenApiObject extends JsonObject {
       String type = $type();
       if (type != null) return type;
       return "other";
+    }
+
+    default String x_since() {
+      return getString("x-since").string();
     }
 
     /*

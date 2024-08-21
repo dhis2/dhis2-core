@@ -382,7 +382,7 @@ public class ApiIntegrator {
               id.getSharedName().setValue("UID_" + of.getSharedName().getValue());
               return id;
             });
-    object.addProperty(new Api.Property("id", true, idType));
+    object.addProperty(new Api.Property(null, "id", true, idType));
     return object;
   }
 

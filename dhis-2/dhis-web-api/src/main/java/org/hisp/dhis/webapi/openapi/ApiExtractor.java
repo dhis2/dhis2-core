@@ -639,7 +639,7 @@ final class ApiExtractor {
             : extractSchema(endpoint, null, oneOf);
     for (OpenApi.Property p : properties) {
       obj.addProperty(
-          new Api.Property(p.name(), p.required(), extractSchema(endpoint, null, p.value())));
+          new Api.Property(null, p.name(), p.required(), extractSchema(endpoint, null, p.value())));
     }
     return obj.sealed();
   }
@@ -766,7 +766,7 @@ final class ApiExtractor {
     // the schemas map so recursive types do resolve (unless they are inlined)
     for (Property p : properties) {
       Function<Api.Schema, Api.Property> toProperty =
-          t -> new Api.Property(getPropertyName(endpoint, p), p.getRequired(), t);
+          t -> new Api.Property(p.getSource(), getPropertyName(endpoint, p), p.getRequired(), t);
       Api.Property property = extractObjectProperty(endpoint, p, toProperty);
       property.getDescription().setValue(extractDescription(p.getSource()));
       schema.addProperty(property);

@@ -796,8 +796,9 @@ public class OpenApiRenderer {
           renderBoxToolbar(null);
           appendTag("header", markdownToHTML(op.description(), op.parameterNames()));
           renderLabelledValue("operationId", op.operationId());
-          if (!op.x_auth().isEmpty()) renderLabelledValue("authorities", op.x_auth());
-          if (!op.tags().isEmpty()) renderLabelledValue("tags", op.tags(), "", 0);
+          renderLabelledValue("since", op.x_since());
+          renderLabelledValue("requires-authority", op.x_auth());
+          renderLabelledValue("tags", op.tags(), "", 0);
           renderParameters(op);
           renderRequestBody(op);
           renderResponses(op);
@@ -920,6 +921,7 @@ public class OpenApiRenderer {
           appendSummary(id, null, () -> renderParameterSummary(p));
           String description = markdownToHTML(p.description(), parameterNames);
           appendTag("article", Map.of("class", "desc"), description);
+          renderLabelledValue("since", p.x_since());
           renderSchemaDetails(p.schema(), false, true);
         });
   }
@@ -1254,7 +1256,6 @@ public class OpenApiRenderer {
   private void renderSchemaDetails(
       SchemaObject schema, boolean isDeclaration, boolean skipDefault) {
     if (schema.isRef() || (!isDeclaration && schema.isShared())) {
-      appendTag("header", markdownToHTML(schema.description(), Set.of()));
       return; // summary already gave all that is needed
     }
     if (schema.isFlat()) return;
@@ -1319,6 +1320,8 @@ public class OpenApiRenderer {
                 appendCode("property secondary", ":");
                 renderSchemaSummary(type, false);
               });
+          appendTag("header", markdownToHTML(type.description(), Set.of()));
+          renderLabelledValue("since", type.x_since());
           renderSchemaDetails(type, false, false);
         });
   }

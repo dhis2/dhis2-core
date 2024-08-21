@@ -48,6 +48,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Maturity;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.webapi.openapi.Api.Schema.Direction;
 import org.springframework.http.HttpStatus;
@@ -228,6 +229,7 @@ public class OpenApiGenerator extends JsonGenerator {
         () -> {
           addTrueMember("deprecated", endpoint.getDeprecated());
           addStringMember("x-maturity", getMaturityTag(endpoint.getMaturity()));
+          addStringMember("x-since", getSinceVersion(endpoint.getSince()));
           addStringMultilineMember("description", endpoint.getDescription().orElse(NO_DESCRIPTION));
           addStringMember("operationId", getUniqueOperationId(endpoint));
           addStringMember("x-package", endpoint.getIn().getDomain().getSimpleName());
@@ -275,6 +277,7 @@ public class OpenApiGenerator extends JsonGenerator {
           addTrueMember("required", parameter.isRequired());
           addTrueMember("deprecated", parameter.getDeprecated());
           addStringMember("x-maturity", getMaturityTag(parameter.getMaturity()));
+          addStringMember("x-since", getSinceVersion(parameter.getSince()));
           JsonValue defaultValue = parameter.getDefaultValue().orElse(null);
           addObjectMember(
               "schema", () -> generateSchemaOrRef(parameter.getType(), IN, defaultValue));
@@ -283,6 +286,11 @@ public class OpenApiGenerator extends JsonGenerator {
 
   private static String getMaturityTag(Maturity.Classification maturity) {
     return maturity == null ? null : maturity.name().toLowerCase();
+  }
+
+  private String getSinceVersion(OpenApi.Since since) {
+    if (since == null) return null;
+    return "2." + since.value();
   }
 
   private void generateRequestBody(Api.RequestBody requestBody) {
@@ -466,6 +474,7 @@ public class OpenApiGenerator extends JsonGenerator {
                 () -> {
                   generateSchemaOrRef(property.getType(), direction);
                   addStringMember("description", property.getDescription().orElse(NO_DESCRIPTION));
+                  addStringMember("x-since", getSinceVersion(property.getSince()));
                 }));
   }
 

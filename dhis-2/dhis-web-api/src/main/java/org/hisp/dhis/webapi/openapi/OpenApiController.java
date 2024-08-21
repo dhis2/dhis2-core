@@ -126,6 +126,7 @@ public class OpenApiController {
       and as a consequence types occur fully expanded (with all their properties).
       Note that this does not affect types that are re-defined as a different type using annotations.""")
     @Maturity.Beta
+    @OpenApi.Since(42)
     boolean expandedRefs = false;
   }
 
@@ -133,6 +134,7 @@ public class OpenApiController {
    * HTML
    */
 
+  @OpenApi.Since(42)
   @OpenApi.Description(
       """
     The HTML to browse (view) the DHIS2 API specification based on OpenAPI JSON
