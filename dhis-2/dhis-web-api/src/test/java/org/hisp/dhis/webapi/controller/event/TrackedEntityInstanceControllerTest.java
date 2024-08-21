@@ -159,8 +159,8 @@ class TrackedEntityInstanceControllerTest {
         .andExpect(status().isOk())
         .andExpect(header().string(ContextUtils.HEADER_CONTENT_DISPOSITION, "filename=dhis2.png"))
         .andExpect(header().string("Content-Security-Policy", "script-src 'none';"))
-        .andExpect(header().string("X-Content-Type-Options", X_CONTENT_TYPE_OPTIONS_VALUE))
         .andExpect(header().string("X-XSS-Protection", X_XSS_PROTECTION_VALUE))
+        .andExpect(header().string("X-Content-Type-Options", X_CONTENT_TYPE_OPTIONS_VALUE))
         .andReturn();
   }
 
