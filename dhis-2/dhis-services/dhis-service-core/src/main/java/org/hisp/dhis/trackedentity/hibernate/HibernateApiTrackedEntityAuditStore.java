@@ -27,17 +27,10 @@
  */
 package org.hisp.dhis.trackedentity.hibernate;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Function;
 import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.trackedentity.ApiTrackedEntityAuditStore;
 import org.hisp.dhis.trackedentity.TrackedEntityAudit;
-import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -61,33 +54,5 @@ public class HibernateApiTrackedEntityAuditStore extends HibernateGenericStore<T
   @Override
   public void addTrackedEntityAudit(TrackedEntityAudit trackedEntityAudit) {
     getSession().save(trackedEntityAudit);
-  }
-
-  private List<Function<Root<TrackedEntityAudit>, Predicate>> getTrackedEntityPredicates(
-      TrackedEntityAuditQueryParams params, CriteriaBuilder builder) {
-    List<Function<Root<TrackedEntityAudit>, Predicate>> predicates = new ArrayList<>();
-
-    if (params.hasTrackedEntities()) {
-      predicates.add(root -> root.get("trackedEntity").in(params.getTrackedEntities()));
-    }
-
-    if (params.hasUsers()) {
-      predicates.add(root -> root.get("accessedBy").in(params.getUsers()));
-    }
-
-    if (params.hasAuditTypes()) {
-      predicates.add(root -> root.get("auditType").in(params.getAuditTypes()));
-    }
-
-    if (params.hasStartDate()) {
-      predicates.add(
-          root -> builder.greaterThanOrEqualTo(root.get("created"), params.getStartDate()));
-    }
-
-    if (params.hasEndDate()) {
-      predicates.add(root -> builder.lessThanOrEqualTo(root.get("created"), params.getEndDate()));
-    }
-
-    return predicates;
   }
 }

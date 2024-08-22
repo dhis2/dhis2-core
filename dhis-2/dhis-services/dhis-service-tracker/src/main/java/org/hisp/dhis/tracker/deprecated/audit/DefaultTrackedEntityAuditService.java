@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.deprecated.audit;
 
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -86,7 +85,7 @@ public class DefaultTrackedEntityAuditService implements TrackedEntityAuditServi
                 trackerAccessManager
                     .canRead(currentUser, manager.get(TrackedEntity.class, a.getTrackedEntity()))
                     .isEmpty())
-        .collect(Collectors.toList());
+        .toList();
   }
 
   @Override

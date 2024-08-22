@@ -48,18 +48,18 @@ import org.springframework.transaction.annotation.Transactional;
 @TestInstance(Lifecycle.PER_CLASS)
 @Transactional
 class ApiTrackedEntityAuditStoreTest extends PostgresIntegrationTestBase {
-  private final Date CREATED = getDate(2022, 3, 1);
+  private final Date created = getDate(2022, 3, 1);
 
   @Autowired private TrackedEntityAuditStore store;
 
   private final TrackedEntityAudit auditA =
-      new TrackedEntityAudit("WGW7UnVcIIb", "Access", CREATED, "userA", ChangeLogType.CREATE);
+      new TrackedEntityAudit("WGW7UnVcIIb", "Access", created, "userA", ChangeLogType.CREATE);
   private final TrackedEntityAudit auditB =
-      new TrackedEntityAudit("WGW7UnVcIIb", "Access", CREATED, "userB", ChangeLogType.UPDATE);
+      new TrackedEntityAudit("WGW7UnVcIIb", "Access", created, "userB", ChangeLogType.UPDATE);
   private final TrackedEntityAudit auditC =
-      new TrackedEntityAudit("zIAwTY3Drrn", "Access", CREATED, "userA", ChangeLogType.UPDATE);
+      new TrackedEntityAudit("zIAwTY3Drrn", "Access", created, "userA", ChangeLogType.UPDATE);
   private final TrackedEntityAudit auditD =
-      new TrackedEntityAudit("zIAwTY3Drrn", "Access", CREATED, "userB", ChangeLogType.DELETE);
+      new TrackedEntityAudit("zIAwTY3Drrn", "Access", created, "userB", ChangeLogType.DELETE);
 
   @Test
   void shouldAuditTrackedEntity_whenAddAuditList() {
