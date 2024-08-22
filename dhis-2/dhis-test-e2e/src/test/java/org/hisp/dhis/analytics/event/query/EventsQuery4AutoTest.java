@@ -46,7 +46,7 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
   private final AnalyticsEventActions actions = new AnalyticsEventActions();
 
   @Test
-  public void AcademicYear2023Sep() throws JSONException {
+  public void financialYear2023Sep() throws JSONException {
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
