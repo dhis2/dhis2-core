@@ -48,7 +48,7 @@ public class TrackedEntityQuery8AutoTest extends AnalyticsApiTest {
   private AnalyticsTrackedEntityActions actions = new AnalyticsTrackedEntityActions();
 
   @Test
-  public void AcademicYear2018Sep() throws JSONException {
+  public void financialYear2018Sep() throws JSONException {
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
