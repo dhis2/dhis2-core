@@ -65,7 +65,6 @@ import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
@@ -137,14 +136,12 @@ public class WebTestConfig {
   @Autowired private DhisConfigurationProvider dhisConfigurationProvider;
 
   @Bean(name = {"namedParameterJdbcTemplate", "analyticsNamedParameterJdbcTemplate"})
-  @Primary
   public NamedParameterJdbcTemplate namedParameterJdbcTemplate(
       @Qualifier("dataSource") DataSource dataSource) {
     return new NamedParameterJdbcTemplate(dataSource);
   }
 
   @Bean(name = {"dataSource", "analyticsDataSource"})
-  @Primary
   public DataSource actualDataSource() {
     final DhisConfigurationProvider config = dhisConfigurationProvider;
     String jdbcUrl = config.getProperty(ConfigurationKey.CONNECTION_URL);
