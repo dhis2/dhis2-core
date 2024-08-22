@@ -36,6 +36,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.HttpMethod;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
  * Filter which enforces no cache for HTML pages like index pages to prevent stale versions being
@@ -51,9 +52,9 @@ import org.springframework.http.HttpMethod;
      * 3. or all .html files served under app roots (./dhis-web-* | /api/apps/* | /apps/*)
      */
     initParams = {@WebInitParam(name = "urlPattern", value = "/dhis-web-*/*\\.html|/api/apps/*/*\\.html|/apps/*/*\\.html|/$")})
-public class HttpNoCacheFilter extends HttpUrlPatternFilter {
+public class HttpNoCacheFilter extends OncePerRequestFilter {
   @Override
-  public final void doHttpFilter(
+  protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain chain)
       throws IOException, ServletException {
     if (HttpMethod.GET == HttpMethod.resolve(request.getMethod())) {
