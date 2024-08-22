@@ -60,7 +60,6 @@ import org.hisp.dhis.program.ProgramStageDataElementStore;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -84,8 +83,6 @@ class ProgramNotificationServiceTest extends PostgresIntegrationTestBase {
   @Autowired private ProgramService programService;
 
   @Autowired private ProgramStageService programStageService;
-
-  @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private CategoryService categoryService;
 
