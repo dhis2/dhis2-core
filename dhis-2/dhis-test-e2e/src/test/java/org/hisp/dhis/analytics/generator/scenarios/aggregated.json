@@ -44,7 +44,7 @@
     },
     {
       "name": "AcademicYear2022Sep",
-      "query": "/api/42/analytics?dimension=dx%3AUvn6LCg7dVU,pe%3A2022Sep&filter=ou%3AUSER_ORGUNIT&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false",
+      "query": "/api/42/analytics?dimension=dx:Uvn6LCg7dVU,pe:2022Sep&filter=ou:USER_ORGUNIT&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false",
       "version": {
         "min": 42
       }
