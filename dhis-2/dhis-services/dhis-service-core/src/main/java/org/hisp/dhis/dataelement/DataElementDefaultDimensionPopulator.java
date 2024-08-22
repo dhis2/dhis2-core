@@ -35,8 +35,8 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.SystemUser;
-import org.hisp.dhis.user.UserService;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -61,8 +61,7 @@ public class DataElementDefaultDimensionPopulator extends TransactionContextStar
   private final CategoryService categoryService;
 
   public DataElementDefaultDimensionPopulator(
-      DataElementService dataElementService,
-      CategoryService categoryService) {
+      DataElementService dataElementService, CategoryService categoryService) {
     checkNotNull(dataElementService);
     checkNotNull(categoryService);
     this.dataElementService = dataElementService;
@@ -76,11 +75,15 @@ public class DataElementDefaultDimensionPopulator extends TransactionContextStar
   @Override
   public void executeInTransaction() {
     SystemUser actingUser = new SystemUser();
-//    Authentication authentication =
-//        new UsernamePasswordAuthenticationToken(actingUser, "", actingUser.getAuthorities());
-//    SecurityContext context = SecurityContextHolder.createEmptyContext();
-//    context.setAuthentication(authentication);
-//    SecurityContextHolder.setContext(context);
+
+    boolean hasCurrentUser = CurrentUserUtil.hasCurrentUser();
+    if (!hasCurrentUser) {
+      Authentication authentication =
+          new UsernamePasswordAuthenticationToken(actingUser, "", actingUser.getAuthorities());
+      SecurityContext context = SecurityContextHolder.createEmptyContext();
+      context.setAuthentication(authentication);
+      SecurityContextHolder.setContext(context);
+    }
 
     Category defaultCategory =
         categoryService.getCategoryByName(Category.DEFAULT_NAME, new SystemUser());
@@ -114,5 +117,17 @@ public class DataElementDefaultDimensionPopulator extends TransactionContextStar
         dataElementService.updateDataElement(dataElement);
       }
     }
+
+    if (!hasCurrentUser) {
+      clearContext();
+    }
+  }
+
+  private static void clearContext() {
+    SecurityContext context = SecurityContextHolder.getContext();
+    if (context != null) {
+      SecurityContextHolder.getContext().setAuthentication(null);
+    }
+    SecurityContextHolder.clearContext();
   }
 }
