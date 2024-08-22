@@ -176,8 +176,6 @@ final class ApiExtractor {
    */
   private static final String[] ROOT_PATH = {""};
 
-  private static final Map<Class<?>, Api.Schema> SINGLETONS = new ConcurrentHashMap<>();
-
   /**
    * Create an {@link Api} model from controller {@link Class}.
    *
@@ -567,7 +565,6 @@ final class ApiExtractor {
     OpenApi.Shared shared = paramsObject.getAnnotation(OpenApi.Shared.class);
     String sharedName = getSharedName(paramsObject, shared, null);
     if (sharedName != null) {
-      Api api = endpoint.getIn().getIn();
       Map<Class<?>, List<Api.Parameter>> sharedParameters = api.getComponents().getParameters();
       properties.forEach(
           property -> {
@@ -641,25 +638,6 @@ final class ApiExtractor {
     return obj.sealed();
   }
 
-  /**
-   * Most types can be shared for any generated document. However, some type may use type variables
-   * which are substituted differently depending on the endpoint where the type is used. Such types
-   * cannot be shared as a JVM singleton.
-   *
-   * <p>In theory some generator type might be stable, but it is difficult analysing and there is
-   * little to gain.
-   *
-   * @param type a type as used in a schema
-   * @return true, if a schema generated for the provided type can be shared as JVM singleton
-   */
-  private static boolean isSingletonType(Class<?> type) {
-    // TODO make a special handling for a fixed UID type as that is stable and does occur a fair
-    // bit?
-    return !isGeneratorType(type)
-        && type != OpenApi.EntityType.class
-        && type != OpenApi.EntityType[].class;
-  }
-
   private static boolean isGeneratorType(Class<?> type) {
     return Api.SchemaGenerator.class.isAssignableFrom(type)
         || Api.SchemaGenerator[].class.isAssignableFrom(type)
@@ -720,7 +698,6 @@ final class ApiExtractor {
    * @return a schema describing a complex "record-like" or "bean" object
    */
   private Api.Schema extractClassSchema(Api.Endpoint endpoint, Class<?> type) {
-    Api api = endpoint.getIn().getIn();
     // TODO aren't class types constant, hence can be cached in a static map?
     // unless they depend on the endpoint, which is the case if they use a generator type
     Api.Schema s = api.getSchemas().get(type);

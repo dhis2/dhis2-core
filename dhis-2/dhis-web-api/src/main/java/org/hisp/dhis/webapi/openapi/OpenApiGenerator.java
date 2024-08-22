@@ -431,7 +431,7 @@ public class OpenApiGenerator extends JsonGenerator {
       return;
     }
     if (!schema.getProperties().isEmpty()) {
-      generateObjectTypeSchema(schema, direction, type);
+      generateObjectTypeSchema(schema, direction);
     } else {
       addStringMember("type", "any");
       addStringMultilineMember(
@@ -450,7 +450,7 @@ public class OpenApiGenerator extends JsonGenerator {
             addObjectMember(null, () -> generateSchemaOrRef(property.getType(), direction)));
   }
 
-  private void generateObjectTypeSchema(Api.Schema schema, Direction direction, Class<?> type) {
+  private void generateObjectTypeSchema(Api.Schema schema, Direction direction) {
     addStringMember("type", "object");
     if (schema.isMap()) {
       Api.Property key = schema.getProperties().get(0);
