@@ -53,6 +53,7 @@ import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.webapi.openapi.Api.Endpoint;
 import org.hisp.dhis.webapi.openapi.Api.Parameter;
 import org.springframework.http.HttpStatus;
@@ -146,13 +147,14 @@ public class ApiIntegrator {
   }
 
   private void validateParameter(Parameter p) {
-    if (p.getDefaultValue().isPresent() && p.isRequired()) {
+    Api.Maybe<JsonValue> defaultValue = p.getDefaultValue();
+    if (p.isRequired() && defaultValue.isPresent() && !defaultValue.getValue().isNull()) {
       String msg =
           "Parameter %s of type %s is both required and has a default value of %s"
               .formatted(
                   p.getFullName(),
                   p.getType().getRawType().getSimpleName(),
-                  p.getDefaultValue().getValue());
+                  defaultValue.getValue());
       if (config.failOnInconsistency) throw new IllegalStateException(msg);
       log.warn(msg);
     }
@@ -380,7 +382,7 @@ public class ApiIntegrator {
               id.getSharedName().setValue("UID_" + of.getSharedName().getValue());
               return id;
             });
-    object.addProperty(new Api.Property("id", true, idType));
+    object.addProperty(new Api.Property(null, "id", true, idType));
     return object;
   }
 
@@ -389,14 +391,7 @@ public class ApiIntegrator {
    */
 
   private void aggregateTags() {
-    api.getUsedGroups()
-        .forEach(
-            group -> {
-              String name = group.tag();
-              Api.Tag tag = new Api.Tag(name);
-              tag.getDescription().setValue(group.getDescription());
-              api.getTags().put(name, tag);
-            });
+    // Note: not tags support for time being
   }
 
   private static void describeController(Api.Controller controller) {
