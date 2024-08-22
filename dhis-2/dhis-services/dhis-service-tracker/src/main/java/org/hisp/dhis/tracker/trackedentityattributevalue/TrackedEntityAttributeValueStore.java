@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentityattributevalue;
+package org.hisp.dhis.tracker.trackedentityattributevalue;
 
 import java.util.Collection;
 import java.util.List;
@@ -33,6 +33,7 @@ import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 
 /**
  * @author Abyot Asalefew

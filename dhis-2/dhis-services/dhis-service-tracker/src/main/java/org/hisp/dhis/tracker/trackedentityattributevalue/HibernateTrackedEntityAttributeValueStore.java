@@ -25,11 +25,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentityattributevalue.hibernate;
+package org.hisp.dhis.tracker.trackedentityattributevalue;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.query.Query;
@@ -38,7 +37,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueStore;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -46,7 +44,7 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Abyot Asalefew
  */
-@Repository("org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueStore")
+@Repository
 public class HibernateTrackedEntityAttributeValueStore
     extends HibernateGenericStore<TrackedEntityAttributeValue>
     implements TrackedEntityAttributeValueStore {
@@ -115,8 +113,7 @@ public class HibernateTrackedEntityAttributeValueStore
     Query<TrackedEntityAttributeValue> typedQuery =
         getQuery(query)
             .setParameter("attribute", attribute)
-            .setParameter(
-                "values", values.stream().map(StringUtils::lowerCase).collect(Collectors.toList()));
+            .setParameter("values", values.stream().map(StringUtils::lowerCase).toList());
 
     return getList(typedQuery);
   }
