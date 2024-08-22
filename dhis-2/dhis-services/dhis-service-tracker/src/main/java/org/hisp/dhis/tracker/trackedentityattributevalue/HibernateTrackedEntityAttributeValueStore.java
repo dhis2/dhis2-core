@@ -39,14 +39,12 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
-/**
- * @author Abyot Asalefew
- */
-@Repository(
-    "org.hisp.dhis.tracker.export.trackedentityattributevalue.TrackedEntityAttributeValueStore")
-public class HibernateTrackedEntityAttributeValueStore
+// This class is annotated with @Component instead of @Repository because @Repository creates a
+// proxy that can't be used to inject the class.
+@Component("org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueStore")
+class HibernateTrackedEntityAttributeValueStore
     extends HibernateGenericStore<TrackedEntityAttributeValue> {
   public HibernateTrackedEntityAttributeValueStore(
       EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
