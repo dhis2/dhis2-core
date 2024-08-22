@@ -54,7 +54,7 @@ public class AnalyticsQueryDv12AutoTest extends AnalyticsApiTest {
   }
 
   @Test
-  public void AcademicYear2022Sep() throws JSONException {
+  public void financialYear2022Sep() throws JSONException {
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
