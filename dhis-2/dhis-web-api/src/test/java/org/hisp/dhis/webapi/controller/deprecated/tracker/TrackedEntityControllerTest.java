@@ -27,31 +27,50 @@
  */
 package org.hisp.dhis.webapi.controller.deprecated.tracker;
 
+import static org.hisp.dhis.webapi.utils.HeaderUtils.X_CONTENT_TYPE_OPTIONS_VALUE;
+import static org.hisp.dhis.webapi.utils.HeaderUtils.X_XSS_PROTECTION_VALUE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Set;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
+import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.fileresource.FileResourceStorageStatus;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.deprecated.tracker.imports.impl.TrackedEntityInstanceAsyncStrategyImpl;
 import org.hisp.dhis.webapi.controller.deprecated.tracker.imports.impl.TrackedEntityInstanceStrategyImpl;
 import org.hisp.dhis.webapi.controller.deprecated.tracker.imports.impl.TrackedEntityInstanceSyncStrategyImpl;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -70,11 +89,15 @@ class TrackedEntityControllerTest {
 
   @Mock private TrackedEntityInstanceSyncStrategyImpl trackedEntityInstanceSyncStrategy;
 
+  @Mock private DhisConfigurationProvider config;
+
   @Mock private User user;
 
   @Mock private TrackedEntityService instanceService;
 
   @Mock private TrackerAccessManager trackerAccessManager;
+
+  @Mock private FileResourceService fileResourceService;
 
   @Mock private TrackedEntity trackedEntity;
 
@@ -89,19 +112,90 @@ class TrackedEntityControllerTest {
             null,
             null,
             null,
-            null,
+            fileResourceService,
             trackerAccessManager,
             null,
             null,
             new TrackedEntityInstanceStrategyImpl(
                 trackedEntityInstanceSyncStrategy, trackedEntityInstanceAsyncStrategy),
-            userService);
+            userService,
+            config);
 
     mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+  }
 
-    //
-    // when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
-    //    when(user.getUid()).thenReturn("userId");
+  @Test
+  void shouldRetrieveImageAsAnAttachment() throws Exception {
+    String teUid = CodeGenerator.generateUid();
+    String attributeUid = CodeGenerator.generateUid();
+    TrackedEntityAttribute attribute = new TrackedEntityAttribute();
+    attribute.setUid(attributeUid);
+    attribute.setValueType(ValueType.IMAGE);
+    TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue();
+    attributeValue.setAttribute(attribute);
+    attributeValue.setValue("fileName");
+    FileResource fileResource = new FileResource();
+    fileResource.setDomain(FileResourceDomain.DATA_VALUE);
+    fileResource.setStorageStatus(FileResourceStorageStatus.STORED);
+    fileResource.setContentType("image/png");
+    fileResource.setName("dhis2.png");
+
+    File file = new ClassPathResource("images/dhis2.png").getFile();
+
+    when(instanceService.getTrackedEntity(teUid)).thenReturn(trackedEntity);
+    when(trackedEntity.getTrackedEntityAttributeValues()).thenReturn(Set.of(attributeValue));
+    when(fileResourceService.getFileResource("fileName")).thenReturn(fileResource);
+    when(fileResourceService.getFileResourceContent(fileResource))
+        .thenReturn(new FileInputStream(file));
+    when(config.getProperty(ConfigurationKey.CSP_HEADER_VALUE)).thenReturn("script-src 'none';");
+
+    mockMvc
+        .perform(
+            get(ENDPOINT + "/" + teUid + "/" + attributeUid + "/image")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+        .andExpect(status().isOk())
+        .andExpect(header().string(ContextUtils.HEADER_CONTENT_DISPOSITION, "filename=dhis2.png"))
+        .andExpect(header().string("Content-Security-Policy", "script-src 'none';"))
+        .andExpect(header().string("X-Content-Type-Options", X_CONTENT_TYPE_OPTIONS_VALUE))
+        .andExpect(header().string("X-XSS-Protection", X_XSS_PROTECTION_VALUE))
+        .andReturn();
+  }
+
+  @Test
+  void shouldRetrieveFileAsAnAttachment() throws Exception {
+    String teUid = CodeGenerator.generateUid();
+    String attributeUid = CodeGenerator.generateUid();
+    TrackedEntityAttribute attribute = new TrackedEntityAttribute();
+    attribute.setUid(attributeUid);
+    attribute.setValueType(ValueType.FILE_RESOURCE);
+    TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue();
+    attributeValue.setAttribute(attribute);
+    attributeValue.setValue("fileName");
+    FileResource fileResource = new FileResource();
+    fileResource.setDomain(FileResourceDomain.DATA_VALUE);
+    fileResource.setStorageStatus(FileResourceStorageStatus.STORED);
+    fileResource.setContentType("file/png");
+    fileResource.setName("dhis2.png");
+
+    when(instanceService.getTrackedEntity(teUid)).thenReturn(trackedEntity);
+    when(trackedEntity.getTrackedEntityAttributeValues()).thenReturn(Set.of(attributeValue));
+    when(fileResourceService.getFileResource("fileName")).thenReturn(fileResource);
+    when(config.getProperty(ConfigurationKey.CSP_HEADER_VALUE)).thenReturn("script-src 'none';");
+
+    mockMvc
+        .perform(
+            get(ENDPOINT + "/" + teUid + "/" + attributeUid + "/file")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+        .andExpect(status().isOk())
+        .andExpect(
+            header()
+                .string(ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=dhis2.png"))
+        .andExpect(header().string("Content-Security-Policy", "script-src 'none';"))
+        .andExpect(header().string("X-Content-Type-Options", X_CONTENT_TYPE_OPTIONS_VALUE))
+        .andExpect(header().string("X-XSS-Protection", X_XSS_PROTECTION_VALUE))
+        .andReturn();
   }
 
   @Test
