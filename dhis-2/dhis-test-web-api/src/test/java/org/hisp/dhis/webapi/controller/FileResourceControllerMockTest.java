@@ -37,10 +37,13 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -48,7 +51,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 @ExtendWith(MockitoExtension.class)
-class FileResourceControllerMockTest {
+class FileResourceControllerMockTest extends TestBase {
 
   private FileResourceController controller;
 
@@ -59,6 +62,11 @@ class FileResourceControllerMockTest {
   @Mock private FileResourceUtils fileResourceUtils;
 
   @Mock private DhisConfigurationProvider dhisConfig;
+
+  @BeforeAll
+  static void setup() {
+    injectSecurityContext(new SystemUser());
+  }
 
   @Test
   void testGetOrgUnitImage() throws Exception {

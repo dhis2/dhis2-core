@@ -78,11 +78,7 @@ public class DataElementDefaultDimensionPopulator extends TransactionContextStar
 
     boolean hasCurrentUser = CurrentUserUtil.hasCurrentUser();
     if (!hasCurrentUser) {
-      Authentication authentication =
-          new UsernamePasswordAuthenticationToken(actingUser, "", actingUser.getAuthorities());
-      SecurityContext context = SecurityContextHolder.createEmptyContext();
-      context.setAuthentication(authentication);
-      SecurityContextHolder.setContext(context);
+      injectUserInSecurityContext(actingUser);
     }
 
     Category defaultCategory =
@@ -121,6 +117,14 @@ public class DataElementDefaultDimensionPopulator extends TransactionContextStar
     if (!hasCurrentUser) {
       clearContext();
     }
+  }
+
+  private static void injectUserInSecurityContext(SystemUser actingUser) {
+    Authentication authentication =
+        new UsernamePasswordAuthenticationToken(actingUser, "", actingUser.getAuthorities());
+    SecurityContext context = SecurityContextHolder.createEmptyContext();
+    context.setAuthentication(authentication);
+    SecurityContextHolder.setContext(context);
   }
 
   private static void clearContext() {

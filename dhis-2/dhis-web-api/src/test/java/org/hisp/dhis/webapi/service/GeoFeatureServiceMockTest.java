@@ -34,6 +34,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -45,8 +46,8 @@ import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.test.random.BeanRandomizer;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.webdomain.GeoFeature;
 import org.junit.jupiter.api.Test;
@@ -54,6 +55,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * @author viet@dhis2.org
@@ -88,13 +93,17 @@ class GeoFeatureServiceMockTest {
     OrganisationUnit ouD = createOrgUnitWithoutCoordinates();
 
     User user = rnd.nextObject(User.class);
+    UserDetails details =
+        UserDetails.createUserDetails(
+            user, true, true, new HashSet<>(), new HashSet<>(), new HashSet<>(), null);
+    injectUserInSecurityContext(details);
+
     DataQueryParams params =
         DataQueryParams.newBuilder().withOrganisationUnits(getList(ouA, ouB, ouC, ouD)).build();
 
     when(dataQueryService.getFromRequest(any())).thenReturn(params);
-    //    when(getCurrentUser()).thenReturn(user);
 
-    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
+    when(userService.getUserByUsername(details.getUsername())).thenReturn(user);
 
     HttpServletRequest request = mock(HttpServletRequest.class);
     HttpServletResponse response = mock(HttpServletResponse.class);
@@ -121,12 +130,16 @@ class GeoFeatureServiceMockTest {
   void testGeoJsonAttributeWithNoValue() throws IOException {
     OrganisationUnit ouA = createOrgUnitWithCoordinates();
     User user = rnd.nextObject(User.class);
+    UserDetails details =
+        UserDetails.createUserDetails(
+            user, true, true, new HashSet<>(), new HashSet<>(), new HashSet<>(), null);
+
+    injectUserInSecurityContext(details);
     DataQueryParams params =
         DataQueryParams.newBuilder().withOrganisationUnits(getList(ouA)).build();
 
     when(dataQueryService.getFromRequest(any())).thenReturn(params);
-    //    when(getCurrentUser()).thenReturn(user);
-    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
+    when(userService.getUserByUsername(details.getUsername())).thenReturn(user);
     HttpServletRequest request = mock(HttpServletRequest.class);
     HttpServletResponse response = mock(HttpServletResponse.class);
 
@@ -155,5 +168,21 @@ class GeoFeatureServiceMockTest {
     OrganisationUnit ou = createOrgUnitWithoutCoordinates();
     ou.setGeometry(new GeometryJSON().read(POINT));
     return ou;
+  }
+
+  private static void injectUserInSecurityContext(UserDetails user) {
+    Authentication authentication =
+        new UsernamePasswordAuthenticationToken(user, "", user.getAuthorities());
+    SecurityContext context = SecurityContextHolder.createEmptyContext();
+    context.setAuthentication(authentication);
+    SecurityContextHolder.setContext(context);
+  }
+
+  private static void clearContext() {
+    SecurityContext context = SecurityContextHolder.getContext();
+    if (context != null) {
+      SecurityContextHolder.getContext().setAuthentication(null);
+    }
+    SecurityContextHolder.clearContext();
   }
 }

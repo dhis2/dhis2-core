@@ -42,6 +42,7 @@ import java.util.List;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.RecordingJobProgress;
 import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.imports.DefaultTrackerImportService;
 import org.hisp.dhis.tracker.imports.ParamsConverter;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -52,6 +53,7 @@ import org.hisp.dhis.tracker.imports.preprocess.TrackerPreprocessService;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.validation.ValidationResult;
 import org.hisp.dhis.tracker.imports.validation.ValidationService;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -63,7 +65,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Zubair Asghar
  */
 @ExtendWith(MockitoExtension.class)
-class TrackerImporterServiceTest {
+class TrackerImporterServiceTest extends TestBase {
 
   @Mock private TrackerBundleService trackerBundleService;
 
@@ -85,6 +87,8 @@ class TrackerImporterServiceTest {
 
   @BeforeEach
   public void setUp() {
+    injectSecurityContext(new SystemUser());
+
     subject =
         new DefaultTrackerImportService(
             trackerBundleService, validationService, trackerPreprocessService, trackerUserService);

@@ -44,6 +44,9 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.test.TestBase;
+import org.hisp.dhis.user.SystemUser;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -53,13 +56,19 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class RecordingJobProgressTest {
+class RecordingJobProgressTest extends TestBase {
   private final JobConfiguration config = createJobConfig();
 
   private final JobProgress progress = new RecordingJobProgress(config);
 
+  @BeforeAll
+  static void setup() {
+    injectSecurityContext(new SystemUser());
+  }
+
   @Test
   void testSkipItem_NoFailures() {
+
     progress.startingStage("test", 3, SKIP_ITEM);
     progress.runStage(Stream.of(1, 2, 3), String::valueOf, neverFail, assertSummary(3, 0));
     assertFalse(

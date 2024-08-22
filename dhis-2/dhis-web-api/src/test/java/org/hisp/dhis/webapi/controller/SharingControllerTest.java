@@ -40,6 +40,9 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.test.TestBase;
+import org.hisp.dhis.user.SystemUser;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -53,7 +56,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
  * @author Volker Schmidt
  */
 @ExtendWith(MockitoExtension.class)
-class SharingControllerTest {
+class SharingControllerTest extends TestBase {
 
   @Mock private IdentifiableObjectManager manager;
 
@@ -62,6 +65,11 @@ class SharingControllerTest {
   private MockHttpServletRequest request = new MockHttpServletRequest();
 
   @InjectMocks private SharingController sharingController;
+
+  @BeforeAll
+  static void setup() {
+    injectSecurityContext(new SystemUser());
+  }
 
   @Test
   void notSystemDefaultMetadataNoAccess() {

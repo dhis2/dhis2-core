@@ -48,17 +48,21 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.user.SystemUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class EventAnalyticsDimensionsServiceTest {
+class EventAnalyticsDimensionsServiceTest extends TestBase {
   private EventAnalyticsDimensionsService eventAnalyticsDimensionsService;
 
   private static final String PROGRAM_UID = "aProgramUid";
 
   @BeforeEach
   void setup() {
+    injectSecurityContext(new SystemUser());
+
     ProgramService programService = mock(ProgramService.class);
     ProgramStageService programStageService = mock(ProgramStageService.class);
     CategoryService categoryService = mock(CategoryService.class);

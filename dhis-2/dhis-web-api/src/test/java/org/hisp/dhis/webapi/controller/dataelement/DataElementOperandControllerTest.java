@@ -72,7 +72,9 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.test.random.BeanRandomizer;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
@@ -97,7 +99,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
  */
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
-class DataElementOperandControllerTest {
+class DataElementOperandControllerTest extends TestBase {
   private MockMvc mockMvc;
 
   @Mock private IdentifiableObjectManager manager;
@@ -122,6 +124,8 @@ class DataElementOperandControllerTest {
 
   @BeforeEach
   public void setUp() {
+    injectSecurityContext(new SystemUser());
+
     ContextService contextService = new DefaultContextService();
 
     QueryService _queryService =

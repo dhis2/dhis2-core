@@ -36,6 +36,12 @@ import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.SystemUser;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @Slf4j
 public class ConfigurationPopulator extends TransactionContextStartupRoutine {
@@ -55,6 +61,12 @@ public class ConfigurationPopulator extends TransactionContextStartupRoutine {
 
   @Override
   public void executeInTransaction() {
+    SystemUser actingUser = new SystemUser();
+    boolean hasCurrentUser = CurrentUserUtil.hasCurrentUser();
+    if (!hasCurrentUser) {
+      injectUserInSecurityContext(actingUser);
+    }
+
     checkSecurityConfiguration();
 
     Configuration config = configurationService.getConfiguration();
@@ -62,6 +74,10 @@ public class ConfigurationPopulator extends TransactionContextStartupRoutine {
     if (config != null && config.getSystemId() == null) {
       config.setSystemId(UUID.randomUUID().toString());
       configurationService.setConfiguration(config);
+    }
+
+    if (!hasCurrentUser) {
+      clearContext();
     }
   }
 
@@ -73,5 +89,21 @@ public class ConfigurationPopulator extends TransactionContextStartupRoutine {
     } else {
       log.info("Encryption is available");
     }
+  }
+
+  private static void injectUserInSecurityContext(SystemUser actingUser) {
+    Authentication authentication =
+        new UsernamePasswordAuthenticationToken(actingUser, "", actingUser.getAuthorities());
+    SecurityContext context = SecurityContextHolder.createEmptyContext();
+    context.setAuthentication(authentication);
+    SecurityContextHolder.setContext(context);
+  }
+
+  private static void clearContext() {
+    SecurityContext context = SecurityContextHolder.getContext();
+    if (context != null) {
+      SecurityContextHolder.getContext().setAuthentication(null);
+    }
+    SecurityContextHolder.clearContext();
   }
 }
