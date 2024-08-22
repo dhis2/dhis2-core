@@ -44,7 +44,8 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Abyot Asalefew
  */
-@Repository
+@Repository(
+    "org.hisp.dhis.tracker.export.trackedentityattributevalue.TrackedEntityAttributeValueStore")
 public class HibernateTrackedEntityAttributeValueStore
     extends HibernateGenericStore<TrackedEntityAttributeValue> {
   public HibernateTrackedEntityAttributeValueStore(
