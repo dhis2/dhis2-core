@@ -25,34 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentityattributevalue;
+package org.hisp.dhis.tracker.changelog;
 
-import java.util.ArrayList;
 import java.util.List;
-import lombok.Data;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.changelog.ChangeLogType;
-import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 /**
- * Encapsulation of a web API request for tracked entity data value audit records.
- *
- * @author Lars Helge Overland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Data
-@Accessors(chain = true)
-public class TrackedEntityAttributeValueChangeLogQueryParams {
-  private List<TrackedEntityAttribute> trackedEntityAttributes = new ArrayList<>();
+public interface TrackedEntityAttributeValueChangeLogService {
+  void addTrackedEntityAttributeValueChangLog(
+      TrackedEntityAttributeValueChangeLog trackedEntityAttributeValueChangeLog);
 
-  private List<TrackedEntity> trackedEntities = new ArrayList<>();
+  /**
+   * @deprecated use TrackedEntityChangeLogService.getEventChangeLog(UID) instead
+   */
+  @Deprecated(since = "2.41")
+  List<TrackedEntityAttributeValueChangeLog> getTrackedEntityAttributeValueChangeLogs(
+      TrackedEntityAttributeValueChangeLogQueryParams params);
 
-  private List<ChangeLogType> auditTypes = new ArrayList<>();
+  int countTrackedEntityAttributeValueChangeLogs(
+      TrackedEntityAttributeValueChangeLogQueryParams params);
 
-  private Pager pager;
-
-  public boolean hasPager() {
-    return pager != null;
-  }
+  void deleteTrackedEntityAttributeValueChangeLogs(TrackedEntity trackedEntity);
 }

@@ -44,8 +44,8 @@ import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLog;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
+import org.hisp.dhis.tracker.changelog.TrackedEntityAttributeValueChangeLog;
+import org.hisp.dhis.tracker.changelog.TrackedEntityAttributeValueChangeLogService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

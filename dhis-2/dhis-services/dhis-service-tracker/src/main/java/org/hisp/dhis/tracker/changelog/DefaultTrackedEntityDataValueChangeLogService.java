@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitydatavalue;
+package org.hisp.dhis.tracker.changelog;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -35,6 +35,9 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogStore;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
