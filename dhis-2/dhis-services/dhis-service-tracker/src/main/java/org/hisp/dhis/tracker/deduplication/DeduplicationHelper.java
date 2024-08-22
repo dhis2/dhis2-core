@@ -260,9 +260,10 @@ public class DeduplicationHelper {
 
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
 
-    if (!(currentUserDetails.getAllAuthorities().contains(ALL.name()) || currentUserDetails
-        .getAllAuthorities()
-        .contains(Authorities.F_TRACKED_ENTITY_MERGE.name()))) {
+    if (!(currentUserDetails.getAllAuthorities().contains(ALL.name())
+        || currentUserDetails
+            .getAllAuthorities()
+            .contains(Authorities.F_TRACKED_ENTITY_MERGE.name()))) {
       return "Missing required authority for merging tracked entities.";
     }
 

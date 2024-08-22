@@ -55,6 +55,8 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.test.TestBase;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
@@ -79,7 +81,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
  *
  * @author Jan Bernitt
  */
-class ValidationResultStoreHqlTest {
+class ValidationResultStoreHqlTest extends TestBase {
 
   private final List<String> hqlQueries = new ArrayList<>();
 
@@ -155,23 +157,27 @@ class ValidationResultStoreHqlTest {
     user.setCogsDimensionConstraints(options);
   }
 
+  private void setUpSuperUser() {
+    injectSecurityContext(new SystemUser());
+  }
+
   @Test
   void getById() {
-    //    setUpUser("uid", null, null);
+    setUpSuperUser();
     store.getById(13L);
     assertHQLMatches("from ValidationResult vr where vr.id = :id");
   }
 
   @Test
   void getAllUnreportedValidationResults() {
-    //    setUpUser("uid", null, null);
+    setUpSuperUser();
     store.getAllUnreportedValidationResults();
     assertHQLMatches("from ValidationResult vr where vr.notificationSent = false");
   }
 
   @Test
   void queryDefaultQuery() {
-    //    setUpUser("uid", null, null);
+    setUpSuperUser();
     store.query(new ValidationResultQuery());
     assertHQLMatches("from ValidationResult vr");
   }
@@ -221,6 +227,7 @@ class ValidationResultStoreHqlTest {
 
   @Test
   void queryWithOrgUnitFilter() {
+    setUpSuperUser();
     ValidationResultQuery query = new ValidationResultQuery();
     query.setOu(asList("uid1", "uid2"));
     store.query(query);
@@ -231,6 +238,7 @@ class ValidationResultStoreHqlTest {
 
   @Test
   void queryWithValidationRuleFilter() {
+    setUpSuperUser();
     ValidationResultQuery query = new ValidationResultQuery();
     query.setVr(asList("uid1", "uid2"));
     store.query(query);
@@ -242,6 +250,7 @@ class ValidationResultStoreHqlTest {
 
   @Test
   void queryWithOrgUnitAndValidationRuleFilter() {
+    setUpSuperUser();
     ValidationResultQuery query = new ValidationResultQuery();
     query.setOu(asList("uid1", "uid2"));
     query.setVr(asList("uid3", "uid4"));
@@ -255,6 +264,7 @@ class ValidationResultStoreHqlTest {
 
   @Test
   void queryWithIsoPeriodFilter() {
+    setUpSuperUser();
     ValidationResultQuery query = new ValidationResultQuery();
     query.setPe(singletonList("2017Q1"));
     store.query(query);
