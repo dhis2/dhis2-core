@@ -42,7 +42,7 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueStore;
+import org.hisp.dhis.tracker.trackedentityattributevalue.HibernateTrackedEntityAttributeValueStore;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -57,7 +57,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class TrackedEntityAttributeValueStoreTest extends PostgresIntegrationTestBase {
 
-  @Autowired private TrackedEntityAttributeValueStore attributeValueStore;
+  @Autowired private HibernateTrackedEntityAttributeValueStore attributeValueStore;
 
   @Autowired private IdentifiableObjectManager manager;
 

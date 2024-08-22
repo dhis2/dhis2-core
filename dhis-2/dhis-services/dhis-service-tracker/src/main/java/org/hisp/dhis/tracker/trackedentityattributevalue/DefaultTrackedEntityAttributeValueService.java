@@ -53,7 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class DefaultTrackedEntityAttributeValueService
     implements TrackedEntityAttributeValueService {
-  private final TrackedEntityAttributeValueStore attributeValueStore;
+  private final HibernateTrackedEntityAttributeValueStore attributeValueStore;
 
   private final FileResourceService fileResourceService;
 
