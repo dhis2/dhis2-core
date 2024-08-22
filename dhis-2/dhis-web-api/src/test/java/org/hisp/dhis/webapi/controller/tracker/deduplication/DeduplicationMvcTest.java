@@ -48,8 +48,8 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.trackedentity.ApiTrackedEntityAuditService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.deduplication.DeduplicationMergeParams;
 import org.hisp.dhis.tracker.deduplication.DeduplicationService;
@@ -81,7 +81,7 @@ class DeduplicationMvcTest {
 
   @Mock private IdentifiableObjectManager manager;
 
-  @Mock private TrackedEntityChangeLogService trackedEntityChangeLogService;
+  @Mock private ApiTrackedEntityAuditService trackedEntityAuditService;
 
   @Mock private TrackerAccessManager trackerAccessManager;
 

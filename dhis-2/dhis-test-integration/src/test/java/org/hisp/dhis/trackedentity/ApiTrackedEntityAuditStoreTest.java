@@ -35,6 +35,7 @@ import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.tracker.deprecated.audit.TrackedEntityAuditStore;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -46,34 +47,33 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @TestInstance(Lifecycle.PER_CLASS)
 @Transactional
-class TrackedEntityAuditStoreTest extends PostgresIntegrationTestBase {
+class ApiTrackedEntityAuditStoreTest extends PostgresIntegrationTestBase {
   private final Date CREATED = getDate(2022, 3, 1);
 
-  @Autowired private TrackedEntityChangeLogStore store;
+  @Autowired private TrackedEntityAuditStore store;
 
-  private final TrackedEntityChangeLog auditA =
-      new TrackedEntityChangeLog("WGW7UnVcIIb", "Access", CREATED, "userA", ChangeLogType.CREATE);
-  private final TrackedEntityChangeLog auditB =
-      new TrackedEntityChangeLog("WGW7UnVcIIb", "Access", CREATED, "userB", ChangeLogType.UPDATE);
-  private final TrackedEntityChangeLog auditC =
-      new TrackedEntityChangeLog("zIAwTY3Drrn", "Access", CREATED, "userA", ChangeLogType.UPDATE);
-  private final TrackedEntityChangeLog auditD =
-      new TrackedEntityChangeLog("zIAwTY3Drrn", "Access", CREATED, "userB", ChangeLogType.DELETE);
+  private final TrackedEntityAudit auditA =
+      new TrackedEntityAudit("WGW7UnVcIIb", "Access", CREATED, "userA", ChangeLogType.CREATE);
+  private final TrackedEntityAudit auditB =
+      new TrackedEntityAudit("WGW7UnVcIIb", "Access", CREATED, "userB", ChangeLogType.UPDATE);
+  private final TrackedEntityAudit auditC =
+      new TrackedEntityAudit("zIAwTY3Drrn", "Access", CREATED, "userA", ChangeLogType.UPDATE);
+  private final TrackedEntityAudit auditD =
+      new TrackedEntityAudit("zIAwTY3Drrn", "Access", CREATED, "userB", ChangeLogType.DELETE);
 
   @Test
   void shouldAuditTrackedEntity_whenAddAuditList() {
-    List<TrackedEntityChangeLog> trackedEntityAuditInput = List.of(auditA, auditB);
+    List<TrackedEntityAudit> trackedEntityAuditInput = List.of(auditA, auditB);
 
-    store.addTrackedEntityChangeLog(trackedEntityAuditInput);
+    store.addTrackedEntityAudit(trackedEntityAuditInput);
 
-    TrackedEntityChangeLogQueryParams params =
-        new TrackedEntityChangeLogQueryParams().setTrackedEntities(List.of("WGW7UnVcIIb"));
+    TrackedEntityAuditQueryParams params =
+        new TrackedEntityAuditQueryParams().setTrackedEntities(List.of("WGW7UnVcIIb"));
 
-    List<TrackedEntityChangeLog> trackedEntityAudits = store.getTrackedEntityChangeLogs(params);
+    List<TrackedEntityAudit> trackedEntityAudits = store.getTrackedEntityAudit(params);
 
     assertEquals(trackedEntityAuditInput.size(), trackedEntityAudits.size());
-    TrackedEntityChangeLog entityAudit =
-        filterByAuditType(trackedEntityAudits, ChangeLogType.CREATE);
+    TrackedEntityAudit entityAudit = filterByAuditType(trackedEntityAudits, ChangeLogType.CREATE);
 
     assertNotNull(entityAudit);
     assertEquals("userA", entityAudit.getAccessedBy());
@@ -86,8 +86,8 @@ class TrackedEntityAuditStoreTest extends PostgresIntegrationTestBase {
     assertEquals("WGW7UnVcIIb", entityAudit.getTrackedEntity());
   }
 
-  private static TrackedEntityChangeLog filterByAuditType(
-      List<TrackedEntityChangeLog> trackedEntityAuditsStore, ChangeLogType changeLogType) {
+  private static TrackedEntityAudit filterByAuditType(
+      List<TrackedEntityAudit> trackedEntityAuditsStore, ChangeLogType changeLogType) {
     return trackedEntityAuditsStore.stream()
         .filter(a -> a.getAuditType() == changeLogType)
         .findFirst()
@@ -97,35 +97,35 @@ class TrackedEntityAuditStoreTest extends PostgresIntegrationTestBase {
   @Test
   void testGetAuditsByParams() {
 
-    store.addTrackedEntityChangeLog(auditA);
-    store.addTrackedEntityChangeLog(auditB);
-    store.addTrackedEntityChangeLog(auditC);
-    store.addTrackedEntityChangeLog(auditD);
+    store.addTrackedEntityAudit(auditA);
+    store.addTrackedEntityAudit(auditB);
+    store.addTrackedEntityAudit(auditC);
+    store.addTrackedEntityAudit(auditD);
 
-    TrackedEntityChangeLogQueryParams params =
-        new TrackedEntityChangeLogQueryParams().setTrackedEntities(List.of("WGW7UnVcIIb"));
+    TrackedEntityAuditQueryParams params =
+        new TrackedEntityAuditQueryParams().setTrackedEntities(List.of("WGW7UnVcIIb"));
 
-    assertContainsOnly(List.of(auditA, auditB), store.getTrackedEntityChangeLogs(params));
+    assertContainsOnly(List.of(auditA, auditB), store.getTrackedEntityAudit(params));
 
-    params = new TrackedEntityChangeLogQueryParams().setUsers(List.of("userA"));
+    params = new TrackedEntityAuditQueryParams().setUsers(List.of("userA"));
 
-    assertContainsOnly(List.of(auditA, auditC), store.getTrackedEntityChangeLogs(params));
+    assertContainsOnly(List.of(auditA, auditC), store.getTrackedEntityAudit(params));
 
-    params = new TrackedEntityChangeLogQueryParams().setAuditTypes(List.of(ChangeLogType.UPDATE));
+    params = new TrackedEntityAuditQueryParams().setAuditTypes(List.of(ChangeLogType.UPDATE));
 
-    assertContainsOnly(List.of(auditB, auditC), store.getTrackedEntityChangeLogs(params));
+    assertContainsOnly(List.of(auditB, auditC), store.getTrackedEntityAudit(params));
 
     params =
-        new TrackedEntityChangeLogQueryParams()
+        new TrackedEntityAuditQueryParams()
             .setAuditTypes(List.of(ChangeLogType.CREATE, ChangeLogType.DELETE));
 
-    assertContainsOnly(List.of(auditA, auditD), store.getTrackedEntityChangeLogs(params));
+    assertContainsOnly(List.of(auditA, auditD), store.getTrackedEntityAudit(params));
 
     params =
-        new TrackedEntityChangeLogQueryParams()
+        new TrackedEntityAuditQueryParams()
             .setTrackedEntities(List.of("WGW7UnVcIIb"))
             .setUsers(List.of("userA"));
 
-    assertContainsOnly(List.of(auditA), store.getTrackedEntityChangeLogs(params));
+    assertContainsOnly(List.of(auditA), store.getTrackedEntityAudit(params));
   }
 }

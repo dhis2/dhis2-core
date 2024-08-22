@@ -25,37 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentity;
+package org.hisp.dhis.tracker.deprecated.audit;
 
 import java.util.List;
+import org.hisp.dhis.trackedentity.TrackedEntityAudit;
+import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
 
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
-public interface TrackedEntityChangeLogStore {
-  String ID = TrackedEntityChangeLogStore.class.getName();
+public interface TrackedEntityAuditStore {
+  String ID = TrackedEntityAuditStore.class.getName();
 
   /**
    * Adds the given tracked entity audit.
    *
-   * @param trackedEntityChangeLog the {@link TrackedEntityChangeLog} to add.
+   * @param trackedEntityAudit the {@link TrackedEntityAudit} to add.
    */
-  void addTrackedEntityChangeLog(TrackedEntityChangeLog trackedEntityChangeLog);
+  void addTrackedEntityAudit(TrackedEntityAudit trackedEntityAudit);
 
   /**
-   * Adds the given {@link TrackedEntityChangeLog}s.
+   * Adds the given {@link TrackedEntityAudit}s.
    *
-   * @param trackedEntityChangeLog the list of {@link TrackedEntityChangeLog}.
+   * @param trackedEntityAudit the list of {@link TrackedEntityAudit}.
    */
-  void addTrackedEntityChangeLog(List<TrackedEntityChangeLog> trackedEntityChangeLog);
+  void addTrackedEntityAudit(List<TrackedEntityAudit> trackedEntityAudit);
 
   /**
    * Returns tracked entity audits matching query params
    *
    * @param params tracked entity audit query params
-   * @return a list of {@link TrackedEntityChangeLog}.
+   * @return a list of {@link TrackedEntityAudit}.
    */
-  List<TrackedEntityChangeLog> getTrackedEntityChangeLogs(TrackedEntityChangeLogQueryParams params);
+  List<TrackedEntityAudit> getTrackedEntityAudit(TrackedEntityAuditQueryParams params);
 
   /**
    * Returns count of tracked entity audits matching query params
@@ -63,5 +65,5 @@ public interface TrackedEntityChangeLogStore {
    * @param params tracked entity audit query params
    * @return count of audits.
    */
-  int getTrackedEntityChangeLogsCount(TrackedEntityChangeLogQueryParams params);
+  int getTrackedEntityAuditCount(TrackedEntityAuditQueryParams params);
 }
