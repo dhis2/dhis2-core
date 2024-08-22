@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.changelog.ChangeLogType;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.scheduling.annotation.Async;
@@ -45,7 +46,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultTrackedEntityChangeLogService implements TrackedEntityChangeLogService {
   private final TrackedEntityChangeLogStore trackedEntityChangeLogStore;
 
-  private final TrackedEntityStore trackedEntityStore;
+  private final IdentifiableObjectManager manager;
 
   private final TrackerAccessManager trackerAccessManager;
 
@@ -80,7 +81,7 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
         .filter(
             a ->
                 trackerAccessManager
-                    .canRead(currentUser, trackedEntityStore.getByUid(a.getTrackedEntity()))
+                    .canRead(currentUser, manager.get(TrackedEntity.class, a.getTrackedEntity()))
                     .isEmpty())
         .collect(Collectors.toList());
   }
