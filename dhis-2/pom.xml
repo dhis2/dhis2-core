@@ -236,7 +236,7 @@
     <swagger.version>2.1.21</swagger.version>
     <easy-random.version>5.0.0</easy-random.version>
     <tree.version>0.2.5</tree.version>
-    <h2.version>2.3.230</h2.version>
+    <h2.version>2.3.232</h2.version>
     <jakarta.persistence-api.version>3.1.0</jakarta.persistence-api.version>
 
     <!-- Maven plugin versions -->
@@ -259,7 +259,7 @@
     <jai-imageio.version>1.1.1</jai-imageio.version>
     <gson.version>2.11.0</gson.version>
     <semver4j.version>3.1.0</semver4j.version>
-    <opentelemetry.version>2.6.0</opentelemetry.version>
+    <opentelemetry.version>2.7.0</opentelemetry.version>
   </properties>
 
   <dependencyManagement>
@@ -1250,6 +1250,11 @@
       <dependency>
         <groupId>org.apache.poi</groupId>
         <artifactId>poi</artifactId>
+        <version>${poi.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.poi</groupId>
+        <artifactId>poi-ooxml</artifactId>
         <version>${poi.version}</version>
       </dependency>
 
