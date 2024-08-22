@@ -27,32 +27,42 @@
  */
 package org.hisp.dhis.period;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import java.util.Calendar;
+import org.hisp.dhis.calendar.DateTimeUnit;
 
-@RequiredArgsConstructor
-public enum PeriodTypeEnum {
-  BI_MONTHLY("BiMonthly"),
-  BI_WEEKLY("BiWeekly"),
-  DAILY("Daily"),
-  FINANCIAL_APRIL("FinancialApril"),
-  FINANCIAL_JULY("FinancialJuly"),
-  FINANCIAL_NOV("FinancialNov"),
-  FINANCIAL_SEP("FinancialSep"),
-  FINANCIAL_OCT("FinancialOct"),
-  MONTHLY("Monthly"),
-  QUARTERLY("Quarterly"),
-  QUARTERLY_NOV("QuarterlyNov"),
-  SIX_MONTHLY_APRIL("SixMonthlyApril"),
-  SIX_MONTHLY_NOV("SixMonthlyNov"),
-  SIX_MONTHLY("SixMonthly"),
-  TWO_YEARLY("TwoYearly"),
-  WEEKLY("Weekly"),
-  WEEKLY_SATURDAY("WeeklySaturday"),
-  WEEKLY_SUNDAY("WeeklySunday"),
-  WEEKLY_THURSDAY("WeeklyThursday"),
-  WEEKLY_WEDNESDAY("WeeklyWednesday"),
-  YEARLY("Yearly");
+/**
+ * @author Dusan Bernat
+ */
+public class FinancialSeptemberPeriodType extends FinancialPeriodType {
+  /** Determines if a de-serialized file is compatible with this class. */
+  private static final long serialVersionUID = -1623576547899897922L;
 
-  @Getter private final String name;
+  private static final String ISO_FORMAT = "yyyySep";
+
+  private static final String ISO8601_DURATION = "P1Y";
+
+  @Override
+  public int getBaseMonth() {
+    return Calendar.SEPTEMBER;
+  }
+
+  @Override
+  public PeriodTypeEnum getPeriodTypeEnum() {
+    return PeriodTypeEnum.FINANCIAL_SEP;
+  }
+
+  @Override
+  public String getIsoDate(DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar) {
+    return String.format("%dSep", dateTimeUnit.getYear());
+  }
+
+  @Override
+  public String getIsoFormat() {
+    return ISO_FORMAT;
+  }
+
+  @Override
+  public String getIso8601Duration() {
+    return ISO8601_DURATION;
+  }
 }
