@@ -43,7 +43,7 @@
       }
     },
     {
-      "name": "AcademicYear2022Sep",
+      "name": "financialYear2022Sep",
       "query": "/api/42/analytics?dimension=dx:Uvn6LCg7dVU,pe:2022Sep&filter=ou:USER_ORGUNIT&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false",
       "version": {
         "min": 42
