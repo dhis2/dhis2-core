@@ -98,7 +98,7 @@ public class DeleteEventSMSListener extends CompressionSMSListener {
       throw new SMSProcessingException(SmsResponse.INVALID_EVENT.set(subm.getEvent()));
     }
 
-    identifiableObjectManager.delete(event);
+    manager.delete(event);
 
     return SmsResponse.SUCCESS;
   }

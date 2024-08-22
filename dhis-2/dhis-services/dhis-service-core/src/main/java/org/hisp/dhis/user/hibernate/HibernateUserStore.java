@@ -522,7 +522,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   public User getUserByOpenId(@Nonnull String openId) {
     Query<User> query =
         getQuery(
-            "from User u where u.disabled = false and u.openId = :openId order by u.lastLogin desc");
+            "from User u where u.disabled = false and u.openId = :openId order by coalesce(u.lastLogin,'0001-01-01') desc");
     query.setParameter("openId", openId);
     List<User> list = query.getResultList();
     return list.isEmpty() ? null : list.get(0);
@@ -618,5 +618,22 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
 
       update(user);
     }
+  }
+
+  @Override
+  public User getUserByVerificationToken(String token) {
+    Query<User> query =
+        getSession()
+            .createQuery("from User u where u.emailVerificationToken like :token", User.class);
+    query.setParameter("token", token + "%");
+    return query.uniqueResult();
+  }
+
+  @Override
+  public User getUserByVerifiedEmail(String email) {
+    Query<User> query =
+        getSession().createQuery("from User u where u.verifiedEmail = :email", User.class);
+    query.setParameter("email", email);
+    return query.uniqueResult();
   }
 }

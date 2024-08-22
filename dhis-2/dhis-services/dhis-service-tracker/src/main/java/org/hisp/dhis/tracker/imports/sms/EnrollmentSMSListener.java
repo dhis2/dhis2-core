@@ -39,6 +39,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -63,7 +64,6 @@ import org.hisp.dhis.smscompression.models.Uid;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -71,6 +71,8 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueServ
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventService;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
@@ -82,7 +84,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Component("org.hisp.dhis.tracker.sms.EnrollmentSMSListener")
 @Transactional
 public class EnrollmentSMSListener extends EventSavingSMSListener {
-  private final TrackedEntityService teService;
+  private final TrackedEntityService trackedEntityService;
 
   private final EnrollmentService enrollmentService;
 
@@ -91,8 +93,6 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
   private final ProgramStageService programStageService;
 
   private final SMSEnrollmentService smsEnrollmentService;
-
-  private final IdentifiableObjectManager manager;
 
   public EnrollmentSMSListener(
       IncomingSmsService incomingSmsService,
@@ -110,7 +110,7 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
       FileResourceService fileResourceService,
       DhisConfigurationProvider config,
       TrackedEntityAttributeValueService attributeValueService,
-      TrackedEntityService teService,
+      TrackedEntityService trackedEntityService,
       EnrollmentService enrollmentService,
       IdentifiableObjectManager manager,
       SMSEnrollmentService smsEnrollmentService) {
@@ -129,12 +129,11 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
         dataValueAuditService,
         fileResourceService,
         config);
-    this.teService = teService;
+    this.trackedEntityService = trackedEntityService;
     this.programStageService = programStageService;
     this.enrollmentService = enrollmentService;
     this.attributeValueService = attributeValueService;
     this.smsEnrollmentService = smsEnrollmentService;
-    this.manager = manager;
   }
 
   @Override
@@ -168,11 +167,18 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
     }
 
     TrackedEntity trackedEntity;
-    boolean teExists = identifiableObjectManager.exists(TrackedEntity.class, teUid.getUid());
+    boolean teExists = this.manager.exists(TrackedEntity.class, teUid.getUid());
 
     if (teExists) {
       log.info("Tracked entity exists: '{}'. Updating.", teUid);
-      trackedEntity = teService.getTrackedEntity(teUid.getUid());
+      try {
+        trackedEntity =
+            trackedEntityService.getTrackedEntity(
+                teUid.getUid(), null, TrackedEntityParams.FALSE, false);
+      } catch (NotFoundException | ForbiddenException | BadRequestException e) {
+        // TODO(tracker) Find a better error message for these exceptions
+        throw new SMSProcessingException(SmsResponse.UNKNOWN_ERROR);
+      }
     } else {
       log.info("Tracked entity does not exist: '{}'. Creating.", teUid);
       trackedEntity = new TrackedEntity();
@@ -186,7 +192,7 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
     if (teExists) {
       updateAttributeValues(attributeValues, trackedEntity.getTrackedEntityAttributeValues());
       trackedEntity.setTrackedEntityAttributeValues(attributeValues);
-      manager.update(trackedEntity);
+      this.manager.update(trackedEntity);
     } else {
       manager.save(trackedEntity);
 
@@ -198,7 +204,15 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
       manager.update(trackedEntity);
     }
 
-    TrackedEntity te = teService.getTrackedEntity(teUid.getUid());
+    TrackedEntity te;
+    try {
+      te =
+          trackedEntityService.getTrackedEntity(
+              teUid.getUid(), null, TrackedEntityParams.FALSE, false);
+    } catch (NotFoundException | ForbiddenException | BadRequestException e) {
+      // TODO(tracker) Improve this error message
+      throw new SMSProcessingException(SmsResponse.INVALID_TEI.set(trackedEntity.getUid()));
+    }
 
     Enrollment enrollment = null;
     try {
@@ -226,7 +240,7 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
 
     enrollment.setStatus(getCoreEnrollmentStatus(subm.getEnrollmentStatus()));
     enrollment.setGeometry(convertGeoPointToGeometry(subm.getCoordinates()));
-    identifiableObjectManager.update(enrollment);
+    this.manager.update(enrollment);
 
     // We now check if the enrollment has events to process
     List<Object> errorUIDs = new ArrayList<>();
@@ -237,7 +251,7 @@ public class EnrollmentSMSListener extends EventSavingSMSListener {
     }
     enrollment.setStatus(getCoreEnrollmentStatus(subm.getEnrollmentStatus()));
     enrollment.setGeometry(convertGeoPointToGeometry(subm.getCoordinates()));
-    identifiableObjectManager.update(enrollment);
+    this.manager.update(enrollment);
 
     if (!errorUIDs.isEmpty()) {
       return SmsResponse.WARN_DVERR.setList(errorUIDs);

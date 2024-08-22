@@ -29,16 +29,18 @@ package org.hisp.dhis.tracker.imports.bundle;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Session;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.UserInfoSnapshot;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.ParamsConverter;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -75,8 +77,6 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
   private final ProgramRuleService programRuleService;
 
   private final TrackerObjectDeletionService deletionService;
-
-  private final TrackedEntityService trackedEntityService;
 
   private final ObjectMapper mapper;
 
@@ -132,20 +132,42 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
   }
 
   @Override
+  @Transactional
   public void postCommit(TrackerBundle bundle) {
     updateTrackedEntitiesLastUpdated(bundle);
   }
 
   private void updateTrackedEntitiesLastUpdated(TrackerBundle bundle) {
-    if (!bundle.getUpdatedTrackedEntities().isEmpty()) {
-      try {
-        trackedEntityService.updateTrackedEntityLastUpdated(
-            bundle.getUpdatedTrackedEntities(),
-            new Date(),
-            mapper.writeValueAsString(bundle.getUserInfo()));
-      } catch (JsonProcessingException e) {
-        throw new PersistenceException(e);
+    Set<String> updatedTrackedEntities = bundle.getUpdatedTrackedEntities();
+
+    if (updatedTrackedEntities.isEmpty()) {
+      return;
+    }
+
+    List<List<String>> uidsPartitions =
+        Lists.partition(Lists.newArrayList(bundle.getUpdatedTrackedEntities()), 20000);
+
+    try (Session session = entityManager.unwrap(Session.class)) {
+      for (List<String> trackedEntities : uidsPartitions) {
+        if (trackedEntities.isEmpty()) {
+          continue;
+        }
+        executeLastUpdatedQuery(session, trackedEntities, bundle);
       }
+    }
+  }
+
+  private void executeLastUpdatedQuery(
+      Session session, List<String> trackedEntities, TrackerBundle bundle) {
+    try {
+      session
+          .getNamedQuery("updateTrackedEntitiesLastUpdated")
+          .setParameter("trackedEntities", trackedEntities)
+          .setParameter("lastUpdated", new Date())
+          .setParameter("lastupdatedbyuserinfo", mapper.writeValueAsString(bundle.getUserInfo()))
+          .executeUpdate();
+    } catch (JsonProcessingException e) {
+      throw new PersistenceException(e);
     }
   }
 

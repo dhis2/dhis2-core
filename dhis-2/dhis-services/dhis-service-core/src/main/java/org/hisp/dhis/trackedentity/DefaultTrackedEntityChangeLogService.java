@@ -30,6 +30,8 @@ package org.hisp.dhis.trackedentity;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.changelog.ChangeLogType;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.scheduling.annotation.Async;
@@ -44,15 +46,23 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultTrackedEntityChangeLogService implements TrackedEntityChangeLogService {
   private final TrackedEntityChangeLogStore trackedEntityChangeLogStore;
 
-  private final TrackedEntityStore trackedEntityStore;
+  private final IdentifiableObjectManager manager;
 
   private final TrackerAccessManager trackerAccessManager;
 
   @Override
   @Async
   @Transactional
-  public void addTrackedEntityChangeLog(TrackedEntityChangeLog trackedEntityChangeLog) {
-    trackedEntityChangeLogStore.addTrackedEntityChangeLog(trackedEntityChangeLog);
+  public void addTrackedEntityChangeLog(
+      TrackedEntity trackedEntity, String username, ChangeLogType changeLogType) {
+    if (username != null
+        && trackedEntity != null
+        && trackedEntity.getTrackedEntityType() != null
+        && trackedEntity.getTrackedEntityType().isAllowAuditLog()) {
+      TrackedEntityChangeLog trackedEntityChangeLog =
+          new TrackedEntityChangeLog(trackedEntity.getUid(), username, changeLogType);
+      trackedEntityChangeLogStore.addTrackedEntityChangeLog(trackedEntityChangeLog);
+    }
   }
 
   @Override
@@ -71,7 +81,7 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
         .filter(
             a ->
                 trackerAccessManager
-                    .canRead(currentUser, trackedEntityStore.getByUid(a.getTrackedEntity()))
+                    .canRead(currentUser, manager.get(TrackedEntity.class, a.getTrackedEntity()))
                     .isEmpty())
         .collect(Collectors.toList());
   }
