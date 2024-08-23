@@ -39,9 +39,6 @@ import org.hibernate.query.Query;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.springframework.stereotype.Repository;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
 @Repository("org.hisp.dhis.tracker.changelog.TrackedEntityAttributeValueChangeLogStore")
 public class HibernateTrackedEntityAttributeValueChangeLogStore
     implements TrackedEntityAttributeValueChangeLogStore {

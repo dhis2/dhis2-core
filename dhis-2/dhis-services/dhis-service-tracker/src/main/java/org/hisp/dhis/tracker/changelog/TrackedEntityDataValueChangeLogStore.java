@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,24 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitydatavalue;
+package org.hisp.dhis.tracker.changelog;
 
 import java.util.List;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public interface TrackedEntityDataValueChangeLogService {
+public interface TrackedEntityDataValueChangeLogStore {
   void addTrackedEntityDataValueChangeLog(
       TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog);
 
-  /**
-   * @deprecated use EventChangeLogService.getEventChangeLog(UID) instead
-   */
-  @Deprecated(since = "2.41")
   List<TrackedEntityDataValueChangeLog> getTrackedEntityDataValueChangeLogs(
       TrackedEntityDataValueChangeLogQueryParams params);
 

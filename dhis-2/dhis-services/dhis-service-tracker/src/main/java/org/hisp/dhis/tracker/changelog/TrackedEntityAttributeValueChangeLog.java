@@ -118,7 +118,9 @@ public class TrackedEntityAttributeValueChangeLog implements Serializable {
   }
 
   public String getPlainValue() {
-    return (!getAttribute().getConfidential() && this.value != null ? this.value : this.plainValue);
+    return (Boolean.FALSE.equals(getAttribute().getConfidential()) && this.value != null
+        ? this.value
+        : this.plainValue);
   }
 
   public void setPlainValue(String plainValue) {
@@ -126,7 +128,7 @@ public class TrackedEntityAttributeValueChangeLog implements Serializable {
   }
 
   public String getEncryptedValue() {
-    return (getAttribute().getConfidential() && this.value != null
+    return (Boolean.TRUE.equals(getAttribute().getConfidential()) && this.value != null
         ? this.value
         : this.encryptedValue);
   }
@@ -168,7 +170,9 @@ public class TrackedEntityAttributeValueChangeLog implements Serializable {
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getValue() {
-    return (getAttribute().getConfidential() ? this.getEncryptedValue() : this.getPlainValue());
+    return (Boolean.TRUE.equals(getAttribute().getConfidential())
+        ? this.getEncryptedValue()
+        : this.getPlainValue());
   }
 
   /**

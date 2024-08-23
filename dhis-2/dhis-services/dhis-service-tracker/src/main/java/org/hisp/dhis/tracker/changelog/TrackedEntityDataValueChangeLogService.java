@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitydatavalue;
+package org.hisp.dhis.tracker.changelog;
 
 import java.util.List;
 import org.hisp.dhis.dataelement.DataElement;
@@ -35,10 +35,14 @@ import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface TrackedEntityDataValueChangeLogStore {
+public interface TrackedEntityDataValueChangeLogService {
   void addTrackedEntityDataValueChangeLog(
       TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog);
 
+  /**
+   * @deprecated use EventChangeLogService.getEventChangeLog(UID) instead
+   */
+  @Deprecated(since = "2.41")
   List<TrackedEntityDataValueChangeLog> getTrackedEntityDataValueChangeLogs(
       TrackedEntityDataValueChangeLogQueryParams params);
 

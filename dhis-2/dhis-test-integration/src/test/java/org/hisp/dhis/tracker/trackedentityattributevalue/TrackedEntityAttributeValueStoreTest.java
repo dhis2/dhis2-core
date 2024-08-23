@@ -45,7 +45,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.changelog.TrackedEntityAttributeValueChangeLog;
 import org.hisp.dhis.tracker.changelog.TrackedEntityAttributeValueChangeLogQueryParams;
-import org.hisp.dhis.tracker.changelog.TrackedEntityAttributeValueChangeLogStore;
+import org.hisp.dhis.tracker.changelog.TrackedEntityAttributeValueChangeLogService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -68,7 +68,7 @@ class TrackedEntityAttributeValueStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackedEntityAttributeService attributeService;
 
-  @Autowired private TrackedEntityAttributeValueChangeLogStore attributeValueAuditStore;
+  @Autowired private TrackedEntityAttributeValueChangeLogService attributeValueChangeLogStore;
 
   @Autowired private RenderService renderService;
 
@@ -189,10 +189,10 @@ class TrackedEntityAttributeValueStoreTest extends PostgresIntegrationTestBase {
     TrackedEntityAttributeValueChangeLog auditD =
         new TrackedEntityAttributeValueChangeLog(
             avD, renderService.toJsonAsString(avD), "userA", ChangeLogType.DELETE);
-    attributeValueAuditStore.addTrackedEntityAttributeValueChangeLog(auditA);
-    attributeValueAuditStore.addTrackedEntityAttributeValueChangeLog(auditB);
-    attributeValueAuditStore.addTrackedEntityAttributeValueChangeLog(auditC);
-    attributeValueAuditStore.addTrackedEntityAttributeValueChangeLog(auditD);
+    attributeValueChangeLogStore.addTrackedEntityAttributeValueChangeLog(auditA);
+    attributeValueChangeLogStore.addTrackedEntityAttributeValueChangeLog(auditB);
+    attributeValueChangeLogStore.addTrackedEntityAttributeValueChangeLog(auditC);
+    attributeValueChangeLogStore.addTrackedEntityAttributeValueChangeLog(auditD);
 
     TrackedEntityAttributeValueChangeLogQueryParams params =
         new TrackedEntityAttributeValueChangeLogQueryParams()
@@ -201,7 +201,8 @@ class TrackedEntityAttributeValueStoreTest extends PostgresIntegrationTestBase {
             .setAuditTypes(List.of(ChangeLogType.UPDATE));
 
     assertContainsOnly(
-        List.of(auditA), attributeValueAuditStore.getTrackedEntityAttributeValueChangeLogs(params));
+        List.of(auditA),
+        attributeValueChangeLogStore.getTrackedEntityAttributeValueChangeLogs(params));
 
     params =
         new TrackedEntityAttributeValueChangeLogQueryParams()
@@ -210,14 +211,15 @@ class TrackedEntityAttributeValueStoreTest extends PostgresIntegrationTestBase {
 
     assertContainsOnly(
         List.of(auditA, auditB),
-        attributeValueAuditStore.getTrackedEntityAttributeValueChangeLogs(params));
+        attributeValueChangeLogStore.getTrackedEntityAttributeValueChangeLogs(params));
 
     params =
         new TrackedEntityAttributeValueChangeLogQueryParams()
             .setAuditTypes(List.of(ChangeLogType.CREATE));
 
     assertContainsOnly(
-        List.of(auditC), attributeValueAuditStore.getTrackedEntityAttributeValueChangeLogs(params));
+        List.of(auditC),
+        attributeValueChangeLogStore.getTrackedEntityAttributeValueChangeLogs(params));
 
     params =
         new TrackedEntityAttributeValueChangeLogQueryParams()
@@ -225,6 +227,6 @@ class TrackedEntityAttributeValueStoreTest extends PostgresIntegrationTestBase {
 
     assertContainsOnly(
         List.of(auditC, auditD),
-        attributeValueAuditStore.getTrackedEntityAttributeValueChangeLogs(params));
+        attributeValueChangeLogStore.getTrackedEntityAttributeValueChangeLogs(params));
   }
 }

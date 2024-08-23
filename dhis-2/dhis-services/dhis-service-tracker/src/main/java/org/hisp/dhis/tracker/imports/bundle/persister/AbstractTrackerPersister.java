@@ -451,7 +451,7 @@ public abstract class AbstractTrackerPersister<
           new TrackedEntityAttributeValueChangeLog(
               attributeValue, attributeValue.getValue(), userName, changeLogType);
       valueAudit.setTrackedEntity(trackedEntity);
-      trackedEntityAttributeValueChangeLogService.addTrackedEntityAttributeValueChangLog(
+      trackedEntityAttributeValueChangeLogService.addTrackedEntityAttributeValueChangeLog(
           valueAudit);
     }
   }

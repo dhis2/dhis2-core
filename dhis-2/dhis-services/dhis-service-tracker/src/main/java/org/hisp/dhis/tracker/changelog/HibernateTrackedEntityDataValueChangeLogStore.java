@@ -44,14 +44,12 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogStore;
 import org.springframework.stereotype.Repository;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Repository("org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogStore")
+@Repository("org.hisp.dhis.tracker.changelog.TrackedEntityDataValueChangeLogStore")
 public class HibernateTrackedEntityDataValueChangeLogStore
     implements TrackedEntityDataValueChangeLogStore {
   private static final String PROP_PSI = "event";

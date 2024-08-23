@@ -75,7 +75,7 @@ public class DefaultTrackedEntityAttributeValueService
             ChangeLogType.DELETE);
 
     if (config.isEnabled(CHANGELOG_TRACKER)) {
-      trackedEntityAttributeValueChangeLogService.addTrackedEntityAttributeValueChangLog(
+      trackedEntityAttributeValueChangeLogService.addTrackedEntityAttributeValueChangeLog(
           trackedEntityAttributeValueChangeLog);
     }
 
@@ -176,7 +176,7 @@ public class DefaultTrackedEntityAttributeValueService
               ChangeLogType.UPDATE);
 
       if (config.isEnabled(CHANGELOG_TRACKER)) {
-        trackedEntityAttributeValueChangeLogService.addTrackedEntityAttributeValueChangLog(
+        trackedEntityAttributeValueChangeLogService.addTrackedEntityAttributeValueChangeLog(
             trackedEntityAttributeValueChangeLog);
       }
 

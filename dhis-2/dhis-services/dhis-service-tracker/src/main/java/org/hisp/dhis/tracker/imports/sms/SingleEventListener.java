@@ -50,7 +50,7 @@ import org.hisp.dhis.sms.listener.SMSProcessingException;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.smscompression.SmsResponse;
 import org.hisp.dhis.system.util.SmsUtils;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
+import org.hisp.dhis.tracker.changelog.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;

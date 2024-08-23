@@ -410,7 +410,7 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
       TrackedEntityAttributeValue trackedEntityAttributeValue,
       ChangeLogType changeLogType,
       String value) {
-    oldChangeLogService.addTrackedEntityAttributeValueChangLog(
+    oldChangeLogService.addTrackedEntityAttributeValueChangeLog(
         new TrackedEntityAttributeValueChangeLog(
             trackedEntityAttributeValue, value, user.getUsername(), changeLogType));
 

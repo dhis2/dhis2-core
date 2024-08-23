@@ -35,9 +35,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogStore;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
@@ -46,15 +43,15 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Service("org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService")
+@Service("org.hisp.dhis.tracker.changelog.TrackedEntityDataValueChangeLogService")
 public class DefaultTrackedEntityDataValueChangeLogService
     implements TrackedEntityDataValueChangeLogService {
 
-  private final TrackedEntityDataValueChangeLogStore trackedEntityDataValueChangeLogStore;
+  private final HibernateTrackedEntityDataValueChangeLogStore trackedEntityDataValueChangeLogStore;
   private final Predicate<TrackedEntityDataValueChangeLog> aclFilter;
 
   public DefaultTrackedEntityDataValueChangeLogService(
-      TrackedEntityDataValueChangeLogStore trackedEntityDataValueChangeLogStore,
+      HibernateTrackedEntityDataValueChangeLogStore trackedEntityDataValueChangeLogStore,
       TrackerAccessManager trackerAccessManager) {
     checkNotNull(trackedEntityDataValueChangeLogStore);
     checkNotNull(trackerAccessManager);

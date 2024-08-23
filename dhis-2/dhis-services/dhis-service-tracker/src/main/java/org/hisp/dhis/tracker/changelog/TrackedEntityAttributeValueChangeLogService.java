@@ -34,7 +34,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface TrackedEntityAttributeValueChangeLogService {
-  void addTrackedEntityAttributeValueChangLog(
+  void addTrackedEntityAttributeValueChangeLog(
       TrackedEntityAttributeValueChangeLog trackedEntityAttributeValueChangeLog);
 
   /**
