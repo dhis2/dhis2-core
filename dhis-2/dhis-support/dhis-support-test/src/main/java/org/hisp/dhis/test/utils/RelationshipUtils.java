@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.util;
+package org.hisp.dhis.test.utils;
 
 import java.util.Objects;
 import org.apache.commons.lang3.ObjectUtils;
@@ -37,6 +37,10 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipKey;
 
 public class RelationshipUtils {
+
+  private RelationshipUtils() {
+    throw new IllegalStateException("Utility class");
+  }
 
   /**
    * Generates a key of a relationship. The key consists of three parts: The relationship type's
