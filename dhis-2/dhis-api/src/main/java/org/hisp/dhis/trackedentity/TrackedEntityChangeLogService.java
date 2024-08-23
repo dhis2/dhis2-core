@@ -28,6 +28,7 @@
 package org.hisp.dhis.trackedentity;
 
 import java.util.List;
+import org.hisp.dhis.changelog.ChangeLogType;
 
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
@@ -36,12 +37,9 @@ public interface TrackedEntityChangeLogService {
 
   String ID = TrackedEntityChangeLogService.class.getName();
 
-  /**
-   * Adds tracked entity audit
-   *
-   * @param trackedEntityChangeLog the audit to add
-   */
-  void addTrackedEntityChangeLog(TrackedEntityChangeLog trackedEntityChangeLog);
+  /** Adds tracked entity audit */
+  void addTrackedEntityChangeLog(
+      TrackedEntity trackedEntity, String username, ChangeLogType changeLogType);
 
   /** Adds multiple tracked entity audit */
   void addTrackedEntityChangeLog(List<TrackedEntityChangeLog> trackedEntityChangeLogs);

@@ -74,7 +74,6 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
@@ -94,8 +93,6 @@ class EventPredictionServiceTest extends PostgresIntegrationTestBase {
   @Autowired private PredictorService predictorService;
 
   @Autowired private PredictionService predictionService;
-
-  @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private TrackedEntityAttributeService entityAttributeService;
 

@@ -178,7 +178,7 @@ public class OpenApiTool implements ToolProvider {
   private Integer generateDocument(
       String filename, PrintWriter out, PrintWriter err, ApiExtractor.Scope scope) {
     try {
-      Api api = ApiExtractor.extractApi(scope);
+      Api api = ApiExtractor.extractApi(new ApiExtractor.Configuration(scope, false));
 
       ApiIntegrator.integrateApi(
           api, ApiIntegrator.Configuration.builder().failOnNameClash(true).build());
@@ -227,8 +227,6 @@ public class OpenApiTool implements ToolProvider {
     if (type.isAnnotationPresent(OpenApi.Shared.class)) {
       OpenApi.Shared shared = type.getAnnotation(OpenApi.Shared.class);
       if (!shared.name().isEmpty()) return shared.name();
-      if (shared.pattern() != OpenApi.Shared.Pattern.DEFAULT)
-        return shared.pattern().getTemplate().formatted(type.getSimpleName());
     }
     return type.getSimpleName();
   }

@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
@@ -59,7 +60,7 @@ public class DefaultRelationshipService implements RelationshipService {
 
   @Override
   public List<Relationship> getRelationships(RelationshipOperationParams params)
-      throws ForbiddenException, NotFoundException {
+      throws ForbiddenException, NotFoundException, BadRequestException {
     RelationshipQueryParams queryParams = mapper.map(params);
 
     return getRelationships(queryParams);
@@ -68,7 +69,7 @@ public class DefaultRelationshipService implements RelationshipService {
   @Override
   public Page<Relationship> getRelationships(
       RelationshipOperationParams params, PageParams pageParams)
-      throws ForbiddenException, NotFoundException {
+      throws ForbiddenException, NotFoundException, BadRequestException {
     RelationshipQueryParams queryParams = mapper.map(params);
 
     return getRelationships(queryParams, pageParams);
