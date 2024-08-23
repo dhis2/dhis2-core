@@ -164,6 +164,16 @@ public class AnalyticsOutlierService {
   }
 
   /**
+   * Transform the incoming request into api response (xlsx download).
+   *
+   * @param request the {@link OutlierRequest}.
+   */
+  public void getOutliersAsXlsx(OutlierRequest request, OutputStream outputStream)
+      throws IllegalQueryException, IOException {
+    GridUtils.toXlsx(getOutliers(request), outputStream);
+  }
+
+  /**
    * Transform the incoming request into api response (html).
    *
    * @param request the {@link OutlierRequest}.

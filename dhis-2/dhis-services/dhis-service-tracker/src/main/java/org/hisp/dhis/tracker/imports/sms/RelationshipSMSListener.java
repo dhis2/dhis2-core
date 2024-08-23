@@ -32,6 +32,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.message.MessageSender;
@@ -55,10 +56,11 @@ import org.hisp.dhis.smscompression.models.SmsSubmission;
 import org.hisp.dhis.smscompression.models.Uid;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventService;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
@@ -148,7 +150,7 @@ public class RelationshipSMSListener extends CompressionSMSListener {
 
     // TODO: Are there values we need to account for in relationships?
 
-    identifiableObjectManager.save(rel);
+    manager.save(rel);
 
     return SmsResponse.SUCCESS;
   }
@@ -162,11 +164,16 @@ public class RelationshipSMSListener extends CompressionSMSListener {
 
     switch (relEnt) {
       case TRACKED_ENTITY_INSTANCE:
-        TrackedEntity te = trackedEntityService.getTrackedEntity(objId.getUid());
-        if (te == null) {
+        TrackedEntity trackedEntity = null;
+        try {
+          trackedEntity =
+              trackedEntityService.getTrackedEntity(
+                  objId.getUid(), null, TrackedEntityParams.FALSE, false);
+        } catch (NotFoundException | ForbiddenException | BadRequestException e) {
           throw new SMSProcessingException(SmsResponse.INVALID_TEI.set(objId));
         }
-        relItem.setTrackedEntity(te);
+
+        relItem.setTrackedEntity(trackedEntity);
         break;
 
       case PROGRAM_INSTANCE:

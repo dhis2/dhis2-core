@@ -106,11 +106,11 @@ public class PeriodCondition extends BaseRenderable {
     return AndCondition.of(
         List.of(
             BinaryConditionRenderer.of(
-                Field.of(prefix, timeField::getField, EMPTY),
+                Field.of(prefix, timeField::getTrackedEntityColumnName, EMPTY),
                 QueryOperator.GE,
                 ConstantValuesRenderer.of(toMediumDate(interval.getLeft()), DATE, queryContext)),
             BinaryConditionRenderer.of(
-                Field.of(prefix, timeField::getField, EMPTY),
+                Field.of(prefix, timeField::getTrackedEntityColumnName, EMPTY),
                 QueryOperator.LT,
                 ConstantValuesRenderer.of(toMediumDate(interval.getRight()), DATE, queryContext))));
   }

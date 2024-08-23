@@ -1383,7 +1383,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
         .withOutputType(EventOutputType.EVENT)
         .withDisplayProperty(DisplayProperty.SHORTNAME)
         .withEndpointItem(RequestTypeAware.EndpointItem.EVENT)
-        .withCoordinateFields(List.of("evgeometry"));
+        .withCoordinateFields(List.of("eventgeometry"));
   }
 
   /** Params builder A for getting aggregated grids. */

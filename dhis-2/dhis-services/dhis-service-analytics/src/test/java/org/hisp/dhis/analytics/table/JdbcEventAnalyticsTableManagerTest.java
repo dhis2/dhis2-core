@@ -288,7 +288,7 @@ class JdbcEventAnalyticsTableManagerTest {
         .withTableType(AnalyticsTableType.EVENT)
         .withName(TABLE_PREFIX + program.getUid().toLowerCase() + STAGING_TABLE_SUFFIX)
         .withMainName(TABLE_PREFIX + program.getUid().toLowerCase())
-        .withColumnSize(56 + OU_NAME_HIERARCHY_COUNT)
+        .withColumnSize(57 + OU_NAME_HIERARCHY_COUNT)
         .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
         .addColumns(periodColumns)
         .addColumn(
@@ -464,7 +464,7 @@ class JdbcEventAnalyticsTableManagerTest {
         .withName(TABLE_PREFIX + program.getUid().toLowerCase() + STAGING_TABLE_SUFFIX)
         .withMainName(TABLE_PREFIX + program.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
-        .withColumnSize(63 + OU_NAME_HIERARCHY_COUNT)
+        .withColumnSize(64 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
         .addColumn(
             d1.getUid(),
@@ -568,7 +568,7 @@ class JdbcEventAnalyticsTableManagerTest {
         .withName(TABLE_PREFIX + program.getUid().toLowerCase() + STAGING_TABLE_SUFFIX)
         .withMainName(TABLE_PREFIX + program.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
-        .withColumnSize(58 + OU_NAME_HIERARCHY_COUNT)
+        .withColumnSize(59 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
         .addColumn(
             d1.getUid(),

@@ -37,19 +37,23 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 /** Enum that maps database column names to their respective "business" names. */
+@RequiredArgsConstructor
 public enum TimeField {
   EVENT_DATE("occurreddate"),
   ENROLLMENT_DATE("enrollmentdate"),
-  INCIDENT_DATE("incidentdate"),
-  // Not a typo, different naming convention between FE and database
+  INCIDENT_DATE("incidentdate", "occurreddate"),
+  OCCURRED_DATE("occurreddate"),
   SCHEDULED_DATE("scheduleddate"),
   COMPLETED_DATE("completeddate"),
   CREATED("created"),
   LAST_UPDATED("lastupdated");
 
-  @Getter private String field;
+  @Getter private final String eventAndEnrollmentColumnName;
+  @Getter private final String trackedEntityColumnName;
 
   public static final Collection<String> DEFAULT_TIME_FIELDS =
       List.of(EVENT_DATE.name(), LAST_UPDATED.name(), ENROLLMENT_DATE.name());
@@ -65,15 +69,18 @@ public enum TimeField {
       newHashSet(TimeField.values()).stream().map(TimeField::name).collect(toSet());
 
   TimeField(final String field) {
-    this.field = field;
+    this.trackedEntityColumnName = field;
+    this.eventAndEnrollmentColumnName = field;
   }
 
   public static Optional<TimeField> of(final String timeField) {
     return Arrays.stream(values()).filter(tf -> tf.name().equals(timeField)).findFirst();
   }
 
-  public static Optional<TimeField> from(final String field) {
-    return Arrays.stream(values()).filter(tf -> tf.getField().equals(field)).findFirst();
+  private static Optional<TimeField> from(final String field) {
+    return Arrays.stream(values())
+        .filter(tf -> tf.getEventAndEnrollmentColumnName().equals(field))
+        .findFirst();
   }
 
   public static boolean fieldIsValid(final String field) {
@@ -81,8 +88,14 @@ public enum TimeField {
   }
 
   public boolean supportsRawPeriod() {
-    return isNotBlank(field)
-        && from(field).isPresent()
-        && TIME_FIELDS_SUPPORT_RAW_PERIODS.contains(from(field).get());
+    return Optional.of(eventAndEnrollmentColumnName)
+        .filter(StringUtils::isNotBlank)
+        .flatMap(TimeField::from)
+        .map(this::supportsRawPeriods)
+        .orElse(false);
+  }
+
+  private boolean supportsRawPeriods(TimeField timeField) {
+    return TIME_FIELDS_SUPPORT_RAW_PERIODS.contains(timeField);
   }
 }

@@ -47,4 +47,8 @@ public class AnalyticsOutlierDetectionActions extends RestApiActions {
   public AnalyticsOutlierDetectionActions query() {
     return new AnalyticsOutlierDetectionActions("");
   }
+
+  public AnalyticsOutlierDetectionActions download(String fileExtension) {
+    return new AnalyticsOutlierDetectionActions("." + fileExtension);
+  }
 }

@@ -48,6 +48,7 @@ import org.hisp.dhis.user.User;
  */
 @Data
 @Accessors(chain = true)
+@OpenApi.Property
 public class JobRunErrorsParams {
 
   @OpenApi.Ignore @CheckForNull private UID job;
