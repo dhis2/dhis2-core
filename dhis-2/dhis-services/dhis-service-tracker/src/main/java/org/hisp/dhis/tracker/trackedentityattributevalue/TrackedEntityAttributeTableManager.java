@@ -25,22 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.tracker.trackedentityattributevalue;
 
-import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
+import java.util.List;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Interface for administrative/maintenance tasks on trackedentityattributevalue table
+ *
+ * @author Ameen Mohamed
  */
-public class RelationshipItemSchemaDescriptor implements SchemaDescriptor {
-  public static final String SINGULAR = "relationshipItem";
+public interface TrackedEntityAttributeTableManager {
+  void createTrigramIndex(TrackedEntityAttribute trackedEntityAttribute);
 
-  public static final String PLURAL = "relationshipItems";
+  void dropTrigramIndex(Long trackedEntityAttributeId);
 
-  @Override
-  public Schema getSchema() {
-    return new Schema(RelationshipItem.class, SINGULAR, PLURAL);
-  }
+  List<Long> getAttributeIdsWithTrigramIndex();
 }

@@ -64,7 +64,6 @@ import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.OpenApi.Document.Group;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UserOrgUnitType;
@@ -133,7 +132,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Document(group = Group.MANAGE)
+@OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
 @Slf4j
 @Controller
 @RequestMapping("/api/users")
@@ -256,7 +255,7 @@ public class UserController extends AbstractCrudController<User> {
 
   @Override
   @GetMapping("/{uid}/{property}")
-  @OpenApi.Document(group = Group.QUERY)
+  @OpenApi.Document(group = OpenApi.Document.GROUP_QUERY)
   public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
       @OpenApi.Param(OpenApi.PropertyNames.class) @PathVariable("property") String pvProperty,

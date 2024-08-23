@@ -116,7 +116,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @Maturity.Stable
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-@OpenApi.Document(group = OpenApi.Document.Group.QUERY)
+@OpenApi.Document(group = OpenApi.Document.GROUP_QUERY)
 public abstract class AbstractFullReadOnlyController<T extends IdentifiableObject>
     extends AbstractGistReadOnlyController<T> {
   protected static final String DEFAULTS = "INCLUDE";

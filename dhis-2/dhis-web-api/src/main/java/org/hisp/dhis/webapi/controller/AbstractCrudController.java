@@ -117,7 +117,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @Stable
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-@OpenApi.Document(group = OpenApi.Document.Group.MANAGE)
+@OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
 public abstract class AbstractCrudController<T extends IdentifiableObject>
     extends AbstractFullReadOnlyController<T> {
   @Autowired protected SchemaValidator schemaValidator;

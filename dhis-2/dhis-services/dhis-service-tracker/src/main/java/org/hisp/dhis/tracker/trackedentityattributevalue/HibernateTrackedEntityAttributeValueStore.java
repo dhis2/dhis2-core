@@ -25,12 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentityattributevalue.hibernate;
+package org.hisp.dhis.tracker.trackedentityattributevalue;
 
 import jakarta.persistence.EntityManager;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.query.Query;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
@@ -38,18 +37,15 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueStore;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
-/**
- * @author Abyot Asalefew
- */
-@Repository("org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueStore")
-public class HibernateTrackedEntityAttributeValueStore
-    extends HibernateGenericStore<TrackedEntityAttributeValue>
-    implements TrackedEntityAttributeValueStore {
+// This class is annotated with @Component instead of @Repository because @Repository creates a
+// proxy that can't be used to inject the class.
+@Component("org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueStore")
+class HibernateTrackedEntityAttributeValueStore
+    extends HibernateGenericStore<TrackedEntityAttributeValue> {
   public HibernateTrackedEntityAttributeValueStore(
       EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
     super(entityManager, jdbcTemplate, publisher, TrackedEntityAttributeValue.class, false);
@@ -59,12 +55,10 @@ public class HibernateTrackedEntityAttributeValueStore
   // Implementation methods
   // -------------------------------------------------------------------------
 
-  @Override
   public void saveVoid(TrackedEntityAttributeValue attributeValue) {
     getSession().save(attributeValue);
   }
 
-  @Override
   public int deleteByTrackedEntity(TrackedEntity trackedEntity) {
     Query<TrackedEntityAttributeValue> query =
         getQuery("delete from TrackedEntityAttributeValue where trackedEntity = :trackedEntity");
@@ -72,7 +66,6 @@ public class HibernateTrackedEntityAttributeValueStore
     return query.executeUpdate();
   }
 
-  @Override
   public TrackedEntityAttributeValue get(
       TrackedEntity trackedEntity, TrackedEntityAttribute attribute) {
     String query =
@@ -86,7 +79,6 @@ public class HibernateTrackedEntityAttributeValueStore
     return getSingleResult(typedQuery);
   }
 
-  @Override
   public List<TrackedEntityAttributeValue> get(TrackedEntity trackedEntity) {
     String query = " from TrackedEntityAttributeValue v where v.trackedEntity =:trackedEntity";
 
@@ -96,7 +88,6 @@ public class HibernateTrackedEntityAttributeValueStore
     return getList(typedQuery);
   }
 
-  @Override
   public List<TrackedEntityAttributeValue> get(TrackedEntityAttribute attribute) {
     String query = " from TrackedEntityAttributeValue v where v.attribute =:attribute";
 
@@ -106,7 +97,6 @@ public class HibernateTrackedEntityAttributeValueStore
     return getList(typedQuery);
   }
 
-  @Override
   public List<TrackedEntityAttributeValue> get(
       TrackedEntityAttribute attribute, Collection<String> values) {
     String query =
@@ -115,13 +105,11 @@ public class HibernateTrackedEntityAttributeValueStore
     Query<TrackedEntityAttributeValue> typedQuery =
         getQuery(query)
             .setParameter("attribute", attribute)
-            .setParameter(
-                "values", values.stream().map(StringUtils::lowerCase).collect(Collectors.toList()));
+            .setParameter("values", values.stream().map(StringUtils::lowerCase).toList());
 
     return getList(typedQuery);
   }
 
-  @Override
   public List<TrackedEntityAttributeValue> get(TrackedEntityAttribute attribute, String value) {
     String query =
         " from TrackedEntityAttributeValue v where v.attribute =:attribute and lower(v.plainValue) like :value";
@@ -134,7 +122,6 @@ public class HibernateTrackedEntityAttributeValueStore
     return getList(typedQuery);
   }
 
-  @Override
   public List<TrackedEntityAttributeValue> get(TrackedEntity trackedEntity, Program program) {
     String query =
         " from TrackedEntityAttributeValue v where v.trackedEntity =:trackedEntity and v.attribute.program =:program";
@@ -144,15 +131,5 @@ public class HibernateTrackedEntityAttributeValueStore
     typedQuery.setParameter("program", program);
 
     return getList(typedQuery);
-  }
-
-  @Override
-  public int getCountOfAssignedTEAValues(TrackedEntityAttribute attribute) {
-    Query<?> query =
-        getQuery(
-            "select count(distinct c) from TrackedEntityAttributeValue c where c.attribute = :attribute");
-    query.setParameter("attribute", attribute);
-
-    return ((Long) query.getSingleResult()).intValue();
   }
 }
