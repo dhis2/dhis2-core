@@ -796,7 +796,9 @@ public class OpenApiRenderer {
           renderBoxToolbar(null);
           appendTag("header", markdownToHTML(op.description(), op.parameterNames()));
           renderLabelledValue("operationId", op.operationId());
-          if (!op.tags().isEmpty()) renderLabelledValue("tags", op.tags(), "", 0);
+          renderLabelledValue("since", op.x_since());
+          renderLabelledValue("requires-authority", op.x_auth());
+          renderLabelledValue("tags", op.tags(), "", 0);
           renderParameters(op);
           renderRequestBody(op);
           renderResponses(op);
@@ -919,6 +921,7 @@ public class OpenApiRenderer {
           appendSummary(id, null, () -> renderParameterSummary(p));
           String description = markdownToHTML(p.description(), parameterNames);
           appendTag("article", Map.of("class", "desc"), description);
+          renderLabelledValue("since", p.x_since());
           renderSchemaDetails(p.schema(), false, true);
         });
   }
@@ -952,11 +955,11 @@ public class OpenApiRenderer {
             appendSpan(
                 c.stream()
                     .limit(maxSize)
-                    .map(Object::toString)
+                    .map(e -> escapeHtml(e.toString()))
                     .collect(joining("</span>, <span>")));
             if (c.size() > maxSize) appendRaw("...");
           } else {
-            appendSpan(val.toString());
+            appendSpan(escapeHtml(val.toString()));
           }
         });
   }
@@ -1252,8 +1255,9 @@ public class OpenApiRenderer {
 
   private void renderSchemaDetails(
       SchemaObject schema, boolean isDeclaration, boolean skipDefault) {
-    if (schema.isRef() || (!isDeclaration && schema.isShared()))
+    if (schema.isRef() || (!isDeclaration && schema.isShared())) {
       return; // summary already gave all that is needed
+    }
     if (schema.isFlat()) return;
     if (schema.$type() != null) {
       Set<String> names =
@@ -1316,6 +1320,8 @@ public class OpenApiRenderer {
                 appendCode("property secondary", ":");
                 renderSchemaSummary(type, false);
               });
+          appendTag("header", markdownToHTML(type.description(), Set.of()));
+          renderLabelledValue("since", type.x_since());
           renderSchemaDetails(type, false, false);
         });
   }

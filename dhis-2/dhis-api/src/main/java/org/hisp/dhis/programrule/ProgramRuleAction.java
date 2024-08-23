@@ -135,7 +135,6 @@ public class ProgramRuleAction extends BaseIdentifiableObject implements Metadat
    *   <li>sendmessage
    * </ul>
    */
-  @JsonProperty(value = "templateUid")
   private ProgramNotificationTemplate notificationTemplate;
 
   /**

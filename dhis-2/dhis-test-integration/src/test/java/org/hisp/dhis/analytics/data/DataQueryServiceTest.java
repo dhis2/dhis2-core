@@ -53,6 +53,7 @@ import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DataQueryRequest;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -63,6 +64,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.common.ReportingRateMetric;
+import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -313,6 +315,7 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
     userService.addUserRole(role);
     User user = makeUser("A");
     user.addOrganisationUnit(ouA);
+    user.setDataViewOrganisationUnits(Set.of(ouB, ouC, ouD));
     user.getUserRoles().add(role);
 
     userService.addUser(user);
@@ -1016,10 +1019,26 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetUserOrgUnits() {
+  void testGetUserOrgUnitsWithGrantedForTrackerOrganisationUnits() {
     String ouParam = ouA.getUid() + ";" + ouB.getUid();
     List<OrganisationUnit> expected = List.of(ouA, ouB);
     assertEquals(expected, dataQueryService.getUserOrgUnits(null, ouParam));
+  }
+
+  @Test
+  void testGetUserOrgUnitsWithGrantedForAnalyticsOrganisationUnits() {
+    // given
+    DataQueryParams dataQueryParams =
+        DataQueryParams.newBuilder().withUserOrgUnitType(UserOrgUnitType.DATA_OUTPUT).build();
+
+    // when
+    List<OrganisationUnit> userOrgUnits = dataQueryService.getUserOrgUnits(dataQueryParams, null);
+
+    // then
+    assertEquals(3, userOrgUnits.size());
+    assertThat(
+        userOrgUnits.stream().map(BaseIdentifiableObject::getName).toList(),
+        containsInAnyOrder("OrganisationUnitB", "OrganisationUnitC", "OrganisationUnitD"));
   }
 
   @Test
