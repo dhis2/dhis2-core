@@ -69,8 +69,8 @@ import org.hisp.dhis.smscompression.models.SmsDataValue;
 import org.hisp.dhis.smscompression.models.TrackerEventSmsSubmission;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
+import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -121,7 +121,7 @@ class TrackerEventSMSListenerTest extends CompressionSMSListenerTest {
 
   @Mock private ProgramStageService programStageService;
 
-  @Mock private TrackedEntityDataValueChangeLogService dataValueAuditService;
+  @Mock private EventChangeLogService eventChangeLogService;
 
   @Mock private FileResourceService fileResourceService;
 
@@ -162,7 +162,7 @@ class TrackerEventSMSListenerTest extends CompressionSMSListenerTest {
             dataElementService,
             identifiableObjectManager,
             eventService,
-            dataValueAuditService,
+            eventChangeLogService,
             fileResourceService,
             config,
             programStageService,

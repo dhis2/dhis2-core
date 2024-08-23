@@ -28,9 +28,9 @@
 package org.hisp.dhis.program;
 
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -39,7 +39,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class TrackedEntityDataValueChangeLogDeletionHandler extends DeletionHandler {
-  private final TrackedEntityDataValueChangeLogService trackedEntityDataValueAuditService;
+  private final IdentifiableObjectManager manager;
 
   @Override
   protected void register() {
@@ -47,6 +47,6 @@ public class TrackedEntityDataValueChangeLogDeletionHandler extends DeletionHand
   }
 
   private void deleteDataElement(DataElement dataElement) {
-    trackedEntityDataValueAuditService.deleteTrackedEntityDataValueChangeLog(dataElement);
+    manager.delete(dataElement);
   }
 }
