@@ -161,7 +161,6 @@ import org.hisp.dhis.schema.descriptors.SharingSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.SmsCommandSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.SqlViewSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.TrackedEntityAttributeSchemaDescriptor;
-import org.hisp.dhis.schema.descriptors.TrackedEntityAttributeValueSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.TrackedEntityDataElementDimensionSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.TrackedEntityFilterSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.TrackedEntityProgramIndicatorDimensionSchemaDescriptor;
@@ -276,7 +275,6 @@ public class DefaultSchemaService implements SchemaService {
     register(new SectionSchemaDescriptor());
     register(new SqlViewSchemaDescriptor());
     register(new TrackedEntityAttributeSchemaDescriptor());
-    register(new TrackedEntityAttributeValueSchemaDescriptor());
     register(new TrackedEntityFilterSchemaDescriptor());
     register(new TrackedEntityTypeSchemaDescriptor());
     register(new TrackedEntityTypeAttributeSchemaDescriptor());
