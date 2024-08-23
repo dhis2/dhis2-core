@@ -36,6 +36,7 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
 import java.util.Set;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -45,7 +46,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
@@ -87,13 +88,15 @@ class OperationsParamsValidatorTest {
 
   @Mock private ProgramService programService;
 
-  @Mock private TrackedEntityService trackedEntityService;
-
   @Mock private TrackedEntityTypeService trackedEntityTypeService;
 
   @Mock private OrganisationUnitService organisationUnitService;
 
   @Mock private AclService aclService;
+
+  @Mock private IdentifiableObjectManager manager;
+
+  @Mock private TrackedEntityChangeLogService trackedEntityChangeLogService;
 
   @InjectMocks private OperationsParamsValidator paramsValidator;
 
@@ -232,7 +235,7 @@ class OperationsParamsValidatorTest {
   @Test
   void shouldReturnTrackedEntityWhenTrackedEntityUidExists()
       throws ForbiddenException, BadRequestException {
-    when(trackedEntityService.getTrackedEntity(TRACKED_ENTITY_UID)).thenReturn(trackedEntity);
+    when(manager.get(TrackedEntity.class, TRACKED_ENTITY_UID)).thenReturn(trackedEntity);
 
     assertEquals(
         trackedEntity, paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, new User()));
@@ -240,7 +243,7 @@ class OperationsParamsValidatorTest {
 
   @Test
   void shouldThrowBadRequestExceptionWhenTrackedEntityDoesNotExist() {
-    when(trackedEntityService.getTrackedEntity(TRACKED_ENTITY_UID)).thenReturn(null);
+    when(manager.get(TrackedEntity.class, TRACKED_ENTITY_UID)).thenReturn(null);
 
     Exception exception =
         Assertions.assertThrows(
@@ -258,7 +261,7 @@ class OperationsParamsValidatorTest {
     User user = new User();
     TrackedEntityType trackedEntityType = new TrackedEntityType("trackedEntityType", "");
     trackedEntity.setTrackedEntityType(trackedEntityType);
-    when(trackedEntityService.getTrackedEntity(TRACKED_ENTITY_UID)).thenReturn(trackedEntity);
+    when(manager.get(TrackedEntity.class, TRACKED_ENTITY_UID)).thenReturn(trackedEntity);
     when(aclService.canDataRead(user, trackedEntity.getTrackedEntityType())).thenReturn(true);
 
     assertEquals(trackedEntity, paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user));
@@ -269,7 +272,7 @@ class OperationsParamsValidatorTest {
     User user = new User();
     TrackedEntityType trackedEntityType = new TrackedEntityType("trackedEntityType", "");
     trackedEntity.setTrackedEntityType(trackedEntityType);
-    when(trackedEntityService.getTrackedEntity(TRACKED_ENTITY_UID)).thenReturn(trackedEntity);
+    when(manager.get(TrackedEntity.class, TRACKED_ENTITY_UID)).thenReturn(trackedEntity);
     when(aclService.canDataRead(user, trackedEntity.getTrackedEntityType())).thenReturn(false);
 
     Exception exception =

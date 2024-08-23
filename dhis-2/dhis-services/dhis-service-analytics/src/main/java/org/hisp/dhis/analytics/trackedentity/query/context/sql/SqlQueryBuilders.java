@@ -46,14 +46,14 @@ public class SqlQueryBuilders {
           'programStageUid', ev.programstage,
           'eventUid', ev.event,
           'occurredDate', ev.occurreddate,
-          'dueDate', ev.scheduleddate,
+          'scheduledDate', ev.scheduleddate,
           'orgUnitUid', ev.ou,
           'orgUnitName', ev.ouname,
           'orgUnitCode', ev.oucode,
           'orgUnitNameHierarchy', ev.ounamehierarchy,
           'eventStatus', ev.status,
           'eventDataValues', ev.eventdatavalues))
-      from analytics_te_events_${trackedEntityType} ev
+      from analytics_te_event_${trackedEntityType} ev
       where ev.enrollment = en.enrollment""";
 
   private static final String ENROLLMENT_QUERY =
@@ -64,15 +64,16 @@ public class SqlQueryBuilders {
                              'programUid', en.program,
                              'enrollmentUid', en.enrollment,
                              'enrollmentDate', en.enrollmentdate,
-                             'incidentDate', en.incidentdate,
-                             'endDate', en.enddate,
+                             'incidentDate', en.occurreddate,
+                             'occurredDate', en.occurreddate,
+                             'completedDate', en.completeddate,
                              'orgUnitUid', en.ou,
                              'orgUnitName', en.ouname,
                              'orgUnitCode', en.oucode,
                              'orgUnitNameHierarchy', en.ounamehierarchy,
                              'enrollmentStatus', en.enrollmentstatus,
                              'events', ${eventQuery}))
-                    from analytics_te_enrollments_${trackedEntityType} en
+                    from analytics_te_enrollment_${trackedEntityType} en
                     where en.trackedentity = t_1.trackedentity""",
           Map.of("eventQuery", coalesceToEmptyArray(EVENT_QUERY)));
 

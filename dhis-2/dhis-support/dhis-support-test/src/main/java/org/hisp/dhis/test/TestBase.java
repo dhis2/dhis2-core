@@ -1839,13 +1839,16 @@ public abstract class TestBase {
       ProgramMessageRecipients recipients,
       ProgramMessageStatus status,
       Set<DeliveryChannel> channels) {
-    return ProgramMessage.builder()
-        .text(text)
-        .subject(subject)
-        .recipients(recipients)
-        .messageStatus(status)
-        .deliveryChannels(channels)
-        .build();
+
+    ProgramMessage pm = new ProgramMessage();
+    pm.setAutoFields();
+    pm.setText(text);
+    pm.setSubject(subject);
+    pm.setRecipients(recipients);
+    pm.setMessageStatus(status);
+    pm.setDeliveryChannels(channels);
+
+    return pm;
   }
 
   public static ProgramIndicator createProgramIndicator(

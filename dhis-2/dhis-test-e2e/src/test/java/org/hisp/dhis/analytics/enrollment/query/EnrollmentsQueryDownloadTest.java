@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,43 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.config;
+package org.hisp.dhis.analytics.enrollment.query;
 
-import java.util.Properties;
-import org.testcontainers.containers.MinIOContainer;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * Config provider for MinIO store usage (overriding the default file system storage).
- *
- * @author david mackessy
- */
-public class MinIOConfigurationProvider extends TestDhisConfigurationProvider {
+import org.hisp.dhis.AnalyticsApiTest;
+import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEnrollmentsActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
+import org.junit.jupiter.api.Test;
 
-  private static final String S3_URL;
-  private static final String MINIO_USER = "testuser";
-  private static final String MINIO_PASSWORD = "testpassword";
-  private static final MinIOContainer MIN_IO_CONTAINER;
+public class EnrollmentsQueryDownloadTest extends AnalyticsApiTest {
+  private AnalyticsEnrollmentsActions analyticsEnrollmentsActions =
+      new AnalyticsEnrollmentsActions();
 
-  static {
-    MIN_IO_CONTAINER =
-        new MinIOContainer("minio/minio:RELEASE.2024-07-16T23-46-41Z")
-            .withUserName(MINIO_USER)
-            .withPassword(MINIO_PASSWORD);
-    MIN_IO_CONTAINER.start();
-    S3_URL = MIN_IO_CONTAINER.getS3URL();
-  }
+  @Test
+  void queryWithXlsxDownload() {
+    // Given
+    final String TYPE = "application/vnd.ms-excel";
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=pe:LAST_12_MONTHS,ou:ImspTQPwCqd,A03MvHHogjR.UXz7xuGCEhU")
+            .add("stage=A03MvHHogjR")
+            .add("displayProperty=NAME")
+            .add("outputType=ENROLLMENT")
+            .add("asc=A03MvHHogjR.UXz7xuGCEhU,lastupdated")
+            .add("totalPages=false")
+            .add("pageSize=100")
+            .add("page=1")
+            .add("relativePeriodDate=2022-09-27");
 
-  public MinIOConfigurationProvider(Properties dhisConfig) {
-    setMinIOProperties(dhisConfig);
-  }
+    // When
+    ApiResponse response =
+        analyticsEnrollmentsActions.query().get("IpHINAT79UW.xlsx", TYPE, TYPE, params);
 
-  public void setMinIOProperties(Properties properties) {
-    properties.put("filestore.provider", "s3");
-    properties.put("filestore.container", "dhis2");
-    properties.put("filestore.location", "eu-west-1");
-    properties.put("filestore.endpoint", S3_URL);
-    properties.put("filestore.identity", MINIO_USER);
-    properties.put("filestore.secret", MINIO_PASSWORD);
-    this.properties = properties;
+    // Then
+    response.validate().statusCode(200).contentType(TYPE);
+
+    assertTrue(isNotBlank(response.getAsString()));
   }
 }

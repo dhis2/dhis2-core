@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,28 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.config;
+package org.hisp.dhis.analytics.outlier;
 
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * Use this configuration for tests relying on MinIO storage running in a Docker container. e.g. add
- * to test class like `@ContextConfiguration(classes = {MinIODhisConfiguration.class})`
- *
- * @author david mackessy
- */
-@Configuration
-public class MinIOTestConfig {
+import org.hisp.dhis.AnalyticsApiTest;
+import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsOutlierDetectionActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
+import org.junit.jupiter.api.Test;
 
-  /**
-   * Config class for MinIO setup, which reuses the existing Postgres properties.
-   *
-   * @return dhisConfigurationProvider
-   */
-  @Bean
-  public DhisConfigurationProvider dhisConfigurationProvider() {
-    return new MinIOConfigurationProvider(new PostgresDhisConfigurationProvider().getProperties());
+public class OutliersDetectionDownloadTest extends AnalyticsApiTest {
+  private AnalyticsOutlierDetectionActions actions = new AnalyticsOutlierDetectionActions();
+
+  @Test
+  void queryWithXlsxDownload() {
+    // Given
+    final String TYPE = "application/vnd.ms-excel";
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("endDate=2023-01-02")
+            .add("ou=O6uvpzGd5pu,fdc6uOvgoji")
+            .add("maxResults=30")
+            .add("sortOrder=ASC")
+            .add("orderBy=zscore")
+            .add("threshold=3")
+            .add("startDate=2022-06-01")
+            .add("ds=BfMAe6Itzgt")
+            .add("algorithm=Z_SCORE");
+
+    // When
+    ApiResponse response = actions.download("xlsx").get(params);
+
+    // Then
+    response.validate().statusCode(200).contentType(TYPE);
+
+    assertTrue(isNotBlank(response.getAsString()));
   }
 }
