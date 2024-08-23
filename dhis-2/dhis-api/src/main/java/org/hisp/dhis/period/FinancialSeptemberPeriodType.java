@@ -25,39 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.view;
+package org.hisp.dhis.period;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.time.Instant;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.UID;
+import java.util.Calendar;
+import org.hisp.dhis.calendar.DateTimeUnit;
 
 /**
- * Notes are text-only objects attached to Events and Enrollments. An Event or Enrollment may have
- * multiple notes.
- *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Dusan Bernat
  */
-@OpenApi.Shared(name = "TrackerNote")
-@OpenApi.Identifiable(as = org.hisp.dhis.note.Note.class)
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class Note {
-  @OpenApi.Property({UID.class, org.hisp.dhis.note.Note.class})
-  @JsonProperty
-  private String note;
+public class FinancialSeptemberPeriodType extends FinancialPeriodType {
+  /** Determines if a de-serialized file is compatible with this class. */
+  private static final long serialVersionUID = -1623576547899897922L;
 
-  @JsonProperty private Instant storedAt;
+  private static final String ISO_FORMAT = "yyyySep";
 
-  @JsonProperty private String value;
+  private static final String ISO8601_DURATION = "P1Y";
 
-  @JsonProperty private User createdBy;
+  @Override
+  public int getBaseMonth() {
+    return Calendar.SEPTEMBER;
+  }
 
-  @JsonProperty private String storedBy;
+  @Override
+  public PeriodTypeEnum getPeriodTypeEnum() {
+    return PeriodTypeEnum.FINANCIAL_SEP;
+  }
+
+  @Override
+  public String getIsoDate(DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar) {
+    return String.format("%dSep", dateTimeUnit.getYear());
+  }
+
+  @Override
+  public String getIsoFormat() {
+    return ISO_FORMAT;
+  }
+
+  @Override
+  public String getIso8601Duration() {
+    return ISO8601_DURATION;
+  }
 }
