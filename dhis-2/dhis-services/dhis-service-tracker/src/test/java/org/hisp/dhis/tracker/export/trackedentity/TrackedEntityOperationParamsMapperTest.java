@@ -41,6 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
@@ -74,13 +75,16 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -132,6 +136,7 @@ class TrackedEntityOperationParamsMapperTest {
 
   @BeforeEach
   public void setUp() {
+
     orgUnit1 = new OrganisationUnit("orgUnit1");
     orgUnit1.setUid(ORG_UNIT_1_UID);
     orgUnit2 = new OrganisationUnit("orgUnit2");
@@ -178,99 +183,110 @@ class TrackedEntityOperationParamsMapperTest {
 
   @Test
   void testMapping() throws BadRequestException, ForbiddenException {
-    when(aclService.canDataRead(user, trackedEntityType)).thenReturn(true);
-    when(paramsValidator.validateTrackedEntityType(trackedEntityType.getUid(), user))
+    when(aclService.canDataRead(any(UserDetails.class), any(TrackedEntityType.class)))
+        .thenReturn(true);
+    when(paramsValidator.validateTrackedEntityType(trackedEntityType.getUid()))
         .thenReturn(trackedEntityType);
     when(trackedEntityTypeService.getAllTrackedEntityType()).thenReturn(List.of(trackedEntityType));
 
-    TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder()
-            .orgUnitMode(ACCESSIBLE)
-            .user(user)
-            .assignedUserQueryParam(
-                new AssignedUserQueryParam(AssignedUserSelectionMode.CURRENT, user, null))
-            .orgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS)
-            .enrollmentStatus(EnrollmentStatus.ACTIVE)
-            .followUp(true)
-            .lastUpdatedStartDate(getDate(2019, 1, 1))
-            .lastUpdatedEndDate(getDate(2020, 1, 1))
-            .lastUpdatedDuration("20")
-            .programEnrollmentStartDate(getDate(2019, 5, 5))
-            .programEnrollmentEndDate(getDate(2020, 5, 5))
-            .trackedEntityTypeUid(TRACKED_ENTITY_TYPE_UID)
-            .eventStatus(EventStatus.COMPLETED)
-            .eventStartDate(getDate(2019, 7, 7))
-            .eventEndDate(getDate(2020, 7, 7))
-            .includeDeleted(true)
-            .build();
+    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
+      userUtilMockedStatic
+          .when(CurrentUserUtil::getCurrentUserDetails)
+          .thenReturn(UserDetails.fromUser(user));
+      TrackedEntityOperationParams operationParams =
+          TrackedEntityOperationParams.builder()
+              .orgUnitMode(ACCESSIBLE)
+              .assignedUserQueryParam(
+                  new AssignedUserQueryParam(AssignedUserSelectionMode.CURRENT, null))
+              .orgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS)
+              .enrollmentStatus(EnrollmentStatus.ACTIVE)
+              .followUp(true)
+              .lastUpdatedStartDate(getDate(2019, 1, 1))
+              .lastUpdatedEndDate(getDate(2020, 1, 1))
+              .lastUpdatedDuration("20")
+              .programEnrollmentStartDate(getDate(2019, 5, 5))
+              .programEnrollmentEndDate(getDate(2020, 5, 5))
+              .trackedEntityTypeUid(TRACKED_ENTITY_TYPE_UID)
+              .eventStatus(EventStatus.COMPLETED)
+              .eventStartDate(getDate(2019, 7, 7))
+              .eventEndDate(getDate(2020, 7, 7))
+              .includeDeleted(true)
+              .build();
 
-    final TrackedEntityQueryParams params = mapper.map(operationParams);
+      final TrackedEntityQueryParams params = mapper.map(operationParams);
 
-    assertThat(params.getTrackedEntityType(), is(trackedEntityType));
-    assertThat(params.getEnrollmentStatus(), is(EnrollmentStatus.ACTIVE));
-    assertThat(params.getFollowUp(), is(true));
-    assertThat(params.getLastUpdatedStartDate(), is(operationParams.getLastUpdatedStartDate()));
-    assertThat(params.getLastUpdatedEndDate(), is(operationParams.getLastUpdatedEndDate()));
-    assertThat(
-        params.getProgramEnrollmentStartDate(),
-        is(operationParams.getProgramEnrollmentStartDate()));
-    assertThat(
-        params.getProgramEnrollmentEndDate(), is(operationParams.getProgramEnrollmentEndDate()));
-    assertThat(params.getEventStatus(), is(EventStatus.COMPLETED));
-    assertThat(params.getEventStartDate(), is(operationParams.getEventStartDate()));
-    assertThat(params.getEventEndDate(), is(operationParams.getEventEndDate()));
-    assertThat(
-        params.getAssignedUserQueryParam().getMode(), is(AssignedUserSelectionMode.PROVIDED));
-    assertThat(params.isIncludeDeleted(), is(true));
+      assertThat(params.getTrackedEntityType(), is(trackedEntityType));
+      assertThat(params.getEnrollmentStatus(), is(EnrollmentStatus.ACTIVE));
+      assertThat(params.getFollowUp(), is(true));
+      assertThat(params.getLastUpdatedStartDate(), is(operationParams.getLastUpdatedStartDate()));
+      assertThat(params.getLastUpdatedEndDate(), is(operationParams.getLastUpdatedEndDate()));
+      assertThat(
+          params.getProgramEnrollmentStartDate(),
+          is(operationParams.getProgramEnrollmentStartDate()));
+      assertThat(
+          params.getProgramEnrollmentEndDate(), is(operationParams.getProgramEnrollmentEndDate()));
+      assertThat(params.getEventStatus(), is(EventStatus.COMPLETED));
+      assertThat(params.getEventStartDate(), is(operationParams.getEventStartDate()));
+      assertThat(params.getEventEndDate(), is(operationParams.getEventEndDate()));
+      assertThat(
+          params.getAssignedUserQueryParam().getMode(), is(AssignedUserSelectionMode.PROVIDED));
+      assertThat(params.isIncludeDeleted(), is(true));
+    }
   }
 
   @Test
   void testMappingProgramEnrollmentStartDate() throws BadRequestException, ForbiddenException {
     when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(paramsValidator.validateTrackerProgram(program.getUid(), user)).thenReturn(program);
+    when(paramsValidator.validateTrackerProgram(program.getUid())).thenReturn(program);
 
     Date date = parseDate("2022-12-13");
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
-            .user(user)
             .programEnrollmentStartDate(date)
             .programUid(program.getUid())
             .build();
 
-    TrackedEntityQueryParams params = mapper.map(operationParams);
-
-    assertEquals(date, params.getProgramEnrollmentStartDate());
+    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
+      userUtilMockedStatic
+          .when(CurrentUserUtil::getCurrentUserDetails)
+          .thenReturn(UserDetails.fromUser(user));
+      TrackedEntityQueryParams params = mapper.map(operationParams);
+      assertEquals(date, params.getProgramEnrollmentStartDate());
+    }
   }
 
   @Test
   void testMappingProgramEnrollmentEndDate() throws BadRequestException, ForbiddenException {
     when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(paramsValidator.validateTrackerProgram(program.getUid(), user)).thenReturn(program);
+    when(paramsValidator.validateTrackerProgram(program.getUid())).thenReturn(program);
 
     Date date = parseDate("2022-12-13");
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
-            .user(user)
             .programEnrollmentEndDate(date)
             .programUid(program.getUid())
             .build();
 
-    TrackedEntityQueryParams params = mapper.map(operationParams);
+    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
+      userUtilMockedStatic
+          .when(CurrentUserUtil::getCurrentUserDetails)
+          .thenReturn(UserDetails.fromUser(user));
+      TrackedEntityQueryParams params = mapper.map(operationParams);
 
-    assertEquals(date, params.getProgramEnrollmentEndDate());
+      assertEquals(date, params.getProgramEnrollmentEndDate());
+    }
   }
 
   @Test
   void testFilter() throws BadRequestException, ForbiddenException {
     when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(paramsValidator.validateTrackerProgram(program.getUid(), user)).thenReturn(program);
+    when(paramsValidator.validateTrackerProgram(program.getUid())).thenReturn(program);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
-            .user(user)
             .programUid(program.getUid())
             .filters(
                 Map.of(
@@ -280,53 +296,58 @@ class TrackedEntityOperationParamsMapperTest {
                     List.of(new QueryFilter(QueryOperator.LIKE, "foo"))))
             .build();
 
-    TrackedEntityQueryParams params = mapper.map(operationParams);
+    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
+      userUtilMockedStatic
+          .when(CurrentUserUtil::getCurrentUserDetails)
+          .thenReturn(UserDetails.fromUser(user));
+      TrackedEntityQueryParams params = mapper.map(operationParams);
 
-    Map<TrackedEntityAttribute, List<QueryFilter>> items = params.getFilters();
-    assertNotNull(items);
-    // mapping to UIDs as the error message by just relying on QueryItem
-    // equals() is not helpful
-    assertContainsOnly(
-        List.of(TEA_1_UID, TEA_2_UID),
-        items.keySet().stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toList()));
+      Map<TrackedEntityAttribute, List<QueryFilter>> items = params.getFilters();
+      assertNotNull(items);
+      // mapping to UIDs as the error message by just relying on QueryItem
+      // equals() is not helpful
+      assertContainsOnly(
+          List.of(TEA_1_UID, TEA_2_UID),
+          items.keySet().stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toList()));
 
-    // QueryItem equals() does not take the QueryFilter into account so
-    // assertContainsOnly alone does not ensure operators and filter value
-    // are correct
-    // the following block is needed because of that
-    // assertion is order independent as the order of QueryItems is not
-    // guaranteed
-    Map<String, QueryFilter> expectedFilters =
-        Map.of(
-            TEA_1_UID,
-            new QueryFilter(QueryOperator.EQ, "2"),
-            TEA_2_UID,
-            new QueryFilter(QueryOperator.LIKE, "foo"));
-    assertAll(
-        items.entrySet().stream()
-            .map(
-                i ->
-                    (Executable)
-                        () -> {
-                          String uid = i.getKey().getUid();
-                          QueryFilter expected = expectedFilters.get(uid);
-                          assertEquals(
-                              expected,
-                              i.getValue().get(0),
-                              () -> String.format("QueryFilter mismatch for TEA with UID %s", uid));
-                        })
-            .collect(Collectors.toList()));
+      // QueryItem equals() does not take the QueryFilter into account so
+      // assertContainsOnly alone does not ensure operators and filter value
+      // are correct
+      // the following block is needed because of that
+      // assertion is order independent as the order of QueryItems is not
+      // guaranteed
+      Map<String, QueryFilter> expectedFilters =
+          Map.of(
+              TEA_1_UID,
+              new QueryFilter(QueryOperator.EQ, "2"),
+              TEA_2_UID,
+              new QueryFilter(QueryOperator.LIKE, "foo"));
+      assertAll(
+          items.entrySet().stream()
+              .map(
+                  i ->
+                      (Executable)
+                          () -> {
+                            String uid = i.getKey().getUid();
+                            QueryFilter expected = expectedFilters.get(uid);
+                            assertEquals(
+                                expected,
+                                i.getValue().get(0),
+                                () ->
+                                    String.format("QueryFilter mismatch for TEA with UID %s", uid));
+                          })
+              .collect(Collectors.toList()));
+    }
   }
 
   @Test
   void testFilterWhenTEAHasMultipleFilters() throws BadRequestException, ForbiddenException {
     when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(paramsValidator.validateTrackerProgram(program.getUid(), user)).thenReturn(program);
+    when(paramsValidator.validateTrackerProgram(program.getUid())).thenReturn(program);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
-            .user(user)
             .programUid(program.getUid())
             .filters(
                 Map.of(
@@ -336,57 +357,70 @@ class TrackedEntityOperationParamsMapperTest {
                         new QueryFilter(QueryOperator.LT, "20"))))
             .build();
 
-    TrackedEntityQueryParams params = mapper.map(operationParams);
+    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
+      userUtilMockedStatic
+          .when(CurrentUserUtil::getCurrentUserDetails)
+          .thenReturn(UserDetails.fromUser(user));
+      TrackedEntityQueryParams params = mapper.map(operationParams);
 
-    Map<TrackedEntityAttribute, List<QueryFilter>> items = params.getFilters();
-    assertNotNull(items);
-    // mapping to UIDs as the error message by just relying on QueryItem
-    // equals() is not helpful
-    assertContainsOnly(
-        List.of(TEA_1_UID),
-        items.keySet().stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toList()));
+      Map<TrackedEntityAttribute, List<QueryFilter>> items = params.getFilters();
+      assertNotNull(items);
+      // mapping to UIDs as the error message by just relying on QueryItem
+      // equals() is not helpful
+      assertContainsOnly(
+          List.of(TEA_1_UID),
+          items.keySet().stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toList()));
 
-    // QueryItem equals() does not take the QueryFilter into account so
-    // assertContainsOnly alone does not ensure operators and filter value
-    // are correct
-    assertContainsOnly(
-        Set.of(new QueryFilter(QueryOperator.GT, "10"), new QueryFilter(QueryOperator.LT, "20")),
-        items.values().stream().findAny().get());
+      // QueryItem equals() does not take the QueryFilter into account so
+      // assertContainsOnly alone does not ensure operators and filter value
+      // are correct
+      assertContainsOnly(
+          Set.of(new QueryFilter(QueryOperator.GT, "10"), new QueryFilter(QueryOperator.LT, "20")),
+          items.values().stream().findAny().get());
+    }
   }
 
   @Test
   void testMappingProgram() throws BadRequestException, ForbiddenException {
     when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(paramsValidator.validateTrackerProgram(program.getUid(), user)).thenReturn(program);
+    when(paramsValidator.validateTrackerProgram(program.getUid())).thenReturn(program);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
-            .user(user)
             .programUid(PROGRAM_UID)
             .build();
 
-    TrackedEntityQueryParams params = mapper.map(operationParams);
+    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
+      userUtilMockedStatic
+          .when(CurrentUserUtil::getCurrentUserDetails)
+          .thenReturn(UserDetails.fromUser(user));
+      TrackedEntityQueryParams params = mapper.map(operationParams);
 
-    assertEquals(program, params.getProgram());
+      assertEquals(program, params.getProgram());
+    }
   }
 
   @Test
   void testMappingProgramStage() throws BadRequestException, ForbiddenException {
     when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(paramsValidator.validateTrackerProgram(program.getUid(), user)).thenReturn(program);
+    when(paramsValidator.validateTrackerProgram(program.getUid())).thenReturn(program);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
-            .user(user)
             .programUid(PROGRAM_UID)
             .programStageUid(PROGRAM_STAGE_UID)
             .build();
 
-    TrackedEntityQueryParams params = mapper.map(operationParams);
+    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
+      userUtilMockedStatic
+          .when(CurrentUserUtil::getCurrentUserDetails)
+          .thenReturn(UserDetails.fromUser(user));
+      TrackedEntityQueryParams params = mapper.map(operationParams);
 
-    assertEquals(programStage, params.getProgramStage());
+      assertEquals(programStage, params.getProgramStage());
+    }
   }
 
   @Test
@@ -415,30 +449,35 @@ class TrackedEntityOperationParamsMapperTest {
   @Test
   void testMappingAssignedUsers() throws BadRequestException, ForbiddenException {
     when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(paramsValidator.validateTrackerProgram(program.getUid(), user)).thenReturn(program);
+    when(paramsValidator.validateTrackerProgram(program.getUid())).thenReturn(program);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
-            .user(user)
             .programUid(program.getUid())
             .assignedUserQueryParam(
                 new AssignedUserQueryParam(
-                    AssignedUserSelectionMode.PROVIDED, null, Set.of("IsdLBTOBzMi", "l5ab8q5skbB")))
+                    AssignedUserSelectionMode.PROVIDED, Set.of("IsdLBTOBzMi", "l5ab8q5skbB")))
             .build();
 
-    TrackedEntityQueryParams params = mapper.map(operationParams);
+    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
+      userUtilMockedStatic
+          .when(CurrentUserUtil::getCurrentUserDetails)
+          .thenReturn(UserDetails.fromUser(user));
+      TrackedEntityQueryParams params = mapper.map(operationParams);
 
-    assertContainsOnly(
-        Set.of("IsdLBTOBzMi", "l5ab8q5skbB"),
-        params.getAssignedUserQueryParam().getAssignedUsers());
-    assertEquals(AssignedUserSelectionMode.PROVIDED, params.getAssignedUserQueryParam().getMode());
+      assertContainsOnly(
+          Set.of("IsdLBTOBzMi", "l5ab8q5skbB"),
+          params.getAssignedUserQueryParam().getAssignedUsers());
+      assertEquals(
+          AssignedUserSelectionMode.PROVIDED, params.getAssignedUserQueryParam().getMode());
+    }
   }
 
   @Test
   void shouldMapOrderInGivenOrder() throws BadRequestException, ForbiddenException {
     when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(paramsValidator.validateTrackerProgram(program.getUid(), user)).thenReturn(program);
+    when(paramsValidator.validateTrackerProgram(program.getUid())).thenReturn(program);
 
     TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
     tea1.setUid(TEA_1_UID);
@@ -447,21 +486,25 @@ class TrackedEntityOperationParamsMapperTest {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
-            .user(user)
             .programUid(program.getUid())
             .orderBy("created", SortDirection.ASC)
             .orderBy(UID.of(TEA_1_UID), SortDirection.ASC)
             .orderBy("createdAtClient", SortDirection.DESC)
             .build();
 
-    TrackedEntityQueryParams params = mapper.map(operationParams);
+    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
+      userUtilMockedStatic
+          .when(CurrentUserUtil::getCurrentUserDetails)
+          .thenReturn(UserDetails.fromUser(user));
+      TrackedEntityQueryParams params = mapper.map(operationParams);
 
-    assertEquals(
-        List.of(
-            new Order("created", SortDirection.ASC),
-            new Order(tea1, SortDirection.ASC),
-            new Order("createdAtClient", SortDirection.DESC)),
-        params.getOrder());
+      assertEquals(
+          List.of(
+              new Order("created", SortDirection.ASC),
+              new Order(tea1, SortDirection.ASC),
+              new Order("createdAtClient", SortDirection.DESC)),
+          params.getOrder());
+    }
   }
 
   @Test
@@ -470,19 +513,23 @@ class TrackedEntityOperationParamsMapperTest {
     tea1.setUid(TEA_1_UID);
     when(attributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(null);
     when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(paramsValidator.validateTrackerProgram(program.getUid(), user)).thenReturn(program);
+    when(paramsValidator.validateTrackerProgram(program.getUid())).thenReturn(program);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
             .programUid(program.getUid())
-            .user(user)
             .orderBy(UID.of(TEA_1_UID), SortDirection.ASC)
             .build();
 
-    Exception exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
-    assertStartsWith("Cannot order by '" + TEA_1_UID, exception.getMessage());
+    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
+      userUtilMockedStatic
+          .when(CurrentUserUtil::getCurrentUserDetails)
+          .thenReturn(UserDetails.fromUser(user));
+      Exception exception =
+          assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
+      assertStartsWith("Cannot order by '" + TEA_1_UID, exception.getMessage());
+    }
   }
 
   @Test
@@ -493,19 +540,23 @@ class TrackedEntityOperationParamsMapperTest {
     // invalid field names and UIDs. Such invalid order values will be caught in this mapper.
     assertTrue(CodeGenerator.isValidUid("lastUpdated"));
     when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(paramsValidator.validateTrackerProgram(program.getUid(), user)).thenReturn(program);
+    when(paramsValidator.validateTrackerProgram(program.getUid())).thenReturn(program);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
-            .user(user)
             .orderBy(UID.of("lastUpdated"), SortDirection.ASC)
             .programUid(program.getUid())
             .build();
 
-    Exception exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
-    assertStartsWith("Cannot order by 'lastUpdated'", exception.getMessage());
+    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
+      userUtilMockedStatic
+          .when(CurrentUserUtil::getCurrentUserDetails)
+          .thenReturn(UserDetails.fromUser(user));
+      Exception exception =
+          assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
+      assertStartsWith("Cannot order by 'lastUpdated'", exception.getMessage());
+    }
   }
 
   @Test
@@ -515,21 +566,28 @@ class TrackedEntityOperationParamsMapperTest {
     user.setOrganisationUnits(emptySet());
 
     when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(paramsValidator.validateTrackerProgram(program.getUid(), user)).thenReturn(program);
+    when(paramsValidator.validateTrackerProgram(program.getUid())).thenReturn(program);
+    when(organisationUnitService.getOrganisationUnitsByUid(
+            Set.of(orgUnit1.getUid(), orgUnit2.getUid())))
+        .thenReturn(List.of(orgUnit1, orgUnit2));
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
-            .user(user)
             .programUid(PROGRAM_UID)
             .build();
 
-    Exception IllegalQueryException =
-        assertThrows(IllegalQueryException.class, () -> mapper.map(operationParams));
+    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
+      userUtilMockedStatic
+          .when(CurrentUserUtil::getCurrentUserDetails)
+          .thenReturn(UserDetails.fromUser(user));
+      Exception IllegalQueryException =
+          assertThrows(IllegalQueryException.class, () -> mapper.map(operationParams));
 
-    assertEquals(
-        "At least 1 attributes should be mentioned in the search criteria.",
-        IllegalQueryException.getMessage());
+      assertEquals(
+          "At least 1 attributes should be mentioned in the search criteria.",
+          IllegalQueryException.getMessage());
+    }
   }
 
   @Test
@@ -538,25 +596,31 @@ class TrackedEntityOperationParamsMapperTest {
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit1, orgUnit2));
     user.setOrganisationUnits(emptySet());
 
-    when(aclService.canDataRead(user, program)).thenReturn(true);
+    when(aclService.canDataRead(any(UserDetails.class), any(Program.class))).thenReturn(true);
     program.setMinAttributesRequiredToSearch(0);
     program.setMaxTeiCountToReturn(1);
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
-    when(paramsValidator.validateTrackerProgram(program.getUid(), user)).thenReturn(program);
+    when(paramsValidator.validateTrackerProgram(program.getUid())).thenReturn(program);
 
     when(trackedEntityStore.getTrackedEntityCountWithMaxTrackedEntityLimit(any())).thenReturn(100);
+    when(organisationUnitService.getOrganisationUnitsByUid(
+            Set.of(orgUnit1.getUid(), orgUnit2.getUid())))
+        .thenReturn(List.of(orgUnit1, orgUnit2));
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
-            .user(user)
             .programUid(PROGRAM_UID)
             .build();
 
-    Exception IllegalQueryException =
-        assertThrows(IllegalQueryException.class, () -> mapper.map(operationParams));
-
-    assertEquals("maxteicountreached", IllegalQueryException.getMessage());
+    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
+      userUtilMockedStatic
+          .when(CurrentUserUtil::getCurrentUserDetails)
+          .thenReturn(UserDetails.fromUser(user));
+      Exception IllegalQueryException =
+          assertThrows(IllegalQueryException.class, () -> mapper.map(operationParams));
+      assertEquals("maxteicountreached", IllegalQueryException.getMessage());
+    }
   }
 
   @Test
@@ -571,7 +635,7 @@ class TrackedEntityOperationParamsMapperTest {
     when(trackedEntityStore.getTrackedEntityCountWithMaxTrackedEntityLimit(any())).thenReturn(100);
 
     TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder().orgUnitMode(ACCESSIBLE).user(user).build();
+        TrackedEntityOperationParams.builder().orgUnitMode(ACCESSIBLE).build();
 
     Exception BadRequestException =
         assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
