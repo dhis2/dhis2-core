@@ -25,13 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentityattributevalue;
+package org.hisp.dhis.tracker.trackedentityattributevalue;
 
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 
 /**
  * @author Abyot Asalefew
@@ -50,15 +50,6 @@ public interface TrackedEntityAttributeValueService {
    * @param attributeValue the TrackedEntityAttribute to update.
    */
   void updateTrackedEntityAttributeValue(TrackedEntityAttributeValue attributeValue);
-
-  /**
-   * Updates an {@link TrackedEntityAttribute}.
-   *
-   * @param attributeValue the TrackedEntityAttribute to update.
-   * @param user User for audits
-   */
-  void updateTrackedEntityAttributeValue(
-      TrackedEntityAttributeValue attributeValue, UserDetails user);
 
   /**
    * Deletes a {@link TrackedEntityAttribute}.
@@ -93,15 +84,6 @@ public interface TrackedEntityAttributeValueService {
    */
   List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(
       TrackedEntityAttribute attribute);
-
-  /**
-   * Returns the number of assigned {@link TrackedEntityAttributeValue}s to the given {@link
-   * TrackedEntityAttribute}
-   *
-   * @param attribute {@link TrackedEntityAttribute}
-   * @return Number of assigned TrackedEntityAttributeValues
-   */
-  int getCountOfAssignedTrackedEntityAttributeValues(TrackedEntityAttribute attribute);
 
   /**
    * Retrieve a list of {@link TrackedEntityAttributeValue} that matches the values and the tea

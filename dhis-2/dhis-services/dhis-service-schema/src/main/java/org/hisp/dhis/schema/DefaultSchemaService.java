@@ -150,7 +150,6 @@ import org.hisp.dhis.schema.descriptors.ProgramTrackedEntityAttributeDimensionIt
 import org.hisp.dhis.schema.descriptors.ProgramTrackedEntityAttributeSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.PushAnalysisSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.RelationshipConstraintSchemaDescriptor;
-import org.hisp.dhis.schema.descriptors.RelationshipItemSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.RelationshipTypeSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ReportSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ReportingRateSchemaDescriptor;
@@ -161,7 +160,6 @@ import org.hisp.dhis.schema.descriptors.SharingSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.SmsCommandSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.SqlViewSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.TrackedEntityAttributeSchemaDescriptor;
-import org.hisp.dhis.schema.descriptors.TrackedEntityAttributeValueSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.TrackedEntityDataElementDimensionSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.TrackedEntityFilterSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.TrackedEntityProgramIndicatorDimensionSchemaDescriptor;
@@ -276,7 +274,6 @@ public class DefaultSchemaService implements SchemaService {
     register(new SectionSchemaDescriptor());
     register(new SqlViewSchemaDescriptor());
     register(new TrackedEntityAttributeSchemaDescriptor());
-    register(new TrackedEntityAttributeValueSchemaDescriptor());
     register(new TrackedEntityFilterSchemaDescriptor());
     register(new TrackedEntityTypeSchemaDescriptor());
     register(new TrackedEntityTypeAttributeSchemaDescriptor());
@@ -312,7 +309,6 @@ public class DefaultSchemaService implements SchemaService {
     register(new AccessSchemaDescriptor());
     register(new ObjectStyleSchemaDescriptor());
     register(new RelationshipConstraintSchemaDescriptor());
-    register(new RelationshipItemSchemaDescriptor());
     register(new SharingSchemaDescriptor());
     register(new AxisSchemaDescriptor());
     register(new EventRepetitionSchemaDescriptor());
