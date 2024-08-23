@@ -443,9 +443,12 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     List<String> errors = new ArrayList<>();
     OrganisationUnit ou = event.getOrganisationUnit();
     if (ou != null) {
-      if (event.isCreatableInSearchScope()
-          ? !user.isInUserEffectiveSearchOrgUnitHierarchy(ou.getPath())
-          : !user.isInUserHierarchy(ou.getPath())) {
+      boolean isInHierarchy =
+          event.isCreatableInSearchScope()
+              ? user.isInUserEffectiveSearchOrgUnitHierarchy(ou.getPath())
+              : user.isInUserHierarchy(ou.getPath());
+
+      if (!isInHierarchy) {
         errors.add("User has no create access to organisation unit: " + ou.getUid());
       }
     }

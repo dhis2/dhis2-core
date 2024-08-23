@@ -177,19 +177,6 @@ public class DefaultApiTrackerOwnershipManager implements ApiTrackerOwnershipMan
                 > 0));
   }
 
-  private boolean hasTemporaryAccessWithUid(
-      String trackedEntityUid, Program program, UserDetails user) {
-    if (canSkipOwnershipCheck(user, program) || trackedEntityUid == null) {
-      return true;
-    }
-
-    return tempOwnerCache.get(
-        getTempOwnershipCacheKey(trackedEntityUid, program.getUid(), user.getUid()),
-        s ->
-            programTempOwnerService.getValidTempOwnerRecordCount(program, trackedEntityUid, user)
-                > 0);
-  }
-
   /**
    * Returns key used to store and retrieve cached records for ownership
    *

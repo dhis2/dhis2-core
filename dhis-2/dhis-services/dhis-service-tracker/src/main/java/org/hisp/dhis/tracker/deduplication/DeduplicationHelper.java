@@ -47,7 +47,6 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.ApiTrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
@@ -71,7 +70,6 @@ public class DeduplicationHelper {
   private final EnrollmentService enrollmentService;
 
   private final UserService userService;
-  private final ApiTrackerAccessManager trackerAccessManager;
 
   public String getInvalidReferenceErrors(DeduplicationMergeParams params) {
     TrackedEntity original = params.getOriginal();
