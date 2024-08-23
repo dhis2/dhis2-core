@@ -177,12 +177,4 @@ class GeoFeatureServiceMockTest {
     context.setAuthentication(authentication);
     SecurityContextHolder.setContext(context);
   }
-
-  private static void clearContext() {
-    SecurityContext context = SecurityContextHolder.getContext();
-    if (context != null) {
-      SecurityContextHolder.getContext().setAuthentication(null);
-    }
-    SecurityContextHolder.clearContext();
-  }
 }

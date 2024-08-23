@@ -31,8 +31,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hisp.dhis.test.TestBase.createDataElement;
-import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
