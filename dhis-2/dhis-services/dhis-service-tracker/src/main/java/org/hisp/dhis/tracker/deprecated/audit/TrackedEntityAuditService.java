@@ -40,12 +40,10 @@ public interface TrackedEntityAuditService {
 
   String ID = TrackedEntityAuditService.class.getName();
 
-  @Deprecated(since = "2.42", forRemoval = true)
   void addTrackedEntityAudit(
       TrackedEntity trackedEntity, String username, ChangeLogType changeLogType);
 
   /** Adds multiple tracked entity audit */
-  @Deprecated(since = "2.42", forRemoval = true)
   void addTrackedEntityAudit(List<TrackedEntityAudit> trackedEntityAudits);
 
   /**
@@ -54,7 +52,6 @@ public interface TrackedEntityAuditService {
    * @param params tracked entity audit query params
    * @return matching TrackedEntityAudits
    */
-  @Deprecated(since = "2.42", forRemoval = true)
   List<TrackedEntityAudit> getTrackedEntityAudits(TrackedEntityAuditQueryParams params);
 
   /**
@@ -63,6 +60,5 @@ public interface TrackedEntityAuditService {
    * @param params tracked entity audit query params
    * @return count of TrackedEntityAudits
    */
-  @Deprecated(since = "2.42", forRemoval = true)
   int getTrackedEntityAuditsCount(TrackedEntityAuditQueryParams params);
 }

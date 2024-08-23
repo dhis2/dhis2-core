@@ -36,7 +36,6 @@ public interface ApiTrackedEntityAuditService {
 
   String ID = ApiTrackedEntityAuditService.class.getName();
 
-  @Deprecated(since = "2.42", forRemoval = true)
   void addTrackedEntityAudit(
       TrackedEntity trackedEntity, String username, ChangeLogType changeLogType);
 }
