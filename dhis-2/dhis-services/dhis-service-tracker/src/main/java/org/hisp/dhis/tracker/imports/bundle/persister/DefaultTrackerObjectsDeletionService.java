@@ -50,7 +50,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChan
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.deprecated.audit.TrackedEntityAuditService;
+import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipQueryParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipStore;
 import org.hisp.dhis.tracker.imports.report.Entity;
