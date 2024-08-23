@@ -36,11 +36,10 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.servlet.mvc.condition.PathPatternsRequestCondition;
+import org.springframework.web.servlet.mvc.condition.PatternsRequestCondition;
 import org.springframework.web.servlet.mvc.condition.RequestMethodsRequestCondition;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
-import org.springframework.web.util.pattern.PathPattern;
 
 /**
  * This class is a custom implementation of the RequestMappingHandlerMapping class. It is used to
@@ -78,19 +77,10 @@ public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMap
       methodsCondition = new RequestMethodsRequestCondition(RequestMethod.GET);
     }
 
-    Set<DhisApiVersion> versions = getVersions(typeApiVersion, methodApiVersion);
+    Set<String> rqmPatterns = info.getPatternsCondition().getPatterns();
     Set<String> allPaths = new HashSet<>();
 
-    Set<String> rqmPatterns =
-        info.getPatternsCondition() != null
-            ? info.getPatternsCondition().getPatterns()
-            : new HashSet<>();
-
-    if (rqmPatterns.isEmpty()) {
-      PathPatternsRequestCondition pathPatternCondition = info.getPathPatternsCondition();
-      Set<PathPattern> pathPattern = pathPatternCondition.getPatterns();
-      pathPattern.forEach(pattern -> rqmPatterns.add(pattern.getPatternString()));
-    }
+    Set<DhisApiVersion> versions = getVersions(typeApiVersion, methodApiVersion);
 
     for (String path : rqmPatterns) {
       versions.stream()
@@ -98,10 +88,19 @@ public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMap
           .forEach(addVersionedPath(path, allPaths));
     }
 
-    return info.mutate()
-        .paths(allPaths.toArray(new String[] {}))
-        .methods(methodsCondition.getMethods().toArray(new RequestMethod[] {}))
-        .build();
+    PatternsRequestCondition patternsRequestCondition =
+        new PatternsRequestCondition(
+            allPaths.toArray(new String[] {}), null, null, true, true, null);
+
+    return new RequestMappingInfo(
+        null,
+        patternsRequestCondition,
+        methodsCondition,
+        info.getParamsCondition(),
+        info.getHeadersCondition(),
+        info.getConsumesCondition(),
+        info.getProducesCondition(),
+        info.getCustomCondition());
   }
 
   private static Consumer<DhisApiVersion> addVersionedPath(String path, Set<String> allPaths) {

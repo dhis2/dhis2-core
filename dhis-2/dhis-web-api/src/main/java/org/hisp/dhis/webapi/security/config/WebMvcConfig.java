@@ -87,7 +87,6 @@ import org.springframework.web.multipart.support.StandardServletMultipartResolve
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.DelegatingWebMvcConfiguration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.springframework.web.servlet.resource.PathResourceResolver;
@@ -258,6 +257,9 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
     CustomRequestMappingHandlerMapping mapping = new CustomRequestMappingHandlerMapping();
     mapping.setOrder(0);
     mapping.setContentNegotiationManager(mvcContentNegotiationManager());
+    mapping.setUseTrailingSlashMatch(true);
+    mapping.setUseSuffixPatternMatch(false);
+    mapping.setUseRegisteredSuffixPatternMatch(true);
     return mapping;
   }
 
@@ -277,12 +279,6 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
         .defaultContentType(MediaType.APPLICATION_JSON)
         .mediaType("json", MediaType.APPLICATION_JSON)
         .mediaType("xml", MediaType.APPLICATION_XML);
-  }
-
-  @Override
-  public void configurePathMatch(PathMatchConfigurer config) {
-    config.setUseSuffixPatternMatch(true);
-    config.setUseTrailingSlashMatch(true);
   }
 
   private Map<String, MediaType> mediaTypeMap =
