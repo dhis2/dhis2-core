@@ -118,7 +118,7 @@ class ProgramNotificationTemplateOperationParamsMapperTest {
   }
 
   @Test
-  void shouldMapInvalidProgramId() {
+  void shouldThrowWhenProgramIdIsInvalid() {
     UID invalidProgram = UID.of(CodeGenerator.generateUid());
     ProgramNotificationTemplateOperationParams operationParams =
         ProgramNotificationTemplateOperationParams.builder().program(invalidProgram).build();
@@ -136,7 +136,7 @@ class ProgramNotificationTemplateOperationParamsMapperTest {
   }
 
   @Test
-  void shouldMapInvalidProgramStageId() {
+  void shouldThrowWhenProgramStageIdIsInvalid() {
     UID invalidProgramStage = UID.of(CodeGenerator.generateUid());
     ProgramNotificationTemplateOperationParams operationParams =
         ProgramNotificationTemplateOperationParams.builder()

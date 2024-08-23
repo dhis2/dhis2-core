@@ -78,7 +78,7 @@ class ProgramNotificationTemplateRequestParamsMapperTest {
   }
 
   @Test
-  void shouldMapWithBothProgramAndProgramStage() {
+  void shouldThrowWhenBothProgramAndProgramStageArePresent() {
     ProgramNotificationTemplateRequestParams requestParams =
         new ProgramNotificationTemplateRequestParams();
     requestParams.setProgram(PROGRAM);
@@ -95,7 +95,7 @@ class ProgramNotificationTemplateRequestParamsMapperTest {
   }
 
   @Test
-  void shouldMapWithNeitherProgramNorProgramStage() {
+  void shouldThrowWhenBothProgramAndProgramStageAreMissing() {
     ProgramNotificationTemplateRequestParams requestParams =
         new ProgramNotificationTemplateRequestParams();
 
