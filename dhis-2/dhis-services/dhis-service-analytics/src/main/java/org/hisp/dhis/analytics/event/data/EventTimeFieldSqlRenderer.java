@@ -50,6 +50,7 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.program.AnalyticsType;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -92,7 +93,7 @@ class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
                 statementBuilder.getBoundaryCondition(
                     analyticsPeriodBoundary,
                     params.getProgramIndicator(),
-                    params.getTimeFieldAsField(),
+                    params.getTimeFieldAsField(AnalyticsType.EVENT),
                     params.getEarliestStartDate(),
                     params.getLatestEndDate()))
         .collect(Collectors.joining(" and "));
@@ -100,17 +101,17 @@ class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
 
   private String getTimeCol(Optional<TimeField> timeField, EventOutputType outputType) {
     if (timeField.isPresent()) {
-      return sqlBuilder.quoteAx(timeField.get().getEventAndEnrollmentColumnName());
+      return sqlBuilder.quoteAx(timeField.get().getEventColumnName());
     } else if (ENROLLMENT == outputType) {
-      return sqlBuilder.quoteAx(ENROLLMENT_DATE.getEventAndEnrollmentColumnName());
+      return sqlBuilder.quoteAx(ENROLLMENT_DATE.getEnrollmentColumnName());
     } else {
       // EVENTS
-      return sqlBuilder.quoteAx(EVENT_DATE.getEventAndEnrollmentColumnName());
+      return sqlBuilder.quoteAx(EVENT_DATE.getEventColumnName());
     }
   }
 
   private String toSqlCondition(Period period, TimeField timeField) {
-    String timeCol = sqlBuilder.quoteAx(timeField.getEventAndEnrollmentColumnName());
+    String timeCol = sqlBuilder.quoteAx(timeField.getEventColumnName());
     return "( "
         + timeCol
         + " >= '"

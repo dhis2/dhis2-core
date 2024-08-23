@@ -51,6 +51,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
+import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
@@ -85,7 +86,7 @@ class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
 
   @Override
   protected String getColumnName(Optional<TimeField> timeField, EventOutputType outputType) {
-    return timeField.orElse(TimeField.ENROLLMENT_DATE).getEventAndEnrollmentColumnName();
+    return timeField.orElse(TimeField.ENROLLMENT_DATE).getEnrollmentColumnName();
   }
 
   @Override
@@ -101,7 +102,7 @@ class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
                     statementBuilder.getBoundaryCondition(
                         boundary,
                         params.getProgramIndicator(),
-                        params.getTimeFieldAsField(),
+                        params.getTimeFieldAsField(AnalyticsType.ENROLLMENT),
                         params.getEarliestStartDate(),
                         params.getLatestEndDate()))
             .collect(Collectors.joining(" and "));
@@ -162,7 +163,7 @@ class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
   }
 
   private String toSqlCondition(Period period, TimeField timeField) {
-    String timeCol = sqlBuilder.quoteAx(timeField.getEventAndEnrollmentColumnName());
+    String timeCol = sqlBuilder.quoteAx(timeField.getEnrollmentColumnName());
     return "( "
         + timeCol
         + " >= '"

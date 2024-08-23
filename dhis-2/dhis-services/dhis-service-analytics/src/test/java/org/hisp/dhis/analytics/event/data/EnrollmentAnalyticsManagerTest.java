@@ -783,7 +783,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
         is(
             "(select json_agg(t1) from (select \""
                 + dataElementA.getUid()
-                + "\", incidentdate, scheduleddate, occurreddate  from analytics_event_"
+                + "\", incidentdate, scheduleddate, occurreddate from analytics_event_"
                 + programB.getUid()
                 + " where analytics_event_"
                 + programB.getUid()
