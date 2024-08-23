@@ -90,24 +90,6 @@ public class DefaultApiTrackerOwnershipManager implements ApiTrackerOwnershipMan
     };
   }
 
-  @Override
-  @Transactional(readOnly = true)
-  public boolean hasAccess(
-      UserDetails user, String trackedEntity, OrganisationUnit owningOrgUnit, Program program) {
-    if (canSkipOwnershipCheck(user, program) || trackedEntity == null || owningOrgUnit == null) {
-      return true;
-    }
-
-    final String orgUnitPath = owningOrgUnit.getPath();
-    return switch (program.getAccessLevel()) {
-      case OPEN, AUDITED -> user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnitPath);
-      case PROTECTED ->
-          user.isInUserHierarchy(orgUnitPath)
-              || hasTemporaryAccessWithUid(trackedEntity, program, user);
-      case CLOSED -> user.isInUserHierarchy(orgUnitPath);
-    };
-  }
-
   private boolean canSkipOwnershipCheck(UserDetails user, Program program) {
     return user == null
         || user.isSuper()

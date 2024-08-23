@@ -27,34 +27,24 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import org.hisp.dhis.program.Program;
+import java.util.List;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.user.UserDetails;
 
 /**
- * @author Ameen Mohamed
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface ApiTrackerOwnershipManager {
-  String OWNERSHIP_ACCESS_DENIED = "OWNERSHIP_ACCESS_DENIED";
-
-  String PROGRAM_ACCESS_CLOSED = "PROGRAM_ACCESS_CLOSED";
-
-  String NO_READ_ACCESS_TO_ORG_UNIT = "User has no read access to organisation unit";
+public interface ApiTrackerAccessManager {
 
   /**
-   * Check whether the user has access (as owner or has temporarily broken the glass) to the tracked
-   * entity - program combination.
+   * Checks the sharing read access to EventDataValue
    *
-   * @param user The user with which access has to be checked for.
-   * @param trackedEntity The tracked entity.
-   * @param program The program.
-   * @return true if the user has access, false otherwise.
+   * @param user User validated for write access
+   * @param event Event under which the EventDataValue belongs
+   * @param dataElement DataElement of EventDataValue
+   * @return Empty list if read access allowed, list of errors otherwise.
    */
-  boolean hasAccess(UserDetails user, TrackedEntity trackedEntity, Program program);
-
-  /**
-   * Checks whether the owner of the TE/program pair resides within the user search scope.
-   *
-   * @return true if the owner is in the search scope, false otherwise
-   */
-  boolean isOwnerInUserSearchScope(UserDetails user, TrackedEntity trackedEntity, Program program);
+  List<String> canRead(
+      UserDetails user, Event event, DataElement dataElement, boolean skipOwnershipCheck);
 }
