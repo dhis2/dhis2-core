@@ -284,7 +284,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
     User currentUser = userService.getUserByUsername(currentUsername);
 
     final String strArrayUserGroups =
-        (currentUser == null || CollectionUtils.isEmpty(currentUser.getGroups()))
+        (CollectionUtils.isEmpty(currentUser.getGroups()))
             ? null
             : "{"
                 + String.join(

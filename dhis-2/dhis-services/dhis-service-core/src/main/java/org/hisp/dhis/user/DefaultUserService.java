@@ -441,10 +441,6 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional(readOnly = true)
   public boolean canAddOrUpdateUser(Collection<String> userGroups, User currentUser) {
-    if (currentUser == null) {
-      return false;
-    }
-
     boolean canAdd = currentUser.isAuthorized(UserGroup.AUTH_USER_ADD);
 
     if (canAdd) {
@@ -664,7 +660,7 @@ public class DefaultUserService implements UserService {
       return true;
     }
 
-    if (user == null || user.getPasswordLastUpdated() == null) {
+    if (user.getPasswordLastUpdated() == null) {
       return true;
     }
 
@@ -679,7 +675,7 @@ public class DefaultUserService implements UserService {
 
     List<ErrorReport> errors = new ArrayList<>();
 
-    if (currentUser == null || user == null || currentUser.isSuper()) {
+    if (user == null || currentUser.isSuper()) {
       return errors;
     }
 
@@ -767,7 +763,7 @@ public class DefaultUserService implements UserService {
 
     List<ErrorReport> errors = new ArrayList<>();
 
-    if (currentUser == null || role == null) {
+    if (role == null) {
       return errors;
     }
 

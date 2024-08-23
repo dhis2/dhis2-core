@@ -846,7 +846,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
    * @return true if the given user can be managed by this user, false if not.
    */
   public boolean canManage(User user) {
-    if (user == null || user.getGroups() == null) {
+    if (user.getGroups() == null) {
       return false;
     }
 
@@ -876,7 +876,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
    * @return true if the given user is managed by this user, false if not.
    */
   public boolean isManagedBy(User user) {
-    if (user == null || user.getGroups() == null) {
+    if (user.getGroups() == null) {
       return false;
     }
 

@@ -57,11 +57,13 @@ import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notification;
 import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.imports.DefaultTrackerImportService;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.tracker.imports.report.ValidationReport;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
@@ -79,7 +81,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
 @ExtendWith(MockitoExtension.class)
-class TrackerImportControllerTest {
+class TrackerImportControllerTest extends TestBase {
 
   private static final String ENDPOINT = "/api/tracker";
 
@@ -100,6 +102,8 @@ class TrackerImportControllerTest {
 
   @BeforeEach
   public void setUp() {
+    injectSecurityContext(new SystemUser());
+
     renderService =
         new DefaultRenderService(
             JacksonObjectMapperConfig.jsonMapper,
@@ -125,7 +129,7 @@ class TrackerImportControllerTest {
 
   @Test
   void verifyAsync() throws Exception {
-
+    injectSecurityContext(new SystemUser());
     // Then
     mockMvc
         .perform(

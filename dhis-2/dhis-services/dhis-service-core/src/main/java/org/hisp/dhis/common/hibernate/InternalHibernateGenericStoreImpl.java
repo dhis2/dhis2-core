@@ -259,10 +259,10 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
 
   @Override
   public List<Function<Root<T>, Predicate>> getDataSharingPredicates(
-      CriteriaBuilder builder, UserDetails userDetails, String access) {
+      CriteriaBuilder builder, @Nonnull UserDetails userDetails, String access) {
     List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
 
-    if (userDetails == null || dataSharingDisabled(userDetails)) {
+    if (dataSharingDisabled(userDetails)) {
       return predicates;
     }
 
@@ -275,14 +275,12 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
     return Dashboard.class.isAssignableFrom(clazz);
   }
 
-  protected boolean sharingEnabled(UserDetails userDetails) {
+  protected boolean sharingEnabled(@Nonnull UserDetails userDetails) {
     boolean b = forceAcl();
-
     if (b) {
       return b;
     } else {
-      return (aclService.isClassShareable(clazz)
-          && !(userDetails == null || userDetails.isSuper()));
+      return (aclService.isClassShareable(clazz) && !(userDetails.isSuper()));
     }
   }
 
@@ -292,11 +290,11 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
 
   private List<Function<Root<T>, Predicate>> getSharingPredicates(
       CriteriaBuilder builder,
-      UserDetails userDetails,
+      @Nonnull UserDetails userDetails,
       CurrentUserGroupInfo groupInfo,
       String access) {
 
-    if (userDetails == null || groupInfo == null || !sharingEnabled(userDetails)) {
+    if (groupInfo == null || !sharingEnabled(userDetails)) {
       return List.of();
     }
 
@@ -309,8 +307,6 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
     return aclService.getCurrentUserGroupInfo(userUid, this::fetchCurrentUserGroupInfo);
   }
 
-  // TODO: MAS can this be removed and we rely on first fetch on login? make sure current logged in
-  // users are get invalidated when group changes
   private CurrentUserGroupInfo fetchCurrentUserGroupInfo(String userUid) {
     CriteriaBuilder builder = getCriteriaBuilder();
     CriteriaQuery<Object[]> query = builder.createQuery(Object[].class);

@@ -109,8 +109,7 @@ public class DefaultApiTrackerOwnershipManager implements ApiTrackerOwnershipMan
   }
 
   private boolean canSkipOwnershipCheck(UserDetails user, Program program) {
-    return user == null
-        || user.isSuper()
+    return user.isSuper()
         || program == null
         || ProgramType.WITHOUT_REGISTRATION == program.getProgramType();
   }
