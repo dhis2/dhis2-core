@@ -35,18 +35,19 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mockStatic;
 
 import java.util.Collection;
 import java.util.Set;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
-import org.mockito.MockedStatic;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 class AssignedUserQueryParamTest {
   public static final String CURRENT_USER_UID = "Kj6vYde4LHh";
@@ -98,16 +99,14 @@ class AssignedUserQueryParamTest {
   void testUserWithAssignedUsersGivenCurrentUserAndModeCurrentAndUsersNull(Set<String> users) {
     User user = new User();
     user.setUid(CURRENT_USER_UID);
-    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
-      userUtilMockedStatic
-          .when(CurrentUserUtil::getCurrentUserDetails)
-          .thenReturn(UserDetails.fromUser(user));
-      AssignedUserQueryParam param = new AssignedUserQueryParam(CURRENT, users);
 
-      assertEquals(PROVIDED, param.getMode());
-      assertEquals(Set.of(CURRENT_USER_UID), param.getAssignedUsers());
-      assertTrue(param.hasAssignedUsers());
-    }
+    injectSecurityContext(UserDetails.fromUser(user));
+
+    AssignedUserQueryParam param = new AssignedUserQueryParam(CURRENT, users);
+
+    assertEquals(PROVIDED, param.getMode());
+    assertEquals(Set.of(CURRENT_USER_UID), param.getAssignedUsers());
+    assertTrue(param.hasAssignedUsers());
   }
 
   @ParameterizedTest
@@ -139,5 +138,14 @@ class AssignedUserQueryParamTest {
   private static void assertIsEmpty(Collection<?> actual) {
     assertNotNull(actual);
     assertTrue(actual.isEmpty(), actual.toString());
+  }
+
+  private void injectSecurityContext(UserDetails currentUserDetails) {
+    Authentication authentication =
+        new UsernamePasswordAuthenticationToken(
+            currentUserDetails, "", currentUserDetails.getAuthorities());
+    SecurityContext context = SecurityContextHolder.createEmptyContext();
+    context.setAuthentication(authentication);
+    SecurityContextHolder.setContext(context);
   }
 }
