@@ -94,7 +94,7 @@ class ProgramNotificationTemplateRequestParamsMapperTest {
               mapper.map(requestParams);
             });
 
-    assertEquals("Program and ProgramStage cannot be processed together.", thrown.getMessage());
+    assertEquals("`program` and `programStage` cannot be processed together.", thrown.getMessage());
   }
 
   @Test
@@ -109,7 +109,7 @@ class ProgramNotificationTemplateRequestParamsMapperTest {
               mapper.map(requestParams);
             });
 
-    assertEquals("Program or ProgramStage must be specified.", thrown.getMessage());
+    assertEquals("`program` or `programStage` must be specified.", thrown.getMessage());
   }
 
   @Test
