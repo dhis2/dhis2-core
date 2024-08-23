@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -80,12 +79,8 @@ class ProgramNotificationTemplateServiceTest extends PostgresIntegrationTestBase
     organisationUnit = createOrganisationUnit('O');
     organisationUnitService.addOrganisationUnit(organisationUnit);
     program = createProgram('P');
-    program.setAutoFields();
-    program.setUid(CodeGenerator.generateUid());
     programService.addProgram(program);
     programStage = createProgramStage('S', program);
-    programStage.setAutoFields();
-    programStage.setUid(CodeGenerator.generateUid());
     programStageService.saveProgramStage(programStage);
     pnt1 =
         createProgramNotificationTemplate(

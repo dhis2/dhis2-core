@@ -71,11 +71,11 @@ public class ProgramNotificationTemplateRequestParamsMapper {
       throws ConflictException {
 
     if (requestParams.getProgram() == null && requestParams.getProgramStage() == null) {
-      throw new ConflictException("Program or ProgramStage must be specified.");
+      throw new ConflictException("`program` or `programStage` must be specified.");
     }
 
     if (requestParams.getProgram() != null && requestParams.getProgramStage() != null) {
-      throw new ConflictException("Program and ProgramStage cannot be processed together.");
+      throw new ConflictException("`program` and `programStage` cannot be processed together.");
     }
   }
 
