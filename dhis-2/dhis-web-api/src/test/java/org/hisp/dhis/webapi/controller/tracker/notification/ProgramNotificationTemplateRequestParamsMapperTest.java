@@ -46,7 +46,6 @@ import org.mockito.quality.Strictness;
 /**
  * @author Zubair Asghar
  */
-@MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 class ProgramNotificationTemplateRequestParamsMapperTest {
   private static UID PROGRAM = UID.of(CodeGenerator.generateUid());
