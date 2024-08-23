@@ -258,7 +258,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
     mapping.setOrder(0);
     mapping.setContentNegotiationManager(mvcContentNegotiationManager());
     mapping.setUseTrailingSlashMatch(true);
-    mapping.setUseSuffixPatternMatch(false);
+    mapping.setUseSuffixPatternMatch(true);
     mapping.setUseRegisteredSuffixPatternMatch(true);
     return mapping;
   }
