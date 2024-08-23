@@ -104,39 +104,39 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
   protected static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
-          EventAnalyticsColumns.EVENT,
-          EventAnalyticsColumns.ENROLLMENT,
-          EventAnalyticsColumns.PS,
-          EventAnalyticsColumns.AO,
-          EventAnalyticsColumns.ENROLLMENT_DATE,
-          EventAnalyticsColumns.INCIDENT_DATE,
-          EventAnalyticsColumns.OCCURRED_DATE,
-          EventAnalyticsColumns.SCHEDULED_DATE,
-          EventAnalyticsColumns.COMPLETED_DATE,
-          EventAnalyticsColumns.CREATED,
-          EventAnalyticsColumns.LAST_UPDATED,
-          EventAnalyticsColumns.STOREDBY,
-          EventAnalyticsColumns.CREATED_BY_USERNAME,
-          EventAnalyticsColumns.CREATED_BY_NAME,
-          EventAnalyticsColumns.CREATED_BY_LASTNAME,
-          EventAnalyticsColumns.CREATED_BY_DISPLAYNAME,
-          EventAnalyticsColumns.LAST_UPDATED_BY_USERNAME,
-          EventAnalyticsColumns.LAST_UPDATED_BY_NAME,
-          EventAnalyticsColumns.LAST_UPDATED_BY_LASTNAME,
-          EventAnalyticsColumns.LAST_UPDATED_BY_DISPLAYNAME,
-          EventAnalyticsColumns.EVENT_STATUS,
-          EventAnalyticsColumns.ENROLLMENT_STATUS,
-          EventAnalyticsColumns.EVENT_GEOMETRY,
-          EventAnalyticsColumns.LONGITUDE,
-          EventAnalyticsColumns.LATITUDE,
-          EventAnalyticsColumns.OU,
-          EventAnalyticsColumns.OU_NAME,
-          EventAnalyticsColumns.OU_CODE,
-          EventAnalyticsColumns.OU_LEVEL,
-          EventAnalyticsColumns.OU_GEOMETRY,
-          EventAnalyticsColumns.ENROLLMENT_GEOMETRY,
-          EventAnalyticsColumns.REGISTRATION_OU,
-          EventAnalyticsColumns.ENROLLMENT_OU);
+          EventAnalyticsColumn.EVENT,
+          EventAnalyticsColumn.ENROLLMENT,
+          EventAnalyticsColumn.PS,
+          EventAnalyticsColumn.AO,
+          EventAnalyticsColumn.ENROLLMENT_DATE,
+          EventAnalyticsColumn.ENROLLMENT_OCCURRED_DATE,
+          EventAnalyticsColumn.OCCURRED_DATE,
+          EventAnalyticsColumn.SCHEDULED_DATE,
+          EventAnalyticsColumn.COMPLETED_DATE,
+          EventAnalyticsColumn.CREATED,
+          EventAnalyticsColumn.LAST_UPDATED,
+          EventAnalyticsColumn.STOREDBY,
+          EventAnalyticsColumn.CREATED_BY_USERNAME,
+          EventAnalyticsColumn.CREATED_BY_NAME,
+          EventAnalyticsColumn.CREATED_BY_LASTNAME,
+          EventAnalyticsColumn.CREATED_BY_DISPLAYNAME,
+          EventAnalyticsColumn.LAST_UPDATED_BY_USERNAME,
+          EventAnalyticsColumn.LAST_UPDATED_BY_NAME,
+          EventAnalyticsColumn.LAST_UPDATED_BY_LASTNAME,
+          EventAnalyticsColumn.LAST_UPDATED_BY_DISPLAYNAME,
+          EventAnalyticsColumn.EVENT_STATUS,
+          EventAnalyticsColumn.ENROLLMENT_STATUS,
+          EventAnalyticsColumn.EVENT_GEOMETRY,
+          EventAnalyticsColumn.LONGITUDE,
+          EventAnalyticsColumn.LATITUDE,
+          EventAnalyticsColumn.OU,
+          EventAnalyticsColumn.OU_NAME,
+          EventAnalyticsColumn.OU_CODE,
+          EventAnalyticsColumn.OU_LEVEL,
+          EventAnalyticsColumn.OU_GEOMETRY,
+          EventAnalyticsColumn.ENROLLMENT_GEOMETRY,
+          EventAnalyticsColumn.REGISTRATION_OU,
+          EventAnalyticsColumn.ENROLLMENT_OU);
 
   public JdbcEventAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -490,18 +490,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             .collect(Collectors.toList()));
 
     if (program.isRegistration()) {
-      columns.add(
-          AnalyticsTableColumn.builder()
-              .name("trackedentity")
-              .dataType(CHARACTER_11)
-              .selectExpression("te.uid")
-              .build());
-      columns.add(
-          AnalyticsTableColumn.builder()
-              .name("tegeometry")
-              .dataType(GEOMETRY)
-              .selectExpression("te.geometry")
-              .build());
+      columns.add(EventAnalyticsColumn.TRACKED_ENTITY);
+      columns.add(EventAnalyticsColumn.TRACKED_ENTITY_GEOMETRY);
     }
 
     return filterDimensionColumns(columns);

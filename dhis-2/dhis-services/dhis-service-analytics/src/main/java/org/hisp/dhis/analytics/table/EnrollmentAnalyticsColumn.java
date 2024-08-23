@@ -53,15 +53,21 @@ public final class EnrollmentAnalyticsColumn {
           .nullable(NOT_NULL)
           .selectExpression("en.uid")
           .build();
+  public static final AnalyticsTableColumn TRACKED_ENTITY =
+      AnalyticsTableColumn.builder()
+          .name(EnrollmentAnalyticsColumnName.TRACKED_ENTITY_COLUMN_NAME)
+          .dataType(CHARACTER_11)
+          .selectExpression("te.uid")
+          .build();
   public static final AnalyticsTableColumn ENROLLMENT_DATE =
       AnalyticsTableColumn.builder()
           .name(EnrollmentAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME)
           .dataType(TIMESTAMP)
           .selectExpression("en.enrollmentdate")
           .build();
-  public static final AnalyticsTableColumn INCIDENT_DATE =
+  public static final AnalyticsTableColumn OCCURRED_DATE =
       AnalyticsTableColumn.builder()
-          .name(EnrollmentAnalyticsColumnName.INCIDENT_DATE_COLUMN_NAME)
+          .name(EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME)
           .dataType(TIMESTAMP)
           .selectExpression("en.occurreddate")
           .build();
@@ -77,9 +83,9 @@ public final class EnrollmentAnalyticsColumn {
           .dataType(TIMESTAMP)
           .selectExpression("en.lastupdated")
           .build();
-  public static final AnalyticsTableColumn STOREDBY =
+  public static final AnalyticsTableColumn STORED_BY =
       AnalyticsTableColumn.builder()
-          .name(EnrollmentAnalyticsColumnName.STOREDBY_COLUMN_NAME)
+          .name(EnrollmentAnalyticsColumnName.STORED_BY_COLUMN_NAME)
           .dataType(VARCHAR_255)
           .selectExpression("en.storedby")
           .build();
@@ -105,7 +111,7 @@ public final class EnrollmentAnalyticsColumn {
           .build();
   public static final AnalyticsTableColumn CREATED_BY_DISPLAYNAME =
       AnalyticsTableColumn.builder()
-          .name(EnrollmentAnalyticsColumnName.CREATED_BY_DISPLAYNAME_COLUMN_NAME)
+          .name(EnrollmentAnalyticsColumnName.CREATED_BY_DISPLAY_NAME_COLUMN_NAME)
           .dataType(VARCHAR_255)
           .selectExpression(getDisplayName("createdbyuserinfo", "en", "createdbydisplayname"))
           .skipIndex(Skip.SKIP)
@@ -132,7 +138,7 @@ public final class EnrollmentAnalyticsColumn {
           .build();
   public static final AnalyticsTableColumn LAST_UPDATED_BY_DISPLAYNAME =
       AnalyticsTableColumn.builder()
-          .name(EnrollmentAnalyticsColumnName.LAST_UPDATED_BY_DISPLAYNAME_COLUMN_NAME)
+          .name(EnrollmentAnalyticsColumnName.LAST_UPDATED_BY_DISPLAY_NAME_COLUMN_NAME)
           .dataType(VARCHAR_255)
           .selectExpression(
               getDisplayName("lastupdatedbyuserinfo", "en", "lastupdatedbydisplayname"))
@@ -197,5 +203,11 @@ public final class EnrollmentAnalyticsColumn {
           .dataType(CHARACTER_11)
           .nullable(NOT_NULL)
           .selectExpression("coalesce(registrationou.uid,ou.uid)")
+          .build();
+  public static final AnalyticsTableColumn TRACKED_ENTITY_GEOMETRY =
+      AnalyticsTableColumn.builder()
+          .name(EnrollmentAnalyticsColumnName.TRACKED_ENTITY_GEOMETRY_COLUMN_NAME)
+          .dataType(GEOMETRY)
+          .selectExpression("te.geometry")
           .build();
 }

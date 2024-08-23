@@ -121,7 +121,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
           + "createdbydisplayname"
           + ","
           + "lastupdatedbydisplayname"
-          + ",lastupdated,scheduleddate,enrollmentdate,incidentdate,trackedentity,enrollment,ST_AsGeoJSON(coalesce(ax.\"eventgeometry\",ax.\"enrollmentgeometry\",ax.\"tegeometry\",ax.\"ougeometry\"), 6) as geometry,longitude,latitude,ouname,ounamehierarchy,"
+          + ",lastupdated,scheduleddate,enrollmentdate,enrollmentoccurreddate,trackedentity,enrollment,ST_AsGeoJSON(coalesce(ax.\"eventgeometry\",ax.\"enrollmentgeometry\",ax.\"tegeometry\",ax.\"ougeometry\"), 6) as geometry,longitude,latitude,ouname,ounamehierarchy,"
           + "oucode,enrollmentstatus,eventstatus";
 
   @BeforeEach
@@ -220,7 +220,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             + ","
             + "lastupdatedbydisplayname"
             + ",lastupdated,scheduleddate,enrollmentdate,"
-            + "incidentdate,trackedentity,enrollment,ST_AsGeoJSON(coalesce(ax.\"eventgeometry\",ax.\"enrollmentgeometry\",ax.\"tegeometry\",ax.\"ougeometry\"), 6) as geometry,longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus,"
+            + "enrollmentoccurreddate,trackedentity,enrollment,ST_AsGeoJSON(coalesce(ax.\"eventgeometry\",ax.\"enrollmentgeometry\",ax.\"tegeometry\",ax.\"ougeometry\"), 6) as geometry,longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus,"
             + "eventstatus,ax.\"quarterly\",ax.\"ou\",\""
             + dataElement.getUid()
             + "_name"

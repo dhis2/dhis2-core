@@ -44,7 +44,7 @@ import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.db.model.IndexType;
 
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
-public final class EventAnalyticsColumns {
+public final class EventAnalyticsColumn {
 
   public static final AnalyticsTableColumn EVENT =
       AnalyticsTableColumn.builder()
@@ -59,6 +59,12 @@ public final class EventAnalyticsColumns {
           .dataType(CHARACTER_11)
           .nullable(NOT_NULL)
           .selectExpression("en.uid")
+          .build();
+  public static final AnalyticsTableColumn TRACKED_ENTITY =
+      AnalyticsTableColumn.builder()
+          .name(EventAnalyticsColumnName.TRACKED_ENTITY_COLUMN_NAME)
+          .dataType(CHARACTER_11)
+          .selectExpression("te.uid")
           .build();
   public static final AnalyticsTableColumn PS =
       AnalyticsTableColumn.builder()
@@ -80,9 +86,9 @@ public final class EventAnalyticsColumns {
           .dataType(TIMESTAMP)
           .selectExpression("en.enrollmentdate")
           .build();
-  public static final AnalyticsTableColumn INCIDENT_DATE =
+  public static final AnalyticsTableColumn ENROLLMENT_OCCURRED_DATE =
       AnalyticsTableColumn.builder()
-          .name(EventAnalyticsColumnName.INCIDENT_DATE_COLUMN_NAME)
+          .name(EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME)
           .dataType(TIMESTAMP)
           .selectExpression("en.occurreddate")
           .build();
@@ -269,6 +275,12 @@ public final class EventAnalyticsColumns {
           .dataType(CHARACTER_11)
           .nullable(NOT_NULL)
           .selectExpression("coalesce(enrollmentou.uid,ou.uid)")
+          .build();
+  public static final AnalyticsTableColumn TRACKED_ENTITY_GEOMETRY =
+      AnalyticsTableColumn.builder()
+          .name(EventAnalyticsColumnName.TRACKED_ENTITY_GEOMETRY_COLUMN_NAME)
+          .dataType(GEOMETRY)
+          .selectExpression("te.geometry")
           .build();
 
   /**

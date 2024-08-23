@@ -51,8 +51,8 @@ public enum TimeField {
       EventAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME,
       "enrollmentdate"),
   INCIDENT_DATE(
-      EnrollmentAnalyticsColumnName.INCIDENT_DATE_COLUMN_NAME,
-      EventAnalyticsColumnName.INCIDENT_DATE_COLUMN_NAME,
+      EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME,
+      EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME,
       "occurreddate"),
   OCCURRED_DATE("occurreddate"),
   SCHEDULED_DATE(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME),

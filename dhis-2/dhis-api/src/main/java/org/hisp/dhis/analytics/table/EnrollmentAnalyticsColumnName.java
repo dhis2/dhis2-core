@@ -30,19 +30,20 @@ package org.hisp.dhis.analytics.table;
 public final class EnrollmentAnalyticsColumnName {
 
   public static final String ENROLLMENT_COLUMN_NAME = "enrollment";
+  public static final String TRACKED_ENTITY_COLUMN_NAME = "trackedentity";
   public static final String ENROLLMENT_DATE_COLUMN_NAME = "enrollmentdate";
-  public static final String INCIDENT_DATE_COLUMN_NAME = "incidentdate";
+  public static final String OCCURRED_DATE_COLUMN_NAME = "occurreddate";
   public static final String COMPLETED_DATE_COLUMN_NAME = "completeddate";
   public static final String LAST_UPDATED_COLUMN_NAME = "lastupdated";
-  public static final String STOREDBY_COLUMN_NAME = "storedby";
+  public static final String STORED_BY_COLUMN_NAME = "storedby";
   public static final String CREATED_BY_USERNAME_COLUMN_NAME = "createdbyusername";
   public static final String CREATED_BY_NAME_COLUMN_NAME = "createdbyname";
   public static final String CREATED_BY_LASTNAME_COLUMN_NAME = "createdbylastname";
-  public static final String CREATED_BY_DISPLAYNAME_COLUMN_NAME = "createdbydisplayname";
+  public static final String CREATED_BY_DISPLAY_NAME_COLUMN_NAME = "createdbydisplayname";
   public static final String LAST_UPDATED_BY_USERNAME_COLUMN_NAME = "lastupdatedbyusername";
   public static final String LAST_UPDATED_BY_NAME_COLUMN_NAME = "lastupdatedbyname";
   public static final String LAST_UPDATED_BY_LASTNAME_COLUMN_NAME = "lastupdatedbylastname";
-  public static final String LAST_UPDATED_BY_DISPLAYNAME_COLUMN_NAME = "lastupdatedbydisplayname";
+  public static final String LAST_UPDATED_BY_DISPLAY_NAME_COLUMN_NAME = "lastupdatedbydisplayname";
   public static final String ENROLLMENT_STATUS_COLUMN_NAME = "enrollmentstatus";
   public static final String LONGITUDE_COLUMN_NAME = "longitude";
   public static final String LATITUDE_COLUMN_NAME = "latitude";
@@ -52,4 +53,5 @@ public final class EnrollmentAnalyticsColumnName {
   public static final String OU_LEVEL_COLUMN_NAME = "oulevel";
   public static final String ENROLLMENT_GEOMETRY_COLUMN_NAME = "enrollmentgeometry";
   public static final String REGISTRATION_OU_COLUMN_NAME = "registrationou";
+  public static final String TRACKED_ENTITY_GEOMETRY_COLUMN_NAME = "tegeometry";
 }

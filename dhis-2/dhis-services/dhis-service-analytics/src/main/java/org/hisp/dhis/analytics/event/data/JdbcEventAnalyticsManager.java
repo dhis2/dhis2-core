@@ -66,6 +66,7 @@ import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.table.AbstractJdbcTableManager;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -331,8 +332,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     if (params.getProgram().isRegistration()) {
       cols.add(
           EventAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME,
-          EventAnalyticsColumnName.INCIDENT_DATE_COLUMN_NAME,
-          "trackedentity",
+          EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME,
+          EventAnalyticsColumnName.TRACKED_ENTITY_COLUMN_NAME,
           EventAnalyticsColumnName.ENROLLMENT_COLUMN_NAME);
     }
 
@@ -345,7 +346,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         EventAnalyticsColumnName.LONGITUDE_COLUMN_NAME,
         EventAnalyticsColumnName.LATITUDE_COLUMN_NAME,
         EventAnalyticsColumnName.OU_NAME_COLUMN_NAME,
-        "ounamehierarchy",
+        AbstractJdbcTableManager.OU_NAME_HIERARCHY_COLUMN_NAME,
         EventAnalyticsColumnName.OU_CODE_COLUMN_NAME,
         EventAnalyticsColumnName.ENROLLMENT_STATUS_COLUMN_NAME,
         EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME);

@@ -28,8 +28,6 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.commons.util.TextUtils.replace;
-import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
-import static org.hisp.dhis.db.model.DataType.GEOMETRY;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.ArrayList;
@@ -71,10 +69,10 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
       List.of(
           EnrollmentAnalyticsColumn.ENROLLMENT,
           EnrollmentAnalyticsColumn.ENROLLMENT_DATE,
-          EnrollmentAnalyticsColumn.INCIDENT_DATE,
+          EnrollmentAnalyticsColumn.OCCURRED_DATE,
           EnrollmentAnalyticsColumn.COMPLETED_DATE,
           EnrollmentAnalyticsColumn.LAST_UPDATED,
-          EnrollmentAnalyticsColumn.STOREDBY,
+          EnrollmentAnalyticsColumn.STORED_BY,
           EnrollmentAnalyticsColumn.CREATED_BY_USERNAME,
           EnrollmentAnalyticsColumn.CREATED_BY_NAME,
           EnrollmentAnalyticsColumn.CREATED_BY_LASTNAME,
@@ -201,18 +199,8 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
     columns.addAll(getTrackedEntityAttributeColumns(program));
 
     if (program.isRegistration()) {
-      columns.add(
-          AnalyticsTableColumn.builder()
-              .name("trackedentity")
-              .dataType(CHARACTER_11)
-              .selectExpression("te.uid")
-              .build());
-      columns.add(
-          AnalyticsTableColumn.builder()
-              .name("tegeometry")
-              .dataType(GEOMETRY)
-              .selectExpression("te.geometry")
-              .build());
+      columns.add(EnrollmentAnalyticsColumn.TRACKED_ENTITY);
+      columns.add(EnrollmentAnalyticsColumn.TRACKED_ENTITY_GEOMETRY);
     }
 
     return filterDimensionColumns(columns);

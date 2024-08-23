@@ -100,7 +100,7 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
       EnrollmentAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME;
 
   public static final String DB_INCIDENT_DATE =
-      EnrollmentAnalyticsColumnName.INCIDENT_DATE_COLUMN_NAME;
+      EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME;
 
   public static final String DB_SCHEDULED_DATE =
       EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME;
