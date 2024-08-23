@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public final class EnrollmentAnalyticsColumnName {
 
   public static final String ENROLLMENT_COLUMN_NAME = "enrollment";

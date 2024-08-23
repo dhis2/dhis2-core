@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public final class EventAnalyticsColumnName {
 
   public static final String EVENT_COLUMN_NAME = "event";
