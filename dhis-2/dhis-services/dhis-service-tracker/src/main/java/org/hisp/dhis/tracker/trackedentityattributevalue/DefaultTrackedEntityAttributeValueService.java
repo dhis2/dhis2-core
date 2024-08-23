@@ -25,14 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentityattributevalue;
+package org.hisp.dhis.tracker.trackedentityattributevalue;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 import static org.hisp.dhis.system.util.ValidationUtils.valueIsValid;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.changelog.ChangeLogType;
@@ -43,21 +43,17 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLog;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * @author Abyot Asalefew
- */
 @RequiredArgsConstructor
-@Service("org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService")
+@Service
 public class DefaultTrackedEntityAttributeValueService
     implements TrackedEntityAttributeValueService {
-  private final TrackedEntityAttributeValueStore attributeValueStore;
+  private final HibernateTrackedEntityAttributeValueStore attributeValueStore;
 
   private final FileResourceService fileResourceService;
 
@@ -68,12 +64,6 @@ public class DefaultTrackedEntityAttributeValueService
 
   private final DhisConfigurationProvider config;
 
-  private final UserService userService;
-
-  // -------------------------------------------------------------------------
-  // Implementation methods
-  // -------------------------------------------------------------------------
-
   @Override
   @Transactional
   public void deleteTrackedEntityAttributeValue(TrackedEntityAttributeValue attributeValue) {
@@ -81,7 +71,7 @@ public class DefaultTrackedEntityAttributeValueService
         new TrackedEntityAttributeValueChangeLog(
             attributeValue,
             attributeValue.getAuditValue(),
-            CurrentUserUtil.getCurrentUsername(),
+            getCurrentUsername(),
             ChangeLogType.DELETE);
 
     if (config.isEnabled(CHANGELOG_TRACKER)) {
@@ -112,12 +102,6 @@ public class DefaultTrackedEntityAttributeValueService
   public List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(
       TrackedEntityAttribute attribute) {
     return attributeValueStore.get(attribute);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public int getCountOfAssignedTrackedEntityAttributeValues(TrackedEntityAttribute attribute) {
-    return attributeValueStore.getCountOfAssignedTEAValues(attribute);
   }
 
   @Override
@@ -154,7 +138,7 @@ public class DefaultTrackedEntityAttributeValueService
     if (attributeValue.getValue() != null) {
       attributeValueStore.saveVoid(attributeValue);
 
-      if (attributeValue.getAttribute().isGenerated()
+      if (Boolean.TRUE.equals(attributeValue.getAttribute().isGenerated())
           && attributeValue.getAttribute().getTextPattern() != null) {
         reservedValueService.useReservedValue(
             attributeValue.getAttribute().getTextPattern(), attributeValue.getValue());
@@ -165,14 +149,6 @@ public class DefaultTrackedEntityAttributeValueService
   @Override
   @Transactional
   public void updateTrackedEntityAttributeValue(TrackedEntityAttributeValue attributeValue) {
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    updateTrackedEntityAttributeValue(attributeValue, currentUser);
-  }
-
-  @Override
-  @Transactional
-  public void updateTrackedEntityAttributeValue(
-      TrackedEntityAttributeValue attributeValue, UserDetails user) {
     if (attributeValue != null && StringUtils.isEmpty(attributeValue.getValue())) {
       deleteFileValue(attributeValue);
       attributeValueStore.delete(attributeValue);
@@ -196,7 +172,7 @@ public class DefaultTrackedEntityAttributeValueService
           new TrackedEntityAttributeValueChangeLog(
               attributeValue,
               attributeValue.getAuditValue(),
-              User.username(user),
+              getCurrentUsername(),
               ChangeLogType.UPDATE);
 
       if (config.isEnabled(CHANGELOG_TRACKER)) {
@@ -206,7 +182,7 @@ public class DefaultTrackedEntityAttributeValueService
 
       attributeValueStore.update(attributeValue);
 
-      if (attributeValue.getAttribute().isGenerated()
+      if (Boolean.TRUE.equals(attributeValue.getAttribute().isGenerated())
           && attributeValue.getAttribute().getTextPattern() != null) {
         reservedValueService.useReservedValue(
             attributeValue.getAttribute().getTextPattern(), attributeValue.getValue());
@@ -242,6 +218,6 @@ public class DefaultTrackedEntityAttributeValueService
       Map<TrackedEntityAttribute, List<String>> uniqueAttributes) {
     return uniqueAttributes.entrySet().stream()
         .flatMap(entry -> this.attributeValueStore.get(entry.getKey(), entry.getValue()).stream())
-        .collect(Collectors.toList());
+        .toList();
   }
 }
