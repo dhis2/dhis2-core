@@ -48,7 +48,7 @@ public class TrackedEntityDataValueChangeLogDeletionHandler
 
   private void deleteDataElement(DataElement dataElement) {
     delete(
-        "delete from TrackedEntityDataValueChangeLog d where d.dataElement = :de",
-        Map.of("de", dataElement.getUid()));
+        "delete from trackedentitydatavalueaudit d where d.dataelementid = :de",
+        Map.of("de", dataElement.getId()));
   }
 }
