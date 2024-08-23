@@ -67,7 +67,7 @@ class TrackerTrigramIndexingJobTest {
           trackedEntityAttributeService, trackedEntityAttributeTableManager);
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     // mock normal run conditions
     when(trackedEntityAttributeService.getAllTrigramIndexableTrackedEntityAttributes())
         .thenReturn(Collections.emptySet());
@@ -76,7 +76,7 @@ class TrackerTrigramIndexingJobTest {
   }
 
   @Test
-  public void testRunJobWithoutAnyAttributesInJobParametersAndWithoutAnyObsolete() {
+  void testRunJobWithoutAnyAttributesInJobParametersAndWithoutAnyObsolete() {
     JobConfiguration jobConfiguration = new JobConfiguration();
     TrackerTrigramIndexJobParameters jp = new TrackerTrigramIndexJobParameters();
     jobConfiguration.setJobParameters(jp);
@@ -88,7 +88,7 @@ class TrackerTrigramIndexingJobTest {
   }
 
   @Test
-  public void testRunJobWithoutAnyAttributesInJobParametersButWithObsoleteIndexes() {
+  void testRunJobWithoutAnyAttributesInJobParametersButWithObsoleteIndexes() {
     when(trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex())
         .thenReturn(Arrays.asList(12l, 13l));
 
@@ -103,7 +103,7 @@ class TrackerTrigramIndexingJobTest {
   }
 
   @Test
-  public void testRunJobWithNonIndexableAttributesInJobParameters() {
+  void testRunJobWithNonIndexableAttributesInJobParameters() {
     when(trackedEntityAttributeService.getAllTrigramIndexableTrackedEntityAttributes())
         .thenReturn(Collections.singleton(new TrackedEntityAttribute()));
 
@@ -118,7 +118,7 @@ class TrackerTrigramIndexingJobTest {
   }
 
   @Test
-  public void testRunJobWithTwoIndexableAttributesInJobParameters() {
+  void testRunJobWithTwoIndexableAttributesInJobParameters() {
     Set<TrackedEntityAttribute> indexableAttributes = new HashSet<>();
     TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
     tea1.setUid("tea1");
