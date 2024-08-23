@@ -81,10 +81,8 @@ import org.springframework.web.accept.ContentNegotiationManager;
 import org.springframework.web.accept.FixedContentNegotiationStrategy;
 import org.springframework.web.accept.HeaderContentNegotiationStrategy;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
-import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.handler.ConversionServiceExposingInterceptor;
 import org.springframework.web.servlet.resource.ResourceUrlProvider;
@@ -118,10 +116,6 @@ public class MvcTestConfig implements WebMvcConfigurer {
 
   @Autowired private FieldFilterService fieldFilterService;
 
-  @Autowired private FormattingConversionService mvcConversionService;
-
-  @Autowired private ResourceUrlProvider mvcResourceUrlProvider;
-
   @Bean
   @Primary
   public CustomRequestMappingHandlerMapping requestMappingHandlerMapping(
@@ -149,6 +143,10 @@ public class MvcTestConfig implements WebMvcConfigurer {
                 new HeaderContentNegotiationStrategy(),
                 new FixedContentNegotiationStrategy(MediaType.APPLICATION_JSON))));
 
+    mapping.setUseTrailingSlashMatch(true);
+    mapping.setUseSuffixPatternMatch(false);
+    mapping.setUseRegisteredSuffixPatternMatch(true);
+
     return mapping;
   }
 
@@ -174,24 +172,6 @@ public class MvcTestConfig implements WebMvcConfigurer {
           .put("geojson", parseMediaType("application/json+geojson"))
           .build();
 
-  @Override
-  public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
-    CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy =
-        new CustomPathExtensionContentNegotiationStrategy(mediaTypeMap);
-
-    configurer.strategies(
-        Arrays.asList(
-            pathExtensionNegotiationStrategy,
-            new HeaderContentNegotiationStrategy(),
-            new FixedContentNegotiationStrategy(MediaType.APPLICATION_JSON)));
-  }
-
-  @Override
-  public void configurePathMatch(PathMatchConfigurer configurer) {
-    configurer.setUseSuffixPatternMatch(false);
-    configurer.setUseRegisteredSuffixPatternMatch(true);
-  }
-
   @Bean
   public NodeService nodeService() {
     return new DefaultNodeService();
@@ -200,16 +180,6 @@ public class MvcTestConfig implements WebMvcConfigurer {
   @Bean
   public DatabaseInfoProvider databaseInfoProvider() {
     return () -> DatabaseInfo.builder().build();
-  }
-
-  @Override
-  public void addInterceptors(InterceptorRegistry registry) {
-    registry.addInterceptor(new ConversionServiceExposingInterceptor(mvcConversionService));
-    registry.addInterceptor(new ResourceUrlProviderExposingInterceptor(mvcResourceUrlProvider));
-
-    registry.addInterceptor(new UserContextInterceptor(userSettingService));
-    registry.addInterceptor(new RequestInfoInterceptor(requestInfoService));
-    registry.addInterceptor(authorityInterceptor);
   }
 
   @Bean

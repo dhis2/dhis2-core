@@ -37,7 +37,6 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.mvc.condition.PathPatternsRequestCondition;
-import org.springframework.web.servlet.mvc.condition.PatternsRequestCondition;
 import org.springframework.web.servlet.mvc.condition.RequestMethodsRequestCondition;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
@@ -99,19 +98,10 @@ public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMap
           .forEach(addVersionedPath(path, allPaths));
     }
 
-    PatternsRequestCondition patternsRequestCondition =
-        new PatternsRequestCondition(
-            allPaths.toArray(new String[] {}), null, null, true, true, null);
-
-    return new RequestMappingInfo(
-        null,
-        patternsRequestCondition,
-        methodsCondition,
-        info.getParamsCondition(),
-        info.getHeadersCondition(),
-        info.getConsumesCondition(),
-        info.getProducesCondition(),
-        info.getCustomCondition());
+    return info.mutate()
+        .paths(allPaths.toArray(new String[] {}))
+        .methods(methodsCondition.getMethods().toArray(new RequestMethod[] {}))
+        .build();
   }
 
   private static Consumer<DhisApiVersion> addVersionedPath(String path, Set<String> allPaths) {

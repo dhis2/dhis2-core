@@ -282,6 +282,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   @Override
   public void configurePathMatch(PathMatchConfigurer config) {
     config.setUseSuffixPatternMatch(true);
+    config.setUseTrailingSlashMatch(true);
   }
 
   private Map<String, MediaType> mediaTypeMap =
