@@ -397,9 +397,21 @@ public class CollectionUtils {
    * @return the merged map
    */
   @SafeVarargs
-  public static <T> Map<T, T> merge(Map<T, T>... maps) {
+  public static <T> Map<T, T> mergeMaps(Map<T, T>... maps) {
     Map<T, T> result = new HashMap<>();
     Stream.of(maps).forEach(result::putAll);
     return ImmutableMap.copyOf(result);
+  }
+
+  /**
+   * Merges the given collections into a single collection.
+   *
+   * @param collections the collections to merge
+   * @param <T> the type of the elements in the collections
+   * @return the merged collection
+   */
+  @SafeVarargs
+  public static <T> Collection<T> mergeCollections(Collection<T>... collections) {
+    return Stream.of(collections).flatMap(Collection::stream).collect(Collectors.toSet());
   }
 }

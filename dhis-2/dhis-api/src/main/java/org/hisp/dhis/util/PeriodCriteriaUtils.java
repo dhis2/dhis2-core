@@ -76,10 +76,11 @@ public class PeriodCriteriaUtils {
     return (criteria.getDimension().stream().anyMatch(d -> d.startsWith(PERIOD_DIM_ID)))
         || (criteria.getFilter().stream().anyMatch(d -> d.startsWith(PERIOD_DIM_ID)))
         || !isBlank(criteria.getEventDate())
+        || !isBlank(criteria.getOccurredDate())
         || !isBlank(criteria.getEnrollmentDate())
         || (criteria.getStartDate() != null && criteria.getEndDate() != null)
         || !isBlank(criteria.getIncidentDate())
-        || !isBlank(criteria.getOccurredDate())
+        || !isBlank(criteria.getEnrollmentOccurredDate())
         || !isBlank(criteria.getLastUpdated())
         || !isBlank(criteria.getScheduledDate())
         || criteria.getRelativePeriodDate() != null;

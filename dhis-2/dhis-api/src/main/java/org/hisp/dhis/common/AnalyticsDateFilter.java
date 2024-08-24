@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.common;
 
+import static org.apache.commons.lang3.StringUtils.firstNonBlank;
+import static org.hisp.dhis.common.collection.CollectionUtils.mergeCollections;
+
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -64,14 +68,22 @@ public enum AnalyticsDateFilter {
   @Deprecated(since = "2.42")
   INCIDENT_DATE(
       TimeField.INCIDENT_DATE,
-      EventsAnalyticsQueryCriteria::getIncidentDate,
-      EnrollmentAnalyticsQueryCriteria::getIncidentDate,
-      CommonRequestParams::getIncidentDate),
+      // Events
+      criteria -> firstNonBlank(criteria.getEnrollmentOccurredDate(), criteria.getIncidentDate()),
+      // Enrollments
+      criteria -> firstNonBlank(criteria.getOccurredDate(), criteria.getIncidentDate()),
+      criteria ->
+          new HashSet<>(
+              mergeCollections(criteria.getEnrollmentOccurredDate(), criteria.getIncidentDate()))),
   OCCURRED_DATE(
       TimeField.OCCURRED_DATE,
       EventsAnalyticsQueryCriteria::getOccurredDate,
       EnrollmentAnalyticsQueryCriteria::getOccurredDate,
-      CommonRequestParams::getOccurredDate),
+      commonRequestParams ->
+          new HashSet<>(
+              mergeCollections(
+                  commonRequestParams.getEventOccurredDate(),
+                  commonRequestParams.getEnrollmentOccurredDate()))),
   LAST_UPDATED(
       TimeField.LAST_UPDATED,
       EventsAnalyticsQueryCriteria::getLastUpdated,
