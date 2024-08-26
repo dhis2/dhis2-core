@@ -25,40 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.deprecated.audit;
+package org.hisp.dhis.tracker.audit;
 
 import java.util.List;
-import org.hisp.dhis.changelog.ChangeLogType;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAudit;
 import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
 
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
-public interface TrackedEntityAuditService {
+public interface TrackedEntityAuditStore {
+  String ID = TrackedEntityAuditStore.class.getName();
 
-  String ID = TrackedEntityAuditService.class.getName();
+  /**
+   * Adds the given tracked entity audit.
+   *
+   * @param trackedEntityAudit the {@link TrackedEntityAudit} to add.
+   */
+  void addTrackedEntityAudit(TrackedEntityAudit trackedEntityAudit);
 
-  void addTrackedEntityAudit(
-      TrackedEntity trackedEntity, String username, ChangeLogType changeLogType);
-
-  /** Adds multiple tracked entity audit */
-  void addTrackedEntityAudit(List<TrackedEntityAudit> trackedEntityAudits);
+  /**
+   * Adds the given {@link TrackedEntityAudit}s.
+   *
+   * @param trackedEntityAudit the list of {@link TrackedEntityAudit}.
+   */
+  void addTrackedEntityAudit(List<TrackedEntityAudit> trackedEntityAudit);
 
   /**
    * Returns tracked entity audits matching query params
    *
    * @param params tracked entity audit query params
-   * @return matching TrackedEntityAudits
+   * @return a list of {@link TrackedEntityAudit}.
    */
-  List<TrackedEntityAudit> getTrackedEntityAudits(TrackedEntityAuditQueryParams params);
+  List<TrackedEntityAudit> getTrackedEntityAudit(TrackedEntityAuditQueryParams params);
 
   /**
    * Returns count of tracked entity audits matching query params
    *
    * @param params tracked entity audit query params
-   * @return count of TrackedEntityAudits
+   * @return count of audits.
    */
-  int getTrackedEntityAuditsCount(TrackedEntityAuditQueryParams params);
+  int getTrackedEntityAuditCount(TrackedEntityAuditQueryParams params);
 }
