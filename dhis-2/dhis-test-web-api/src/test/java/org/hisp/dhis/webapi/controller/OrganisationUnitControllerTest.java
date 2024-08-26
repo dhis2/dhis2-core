@@ -203,7 +203,10 @@ class OrganisationUnitControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testGetLevelAndQuery() {
-    assertListOfOrganisationUnits(GET("/organisationUnits?level=3&query=22").content(), "L22");
+    // just to show what the result without level filter looks like
+    assertListOfOrganisationUnits(GET("/organisationUnits?query=x").content(), "L1x", "L2x", "L3x");
+    // now the filter of level and query combined only L2x matches x and level 3
+    assertListOfOrganisationUnits(GET("/organisationUnits?level=3&query=x").content(), "L2x");
   }
 
   @Test
