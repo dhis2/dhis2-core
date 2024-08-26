@@ -25,27 +25,59 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.changelog;
+package org.hisp.dhis.trackedentity;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import lombok.Data;
+import lombok.experimental.Accessors;
+import org.hisp.dhis.changelog.ChangeLogType;
+import org.hisp.dhis.common.Pager;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
-public interface TrackedEntityAttributeValueChangeLogService {
-  void addTrackedEntityAttributeValueChangeLog(
-      TrackedEntityAttributeValueChangeLog trackedEntityAttributeValueChangeLog);
+@Data
+@Accessors(chain = true)
+public class TrackedEntityAuditQueryParams {
+  private List<String> trackedEntities = new ArrayList<>();
 
-  /**
-   * @deprecated use TrackedEntityChangeLogService.getTrackedEntityChangeLog(UID) instead
-   */
-  @Deprecated(since = "2.41")
-  List<TrackedEntityAttributeValueChangeLog> getTrackedEntityAttributeValueChangeLogs(
-      TrackedEntityAttributeValueChangeLogQueryParams params);
+  private List<String> users = new ArrayList<>();
 
-  int countTrackedEntityAttributeValueChangeLogs(
-      TrackedEntityAttributeValueChangeLogQueryParams params);
+  private List<ChangeLogType> auditTypes = new ArrayList<>();
 
-  void deleteTrackedEntityAttributeValueChangeLogs(TrackedEntity trackedEntity);
+  private Date startDate = null;
+
+  private Date endDate = null;
+
+  private Pager pager;
+
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
+
+  public boolean hasTrackedEntities() {
+    return trackedEntities != null && !trackedEntities.isEmpty();
+  }
+
+  public boolean hasUsers() {
+    return users != null && !users.isEmpty();
+  }
+
+  public boolean hasAuditTypes() {
+    return auditTypes != null && !auditTypes.isEmpty();
+  }
+
+  public boolean hasStartDate() {
+    return startDate != null;
+  }
+
+  public boolean hasEndDate() {
+    return endDate != null;
+  }
+
+  public boolean hasPaging() {
+    return pager != null;
+  }
 }

@@ -45,9 +45,9 @@ import org.hisp.dhis.program.notification.ProgramNotificationInstanceParam;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.changelog.TrackedEntityAttributeValueChangeLogService;
 import org.hisp.dhis.tracker.changelog.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipQueryParams;
@@ -66,7 +66,7 @@ import org.springframework.stereotype.Service;
 public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeletionService {
   private final IdentifiableObjectManager manager;
 
-  private final TrackedEntityChangeLogService trackedEntityChangeLogService;
+  private final TrackedEntityAuditService trackedEntityAuditService;
 
   private final RelationshipStore relationshipStore;
 
@@ -192,7 +192,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
       if (entity == null) {
         throw new NotFoundException(TrackedEntity.class, uid);
       }
-      trackedEntityChangeLogService.addTrackedEntityChangeLog(entity, getCurrentUsername(), READ);
+      trackedEntityAuditService.addTrackedEntityAudit(entity, getCurrentUsername(), READ);
 
       entity.setLastUpdatedByUserInfo(userInfoSnapshot);
 

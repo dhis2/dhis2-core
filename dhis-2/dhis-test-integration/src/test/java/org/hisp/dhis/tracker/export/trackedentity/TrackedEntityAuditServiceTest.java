@@ -66,7 +66,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
+class TrackedEntityAuditServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackedEntityChangeLogService trackedEntityChangeLogService;
 
@@ -179,7 +179,7 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
   void shouldFailWhenUserHasNoAccessToOrgUnitScope() {
     OrganisationUnit outOfScopeOrgUnit = createOrganisationUnit("out of scope org unit");
     manager.save(outOfScopeOrgUnit, false);
-    TrackedEntity trackedEntity = createTrackedEntity(outOfScopeOrgUnit);
+    trackedEntity = createTrackedEntity(outOfScopeOrgUnit);
     trackedEntity.setTrackedEntityType(trackedEntityType);
     manager.save(trackedEntity, false);
 

@@ -42,7 +42,7 @@ import org.hisp.dhis.common.DxfNamespaces;
  * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
 @JacksonXmlRootElement(localName = "trackedEntityInstanceAudit", namespace = DxfNamespaces.DXF_2_0)
-public class TrackedEntityChangeLog implements Serializable {
+public class TrackedEntityAudit implements Serializable {
   private static final long serialVersionUID = 4260110537887403524L;
 
   private long id;
@@ -61,16 +61,16 @@ public class TrackedEntityChangeLog implements Serializable {
   // Constructors
   // -------------------------------------------------------------------------
 
-  public TrackedEntityChangeLog() {}
+  public TrackedEntityAudit() {}
 
-  public TrackedEntityChangeLog(String trackedEntity, String accessedBy, ChangeLogType auditType) {
+  public TrackedEntityAudit(String trackedEntity, String accessedBy, ChangeLogType auditType) {
     this.trackedEntity = trackedEntity;
     this.accessedBy = accessedBy;
     this.created = new Date();
     this.auditType = auditType;
   }
 
-  public TrackedEntityChangeLog(
+  public TrackedEntityAudit(
       String trackedEntity,
       String comment,
       Date created,
@@ -96,7 +96,7 @@ public class TrackedEntityChangeLog implements Serializable {
       return false;
     }
 
-    final TrackedEntityChangeLog other = (TrackedEntityChangeLog) obj;
+    final TrackedEntityAudit other = (TrackedEntityAudit) obj;
 
     return Objects.equals(this.trackedEntity, other.trackedEntity)
         && Objects.equals(this.comment, other.comment)

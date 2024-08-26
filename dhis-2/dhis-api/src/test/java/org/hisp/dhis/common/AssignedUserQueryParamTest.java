@@ -39,11 +39,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Collection;
 import java.util.Set;
 import org.hisp.dhis.user.User;
-import org.junit.jupiter.api.BeforeEach;
+import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 class AssignedUserQueryParamTest {
   public static final String CURRENT_USER_UID = "Kj6vYde4LHh";
@@ -52,19 +56,10 @@ class AssignedUserQueryParamTest {
 
   public static final Set<String> NON_CURRENT_USER_UIDS = Set.of(NON_CURRENT_USER_UID);
 
-  private User current;
-
-  @BeforeEach
-  void setUp() {
-    current = new User();
-    current.setUid(CURRENT_USER_UID);
-  }
-
   @Test
   void testUserWithAssignedUsersGivenUsersAndModeProvided() {
 
-    AssignedUserQueryParam param =
-        new AssignedUserQueryParam(PROVIDED, null, NON_CURRENT_USER_UIDS);
+    AssignedUserQueryParam param = new AssignedUserQueryParam(PROVIDED, NON_CURRENT_USER_UIDS);
 
     assertEquals(PROVIDED, param.getMode());
     assertEquals(NON_CURRENT_USER_UIDS, param.getAssignedUsers());
@@ -74,7 +69,7 @@ class AssignedUserQueryParamTest {
   @Test
   void testUserWithAssignedUsersGivenUsersAndNoMode() {
 
-    AssignedUserQueryParam param = new AssignedUserQueryParam(null, current, NON_CURRENT_USER_UIDS);
+    AssignedUserQueryParam param = new AssignedUserQueryParam(null, NON_CURRENT_USER_UIDS);
 
     assertEquals(PROVIDED, param.getMode());
     assertEquals(NON_CURRENT_USER_UIDS, param.getAssignedUsers());
@@ -85,7 +80,7 @@ class AssignedUserQueryParamTest {
   @NullAndEmptySource
   void testUserWithAssignedUsersGivenNoModeAndNoUsers(Set<String> users) {
 
-    AssignedUserQueryParam param = new AssignedUserQueryParam(null, current, users);
+    AssignedUserQueryParam param = new AssignedUserQueryParam(null, users);
 
     assertEquals(ALL, param.getMode());
     assertIsEmpty(param.getAssignedUsers());
@@ -96,26 +91,22 @@ class AssignedUserQueryParamTest {
   @NullAndEmptySource
   void testUserWithAssignedUsersFailsGivenNoUsersAndProvided(Set<String> users) {
 
-    assertThrows(
-        IllegalQueryException.class, () -> new AssignedUserQueryParam(PROVIDED, current, users));
+    assertThrows(IllegalQueryException.class, () -> new AssignedUserQueryParam(PROVIDED, users));
   }
 
   @ParameterizedTest
   @NullAndEmptySource
   void testUserWithAssignedUsersGivenCurrentUserAndModeCurrentAndUsersNull(Set<String> users) {
+    User user = new User();
+    user.setUid(CURRENT_USER_UID);
 
-    AssignedUserQueryParam param = new AssignedUserQueryParam(CURRENT, current, users);
+    injectSecurityContext(UserDetails.fromUser(user));
+
+    AssignedUserQueryParam param = new AssignedUserQueryParam(CURRENT, users);
 
     assertEquals(PROVIDED, param.getMode());
     assertEquals(Set.of(CURRENT_USER_UID), param.getAssignedUsers());
     assertTrue(param.hasAssignedUsers());
-  }
-
-  @Test
-  void testUserWithAssignedUsersFailsGivenNoCurrentUserAndModeCurrent() {
-
-    assertThrows(
-        IllegalQueryException.class, () -> new AssignedUserQueryParam(CURRENT, null, null));
   }
 
   @ParameterizedTest
@@ -127,8 +118,7 @@ class AssignedUserQueryParamTest {
       AssignedUserSelectionMode mode) {
 
     assertThrows(
-        IllegalQueryException.class,
-        () -> new AssignedUserQueryParam(mode, current, NON_CURRENT_USER_UIDS));
+        IllegalQueryException.class, () -> new AssignedUserQueryParam(mode, NON_CURRENT_USER_UIDS));
   }
 
   @ParameterizedTest
@@ -138,7 +128,7 @@ class AssignedUserQueryParamTest {
       names = {"PROVIDED", "CURRENT"})
   void testUserWithAssignedUsersGivenNullUsersAndModeOtherThanProvided(
       AssignedUserSelectionMode mode) {
-    AssignedUserQueryParam param = new AssignedUserQueryParam(mode, current, null);
+    AssignedUserQueryParam param = new AssignedUserQueryParam(mode, null);
 
     assertEquals(mode, param.getMode());
     assertIsEmpty(param.getAssignedUsers());
@@ -148,5 +138,14 @@ class AssignedUserQueryParamTest {
   private static void assertIsEmpty(Collection<?> actual) {
     assertNotNull(actual);
     assertTrue(actual.isEmpty(), actual.toString());
+  }
+
+  private void injectSecurityContext(UserDetails currentUserDetails) {
+    Authentication authentication =
+        new UsernamePasswordAuthenticationToken(
+            currentUserDetails, "", currentUserDetails.getAuthorities());
+    SecurityContext context = SecurityContextHolder.createEmptyContext();
+    context.setAuthentication(authentication);
+    SecurityContextHolder.setContext(context);
   }
 }

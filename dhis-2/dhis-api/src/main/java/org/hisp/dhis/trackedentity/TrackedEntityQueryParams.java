@@ -27,20 +27,15 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
-
 import com.google.common.base.MoreObjects;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -51,30 +46,17 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 
 /**
  * @author Lars Helge Overland
  */
 public class TrackedEntityQueryParams {
-  public static final String TRACKED_ENTITY_ID = "instance";
-
   public static final String CREATED_ID = "created";
-
-  public static final String LAST_UPDATED_ID = "lastupdated";
-
-  public static final String ORG_UNIT_ID = "ou";
 
   public static final String ORG_UNIT_NAME = "ouname";
 
-  public static final String TRACKED_ENTITY_TYPE_ID = "te";
-
   public static final String INACTIVE_ID = "inactive";
-
-  public static final String DELETED = "deleted";
-
-  public static final String POTENTIAL_DUPLICATE = "potentialduplicate";
 
   public static final int DEFAULT_PAGE = 1;
 
@@ -122,9 +104,6 @@ public class TrackedEntityQueryParams {
 
   private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
 
-  /** Set of te uids to explicitly select. */
-  private Set<String> trackedEntityUids = new HashSet<>();
-
   /** ProgramStage to be used in conjunction with event status. */
   private ProgramStage programStage;
 
@@ -146,9 +125,6 @@ public class TrackedEntityQueryParams {
   /** Indicates whether paging should be skipped. */
   private boolean skipPaging;
 
-  /** Indicates if there is a maximum te retrieval limit. 0 no limit. */
-  private int maxTeLimit;
-
   /** Indicates whether to include soft-deleted elements. Default to false */
   private boolean includeDeleted = false;
 
@@ -160,9 +136,6 @@ public class TrackedEntityQueryParams {
 
   /** TE order params */
   private List<OrderParam> orders = new ArrayList<>();
-
-  /** Current user for query. */
-  private transient User user;
 
   public TrackedEntityQueryParams() {}
 
@@ -184,164 +157,6 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  /**
-   * Performs a set of operations on this params.
-   *
-   * <ul>
-   *   <li>If a query item is specified as an attribute item as well as a filter item, the filter
-   *       item will be removed. In that case, if the attribute item does not have any filters and
-   *       the filter item has one or more filters, these will be applied to the attribute item.
-   * </ul>
-   */
-  public void conform() {
-    Iterator<QueryItem> filterIter = filters.iterator();
-
-    while (filterIter.hasNext()) {
-      QueryItem filter = filterIter.next();
-
-      int index = attributes.indexOf(filter); // Filter present as attr
-
-      if (index >= 0) {
-        QueryItem attribute = attributes.get(index);
-
-        if (!attribute.hasFilter() && filter.hasFilter()) {
-          attribute.getFilters().addAll(filter.getFilters());
-        }
-
-        filterIter.remove();
-      }
-    }
-  }
-
-  /**
-   * Prepares the organisation units of the given parameters to simplify querying. Mode ACCESSIBLE
-   * is converted to DESCENDANTS for organisation units linked to the search scope of the given
-   * user. Mode CAPTURE is converted to DESCENDANTS too, but using organisation units linked to the
-   * user's capture scope, and mode CHILDREN is converted to SELECTED for organisation units
-   * including all their children. Mode can be DESCENDANTS, SELECTED, ALL only after invoking this
-   * method.
-   */
-  public void handleOrganisationUnits() {
-    if (user != null && isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
-      setOrgUnits(user.getEffectiveSearchOrganisationUnits());
-      setOrgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
-    } else if (user != null && isOrganisationUnitMode(OrganisationUnitSelectionMode.CAPTURE)) {
-      setOrgUnits(user.getOrganisationUnits());
-      setOrgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
-    } else if (isOrganisationUnitMode(CHILDREN)) {
-      Set<OrganisationUnit> orgUnits = new HashSet<>(getOrgUnits());
-
-      for (OrganisationUnit organisationUnit : getOrgUnits()) {
-        orgUnits.addAll(organisationUnit.getChildren());
-      }
-
-      setOrgUnits(orgUnits);
-      setOrgUnitMode(OrganisationUnitSelectionMode.SELECTED);
-    }
-  }
-
-  public boolean hasTrackedEntities() {
-    return CollectionUtils.isNotEmpty(this.trackedEntityUids);
-  }
-
-  public void addAttributes(List<QueryItem> attrs) {
-    attributes.addAll(attrs);
-  }
-
-  public boolean hasFilterForEvents() {
-    return this.getAssignedUserQueryParam().getMode() != AssignedUserSelectionMode.ALL
-        || hasEventStatus();
-  }
-
-  /** Add the given attributes to this params if they are not already present. */
-  public void addAttributesIfNotExist(List<QueryItem> attrs) {
-    for (QueryItem attr : attrs) {
-      if (attributes != null && !attributes.contains(attr)) {
-        attributes.add(attr);
-      }
-    }
-  }
-
-  /** Adds the given filters to this parameter if they are not already present. */
-  public void addFiltersIfNotExist(List<QueryItem> filtrs) {
-    for (QueryItem filter : filtrs) {
-      if (filters != null && !filters.contains(filter)) {
-        filters.add(filter);
-      }
-    }
-  }
-
-  /**
-   * Indicates whether this is a logical OR query, meaning that a query string is specified and
-   * instances which matches this query on one or more attributes should be included in the
-   * response. The opposite is an item-specific query, where the instances which matches the
-   * specific attributes should be included.
-   */
-  public boolean isOrQuery() {
-    return hasQuery();
-  }
-
-  /** Indicates whether this parameter specifies a query. */
-  public boolean hasQuery() {
-    return query != null && query.isFilter();
-  }
-
-  /** Returns a list of attributes and filters combined. */
-  public List<QueryItem> getAttributesAndFilters() {
-    List<QueryItem> items = new ArrayList<>();
-    items.addAll(attributes);
-    items.addAll(filters);
-    return items;
-  }
-
-  /** Returns a list of attributes and filters combined. */
-  public Set<String> getAttributeAndFilterIds() {
-    return getAttributesAndFilters().stream().map(QueryItem::getItemId).collect(Collectors.toSet());
-  }
-
-  /** Returns a list of attributes which appear more than once. */
-  public List<QueryItem> getDuplicateAttributes() {
-    Set<QueryItem> items = new HashSet<>();
-    List<QueryItem> duplicates = new ArrayList<>();
-
-    for (QueryItem item : getAttributes()) {
-      if (!items.add(item)) {
-        duplicates.add(item);
-      }
-    }
-
-    return duplicates;
-  }
-
-  /** Returns a list of attributes which appear more than once. */
-  public List<QueryItem> getDuplicateFilters() {
-    Set<QueryItem> items = new HashSet<>();
-    List<QueryItem> duplicates = new ArrayList<>();
-
-    for (QueryItem item : getFilters()) {
-      if (!items.add(item)) {
-        duplicates.add(item);
-      }
-    }
-
-    return duplicates;
-  }
-
-  /** Indicates whether this parameter specifies any attributes and/or filters. */
-  public boolean hasAttributesOrFilters() {
-    return hasAttributes() || hasFilters();
-  }
-
-  /** Indicates whether this parameter specifies any attributes. */
-  public boolean hasAttributes() {
-    return attributes != null && !attributes.isEmpty();
-  }
-
-  /** Indicates whether this parameter specifies any filters. */
-  public boolean hasFilters() {
-    return filters != null && !filters.isEmpty();
-  }
-
   /** Indicates whether this parameter specifies any organisation units. */
   public boolean hasOrganisationUnits() {
     return orgUnits != null && !orgUnits.isEmpty();
@@ -352,29 +167,6 @@ public class TrackedEntityQueryParams {
     return program != null;
   }
 
-  /** Indicates whether this parameter specifies a program status. */
-  public boolean hasEnrollmentStatus() {
-    return enrollmentStatus != null;
-  }
-
-  /**
-   * Indicates whether this parameter specifies follow up for the given program. Follow up can be
-   * specified as true or false.
-   */
-  public boolean hasFollowUp() {
-    return followUp != null;
-  }
-
-  /** Indicates whether this parameter has a lastUpdatedDuration filter. */
-  public boolean hasLastUpdatedDuration() {
-    return lastUpdatedDuration != null;
-  }
-
-  /** Indicates whether this parameter specifies a tracked entity. */
-  public boolean hasTrackedEntityType() {
-    return trackedEntityType != null;
-  }
-
   /** Indicates whether this parameter is of the given organisation unit mode. */
   public boolean isOrganisationUnitMode(OrganisationUnitSelectionMode mode) {
     return orgUnitMode != null && orgUnitMode.equals(mode);
@@ -383,48 +175,6 @@ public class TrackedEntityQueryParams {
   /** Indicates whether this parameter specifies a programStage. */
   public boolean hasProgramStage() {
     return programStage != null;
-  }
-
-  /** Indicates whether this parameter specifies an event status. */
-  public boolean hasEventStatus() {
-    return eventStatus != null;
-  }
-
-  /**
-   * Indicates whether the event status specified for the params is equal to the given event status.
-   */
-  public boolean isEventStatus(EventStatus eventStatus) {
-    return this.eventStatus != null && this.eventStatus.equals(eventStatus);
-  }
-
-  /** Check whether we are filtering for potential duplicate property. */
-  public boolean hasPotentialDuplicateFilter() {
-    return potentialDuplicate != null;
-  }
-
-  /**
-   * Checks if there is at least one unique filter in the params. In attributes or filters.
-   *
-   * @return true if there exist at least one unique filter in filters/attributes, false otherwise.
-   */
-  public boolean hasUniqueFilter() {
-    if (!hasFilters() && !hasAttributes()) {
-      return false;
-    }
-
-    for (QueryItem filter : filters) {
-      if (filter.isUnique()) {
-        return true;
-      }
-    }
-
-    for (QueryItem attribute : attributes) {
-      if (attribute.isUnique() && attribute.hasFilter()) {
-        return true;
-      }
-    }
-
-    return false;
   }
 
   /** Indicates whether paging is enabled. */
@@ -469,7 +219,6 @@ public class TrackedEntityQueryParams {
         .add("skipPaging", skipPaging)
         .add("includeDeleted", includeDeleted)
         .add("orders", orders)
-        .add("user", user)
         .add("potentialDuplicate", potentialDuplicate)
         .toString();
   }
@@ -586,11 +335,6 @@ public class TrackedEntityQueryParams {
     return this.assignedUserQueryParam;
   }
 
-  public TrackedEntityQueryParams setUser(User user) {
-    this.user = user;
-    return this;
-  }
-
   public EventStatus getEventStatus() {
     return eventStatus;
   }
@@ -645,14 +389,6 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public int getMaxTeLimit() {
-    return maxTeLimit;
-  }
-
-  public void setMaxTeLimit(int maxTeLimit) {
-    this.maxTeLimit = maxTeLimit;
-  }
-
   public boolean isIncludeDeleted() {
     return includeDeleted;
   }
@@ -660,10 +396,6 @@ public class TrackedEntityQueryParams {
   public TrackedEntityQueryParams setIncludeDeleted(boolean includeDeleted) {
     this.includeDeleted = includeDeleted;
     return this;
-  }
-
-  public User getUser() {
-    return user;
   }
 
   public List<OrderParam> getOrders() {
@@ -674,26 +406,15 @@ public class TrackedEntityQueryParams {
     this.orders = orders;
   }
 
-  public Set<String> getTrackedEntityUids() {
-    return trackedEntityUids;
-  }
-
-  public void setTrackedEntityUids(Set<String> trackedEntityUids) {
-    this.trackedEntityUids = trackedEntityUids;
-  }
-
   /**
    * Set assigned user selection mode, assigned users and the current user for the query. Non-empty
    * assigned users are only allowed with mode PROVIDED (or null).
    *
    * @param mode assigned user mode
-   * @param current current user with which query is made
    * @param assignedUsers assigned user uids
    */
-  public void setUserWithAssignedUsers(
-      AssignedUserSelectionMode mode, User current, Set<String> assignedUsers) {
-    this.assignedUserQueryParam = new AssignedUserQueryParam(mode, current, assignedUsers);
-    this.user = current;
+  public void setUserWithAssignedUsers(AssignedUserSelectionMode mode, Set<String> assignedUsers) {
+    this.assignedUserQueryParam = new AssignedUserQueryParam(mode, assignedUsers);
   }
 
   public List<TrackedEntityType> getTrackedEntityTypes() {
@@ -721,10 +442,6 @@ public class TrackedEntityQueryParams {
 
     private final String tableAlias;
 
-    public boolean isPropertyEqualTo(String property) {
-      return propName.equalsIgnoreCase(property);
-    }
-
     /**
      * @return an Optional of an OrderColumn matching by property name
      */
@@ -732,22 +449,6 @@ public class TrackedEntityQueryParams {
       return Arrays.stream(values())
           .filter(orderColumn -> orderColumn.getPropName().equals(property))
           .findFirst();
-    }
-
-    /**
-     * @return a Sql string composed by the actual table alias and column. In use for the inner
-     *     query select fields and order by
-     */
-    public String getSqlColumnWithTableAlias() {
-      return tableAlias + "." + column;
-    }
-
-    /**
-     * @return a Sql string composed by the main query alias and column. In use for the outer query
-     *     select fields and order by
-     */
-    public String getSqlColumnWithMainTable() {
-      return MAIN_QUERY_ALIAS + "." + column;
     }
   }
 }
