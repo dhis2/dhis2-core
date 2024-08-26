@@ -92,7 +92,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChan
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogQueryParams;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
-import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
+import org.hisp.dhis.tracker.deprecated.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -535,6 +535,7 @@ public class ChangeLogController {
   }
 
   @GetMapping("trackedEntity")
+  @Deprecated(since = "2.42", forRemoval = true)
   public RootNode getTrackedEnityChangeLog(
       @OpenApi.Param({UID[].class, TrackedEntity.class})
           @RequestParam(required = false, defaultValue = "")

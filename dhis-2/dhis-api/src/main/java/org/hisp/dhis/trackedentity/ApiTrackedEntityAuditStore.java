@@ -30,6 +30,7 @@ package org.hisp.dhis.trackedentity;
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
+@Deprecated(since = "2.42", forRemoval = true)
 public interface ApiTrackedEntityAuditStore {
   String ID = ApiTrackedEntityAuditStore.class.getName();
 
