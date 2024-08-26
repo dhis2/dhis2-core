@@ -202,6 +202,11 @@ class OrganisationUnitControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  void testGetLevelAndQuery() {
+    assertListOfOrganisationUnits(GET("/organisationUnits?level=3&query=22").content(), "L22");
+  }
+
+  @Test
   void testGetMaxLevel() {
     assertListOfOrganisationUnits(
         GET("/organisationUnits?maxLevel=2").content(), "L0", "L1", "L1x");
