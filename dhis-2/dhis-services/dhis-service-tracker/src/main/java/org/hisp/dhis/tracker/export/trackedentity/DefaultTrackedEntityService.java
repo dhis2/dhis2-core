@@ -59,13 +59,13 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityChangeLog;
-import org.hisp.dhis.trackedentity.TrackedEntityChangeLogService;
+import org.hisp.dhis.trackedentity.TrackedEntityAudit;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
@@ -90,7 +90,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
   private final TrackedEntityTypeService trackedEntityTypeService;
 
-  private final TrackedEntityChangeLogService trackedEntityChangeLogService;
+  private final TrackedEntityAuditService trackedEntityAuditService;
 
   private final TrackerAccessManager trackerAccessManager;
 
@@ -253,8 +253,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       String uid, Program program, TrackedEntityParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException {
     TrackedEntity trackedEntity = trackedEntityStore.getByUid(uid);
-    trackedEntityChangeLogService.addTrackedEntityChangeLog(
-        trackedEntity, getCurrentUsername(), READ);
+    trackedEntityAuditService.addTrackedEntityAudit(trackedEntity, getCurrentUsername(), READ);
     if (trackedEntity == null) {
       throw new NotFoundException(TrackedEntity.class, uid);
     }
@@ -287,8 +286,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   private TrackedEntity getTrackedEntity(String uid, UserDetails userDetails)
       throws NotFoundException, ForbiddenException {
     TrackedEntity trackedEntity = trackedEntityStore.getByUid(uid);
-    trackedEntityChangeLogService.addTrackedEntityChangeLog(
-        trackedEntity, getCurrentUsername(), READ);
+    trackedEntityAuditService.addTrackedEntityAudit(trackedEntity, getCurrentUsername(), READ);
     if (trackedEntity == null) {
       throw new NotFoundException(TrackedEntity.class, uid);
     }
@@ -446,8 +444,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     RelationshipItem relationshipItem = new RelationshipItem();
 
     TrackedEntity trackedEntity = trackedEntityStore.getByUid(uid);
-    trackedEntityChangeLogService.addTrackedEntityChangeLog(
-        trackedEntity, getCurrentUsername(), READ);
+    trackedEntityAuditService.addTrackedEntityAudit(trackedEntity, getCurrentUsername(), READ);
     if (trackedEntity == null) {
       throw new NotFoundException(TrackedEntity.class, uid);
     }
@@ -620,19 +617,19 @@ class DefaultTrackedEntityService implements TrackedEntityService {
         trackedEntityTypeService.getAllTrackedEntityType().stream()
             .collect(Collectors.toMap(TrackedEntityType::getUid, t -> t));
 
-    List<TrackedEntityChangeLog> auditable =
+    List<TrackedEntityAudit> auditable =
         trackedEntities.stream()
             .filter(Objects::nonNull)
             .filter(te -> te.getTrackedEntityType() != null)
             .filter(te -> tetMap.get(te.getTrackedEntityType().getUid()).isAllowAuditLog())
             .map(
                 te ->
-                    new TrackedEntityChangeLog(
+                    new TrackedEntityAudit(
                         te.getUid(), CurrentUserUtil.getCurrentUsername(), ChangeLogType.SEARCH))
             .toList();
 
     if (!auditable.isEmpty()) {
-      trackedEntityChangeLogService.addTrackedEntityChangeLog(auditable);
+      trackedEntityAuditService.addTrackedEntityAudit(auditable);
     }
   }
 

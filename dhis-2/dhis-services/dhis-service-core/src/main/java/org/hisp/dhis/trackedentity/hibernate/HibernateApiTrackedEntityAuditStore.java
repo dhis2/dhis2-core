@@ -25,43 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentity;
+package org.hisp.dhis.trackedentity.hibernate;
 
-import java.util.List;
+import javax.persistence.EntityManager;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.trackedentity.ApiTrackedEntityAuditStore;
+import org.hisp.dhis.trackedentity.TrackedEntityAudit;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
-public interface TrackedEntityChangeLogStore {
-  String ID = TrackedEntityChangeLogStore.class.getName();
+@Repository("org.hisp.dhis.trackedentity.ApiTrackedEntityAuditStore")
+public class HibernateApiTrackedEntityAuditStore extends HibernateGenericStore<TrackedEntityAudit>
+    implements ApiTrackedEntityAuditStore {
 
-  /**
-   * Adds the given tracked entity audit.
-   *
-   * @param trackedEntityChangeLog the {@link TrackedEntityChangeLog} to add.
-   */
-  void addTrackedEntityChangeLog(TrackedEntityChangeLog trackedEntityChangeLog);
+  public HibernateApiTrackedEntityAuditStore(
+      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
+    super(entityManager, jdbcTemplate, publisher, TrackedEntityAudit.class, false);
+  }
 
-  /**
-   * Adds the given {@link TrackedEntityChangeLog}s.
-   *
-   * @param trackedEntityChangeLog the list of {@link TrackedEntityChangeLog}.
-   */
-  void addTrackedEntityChangeLog(List<TrackedEntityChangeLog> trackedEntityChangeLog);
+  // -------------------------------------------------------------------------
+  // ApiTrackedEntityAuditService implementation
+  // -------------------------------------------------------------------------
 
-  /**
-   * Returns tracked entity audits matching query params
-   *
-   * @param params tracked entity audit query params
-   * @return a list of {@link TrackedEntityChangeLog}.
-   */
-  List<TrackedEntityChangeLog> getTrackedEntityChangeLogs(TrackedEntityChangeLogQueryParams params);
-
-  /**
-   * Returns count of tracked entity audits matching query params
-   *
-   * @param params tracked entity audit query params
-   * @return count of audits.
-   */
-  int getTrackedEntityChangeLogsCount(TrackedEntityChangeLogQueryParams params);
+  @Override
+  public void addTrackedEntityAudit(TrackedEntityAudit trackedEntityAudit) {
+    getSession().save(trackedEntityAudit);
+  }
 }
