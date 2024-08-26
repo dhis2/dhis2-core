@@ -25,13 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentity;
+package org.hisp.dhis.tracker.audit;
 
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAudit;
+import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.scheduling.annotation.Async;
@@ -43,8 +46,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.trackedentity.TrackedEntityChangeLogService")
-public class DefaultTrackedEntityChangeLogService implements TrackedEntityChangeLogService {
-  private final TrackedEntityChangeLogStore trackedEntityChangeLogStore;
+public class DefaultTrackedEntityAuditService implements TrackedEntityAuditService {
+  private final TrackedEntityAuditStore trackedEntityAuditStore;
 
   private final IdentifiableObjectManager manager;
 
@@ -53,42 +56,41 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
   @Override
   @Async
   @Transactional
-  public void addTrackedEntityChangeLog(
+  public void addTrackedEntityAudit(
       TrackedEntity trackedEntity, String username, ChangeLogType changeLogType) {
     if (username != null
         && trackedEntity != null
         && trackedEntity.getTrackedEntityType() != null
         && trackedEntity.getTrackedEntityType().isAllowAuditLog()) {
-      TrackedEntityChangeLog trackedEntityChangeLog =
-          new TrackedEntityChangeLog(trackedEntity.getUid(), username, changeLogType);
-      trackedEntityChangeLogStore.addTrackedEntityChangeLog(trackedEntityChangeLog);
+      TrackedEntityAudit trackedEntityAudit =
+          new TrackedEntityAudit(trackedEntity.getUid(), username, changeLogType);
+      trackedEntityAuditStore.addTrackedEntityAudit(trackedEntityAudit);
     }
   }
 
   @Override
   @Async
   @Transactional
-  public void addTrackedEntityChangeLog(List<TrackedEntityChangeLog> trackedEntityChangeLogs) {
-    trackedEntityChangeLogStore.addTrackedEntityChangeLog(trackedEntityChangeLogs);
+  public void addTrackedEntityAudit(List<TrackedEntityAudit> trackedEntityAudits) {
+    trackedEntityAuditStore.addTrackedEntityAudit(trackedEntityAudits);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public List<TrackedEntityChangeLog> getTrackedEntityChangeLogs(
-      TrackedEntityChangeLogQueryParams params) {
+  public List<TrackedEntityAudit> getTrackedEntityAudits(TrackedEntityAuditQueryParams params) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    return trackedEntityChangeLogStore.getTrackedEntityChangeLogs(params).stream()
+    return trackedEntityAuditStore.getTrackedEntityAudit(params).stream()
         .filter(
             a ->
                 trackerAccessManager
                     .canRead(currentUser, manager.get(TrackedEntity.class, a.getTrackedEntity()))
                     .isEmpty())
-        .collect(Collectors.toList());
+        .toList();
   }
 
   @Override
   @Transactional(readOnly = true)
-  public int getTrackedEntityChangeLogsCount(TrackedEntityChangeLogQueryParams params) {
-    return trackedEntityChangeLogStore.getTrackedEntityChangeLogsCount(params);
+  public int getTrackedEntityAuditsCount(TrackedEntityAuditQueryParams params) {
+    return trackedEntityAuditStore.getTrackedEntityAuditCount(params);
   }
 }

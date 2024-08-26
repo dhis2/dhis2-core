@@ -52,9 +52,8 @@ class TrackedEntityQueryParamsTest {
   @Test
   void testUserWithAssignedUsersGivenCurrentUserAndModeProvidedWithUsers() {
 
-    params.setUserWithAssignedUsers(PROVIDED, current, Set.of("f1AyMswryyX"));
+    params.setUserWithAssignedUsers(PROVIDED, Set.of("f1AyMswryyX"));
 
-    assertEquals(current, params.getUser());
     assertEquals(PROVIDED, params.getAssignedUserQueryParam().getMode());
     assertEquals(Set.of("f1AyMswryyX"), params.getAssignedUserQueryParam().getAssignedUsers());
   }

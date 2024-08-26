@@ -62,6 +62,8 @@
       <many-to-many class="org.hisp.dhis.predictor.PredictorGroup" column="predictorgroupid" />
     </set>
 
+    <!-- Sharing is intentionally excluded. No known use case.  -->
+
   </class>
 
 </hibernate-mapping>

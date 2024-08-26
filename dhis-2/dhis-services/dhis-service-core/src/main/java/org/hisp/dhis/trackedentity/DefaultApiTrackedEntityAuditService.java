@@ -25,22 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.trackedentity;
 
-import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.changelog.ChangeLogType;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
-public class RelationshipItemSchemaDescriptor implements SchemaDescriptor {
-  public static final String SINGULAR = "relationshipItem";
-
-  public static final String PLURAL = "relationshipItems";
+@RequiredArgsConstructor
+@Service("org.hisp.dhis.trackedentity.ApiTrackedEntityAuditService")
+public class DefaultApiTrackedEntityAuditService implements ApiTrackedEntityAuditService {
+  private final ApiTrackedEntityAuditStore apiTrackedEntityAuditStore;
 
   @Override
-  public Schema getSchema() {
-    return new Schema(RelationshipItem.class, SINGULAR, PLURAL);
+  @Async
+  @Transactional
+  public void addTrackedEntityAudit(
+      TrackedEntity trackedEntity, String username, ChangeLogType changeLogType) {
+    if (username != null
+        && trackedEntity != null
+        && trackedEntity.getTrackedEntityType() != null
+        && trackedEntity.getTrackedEntityType().isAllowAuditLog()) {
+      TrackedEntityAudit trackedEntityAudit =
+          new TrackedEntityAudit(trackedEntity.getUid(), username, changeLogType);
+      apiTrackedEntityAuditStore.addTrackedEntityAudit(trackedEntityAudit);
+    }
   }
 }

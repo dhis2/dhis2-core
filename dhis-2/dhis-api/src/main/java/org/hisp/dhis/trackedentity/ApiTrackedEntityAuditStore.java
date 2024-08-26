@@ -25,33 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentityattributevalue;
-
-import java.util.Map;
-import lombok.AllArgsConstructor;
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.springframework.stereotype.Component;
+package org.hisp.dhis.trackedentity;
 
 /**
- * @author Chau Thu Tran
+ * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
-@Component
-@AllArgsConstructor
-public class TrackedEntityAttributeValueDeletionHandler extends JdbcDeletionHandler {
-  private static final DeletionVeto VETO =
-      new DeletionVeto(
-          TrackedEntityAttributeValue.class, "Some values are still assigned to this attribute");
+public interface ApiTrackedEntityAuditStore {
+  String ID = ApiTrackedEntityAuditStore.class.getName();
 
-  @Override
-  protected void register() {
-    whenVetoing(TrackedEntityAttribute.class, this::allowDeleteTrackedEntityAttribute);
-  }
-
-  private DeletionVeto allowDeleteTrackedEntityAttribute(TrackedEntityAttribute attribute) {
-    String sql =
-        "select 1 from trackedentityattributevalue where trackedentityattributeid = :id limit 1";
-    return vetoIfExists(VETO, sql, Map.of("id", attribute.getId()));
-  }
+  /**
+   * Adds the given tracked entity audit.
+   *
+   * @param trackedEntityAudit the {@link TrackedEntityAudit} to add.
+   */
+  void addTrackedEntityAudit(TrackedEntityAudit trackedEntityAudit);
 }
