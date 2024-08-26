@@ -290,7 +290,7 @@ public class MvcTestConfig implements WebMvcConfigurer {
 
   @Bean
   @Primary
-  public MessageSender fakeMessageSender() {
+  public MessageSender messageSender() {
     return new FakeMessageSender();
   }
 
