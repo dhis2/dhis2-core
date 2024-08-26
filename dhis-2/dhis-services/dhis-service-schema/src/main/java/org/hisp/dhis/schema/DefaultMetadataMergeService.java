@@ -69,6 +69,12 @@ public class DefaultMetadataMergeService implements MetadataMergeService {
         continue;
       }
 
+      // created should not be overridden if not null
+      if (property.getFieldName().equals("created")) {
+        Object targetObject = ReflectionUtils.invokeMethod(target, property.getGetterMethod());
+        if (targetObject != null) continue;
+      }
+
       if (property.isCollection()) {
         Collection<T> sourceObject =
             ReflectionUtils.invokeMethod(source, property.getGetterMethod());

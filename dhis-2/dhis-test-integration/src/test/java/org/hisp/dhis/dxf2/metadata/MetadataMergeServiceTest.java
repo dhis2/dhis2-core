@@ -30,9 +30,11 @@ package org.hisp.dhis.dxf2.metadata;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.merge.Simple;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
@@ -42,6 +44,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.schema.MetadataMergeParams;
 import org.hisp.dhis.schema.MetadataMergeService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.util.DateUtils;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -69,6 +73,20 @@ class MetadataMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(date, target.getDate());
     assertFalse(target.getBool());
     assertEquals(123, target.getAnInt());
+  }
+
+  @Test
+  @DisplayName(
+      "Merging an existing DataElement with a new DataElement should not override the existing created Date")
+  void dataElementMerge() {
+    DataElement source = createDataElement('1');
+    DataElement target = createDataElement('1');
+    Date oldDate = DateUtils.getDate(2020, 11, 18, 4, 55);
+    target.setCreated(oldDate);
+    metadataMergeService.merge(
+        new MetadataMergeParams<>(source, target).setMergeMode(MergeMode.REPLACE));
+    assertEquals(oldDate, target.getCreated());
+    assertTrue(source.getCreated().after(oldDate), "source created date is after old date");
   }
 
   @Test
