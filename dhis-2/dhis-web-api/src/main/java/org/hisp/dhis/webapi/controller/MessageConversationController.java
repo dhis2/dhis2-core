@@ -182,7 +182,7 @@ public class MessageConversationController
       throws QueryParserException {
     List<org.hisp.dhis.message.MessageConversation> messageConversations;
 
-    if (options.getOptions().containsKey("query")) {
+    if (objects == null && options.getOptions().containsKey("query")) {
       messageConversations =
           Lists.newArrayList(manager.filter(getEntityClass(), options.getOptions().get("query")));
     } else {
