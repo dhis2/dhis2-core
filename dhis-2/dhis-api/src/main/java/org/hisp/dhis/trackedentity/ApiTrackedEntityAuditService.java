@@ -25,27 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentityattributevalue;
+package org.hisp.dhis.trackedentity;
 
-import java.util.List;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.changelog.ChangeLogType;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
-public interface TrackedEntityAttributeValueChangeLogService {
-  void addTrackedEntityAttributeValueChangLog(
-      TrackedEntityAttributeValueChangeLog trackedEntityAttributeValueChangeLog);
+public interface ApiTrackedEntityAuditService {
 
-  /**
-   * @deprecated use TrackedEntityChangeLogService.getTrackedEntityChangeLog(UID) instead
-   */
-  @Deprecated(since = "2.41")
-  List<TrackedEntityAttributeValueChangeLog> getTrackedEntityAttributeValueChangeLogs(
-      TrackedEntityAttributeValueChangeLogQueryParams params);
+  String ID = ApiTrackedEntityAuditService.class.getName();
 
-  int countTrackedEntityAttributeValueChangeLogs(
-      TrackedEntityAttributeValueChangeLogQueryParams params);
-
-  void deleteTrackedEntityAttributeValueChangeLogs(TrackedEntity trackedEntity);
+  void addTrackedEntityAudit(
+      TrackedEntity trackedEntity, String username, ChangeLogType changeLogType);
 }

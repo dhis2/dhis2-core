@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentityattributevalue;
+package org.hisp.dhis.tracker.trackedentityattributevalue;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +40,7 @@ import org.springframework.stereotype.Component;
  * @author Ameen Mohamed
  */
 @RequiredArgsConstructor
-@Component("org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeTableManager")
+@Component("org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeTableManager")
 public class JdbcTrackedEntityAttributeTableManager implements TrackedEntityAttributeTableManager {
   private static final String TRIGRAM_INDEX_CREATE_QUERY =
       "CREATE INDEX CONCURRENTLY IF NOT EXISTS in_gin_teavalue_%d ON "

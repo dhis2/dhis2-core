@@ -27,57 +27,32 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import lombok.Data;
-import lombok.experimental.Accessors;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.changelog.ChangeLogType;
-import org.hisp.dhis.common.Pager;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
-@Data
-@Accessors(chain = true)
-public class TrackedEntityChangeLogQueryParams {
-  private List<String> trackedEntities = new ArrayList<>();
+@RequiredArgsConstructor
+@Service("org.hisp.dhis.trackedentity.ApiTrackedEntityAuditService")
+public class DefaultApiTrackedEntityAuditService implements ApiTrackedEntityAuditService {
+  private final ApiTrackedEntityAuditStore apiTrackedEntityAuditStore;
 
-  private List<String> users = new ArrayList<>();
-
-  private List<ChangeLogType> auditTypes = new ArrayList<>();
-
-  private Date startDate = null;
-
-  private Date endDate = null;
-
-  private Pager pager;
-
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  public boolean hasTrackedEntities() {
-    return trackedEntities != null && !trackedEntities.isEmpty();
-  }
-
-  public boolean hasUsers() {
-    return users != null && !users.isEmpty();
-  }
-
-  public boolean hasAuditTypes() {
-    return auditTypes != null && !auditTypes.isEmpty();
-  }
-
-  public boolean hasStartDate() {
-    return startDate != null;
-  }
-
-  public boolean hasEndDate() {
-    return endDate != null;
-  }
-
-  public boolean hasPaging() {
-    return pager != null;
+  @Override
+  @Async
+  @Transactional
+  public void addTrackedEntityAudit(
+      TrackedEntity trackedEntity, String username, ChangeLogType changeLogType) {
+    if (username != null
+        && trackedEntity != null
+        && trackedEntity.getTrackedEntityType() != null
+        && trackedEntity.getTrackedEntityType().isAllowAuditLog()) {
+      TrackedEntityAudit trackedEntityAudit =
+          new TrackedEntityAudit(trackedEntity.getUid(), username, changeLogType);
+      apiTrackedEntityAuditStore.addTrackedEntityAudit(trackedEntityAudit);
+    }
   }
 }

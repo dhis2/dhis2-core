@@ -25,20 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentityattributevalue;
+package org.hisp.dhis.trackedentity.hibernate;
 
-import java.util.List;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import javax.persistence.EntityManager;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.trackedentity.ApiTrackedEntityAuditStore;
+import org.hisp.dhis.trackedentity.TrackedEntityAudit;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
- * Interface for administrative/maintenance tasks on trackedentityattributevalue table
- *
- * @author Ameen Mohamed
+ * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
-public interface TrackedEntityAttributeTableManager {
-  void createTrigramIndex(TrackedEntityAttribute trackedEntityAttribute);
+@Repository("org.hisp.dhis.trackedentity.ApiTrackedEntityAuditStore")
+public class HibernateApiTrackedEntityAuditStore extends HibernateGenericStore<TrackedEntityAudit>
+    implements ApiTrackedEntityAuditStore {
 
-  void dropTrigramIndex(Long trackedEntityAttributeId);
+  public HibernateApiTrackedEntityAuditStore(
+      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
+    super(entityManager, jdbcTemplate, publisher, TrackedEntityAudit.class, false);
+  }
 
-  List<Long> getAttributeIdsWithTrigramIndex();
+  // -------------------------------------------------------------------------
+  // ApiTrackedEntityAuditService implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public void addTrackedEntityAudit(TrackedEntityAudit trackedEntityAudit) {
+    getSession().save(trackedEntityAudit);
+  }
 }
