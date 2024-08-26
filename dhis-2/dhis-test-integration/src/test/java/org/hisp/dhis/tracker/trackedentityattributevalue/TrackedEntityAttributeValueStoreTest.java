@@ -45,7 +45,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.changelog.TrackedEntityAttributeValueChangeLog;
 import org.hisp.dhis.tracker.changelog.TrackedEntityAttributeValueChangeLogQueryParams;
-import org.hisp.dhis.tracker.changelog.TrackedEntityAttributeValueChangeLogService;
+import org.hisp.dhis.tracker.changelog.TrackedEntityAttributeValueChangeLogStore;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -68,7 +68,7 @@ class TrackedEntityAttributeValueStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackedEntityAttributeService attributeService;
 
-  @Autowired private TrackedEntityAttributeValueChangeLogService attributeValueChangeLogStore;
+  @Autowired private TrackedEntityAttributeValueChangeLogStore attributeValueChangeLogStore;
 
   @Autowired private RenderService renderService;
 

@@ -44,7 +44,7 @@ import org.springframework.stereotype.Service;
 @Service("org.hisp.dhis.tracker.changelog.TrackedEntityAttributeValueChangeLogService")
 public class DefaultTrackedEntityAttributeValueChangeLogService
     implements TrackedEntityAttributeValueChangeLogService {
-  private final HibernateTrackedEntityAttributeValueChangeLogStore attributeValueChangeLogStore;
+  private final TrackedEntityAttributeValueChangeLogStore attributeValueChangeLogStore;
 
   private final TrackedEntityAttributeService trackedEntityAttributeService;
 
