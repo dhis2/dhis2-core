@@ -694,7 +694,7 @@ public class DefaultAclService implements AclService {
   }
 
   private boolean haveOverrideAuthority(UserDetails user) {
-    return user.isSuper();
+    return user == null || user.isSuper();
   }
 
   private boolean isSuper(UserDetails user) {
