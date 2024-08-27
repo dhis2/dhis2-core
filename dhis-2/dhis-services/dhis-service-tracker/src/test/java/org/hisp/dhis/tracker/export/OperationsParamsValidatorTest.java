@@ -32,6 +32,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.program.ProgramType.WITHOUT_REGISTRATION;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
@@ -46,10 +47,12 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.tracker.deprecated.audit.TrackedEntityAuditService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,6 +62,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -96,7 +100,7 @@ class OperationsParamsValidatorTest {
 
   @Mock private IdentifiableObjectManager manager;
 
-  @Mock private TrackedEntityChangeLogService trackedEntityChangeLogService;
+  @Mock private TrackedEntityAuditService trackedEntityAuditService;
 
   @InjectMocks private OperationsParamsValidator paramsValidator;
 
@@ -108,11 +112,16 @@ class OperationsParamsValidatorTest {
 
   @Test
   void shouldFailWhenOuModeCaptureAndUserHasNoOrgUnitsAssigned() {
-    Exception exception =
-        Assertions.assertThrows(
-            BadRequestException.class, () -> validateOrgUnitMode(CAPTURE, new User(), program));
+    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
+      userUtilMockedStatic
+          .when(CurrentUserUtil::getCurrentUserDetails)
+          .thenReturn(UserDetails.fromUser(new User()));
+      Exception exception =
+          Assertions.assertThrows(
+              BadRequestException.class, () -> validateOrgUnitMode(CAPTURE, program));
 
-    assertEquals("User needs to be assigned data capture org units", exception.getMessage());
+      assertEquals("User needs to be assigned data capture org units", exception.getMessage());
+    }
   }
 
   @ParameterizedTest
@@ -121,24 +130,35 @@ class OperationsParamsValidatorTest {
       names = {"SELECTED", "ACCESSIBLE", "DESCENDANTS", "CHILDREN"})
   void shouldFailWhenOuModeRequiresUserScopeOrgUnitAndUserHasNoOrgUnitsAssigned(
       OrganisationUnitSelectionMode orgUnitMode) {
-    Exception exception =
-        Assertions.assertThrows(
-            BadRequestException.class, () -> validateOrgUnitMode(orgUnitMode, new User(), program));
 
-    assertEquals(
-        "User needs to be assigned either search or data capture org units",
-        exception.getMessage());
+    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
+      userUtilMockedStatic
+          .when(CurrentUserUtil::getCurrentUserDetails)
+          .thenReturn(UserDetails.fromUser(new User()));
+      Exception exception =
+          Assertions.assertThrows(
+              BadRequestException.class, () -> validateOrgUnitMode(orgUnitMode, program));
+
+      assertEquals(
+          "User needs to be assigned either search or data capture org units",
+          exception.getMessage());
+    }
   }
 
   @Test
   void shouldFailWhenOuModeAllAndNotSuperuser() {
-    Exception exception =
-        Assertions.assertThrows(
-            BadRequestException.class, () -> validateOrgUnitMode(ALL, new User(), program));
+    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
+      userUtilMockedStatic
+          .when(CurrentUserUtil::getCurrentUserDetails)
+          .thenReturn(UserDetails.fromUser(new User()));
+      Exception exception =
+          Assertions.assertThrows(
+              BadRequestException.class, () -> validateOrgUnitMode(ALL, program));
 
-    assertEquals(
-        "Current user is not authorized to query across all organisation units",
-        exception.getMessage());
+      assertEquals(
+          "Current user is not authorized to query across all organisation units",
+          exception.getMessage());
+    }
   }
 
   @Test
@@ -147,8 +167,7 @@ class OperationsParamsValidatorTest {
 
     Exception exception =
         Assertions.assertThrows(
-            BadRequestException.class,
-            () -> paramsValidator.validateTrackerProgram(PROGRAM_UID, new User()));
+            BadRequestException.class, () -> paramsValidator.validateTrackerProgram(PROGRAM_UID));
 
     assertEquals(
         String.format("Program is specified but does not exist: %s", PROGRAM_UID),
@@ -160,25 +179,34 @@ class OperationsParamsValidatorTest {
       throws ForbiddenException, BadRequestException {
     User user = new User();
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
-    when(aclService.canDataRead(user, program)).thenReturn(true);
+    when(aclService.canDataRead(UserDetails.fromUser(user), program)).thenReturn(true);
 
-    assertEquals(program, paramsValidator.validateTrackerProgram(PROGRAM_UID, user));
+    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
+      userUtilMockedStatic
+          .when(CurrentUserUtil::getCurrentUserDetails)
+          .thenReturn(UserDetails.fromUser(user));
+      assertEquals(program, paramsValidator.validateTrackerProgram(PROGRAM_UID));
+    }
   }
 
   @Test
   void shouldThrowForbiddenExceptionWhenUserHasNoAccessToProgram() {
     User user = new User();
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
-    when(aclService.canDataRead(user, program)).thenReturn(false);
+    when(aclService.canDataRead(UserDetails.fromUser(user), program)).thenReturn(false);
 
-    Exception exception =
-        Assertions.assertThrows(
-            ForbiddenException.class,
-            () -> paramsValidator.validateTrackerProgram(PROGRAM_UID, user));
+    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
+      userUtilMockedStatic
+          .when(CurrentUserUtil::getCurrentUserDetails)
+          .thenReturn(UserDetails.fromUser(user));
+      Exception exception =
+          Assertions.assertThrows(
+              ForbiddenException.class, () -> paramsValidator.validateTrackerProgram(PROGRAM_UID));
 
-    assertEquals(
-        String.format("User has no access to program: %s", program.getUid()),
-        exception.getMessage());
+      assertEquals(
+          String.format("User has no access to program: %s", program.getUid()),
+          exception.getMessage());
+    }
   }
 
   @Test
@@ -188,10 +216,16 @@ class OperationsParamsValidatorTest {
     TrackedEntityType trackedEntityType = new TrackedEntityType("trackedEntityType", "");
     program.setTrackedEntityType(trackedEntityType);
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
-    when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
+    when(aclService.canDataRead(UserDetails.fromUser(user), program)).thenReturn(true);
+    when(aclService.canDataRead(UserDetails.fromUser(user), program.getTrackedEntityType()))
+        .thenReturn(true);
 
-    assertEquals(program, paramsValidator.validateTrackerProgram(PROGRAM_UID, user));
+    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
+      userUtilMockedStatic
+          .when(CurrentUserUtil::getCurrentUserDetails)
+          .thenReturn(UserDetails.fromUser(user));
+      assertEquals(program, paramsValidator.validateTrackerProgram(PROGRAM_UID));
+    }
   }
 
   @Test
@@ -200,19 +234,24 @@ class OperationsParamsValidatorTest {
     TrackedEntityType trackedEntityType = new TrackedEntityType("trackedEntityType", "");
     program.setTrackedEntityType(trackedEntityType);
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
-    when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(false);
+    when(aclService.canDataRead(UserDetails.fromUser(user), program)).thenReturn(true);
+    when(aclService.canDataRead(UserDetails.fromUser(user), program.getTrackedEntityType()))
+        .thenReturn(false);
 
-    Exception exception =
-        Assertions.assertThrows(
-            ForbiddenException.class,
-            () -> paramsValidator.validateTrackerProgram(PROGRAM_UID, user));
+    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
+      userUtilMockedStatic
+          .when(CurrentUserUtil::getCurrentUserDetails)
+          .thenReturn(UserDetails.fromUser(user));
+      Exception exception =
+          Assertions.assertThrows(
+              ForbiddenException.class, () -> paramsValidator.validateTrackerProgram(PROGRAM_UID));
 
-    assertEquals(
-        String.format(
-            "Current user is not authorized to read data from selected program's tracked entity type: %s",
-            trackedEntityType.getUid()),
-        exception.getMessage());
+      assertEquals(
+          String.format(
+              "Current user is not authorized to read data from selected program's tracked entity type: %s",
+              trackedEntityType.getUid()),
+          exception.getMessage());
+    }
   }
 
   @Test
@@ -220,16 +259,20 @@ class OperationsParamsValidatorTest {
     User user = new User();
     program.setProgramType(WITHOUT_REGISTRATION);
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
-    when(aclService.canDataRead(user, program)).thenReturn(true);
+    when(aclService.canDataRead(UserDetails.fromUser(user), program)).thenReturn(true);
 
-    Exception exception =
-        Assertions.assertThrows(
-            BadRequestException.class,
-            () -> paramsValidator.validateTrackerProgram(PROGRAM_UID, user));
+    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
+      userUtilMockedStatic
+          .when(CurrentUserUtil::getCurrentUserDetails)
+          .thenReturn(UserDetails.fromUser(user));
+      Exception exception =
+          Assertions.assertThrows(
+              BadRequestException.class, () -> paramsValidator.validateTrackerProgram(PROGRAM_UID));
 
-    assertEquals(
-        String.format("Program specified is not a tracker program: %s", PROGRAM_UID),
-        exception.getMessage());
+      assertEquals(
+          String.format("Program specified is not a tracker program: %s", PROGRAM_UID),
+          exception.getMessage());
+    }
   }
 
   @Test
@@ -294,7 +337,7 @@ class OperationsParamsValidatorTest {
     Exception exception =
         Assertions.assertThrows(
             BadRequestException.class,
-            () -> paramsValidator.validateTrackedEntityType(TRACKED_ENTITY_TYPE_UID, new User()));
+            () -> paramsValidator.validateTrackedEntityType(TRACKED_ENTITY_TYPE_UID));
 
     assertEquals(
         String.format(
@@ -308,11 +351,15 @@ class OperationsParamsValidatorTest {
     User user = new User();
     when(trackedEntityTypeService.getTrackedEntityType(TRACKED_ENTITY_TYPE_UID))
         .thenReturn(trackedEntityType);
-    when(aclService.canDataRead(user, trackedEntityType)).thenReturn(true);
+    when(aclService.canDataRead(UserDetails.fromUser(user), trackedEntityType)).thenReturn(true);
 
-    assertEquals(
-        trackedEntityType,
-        paramsValidator.validateTrackedEntityType(TRACKED_ENTITY_TYPE_UID, new User()));
+    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
+      userUtilMockedStatic
+          .when(CurrentUserUtil::getCurrentUserDetails)
+          .thenReturn(UserDetails.fromUser(user));
+      assertEquals(
+          trackedEntityType, paramsValidator.validateTrackedEntityType(TRACKED_ENTITY_TYPE_UID));
+    }
   }
 
   @Test
@@ -320,18 +367,23 @@ class OperationsParamsValidatorTest {
     User user = new User();
     when(trackedEntityTypeService.getTrackedEntityType(TRACKED_ENTITY_TYPE_UID))
         .thenReturn(trackedEntityType);
-    when(aclService.canDataRead(user, trackedEntityType)).thenReturn(false);
+    when(aclService.canDataRead(UserDetails.fromUser(user), trackedEntityType)).thenReturn(false);
 
-    Exception exception =
-        Assertions.assertThrows(
-            ForbiddenException.class,
-            () -> paramsValidator.validateTrackedEntityType(TRACKED_ENTITY_TYPE_UID, user));
+    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
+      userUtilMockedStatic
+          .when(CurrentUserUtil::getCurrentUserDetails)
+          .thenReturn(UserDetails.fromUser(user));
+      Exception exception =
+          Assertions.assertThrows(
+              ForbiddenException.class,
+              () -> paramsValidator.validateTrackedEntityType(TRACKED_ENTITY_TYPE_UID));
 
-    assertEquals(
-        String.format(
-            "Current user is not authorized to read data from selected tracked entity type: %s",
-            trackedEntityType.getUid()),
-        exception.getMessage());
+      assertEquals(
+          String.format(
+              "Current user is not authorized to read data from selected tracked entity type: %s",
+              trackedEntityType.getUid()),
+          exception.getMessage());
+    }
   }
 
   @Test
@@ -341,7 +393,7 @@ class OperationsParamsValidatorTest {
     Exception exception =
         Assertions.assertThrows(
             BadRequestException.class,
-            () -> paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_UID), new User()));
+            () -> paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_UID)));
 
     assertEquals(
         String.format("Organisation unit does not exist: %s", ORG_UNIT_UID),
@@ -352,30 +404,35 @@ class OperationsParamsValidatorTest {
   void shouldReturnOrgUnitWhenUserHasAccessToOrgUnit()
       throws ForbiddenException, BadRequestException {
     User user = new User();
+    user.setOrganisationUnits(Set.of(orgUnit));
     when(organisationUnitService.getOrganisationUnit(ORG_UNIT_UID)).thenReturn(orgUnit);
-    when(organisationUnitService.isInUserHierarchy(
-            orgUnit.getUid(), user.getEffectiveSearchOrganisationUnits()))
-        .thenReturn(true);
 
-    assertEquals(Set.of(orgUnit), paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_UID), user));
+    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
+      userUtilMockedStatic
+          .when(CurrentUserUtil::getCurrentUserDetails)
+          .thenReturn(UserDetails.fromUser(user));
+      assertEquals(Set.of(orgUnit), paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_UID)));
+    }
   }
 
   @Test
   void shouldThrowForbiddenExceptionWhenUserHasNoAccessToOrgUnit() {
     User user = new User();
     when(organisationUnitService.getOrganisationUnit(ORG_UNIT_UID)).thenReturn(orgUnit);
-    when(organisationUnitService.isInUserHierarchy(
-            orgUnit.getUid(), user.getEffectiveSearchOrganisationUnits()))
-        .thenReturn(false);
 
-    Exception exception =
-        Assertions.assertThrows(
-            ForbiddenException.class,
-            () -> paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_UID), user));
+    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
+      userUtilMockedStatic
+          .when(CurrentUserUtil::getCurrentUserDetails)
+          .thenReturn(UserDetails.fromUser(user));
+      Exception exception =
+          Assertions.assertThrows(
+              ForbiddenException.class,
+              () -> paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_UID)));
 
-    assertEquals(
-        String.format("Organisation unit is not part of the search scope: %s", orgUnit.getUid()),
-        exception.getMessage());
+      assertEquals(
+          String.format("Organisation unit is not part of the search scope: %s", orgUnit.getUid()),
+          exception.getMessage());
+    }
   }
 
   @Test
@@ -387,9 +444,14 @@ class OperationsParamsValidatorTest {
     user.setUserRoles(Set.of(userRole));
     when(organisationUnitService.getOrganisationUnit(ORG_UNIT_UID)).thenReturn(orgUnit);
 
-    Set<OrganisationUnit> orgUnits = paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_UID), user);
+    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
+      userUtilMockedStatic
+          .when(CurrentUserUtil::getCurrentUserDetails)
+          .thenReturn(UserDetails.fromUser(user));
+      Set<OrganisationUnit> orgUnits = paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_UID));
 
-    assertEquals(Set.of(orgUnit), orgUnits);
+      assertEquals(Set.of(orgUnit), orgUnits);
+    }
   }
 
   private OrganisationUnit createOrgUnit(String name, String uid) {

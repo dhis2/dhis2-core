@@ -85,9 +85,8 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -101,8 +100,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Transactional
 class AnalyticsValidationServiceTest extends PostgresIntegrationTestBase {
-  @Autowired private TrackedEntityService trackedEntityService;
-
   @Autowired private TrackedEntityAttributeService entityAttributeService;
 
   @Autowired private TrackedEntityAttributeValueService entityAttributeValueService;

@@ -34,6 +34,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.test.TestBase.injectSecurityContext;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -104,7 +105,6 @@ class EnrollmentOperationParamsMapperTest {
     user = new User();
     user.setUsername("admin");
 
-    injectSecurityContext(UserDetails.fromUser(user));
     when(userService.getUserByUsername(anyString())).thenReturn(user);
 
     orgUnit1 = new OrganisationUnit("orgUnit1");
@@ -133,12 +133,13 @@ class EnrollmentOperationParamsMapperTest {
     trackedEntity.setUid(TRACKED_ENTITY_UID);
     trackedEntity.setTrackedEntityType(trackedEntityType);
 
-    when(paramsValidator.validateTrackerProgram(PROGRAM_UID, user)).thenReturn(program);
-    when(paramsValidator.validateTrackedEntityType(TRACKED_ENTITY_TYPE_UID, user))
+    when(paramsValidator.validateTrackerProgram(PROGRAM_UID)).thenReturn(program);
+    when(paramsValidator.validateTrackedEntityType(TRACKED_ENTITY_TYPE_UID))
         .thenReturn(trackedEntityType);
     when(paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user)).thenReturn(trackedEntity);
-    when(paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID), user))
+    when(paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID)))
         .thenReturn(Set.of(orgUnit1, orgUnit2));
+    injectSecurityContext(UserDetails.fromUser(user));
   }
 
   @Test
@@ -187,6 +188,8 @@ class EnrollmentOperationParamsMapperTest {
   @Test
   void shouldMapDescendantsOrgUnitModeWhenAccessibleProvided()
       throws ForbiddenException, BadRequestException {
+    when(userService.getUserByUsername(any())).thenReturn(user);
+
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnitMode(ACCESSIBLE).build();
 
@@ -199,6 +202,8 @@ class EnrollmentOperationParamsMapperTest {
   @Test
   void shouldMapDescendantsOrgUnitModeWhenCaptureProvided()
       throws ForbiddenException, BadRequestException {
+    when(userService.getUserByUsername(any())).thenReturn(user);
+
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnitMode(CAPTURE).build();
 

@@ -34,11 +34,13 @@ import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.system.util.SqlUtils.escape;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import static org.hisp.dhis.util.DateUtils.toLongDateWithMillis;
 import static org.hisp.dhis.util.DateUtils.toLongGmtDate;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -69,6 +71,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -622,7 +625,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   private String getFromSubQueryJoinOrgUnitConditions(TrackedEntityQueryParams params) {
     StringBuilder orgUnits = new StringBuilder();
 
-    params.handleOrganisationUnits();
+    handleOrganisationUnits(params);
 
     orgUnits
         .append(" INNER JOIN organisationunit OU ")
@@ -644,6 +647,27 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     return orgUnits.toString();
   }
 
+  /**
+   * Prepares the organisation units of the given parameters to simplify querying. Mode ACCESSIBLE
+   * is converted to DESCENDANTS for organisation units linked to the search scope of the given
+   * user. Mode CAPTURE is converted to DESCENDANTS too, but using organisation units linked to the
+   * user's capture scope, and mode CHILDREN is converted to SELECTED for organisation units
+   * including all their children. Mode can be DESCENDANTS, SELECTED, ALL only after invoking this
+   * method.
+   */
+  private void handleOrganisationUnits(TrackedEntityQueryParams params) {
+    UserDetails user = getCurrentUserDetails();
+    if (user != null && params.isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
+      params.setOrgUnits(
+          new HashSet<>(organisationUnitStore.getByUid(user.getUserEffectiveSearchOrgUnitIds())));
+      params.setOrgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
+    } else if (user != null
+        && params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CAPTURE)) {
+      params.setOrgUnits(new HashSet<>(organisationUnitStore.getByUid(user.getUserOrgUnitIds())));
+      params.setOrgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
+    }
+  }
+
   private String getOwnerOrgUnit(TrackedEntityQueryParams params) {
     if (params.hasProgram()) {
       return "PO.organisationunitid ";
@@ -659,11 +683,11 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     orgUnits.append("AND (");
 
     for (OrganisationUnit organisationUnit : params.getOrgUnits()) {
-
-      OrganisationUnit ou = organisationUnitStore.getByUid(organisationUnit.getUid());
-      if (ou != null) {
-        orgUnits.append(orHlp.or()).append("OU.path LIKE '").append(ou.getPath()).append("%'");
-      }
+      orgUnits
+          .append(orHlp.or())
+          .append("OU.path LIKE '")
+          .append(organisationUnit.getPath())
+          .append("%'");
     }
 
     orgUnits.append(") ");
@@ -678,20 +702,16 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     orgUnits.append("AND (");
 
     for (OrganisationUnit organisationUnit : params.getOrgUnits()) {
-
-      OrganisationUnit ou = organisationUnitStore.getByUid(organisationUnit.getUid());
-      if (ou != null) {
-        orgUnits
-            .append(orHlp.or())
-            .append(" OU.path LIKE '")
-            .append(ou.getPath())
-            .append("%'")
-            .append(" AND (ou.hierarchylevel = ")
-            .append(ou.getHierarchyLevel())
-            .append(" OR ou.hierarchylevel = ")
-            .append((ou.getHierarchyLevel() + 1))
-            .append(")");
-      }
+      orgUnits
+          .append(orHlp.or())
+          .append(" OU.path LIKE '")
+          .append(organisationUnit.getPath())
+          .append("%'")
+          .append(" AND (ou.hierarchylevel = ")
+          .append(organisationUnit.getHierarchyLevel())
+          .append(" OR ou.hierarchylevel = ")
+          .append((organisationUnit.getHierarchyLevel() + 1))
+          .append(")");
     }
 
     orgUnits.append(") ");
