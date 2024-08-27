@@ -34,6 +34,7 @@ import org.hisp.dhis.sms.outbound.OutboundSmsService;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -60,6 +61,8 @@ class SmsOutboundControllerTest extends H2ControllerIntegrationTestBase {
         GET("/sms/outbound").content(HttpStatus.FORBIDDEN));
   }
 
+  @Disabled(
+      "TODO(DHIS2-17729) enable as soon as we can control the email/sms message senders in tests")
   @Test
   void testSendSMSMessage() {
     assertWebMessage(
@@ -91,6 +94,8 @@ class SmsOutboundControllerTest extends H2ControllerIntegrationTestBase {
         POST("/sms/outbound?recipient=xyz&message=").content(HttpStatus.CONFLICT));
   }
 
+  @Disabled(
+      "TODO(DHIS2-17729) enable as soon as we can control the email/sms message senders in tests")
   @Test
   void testSendSMSMessageWithBody() {
     assertWebMessage(
