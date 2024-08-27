@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
+import static java.lang.String.format;
 import static org.hisp.dhis.db.model.Table.toStaging;
 import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
 
@@ -55,6 +56,7 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 @RequiredArgsConstructor
 public class OrganisationUnitStructureResourceTable implements ResourceTable {
   public static final String TABLE_NAME = "analytics_rs_orgunitstructure";
+  public static final int ROOT_LEVEL = 1;
 
   private final Logged logged;
 
@@ -81,12 +83,12 @@ public class OrganisationUnitStructureResourceTable implements ResourceTable {
             new Column("level", DataType.INTEGER, Nullable.NOT_NULL),
             new Column("path", DataType.VARCHAR_255, Nullable.NULL));
 
-    for (int k = 1; k <= organisationUnitLevels; k++) {
+    for (int level = ROOT_LEVEL; level <= organisationUnitLevels; level++) {
       columns.addAll(
           List.of(
-              new Column(("idlevel" + k), DataType.BIGINT),
-              new Column(("uidlevel" + k), DataType.CHARACTER_11),
-              new Column(("namelevel" + k), DataType.TEXT)));
+              new Column(("idlevel" + level), DataType.BIGINT),
+              new Column(("uidlevel" + level), DataType.CHARACTER_11),
+              new Column(("namelevel" + level), DataType.TEXT)));
     }
 
     return columns;
@@ -119,43 +121,77 @@ public class OrganisationUnitStructureResourceTable implements ResourceTable {
 
   @Override
   public Optional<List<Object[]>> getPopulateTempTableContent() {
-    List<Object[]> batchArgs = new ArrayList<>();
+    List<Object[]> batchObjects = new ArrayList<>();
 
-    for (int i = 0; i < organisationUnitLevels; i++) {
-      int level = i + 1;
-
+    for (int level = ROOT_LEVEL; level <= organisationUnitLevels; level++) {
       List<OrganisationUnit> units = organisationUnitService.getOrganisationUnitsAtLevel(level);
 
-      for (OrganisationUnit unit : units) {
-        List<Object> values = new ArrayList<>();
-
-        values.add(unit.getId());
-        values.add(unit.getUid());
-        values.add(level);
-        values.add(unit.getPath());
-
-        Map<Integer, Long> identifiers = new HashMap<>();
-        Map<Integer, String> uids = new HashMap<>();
-        Map<Integer, String> names = new HashMap<>();
-
-        for (int j = level; j > 0; j--) {
-          identifiers.put(j, unit.getId());
-          uids.put(j, unit.getUid());
-          names.put(j, unit.getName());
-
-          unit = unit.getParent();
-        }
-
-        for (int k = 1; k <= organisationUnitLevels; k++) {
-          values.add(identifiers.get(k) != null ? identifiers.get(k) : null);
-          values.add(uids.get(k));
-          values.add(names.get(k));
-        }
-
-        batchArgs.add(values.toArray());
-      }
+      batchObjects.addAll(createBatchObjects(units, level));
     }
 
-    return Optional.of(batchArgs);
+    return Optional.of(batchObjects);
+  }
+
+  /**
+   * Creates the list of batch of objects to be added to the org. unit resource table.
+   *
+   * @param units the list of {@link OrganisationUnit}.
+   * @param level the level of the given list of {@link OrganisationUnit}.
+   * @return the list of batch objects.
+   */
+  List<Object[]> createBatchObjects(List<OrganisationUnit> units, int level) {
+    List<Object[]> batchObjects = new ArrayList<>();
+
+    for (OrganisationUnit unit : units) {
+      List<Object> values = new ArrayList<>();
+
+      values.add(unit.getId());
+      values.add(unit.getUid());
+      values.add(level);
+      values.add(unit.getPath());
+
+      Map<Integer, Long> identifiers = new HashMap<>();
+      Map<Integer, String> uids = new HashMap<>();
+      Map<Integer, String> names = new HashMap<>();
+
+      for (int j = level; j > 0; j--) {
+        identifiers.put(j, unit.getId());
+        uids.put(j, unit.getUid());
+        names.put(j, unit.getName());
+
+        if (isOrgUnitLevelValid(unit, j)) {
+          unit = unit.getParent();
+        } else {
+          throw new IllegalStateException(
+              format(
+                  "Invalid hierarchy level or missing parent for organisation unit %s.",
+                  unit.getUid()));
+        }
+      }
+
+      for (int k = ROOT_LEVEL; k <= organisationUnitLevels; k++) {
+        values.add(identifiers.get(k) != null ? identifiers.get(k) : null);
+        values.add(uids.get(k));
+        values.add(names.get(k));
+      }
+
+      batchObjects.add(values.toArray());
+    }
+
+    return batchObjects;
+  }
+
+  /**
+   * Verifies if the given {@link OrganisationUnit} matches the given value, as expected.
+   *
+   * @param unit the {@link OrganisationUnit} to check.
+   * @param level the level to be used in the validation.
+   * @return true if the expectation is matched, false otherwise.
+   */
+  private static boolean isOrgUnitLevelValid(OrganisationUnit unit, int level) {
+    boolean isLevelCorrect = unit.getLevel() == level && unit.getHierarchyLevel() == level;
+    boolean hasParent = unit.getParent() != null;
+    return isLevelCorrect
+        && ((hasParent && level > ROOT_LEVEL) || (level == ROOT_LEVEL && !hasParent));
   }
 }

@@ -25,30 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitydatavalue;
+package org.hisp.dhis.trackedentity;
 
-import java.util.List;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.changelog.ChangeLogType;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
-public interface TrackedEntityDataValueChangeLogService {
-  void addTrackedEntityDataValueChangeLog(
-      TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog);
+@RequiredArgsConstructor
+@Service("org.hisp.dhis.trackedentity.ApiTrackedEntityAuditService")
+public class DefaultApiTrackedEntityAuditService implements ApiTrackedEntityAuditService {
+  private final ApiTrackedEntityAuditStore apiTrackedEntityAuditStore;
 
-  /**
-   * @deprecated use EventChangeLogService.getEventChangeLog(UID) instead
-   */
-  @Deprecated(since = "2.41")
-  List<TrackedEntityDataValueChangeLog> getTrackedEntityDataValueChangeLogs(
-      TrackedEntityDataValueChangeLogQueryParams params);
-
-  int countTrackedEntityDataValueChangeLogs(TrackedEntityDataValueChangeLogQueryParams params);
-
-  void deleteTrackedEntityDataValueChangeLog(DataElement dataElement);
-
-  void deleteTrackedEntityDataValueChangeLog(Event event);
+  @Override
+  @Async
+  @Transactional
+  public void addTrackedEntityAudit(
+      TrackedEntity trackedEntity, String username, ChangeLogType changeLogType) {
+    if (username != null
+        && trackedEntity != null
+        && trackedEntity.getTrackedEntityType() != null
+        && trackedEntity.getTrackedEntityType().isAllowAuditLog()) {
+      TrackedEntityAudit trackedEntityAudit =
+          new TrackedEntityAudit(trackedEntity.getUid(), username, changeLogType);
+      apiTrackedEntityAuditStore.addTrackedEntityAudit(trackedEntityAudit);
+    }
+  }
 }

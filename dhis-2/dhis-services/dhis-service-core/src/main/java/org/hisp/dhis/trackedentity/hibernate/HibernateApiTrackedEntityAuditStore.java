@@ -25,59 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentity;
+package org.hisp.dhis.trackedentity.hibernate;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import lombok.Data;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.changelog.ChangeLogType;
-import org.hisp.dhis.common.Pager;
+import javax.persistence.EntityManager;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.trackedentity.ApiTrackedEntityAuditStore;
+import org.hisp.dhis.trackedentity.TrackedEntityAudit;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
-@Data
-@Accessors(chain = true)
-public class TrackedEntityChangeLogQueryParams {
-  private List<String> trackedEntities = new ArrayList<>();
+@Repository("org.hisp.dhis.trackedentity.ApiTrackedEntityAuditStore")
+public class HibernateApiTrackedEntityAuditStore extends HibernateGenericStore<TrackedEntityAudit>
+    implements ApiTrackedEntityAuditStore {
 
-  private List<String> users = new ArrayList<>();
-
-  private List<ChangeLogType> auditTypes = new ArrayList<>();
-
-  private Date startDate = null;
-
-  private Date endDate = null;
-
-  private Pager pager;
+  public HibernateApiTrackedEntityAuditStore(
+      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
+    super(entityManager, jdbcTemplate, publisher, TrackedEntityAudit.class, false);
+  }
 
   // -------------------------------------------------------------------------
-  // Logic
+  // ApiTrackedEntityAuditService implementation
   // -------------------------------------------------------------------------
 
-  public boolean hasTrackedEntities() {
-    return trackedEntities != null && !trackedEntities.isEmpty();
-  }
-
-  public boolean hasUsers() {
-    return users != null && !users.isEmpty();
-  }
-
-  public boolean hasAuditTypes() {
-    return auditTypes != null && !auditTypes.isEmpty();
-  }
-
-  public boolean hasStartDate() {
-    return startDate != null;
-  }
-
-  public boolean hasEndDate() {
-    return endDate != null;
-  }
-
-  public boolean hasPaging() {
-    return pager != null;
+  @Override
+  public void addTrackedEntityAudit(TrackedEntityAudit trackedEntityAudit) {
+    getSession().save(trackedEntityAudit);
   }
 }

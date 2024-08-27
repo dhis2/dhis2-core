@@ -45,9 +45,9 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.tracker.deprecated.audit.TrackedEntityAuditService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
@@ -66,7 +66,7 @@ public class OperationsParamsValidator {
 
   private final OrganisationUnitService organisationUnitService;
 
-  private final TrackedEntityChangeLogService trackedEntityChangeLogService;
+  private final TrackedEntityAuditService trackedEntityAuditService;
 
   /**
    * Validates the user is authorized and/or has the necessary configuration set up in case the org
@@ -189,8 +189,7 @@ public class OperationsParamsValidator {
       throw new BadRequestException(
           "Tracked entity is specified but does not exist: " + trackedEntityUid);
     }
-    trackedEntityChangeLogService.addTrackedEntityChangeLog(
-        trackedEntity, getCurrentUsername(), READ);
+    trackedEntityAuditService.addTrackedEntityAudit(trackedEntity, getCurrentUsername(), READ);
 
     if (trackedEntity.getTrackedEntityType() != null
         && !aclService.canDataRead(user, trackedEntity.getTrackedEntityType())) {

@@ -27,41 +27,16 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import java.util.List;
+import org.hisp.dhis.changelog.ChangeLogType;
 
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
-public interface TrackedEntityChangeLogStore {
-  String ID = TrackedEntityChangeLogStore.class.getName();
+@Deprecated(since = "2.42", forRemoval = true)
+public interface ApiTrackedEntityAuditService {
 
-  /**
-   * Adds the given tracked entity audit.
-   *
-   * @param trackedEntityChangeLog the {@link TrackedEntityChangeLog} to add.
-   */
-  void addTrackedEntityChangeLog(TrackedEntityChangeLog trackedEntityChangeLog);
+  String ID = ApiTrackedEntityAuditService.class.getName();
 
-  /**
-   * Adds the given {@link TrackedEntityChangeLog}s.
-   *
-   * @param trackedEntityChangeLog the list of {@link TrackedEntityChangeLog}.
-   */
-  void addTrackedEntityChangeLog(List<TrackedEntityChangeLog> trackedEntityChangeLog);
-
-  /**
-   * Returns tracked entity audits matching query params
-   *
-   * @param params tracked entity audit query params
-   * @return a list of {@link TrackedEntityChangeLog}.
-   */
-  List<TrackedEntityChangeLog> getTrackedEntityChangeLogs(TrackedEntityChangeLogQueryParams params);
-
-  /**
-   * Returns count of tracked entity audits matching query params
-   *
-   * @param params tracked entity audit query params
-   * @return count of audits.
-   */
-  int getTrackedEntityChangeLogsCount(TrackedEntityChangeLogQueryParams params);
+  void addTrackedEntityAudit(
+      TrackedEntity trackedEntity, String username, ChangeLogType changeLogType);
 }

@@ -25,24 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentity;
+package org.hisp.dhis.tracker.deprecated.audit;
 
 import java.util.List;
 import org.hisp.dhis.changelog.ChangeLogType;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAudit;
+import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
 
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
-public interface TrackedEntityChangeLogService {
+@Deprecated(since = "2.42", forRemoval = true)
+public interface TrackedEntityAuditService {
 
-  String ID = TrackedEntityChangeLogService.class.getName();
+  String ID = TrackedEntityAuditService.class.getName();
 
-  /** Adds tracked entity audit */
-  void addTrackedEntityChangeLog(
+  void addTrackedEntityAudit(
       TrackedEntity trackedEntity, String username, ChangeLogType changeLogType);
 
   /** Adds multiple tracked entity audit */
-  void addTrackedEntityChangeLog(List<TrackedEntityChangeLog> trackedEntityChangeLogs);
+  void addTrackedEntityAudit(List<TrackedEntityAudit> trackedEntityAudits);
 
   /**
    * Returns tracked entity audits matching query params
@@ -50,7 +53,7 @@ public interface TrackedEntityChangeLogService {
    * @param params tracked entity audit query params
    * @return matching TrackedEntityAudits
    */
-  List<TrackedEntityChangeLog> getTrackedEntityChangeLogs(TrackedEntityChangeLogQueryParams params);
+  List<TrackedEntityAudit> getTrackedEntityAudits(TrackedEntityAuditQueryParams params);
 
   /**
    * Returns count of tracked entity audits matching query params
@@ -58,5 +61,5 @@ public interface TrackedEntityChangeLogService {
    * @param params tracked entity audit query params
    * @return count of TrackedEntityAudits
    */
-  int getTrackedEntityChangeLogsCount(TrackedEntityChangeLogQueryParams params);
+  int getTrackedEntityAuditsCount(TrackedEntityAuditQueryParams params);
 }
