@@ -34,7 +34,7 @@ import javax.persistence.EntityManager;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.changelog.TrackedEntityAttributeValueChangeLogService;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
@@ -58,8 +58,8 @@ public class TrackedEntityPersister
       ReservedValueService reservedValueService,
       TrackerConverterService<org.hisp.dhis.tracker.imports.domain.TrackedEntity, TrackedEntity>
           teConverter,
-      TrackedEntityAttributeValueChangeLogService trackedEntityAttributeValueChangeLogService) {
-    super(reservedValueService, trackedEntityAttributeValueChangeLogService);
+      TrackedEntityChangeLogService trackedEntityChangeLogService) {
+    super(reservedValueService, trackedEntityChangeLogService);
     this.teConverter = teConverter;
   }
 

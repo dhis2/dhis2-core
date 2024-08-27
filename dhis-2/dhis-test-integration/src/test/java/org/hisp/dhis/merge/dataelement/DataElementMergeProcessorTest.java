@@ -111,9 +111,9 @@ import org.hisp.dhis.sms.command.hibernate.SMSCommandStore;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
-import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
-import org.hisp.dhis.tracker.changelog.TrackedEntityDataValueChangeLog;
-import org.hisp.dhis.tracker.changelog.TrackedEntityDataValueChangeLogService;
+import org.hisp.dhis.tracker.export.event.EventChangeLogService;
+import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLog;
+import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLogQueryParams;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -165,7 +165,7 @@ class DataElementMergeProcessorTest extends PostgresIntegrationTestBase {
   @Autowired private DataDimensionItemStore dataDimensionItemStore;
   @Autowired private DataValueStore dataValueStore;
   @Autowired private DataValueAuditStore dataValueAuditStore;
-  @Autowired private TrackedEntityDataValueChangeLogService teDataValueChangeLogService;
+  @Autowired private EventChangeLogService teDataValueChangeLogService;
 
   private DataElement deSource1;
   private DataElement deSource2;

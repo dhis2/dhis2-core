@@ -39,9 +39,9 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerTest;
-import org.hisp.dhis.tracker.changelog.TrackedEntityAttributeValueChangeLog;
-import org.hisp.dhis.tracker.changelog.TrackedEntityAttributeValueChangeLogQueryParams;
-import org.hisp.dhis.tracker.changelog.TrackedEntityAttributeValueChangeLogService;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityAttributeValueChangeLog;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityAttributeValueChangeLogQueryParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -63,7 +63,7 @@ class TrackedEntityAttributeValueChangeLogTest extends TrackerTest {
 
   @Autowired private IdentifiableObjectManager manager;
 
-  @Autowired private TrackedEntityAttributeValueChangeLogService attributeValueAuditService;
+  @Autowired private TrackedEntityChangeLogService attributeValueAuditService;
 
   private User importUser;
 

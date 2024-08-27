@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.changelog;
+package org.hisp.dhis.tracker.export.trackedentity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +39,7 @@ import org.hibernate.query.Query;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.springframework.stereotype.Repository;
 
-@Repository("org.hisp.dhis.tracker.changelog.TrackedEntityAttributeValueChangeLogStore")
+@Repository("org.hisp.dhis.tracker.export.trackedentity.TrackedEntityAttributeValueChangeLogStore")
 public class HibernateTrackedEntityAttributeValueChangeLogStore
     implements TrackedEntityAttributeValueChangeLogStore {
   private EntityManager entityManager;

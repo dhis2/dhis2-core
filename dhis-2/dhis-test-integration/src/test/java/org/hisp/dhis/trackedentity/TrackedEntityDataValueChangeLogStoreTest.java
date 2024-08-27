@@ -52,8 +52,9 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.tracker.changelog.TrackedEntityDataValueChangeLog;
-import org.hisp.dhis.tracker.changelog.TrackedEntityDataValueChangeLogService;
+import org.hisp.dhis.tracker.export.event.EventChangeLogService;
+import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLog;
+import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLogQueryParams;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -71,7 +72,7 @@ class TrackedEntityDataValueChangeLogStoreTest extends PostgresIntegrationTestBa
 
   private static final UserInfoSnapshot USER_SNAP_A = UserInfoTestHelper.testUserInfo(USER_A);
 
-  @Autowired private TrackedEntityDataValueChangeLogService changeLogService;
+  @Autowired private EventChangeLogService changeLogService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 

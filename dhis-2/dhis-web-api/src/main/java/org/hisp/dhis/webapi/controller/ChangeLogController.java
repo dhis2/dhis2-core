@@ -87,13 +87,13 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAudit;
 import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
-import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
-import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
-import org.hisp.dhis.tracker.changelog.TrackedEntityAttributeValueChangeLog;
-import org.hisp.dhis.tracker.changelog.TrackedEntityAttributeValueChangeLogQueryParams;
-import org.hisp.dhis.tracker.changelog.TrackedEntityAttributeValueChangeLogService;
-import org.hisp.dhis.tracker.changelog.TrackedEntityDataValueChangeLog;
-import org.hisp.dhis.tracker.changelog.TrackedEntityDataValueChangeLogService;
+import org.hisp.dhis.tracker.deprecated.audit.TrackedEntityAuditService;
+import org.hisp.dhis.tracker.export.event.EventChangeLogService;
+import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLog;
+import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLogQueryParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityAttributeValueChangeLog;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityAttributeValueChangeLogQueryParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -118,9 +118,9 @@ public class ChangeLogController {
 
   private final DataValueAuditService dataValueAuditService;
 
-  private final TrackedEntityDataValueChangeLogService trackedEntityDataValueChangeLogService;
+  private final EventChangeLogService eventChangeLogService;
 
-  private final TrackedEntityAttributeValueChangeLogService attributeValueChangeLogService;
+  private final TrackedEntityChangeLogService attributeValueChangeLogService;
 
   private final DataApprovalAuditService dataApprovalAuditService;
 
@@ -308,17 +308,14 @@ public class ChangeLogController {
             .setAuditTypes(changeLogTypes);
 
     if (PagerUtils.isSkipPaging(skipPaging, paging)) {
-      dataValueChangeLogs =
-          trackedEntityDataValueChangeLogService.getTrackedEntityDataValueChangeLogs(params);
+      dataValueChangeLogs = eventChangeLogService.getTrackedEntityDataValueChangeLogs(params);
     } else {
-      int total =
-          trackedEntityDataValueChangeLogService.countTrackedEntityDataValueChangeLogs(params);
+      int total = eventChangeLogService.countTrackedEntityDataValueChangeLogs(params);
 
       pager = new Pager(page, total, pageSize);
 
       dataValueChangeLogs =
-          trackedEntityDataValueChangeLogService.getTrackedEntityDataValueChangeLogs(
-              params.setPager(pager));
+          eventChangeLogService.getTrackedEntityDataValueChangeLogs(params.setPager(pager));
     }
 
     RootNode rootNode = NodeUtils.createMetadata();
@@ -538,6 +535,7 @@ public class ChangeLogController {
   }
 
   @GetMapping("trackedEntity")
+  @Deprecated(since = "2.42", forRemoval = true)
   public RootNode getTrackedEnityChangeLog(
       @OpenApi.Param({UID[].class, TrackedEntity.class})
           @RequestParam(required = false, defaultValue = "")

@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.changelog;
+package org.hisp.dhis.tracker.export.event;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
@@ -43,12 +43,11 @@ import org.hibernate.Session;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
 import org.springframework.stereotype.Component;
 
 // This class is annotated with @Component instead of @Repository because @Repository creates a
 // proxy that can't be used to inject the class.
-@Component("org.hisp.dhis.tracker.changelog.TrackedEntityDataValueChangeLogStore")
+@Component("org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLogStore")
 class HibernateTrackedEntityDataValueChangeLogStore {
   private static final String PROP_PSI = "event";
 
@@ -65,10 +64,6 @@ class HibernateTrackedEntityDataValueChangeLogStore {
   public HibernateTrackedEntityDataValueChangeLogStore(EntityManager entityManager) {
     this.entityManager = entityManager;
   }
-
-  // -------------------------------------------------------------------------
-  // Implementation methods
-  // -------------------------------------------------------------------------
 
   public void addTrackedEntityDataValueChangeLog(
       TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog) {

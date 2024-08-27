@@ -77,10 +77,10 @@ import org.hisp.dhis.test.utils.RelationshipUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.tracker.changelog.TrackedEntityDataValueChangeLog;
-import org.hisp.dhis.tracker.changelog.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
+import org.hisp.dhis.tracker.export.event.EventChangeLogService;
+import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLog;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.joda.time.DateTime;
@@ -98,7 +98,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private ProgramMessageService programMessageService;
 
-  @Autowired private TrackedEntityDataValueChangeLogService trackedEntityDataValueAuditService;
+  @Autowired private EventChangeLogService eventChangeLogService;
 
   @Autowired private DataElementService dataElementService;
 
@@ -343,8 +343,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog =
         new TrackedEntityDataValueChangeLog(
             dataElement, eventA, "value", "modifiedBy", false, ChangeLogType.UPDATE);
-    trackedEntityDataValueAuditService.addTrackedEntityDataValueChangeLog(
-        trackedEntityDataValueChangeLog);
+    eventChangeLogService.addTrackedEntityDataValueChangeLog(trackedEntityDataValueChangeLog);
     manager.save(enrollment);
     assertNotNull(manager.get(Enrollment.class, enrollment.getUid()));
     manager.delete(enrollment);

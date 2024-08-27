@@ -41,7 +41,7 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.datavalue.DataValueAuditService;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.tracker.changelog.TrackedEntityDataValueChangeLogService;
+import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserInvitationStatus;
@@ -78,7 +78,7 @@ public class DefaultMaintenanceService implements MaintenanceService {
 
   private final ApplicationEventPublisher eventPublisher;
 
-  private final TrackedEntityDataValueChangeLogService trackedEntityDataValueChangelogService;
+  private final EventChangeLogService trackedEntityDataValueChangelogService;
 
   // -------------------------------------------------------------------------
   // MaintenanceService implementation

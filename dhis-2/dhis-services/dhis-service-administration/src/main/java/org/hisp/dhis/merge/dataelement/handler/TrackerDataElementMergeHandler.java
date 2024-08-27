@@ -55,8 +55,8 @@ import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionStore;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableStore;
-import org.hisp.dhis.tracker.changelog.TrackedEntityDataValueChangeLog;
-import org.hisp.dhis.tracker.changelog.TrackedEntityDataValueChangeLogService;
+import org.hisp.dhis.tracker.export.event.EventChangeLogService;
+import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLog;
 import org.springframework.stereotype.Service;
 
 /**
@@ -76,7 +76,7 @@ public class TrackerDataElementMergeHandler {
   private final ProgramRuleActionStore programRuleActionStore;
   private final ProgramIndicatorStore programIndicatorStore;
   private final EventStore eventStore;
-  private final TrackedEntityDataValueChangeLogService teDataValueChangeLogService;
+  private final EventChangeLogService teDataValueChangeLogService;
 
   /**
    * Method retrieving {@link ProgramIndicator}s which have a source {@link DataElement} reference

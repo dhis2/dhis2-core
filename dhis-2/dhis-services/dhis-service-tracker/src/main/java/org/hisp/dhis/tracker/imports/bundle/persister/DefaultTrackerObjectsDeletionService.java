@@ -47,11 +47,11 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
-import org.hisp.dhis.tracker.changelog.TrackedEntityAttributeValueChangeLogService;
-import org.hisp.dhis.tracker.changelog.TrackedEntityDataValueChangeLogService;
+import org.hisp.dhis.tracker.deprecated.audit.TrackedEntityAuditService;
+import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipQueryParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipStore;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.report.Entity;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
@@ -72,9 +72,9 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
   private final TrackedEntityAttributeValueService attributeValueService;
 
-  private final TrackedEntityDataValueChangeLogService dataValueChangeLogService;
+  private final EventChangeLogService eventChangeLogService;
 
-  private final TrackedEntityAttributeValueChangeLogService attributeValueAuditService;
+  private final TrackedEntityChangeLogService attributeValueAuditService;
 
   private final ProgramNotificationInstanceService programNotificationInstanceService;
 
@@ -148,8 +148,8 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
       deleteRelationships(relationships);
 
       // This is needed until deprecated method
-      // TrackedEntityDataValueChangeLogService.getTrackedEntityDataValueChangeLogs is removed.
-      dataValueChangeLogService.deleteTrackedEntityDataValueChangeLog(event);
+      // eventChangeLogService.getTrackedEntityDataValueChangeLogs is removed.
+      eventChangeLogService.deleteTrackedEntityDataValueChangeLog(event);
 
       List<ProgramNotificationInstance> notificationInstances =
           programNotificationInstanceService.getProgramNotificationInstances(
