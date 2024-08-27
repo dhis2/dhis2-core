@@ -43,7 +43,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * Filter which enforces no cache for HTML pages like index pages to prevent stale versions being
  * rendered in clients.
  *
- * @author Lars Helge Overland
+ * @author Kai Vandivier
  */
 @Component
 public class HttpNoCacheFilter extends OncePerRequestFilter {
