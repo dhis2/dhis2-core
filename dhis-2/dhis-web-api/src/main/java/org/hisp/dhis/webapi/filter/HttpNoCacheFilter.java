@@ -28,6 +28,8 @@
 package org.hisp.dhis.servlet.filter;
 
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebFilter;
@@ -36,6 +38,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.HttpMethod;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
@@ -44,20 +47,19 @@ import org.springframework.web.filter.OncePerRequestFilter;
  *
  * @author Lars Helge Overland
  */
-@WebFilter(
-    urlPatterns = {"/*"},
-    /* TODO: confirm that this should be:
-     * 1. all html files
-     * 2. just index.html/plugin.html (think about multiple-plugin future?)
-     * 3. or all .html files served under app roots (./dhis-web-* | /api/apps/* | /apps/*)
-     */
-    initParams = {@WebInitParam(name = "urlPattern", value = "/dhis-web-*/*\\.html|/api/apps/*/*\\.html|/apps/*/*\\.html|/$")})
+@Component
 public class HttpNoCacheFilter extends OncePerRequestFilter {
+  public static final String HTML_PATH_REGEX = "\\.html$|/$";
+  public static final Pattern HTML_PATH_PATTERN = Pattern.compile(HTML_PATH_REGEX);
+
   @Override
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain chain)
       throws IOException, ServletException {
-    if (HttpMethod.GET == HttpMethod.resolve(request.getMethod())) {
+
+    String uri = request.getRequestURI();
+    Matcher m = HTML_PATH_PATTERN.matcher(uri);
+    if (m.find() && HttpMethod.GET == HttpMethod.resolve(request.getMethod())) {
       ContextUtils.setNoStore(response);
     }
 
