@@ -50,7 +50,6 @@ import org.hisp.dhis.program.ProgramTempOwnershipAuditService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
-import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;

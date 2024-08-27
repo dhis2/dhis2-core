@@ -25,11 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-<<<<<<<< HEAD:dhis-2/dhis-services/dhis-service-tracker/src/main/java/org/hisp/dhis/tracker/acl/DefaultTrackerAccessManager.java
 package org.hisp.dhis.tracker.acl;
-========
-package org.hisp.dhis.tracker.access;
->>>>>>>> origin/master:dhis-2/dhis-services/dhis-service-tracker/src/main/java/org/hisp/dhis/tracker/access/DefaultTrackerAccessManager.java
 
 import static org.hisp.dhis.tracker.acl.TrackerOwnershipManager.NO_READ_ACCESS_TO_ORG_UNIT;
 import static org.hisp.dhis.tracker.acl.TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED;
