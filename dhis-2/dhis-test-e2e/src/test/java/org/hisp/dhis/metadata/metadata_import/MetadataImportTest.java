@@ -57,6 +57,7 @@ import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
+import org.hisp.dhis.test.e2e.actions.RestApiActions;
 import org.hisp.dhis.test.e2e.actions.SystemActions;
 import org.hisp.dhis.test.e2e.actions.metadata.MetadataActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
@@ -66,6 +67,7 @@ import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.hisp.dhis.test.e2e.utils.DataGenerator;
 import org.hisp.dhis.test.e2e.utils.SharingUtils;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -75,6 +77,7 @@ import org.junit.jupiter.params.provider.CsvSource;
  */
 public class MetadataImportTest extends ApiTest {
   private MetadataActions metadataActions;
+  private RestApiActions dataElementActions;
 
   private SystemActions systemActions;
 
@@ -82,8 +85,102 @@ public class MetadataImportTest extends ApiTest {
   public void before() {
     metadataActions = new MetadataActions();
     systemActions = new SystemActions();
+    dataElementActions = new RestApiActions("dataElements");
 
     new LoginActions().loginAsSuperUser();
+  }
+
+  @Test
+  @DisplayName("importing existing metadata should not override created date - JSON")
+  void shouldNotOverrideCreatedDateJsonTest() {
+    // given
+    String uid =
+        metadataActions
+            .importMetadata(
+                """
+                {
+                    "dataElements": [
+                        {
+                            "id": "DeUid000001",
+                            "name": "test 1",
+                            "aggregationType": "NONE",
+                            "domainType": "AGGREGATE",
+                            "valueType": "TEXT",
+                            "shortName": "datael1"
+                        }
+                    ]
+                }
+                """,
+                "async=false")
+            .extractObjectUid("DataElement")
+            .get(0);
+
+    // confirm created date
+    String created = dataElementActions.get(uid).validate().extract().path("created");
+
+    // when updating existing data element name
+    metadataActions.importMetadata(
+        """
+        {
+            "dataElements": [
+                {
+                    "id": "DeUid000001",
+                    "name": "test 1 update",
+                    "aggregationType": "NONE",
+                    "domainType": "AGGREGATE",
+                    "valueType": "TEXT",
+                    "shortName": "datael1"
+                }
+            ]
+        }
+        """);
+
+    // then confirm created date has not changed and name is updated
+    dataElementActions
+        .get(uid)
+        .validate()
+        .body("created", equalTo(created))
+        .body("name", equalTo("test 1 update"));
+  }
+
+  @Test
+  @DisplayName("importing existing metadata should not override created date - CSV")
+  void shouldNotOverrideCreatedDateCsvTest() {
+    // given
+    String uid =
+        metadataActions
+            .importMetadataWithContentType(
+                new File("src/test/resources/metadata/dataElements/dataElementCreate.csv"),
+                "application/csv",
+                "importStrategy=CREATE_AND_UPDATE",
+                "mergeMode=REPLACE",
+                "format=csv",
+                "firstRowIsHeader=true",
+                "classKey=DATA_ELEMENT",
+                "async=false")
+            .extractObjectUid("DataElement")
+            .get(0);
+
+    // confirm created date
+    String created = dataElementActions.get(uid).validate().extract().path("created");
+
+    // when updating existing data element name
+    metadataActions.importMetadataWithContentType(
+        new File("src/test/resources/metadata/dataElements/dataElementUpdate.csv"),
+        "application/csv",
+        "importStrategy=CREATE_AND_UPDATE",
+        "mergeMode=REPLACE",
+        "format=csv",
+        "firstRowIsHeader=true",
+        "classKey=DATA_ELEMENT",
+        "async=false");
+
+    // then confirm created date has not changed and name is updated
+    dataElementActions
+        .get(uid)
+        .validate()
+        .body("created", equalTo(created))
+        .body("shortName", equalTo("ANC 1st visit_m update"));
   }
 
   @ParameterizedTest(name = "withImportStrategy[{0}]")
