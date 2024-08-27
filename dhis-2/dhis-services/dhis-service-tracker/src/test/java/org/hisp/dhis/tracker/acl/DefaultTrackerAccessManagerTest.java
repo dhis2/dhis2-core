@@ -25,7 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+<<<<<<<< HEAD:dhis-2/dhis-services/dhis-service-tracker/src/test/java/org/hisp/dhis/tracker/acl/DefaultTrackerAccessManagerTest.java
 package org.hisp.dhis.tracker.acl;
+========
+package org.hisp.dhis.tracker.access;
+>>>>>>>> origin/master:dhis-2/dhis-services/dhis-service-tracker/src/test/java/org/hisp/dhis/tracker/access/DefaultTrackerAccessManagerTest.java
 
 import static org.hisp.dhis.common.AccessLevel.CLOSED;
 import static org.hisp.dhis.common.AccessLevel.OPEN;
