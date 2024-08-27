@@ -27,9 +27,7 @@
  */
 package org.hisp.dhis.sms.incoming;
 
-import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.user.User;
 
 /** Service providing support for retrieving incoming SMSes. */
 public interface IncomingSmsService {
@@ -50,8 +48,6 @@ public interface IncomingSmsService {
   void delete(String uid);
 
   long save(IncomingSms sms);
-
-  long save(String message, String originator, String gateway, Date receivedTime, User user);
 
   List<IncomingSms> getSmsByStatus(SmsMessageStatus status, String originator);
 

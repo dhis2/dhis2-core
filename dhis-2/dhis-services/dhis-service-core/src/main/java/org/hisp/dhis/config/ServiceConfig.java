@@ -35,14 +35,13 @@ import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.DefaultResourceBundleManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager;
-import org.hisp.dhis.message.EmailMessageSender;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.DefaultOutboundMessageBatchService;
 import org.hisp.dhis.setting.DefaultStyleManager;
 import org.hisp.dhis.setting.StyleManager;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.sms.config.SmsMessageSender;
 import org.hisp.dhis.user.UserSettingService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -77,7 +76,8 @@ public class ServiceConfig {
 
   @Bean("org.hisp.dhis.outboundmessage.OutboundMessageService")
   public DefaultOutboundMessageBatchService defaultOutboundMessageBatchService(
-      SmsMessageSender smsMessageSender, EmailMessageSender emailMessageSender) {
+      @Qualifier("smsMessageSender") MessageSender smsMessageSender,
+      @Qualifier("emailMessageSender") MessageSender emailMessageSender) {
     Map<DeliveryChannel, MessageSender> channels = new HashMap<>();
     channels.put(DeliveryChannel.SMS, smsMessageSender);
     channels.put(DeliveryChannel.EMAIL, emailMessageSender);

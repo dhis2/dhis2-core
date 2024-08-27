@@ -27,41 +27,19 @@
  */
 package org.hisp.dhis.sms.incoming;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Date;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.sms.MessageQueue;
-import org.hisp.dhis.user.User;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@RequiredArgsConstructor
 @Service("org.hisp.dhis.sms.incoming.IncomingSmsService")
 public class DefaultIncomingSmsService implements IncomingSmsService {
   private static final String DEFAULT_GATEWAY = "default";
 
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
-
   private final IncomingSmsStore incomingSmsStore;
-
-  private final MessageQueue incomingSmsQueue;
-
-  public DefaultIncomingSmsService(
-      IncomingSmsStore incomingSmsStore, @Lazy MessageQueue incomingSmsQueue) {
-    checkNotNull(incomingSmsQueue);
-    checkNotNull(incomingSmsStore);
-
-    this.incomingSmsStore = incomingSmsStore;
-    this.incomingSmsQueue = incomingSmsQueue;
-  }
-
-  // -------------------------------------------------------------------------
-  // Implementation
-  // -------------------------------------------------------------------------
 
   @Override
   @Transactional(readOnly = true)
@@ -83,37 +61,14 @@ public class DefaultIncomingSmsService implements IncomingSmsService {
     } else {
       sms.setSentDate(new Date());
     }
-
     sms.setReceivedDate(new Date());
+
     sms.setGatewayId(StringUtils.defaultIfBlank(sms.getGatewayId(), DEFAULT_GATEWAY));
 
     incomingSmsStore.save(sms);
-    incomingSmsQueue.put(sms);
     return sms.getId();
   }
 
-  @Override
-  @Transactional
-  public long save(
-      String message, String originator, String gateway, Date receivedTime, User user) {
-    IncomingSms sms = new IncomingSms();
-    sms.setText(message);
-    sms.setOriginator(originator);
-    sms.setGatewayId(gateway);
-    sms.setCreatedBy(user);
-
-    if (receivedTime != null) {
-      sms.setSentDate(receivedTime);
-    } else {
-      sms.setSentDate(new Date());
-    }
-
-    sms.setReceivedDate(new Date());
-
-    return save(sms);
-  }
-
-  @Override
   @Transactional
   public void delete(long id) {
     IncomingSms incomingSms = incomingSmsStore.get(id);
