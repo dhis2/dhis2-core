@@ -264,7 +264,7 @@ public abstract class EventSavingSMSListener extends CompressionSMSListener {
 
     for (Map.Entry<DataElement, EventDataValue> entry : dataElementEventDataValueMap.entrySet()) {
       entry.getValue().setAutoFields();
-      createAndAddAudit(entry.getValue(), entry.getKey(), event);
+      createAndAddChangeLog(entry.getValue(), entry.getKey(), event);
       handleFileDataValueSave(entry.getValue(), entry.getKey());
     }
   }
@@ -304,12 +304,13 @@ public abstract class EventSavingSMSListener extends CompressionSMSListener {
     }
   }
 
-  private void createAndAddAudit(EventDataValue dataValue, DataElement dataElement, Event event) {
+  private void createAndAddChangeLog(
+      EventDataValue dataValue, DataElement dataElement, Event event) {
     if (!config.isEnabled(CHANGELOG_TRACKER) || dataElement == null) {
       return;
     }
 
-    TrackedEntityDataValueChangeLog dataValueAudit =
+    TrackedEntityDataValueChangeLog dataValueChangeLog =
         new TrackedEntityDataValueChangeLog(
             dataElement,
             event,
@@ -318,7 +319,7 @@ public abstract class EventSavingSMSListener extends CompressionSMSListener {
             dataValue.getProvidedElsewhere(),
             ChangeLogType.CREATE);
 
-    eventChangeLogService.addTrackedEntityDataValueChangeLog(dataValueAudit);
+    eventChangeLogService.addTrackedEntityDataValueChangeLog(dataValueChangeLog);
   }
 
   /** Update FileResource with 'assigned' status. */
