@@ -80,7 +80,7 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
       trackedEntityProgramOwnerStore.save(
           buildTrackedEntityProgramOwner(trackedEntity, program, orgUnit));
     } else {
-      teProgramOwner = updateTrackedEntityProgramOwner(teProgramOwner, orgUnit);
+      updateTrackedEntityProgramOwner(teProgramOwner, orgUnit);
       trackedEntityProgramOwnerStore.update(teProgramOwner);
     }
   }
@@ -97,11 +97,11 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
     if (teProgramOwner == null) {
       return;
     }
-    teProgramOwner = updateTrackedEntityProgramOwner(teProgramOwner, orgUnit);
+    updateTrackedEntityProgramOwner(teProgramOwner, orgUnit);
     trackedEntityProgramOwnerStore.update(teProgramOwner);
   }
 
-  private TrackedEntityProgramOwner updateTrackedEntityProgramOwner(
+  private void updateTrackedEntityProgramOwner(
       TrackedEntityProgramOwner teProgramOwner, OrganisationUnit ou) {
     teProgramOwner.setOrganisationUnit(ou);
     teProgramOwner.updateDates();
@@ -109,7 +109,6 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
     if (currentUsername != null) {
       teProgramOwner.setCreatedBy(currentUsername);
     }
-    return teProgramOwner;
   }
 
   @Override

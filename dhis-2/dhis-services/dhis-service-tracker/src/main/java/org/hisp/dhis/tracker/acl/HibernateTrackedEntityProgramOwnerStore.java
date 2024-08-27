@@ -72,7 +72,7 @@ public class HibernateTrackedEntityProgramOwnerStore
       Set<Long> teIds) {
     List<TrackedEntityProgramOwnerOrgUnit> trackedEntityProgramOwnerOrgUnits = new ArrayList<>();
 
-    if (teIds == null || teIds.size() == 0) {
+    if (teIds == null || teIds.isEmpty()) {
       return trackedEntityProgramOwnerOrgUnits;
     }
 
