@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentity;
+package org.hisp.dhis.tracker.access;
 
 import static org.hisp.dhis.trackedentity.ApiTrackerOwnershipManager.NO_READ_ACCESS_TO_ORG_UNIT;
 import static org.hisp.dhis.trackedentity.ApiTrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED;
@@ -49,6 +49,8 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,7 +64,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
   private final AclService aclService;
-  private final ApiTrackerOwnershipManager ownershipAccessManager;
+  private final TrackerOwnershipManager ownershipAccessManager;
   private final ProgramService programService;
 
   /**
@@ -443,9 +445,12 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     List<String> errors = new ArrayList<>();
     OrganisationUnit ou = event.getOrganisationUnit();
     if (ou != null) {
-      if (event.isCreatableInSearchScope()
-          ? !user.isInUserEffectiveSearchOrgUnitHierarchy(ou.getPath())
-          : !user.isInUserHierarchy(ou.getPath())) {
+      boolean isInHierarchy =
+          event.isCreatableInSearchScope()
+              ? user.isInUserEffectiveSearchOrgUnitHierarchy(ou.getPath())
+              : user.isInUserHierarchy(ou.getPath());
+
+      if (!isInHierarchy) {
         errors.add("User has no create access to organisation unit: " + ou.getUid());
       }
     }
