@@ -208,27 +208,25 @@ public class CommonRequestParams {
   /** Indicates which property to display. */
   private DisplayProperty displayProperty;
 
+  private Set<String> occurredDate = new LinkedHashSet<>();
+
   // Time fields
 
   /**
-   * @deprecated use {@link #eventOccurredDate} instead. Kept for backward compatibility.
+   * @deprecated use {@link #occurredDate} instead. Kept for backward compatibility.
    */
   @Deprecated(since = "2.42")
   private Set<String> eventDate = new LinkedHashSet<>();
-
-  private Set<String> eventOccurredDate = new LinkedHashSet<>();
 
   private Set<String> enrollmentDate = new LinkedHashSet<>();
 
   private Set<String> scheduledDate = new LinkedHashSet<>();
 
   /**
-   * @deprecated use {@link #enrollmentOccurredDate} instead. Kept for backward compatibility.
+   * @deprecated use {@link #occurredDate} instead. Kept for backward compatibility.
    */
   @Deprecated(since = "2.42")
   private Set<String> incidentDate = new LinkedHashSet<>();
-
-  private Set<String> enrollmentOccurredDate = new LinkedHashSet<>();
 
   private Set<String> lastUpdated = new LinkedHashSet<>();
 

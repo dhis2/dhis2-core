@@ -27,11 +27,7 @@
  */
 package org.hisp.dhis.common;
 
-import static org.apache.commons.lang3.StringUtils.firstNonBlank;
-import static org.hisp.dhis.common.collection.CollectionUtils.mergeCollections;
-
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -47,6 +43,10 @@ import org.hisp.dhis.analytics.common.CommonRequestParams;
 @Getter
 @RequiredArgsConstructor
 public enum AnalyticsDateFilter {
+  /**
+   * @deprecated use {@link #OCCURRED_DATE} instead. Kept for backward compatibility.
+   */
+  @Deprecated(since = "2.42")
   EVENT_DATE(
       TimeField.EVENT_DATE,
       EventsAnalyticsQueryCriteria::getEventDate,
@@ -69,21 +69,16 @@ public enum AnalyticsDateFilter {
   INCIDENT_DATE(
       TimeField.INCIDENT_DATE,
       // Events
-      criteria -> firstNonBlank(criteria.getEnrollmentOccurredDate(), criteria.getIncidentDate()),
+      EventsAnalyticsQueryCriteria::getIncidentDate,
       // Enrollments
-      criteria -> firstNonBlank(criteria.getOccurredDate(), criteria.getIncidentDate()),
-      criteria ->
-          new HashSet<>(
-              mergeCollections(criteria.getEnrollmentOccurredDate(), criteria.getIncidentDate()))),
+      EnrollmentAnalyticsQueryCriteria::getIncidentDate,
+      // TEs
+      CommonRequestParams::getIncidentDate),
   OCCURRED_DATE(
       TimeField.OCCURRED_DATE,
       EventsAnalyticsQueryCriteria::getOccurredDate,
       EnrollmentAnalyticsQueryCriteria::getOccurredDate,
-      commonRequestParams ->
-          new HashSet<>(
-              mergeCollections(
-                  commonRequestParams.getEventOccurredDate(),
-                  commonRequestParams.getEnrollmentOccurredDate()))),
+      CommonRequestParams::getOccurredDate),
   LAST_UPDATED(
       TimeField.LAST_UPDATED,
       EventsAnalyticsQueryCriteria::getLastUpdated,
