@@ -44,14 +44,12 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Repository("org.hisp.dhis.tracker.changelog.TrackedEntityDataValueChangeLogStore")
-public class HibernateTrackedEntityDataValueChangeLogStore
-    implements TrackedEntityDataValueChangeLogStore {
+// This class is annotated with @Component instead of @Repository because @Repository creates a
+// proxy that can't be used to inject the class.
+@Component("org.hisp.dhis.tracker.changelog.TrackedEntityDataValueChangeLogStore")
+class HibernateTrackedEntityDataValueChangeLogStore {
   private static final String PROP_PSI = "event";
 
   private static final String PROP_ORGANISATION_UNIT = "organisationUnit";
@@ -72,13 +70,11 @@ public class HibernateTrackedEntityDataValueChangeLogStore
   // Implementation methods
   // -------------------------------------------------------------------------
 
-  @Override
   public void addTrackedEntityDataValueChangeLog(
       TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog) {
     entityManager.unwrap(Session.class).save(trackedEntityDataValueChangeLog);
   }
 
-  @Override
   @SuppressWarnings("unchecked")
   public List<TrackedEntityDataValueChangeLog> getTrackedEntityDataValueChangeLogs(
       TrackedEntityDataValueChangeLogQueryParams params) {
@@ -107,7 +103,6 @@ public class HibernateTrackedEntityDataValueChangeLogStore
     return query.getResultList();
   }
 
-  @Override
   public int countTrackedEntityDataValueChangeLogs(
       TrackedEntityDataValueChangeLogQueryParams params) {
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
@@ -125,14 +120,12 @@ public class HibernateTrackedEntityDataValueChangeLogStore
     return entityManager.createQuery(criteria).getSingleResult().intValue();
   }
 
-  @Override
   public void deleteTrackedEntityDataValueChangeLog(DataElement dataElement) {
     String hql = "delete from TrackedEntityDataValueChangeLog d where d.dataElement = :de";
 
     entityManager.createQuery(hql).setParameter("de", dataElement).executeUpdate();
   }
 
-  @Override
   public void deleteTrackedEntityDataValueChangeLog(Event event) {
     String hql = "delete from TrackedEntityDataValueChangeLog d where d.event = :event";
 

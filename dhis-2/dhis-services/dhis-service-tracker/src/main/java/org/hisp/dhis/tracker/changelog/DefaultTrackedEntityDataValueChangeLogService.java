@@ -47,11 +47,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultTrackedEntityDataValueChangeLogService
     implements TrackedEntityDataValueChangeLogService {
 
-  private final TrackedEntityDataValueChangeLogStore trackedEntityDataValueChangeLogStore;
+  private final HibernateTrackedEntityDataValueChangeLogStore trackedEntityDataValueChangeLogStore;
   private final Predicate<TrackedEntityDataValueChangeLog> aclFilter;
 
   public DefaultTrackedEntityDataValueChangeLogService(
-      TrackedEntityDataValueChangeLogStore trackedEntityDataValueChangeLogStore,
+      HibernateTrackedEntityDataValueChangeLogStore trackedEntityDataValueChangeLogStore,
       TrackerAccessManager trackerAccessManager) {
     checkNotNull(trackedEntityDataValueChangeLogStore);
     checkNotNull(trackerAccessManager);
