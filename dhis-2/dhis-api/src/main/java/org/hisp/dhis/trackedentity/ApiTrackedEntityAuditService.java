@@ -32,6 +32,7 @@ import org.hisp.dhis.changelog.ChangeLogType;
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
+@Deprecated(since = "2.42", forRemoval = true)
 public interface ApiTrackedEntityAuditService {
 
   String ID = ApiTrackedEntityAuditService.class.getName();

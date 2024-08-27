@@ -25,30 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitydatavalue;
+package org.hisp.dhis.tracker.deprecated.audit;
 
 import java.util.List;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
+import org.hisp.dhis.changelog.ChangeLogType;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAudit;
+import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
-public interface TrackedEntityDataValueChangeLogService {
-  void addTrackedEntityDataValueChangeLog(
-      TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog);
+@Deprecated(since = "2.42", forRemoval = true)
+public interface TrackedEntityAuditService {
+
+  String ID = TrackedEntityAuditService.class.getName();
+
+  void addTrackedEntityAudit(
+      TrackedEntity trackedEntity, String username, ChangeLogType changeLogType);
+
+  /** Adds multiple tracked entity audit */
+  void addTrackedEntityAudit(List<TrackedEntityAudit> trackedEntityAudits);
 
   /**
-   * @deprecated use EventChangeLogService.getEventChangeLog(UID) instead
+   * Returns tracked entity audits matching query params
+   *
+   * @param params tracked entity audit query params
+   * @return matching TrackedEntityAudits
    */
-  @Deprecated(since = "2.41")
-  List<TrackedEntityDataValueChangeLog> getTrackedEntityDataValueChangeLogs(
-      TrackedEntityDataValueChangeLogQueryParams params);
+  List<TrackedEntityAudit> getTrackedEntityAudits(TrackedEntityAuditQueryParams params);
 
-  int countTrackedEntityDataValueChangeLogs(TrackedEntityDataValueChangeLogQueryParams params);
-
-  void deleteTrackedEntityDataValueChangeLog(DataElement dataElement);
-
-  void deleteTrackedEntityDataValueChangeLog(Event event);
+  /**
+   * Returns count of tracked entity audits matching query params
+   *
+   * @param params tracked entity audit query params
+   * @return count of TrackedEntityAudits
+   */
+  int getTrackedEntityAuditsCount(TrackedEntityAuditQueryParams params);
 }

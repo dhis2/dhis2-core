@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.user.UserDetails;
 
@@ -51,9 +50,6 @@ public interface ApiTrackerOwnershipManager {
    * @return true if the user has access, false otherwise.
    */
   boolean hasAccess(UserDetails user, TrackedEntity trackedEntity, Program program);
-
-  boolean hasAccess(
-      UserDetails user, String trackedEntity, OrganisationUnit organisationUnit, Program program);
 
   /**
    * Checks whether the owner of the TE/program pair resides within the user search scope.

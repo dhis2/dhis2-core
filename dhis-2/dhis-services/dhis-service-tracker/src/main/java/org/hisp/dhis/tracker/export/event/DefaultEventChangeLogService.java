@@ -27,11 +27,19 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
+
+import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogStore;
+import org.hisp.dhis.tracker.access.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.springframework.stereotype.Service;
@@ -43,8 +51,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultEventChangeLogService implements EventChangeLogService {
 
   private final EventService eventService;
-
   private final JdbcEventChangeLogStore jdbcEventChangeLogStore;
+  private final TrackedEntityDataValueChangeLogStore trackedEntityDataValueChangeLogStore;
+  private final TrackerAccessManager trackerAccessManager;
 
   @Override
   public Page<EventChangeLog> getEventChangeLog(
@@ -55,6 +64,45 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
 
     return jdbcEventChangeLogStore.getEventChangeLog(
         eventUid, operationParams.getOrder(), pageParams);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<TrackedEntityDataValueChangeLog> getTrackedEntityDataValueChangeLogs(
+      TrackedEntityDataValueChangeLogQueryParams params) {
+
+    return trackedEntityDataValueChangeLogStore.getTrackedEntityDataValueChangeLogs(params).stream()
+        .filter(
+            changeLog ->
+                trackerAccessManager
+                    .canRead(
+                        getCurrentUserDetails(),
+                        changeLog.getEvent(),
+                        changeLog.getDataElement(),
+                        false)
+                    .isEmpty())
+        .toList();
+  }
+
+  @Override
+  @Transactional
+  public void addTrackedEntityDataValueChangeLog(
+      TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog) {
+    trackedEntityDataValueChangeLogStore.addTrackedEntityDataValueChangeLog(
+        trackedEntityDataValueChangeLog);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public int countTrackedEntityDataValueChangeLogs(
+      TrackedEntityDataValueChangeLogQueryParams params) {
+    return trackedEntityDataValueChangeLogStore.countTrackedEntityDataValueChangeLogs(params);
+  }
+
+  @Override
+  @Transactional
+  public void deleteTrackedEntityDataValueChangeLog(Event event) {
+    trackedEntityDataValueChangeLogStore.deleteTrackedEntityDataValueChangeLog(event);
   }
 
   @Override

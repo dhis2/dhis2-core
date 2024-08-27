@@ -35,7 +35,7 @@ import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.tracker.audit.TrackedEntityAuditStore;
+import org.hisp.dhis.tracker.deprecated.audit.TrackedEntityAuditStore;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -47,7 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @TestInstance(Lifecycle.PER_CLASS)
 @Transactional
-class ApiTrackedEntityAuditStoreTest extends PostgresIntegrationTestBase {
+class TrackedEntityAuditStoreTest extends PostgresIntegrationTestBase {
   private final Date created = getDate(2022, 3, 1);
 
   @Autowired private TrackedEntityAuditStore store;
