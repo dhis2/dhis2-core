@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.test.web.HttpStatus;
-import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -41,7 +41,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class MaintenanceControllerTest extends H2ControllerIntegrationTestBase {
+class MaintenanceControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testPruneDataByOrganisationUnit() {
