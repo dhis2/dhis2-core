@@ -37,7 +37,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
-import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerStore;
+import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerStore;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.mappers.OrganisationUnitMapper;
