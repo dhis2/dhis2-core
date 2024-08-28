@@ -207,7 +207,6 @@ public class TrackedEntityQuery4AutoTest extends AnalyticsApiTest {
   }
 
   @Test
-  @Disabled("Disabled temporary, will be enabled after the fix of the header sorting")
   public void sortByEventDateWithOffsetsDesc() throws JSONException {
     // Given
     QueryParamsBuilder params =
