@@ -55,8 +55,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.Value;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -397,9 +395,8 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
   }
 
   private static Object getAttributeValue(Object obj, String attrId) {
-    if (obj instanceof BaseIdentifiableObject) {
-      AttributeValue attr = ((BaseIdentifiableObject) obj).getAttributeValue(attrId);
-      return attr == null ? null : attr.getValue();
+    if (obj instanceof IdentifiableObject identifiableObject) {
+      return identifiableObject.getAttributeValues().get(attrId);
     }
     return null;
   }

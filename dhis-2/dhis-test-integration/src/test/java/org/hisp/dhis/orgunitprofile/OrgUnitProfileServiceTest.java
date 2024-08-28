@@ -41,7 +41,6 @@ import java.util.Map;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -152,7 +151,7 @@ class OrgUnitProfileServiceTest extends PostgresIntegrationTestBase {
     manager.save(attribute);
 
     OrganisationUnit orgUnit = createOrganisationUnit("A");
-    orgUnit.getAttributeValues().add(new AttributeValue("testAttributeValue", attribute));
+    orgUnit.addAttributeValue(attribute.getUid(), "testAttributeValue");
     manager.save(orgUnit);
 
     OrganisationUnitGroup group = createOrganisationUnitGroup('A');
@@ -192,7 +191,7 @@ class OrgUnitProfileServiceTest extends PostgresIntegrationTestBase {
     manager.save(attribute);
 
     OrganisationUnit orgUnit = createOrganisationUnit("A");
-    orgUnit.getAttributeValues().add(new AttributeValue("testAttributeValue", attribute));
+    orgUnit.addAttributeValue(attribute.getUid(), "testAttributeValue");
     manager.save(orgUnit);
 
     OrganisationUnitGroup group = createOrganisationUnitGroup('A');
@@ -235,7 +234,7 @@ class OrgUnitProfileServiceTest extends PostgresIntegrationTestBase {
     attribute.setOrganisationUnitAttribute(true);
 
     OrganisationUnit orgUnit = createOrganisationUnit("A");
-    orgUnit.getAttributeValues().add(new AttributeValue("testAttributeValue", attribute));
+    orgUnit.addAttributeValue(attribute.getUid(), "testAttributeValue");
 
     OrganisationUnitGroup group = createOrganisationUnitGroup('A');
     group.addOrganisationUnit(orgUnit);

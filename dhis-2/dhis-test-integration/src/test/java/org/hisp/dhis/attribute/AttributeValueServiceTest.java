@@ -131,8 +131,7 @@ class AttributeValueServiceTest extends PostgresIntegrationTestBase {
     AttributeValue avB = new AttributeValue("valueB", attribute2);
     attributeService.addAttributeValue(dataElementA, avA);
     attributeService.addAttributeValue(dataElementB, avB);
-    avA = dataElementA.getAttributeValue(attribute1.getUid());
-    assertNotNull(avA);
+    assertNotNull(dataElementA.getAttributeValue(attribute1.getUid()));
     List<AttributeValue> attributeValues =
         dataElementStore.getAllValuesByAttributes(Lists.newArrayList(attribute2));
     assertNotNull(attributeValues);
@@ -329,8 +328,7 @@ class AttributeValueServiceTest extends PostgresIntegrationTestBase {
         "{\"type\": \"Feature\", \"geometry\": { \"type\": \"Point\","
             + "\"coordinates\": [125.6, 10.1] }, \"properties\": { \"name\": \"Dinagat Islands\" } }";
 
-    AttributeValue avA = new AttributeValue(geoJson, attribute);
-    dataElementA.getAttributeValues().add(avA);
+    dataElementA.addAttributeValue(attribute.getUid(), geoJson);
     dataElementStore.save(dataElementA);
 
     List<DataElement> dataElements = dataElementStore.getByAttribute(attribute);
@@ -342,8 +340,8 @@ class AttributeValueServiceTest extends PostgresIntegrationTestBase {
     assertEquals(dataElementA.getUid(), dataElements.get(0).getUid());
 
     DataElement dataElement = dataElements.get(0);
-    AttributeValue av = dataElement.getAttributeValues().iterator().next();
-    GeoJsonObject geoJsonObject = new ObjectMapper().readValue(av.getValue(), GeoJsonObject.class);
+    String value = dataElement.getAttributeValues().get(attribute.getUid());
+    GeoJsonObject geoJsonObject = new ObjectMapper().readValue(value, GeoJsonObject.class);
     assertInstanceOf(Feature.class, geoJsonObject);
   }
 }

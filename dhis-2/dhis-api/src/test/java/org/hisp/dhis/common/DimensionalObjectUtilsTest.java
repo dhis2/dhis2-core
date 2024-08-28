@@ -40,14 +40,13 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.tuple.Triple;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -140,10 +139,8 @@ class DimensionalObjectUtilsTest {
     deC.setUid("A123456789C");
     Attribute atA = new Attribute("AttributeA", ValueType.INTEGER);
     atA.setUid("ATTR123456A");
-    AttributeValue avA = new AttributeValue("AttributeValueA", atA);
-    AttributeValue avB = new AttributeValue("AttributeValueB", atA);
-    deA.setAttributeValues(Sets.newHashSet(avA));
-    deB.setAttributeValues(Sets.newHashSet(avB));
+    deA.setAttributeValues(AttributeValues.empty().added(atA.getUid(), "AttributeValueA"));
+    deB.setAttributeValues(AttributeValues.empty().added(atA.getUid(), "AttributeValueB"));
     List<DataElement> elements = Lists.newArrayList(deA, deB, deC);
     String scheme = IdScheme.ATTR_ID_SCHEME_PREFIX + atA.getUid();
     IdScheme idScheme = IdScheme.from(scheme);

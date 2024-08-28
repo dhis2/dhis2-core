@@ -33,6 +33,7 @@ import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtil
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.collection.CollectionUtils;
@@ -260,21 +261,21 @@ public class ReferencesCheck implements ValidationCheck {
       Preheat preheat,
       PreheatIdentifier identifier,
       List<PreheatErrorReport> preheatErrorReports) {
-    object.getAttributeValues().stream()
-        .filter(
-            attributeValue ->
-                attributeValue.getAttribute() != null
-                    && preheat.get(identifier, attributeValue.getAttribute()) == null)
+    object
+        .getAttributeValues()
         .forEach(
-            attributeValue ->
+            (attributeId, value) -> {
+              if (preheat.get(PreheatIdentifier.UID, Attribute.class, attributeId) == null) {
                 preheatErrorReports.add(
                     new PreheatErrorReport(
                         identifier,
                         object.getClass(),
                         ErrorCode.E5002,
-                        identifier.getIdentifiersWithName(attributeValue.getAttribute()),
+                        attributeId,
                         identifier.getIdentifiersWithName(object),
-                        "attributeValues")));
+                        "attributeValues"));
+              }
+            });
   }
 
   private void checkSharing(

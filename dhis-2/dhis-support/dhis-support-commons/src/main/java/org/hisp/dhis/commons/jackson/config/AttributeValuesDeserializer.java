@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,23 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.preheat.mappers;
+package org.hisp.dhis.commons.jackson.config;
 
-import org.hisp.dhis.attribute.AttributeValue;
+import com.fasterxml.jackson.core.JacksonException;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import java.io.IOException;
 import org.hisp.dhis.attribute.AttributeValues;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = {DebugMapper.class, AttributeMapper.class})
-public interface AttributeValueMapper extends PreheatMapper<AttributeValue> {
-  AttributeValueMapper INSTANCE = Mappers.getMapper(AttributeValueMapper.class);
-
-  @BeanMapping(ignoreByDefault = true)
-  @Mapping(target = "attribute")
-  @Mapping(target = "value")
-  AttributeValue map(AttributeValue attributeValue);
-
-  AttributeValues mapAttributeValues(AttributeValues attributeValues);
+public class AttributeValuesDeserializer extends JsonDeserializer<AttributeValues> {
+  @Override
+  public AttributeValues deserialize(JsonParser parser, DeserializationContext context)
+      throws IOException, JacksonException {
+    String value = parser.getValueAsString();
+    return AttributeValues.of(value);
+  }
 }

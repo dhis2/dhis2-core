@@ -38,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
 import java.util.Set;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -100,7 +101,7 @@ class ProgramIndicatorTest {
     pi.setAccess(new Access());
     pi.setDecimals(2);
     pi.setPublicAccess("rw------");
-    pi.setAttributeValues(Set.of());
+    pi.setAttributeValues(AttributeValues.empty());
     pi.setSharing(new Sharing());
     pi.setTranslations(Set.of());
     pi.setExpression("expression");

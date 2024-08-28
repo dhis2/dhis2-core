@@ -91,11 +91,7 @@ public class MandatoryAttributesCheck implements ObjectValidationCheck {
       return emptyList();
     }
     Set<String> missingMandatoryAttributes = new HashSet<>(mandatoryAttributes);
-    object
-        .getAttributeValues()
-        .forEach(
-            attributeValue ->
-                missingMandatoryAttributes.remove(attributeValue.getAttribute().getUid()));
+    missingMandatoryAttributes.removeAll(object.getAttributeValues().keys());
 
     return missingMandatoryAttributes.stream()
         .map(

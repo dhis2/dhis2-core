@@ -45,7 +45,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -1037,7 +1036,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     attribute.setDataElementAttribute(true);
     manager.save(attribute);
     DataElement dataElement = createDataElement('A');
-    dataElement.getAttributeValues().add(new AttributeValue("value", attribute));
+    dataElement.addAttributeValue(attribute.getUid(), "value");
     manager.save(dataElement);
 
     JsonList<JsonIdentifiableObject> response =

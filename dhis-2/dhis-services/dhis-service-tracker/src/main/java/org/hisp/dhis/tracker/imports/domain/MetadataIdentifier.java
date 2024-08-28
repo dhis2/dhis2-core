@@ -35,7 +35,6 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.tracker.imports.TrackerIdScheme;
 
@@ -200,12 +199,7 @@ public class MetadataIdentifier implements Serializable {
       case UID -> metadata.getUid();
       case CODE -> metadata.getCode();
       case NAME -> metadata.getName();
-      case ATTRIBUTE ->
-          metadata.getAttributeValues().stream()
-              .filter(av -> av.getAttribute().getUid().equals(this.identifier))
-              .map(AttributeValue::getValue)
-              .findFirst()
-              .orElse(null);
+      case ATTRIBUTE -> metadata.getAttributeValues().get(identifier);
     };
   }
 

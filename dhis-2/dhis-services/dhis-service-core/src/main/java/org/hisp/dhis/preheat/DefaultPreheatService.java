@@ -388,25 +388,15 @@ public class DefaultPreheatService implements PreheatService {
             object
                 .getAttributeValues()
                 .forEach(
-                    attributeValue -> {
+                    (attributeId, value) -> {
                       Set<String> uids = preheat.getUniqueAttributes().get(klass);
-
-                      if (uids != null && uids.contains(attributeValue.getAttribute().getUid())) {
-                        if (!preheat
-                            .getUniqueAttributeValues()
-                            .get(klass)
-                            .containsKey(attributeValue.getAttribute().getUid())) {
-                          preheat
-                              .getUniqueAttributeValues()
-                              .get(klass)
-                              .put(attributeValue.getAttribute().getUid(), new HashMap<>());
+                      if (uids != null && uids.contains(attributeId)) {
+                        Map<String, Map<String, String>> values =
+                            preheat.getUniqueAttributeValues().get(klass);
+                        if (!values.containsKey(attributeId)) {
+                          values.put(attributeId, new HashMap<>());
                         }
-
-                        preheat
-                            .getUniqueAttributeValues()
-                            .get(klass)
-                            .get(attributeValue.getAttribute().getUid())
-                            .put(attributeValue.getValue(), object.getUid());
+                        values.get(attributeId).put(value, object.getUid());
                       }
                     }));
   }
@@ -490,7 +480,11 @@ public class DefaultPreheatService implements PreheatService {
           IdentifiableObject identifiableObject = (IdentifiableObject) object;
           identifiableObject
               .getAttributeValues()
-              .forEach(av -> addIdentifiers(map, av.getAttribute()));
+              .forEach(
+                  (attributeId, value) ->
+                      map.get(PreheatIdentifier.UID)
+                          .computeIfAbsent(Attribute.class, k -> new HashSet<>())
+                          .add(attributeId));
           identifiableObject
               .getSharing()
               .getUserGroups()

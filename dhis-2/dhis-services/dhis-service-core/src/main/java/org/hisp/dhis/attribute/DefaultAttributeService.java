@@ -53,7 +53,6 @@ public class DefaultAttributeService implements AttributeService {
   // -------------------------------------------------------------------------
 
   private final AttributeStore attributeStore;
-
   private final IdentifiableObjectManager manager;
 
   public DefaultAttributeService(
@@ -126,6 +125,12 @@ public class DefaultAttributeService implements AttributeService {
     return attributeStore.getAll();
   }
 
+  @Override
+  @Transactional(readOnly = true)
+  public List<Attribute> getAttributesByIds(Set<String> ids) {
+    return attributeStore.getByUid(ids);
+  }
+
   // -------------------------------------------------------------------------
   // AttributeValue implementation
   // -------------------------------------------------------------------------
@@ -152,7 +157,7 @@ public class DefaultAttributeService implements AttributeService {
       throw new NonUniqueAttributeValueException(attributeValue);
     }
 
-    object.getAttributeValues().add(attributeValue);
+    object.addAttributeValue(attributeValue.getAttribute().getUid(), attributeValue.getValue());
     manager.update(object);
   }
 
@@ -160,7 +165,7 @@ public class DefaultAttributeService implements AttributeService {
   @Transactional
   public <T extends IdentifiableObject> void deleteAttributeValue(
       T object, AttributeValue attributeValue) {
-    object.getAttributeValues().removeIf(a -> a.getAttribute() == attributeValue.getAttribute());
+    object.removeAttributeValue(attributeValue.getAttribute().getUid());
     manager.update(object);
   }
 
@@ -168,21 +173,13 @@ public class DefaultAttributeService implements AttributeService {
   @Transactional
   public <T extends IdentifiableObject> void deleteAttributeValues(
       T object, Set<AttributeValue> attributeValues) {
-    object.getAttributeValues().removeAll(attributeValues);
-
+    attributeValues.forEach(a -> object.removeAttributeValue(a.getAttribute().getUid()));
     manager.update(object);
   }
 
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> void generateAttributes(List<T> entityList) {
-    entityList.forEach(
-        entity ->
-            entity
-                .getAttributeValues()
-                .forEach(
-                    attributeValue ->
-                        attributeValue.setAttribute(
-                            getAttribute(attributeValue.getAttribute().getUid()))));
+    // FIXME(JB) originally this was where the full Attribute was put into each AttributeValue
   }
 }

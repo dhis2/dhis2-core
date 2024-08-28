@@ -39,7 +39,6 @@ import java.util.List;
 import java.util.Map;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
@@ -83,8 +82,6 @@ class MetadataAttributeCheckTest {
 
   private MetadataAttributeCheck metadataAttributeCheck;
 
-  private DefaultAttributeValidator attributeValidator;
-
   @BeforeEach
   void setUpTest() {
     organisationUnit = new OrganisationUnit();
@@ -112,13 +109,14 @@ class MetadataAttributeCheckTest {
     objectBundle = Mockito.mock(ObjectBundle.class);
     when(objectBundle.getPreheat()).thenReturn(preheat);
 
-    attributeValidator = new DefaultAttributeValidator(manager, userService);
+    DefaultAttributeValidator attributeValidator =
+        new DefaultAttributeValidator(manager, userService);
     metadataAttributeCheck = new MetadataAttributeCheck(attributeValidator);
   }
 
   @Test
   void testAttributeAssigned() {
-    organisationUnit.getAttributeValues().add(new AttributeValue(attribute, "10"));
+    organisationUnit.addAttributeValue(attribute.getUid(), "10");
 
     List<ObjectReport> objectReportList = new ArrayList<>();
 
@@ -129,7 +127,7 @@ class MetadataAttributeCheckTest {
         Collections.emptyList(),
         ImportStrategy.CREATE_AND_UPDATE,
         validationContext,
-        objectReport -> objectReportList.add(objectReport));
+        objectReportList::add);
 
     assertTrue(CollectionUtils.isEmpty(objectReportList));
   }
@@ -142,7 +140,7 @@ class MetadataAttributeCheckTest {
     when(preheat.getAttributesByClass(OrganisationUnit.class)).thenReturn(Map.of());
 
     // Import OrganisationUnit with an AttributeValue
-    organisationUnit.getAttributeValues().add(new AttributeValue(attribute, "10"));
+    organisationUnit.addAttributeValue(attribute.getUid(), "10");
 
     List<ObjectReport> objectReportList = new ArrayList<>();
     metadataAttributeCheck.check(
@@ -152,7 +150,7 @@ class MetadataAttributeCheckTest {
         Collections.emptyList(),
         ImportStrategy.CREATE_AND_UPDATE,
         validationContext,
-        objectReport -> objectReportList.add(objectReport));
+        objectReportList::add);
 
     assertFalse(CollectionUtils.isEmpty(objectReportList));
     assertEquals(ErrorCode.E6012, objectReportList.get(0).getErrorReports().get(0).getErrorCode());
@@ -160,7 +158,7 @@ class MetadataAttributeCheckTest {
 
   @Test
   void testAttributeNotInteger() {
-    organisationUnit.getAttributeValues().add(new AttributeValue(attribute, "10.1"));
+    organisationUnit.addAttributeValue(attribute.getUid(), "10.1");
 
     List<ObjectReport> objectReportList = new ArrayList<>();
 
@@ -171,7 +169,7 @@ class MetadataAttributeCheckTest {
         Collections.emptyList(),
         ImportStrategy.CREATE_AND_UPDATE,
         validationContext,
-        objectReport -> objectReportList.add(objectReport));
+        objectReportList::add);
 
     assertFalse(CollectionUtils.isEmpty(objectReportList));
     assertEquals(ErrorCode.E6006, objectReportList.get(0).getErrorReports().get(0).getErrorCode());
@@ -179,7 +177,7 @@ class MetadataAttributeCheckTest {
 
   @Test
   void testAttributeInteger() {
-    organisationUnit.getAttributeValues().add(new AttributeValue(attribute, "11"));
+    organisationUnit.addAttributeValue(attribute.getUid(), "11");
 
     List<ObjectReport> objectReportList = new ArrayList<>();
 
@@ -190,7 +188,7 @@ class MetadataAttributeCheckTest {
         Collections.emptyList(),
         ImportStrategy.CREATE_AND_UPDATE,
         validationContext,
-        objectReport -> objectReportList.add(objectReport));
+        objectReportList::add);
 
     assertTrue(CollectionUtils.isEmpty(objectReportList));
   }
@@ -198,7 +196,7 @@ class MetadataAttributeCheckTest {
   @Test
   void testAttributeNotPositiveInteger() {
     attribute.setValueType(ValueType.INTEGER_POSITIVE);
-    organisationUnit.getAttributeValues().add(new AttributeValue(attribute, "-10"));
+    organisationUnit.addAttributeValue(attribute.getUid(), "-10");
 
     List<ObjectReport> objectReportList = new ArrayList<>();
 
@@ -209,7 +207,7 @@ class MetadataAttributeCheckTest {
         Collections.emptyList(),
         ImportStrategy.CREATE_AND_UPDATE,
         validationContext,
-        objectReport -> objectReportList.add(objectReport));
+        objectReportList::add);
 
     assertFalse(CollectionUtils.isEmpty(objectReportList));
     assertEquals(ErrorCode.E6007, objectReportList.get(0).getErrorReports().get(0).getErrorCode());
@@ -218,7 +216,7 @@ class MetadataAttributeCheckTest {
   @Test
   void testAttributePositiveInteger() {
     attribute.setValueType(ValueType.INTEGER_POSITIVE);
-    organisationUnit.getAttributeValues().add(new AttributeValue(attribute, "10"));
+    organisationUnit.addAttributeValue(attribute.getUid(), "10");
 
     List<ObjectReport> objectReportList = new ArrayList<>();
 
@@ -229,7 +227,7 @@ class MetadataAttributeCheckTest {
         Collections.emptyList(),
         ImportStrategy.CREATE_AND_UPDATE,
         validationContext,
-        objectReport -> objectReportList.add(objectReport));
+        objectReportList::add);
 
     assertTrue(CollectionUtils.isEmpty(objectReportList));
   }
@@ -237,7 +235,7 @@ class MetadataAttributeCheckTest {
   @Test
   void testAttributeNotZeroPositiveInteger() {
     attribute.setValueType(ValueType.INTEGER_ZERO_OR_POSITIVE);
-    organisationUnit.getAttributeValues().add(new AttributeValue(attribute, "-10"));
+    organisationUnit.addAttributeValue(attribute.getUid(), "-10");
 
     List<ObjectReport> objectReportList = new ArrayList<>();
 
@@ -248,7 +246,7 @@ class MetadataAttributeCheckTest {
         Collections.emptyList(),
         ImportStrategy.CREATE_AND_UPDATE,
         validationContext,
-        objectReport -> objectReportList.add(objectReport));
+        objectReportList::add);
 
     assertFalse(CollectionUtils.isEmpty(objectReportList));
     assertEquals(ErrorCode.E6009, objectReportList.get(0).getErrorReports().get(0).getErrorCode());
@@ -257,7 +255,7 @@ class MetadataAttributeCheckTest {
   @Test
   void testAttributeZeroPositiveInteger() {
     attribute.setValueType(ValueType.INTEGER_ZERO_OR_POSITIVE);
-    organisationUnit.getAttributeValues().add(new AttributeValue(attribute, "0"));
+    organisationUnit.addAttributeValue(attribute.getUid(), "0");
 
     List<ObjectReport> objectReportList = new ArrayList<>();
 
@@ -268,7 +266,7 @@ class MetadataAttributeCheckTest {
         Collections.emptyList(),
         ImportStrategy.CREATE_AND_UPDATE,
         validationContext,
-        objectReport -> objectReportList.add(objectReport));
+        objectReportList::add);
 
     assertTrue(CollectionUtils.isEmpty(objectReportList));
   }
@@ -276,7 +274,7 @@ class MetadataAttributeCheckTest {
   @Test
   void testAttributeNotNumber() {
     attribute.setValueType(ValueType.NUMBER);
-    organisationUnit.getAttributeValues().add(new AttributeValue(attribute, "Aaa"));
+    organisationUnit.addAttributeValue(attribute.getUid(), "Aaa");
 
     List<ObjectReport> objectReportList = new ArrayList<>();
 
@@ -287,7 +285,7 @@ class MetadataAttributeCheckTest {
         Collections.emptyList(),
         ImportStrategy.CREATE_AND_UPDATE,
         validationContext,
-        objectReport -> objectReportList.add(objectReport));
+        objectReportList::add);
 
     assertFalse(CollectionUtils.isEmpty(objectReportList));
     assertEquals(ErrorCode.E6008, objectReportList.get(0).getErrorReports().get(0).getErrorCode());
@@ -296,7 +294,7 @@ class MetadataAttributeCheckTest {
   @Test
   void testAttributeNumber() {
     attribute.setValueType(ValueType.NUMBER);
-    organisationUnit.getAttributeValues().add(new AttributeValue(attribute, "123"));
+    organisationUnit.addAttributeValue(attribute.getUid(), "123");
 
     List<ObjectReport> objectReportList = new ArrayList<>();
 
@@ -307,7 +305,7 @@ class MetadataAttributeCheckTest {
         Collections.emptyList(),
         ImportStrategy.CREATE_AND_UPDATE,
         validationContext,
-        objectReport -> objectReportList.add(objectReport));
+        objectReportList::add);
 
     assertTrue(CollectionUtils.isEmpty(objectReportList));
   }
@@ -315,7 +313,7 @@ class MetadataAttributeCheckTest {
   @Test
   void testAttributeNotNegativeInteger() {
     attribute.setValueType(ValueType.INTEGER_NEGATIVE);
-    organisationUnit.getAttributeValues().add(new AttributeValue(attribute, "10"));
+    organisationUnit.addAttributeValue(attribute.getUid(), "10");
 
     List<ObjectReport> objectReportList = new ArrayList<>();
 
@@ -326,7 +324,7 @@ class MetadataAttributeCheckTest {
         Collections.emptyList(),
         ImportStrategy.CREATE_AND_UPDATE,
         validationContext,
-        objectReport -> objectReportList.add(objectReport));
+        objectReportList::add);
 
     assertFalse(CollectionUtils.isEmpty(objectReportList));
     assertEquals(ErrorCode.E6013, objectReportList.get(0).getErrorReports().get(0).getErrorCode());
@@ -335,7 +333,7 @@ class MetadataAttributeCheckTest {
   @Test
   void testAttributeNegativeInteger() {
     attribute.setValueType(ValueType.INTEGER_NEGATIVE);
-    organisationUnit.getAttributeValues().add(new AttributeValue(attribute, "-10"));
+    organisationUnit.addAttributeValue(attribute.getUid(), "-10");
 
     List<ObjectReport> objectReportList = new ArrayList<>();
 
@@ -346,7 +344,7 @@ class MetadataAttributeCheckTest {
         Collections.emptyList(),
         ImportStrategy.CREATE_AND_UPDATE,
         validationContext,
-        objectReport -> objectReportList.add(objectReport));
+        objectReportList::add);
 
     assertTrue(CollectionUtils.isEmpty(objectReportList));
   }
@@ -354,7 +352,7 @@ class MetadataAttributeCheckTest {
   @Test
   void testAttributeNotPercentage() {
     attribute.setValueType(ValueType.PERCENTAGE);
-    organisationUnit.getAttributeValues().add(new AttributeValue(attribute, "101"));
+    organisationUnit.addAttributeValue(attribute.getUid(), "101");
 
     List<ObjectReport> objectReportList = new ArrayList<>();
 
@@ -365,7 +363,7 @@ class MetadataAttributeCheckTest {
         Collections.emptyList(),
         ImportStrategy.CREATE_AND_UPDATE,
         validationContext,
-        objectReport -> objectReportList.add(objectReport));
+        objectReportList::add);
 
     assertFalse(CollectionUtils.isEmpty(objectReportList));
     assertEquals(ErrorCode.E6010, objectReportList.get(0).getErrorReports().get(0).getErrorCode());
@@ -374,7 +372,7 @@ class MetadataAttributeCheckTest {
   @Test
   void testAttributePercentage() {
     attribute.setValueType(ValueType.PERCENTAGE);
-    organisationUnit.getAttributeValues().add(new AttributeValue(attribute, "100"));
+    organisationUnit.addAttributeValue(attribute.getUid(), "100");
 
     List<ObjectReport> objectReportList = new ArrayList<>();
 
@@ -385,7 +383,7 @@ class MetadataAttributeCheckTest {
         Collections.emptyList(),
         ImportStrategy.CREATE_AND_UPDATE,
         validationContext,
-        objectReport -> objectReportList.add(objectReport));
+        objectReportList::add);
 
     assertTrue(CollectionUtils.isEmpty(objectReportList));
   }
@@ -393,7 +391,7 @@ class MetadataAttributeCheckTest {
   @Test
   void testAttributeNotUnitInterval() {
     attribute.setValueType(ValueType.UNIT_INTERVAL);
-    organisationUnit.getAttributeValues().add(new AttributeValue(attribute, "2"));
+    organisationUnit.addAttributeValue(attribute.getUid(), "2");
 
     List<ObjectReport> objectReportList = new ArrayList<>();
 
@@ -404,7 +402,7 @@ class MetadataAttributeCheckTest {
         Collections.emptyList(),
         ImportStrategy.CREATE_AND_UPDATE,
         validationContext,
-        objectReport -> objectReportList.add(objectReport));
+        objectReportList::add);
 
     assertFalse(CollectionUtils.isEmpty(objectReportList));
     assertEquals(ErrorCode.E6011, objectReportList.get(0).getErrorReports().get(0).getErrorCode());
@@ -413,7 +411,7 @@ class MetadataAttributeCheckTest {
   @Test
   void testAttributeUnitInterval() {
     attribute.setValueType(ValueType.UNIT_INTERVAL);
-    organisationUnit.getAttributeValues().add(new AttributeValue(attribute, "1"));
+    organisationUnit.addAttributeValue(attribute.getUid(), "1");
 
     List<ObjectReport> objectReportList = new ArrayList<>();
 
@@ -424,7 +422,7 @@ class MetadataAttributeCheckTest {
         Collections.emptyList(),
         ImportStrategy.CREATE_AND_UPDATE,
         validationContext,
-        objectReport -> objectReportList.add(objectReport));
+        objectReportList::add);
 
     assertTrue(CollectionUtils.isEmpty(objectReportList));
   }
@@ -432,7 +430,7 @@ class MetadataAttributeCheckTest {
   @Test
   void testAttributeNotOrganisationUnit() {
     attribute.setValueType(ValueType.ORGANISATION_UNIT);
-    organisationUnit.getAttributeValues().add(new AttributeValue(attribute, "Invalid-OU-ID"));
+    organisationUnit.addAttributeValue(attribute.getUid(), "Invalid-OU-ID");
 
     // OrganisationUnit doesn't exist
     when(manager.get(OrganisationUnit.class, "Invalid-OU-ID")).thenReturn(null);
@@ -446,7 +444,7 @@ class MetadataAttributeCheckTest {
         Collections.emptyList(),
         ImportStrategy.CREATE_AND_UPDATE,
         validationContext,
-        objectReport -> objectReportList.add(objectReport));
+        objectReportList::add);
 
     assertFalse(CollectionUtils.isEmpty(objectReportList));
     assertEquals(ErrorCode.E6019, objectReportList.get(0).getErrorReports().get(0).getErrorCode());
@@ -455,7 +453,7 @@ class MetadataAttributeCheckTest {
   @Test
   void testAttributeOrganisationUnit() {
     attribute.setValueType(ValueType.ORGANISATION_UNIT);
-    organisationUnit.getAttributeValues().add(new AttributeValue(attribute, "OU-ID"));
+    organisationUnit.addAttributeValue(attribute.getUid(), "OU-ID");
 
     // OrganisationUnit exists
     when(manager.get(OrganisationUnit.class, "OU-ID")).thenReturn(new OrganisationUnit());
@@ -469,7 +467,7 @@ class MetadataAttributeCheckTest {
         Collections.emptyList(),
         ImportStrategy.CREATE_AND_UPDATE,
         validationContext,
-        objectReport -> objectReportList.add(objectReport));
+        objectReportList::add);
 
     assertTrue(CollectionUtils.isEmpty(objectReportList));
   }
@@ -477,7 +475,7 @@ class MetadataAttributeCheckTest {
   @Test
   void testAttributeNotFileResource() {
     attribute.setValueType(ValueType.FILE_RESOURCE);
-    organisationUnit.getAttributeValues().add(new AttributeValue(attribute, "FileResourceID"));
+    organisationUnit.addAttributeValue(attribute.getUid(), "FileResourceID");
 
     // FileResource doesn't exist
     when(manager.get(FileResource.class, "FileResourceID")).thenReturn(null);
@@ -491,7 +489,7 @@ class MetadataAttributeCheckTest {
         Collections.emptyList(),
         ImportStrategy.CREATE_AND_UPDATE,
         validationContext,
-        objectReport -> objectReportList.add(objectReport));
+        objectReportList::add);
 
     assertFalse(CollectionUtils.isEmpty(objectReportList));
     assertEquals(ErrorCode.E6019, objectReportList.get(0).getErrorReports().get(0).getErrorCode());
@@ -500,7 +498,7 @@ class MetadataAttributeCheckTest {
   @Test
   void testAttributeUserNameNotExist() {
     attribute.setValueType(ValueType.USERNAME);
-    organisationUnit.getAttributeValues().add(new AttributeValue(attribute, "userNameA"));
+    organisationUnit.addAttributeValue(attribute.getUid(), "userNameA");
 
     // User doesn't exist
     when(userService.getUserByUsername("userNameA")).thenReturn(null);
@@ -514,7 +512,7 @@ class MetadataAttributeCheckTest {
         Collections.emptyList(),
         ImportStrategy.CREATE_AND_UPDATE,
         validationContext,
-        objectReport -> objectReportList.add(objectReport));
+        objectReportList::add);
 
     assertFalse(CollectionUtils.isEmpty(objectReportList));
     assertEquals(ErrorCode.E6020, objectReportList.get(0).getErrorReports().get(0).getErrorCode());
@@ -523,7 +521,7 @@ class MetadataAttributeCheckTest {
   @Test
   void testAttributeUserNameExist() {
     attribute.setValueType(ValueType.USERNAME);
-    organisationUnit.getAttributeValues().add(new AttributeValue(attribute, "userNameA"));
+    organisationUnit.addAttributeValue(attribute.getUid(), "userNameA");
 
     // User exists
     when(userService.getUserByUsername("userNameA")).thenReturn(new User());
@@ -537,7 +535,7 @@ class MetadataAttributeCheckTest {
         Collections.emptyList(),
         ImportStrategy.CREATE_AND_UPDATE,
         validationContext,
-        objectReport -> objectReportList.add(objectReport));
+        objectReportList::add);
 
     assertTrue(CollectionUtils.isEmpty(objectReportList));
   }
@@ -545,7 +543,7 @@ class MetadataAttributeCheckTest {
   @Test
   void testIsPhoneNumber() {
     attribute.setValueType(ValueType.PHONE_NUMBER);
-    organisationUnit.getAttributeValues().add(new AttributeValue(attribute, "+84938938928"));
+    organisationUnit.addAttributeValue(attribute.getUid(), "+84938938928");
 
     List<ObjectReport> objectReportList = new ArrayList<>();
 
@@ -556,7 +554,7 @@ class MetadataAttributeCheckTest {
         Collections.emptyList(),
         ImportStrategy.CREATE_AND_UPDATE,
         validationContext,
-        objectReport -> objectReportList.add(objectReport));
+        objectReportList::add);
 
     assertTrue(CollectionUtils.isEmpty(objectReportList));
   }
@@ -564,7 +562,7 @@ class MetadataAttributeCheckTest {
   @Test
   void testNotPhoneNumber() {
     attribute.setValueType(ValueType.PHONE_NUMBER);
-    organisationUnit.getAttributeValues().add(new AttributeValue(attribute, "VN 84938938928"));
+    organisationUnit.addAttributeValue(attribute.getUid(), "VN 84938938928");
 
     List<ObjectReport> objectReportList = new ArrayList<>();
 
@@ -575,7 +573,7 @@ class MetadataAttributeCheckTest {
         Collections.emptyList(),
         ImportStrategy.CREATE_AND_UPDATE,
         validationContext,
-        objectReport -> objectReportList.add(objectReport));
+        objectReportList::add);
 
     assertFalse(CollectionUtils.isEmpty(objectReportList));
     assertEquals(ErrorCode.E6021, objectReportList.get(0).getErrorReports().get(0).getErrorCode());
@@ -584,7 +582,7 @@ class MetadataAttributeCheckTest {
   @Test
   void testEmptyValue() {
     attribute.setValueType(ValueType.EMAIL);
-    organisationUnit.getAttributeValues().add(new AttributeValue(attribute, ""));
+    organisationUnit.addAttributeValue(attribute.getUid(), "");
     List<ObjectReport> objectReportList = new ArrayList<>();
 
     metadataAttributeCheck.check(
@@ -594,7 +592,7 @@ class MetadataAttributeCheckTest {
         Collections.emptyList(),
         ImportStrategy.CREATE_AND_UPDATE,
         validationContext,
-        objectReport -> objectReportList.add(objectReport));
+        objectReportList::add);
 
     assertTrue(CollectionUtils.isEmpty(objectReportList));
   }

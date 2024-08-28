@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 
 import java.util.Map;
 import java.util.Set;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -77,7 +78,7 @@ class ProgramTrackedEntityAttributeTest {
     ptea.setSearchable(true);
     ptea.setAccess(new Access());
     ptea.setPublicAccess("rw------");
-    ptea.setAttributeValues(Set.of());
+    ptea.setAttributeValues(AttributeValues.empty());
     ptea.setSharing(new Sharing());
     ptea.setTranslations(Set.of());
     return ptea;

@@ -296,26 +296,26 @@ public class FieldFilterService {
   }
 
   private void applyFieldPath(Object object, ObjectNode objectNode, FieldPath path) {
-    if (path.getProperty() != null || !CodeGenerator.isValidUid(path.getFullPath())) {
+    String attributeId = path.getFullPath();
+    if (path.getProperty() != null || !CodeGenerator.isValidUid(attributeId)) {
       return;
     }
 
-    AttributeValue value = ((BaseIdentifiableObject) object).getAttributeValue(path.getFullPath());
-    if (value == null) {
+    String fieldValue = ((BaseIdentifiableObject) object).getAttributeValues().get(attributeId);
+    if (fieldValue == null) {
       return;
     }
 
-    String fieldValue = value.getValue();
-    Attribute attribute = attributeService.getAttribute(value.getAttribute().getUid());
+    Attribute attribute = attributeService.getAttribute(attributeId);
 
-    if (fieldValue != null && !fieldValue.isBlank() && attribute.getValueType().isJson()) {
+    if (!fieldValue.isBlank() && attribute.getValueType().isJson()) {
       try {
-        objectNode.set(path.getFullPath(), jsonMapper.readTree(fieldValue));
+        objectNode.set(attributeId, jsonMapper.readTree(fieldValue));
       } catch (JsonProcessingException e) {
-        objectNode.put(path.getFullPath(), fieldValue);
+        objectNode.put(attributeId, fieldValue);
       }
     } else {
-      objectNode.put(path.getFullPath(), fieldValue);
+      objectNode.put(attributeId, fieldValue);
     }
   }
 

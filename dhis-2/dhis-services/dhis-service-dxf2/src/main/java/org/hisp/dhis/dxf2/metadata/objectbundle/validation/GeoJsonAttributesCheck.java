@@ -74,7 +74,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class GeoJsonAttributesCheck implements ObjectValidationCheck {
-  private ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
   @Override
   public <T extends IdentifiableObject> void check(
@@ -126,11 +126,7 @@ public class GeoJsonAttributesCheck implements ObjectValidationCheck {
     }
 
     List<ErrorReport> errorReports = new ArrayList<>();
-    object.getAttributeValues().stream()
-        .filter(attributeValue -> attributes.contains(attributeValue.getAttribute().getUid()))
-        .forEach(
-            attributeValue ->
-                validateGeoJsonValue(attributeValue, error -> errorReports.add(error)));
+    object.getAttributeValues().forEach((k, v) -> validateGeoJsonValue(k, v, errorReports::add));
 
     return errorReports;
   }
@@ -143,17 +139,16 @@ public class GeoJsonAttributesCheck implements ObjectValidationCheck {
    * @param attributeValue {@link AttributeValue} for validating.
    * @param addError ErrorReport consumer.
    */
-  private void validateGeoJsonValue(AttributeValue attributeValue, Consumer<ErrorReport> addError) {
+  private void validateGeoJsonValue(
+      String attributeId, String attributeValue, Consumer<ErrorReport> addError) {
     try {
       validateGeoJsonObject(
-          objectMapper.readValue(attributeValue.getValue(), GeoJsonObject.class),
-          attributeValue.getAttribute().getUid(),
-          addError);
+          objectMapper.readValue(attributeValue, GeoJsonObject.class), attributeId, addError);
     } catch (JsonProcessingException e) {
       log.error(DebugUtils.getStackTrace(e));
       addError.accept(
-          new ErrorReport(Attribute.class, ErrorCode.E6004, attributeValue.getAttribute().getUid())
-              .setMainId(attributeValue.getAttribute().getUid())
+          new ErrorReport(Attribute.class, ErrorCode.E6004, attributeValue)
+              .setMainId(attributeValue)
               .setErrorProperty("value"));
     }
   }
@@ -178,7 +173,7 @@ public class GeoJsonAttributesCheck implements ObjectValidationCheck {
   }
 
   /** Contains validator for each GeoJson Object type. */
-  class ValidatingGeoJsonVisitor implements GeoJsonObjectVisitor<Optional<ErrorCode>> {
+  static class ValidatingGeoJsonVisitor implements GeoJsonObjectVisitor<Optional<ErrorCode>> {
     @Override
     public Optional<ErrorCode> visit(GeometryCollection geometryCollection) {
       return of(ErrorCode.E6005);

@@ -100,6 +100,8 @@ public interface AttributeService {
    */
   List<Attribute> getAllAttributes();
 
+  List<Attribute> getAttributesByIds(Set<String> ids);
+
   // -------------------------------------------------------------------------
   // AttributeValue
   // -------------------------------------------------------------------------
