@@ -30,15 +30,18 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -178,6 +181,23 @@ class AccountControllerTest extends DhisControllerConvenienceTest {
         "error",
         "Password must have at least 8, and at most 60 characters",
         POST("/account/validatePassword?password=xyz").content(HttpStatus.OK));
+  }
+
+  @Test
+  void testGetLinkedAccounts() {
+    createUserWithAuth("usera");
+    createUserWithAuth("userb");
+
+    String openId = "email@provider.com";
+    List<User> allUsers = userService.getAllUsers();
+    for (User user : allUsers) {
+      user.setOpenId(openId);
+      userService.updateUser(user);
+    }
+
+    JsonResponse response = GET("/account/linkedAccounts").content(HttpStatus.OK);
+    JsonList<JsonUser> list = response.asList(JsonUser.class);
+    assertEquals(3, list.size());
   }
 
   private static void assertMessage(
