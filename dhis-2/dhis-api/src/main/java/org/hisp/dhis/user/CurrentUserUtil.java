@@ -147,7 +147,7 @@ public class CurrentUserUtil {
   /**
    * Return the value of the user setting referred to by 'key'.
    *
-   * Removes the current key/value if the input value is null.
+   * <p>Removes the current key/value if the input value is null.
    *
    * @param defaultValue the default value to return if the setting value is null.
    * @param key the key of the user setting
