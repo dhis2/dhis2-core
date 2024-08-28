@@ -220,7 +220,11 @@ public class DefaultFieldFilterService implements FieldFilterService {
     final FieldMap finalFieldMap = fieldMap;
 
     if (params.getUserDetails() == null) {
-      params.setUserDetails(CurrentUserUtil.getCurrentUserDetails());
+      if (!CurrentUserUtil.hasCurrentUser()) {
+        params.setUserDetails(null);
+      } else {
+        params.setUserDetails(CurrentUserUtil.getCurrentUserDetails());
+      }
     }
 
     objects.forEach(

@@ -408,7 +408,7 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
   @Override
   @Transactional(readOnly = true)
   public boolean isInUserHierarchy(User user, OrganisationUnit organisationUnit) {
-    if (user == null || isEmpty(user.getOrganisationUnits())) {
+    if (isEmpty(user.getOrganisationUnits())) {
       return false;
     }
 
@@ -424,7 +424,7 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
   @Override
   @Transactional(readOnly = true)
   public boolean isInUserDataViewHierarchy(User user, OrganisationUnit organisationUnit) {
-    if (user == null || isEmpty(user.getDataViewOrganisationUnitsWithFallback())) {
+    if (isEmpty(user.getDataViewOrganisationUnitsWithFallback())) {
       return false;
     }
 
@@ -443,7 +443,7 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
   @Override
   @Transactional(readOnly = true)
   public boolean isInUserSearchHierarchy(User user, OrganisationUnit organisationUnit) {
-    if (user == null || isEmpty(user.getTeiSearchOrganisationUnitsWithFallback())) {
+    if (isEmpty(user.getTeiSearchOrganisationUnitsWithFallback())) {
       return false;
     }
 

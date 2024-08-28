@@ -136,11 +136,9 @@ public class DefaultUserSettingService implements UserSettingService {
   @Transactional
   public void deleteUserSetting(UserSettingKey key) {
     String currentUsername = CurrentUserUtil.getCurrentUsername();
-    if (currentUsername != null) {
-      UserSetting setting = userSettingStore.getUserSetting(currentUsername, key.getName());
-      if (setting != null) {
-        deleteUserSetting(setting);
-      }
+    UserSetting setting = userSettingStore.getUserSetting(currentUsername, key.getName());
+    if (setting != null) {
+      deleteUserSetting(setting);
     }
   }
 
@@ -253,8 +251,14 @@ public class DefaultUserSettingService implements UserSettingService {
       return SerializableOptional.empty();
     }
 
-    String realUsername = username.orElseGet(CurrentUserUtil::getCurrentUsername);
+    boolean isAuthenticated = CurrentUserUtil.hasCurrentUser();
+    if (username.isEmpty() && !isAuthenticated) {
+      username = Optional.of("system");
+    } else if (username.isEmpty()) {
+      username = Optional.of(CurrentUserUtil.getCurrentUsername());
+    }
 
+    String realUsername = username.get();
     String cacheKey = getCacheKey(key.getName(), realUsername);
 
     SerializableOptional result =

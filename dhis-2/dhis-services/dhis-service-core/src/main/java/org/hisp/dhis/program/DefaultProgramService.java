@@ -129,8 +129,7 @@ public class DefaultProgramService implements ProgramService {
   @Transactional(readOnly = true)
   public List<Program> getCurrentUserPrograms() {
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-
-    if (currentUserDetails == null || currentUserDetails.isSuper()) {
+    if (currentUserDetails.isSuper()) {
       return getAllPrograms();
     }
 
