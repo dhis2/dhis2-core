@@ -25,24 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.config;
+package org.hisp.dhis.tracker.deprecated.audit;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
+import java.util.List;
+import org.hisp.dhis.changelog.ChangeLogType;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAudit;
+import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
 
 /**
- * Creates a no operation flyway bean that can be used to disable flyway migrations when running
- * tests.
+ * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
-@Profile("test-h2")
-@Configuration
-public class NoOpFlywayTestConfig {
+@Deprecated(since = "2.42", forRemoval = true)
+public interface TrackedEntityAuditService {
 
-  public static class NoOpFlyway {}
+  String ID = TrackedEntityAuditService.class.getName();
 
-  @Bean
-  public NoOpFlyway flyway() {
-    return new NoOpFlyway();
-  }
+  void addTrackedEntityAudit(
+      TrackedEntity trackedEntity, String username, ChangeLogType changeLogType);
+
+  /** Adds multiple tracked entity audit */
+  void addTrackedEntityAudit(List<TrackedEntityAudit> trackedEntityAudits);
+
+  /**
+   * Returns tracked entity audits matching query params
+   *
+   * @param params tracked entity audit query params
+   * @return matching TrackedEntityAudits
+   */
+  List<TrackedEntityAudit> getTrackedEntityAudits(TrackedEntityAuditQueryParams params);
+
+  /**
+   * Returns count of tracked entity audits matching query params
+   *
+   * @param params tracked entity audit query params
+   * @return count of TrackedEntityAudits
+   */
+  int getTrackedEntityAuditsCount(TrackedEntityAuditQueryParams params);
 }
