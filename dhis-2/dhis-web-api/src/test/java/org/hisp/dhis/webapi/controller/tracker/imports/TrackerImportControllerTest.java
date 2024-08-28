@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker.imports;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.scheduling.JobType.TRACKER_IMPORT_JOB;
+import static org.hisp.dhis.test.TestBase.injectSecurityContext;
 import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportController.TRACKER_JOB_ADDED;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -62,6 +63,7 @@ import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.tracker.imports.report.ValidationReport;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
@@ -100,6 +102,8 @@ class TrackerImportControllerTest {
 
   @BeforeEach
   public void setUp() {
+    injectSecurityContext(new SystemUser());
+
     renderService =
         new DefaultRenderService(
             JacksonObjectMapperConfig.jsonMapper,
@@ -125,7 +129,7 @@ class TrackerImportControllerTest {
 
   @Test
   void verifyAsync() throws Exception {
-
+    injectSecurityContext(new SystemUser());
     // Then
     mockMvc
         .perform(
