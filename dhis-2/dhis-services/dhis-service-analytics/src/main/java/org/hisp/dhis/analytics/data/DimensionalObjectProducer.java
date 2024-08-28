@@ -337,12 +337,10 @@ public class DimensionalObjectProducer {
 
     for (Period period : periods) {
       String name = format != null ? format.formatPeriod(period) : null;
-
-      if (!period.getPeriodType().getName().contains(NAME)) {
-        period.setShortName(name);
-      }
+      String shortName = format != null ? format.formatPeriod(period, true) : null;
 
       period.setName(name);
+      period.setShortName(shortName);
 
       if (!calendar.isIso8601()) {
         period.setUid(getLocalPeriodIdentifier(period, calendar));
