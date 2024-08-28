@@ -25,28 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentity.comparator;
+package org.hisp.dhis.tracker.acl;
 
-import java.util.Comparator;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import java.util.List;
+import java.util.Set;
+import org.hisp.dhis.common.GenericStore;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 
 /**
- * @author Chau Thu Tran
+ * @author Ameen Mohamed
  */
-public class TrackedEntityAttributeSortOrderComparator
-    implements Comparator<TrackedEntityAttribute> {
-  @Override
-  public int compare(TrackedEntityAttribute attribute0, TrackedEntityAttribute attribute1) {
-    if (attribute0.getSortOrderInVisitSchedule() == null
-        || attribute0.getSortOrderInVisitSchedule() == 0) {
-      return attribute0.getName().compareTo(attribute1.getName());
-    }
+public interface TrackedEntityProgramOwnerStore extends GenericStore<TrackedEntityProgramOwner> {
+  String ID = TrackedEntityProgramOwnerStore.class.getName();
 
-    if (attribute1.getSortOrderInVisitSchedule() == null
-        || attribute1.getSortOrderInVisitSchedule() == 0) {
-      return attribute0.getName().compareTo(attribute1.getName());
-    }
+  /** Get tracked entity program owner entity for the te-program combination. */
+  TrackedEntityProgramOwner getTrackedEntityProgramOwner(TrackedEntity te, Program program);
 
-    return attribute0.getSortOrderInVisitSchedule() - attribute1.getSortOrderInVisitSchedule();
-  }
+  List<TrackedEntityProgramOwnerOrgUnit> getTrackedEntityProgramOwnerOrgUnits(Set<Long> teIds);
 }

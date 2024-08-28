@@ -25,11 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.access;
+package org.hisp.dhis.tracker.acl;
 
-import static org.hisp.dhis.trackedentity.ApiTrackerOwnershipManager.NO_READ_ACCESS_TO_ORG_UNIT;
-import static org.hisp.dhis.trackedentity.ApiTrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED;
-import static org.hisp.dhis.trackedentity.ApiTrackerOwnershipManager.PROGRAM_ACCESS_CLOSED;
+import static org.hisp.dhis.tracker.acl.TrackerOwnershipManager.NO_READ_ACCESS_TO_ORG_UNIT;
+import static org.hisp.dhis.tracker.acl.TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED;
+import static org.hisp.dhis.tracker.acl.TrackerOwnershipManager.PROGRAM_ACCESS_CLOSED;
 
 import java.util.ArrayList;
 import java.util.List;
