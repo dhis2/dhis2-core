@@ -25,36 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentity;
+package org.hisp.dhis.tracker.acl;
 
+import java.util.List;
+import java.util.Set;
+import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 
 /**
  * @author Ameen Mohamed
  */
-public interface ApiTrackerOwnershipManager {
-  String OWNERSHIP_ACCESS_DENIED = "OWNERSHIP_ACCESS_DENIED";
+public interface TrackedEntityProgramOwnerStore extends GenericStore<TrackedEntityProgramOwner> {
+  String ID = TrackedEntityProgramOwnerStore.class.getName();
 
-  String PROGRAM_ACCESS_CLOSED = "PROGRAM_ACCESS_CLOSED";
+  /** Get tracked entity program owner entity for the te-program combination. */
+  TrackedEntityProgramOwner getTrackedEntityProgramOwner(TrackedEntity te, Program program);
 
-  String NO_READ_ACCESS_TO_ORG_UNIT = "User has no read access to organisation unit";
-
-  /**
-   * Check whether the user has access (as owner or has temporarily broken the glass) to the tracked
-   * entity - program combination.
-   *
-   * @param user The user with which access has to be checked for.
-   * @param trackedEntity The tracked entity.
-   * @param program The program.
-   * @return true if the user has access, false otherwise.
-   */
-  boolean hasAccess(UserDetails user, TrackedEntity trackedEntity, Program program);
-
-  /**
-   * Checks whether the owner of the TE/program pair resides within the user search scope.
-   *
-   * @return true if the owner is in the search scope, false otherwise
-   */
-  boolean isOwnerInUserSearchScope(UserDetails user, TrackedEntity trackedEntity, Program program);
+  List<TrackedEntityProgramOwnerOrgUnit> getTrackedEntityProgramOwnerOrgUnits(Set<Long> teIds);
 }
