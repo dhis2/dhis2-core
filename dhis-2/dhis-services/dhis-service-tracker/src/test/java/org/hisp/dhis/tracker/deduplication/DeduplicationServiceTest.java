@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.deduplication;
 
+import static org.hisp.dhis.test.TestBase.injectSecurityContext;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -59,10 +60,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
@@ -169,11 +166,7 @@ class DeduplicationServiceTest {
           ForbiddenException,
           NotFoundException {
     SystemUser actingUser = new SystemUser();
-    Authentication authentication =
-        new UsernamePasswordAuthenticationToken(actingUser, "", actingUser.getAuthorities());
-    SecurityContext context = SecurityContextHolder.createEmptyContext();
-    context.setAuthentication(authentication);
-    SecurityContextHolder.setContext(context);
+    injectSecurityContext(actingUser);
 
     MergeObject mergeObject = MergeObject.builder().build();
     when(deduplicationHelper.generateMergeObject(trackedEntityA, trackedEntityB))
@@ -305,11 +298,7 @@ class DeduplicationServiceTest {
           NotFoundException,
           ForbiddenException {
     SystemUser actingUser = new SystemUser();
-    Authentication authentication =
-        new UsernamePasswordAuthenticationToken(actingUser, "", actingUser.getAuthorities());
-    SecurityContext context = SecurityContextHolder.createEmptyContext();
-    context.setAuthentication(authentication);
-    SecurityContextHolder.setContext(context);
+    injectSecurityContext(actingUser);
 
     when(trackedEntityB.getTrackedEntityAttributeValues()).thenReturn(new HashSet<>());
     MergeObject mergeObject = MergeObject.builder().build();
@@ -334,11 +323,7 @@ class DeduplicationServiceTest {
           NotFoundException,
           ForbiddenException {
     SystemUser actingUser = new SystemUser();
-    Authentication authentication =
-        new UsernamePasswordAuthenticationToken(actingUser, "", actingUser.getAuthorities());
-    SecurityContext context = SecurityContextHolder.createEmptyContext();
-    context.setAuthentication(authentication);
-    SecurityContextHolder.setContext(context);
+    injectSecurityContext(actingUser);
 
     deduplicationService.manualMerge(deduplicationMergeParams);
     verify(deduplicationHelper, times(1)).getInvalidReferenceErrors(deduplicationMergeParams);

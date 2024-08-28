@@ -33,8 +33,10 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 public class CurrentUserUtil {
@@ -53,7 +55,7 @@ public class CurrentUserUtil {
     if (authentication == null
         || !authentication.isAuthenticated()
         || authentication.getPrincipal() == null) {
-      throw new RuntimeException("No authenticated user found");
+      throw new IllegalStateException("No authenticated user found");
     }
 
     Object principal = authentication.getPrincipal();
@@ -64,7 +66,7 @@ public class CurrentUserUtil {
       return userDetails.getUsername();
 
     } else {
-      throw new RuntimeException(
+      throw new IllegalStateException(
           "Authentication principal is not supported; principal:" + principal);
     }
   }
@@ -182,5 +184,21 @@ public class CurrentUserUtil {
         && authentication.isAuthenticated()
         && authentication.getPrincipal() != null
         && !authentication.getPrincipal().equals("anonymousUser");
+  }
+
+  public static void injectUserInSecurityContext(UserDetails actingUser) {
+    Authentication authentication =
+        new UsernamePasswordAuthenticationToken(actingUser, "", actingUser.getAuthorities());
+    SecurityContext context = SecurityContextHolder.createEmptyContext();
+    context.setAuthentication(authentication);
+    SecurityContextHolder.setContext(context);
+  }
+
+  public static void clearSecurityContext() {
+    SecurityContext context = SecurityContextHolder.getContext();
+    if (context != null) {
+      SecurityContextHolder.getContext().setAuthentication(null);
+    }
+    SecurityContextHolder.clearContext();
   }
 }

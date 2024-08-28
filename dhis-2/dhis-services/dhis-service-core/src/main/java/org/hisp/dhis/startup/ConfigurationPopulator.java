@@ -28,6 +28,8 @@
 package org.hisp.dhis.startup;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.user.CurrentUserUtil.clearSecurityContext;
+import static org.hisp.dhis.user.CurrentUserUtil.injectUserInSecurityContext;
 
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
@@ -38,10 +40,6 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.SystemUser;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 @Slf4j
 public class ConfigurationPopulator extends TransactionContextStartupRoutine {
@@ -77,7 +75,7 @@ public class ConfigurationPopulator extends TransactionContextStartupRoutine {
     }
 
     if (!hasCurrentUser) {
-      clearContext();
+      clearSecurityContext();
     }
   }
 
@@ -89,21 +87,5 @@ public class ConfigurationPopulator extends TransactionContextStartupRoutine {
     } else {
       log.info("Encryption is available");
     }
-  }
-
-  private static void injectUserInSecurityContext(SystemUser actingUser) {
-    Authentication authentication =
-        new UsernamePasswordAuthenticationToken(actingUser, "", actingUser.getAuthorities());
-    SecurityContext context = SecurityContextHolder.createEmptyContext();
-    context.setAuthentication(authentication);
-    SecurityContextHolder.setContext(context);
-  }
-
-  private static void clearContext() {
-    SecurityContext context = SecurityContextHolder.getContext();
-    if (context != null) {
-      SecurityContextHolder.getContext().setAuthentication(null);
-    }
-    SecurityContextHolder.clearContext();
   }
 }

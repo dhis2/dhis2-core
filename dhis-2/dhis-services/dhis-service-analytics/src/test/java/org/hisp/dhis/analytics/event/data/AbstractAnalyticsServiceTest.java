@@ -31,6 +31,9 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hisp.dhis.test.TestBase.createDataElement;
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
+import static org.hisp.dhis.test.TestBase.injectSecurityContext;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -55,7 +58,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeAll;
@@ -73,7 +75,7 @@ import org.opengis.geometry.primitive.Point;
  * @author Luciano Fiandesio
  */
 @ExtendWith(MockitoExtension.class)
-class AbstractAnalyticsServiceTest extends TestBase {
+class AbstractAnalyticsServiceTest {
   private Period peA;
 
   private OrganisationUnit ouA;

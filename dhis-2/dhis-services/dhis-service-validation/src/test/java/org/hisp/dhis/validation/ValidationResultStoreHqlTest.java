@@ -32,6 +32,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
+import static org.hisp.dhis.user.CurrentUserUtil.injectUserInSecurityContext;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -55,7 +56,6 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -67,9 +67,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
@@ -81,7 +78,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
  *
  * @author Jan Bernitt
  */
-class ValidationResultStoreHqlTest extends TestBase {
+class ValidationResultStoreHqlTest {
 
   private final List<String> hqlQueries = new ArrayList<>();
 
@@ -130,20 +127,14 @@ class ValidationResultStoreHqlTest extends TestBase {
     SecurityContextHolder.clearContext();
   }
 
-  public static void injectSecurityContext(User user) {
-    UserDetails currentUserDetails = UserDetails.fromUser(user);
-    Authentication authentication =
-        new UsernamePasswordAuthenticationToken(
-            currentUserDetails, "", currentUserDetails.getAuthorities());
-    SecurityContext context = SecurityContextHolder.createEmptyContext();
-    context.setAuthentication(authentication);
-    SecurityContextHolder.setContext(context);
+  public static void injectUserSecurityContext(User user) {
+    injectUserInSecurityContext(UserDetails.fromUser(user));
   }
 
   private void setUpUser(String orgUnitUid, Category category, CategoryOptionGroupSet groupSet) {
     User user = new User();
     user.setUsername("testuser");
-    injectSecurityContext(user);
+    injectUserSecurityContext(user);
     when(userService.getUserByUsername(anyString())).thenReturn(user);
     user.setGroups(emptySet());
     OrganisationUnit unit = new OrganisationUnit();
@@ -158,7 +149,7 @@ class ValidationResultStoreHqlTest extends TestBase {
   }
 
   private void setUpSuperUser() {
-    injectSecurityContext(new SystemUser());
+    injectUserInSecurityContext(new SystemUser());
   }
 
   @Test

@@ -32,6 +32,7 @@ import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.PARENT;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
+import static org.hisp.dhis.test.TestBase.injectSecurityContext;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -44,7 +45,6 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.user.SystemUser;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -56,7 +56,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class RecordingJobProgressTest extends TestBase {
+class RecordingJobProgressTest {
   private final JobConfiguration config = createJobConfig();
 
   private final JobProgress progress = new RecordingJobProgress(config);

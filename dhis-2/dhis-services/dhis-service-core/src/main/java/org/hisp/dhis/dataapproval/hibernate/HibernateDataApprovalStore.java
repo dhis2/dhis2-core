@@ -308,9 +308,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
             : "";
 
     List<DataApprovalLevel> approvalLevels = workflow.getSortedLevels();
-
-    Set<OrganisationUnit> userOrgUnits =
-        currentUser != null ? currentUser.getDataViewOrganisationUnitsWithFallback() : null;
+    Set<OrganisationUnit> userOrgUnits = currentUser.getDataViewOrganisationUnitsWithFallback();
 
     boolean isDefaultCombo =
         attributeOptionCombos != null
@@ -320,9 +318,8 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
                 .equals(attributeOptionCombos.toArray()[0]);
 
     boolean maySeeDefaultCategoryCombo =
-        currentUser != null
-            && (CollectionUtils.isEmpty(currentUser.getCogsDimensionConstraints())
-                && CollectionUtils.isEmpty(currentUser.getCatDimensionConstraints()));
+        CollectionUtils.isEmpty(currentUser.getCogsDimensionConstraints())
+            && CollectionUtils.isEmpty(currentUser.getCatDimensionConstraints());
 
     // ---------------------------------------------------------------------
     // Validate

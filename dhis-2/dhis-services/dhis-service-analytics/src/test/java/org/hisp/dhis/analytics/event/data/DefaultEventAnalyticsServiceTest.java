@@ -28,6 +28,10 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
+import static org.hisp.dhis.test.TestBase.createPeriod;
+import static org.hisp.dhis.test.TestBase.createProgram;
+import static org.hisp.dhis.test.TestBase.injectSecurityContext;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.doNothing;
@@ -55,7 +59,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
-import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.UserService;
@@ -72,7 +75,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author maikel arabori
  */
 @ExtendWith(MockitoExtension.class)
-class DefaultEventAnalyticsServiceTest extends TestBase {
+class DefaultEventAnalyticsServiceTest {
   private DefaultEventAnalyticsService defaultEventAnalyticsService;
 
   @Mock private AnalyticsSecurityManager securityManager;
