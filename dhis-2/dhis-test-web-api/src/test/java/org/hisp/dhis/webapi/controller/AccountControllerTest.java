@@ -35,13 +35,13 @@ import java.util.Set;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -196,8 +196,8 @@ class AccountControllerTest extends DhisControllerConvenienceTest {
     }
 
     JsonResponse response = GET("/account/linkedAccounts").content(HttpStatus.OK);
-    JsonList<JsonObject> users = response.getList("users", JsonObject.class);
-    assertEquals(3, users.size());
+    JsonList<JsonUser> list = response.asList(JsonUser.class);
+    assertEquals(3, list.size());
   }
 
   private static void assertMessage(
