@@ -112,9 +112,9 @@ class AttributeValueServiceTest extends PostgresIntegrationTestBase {
     attributeService.addAttributeValue(dataElementA, avA);
     attributeService.addAttributeValue(dataElementB, avB);
     assertEquals(1, dataElementA.getAttributeValues().size());
-    assertNotNull(dataElementA.getAttributeValue(attribute1));
+    assertNotNull(dataElementA.getAttributeValue(attribute1.getUid()));
     assertEquals(1, dataElementB.getAttributeValues().size());
-    assertNotNull(dataElementB.getAttributeValue(attribute2));
+    assertNotNull(dataElementB.getAttributeValue(attribute2.getUid()));
   }
 
   @Test
@@ -131,7 +131,7 @@ class AttributeValueServiceTest extends PostgresIntegrationTestBase {
     AttributeValue avB = new AttributeValue("valueB", attribute2);
     attributeService.addAttributeValue(dataElementA, avA);
     attributeService.addAttributeValue(dataElementB, avB);
-    avA = dataElementA.getAttributeValue(attribute1);
+    avA = dataElementA.getAttributeValue(attribute1.getUid());
     assertNotNull(avA);
     List<AttributeValue> attributeValues =
         dataElementStore.getAllValuesByAttributes(Lists.newArrayList(attribute2));

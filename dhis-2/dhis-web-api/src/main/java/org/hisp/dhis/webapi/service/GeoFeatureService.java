@@ -547,7 +547,7 @@ public class GeoFeatureService {
     }
 
     BaseIdentifiableObject identifiableObject = (BaseIdentifiableObject) object;
-    AttributeValue geoJsonValue = identifiableObject.getAttributeValue(geoJsonAttribute);
+    AttributeValue geoJsonValue = identifiableObject.getAttributeValue(geoJsonAttribute.getUid());
 
     return geoJsonValue != null && StringUtils.isNotBlank(geoJsonValue.getValue());
   }

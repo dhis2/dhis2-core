@@ -251,7 +251,7 @@ public class DefaultOrgUnitProfileService implements OrgUnitProfileService {
     List<ProfileItem> items = new ArrayList<>();
 
     for (Attribute attribute : attributes) {
-      AttributeValue attributeValue = orgUnit.getAttributeValue(attribute);
+      AttributeValue attributeValue = orgUnit.getAttributeValue(attribute.getUid());
 
       if (attributeValue != null) {
         items.add(

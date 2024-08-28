@@ -325,7 +325,7 @@ public class DefaultGeoJsonService implements GeoJsonService {
       Attribute attribute, GeoJsonImportReport report, GeometryUpdate update) {
     ImportCount stats = report.getImportCount();
     OrganisationUnit target = update.target();
-    AttributeValue attributeValue = target.getAttributeValue(attribute);
+    AttributeValue attributeValue = target.getAttributeValue(attribute.getUid());
     String newValue = update.newValue();
     if (!update.isDeletion() && validateGeometry(report, update) == null) {
       return false;

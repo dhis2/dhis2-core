@@ -430,9 +430,9 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
     List<DimensionalItemObject> items = List.of(deA, deB, deC);
     List<String> itemAttributeValues =
         List.of(
-            deA.getAttributeValueString(atA),
-            deB.getAttributeValueString(atA),
-            deC.getAttributeValueString(atA));
+            deA.getAttributeValueString(atA.getUid()),
+            deB.getAttributeValueString(atA.getUid()),
+            deC.getAttributeValueString(atA.getUid()));
     DimensionalObject actual =
         dataQueryService.getDimension(
             DimensionalObject.DATA_X_DIM_ID,

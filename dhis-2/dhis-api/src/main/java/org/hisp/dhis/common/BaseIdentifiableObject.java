@@ -291,18 +291,13 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
     this.attributeValues = attributeValues;
   }
 
-  public AttributeValue getAttributeValue(Attribute attribute) {
-    loadAttributeValuesCacheIfEmpty();
-    return cacheAttributeValues.get(attribute.getUid());
-  }
-
   public AttributeValue getAttributeValue(String attributeUid) {
     loadAttributeValuesCacheIfEmpty();
     return cacheAttributeValues.get(attributeUid);
   }
 
-  public String getAttributeValueString(Attribute attribute) {
-    AttributeValue attributeValue = getAttributeValue(attribute);
+  public String getAttributeValueString(String attributeUid) {
+    AttributeValue attributeValue = getAttributeValue(attributeUid);
     return attributeValue != null ? attributeValue.getValue() : null;
   }
 
