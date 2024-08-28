@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker.imports;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.scheduling.JobType.TRACKER_IMPORT_JOB;
+import static org.hisp.dhis.test.TestBase.injectSecurityContext;
 import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportController.TRACKER_JOB_ADDED;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -57,7 +58,6 @@ import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notification;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.imports.DefaultTrackerImportService;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
@@ -81,7 +81,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
 @ExtendWith(MockitoExtension.class)
-class TrackerImportControllerTest extends TestBase {
+class TrackerImportControllerTest {
 
   private static final String ENDPOINT = "/api/tracker";
 

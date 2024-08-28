@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.dataelement;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig.staticJsonMapper;
+import static org.hisp.dhis.test.TestBase.injectSecurityContext;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -72,7 +73,6 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.test.random.BeanRandomizer;
 import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
@@ -99,7 +99,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
  */
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
-class DataElementOperandControllerTest extends TestBase {
+class DataElementOperandControllerTest {
   private MockMvc mockMvc;
 
   @Mock private IdentifiableObjectManager manager;

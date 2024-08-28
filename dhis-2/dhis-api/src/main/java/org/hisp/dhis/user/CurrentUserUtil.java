@@ -83,7 +83,7 @@ public class CurrentUserUtil {
     if (authentication == null
         || !authentication.isAuthenticated()
         || authentication.getPrincipal() == null) {
-      throw new RuntimeException("No authenticated user found");
+      throw new IllegalStateException("No authenticated user found");
     }
 
     Object principal = authentication.getPrincipal();
@@ -91,7 +91,7 @@ public class CurrentUserUtil {
     if (principal instanceof UserDetails) {
       return (UserDetails) authentication.getPrincipal();
     } else {
-      throw new RuntimeException(
+      throw new IllegalStateException(
           "Authentication principal is not supported; principal:" + principal);
     }
   }
