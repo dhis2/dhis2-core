@@ -243,8 +243,6 @@ class UserControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  @DisplayName(
-      "Check you can set same OpenID value on multiple accounts when linked accounts are enabled")
   void testSetOpenIdThenUpdateWithLinkedAccountsEnabled() {
     config.getProperties().put(LINKED_ACCOUNTS_ENABLED.getKey(), "on");
 
@@ -266,8 +264,6 @@ class UserControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  @DisplayName(
-      "Check you can't set same OpenID value on multiple accounts when linked accounts are disabled")
   void testSetOpenIdThenUpdateWithLinkedAccountsDisabled() {
     config.getProperties().put(LINKED_ACCOUNTS_ENABLED.getKey(), "off");
 
