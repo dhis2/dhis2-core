@@ -73,7 +73,6 @@ import static org.hisp.dhis.organisationunit.OrganisationUnit.getSortedGrandChil
 import static org.hisp.dhis.period.PeriodType.getCalendar;
 import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
 import static org.hisp.dhis.period.RelativePeriods.getRelativePeriodsFromEnum;
-import static org.hisp.dhis.period.WeeklyPeriodType.NAME;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_FINANCIAL_YEAR_START;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
