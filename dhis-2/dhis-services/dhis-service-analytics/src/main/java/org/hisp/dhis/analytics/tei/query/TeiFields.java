@@ -90,8 +90,8 @@ public class TeiFields {
    */
   public static Stream<Field> getDimensionFields(TeiQueryParams teiQueryParams) {
     return Stream.concat(
-            getProgramAttributes(parsedParams.getPrograms()),
-            getTrackedEntityAttributes(trackedEntityQueryParams.getTrackedEntityType()))
+            getProgramAttributes(teiQueryParams.getCommonParams().getPrograms()),
+            getTrackedEntityAttributes(teiQueryParams.getTrackedEntityType()))
         .map(TrackedEntityAttribute::getUid)
         .distinct()
         .map(attr -> Field.of(TEI_ALIAS, () -> attr, attr));

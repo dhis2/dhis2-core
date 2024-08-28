@@ -117,12 +117,6 @@ public class CommonQueryRequestMapper {
     // Adds all program attributes from all applicable programs as dimensions
     request
         .getDimension()
-        .addAll(
-            getProgramAttributes(programs)
-                .map(IdentifiableObject::getUid)
-                .collect(Collectors.toSet()));
-        .getInternal()
-        .getProgramAttributes()
         .addAll(getProgramAttributes(programs).map(IdentifiableObject::getUid).toList());
 
     return CommonParams.builder()
