@@ -50,7 +50,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.tracker.access.TrackerAccessManager;
+import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;

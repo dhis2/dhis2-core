@@ -50,7 +50,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.tracker.TrackerTest;
-import org.hisp.dhis.tracker.access.TrackerOwnershipManager;
+import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;

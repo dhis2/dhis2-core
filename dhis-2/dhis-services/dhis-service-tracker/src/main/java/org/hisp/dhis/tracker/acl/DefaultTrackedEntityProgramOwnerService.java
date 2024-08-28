@@ -25,11 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentity;
+package org.hisp.dhis.tracker.acl;
 
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,7 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Ameen Mohamed
  */
 @RequiredArgsConstructor
-@Service("org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService")
+@Service("org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService")
 public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityProgramOwnerService {
   private final TrackedEntityProgramOwnerStore trackedEntityProgramOwnerStore;
 
@@ -78,7 +80,7 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
       trackedEntityProgramOwnerStore.save(
           buildTrackedEntityProgramOwner(trackedEntity, program, orgUnit));
     } else {
-      teProgramOwner = updateTrackedEntityProgramOwner(teProgramOwner, orgUnit);
+      updateTrackedEntityProgramOwner(teProgramOwner, orgUnit);
       trackedEntityProgramOwnerStore.update(teProgramOwner);
     }
   }
@@ -95,11 +97,11 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
     if (teProgramOwner == null) {
       return;
     }
-    teProgramOwner = updateTrackedEntityProgramOwner(teProgramOwner, orgUnit);
+    updateTrackedEntityProgramOwner(teProgramOwner, orgUnit);
     trackedEntityProgramOwnerStore.update(teProgramOwner);
   }
 
-  private TrackedEntityProgramOwner updateTrackedEntityProgramOwner(
+  private void updateTrackedEntityProgramOwner(
       TrackedEntityProgramOwner teProgramOwner, OrganisationUnit ou) {
     teProgramOwner.setOrganisationUnit(ou);
     teProgramOwner.updateDates();
@@ -107,7 +109,6 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
     if (currentUsername != null) {
       teProgramOwner.setCreatedBy(currentUsername);
     }
-    return teProgramOwner;
   }
 
   @Override

@@ -52,7 +52,7 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.tracker.access.TrackerOwnershipManager;
+import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityEnrollmentParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
