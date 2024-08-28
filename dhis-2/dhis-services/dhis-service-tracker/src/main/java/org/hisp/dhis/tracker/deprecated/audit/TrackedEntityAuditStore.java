@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.audit;
+package org.hisp.dhis.tracker.deprecated.audit;
 
 import java.util.List;
 import org.hisp.dhis.trackedentity.TrackedEntityAudit;
@@ -34,6 +34,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
+@Deprecated(since = "2.42", forRemoval = true)
 public interface TrackedEntityAuditStore {
   String ID = TrackedEntityAuditStore.class.getName();
 

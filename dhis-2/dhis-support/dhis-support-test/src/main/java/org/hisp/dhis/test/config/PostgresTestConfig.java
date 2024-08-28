@@ -25,30 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitydatavalue;
+package org.hisp.dhis.test.config;
 
-import java.util.List;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Use this Spring configuration for tests relying on the Postgres DB running in a Docker container.
+ *
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public interface TrackedEntityDataValueChangeLogService {
-  void addTrackedEntityDataValueChangeLog(
-      TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog);
-
-  /**
-   * @deprecated use EventChangeLogService.getEventChangeLog(UID) instead
-   */
-  @Deprecated(since = "2.41")
-  List<TrackedEntityDataValueChangeLog> getTrackedEntityDataValueChangeLogs(
-      TrackedEntityDataValueChangeLogQueryParams params);
-
-  int countTrackedEntityDataValueChangeLogs(TrackedEntityDataValueChangeLogQueryParams params);
-
-  void deleteTrackedEntityDataValueChangeLog(DataElement dataElement);
-
-  void deleteTrackedEntityDataValueChangeLog(Event event);
+@Configuration
+public class PostgresTestConfig {
+  @Bean
+  public DhisConfigurationProvider dhisConfigurationProvider() {
+    return new PostgresDhisConfigurationProvider();
+  }
 }
