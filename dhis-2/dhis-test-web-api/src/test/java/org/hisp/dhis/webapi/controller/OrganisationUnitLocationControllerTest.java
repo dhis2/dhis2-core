@@ -36,6 +36,7 @@ import org.hisp.dhis.jsontree.JsonBoolean;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link
@@ -44,6 +45,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
+@Transactional
 class OrganisationUnitLocationControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test

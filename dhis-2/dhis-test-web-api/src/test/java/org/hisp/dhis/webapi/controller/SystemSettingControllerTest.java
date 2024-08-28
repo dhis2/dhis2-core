@@ -43,12 +43,14 @@ import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link SystemSettingController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class SystemSettingControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test

@@ -34,12 +34,14 @@ import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link SynchronizationController} using (mocked) REST requests.
  *
  * @author david mackessy
  */
+@Transactional
 class SynchronizationControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test

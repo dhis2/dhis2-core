@@ -63,7 +63,6 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -88,7 +87,6 @@ import org.springframework.web.context.WebApplicationContext;
  */
 @WebAppConfiguration
 @ContextConfiguration(classes = {MvcTestConfig.class, WebTestConfig.class})
-@Transactional
 public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
     implements WebClient {
 

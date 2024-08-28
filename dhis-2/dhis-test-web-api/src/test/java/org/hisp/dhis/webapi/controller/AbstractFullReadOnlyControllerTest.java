@@ -41,6 +41,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the generic operations offered by the {@link AbstractFullReadOnlyController} using specific
@@ -48,6 +49,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author David Mackessy
  */
+@Transactional
 class AbstractFullReadOnlyControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private DataElementService dataElementService;

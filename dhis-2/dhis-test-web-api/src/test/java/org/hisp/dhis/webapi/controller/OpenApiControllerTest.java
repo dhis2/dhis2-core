@@ -48,6 +48,7 @@ import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.openapitools.codegen.DefaultGenerator;
 import org.openapitools.codegen.config.CodegenConfigurator;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.openapi.OpenApiController} with Mock MVC tests.
@@ -57,6 +58,7 @@ import org.openapitools.codegen.config.CodegenConfigurator;
  *
  * @author Jan Bernitt
  */
+@Transactional
 class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testGetOpenApiDocumentJson() {

@@ -35,6 +35,7 @@ import java.util.Map;
 import org.hisp.dhis.test.utils.JavaToJson;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Base class for testing the {@link UserDatastoreController} providing helpers to set up entries in
@@ -42,6 +43,7 @@ import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
  *
  * @author Jan Bernitt
  */
+@Transactional
 public abstract class AbstractUserDatastoreControllerTest extends H2ControllerIntegrationTestBase {
 
   /**

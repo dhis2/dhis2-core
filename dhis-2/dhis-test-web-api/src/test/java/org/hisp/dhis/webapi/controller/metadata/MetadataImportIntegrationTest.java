@@ -39,7 +39,9 @@ import org.hisp.dhis.test.webapi.json.domain.JsonImportSummary;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 class MetadataImportIntegrationTest extends PostgresControllerIntegrationTestBase {
   @Test
   @DisplayName("Should return error when import program with inaccessible programStage")

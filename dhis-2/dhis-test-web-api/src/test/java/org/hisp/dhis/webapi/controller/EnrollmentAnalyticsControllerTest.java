@@ -39,6 +39,7 @@ import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests for the {@link EnrollmentAnalyticsController}.
@@ -48,6 +49,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
+@Transactional
 class EnrollmentAnalyticsControllerTest extends H2ControllerIntegrationTestBase {
 
   private String programId;

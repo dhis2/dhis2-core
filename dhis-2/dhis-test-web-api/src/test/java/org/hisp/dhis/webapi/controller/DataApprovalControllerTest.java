@@ -43,12 +43,14 @@ import org.hisp.dhis.test.webapi.json.domain.JsonDataApprovalPermissions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link DataApprovalController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class DataApprovalControllerTest extends H2ControllerIntegrationTestBase {
 
   private String ouId;

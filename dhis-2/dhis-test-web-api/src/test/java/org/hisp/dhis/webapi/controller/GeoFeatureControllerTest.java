@@ -33,10 +33,12 @@ import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author viet@dhis2.org
  */
+@Transactional
 class GeoFeatureControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testGetWithCoordinateField() {

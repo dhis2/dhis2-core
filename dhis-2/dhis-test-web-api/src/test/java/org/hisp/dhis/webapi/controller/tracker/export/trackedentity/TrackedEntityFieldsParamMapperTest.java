@@ -42,7 +42,9 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 class TrackedEntityFieldsParamMapperTest extends H2ControllerIntegrationTestBase {
   @Autowired TrackedEntityFieldsParamMapper mapper;
 

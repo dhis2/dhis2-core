@@ -38,12 +38,14 @@ import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonSchema;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link SchemaController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class SchemaControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testValidateSchema() {

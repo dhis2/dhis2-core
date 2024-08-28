@@ -50,12 +50,14 @@ import org.hisp.dhis.test.webapi.json.domain.JsonJobConfiguration;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the job run error result API.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class JobConfigurationRunErrorsControllerTest extends PostgresControllerIntegrationTestBase {
 
   private String jobId;

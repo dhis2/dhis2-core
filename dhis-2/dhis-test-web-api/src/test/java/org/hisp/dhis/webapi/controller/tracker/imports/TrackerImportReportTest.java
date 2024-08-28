@@ -48,11 +48,13 @@ import org.hisp.dhis.webapi.controller.tracker.JsonImportReport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests {@link ImportReport} behavior through {@link TrackerImportController} using (mocked) REST
  * requests
  */
+@Transactional
 class TrackerImportReportTest extends H2ControllerIntegrationTestBase {
 
   private static final String ORG_UNIT_UID = "PSeMWi7rBgb";

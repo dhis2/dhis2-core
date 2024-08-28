@@ -34,12 +34,14 @@ import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link ResourceTableController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class ResourceTableControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test

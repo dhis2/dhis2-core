@@ -37,7 +37,9 @@ import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 class SmsCommandControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private IncomingSmsService incomingSMSService;

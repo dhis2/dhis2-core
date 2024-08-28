@@ -53,6 +53,7 @@ import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonJobConfiguration;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.scheduling.JobConfigurationController}. Since
@@ -61,6 +62,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
+@Transactional
 class JobConfigurationControllerTest extends H2ControllerIntegrationTestBase {
 
   private static final String UID1 = "asdflksadfjlkj";

@@ -39,7 +39,9 @@ import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 abstract class AbstractDataValueControllerTest extends H2ControllerIntegrationTestBase {
   protected String dataElementId;
 

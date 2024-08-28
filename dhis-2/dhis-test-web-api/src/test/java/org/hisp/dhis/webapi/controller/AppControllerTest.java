@@ -51,6 +51,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link AppController}
@@ -61,6 +62,7 @@ import org.springframework.test.context.ContextConfiguration;
     classes = {
       DhisConfig.class,
     })
+@Transactional
 class AppControllerTest extends H2ControllerIntegrationTestBase {
 
   static class DhisConfig {

@@ -38,8 +38,10 @@ import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /** Tests the {@link PredictorController} using (mocked) REST requests. */
+@Transactional
 class PredictorControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test

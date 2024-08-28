@@ -45,8 +45,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.transaction.annotation.Transactional;
 
 /** Tests the {@link ProgramStageWorkingListController} using (mocked) REST requests. */
+@Transactional
 class ProgramStageWorkingListControllerTest extends H2ControllerIntegrationTestBase {
 
   private String programId;

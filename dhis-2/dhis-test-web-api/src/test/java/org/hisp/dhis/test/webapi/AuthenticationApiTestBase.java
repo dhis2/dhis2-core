@@ -40,6 +40,7 @@ import org.springframework.security.web.FilterChainProxy;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Base class for convenient testing of the web API on basis of {@link
@@ -58,6 +59,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
       WebMvcConfig.class,
       AuthConfigProviderConfig.class,
     })
+@Transactional
 public abstract class AuthenticationApiTestBase extends H2ControllerIntegrationTestBase {
 
   static class AuthConfigProviderConfig {

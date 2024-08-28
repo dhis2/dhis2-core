@@ -42,7 +42,9 @@ import org.hisp.dhis.fieldfiltering.FieldPathHelper;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 class FieldFilterServiceTest extends H2ControllerIntegrationTestBase {
 
   @Autowired FieldFilterService fieldFilterService;

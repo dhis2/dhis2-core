@@ -38,10 +38,12 @@ import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternParser;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Luca Cambi
  */
+@Transactional
 class TrackedEntityAttributeControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void shouldGenerateRandomValuesOrgUnitCodeAndRandom() throws Exception {

@@ -56,6 +56,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link SqlViewController} using (mocked) REST requests.
@@ -63,6 +64,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Jan Bernitt
  */
 @ExtendWith(MockitoExtension.class)
+@Transactional
 class SqlViewControllerTest extends H2ControllerIntegrationTestBase {
 
   @Mock private SqlViewService sqlViewService;

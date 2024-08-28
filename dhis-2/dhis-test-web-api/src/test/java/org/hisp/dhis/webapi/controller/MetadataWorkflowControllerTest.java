@@ -52,12 +52,14 @@ import org.hisp.dhis.webapi.controller.metadata.MetadataWorkflowController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link MetadataWorkflowController}.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class MetadataWorkflowControllerTest extends H2ControllerIntegrationTestBase {
 
   private String defaultTargetId;

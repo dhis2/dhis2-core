@@ -54,6 +54,7 @@ import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.dimension.DimensionController} using (mocked)
@@ -61,6 +62,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Jan Bernitt
  */
+@Transactional
 class DimensionControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private CategoryService categoryService;

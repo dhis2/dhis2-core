@@ -44,8 +44,10 @@ import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegrityDetails.JsonDataIn
 import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegritySummary;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
+@Transactional
 class AbstractDataIntegrityIntegrationTest extends PostgresControllerIntegrationTestBase {
   final JsonDataIntegrityDetails getDetails(String check) {
     JsonObject content = GET("/dataIntegrity/details?checks={check}&timeout=1000", check).content();

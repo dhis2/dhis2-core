@@ -74,6 +74,7 @@ import org.hisp.dhis.user.UserGroup;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the generic operations offered by the {@link AbstractCrudController} using specific
@@ -81,6 +82,7 @@ import org.springframework.http.MediaType;
  *
  * @author Jan Bernitt
  */
+@Transactional
 class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test

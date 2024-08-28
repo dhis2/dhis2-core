@@ -42,6 +42,7 @@ import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests handling of data values of {@link ValueType#FILE_RESOURCE}. These need to deal with the
@@ -49,6 +50,7 @@ import org.springframework.mock.web.MockMultipartFile;
  *
  * @author Jan Bernitt
  */
+@Transactional
 class DataValueFileResourceControllerTest extends PostgresControllerIntegrationTestBase {
   private String pe;
 

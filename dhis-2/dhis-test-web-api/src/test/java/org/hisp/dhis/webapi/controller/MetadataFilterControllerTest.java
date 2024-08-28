@@ -37,12 +37,14 @@ import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Test the filters of the metadata API.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class MetadataFilterControllerTest extends H2ControllerIntegrationTestBase {
   private String attrId;
 

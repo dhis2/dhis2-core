@@ -58,6 +58,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.metadata.MetadataImportExportController} using
@@ -65,6 +66,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
+@Transactional
 class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testPostJsonMetadata() {

@@ -50,12 +50,14 @@ import org.hisp.dhis.test.webapi.json.domain.JsonImportConflict;
 import org.hisp.dhis.test.webapi.json.domain.JsonImportCount;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the GeoJSON import API of the {@link GeoJsonImportController}.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class GeoJsonImportControllerTest extends H2ControllerIntegrationTestBase {
   /**
    * Names of the OUs in the test file: {@code geo-json/sierra-leone-districts.geojson} in the same

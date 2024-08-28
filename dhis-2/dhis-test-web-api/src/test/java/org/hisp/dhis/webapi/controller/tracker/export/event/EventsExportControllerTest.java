@@ -64,8 +64,10 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.transaction.annotation.Transactional;
 
 @ContextConfiguration(classes = Config.class)
+@Transactional
 class EventsExportControllerTest extends H2ControllerIntegrationTestBase {
 
   static class Config {

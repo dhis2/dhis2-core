@@ -45,12 +45,14 @@ import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.scheduling.JobSchedulerController}.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class JobSchedulerControllerTest extends H2ControllerIntegrationTestBase {
   private String jobIdA;
 

@@ -44,12 +44,14 @@ import org.hisp.dhis.visualization.VisualizationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link InterpretationController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class InterpretationControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private VisualizationService visualizationService;

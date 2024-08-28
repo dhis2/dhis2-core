@@ -44,12 +44,14 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.webapi.controller.message.ProgramMessageController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link ProgramMessageController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class ProgramMessageControllerTest extends H2ControllerIntegrationTestBase {
 
   private Enrollment enrollmentA;

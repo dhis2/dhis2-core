@@ -36,7 +36,9 @@ import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 class MetadataImportExportControllerIntegrationTest extends PostgresControllerIntegrationTestBase {
 
   @Test

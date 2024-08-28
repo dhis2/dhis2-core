@@ -40,6 +40,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Base class for convenient testing of the web API on basis of {@link
@@ -50,6 +51,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 @ContextConfiguration(
     inheritLocations = false,
     classes = {DhisConfig.class, WebMvcConfig.class})
+@Transactional
 public abstract class ControllerWithJwtTokenAuthTestBase extends H2ControllerIntegrationTestBase {
 
   static class DhisConfig {

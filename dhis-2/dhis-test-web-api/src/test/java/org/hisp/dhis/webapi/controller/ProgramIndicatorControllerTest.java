@@ -35,6 +35,7 @@ import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.event.ProgramIndicatorController} using (mocked)
@@ -42,6 +43,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
+@Transactional
 class ProgramIndicatorControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test

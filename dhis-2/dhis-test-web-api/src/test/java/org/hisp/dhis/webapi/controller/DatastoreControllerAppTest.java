@@ -42,6 +42,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * A test for the {@link DatastoreController} where we test the behaviour of namespaces that belong
@@ -60,6 +61,7 @@ import org.springframework.core.io.ClassPathResource;
  * @author Jan Bernitt
  * @see DatastoreControllerTest
  */
+@Transactional
 class DatastoreControllerAppTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private AppManager appManager;
