@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import static org.hisp.dhis.user.User.populateUserCredentialsDtoFields;
-
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -40,6 +38,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -78,9 +77,6 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
 
   @Override
   public void validate(User user, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
-    // TODO: To remove when we remove old UserCredentials compatibility
-    populateUserCredentialsDtoFields(user);
-
     if (bundle.getImportMode().isCreate() && !ValidationUtils.isValidUid(user.getUid())) {
       addReports.accept(
           new ErrorReport(User.class, ErrorCode.E4014, user.getUid(), "uid")
@@ -112,8 +108,11 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
     }
 
     User existingUserWithMatchingOpenID = userService.getUserByOpenId(user.getOpenId());
-    if (existingUserWithMatchingOpenID != null
-        && !existingUserWithMatchingOpenID.getUid().equals(user.getUid())) {
+    boolean linkedAccountsDisabled =
+        dhisConfig.isDisabled(ConfigurationKey.LINKED_ACCOUNTS_ENABLED);
+    if (linkedAccountsDisabled
+        && (existingUserWithMatchingOpenID != null
+            && !existingUserWithMatchingOpenID.getUid().equals(user.getUid()))) {
       addReports.accept(
           new ErrorReport(User.class, ErrorCode.E4054, "OIDC mapping value", user.getOpenId())
               .setErrorProperty(USERNAME));

@@ -28,7 +28,6 @@
 package org.hisp.dhis.user;
 
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
-import static org.springframework.beans.BeanUtils.copyProperties;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -36,12 +35,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
@@ -49,6 +43,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.Category;
@@ -65,11 +61,8 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.Authorities;
-import org.springframework.core.ResolvableType;
-import org.springframework.lang.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.util.ClassUtils;
 
 /**
  * @author Nguyen Hong Duc
@@ -192,17 +185,13 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
 
   private FileResource avatar;
 
-  // Backward comp. field, will be removed when front-end has converted to new
-  // User model
-  private transient UserCredentialsDto userCredentialsRaw;
-
   /** Organisation units for data input and data capture operations. */
   private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
   /** Organisation units for data output and data analysis operations. */
   private Set<OrganisationUnit> dataViewOrganisationUnits = new HashSet<>();
 
-  /** Organisation units for tracked entity instance search operations. */
+  /** Organisation units for tracked entity search operations. */
   private Set<OrganisationUnit> teiSearchOrganisationUnits = new HashSet<>();
 
   /** Max organisation unit level for data output and data analysis operations, may be null. */
@@ -218,6 +207,12 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
    * <p>It is not initialised when loading a user from the database.
    */
   private transient UserSettings settings;
+
+  /** User's verified email. */
+  private String verifiedEmail;
+
+  /** User's email verification token. */
+  private String emailVerificationToken;
 
   public User() {
     this.lastLogin = null;
@@ -273,6 +268,16 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
   }
 
   /**
+   * Tests whether this user has any of the {@link Authorities} in the given set.
+   *
+   * @param auths the {@link Authorities} to compare with.
+   * @return true or false.
+   */
+  public boolean hasAnyAuth(@Nonnull Collection<Authorities> auths) {
+    return hasAnyAuthority(auths.stream().map(Authorities::toString).toList());
+  }
+
+  /**
    * "Return true if any of the restrictions in the collection are in the list of all restrictions."
    *
    * @param restrictions A collection of strings that represent the restrictions that are being
@@ -294,7 +299,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
 
     final Set<String> auths = getAllAuthorities();
 
-    return auths.contains(UserRole.AUTHORITY_ALL) || auths.contains(auth);
+    return auths.contains(Authorities.ALL.toString()) || auths.contains(auth);
   }
 
   /**
@@ -322,7 +327,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
 
     final Set<String> authorities = getAllAuthorities();
 
-    if (authorities.contains(UserRole.AUTHORITY_ALL)) {
+    if (authorities.contains(Authorities.ALL.toString())) {
       return true;
     }
 
@@ -363,7 +368,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
 
     final Set<String> authorities = getAllAuthorities();
 
-    if (authorities.contains(UserRole.AUTHORITY_ALL)) {
+    if (authorities.contains(Authorities.ALL.toString())) {
       return true;
     }
 
@@ -775,31 +780,26 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
   // Logic - tei search organisation unit
   // -------------------------------------------------------------------------
 
-  public boolean hasTeiSearchOrganisationUnit() {
+  private boolean hasTeiSearchOrganisationUnit() {
     return !CollectionUtils.isEmpty(teiSearchOrganisationUnits);
   }
 
-  public OrganisationUnit getTeiSearchOrganisationUnit() {
-    return CollectionUtils.isEmpty(teiSearchOrganisationUnits)
-        ? null
-        : teiSearchOrganisationUnits.iterator().next();
-  }
-
-  public boolean hasTeiSearchOrganisationUnitWithFallback() {
-    return hasTeiSearchOrganisationUnit() || hasOrganisationUnit();
+  /**
+   * Returns the tei search organisation units or organisation units if not exist. If you need both
+   * org unit scopes, use {@link #getEffectiveSearchOrganisationUnits} instead.
+   */
+  public Set<OrganisationUnit> getTeiSearchOrganisationUnitsWithFallback() {
+    return hasTeiSearchOrganisationUnit() ? teiSearchOrganisationUnits : organisationUnits;
   }
 
   /**
-   * Returns the first of the tei search organisation units associated with the user. If none,
-   * returns the first of the data capture organisation units. If none, return nulls.
+   * Users' capture scope and search scope org units can be entirely independent. The effective
+   * search org units are the union of both scopes. This method is intended for use during data
+   * import/export operations in the tracker.
    */
-  public OrganisationUnit getTeiSearchOrganisationUnitWithFallback() {
-    return hasTeiSearchOrganisationUnit() ? getTeiSearchOrganisationUnit() : getOrganisationUnit();
-  }
-
-  /** Returns the tei search organisation units or organisation units if not exist. */
-  public Set<OrganisationUnit> getTeiSearchOrganisationUnitsWithFallback() {
-    return hasTeiSearchOrganisationUnit() ? teiSearchOrganisationUnits : organisationUnits;
+  public Set<OrganisationUnit> getEffectiveSearchOrganisationUnits() {
+    return Stream.concat(teiSearchOrganisationUnits.stream(), organisationUnits.stream())
+        .collect(Collectors.toSet());
   }
 
   public String getOrganisationUnitsName() {
@@ -812,8 +812,8 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
    *
    * @param auth the {@link Authorities}.
    */
-  public boolean isAuthorized(Authorities auth) {
-    return isAuthorized(auth.name());
+  public boolean isAuthorized(@Nonnull Authorities auth) {
+    return isAuthorized(auth.toString());
   }
 
   public Set<UserGroup> getManagedGroups() {
@@ -1185,6 +1185,26 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
     this.avatar = avatar;
   }
 
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getVerifiedEmail() {
+    return this.verifiedEmail;
+  }
+
+  public void setVerifiedEmail(String verifiedEmail) {
+    this.verifiedEmail = verifiedEmail;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getEmailVerificationToken() {
+    return this.emailVerificationToken;
+  }
+
+  public void setEmailVerificationToken(String emailVerificationToken) {
+    this.emailVerificationToken = emailVerificationToken;
+  }
+
   public static String username(User user) {
     // TODO: MAS get rid of this default value use of "system-process"
     return username(user, "system-process");
@@ -1200,208 +1220,5 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
 
   public static String username(UserDetails user, String defaultValue) {
     return user != null ? user.getUsername() : defaultValue;
-  }
-
-  // TODO: MAS To remove when we remove old UserCredentials compatibility layer
-  // This is a temporary fix to maintain backwards compatibility with the old
-  // UserCredentials class. This method should not be used in new code!
-  @JsonProperty
-  public UserCredentialsDto getUserCredentials() {
-    UserCredentialsDto userCredentialsDto = new UserCredentialsDto();
-    copyProperties(
-        this,
-        userCredentialsDto,
-        "uid",
-        "userCredentials",
-        "password",
-        "userRoles",
-        "secret",
-        "previousPasswords");
-
-    userCredentialsDto.setId(this.getUid());
-
-    Set<UserRole> roles = this.getUserRoles();
-    if (roles != null && !roles.isEmpty()) {
-      userCredentialsDto.setUserRoles(roles);
-    }
-
-    userCredentialsDto.setTwoFA(this.isTwoFactorEnabled());
-
-    return userCredentialsDto;
-  }
-
-  // TODO: To remove when we remove old UserCredentials compatibility layer
-  public UserCredentialsDto getUserCredentialsRaw() {
-    return this.userCredentialsRaw;
-  }
-
-  // TODO: To remove when we remove old UserCredentials compatibility layer
-  // This is a temporary fix to maintain backwards compatibility with the old
-  // UserCredentials class. This method should not be used in new code!
-  protected void setUserCredentials(UserCredentialsDto user) {
-    this.userCredentialsRaw = user;
-  }
-
-  // TODO: To remove when we remove old UserCredentials compatibility layer
-  /** This should be called when legacy UserCredentials model is merged into the new model */
-  public void removeLegacyUserCredentials() {
-    this.setUserCredentials(null);
-  }
-
-  // TODO: To remove when we remove old UserCredentials compatibility layer
-  /**
-   * Copies the "transient" properties from the old UserCredentials model (temp. saved in the
-   * userCredentialsRaw property). The userCredentialsRaw only exists if the input JSON contains the
-   * old UserCredentials model.
-   *
-   * <p>The userCredentialsRaw field represent the input JSON version of the object, not the real
-   * data model. This is to make the input format backward compatible with the old UserCredentials
-   * model.
-   *
-   * @param user The user object that is being populated.
-   */
-  public static void populateUserCredentialsDtoFields(User user) {
-    UserCredentialsDto userCredentialsRaw = user.getUserCredentialsRaw();
-    if (userCredentialsRaw != null) {
-      copyProperties(
-          userCredentialsRaw, user, "uid", "password", "userRoles", "secret", "previousPasswords");
-      if (userCredentialsRaw.getPassword() != null) {
-        user.setPassword(userCredentialsRaw.getPassword());
-      }
-
-      Set<UserRole> userRoles = userCredentialsRaw.getUserRoles();
-      if (userRoles != null) {
-        user.setUserRoles(userRoles);
-      }
-
-      user.removeLegacyUserCredentials();
-    }
-  }
-
-  // TODO: To remove when we remove old UserCredentials compatibility layer
-  /**
-   * Copy only changed properties from the old user to the new user, and then set the new user's
-   * userCredentials to null.
-   *
-   * @param oldUser The user object that is currently in the database
-   * @param newUser The new user object that is being created.
-   */
-  public static void populateUserCredentialsDtoCopyOnlyChanges(User oldUser, User newUser) {
-    UserCredentialsDto oldCredentialsRaw = oldUser.getUserCredentials();
-    UserCredentialsDto newUserCredentialsRaw = newUser.getUserCredentialsRaw();
-
-    if (newUserCredentialsRaw != null) {
-      UserCredentialsDto newUserCredentialsCopiedFromBase = newUser.getUserCredentials();
-
-      copyOnlyChangedProperties(
-          oldCredentialsRaw,
-          newUserCredentialsRaw,
-          newUser,
-          "uid",
-          "password",
-          "userRoles",
-          "secret",
-          "previousPasswords");
-      copyOnlyChangedProperties(
-          oldCredentialsRaw,
-          newUserCredentialsCopiedFromBase,
-          newUser,
-          "uid",
-          "password",
-          "userRoles",
-          "secret",
-          "previousPasswords");
-
-      if (newUserCredentialsRaw.getPassword() != null) {
-        newUser.setPassword(newUserCredentialsRaw.getPassword());
-      }
-
-      Set<UserRole> oldRoles = oldUser.getUserRoles();
-      Set<UserRole> userRoles = newUserCredentialsRaw.getUserRoles();
-      if (userRoles != null && !userRoles.equals(oldRoles)) {
-        newUser.setUserRoles(userRoles);
-      }
-
-      Set<Category> oldCatDimCon = oldUser.getCatDimensionConstraints();
-      Set<CategoryOptionGroupSet> oldCogDimCon = oldUser.getCogsDimensionConstraints();
-
-      Set<Category> newCatDimCon = newUserCredentialsRaw.getCatDimensionConstraints();
-      Set<CategoryOptionGroupSet> newCogDimCon =
-          newUserCredentialsRaw.getCogsDimensionConstraints();
-
-      if (oldCatDimCon != null && newCatDimCon != null && !oldCatDimCon.equals(newCatDimCon)) {
-        newUser.setCatDimensionConstraints(newCatDimCon);
-      }
-
-      if (oldCogDimCon != null && newCogDimCon != null && !oldCogDimCon.equals(newCogDimCon)) {
-        newUser.setCogsDimensionConstraints(newCogDimCon);
-      }
-
-      newUser.removeLegacyUserCredentials();
-    }
-  }
-
-  // TODO: To remove when we remove old UserCredentials compatibility layer
-  private static void copyOnlyChangedProperties(
-      UserCredentialsDto oldObject,
-      UserCredentialsDto source,
-      User target,
-      @Nullable String... ignoreProperties) {
-    List<String> ignoreList = (ignoreProperties != null ? Arrays.asList(ignoreProperties) : null);
-
-    PropertyDescriptor[] targetPds;
-    try {
-      targetPds = Introspector.getBeanInfo(target.getClass()).getPropertyDescriptors();
-    } catch (IntrospectionException e) {
-      return;
-    }
-
-    for (PropertyDescriptor targetPd : targetPds) {
-      Method writeMethod = targetPd.getWriteMethod();
-      if (writeMethod != null && (ignoreList == null || !ignoreList.contains(targetPd.getName()))) {
-        PropertyDescriptor sourcePd;
-        try {
-          sourcePd = new PropertyDescriptor(targetPd.getName(), source.getClass());
-        } catch (IntrospectionException e) {
-          continue;
-        }
-
-        Method readMethod = sourcePd.getReadMethod();
-        if (readMethod != null) {
-          compareAndWriteProperty(oldObject, source, target, writeMethod, readMethod);
-        }
-      }
-    }
-  }
-
-  // TODO: To remove when we remove old UserCredentials compatibility layer
-  private static void compareAndWriteProperty(
-      UserCredentialsDto oldObject,
-      UserCredentialsDto source,
-      User target,
-      Method writeMethod,
-      Method readMethod) {
-    ResolvableType sourceResolvableType = ResolvableType.forMethodReturnType(readMethod);
-    ResolvableType targetResolvableType = ResolvableType.forMethodParameter(writeMethod, 0);
-
-    boolean isAssignable =
-        (sourceResolvableType.hasUnresolvableGenerics()
-                || targetResolvableType.hasUnresolvableGenerics()
-            ? ClassUtils.isAssignable(
-                writeMethod.getParameterTypes()[0], readMethod.getReturnType())
-            : targetResolvableType.isAssignableFrom(sourceResolvableType));
-
-    if (isAssignable) {
-      try {
-        Object oldValue = readMethod.invoke(oldObject);
-        Object value = readMethod.invoke(source);
-
-        if (value != null && !value.equals(oldValue)) {
-          writeMethod.invoke(target, value);
-        }
-      } catch (Exception ex) {
-        // do nothing
-      }
-    }
   }
 }

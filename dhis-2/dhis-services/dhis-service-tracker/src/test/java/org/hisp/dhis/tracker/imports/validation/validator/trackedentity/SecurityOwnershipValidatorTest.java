@@ -27,18 +27,18 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.trackedentity;
 
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1000;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1001;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1003;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1100;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.common.CodeGenerator;
+import java.util.List;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
@@ -47,8 +47,10 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -66,13 +68,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Enrico Colasante
  */
 @ExtendWith(MockitoExtension.class)
-class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
+class SecurityOwnershipValidatorTest extends TestBase {
 
   private static final String ORG_UNIT_ID = "ORG_UNIT_ID";
 
-  private static final String TE_ID = "TEI_ID";
+  private static final String TE_ID = "TE_ID";
 
-  private static final String TE_TYPE_ID = "TEI_TYPE_ID";
+  private static final String TE_TYPE_ID = "TE_TYPE_ID";
 
   private static final String PROGRAM_ID = "PROGRAM_ID";
 
@@ -88,11 +90,15 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
 
   @Mock private OrganisationUnitService organisationUnitService;
 
+  @Mock private TrackerAccessManager trackerAccessManager;
+
   private User user;
 
   private Reporter reporter;
 
   private OrganisationUnit organisationUnit;
+
+  private Program program;
 
   private TrackedEntityType trackedEntityType;
 
@@ -108,7 +114,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
 
     trackedEntityType = createTrackedEntityType('A');
     trackedEntityType.setUid(TE_TYPE_ID);
-    Program program = createProgram('A');
+    program = createProgram('A');
     program.setUid(PROGRAM_ID);
     program.setProgramType(ProgramType.WITH_REGISTRATION);
     program.setTrackedEntityType(trackedEntityType);
@@ -119,35 +125,31 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
     reporter = new Reporter(idSchemes);
 
-    validator = new SecurityOwnershipValidator(aclService, organisationUnitService);
+    validator =
+        new SecurityOwnershipValidator(aclService, organisationUnitService, trackerAccessManager);
   }
 
   @Test
-  void verifyValidationSuccessForTrackedEntity() {
+  void shouldSuccessWhenUpdateTEAndUserHasWriteAccess() {
     org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
         org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-            .trackedEntity(CodeGenerator.generateUid())
+            .trackedEntity(TE_ID)
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
             .trackedEntityType(MetadataIdentifier.ofUid(TE_TYPE_ID))
             .build();
 
     when(bundle.getPreheat()).thenReturn(preheat);
-    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
-        .thenReturn(organisationUnit);
-    when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(TE_TYPE_ID)))
-        .thenReturn(trackedEntityType);
-    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
-    when(organisationUnitService.isInUserSearchHierarchyCached(user, organisationUnit))
-        .thenReturn(true);
-    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
-
+    TrackedEntity te = teWithEnrollments();
+    when(preheat.getTrackedEntity(TE_ID)).thenReturn(te);
+    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.UPDATE);
+    when(trackerAccessManager.canWrite(any(), eq(te))).thenReturn(List.of());
     validator.validate(reporter, bundle, trackedEntity);
 
     assertIsEmpty(reporter.getErrors());
   }
 
   @Test
-  void verifyValidationSuccessForTrackedEntityWithNoEnrollmentsUsingDeleteStrategy() {
+  void shouldSuccessWhenDeleteTEWithNoEnrollmentsAndUserHasWriteAccessAndOUInCaptureScope() {
     org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
         org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
             .trackedEntity(TE_ID)
@@ -156,10 +158,10 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
             .build();
 
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
-    when(preheat.getTrackedEntity(TE_ID)).thenReturn(teWithNoEnrollments());
-
+    TrackedEntity te = teWithNoEnrollments();
+    when(preheat.getTrackedEntity(TE_ID)).thenReturn(te);
+    when(trackerAccessManager.canWrite(any(), eq(te))).thenReturn(List.of());
     when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
-    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
 
     validator.validate(reporter, bundle, trackedEntity);
 
@@ -167,7 +169,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
   }
 
   @Test
-  void verifyCaptureScopeIsCheckedForTrackedEntityCreation() {
+  void shouldSuccessWhenCreateTEAndUserCorrectCaptureScope() {
     org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
         org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
             .trackedEntity(TE_ID)
@@ -190,31 +192,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
   }
 
   @Test
-  void verifySearchScopeIsCheckedForTrackedEntityUpdate() {
-    org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
-        org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-            .trackedEntity(TE_ID)
-            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .trackedEntityType(MetadataIdentifier.ofUid(TE_TYPE_ID))
-            .build();
-
-    when(bundle.getPreheat()).thenReturn(preheat);
-    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
-        .thenReturn(organisationUnit);
-    when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(TE_TYPE_ID)))
-        .thenReturn(trackedEntityType);
-    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
-    when(organisationUnitService.isInUserSearchHierarchyCached(user, organisationUnit))
-        .thenReturn(true);
-    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
-
-    validator.validate(reporter, bundle, trackedEntity);
-
-    assertIsEmpty(reporter.getErrors());
-  }
-
-  @Test
-  void verifyCaptureScopeIsCheckedForTrackedEntityDeletion() {
+  void shouldSuccessWhenDeleteTEWithDeletedEnrollmentsAndUserHasWriteAccessAndOUInCaptureScope() {
     org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
         org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
             .trackedEntity(TE_ID)
@@ -223,10 +201,10 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
             .build();
 
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
-    when(preheat.getTrackedEntity(TE_ID)).thenReturn(teWithNoEnrollments());
-
+    TrackedEntity te = teWithDeleteEnrollments();
+    when(preheat.getTrackedEntity(TE_ID)).thenReturn(te);
+    when(trackerAccessManager.canWrite(any(), eq(te))).thenReturn(List.of());
     when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
-    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
 
     validator.validate(reporter, bundle, trackedEntity);
 
@@ -234,27 +212,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
   }
 
   @Test
-  void verifyValidationSuccessForTrackedEntityWithDeletedEnrollmentsUsingDeleteStrategy() {
-    org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
-        org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-            .trackedEntity(TE_ID)
-            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .trackedEntityType(MetadataIdentifier.ofUid(TE_TYPE_ID))
-            .build();
-
-    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
-    when(preheat.getTrackedEntity(TE_ID)).thenReturn(teWithDeleteEnrollments());
-
-    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
-    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
-
-    validator.validate(reporter, bundle, trackedEntity);
-
-    assertIsEmpty(reporter.getErrors());
-  }
-
-  @Test
-  void verifyValidationSuccessForTrackedEntityUsingDeleteStrategyAndUserWithCascadeAuthority() {
+  void
+      shouldSuccessWhenDeleteTEWithEnrollmentsAndUserHasWriteAccessAndOUInCaptureScopeAndDeleteCascadeAuthority() {
     org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
         org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
             .trackedEntity(TE_ID)
@@ -264,10 +223,10 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
 
     when(bundle.getUser()).thenReturn(deleteTeiAuthorisedUser());
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
-    when(preheat.getTrackedEntity(TE_ID)).thenReturn(teWithEnrollments());
-
+    TrackedEntity te = teWithEnrollments();
+    when(preheat.getTrackedEntity(TE_ID)).thenReturn(te);
+    when(trackerAccessManager.canWrite(any(), eq(te))).thenReturn(List.of());
     when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
-    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
 
     validator.validate(reporter, bundle, trackedEntity);
 
@@ -275,7 +234,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
   }
 
   @Test
-  void verifyValidationFailsForTrackedEntityUsingDeleteStrategyAndUserWithoutCascadeAuthority() {
+  void shouldFailWhenDeleteTEWithEnrollmentsAndUserHasWriteAccessAndNoDeleteCascadeAuthority() {
     org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
         org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
             .trackedEntity(TE_ID)
@@ -284,9 +243,9 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
             .build();
 
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
-    when(preheat.getTrackedEntity(TE_ID)).thenReturn(teWithEnrollments());
-    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
-    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
+    TrackedEntity te = teWithEnrollments();
+    when(preheat.getTrackedEntity(TE_ID)).thenReturn(te);
+    when(trackerAccessManager.canWrite(any(), eq(te))).thenReturn(List.of());
 
     validator.validate(reporter, bundle, trackedEntity);
 
@@ -294,7 +253,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
   }
 
   @Test
-  void verifyValidationFailsForTrackedEntityWithUserNotInOrgUnitCaptureScopeHierarchy() {
+  void shouldFailWhenCreateTEAndUserHasNoCorrectCaptureScope() {
     org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
         org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
             .trackedEntity(TE_ID)
@@ -317,7 +276,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
   }
 
   @Test
-  void verifyValidationFailsForTrackedEntityUpdateWithUserNotInOrgUnitSearchHierarchy() {
+  void shouldFailWhenUpdateTEAndUserHasNoWriteAccess() {
     org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
         org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
             .trackedEntity(TE_ID)
@@ -326,42 +285,18 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
             .build();
 
     when(bundle.getPreheat()).thenReturn(preheat);
+    TrackedEntity te = teWithNoEnrollments();
+    when(preheat.getTrackedEntity(TE_ID)).thenReturn(te);
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
         .thenReturn(organisationUnit);
     when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(TE_TYPE_ID)))
         .thenReturn(trackedEntityType);
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
-    when(organisationUnitService.isInUserSearchHierarchyCached(user, organisationUnit))
-        .thenReturn(false);
-    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
+    when(trackerAccessManager.canWrite(any(), eq(te))).thenReturn(List.of("error"));
 
     validator.validate(reporter, bundle, trackedEntity);
 
     assertHasError(reporter, trackedEntity, E1003);
-  }
-
-  @Test
-  void verifyValidationFailsForTrackedEntityAndUserWithoutWriteAccess() {
-    org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
-        org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-            .trackedEntity(CodeGenerator.generateUid())
-            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .trackedEntityType(MetadataIdentifier.ofUid(TE_TYPE_ID))
-            .build();
-
-    when(bundle.getPreheat()).thenReturn(preheat);
-    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
-        .thenReturn(organisationUnit);
-    when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(TE_TYPE_ID)))
-        .thenReturn(trackedEntityType);
-    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
-    when(organisationUnitService.isInUserSearchHierarchyCached(user, organisationUnit))
-        .thenReturn(true);
-    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(false);
-
-    validator.validate(reporter, bundle, trackedEntity);
-
-    assertHasError(reporter, trackedEntity, E1001);
   }
 
   private TrackedEntity teWithNoEnrollments() {

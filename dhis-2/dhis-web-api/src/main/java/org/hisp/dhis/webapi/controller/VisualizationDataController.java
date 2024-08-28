@@ -66,19 +66,21 @@ import org.hisp.dhis.visualization.VisualizationGridService;
 import org.hisp.dhis.visualization.VisualizationService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.jfree.chart.ChartUtils;
+import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-@OpenApi.Tags("ui")
+@OpenApi.Document(domain = Visualization.class)
 @RestController
 @RequiredArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@RequestMapping("/api/visualizations")
 public class VisualizationDataController {
   @Nonnull private final OrganisationUnitService organisationUnitService;
 
@@ -100,7 +102,7 @@ public class VisualizationDataController {
 
   @Nonnull private final RenderService renderService;
 
-  @GetMapping(value = "/visualizations/{uid}/data.html")
+  @GetMapping(value = "/{uid}/data.html")
   public @ResponseBody Grid getVisualizationDataHtml(
       @PathVariable("uid") String uid,
       Model model,
@@ -109,7 +111,7 @@ public class VisualizationDataController {
     return getVisualizationGrid(uid, organisationUnitUid, date);
   }
 
-  @GetMapping(value = "/visualizations/{uid}/data.html+css")
+  @GetMapping(value = "/{uid}/data.html+css")
   public void getVisualizationDataHtmlCss(
       @PathVariable("uid") String uid,
       @RequestParam(value = "ou", required = false) String organisationUnitUid,
@@ -129,7 +131,7 @@ public class VisualizationDataController {
     GridUtils.toHtmlCss(grid, response.getWriter());
   }
 
-  @GetMapping(value = "/visualizations/{uid}/data.xml")
+  @GetMapping(value = "/{uid}/data.xml")
   public void getVisualizationDataXml(
       @PathVariable("uid") String uid,
       @RequestParam(value = "ou", required = false) String organisationUnitUid,
@@ -149,7 +151,7 @@ public class VisualizationDataController {
     GridUtils.toXml(grid, response.getOutputStream());
   }
 
-  @GetMapping(value = "/visualizations/{uid}/data.pdf")
+  @GetMapping(value = "/{uid}/data.pdf")
   public void getVisualizationDataPdf(
       @PathVariable("uid") String uid,
       @RequestParam(value = "ou", required = false) String organisationUnitUid,
@@ -170,7 +172,7 @@ public class VisualizationDataController {
         CurrentUserUtil.getUserSetting(UserSettingKey.DB_LOCALE), grid, response.getOutputStream());
   }
 
-  @GetMapping(value = "/visualizations/{uid}/data.xls")
+  @GetMapping(value = "/{uid}/data.xls")
   public void getVisualizationDataXls(
       @PathVariable("uid") String uid,
       @RequestParam(value = "ou", required = false) String organisationUnitUid,
@@ -190,7 +192,7 @@ public class VisualizationDataController {
     GridUtils.toXls(grid, response.getOutputStream());
   }
 
-  @GetMapping(value = "/visualizations/{uid}/data.csv")
+  @GetMapping(value = "/{uid}/data.csv")
   public void getVisualizationDataCsv(
       @PathVariable("uid") String uid,
       @RequestParam(value = "ou", required = false) String organisationUnitUid,
@@ -210,7 +212,7 @@ public class VisualizationDataController {
     GridUtils.toCsv(grid, response.getWriter());
   }
 
-  @GetMapping(value = {"/visualizations/{uid}/data", "/visualizations/{uid}/data.png"})
+  @GetMapping(value = {"/{uid}/data", "/{uid}/data.png"})
   public void getVisualizationData(
       @PathVariable("uid") String uid,
       @RequestParam(value = "date", required = false) Date date,
@@ -246,14 +248,14 @@ public class VisualizationDataController {
           filename,
           attachment);
 
-      ChartUtils.writeChartAsPNG(response.getOutputStream(), jFreeChart, width, height);
+      ChartUtilities.writeChartAsPNG(response.getOutputStream(), jFreeChart, width, height);
     } else {
       response.setContentType(CONTENT_TYPE_JSON);
       renderService.toJson(response.getOutputStream(), getVisualizationGrid(uid, ou, date));
     }
   }
 
-  @GetMapping(value = {"/visualizations/data", "/visualizations/data.png"})
+  @GetMapping(value = {"/data", "/data.png"})
   public void getVisualizationChartData(
       @RequestParam(value = "in") String indicatorUid,
       @RequestParam(value = "ou") String organisationUnitUid,
@@ -286,10 +288,10 @@ public class VisualizationDataController {
         "chart.png",
         attachment);
 
-    ChartUtils.writeChartAsPNG(response.getOutputStream(), chart, width, height);
+    ChartUtilities.writeChartAsPNG(response.getOutputStream(), chart, width, height);
   }
 
-  @GetMapping(value = {"/visualizations/history/data", "/visualizations/history/data.png"})
+  @GetMapping(value = {"/history/data", "/history/data.png"})
   public void getVisualizationChartHistory(
       @RequestParam String de,
       @RequestParam String co,
@@ -347,7 +349,7 @@ public class VisualizationDataController {
             13,
             i18nManager.getI18nFormat());
 
-    ChartUtils.writeChartAsPNG(response.getOutputStream(), chart, width, height);
+    ChartUtilities.writeChartAsPNG(response.getOutputStream(), chart, width, height);
   }
 
   /**

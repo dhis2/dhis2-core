@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParentheses;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
+import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
@@ -63,6 +63,7 @@ import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.model.AnalyticsColumnType;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
@@ -103,7 +104,6 @@ import org.springframework.util.Assert;
 @Slf4j
 @Service("org.hisp.dhis.analytics.EventAnalyticsTableManager")
 public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManager {
-  public static final String OU_NAME_COL_SUFFIX = "_name";
 
   public static final String OU_GEOMETRY_COL_SUFFIX = "_geom";
 
@@ -111,80 +111,196 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
   protected static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
-          new AnalyticsTableColumn("psi", CHARACTER_11, NOT_NULL, "psi.uid"),
-          new AnalyticsTableColumn("pi", CHARACTER_11, NOT_NULL, "pi.uid"),
-          new AnalyticsTableColumn("ps", CHARACTER_11, NOT_NULL, "ps.uid"),
-          new AnalyticsTableColumn("ao", CHARACTER_11, NOT_NULL, "ao.uid"),
-          new AnalyticsTableColumn("enrollmentdate", TIMESTAMP, "pi.enrollmentdate"),
-          new AnalyticsTableColumn("incidentdate", TIMESTAMP, "pi.occurreddate"),
-          new AnalyticsTableColumn("occurreddate", TIMESTAMP, "psi.occurreddate"),
-          new AnalyticsTableColumn("scheduleddate", TIMESTAMP, "psi.scheduleddate"),
-          new AnalyticsTableColumn("completeddate", TIMESTAMP, "psi.completeddate"),
+          AnalyticsTableColumn.builder()
+              .name("event")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("ev.uid")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("enrollment")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("en.uid")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("ps")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("ps.uid")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("ao")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("ao.uid")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("enrollmentdate")
+              .dataType(TIMESTAMP)
+              .selectExpression("en.enrollmentdate")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("incidentdate")
+              .dataType(TIMESTAMP)
+              .selectExpression("en.occurreddate")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("occurreddate")
+              .dataType(TIMESTAMP)
+              .selectExpression("ev.occurreddate")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("scheduleddate")
+              .dataType(TIMESTAMP)
+              .selectExpression("ev.scheduleddate")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("completeddate")
+              .dataType(TIMESTAMP)
+              .selectExpression("ev.completeddate")
+              .build(),
           /*
            * DHIS2-14981: Use the client-side timestamp if available, otherwise
            * the server-side timestamp. Applies to both created and lastupdated.
            */
-          new AnalyticsTableColumn(
-              "created", TIMESTAMP, firstIfNotNullOrElse("psi.createdatclient", "psi.created")),
-          new AnalyticsTableColumn(
-              "lastupdated",
-              TIMESTAMP,
-              firstIfNotNullOrElse("psi.lastupdatedatclient", "psi.lastupdated")),
-          new AnalyticsTableColumn("storedby", VARCHAR_255, "psi.storedby"),
-          new AnalyticsTableColumn(
-              "createdbyusername",
-              VARCHAR_255,
-              "psi.createdbyuserinfo ->> 'username' as createdbyusername"),
-          new AnalyticsTableColumn(
-              "createdbyname",
-              VARCHAR_255,
-              "psi.createdbyuserinfo ->> 'firstName' as createdbyname"),
-          new AnalyticsTableColumn(
-              "createdbylastname",
-              VARCHAR_255,
-              "psi.createdbyuserinfo ->> 'surname' as createdbylastname"),
-          new AnalyticsTableColumn(
-              "createdbydisplayname",
-              VARCHAR_255,
-              getDisplayName("createdbyuserinfo", "psi", "createdbydisplayname")),
-          new AnalyticsTableColumn(
-              "lastupdatedbyusername",
-              VARCHAR_255,
-              "psi.lastupdatedbyuserinfo ->> 'username' as lastupdatedbyusername"),
-          new AnalyticsTableColumn(
-              "lastupdatedbyname",
-              VARCHAR_255,
-              "psi.lastupdatedbyuserinfo ->> 'firstName' as lastupdatedbyname"),
-          new AnalyticsTableColumn(
-              "lastupdatedbylastname",
-              VARCHAR_255,
-              "psi.lastupdatedbyuserinfo ->> 'surname' as lastupdatedbylastname"),
-          new AnalyticsTableColumn(
-              "lastupdatedbydisplayname",
-              VARCHAR_255,
-              getDisplayName("lastupdatedbyuserinfo", "psi", "lastupdatedbydisplayname")),
-          new AnalyticsTableColumn("pistatus", VARCHAR_50, "pi.status"),
-          new AnalyticsTableColumn("psistatus", VARCHAR_50, "psi.status"),
-          new AnalyticsTableColumn("psigeometry", GEOMETRY, "psi.geometry", IndexType.GIST),
+          AnalyticsTableColumn.builder()
+              .name("created")
+              .dataType(TIMESTAMP)
+              .selectExpression(firstIfNotNullOrElse("ev.createdatclient", "ev.created"))
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("lastupdated")
+              .dataType(TIMESTAMP)
+              .selectExpression(firstIfNotNullOrElse("ev.lastupdatedatclient", "ev.lastupdated"))
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("storedby")
+              .dataType(VARCHAR_255)
+              .selectExpression("ev.storedby")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("createdbyusername")
+              .dataType(VARCHAR_255)
+              .selectExpression("ev.createdbyuserinfo ->> 'username' as createdbyusername")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("createdbyname")
+              .dataType(VARCHAR_255)
+              .selectExpression("ev.createdbyuserinfo ->> 'firstName' as createdbyname")
+              .skipIndex(Skip.SKIP)
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("createdbylastname")
+              .dataType(VARCHAR_255)
+              .selectExpression("ev.createdbyuserinfo ->> 'surname' as createdbylastname")
+              .skipIndex(Skip.SKIP)
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("createdbydisplayname")
+              .dataType(VARCHAR_255)
+              .selectExpression(getDisplayName("createdbyuserinfo", "ev", "createdbydisplayname"))
+              .skipIndex(Skip.SKIP)
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("lastupdatedbyusername")
+              .dataType(VARCHAR_255)
+              .selectExpression("ev.lastupdatedbyuserinfo ->> 'username' as lastupdatedbyusername")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("lastupdatedbyname")
+              .dataType(VARCHAR_255)
+              .selectExpression("ev.lastupdatedbyuserinfo ->> 'firstName' as lastupdatedbyname")
+              .skipIndex(Skip.SKIP)
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("lastupdatedbylastname")
+              .dataType(VARCHAR_255)
+              .selectExpression("ev.lastupdatedbyuserinfo ->> 'surname' as lastupdatedbylastname")
+              .skipIndex(Skip.SKIP)
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("lastupdatedbydisplayname")
+              .dataType(VARCHAR_255)
+              .selectExpression(
+                  getDisplayName("lastupdatedbyuserinfo", "ev", "lastupdatedbydisplayname"))
+              .skipIndex(Skip.SKIP)
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("eventstatus")
+              .dataType(VARCHAR_50)
+              .selectExpression("ev.status")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("enrollmentstatus")
+              .dataType(VARCHAR_50)
+              .selectExpression("en.status")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("eventgeometry")
+              .dataType(GEOMETRY)
+              .selectExpression("ev.geometry")
+              .indexType(IndexType.GIST)
+              .build(),
           // TODO latitude and longitude deprecated in 2.30, remove in 2.33
-          new AnalyticsTableColumn(
-              "longitude",
-              DOUBLE,
-              "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_X(psi.geometry) ELSE null END"),
-          new AnalyticsTableColumn(
-              "latitude",
-              DOUBLE,
-              "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_Y(psi.geometry) ELSE null END"),
-          new AnalyticsTableColumn("ou", CHARACTER_11, NOT_NULL, "ou.uid"),
-          new AnalyticsTableColumn("ouname", TEXT, NOT_NULL, "ou.name"),
-          new AnalyticsTableColumn("oucode", TEXT, "ou.code"),
-          new AnalyticsTableColumn("oulevel", INTEGER, "ous.level"),
-          new AnalyticsTableColumn("ougeometry", GEOMETRY, "ou.geometry", IndexType.GIST),
-          new AnalyticsTableColumn("pigeometry", GEOMETRY, "pi.geometry", IndexType.GIST),
-          new AnalyticsTableColumn(
-              "registrationou", CHARACTER_11, NOT_NULL, "coalesce(registrationou.uid,ou.uid)"),
-          new AnalyticsTableColumn(
-              "enrollmentou", CHARACTER_11, NOT_NULL, "coalesce(enrollmentou.uid,ou.uid)"));
+          AnalyticsTableColumn.builder()
+              .name("longitude")
+              .dataType(DOUBLE)
+              .selectExpression(
+                  "CASE WHEN 'POINT' = GeometryType(ev.geometry) THEN ST_X(ev.geometry) ELSE null END")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("latitude")
+              .dataType(DOUBLE)
+              .selectExpression(
+                  "CASE WHEN 'POINT' = GeometryType(ev.geometry) THEN ST_Y(ev.geometry) ELSE null END")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("ou")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("ou.uid")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("ouname")
+              .dataType(TEXT)
+              .nullable(NOT_NULL)
+              .selectExpression("ou.name")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("oucode")
+              .dataType(TEXT)
+              .selectExpression("ou.code")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("oulevel")
+              .dataType(INTEGER)
+              .selectExpression("ous.level")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("ougeometry")
+              .dataType(GEOMETRY)
+              .selectExpression("ou.geometry")
+              .indexType(IndexType.GIST)
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("enrollmentgeometry")
+              .dataType(GEOMETRY)
+              .selectExpression("en.geometry")
+              .indexType(IndexType.GIST)
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("registrationou")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("coalesce(registrationou.uid,ou.uid)")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("enrollmentou")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("coalesce(enrollmentou.uid,ou.uid)")
+              .build());
 
   public JdbcEventAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -362,12 +478,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String sql =
         replace(
             """
-            select psi.eventid \
-            from event psi \
-            inner join enrollment pi on psi.enrollmentid=pi.enrollmentid \
-            where pi.programid = ${programId} \
-            and psi.lastupdated >= '${startDate}' \
-            and psi.lastupdated < '${endDate}' \
+            select ev.eventid \
+            from event ev \
+            inner join enrollment en on ev.enrollmentid=en.enrollmentid \
+            where en.programid = ${programId} \
+            and ev.lastupdated >= '${startDate}' \
+            and ev.lastupdated < '${endDate}' \
             limit 1;""",
             Map.of(
                 "programId", String.valueOf(program.getId()),
@@ -386,19 +502,19 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
           replace(
               """
               delete from ${tableName} ax \
-              where ax.psi in ( \
-                select psi.uid \
-                from event psi inner join enrollment pi on psi.enrollmentid=pi.enrollmentid \
-                where pi.programid = ${programId} \
-                and psi.lastupdated >= '${startDate}' \
-                and psi.lastupdated < '${endDate}');""",
+              where ax.event in ( \
+              select ev.uid \
+              from event ev inner join enrollment en on ev.enrollmentid=en.enrollmentid \
+              where en.programid = ${programId} \
+              and ev.lastupdated >= '${startDate}' \
+              and ev.lastupdated < '${endDate}');""",
               Map.of(
                   "tableName", quote(table.getName()),
                   "programId", String.valueOf(table.getProgram().getId()),
                   "startDate", toLongDate(partition.getStartDate()),
                   "endDate", toLongDate(partition.getEndDate())));
 
-      invokeTimeAndLog(sql, format("Remove updated events for table: '%s'", table.getName()));
+      invokeTimeAndLog(sql, "Remove updated events for table: '{}'", table.getName());
     }
   }
 
@@ -409,8 +525,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   }
 
   @Override
-  protected void populateTable(
-      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+  public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     List<Integer> availableDataYears =
         periodDataProvider.getAvailableYears(
             analyticsTableSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
@@ -422,30 +537,31 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String fromClause =
         replace(
             """
-            \s from event psi \
-            inner join enrollment pi on psi.enrollmentid=pi.enrollmentid \
-            inner join programstage ps on psi.programstageid=ps.programstageid \
-            inner join program pr on pi.programid=pr.programid and pi.deleted is false \
-            inner join categoryoptioncombo ao on psi.attributeoptioncomboid=ao.categoryoptioncomboid \
-            left join trackedentity tei on pi.trackedentityid=tei.trackedentityid \
-            and tei.deleted is false \
-            left join organisationunit registrationou on tei.organisationunitid=registrationou.organisationunitid \
-            inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid \
-            left join analytics_rs_orgunitstructure ous on psi.organisationunitid=ous.organisationunitid \
-            left join analytics_rs_organisationunitgroupsetstructure ougs on psi.organisationunitid=ougs.organisationunitid \
-            and (cast(date_trunc('month', ${eventDateExpression}) as date)=ougs.startdate or ougs.startdate is null) \
-            left join organisationunit enrollmentou on pi.organisationunitid=enrollmentou.organisationunitid \
-            inner join analytics_rs_categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid \
+            \sfrom event ev \
+            inner join enrollment en on ev.enrollmentid=en.enrollmentid \
+            inner join programstage ps on ev.programstageid=ps.programstageid \
+            inner join program pr on en.programid=pr.programid and en.deleted = false \
+            inner join categoryoptioncombo ao on ev.attributeoptioncomboid=ao.categoryoptioncomboid \
+            left join trackedentity te on en.trackedentityid=te.trackedentityid \
+            and te.deleted = false \
+            left join organisationunit registrationou on te.organisationunitid=registrationou.organisationunitid \
+            inner join organisationunit ou on ev.organisationunitid=ou.organisationunitid \
+            left join analytics_rs_orgunitstructure ous on ev.organisationunitid=ous.organisationunitid \
+            left join analytics_rs_organisationunitgroupsetstructure ougs on ev.organisationunitid=ougs.organisationunitid \
+            and (cast(${eventDateMonth} as date)=ougs.startdate or ougs.startdate is null) \
+            left join organisationunit enrollmentou on en.organisationunitid=enrollmentou.organisationunitid \
+            inner join analytics_rs_categorystructure acs on ev.attributeoptioncomboid=acs.categoryoptioncomboid \
             left join analytics_rs_dateperiodstructure dps on cast(${eventDateExpression} as date)=dps.dateperiod \
-            where psi.lastupdated < '${startTime}' ${partitionClause} \
+            where ev.lastupdated < '${startTime}' ${partitionClause} \
             and pr.programid=${programId} \
-            and psi.organisationunitid is not null \
+            and ev.organisationunitid is not null \
             and (${eventDateExpression}) is not null \
             and dps.year >= ${firstDataYear} \
             and dps.year <= ${latestDataYear} \
-            and psi.status in (${exportableEventStatues}) \
-            and psi.deleted is false""",
+            and ev.status in (${exportableEventStatues}) \
+            and ev.deleted = false""",
             Map.of(
+                "eventDateMonth", sqlBuilder.dateTrunc("month", eventDateExpression),
                 "eventDateExpression", eventDateExpression,
                 "partitionClause", partitionClause,
                 "startTime", toLongDate(params.getStartTime()),
@@ -467,9 +583,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String start = toLongDate(partition.getStartDate());
     String end = toLongDate(partition.getEndDate());
     String statusDate = eventDateExpression;
-    String latestFilter = format("and psi.lastupdated >= '%s' ", start);
+    String latestFilter = format("and ev.lastupdated >= '{}' ", start);
     String partitionFilter =
-        format("and (%s) >= '%s' and (%s) < '%s' ", statusDate, start, statusDate, end);
+        format("and ({}) >= '{}' and ({}) < '{}' ", statusDate, start, statusDate, end);
 
     return partition.isLatestPartition() ? latestFilter : partitionFilter;
   }
@@ -482,6 +598,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    */
   private List<AnalyticsTableColumn> getColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
+    columns.addAll(FIXED_COLS);
 
     if (program.hasNonDefaultCategoryCombo()) {
       List<Category> categories = program.getCategoryCombo().getCategories();
@@ -489,11 +606,13 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       for (Category category : categories) {
         if (category.isDataDimension()) {
           columns.add(
-              new AnalyticsTableColumn(
-                  category.getUid(),
-                  CHARACTER_11,
-                  "acs." + quote(category.getUid()),
-                  category.getCreated()));
+              AnalyticsTableColumn.builder()
+                  .name(category.getUid())
+                  .columnType(AnalyticsColumnType.DYNAMIC)
+                  .dataType(CHARACTER_11)
+                  .selectExpression("acs." + quote(category.getUid()))
+                  .created(category.getCreated())
+                  .build());
         }
       }
     }
@@ -515,7 +634,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             .map(de -> getColumnFromDataElement(de, true))
             .flatMap(Collection::stream)
             .collect(Collectors.toList()));
-    ;
 
     columns.addAll(
         program.getNonConfidentialTrackedEntityAttributes().stream()
@@ -535,11 +653,19 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             .flatMap(Collection::stream)
             .collect(Collectors.toList()));
 
-    columns.addAll(FIXED_COLS);
-
     if (program.isRegistration()) {
-      columns.add(new AnalyticsTableColumn("tei", CHARACTER_11, "tei.uid"));
-      columns.add(new AnalyticsTableColumn("teigeometry", GEOMETRY, "tei.geometry"));
+      columns.add(
+          AnalyticsTableColumn.builder()
+              .name("trackedentity")
+              .dataType(CHARACTER_11)
+              .selectExpression("te.uid")
+              .build());
+      columns.add(
+          AnalyticsTableColumn.builder()
+              .name("tegeometry")
+              .dataType(GEOMETRY)
+              .selectExpression("te.geometry")
+              .build());
     }
 
     return filterDimensionColumns(columns);
@@ -562,8 +688,14 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     if (attribute.getValueType().isOrganisationUnit()) {
       columns.addAll(getColumnsFromOrgUnitTrackedEntityAttribute(attribute, dataClause));
     }
-
-    columns.add(new AnalyticsTableColumn(attribute.getUid(), dataType, sql, skipIndex));
+    columns.add(
+        AnalyticsTableColumn.builder()
+            .name(attribute.getUid())
+            .columnType(AnalyticsColumnType.DYNAMIC)
+            .dataType(dataType)
+            .selectExpression(sql)
+            .skipIndex(skipIndex)
+            .build());
 
     return withLegendSet
         ? getColumnFromTrackedEntityAttributeWithLegendSet(attribute, numericClause)
@@ -579,7 +711,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
           inner join trackedentityattributevalue av on l.startvalue <= ${selectClause} \
           and l.endvalue > ${selectClause} \
           and l.maplegendsetid=${legendSetId} \
-          and av.trackedentityid=pi.trackedentityid \
+          and av.trackedentityid=en.trackedentityid \
           and av.trackedentityattributeid=${attributeId} ${numericClause}) as ${column}""";
 
     return attribute.getLegendSets().stream()
@@ -596,7 +728,11 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                           "attributeId", String.valueOf(attribute.getId()),
                           "numericClause", numericClause));
 
-              return new AnalyticsTableColumn(column, CHARACTER_11, sql);
+              return AnalyticsTableColumn.builder()
+                  .name(column)
+                  .dataType(CHARACTER_11)
+                  .selectExpression(sql)
+                  .build();
             })
         .collect(toList());
   }
@@ -615,8 +751,14 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     if (dataElement.getValueType().isOrganisationUnit()) {
       columns.addAll(getColumnFromOrgUnitDataElement(dataElement, dataClause));
     }
-
-    columns.add(new AnalyticsTableColumn(dataElement.getUid(), dataType, sql, skipIndex));
+    columns.add(
+        AnalyticsTableColumn.builder()
+            .name(dataElement.getUid())
+            .columnType(AnalyticsColumnType.DYNAMIC)
+            .dataType(dataType)
+            .selectExpression(sql)
+            .skipIndex(skipIndex)
+            .build());
 
     return withLegendSet
         ? getColumnFromDataElementWithLegendSet(dataElement, select, dataClause)
@@ -634,16 +776,26 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               "ou.geometry from organisationunit ou where ou.uid = (select value",
               dataClause);
       columns.add(
-          new AnalyticsTableColumn(
-              (attribute.getUid() + OU_GEOMETRY_COL_SUFFIX), GEOMETRY, geoSql, IndexType.GIST));
+          AnalyticsTableColumn.builder()
+              .name((attribute.getUid() + OU_GEOMETRY_COL_SUFFIX))
+              .columnType(AnalyticsColumnType.DYNAMIC)
+              .dataType(GEOMETRY)
+              .selectExpression(geoSql)
+              .indexType(IndexType.GIST)
+              .build());
     }
 
-    // Add org unit name column
     String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select value";
     String ouNameSql = selectForInsert(attribute, fromTypeSql, dataClause);
 
     columns.add(
-        new AnalyticsTableColumn((attribute.getUid() + OU_NAME_COL_SUFFIX), TEXT, ouNameSql, SKIP));
+        AnalyticsTableColumn.builder()
+            .name((attribute.getUid() + OU_NAME_COL_SUFFIX))
+            .columnType(AnalyticsColumnType.DYNAMIC)
+            .dataType(TEXT)
+            .selectExpression(ouNameSql)
+            .skipIndex(SKIP)
+            .build());
 
     return columns;
   }
@@ -662,17 +814,26 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               dataClause);
 
       columns.add(
-          new AnalyticsTableColumn(
-              (dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX), GEOMETRY, geoSql, IndexType.GIST));
+          AnalyticsTableColumn.builder()
+              .name((dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX))
+              .columnType(AnalyticsColumnType.DYNAMIC)
+              .dataType(GEOMETRY)
+              .selectExpression(geoSql)
+              .indexType(IndexType.GIST)
+              .build());
     }
 
-    // Add org unit name column
     String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select " + columnName;
     String ouNameSql = selectForInsert(dataElement, fromTypeSql, dataClause);
 
     columns.add(
-        new AnalyticsTableColumn(
-            (dataElement.getUid() + OU_NAME_COL_SUFFIX), TEXT, ouNameSql, SKIP));
+        AnalyticsTableColumn.builder()
+            .name((dataElement.getUid() + OU_NAME_COL_SUFFIX))
+            .columnType(AnalyticsColumnType.DYNAMIC)
+            .dataType(TEXT)
+            .selectExpression(ouNameSql)
+            .skipIndex(SKIP)
+            .build());
 
     return columns;
   }
@@ -686,14 +847,14 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * @return a SQL expression
    */
   private static String firstIfNotNullOrElse(String first, String second) {
-    return "CASE WHEN " + first + " IS NOT NULL THEN " + first + " ELSE " + second + " END";
+    return "case when " + first + " is not null then " + first + " else " + second + " end";
   }
 
   private String selectForInsert(DataElement dataElement, String fromType, String dataClause) {
     return replace(
         """
-              (select ${fromType} from event \
-              where eventid=psi.eventid ${dataClause})${closingParentheses} as ${dataElementUid}""",
+        (select ${fromType} from event \
+        where eventid=ev.eventid ${dataClause})${closingParentheses} as ${dataElementUid}""",
         Map.of(
             "fromType",
             fromType,
@@ -705,32 +866,15 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             quote(dataElement.getUid())));
   }
 
-  private String selectForInsert(
-      TrackedEntityAttribute attribute, String fromType, String dataClause) {
-    return replace(
-        """
-            (select ${fromType} from trackedentityattributevalue \
-            where trackedentityid=pi.trackedentityid \
-            and trackedentityattributeid=${attributeId}\
-            ${dataClause})\
-            ${closingParentheses} as ${attributeUid}""",
-        Map.of(
-            "fromType", fromType,
-            "dataClause", dataClause,
-            "attributeId", String.valueOf(attribute.getId()),
-            "closingParentheses", getClosingParentheses(fromType),
-            "attributeUid", quote(attribute.getUid())));
-  }
-
   private List<AnalyticsTableColumn> getColumnFromDataElementWithLegendSet(
       DataElement dataElement, String select, String dataClause) {
     String query =
         """
-          (select l.uid from maplegend l
-          inner join event on l.startvalue <= ${select}
-          and l.endvalue > ${select}
-          and l.maplegendsetid=${legendSetId}
-          and eventid=psi.eventid ${dataClause}) as ${column}""";
+        (select l.uid from maplegend l
+        inner join event on l.startvalue <= ${select}
+        and l.endvalue > ${select}
+        and l.maplegendsetid=${legendSetId}
+        and eventid=ev.eventid ${dataClause}) as ${column}""";
     return dataElement.getLegendSets().stream()
         .map(
             ls -> {
@@ -743,7 +887,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                           "legendSetId", String.valueOf(ls.getId()),
                           "dataClause", dataClause,
                           "column", column));
-              return new AnalyticsTableColumn(column, CHARACTER_11, sql);
+
+              return AnalyticsTableColumn.builder()
+                  .name(column)
+                  .dataType(CHARACTER_11)
+                  .selectExpression(sql)
+                  .build();
             })
         .collect(toList());
   }
@@ -780,13 +929,13 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             """
             select temp.supportedyear from \
             (select distinct extract(year from ${eventDateExpression}) as supportedyear \
-            from event psi \
-            inner join enrollment pi on psi.enrollmentid = pi.enrollmentid \
-            where psi.lastupdated <= '${startTime}' \
-            and pi.programid = ${programId} \
+            from event ev \
+            inner join enrollment en on ev.enrollmentid = en.enrollmentid \
+            where ev.lastupdated <= '${startTime}' \
+            and en.programid = ${programId} \
             and (${eventDateExpression}) is not null \
             and (${eventDateExpression}) > '1000-01-01' \
-            and psi.deleted is false \
+            and ev.deleted = false \
             ${fromDateClause}) as temp \
             where temp.supportedyear >= ${firstDataYear} \
             and temp.supportedyear <= ${latestDataYear}""",

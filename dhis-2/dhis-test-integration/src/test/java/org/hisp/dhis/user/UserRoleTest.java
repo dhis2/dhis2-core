@@ -30,14 +30,28 @@ package org.hisp.dhis.user;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.security.oidc.DhisOidcUser;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
+import org.springframework.transaction.annotation.Transactional;
 
-class UserRoleTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class UserRoleTest extends PostgresIntegrationTestBase {
 
   @Autowired
   @Qualifier("org.hisp.dhis.user.UserRoleStore")
@@ -77,5 +91,32 @@ class UserRoleTest extends SingleSetupIntegrationTestBase {
     assertNotNull(userRoleStore.get(idA));
     assertNull(userRoleStore.get(idB));
     assertNotNull(userRoleStore.get(idA));
+  }
+
+  @Test
+  void testOidcUserIsAuthorizedCheck() {
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    HashMap<String, Object> attributes = new HashMap<>();
+    attributes.put("sub", "test-sub");
+
+    DhisOidcUser dhisOidcUser =
+        new DhisOidcUser(currentUserDetails, attributes, IdTokenClaimNames.SUB, null);
+    injectSecurityContext(dhisOidcUser);
+
+    UserDetails oidc = CurrentUserUtil.getCurrentUserDetails();
+
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    Object principal = authentication.getPrincipal();
+    assertEquals(dhisOidcUser, principal);
+
+    Collection<? extends GrantedAuthority> authorities = oidc.getAuthorities();
+
+    for (GrantedAuthority authority : authorities) {
+      assertTrue(oidc.isAuthorized(authority.getAuthority()));
+    }
+
+    for (GrantedAuthority authority : authorities) {
+      assertTrue(oidc.hasAnyAuthority(Set.of(authority.getAuthority())));
+    }
   }
 }

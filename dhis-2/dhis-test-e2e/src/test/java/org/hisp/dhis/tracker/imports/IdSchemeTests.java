@@ -35,16 +35,16 @@ import java.util.Locale;
 import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.Setter;
-import org.hisp.dhis.Constants;
-import org.hisp.dhis.actions.IdGenerator;
-import org.hisp.dhis.actions.metadata.MetadataActions;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.test.e2e.Constants;
+import org.hisp.dhis.test.e2e.actions.IdGenerator;
+import org.hisp.dhis.test.e2e.actions.metadata.MetadataActions;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
+import org.hisp.dhis.test.e2e.utils.DataGenerator;
 import org.hisp.dhis.tracker.TrackerApiTest;
 import org.hisp.dhis.tracker.imports.databuilder.EnrollmentDataBuilder;
 import org.hisp.dhis.tracker.imports.databuilder.EventDataBuilder;
 import org.hisp.dhis.tracker.imports.databuilder.RelationshipDataBuilder;
-import org.hisp.dhis.tracker.imports.databuilder.TeiDataBuilder;
-import org.hisp.dhis.utils.DataGenerator;
+import org.hisp.dhis.tracker.imports.databuilder.TrackedEntityDataBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -81,13 +81,13 @@ public class IdSchemeTests extends TrackerApiTest {
   @MethodSource("provideIdSchemeArguments")
   @ParameterizedTest(name = "POST to /tracker?idScheme={0}")
   public void shouldImportTrackerProgramDataByIdScheme(String idScheme) {
-    String teiId = new IdGenerator().generateUniqueId();
+    String teId = new IdGenerator().generateUniqueId();
 
     TestData data = new TestData(idScheme);
 
     EventDataBuilder eventDataBuilder =
         new EventDataBuilder()
-            .setOu(data.getOrgUnit())
+            .setOrgUnit(data.getOrgUnit())
             .setProgramStage(data.getTrackerProgramStage())
             .addDataValue(data.getDataElement(), DataGenerator.randomString())
             .setAssignedUser(Constants.SUPER_USER_ID)
@@ -95,22 +95,22 @@ public class IdSchemeTests extends TrackerApiTest {
 
     EnrollmentDataBuilder enrollmentDataBuilder =
         new EnrollmentDataBuilder()
-            .setOu(data.getOrgUnit())
+            .setOrgUnit(data.getOrgUnit())
             .setProgram(data.getTrackerProgram())
             .addEvent(eventDataBuilder);
 
     JsonObject payload =
-        new TeiDataBuilder()
-            .setId(teiId)
-            .setTeiType(data.getTrackedEntityType())
-            .setOu(data.getOrgUnit())
+        new TrackedEntityDataBuilder()
+            .setId(teId)
+            .setTrackedEntityType(data.getTrackedEntityType())
+            .setOrgUnit(data.getOrgUnit())
             .addAttribute(data.getTrackedEntityAttribute(), DataGenerator.randomString())
             .addEnrollment(enrollmentDataBuilder)
             .addRelationship(
                 new RelationshipDataBuilder()
                     .setRelationshipType(data.getRelationshipType())
-                    .setFromTrackedEntity(this.createTei())
-                    .setToTrackedEntity(teiId))
+                    .setFromTrackedEntity(this.createTrackedEntity())
+                    .setToTrackedEntity(teId))
             .array();
 
     trackerImportExportActions
@@ -126,7 +126,7 @@ public class IdSchemeTests extends TrackerApiTest {
 
     JsonObject object =
         new EventDataBuilder()
-            .setOu(data.getOrgUnit())
+            .setOrgUnit(data.getOrgUnit())
             .setProgramStage(data.getEventProgramStage())
             .setProgram(data.getEventProgram())
             .setAttributeCategoryOptions(Arrays.asList(data.getCategoryOption()))
@@ -149,7 +149,7 @@ public class IdSchemeTests extends TrackerApiTest {
         new EventDataBuilder()
             .setProgram(new TestData(programIdScheme).getEventProgram())
             .setProgramStage(new TestData(programStageIdScheme).getEventProgramStage())
-            .setOu(new TestData(ouIdScheme).getOrgUnit())
+            .setOrgUnit(new TestData(ouIdScheme).getOrgUnit())
             .setAttributeCategoryOptions(Arrays.asList(data.getCategoryOption()))
             .array();
 
@@ -221,13 +221,13 @@ public class IdSchemeTests extends TrackerApiTest {
     }
   }
 
-  private String createTei() {
+  private String createTrackedEntity() {
     return trackerImportExportActions
         .postAndGetJobReport(
-            new TeiDataBuilder()
+            new TrackedEntityDataBuilder()
                 .array(new TestData().getTrackedEntityType(), new TestData().getOrgUnit()))
         .validateSuccessfulImport()
-        .extractImportedTeis()
+        .extractImportedTrackedEntities()
         .get(0);
   }
 }

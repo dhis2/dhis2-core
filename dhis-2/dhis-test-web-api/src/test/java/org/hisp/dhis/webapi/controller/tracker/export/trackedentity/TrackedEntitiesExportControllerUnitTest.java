@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
-import static org.hisp.dhis.utils.Assertions.assertContains;
-import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.test.utils.Assertions.assertContains;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
@@ -66,7 +66,7 @@ class TrackedEntitiesExportControllerUnitTest {
             IllegalStateException.class,
             () ->
                 new TrackedEntitiesExportController(
-                    trackedEntityService, null, null, null, null, null, null));
+                    trackedEntityService, null, null, null, null, null, null, null));
 
     assertAll(
         () ->

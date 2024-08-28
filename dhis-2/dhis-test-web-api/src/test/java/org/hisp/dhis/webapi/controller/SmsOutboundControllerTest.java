@@ -27,10 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
+
 import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.outbound.OutboundSmsService;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -40,9 +43,22 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Jan Bernitt
  */
-class SmsOutboundControllerTest extends DhisControllerConvenienceTest {
+class SmsOutboundControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private OutboundSmsService outboundSmsService;
+
+  @Test
+  void testGetOutboundSMSMessage() {
+    User guestUser = createUserWithAuth("guestuser", "NONE");
+    injectSecurityContextUser(guestUser);
+
+    assertWebMessage(
+        "Forbidden",
+        403,
+        "ERROR",
+        "Access is denied, requires one Authority from [F_MOBILE_SENDSMS]",
+        GET("/sms/outbound").content(HttpStatus.FORBIDDEN));
+  }
 
   @Test
   void testSendSMSMessage() {
@@ -51,7 +67,7 @@ class SmsOutboundControllerTest extends DhisControllerConvenienceTest {
         500,
         "ERROR",
         "No default gateway configured",
-        POST("/sms/outbound?recipient=" + getSuperuserUid() + "&message=text")
+        POST("/sms/outbound?recipient=" + getAdminUid() + "&message=text")
             .content(HttpStatus.INTERNAL_SERVER_ERROR));
   }
 
@@ -84,12 +100,7 @@ class SmsOutboundControllerTest extends DhisControllerConvenienceTest {
         "No default gateway configured",
         POST(
                 "/sms/outbound",
-                "{"
-                    + "'recipients':[{'id':'"
-                    + getSuperuserUid()
-                    + "'}],"
-                    + "'message':'text'"
-                    + "}")
+                "{" + "'recipients':[{'id':'" + getAdminUid() + "'}]," + "'message':'text'" + "}")
             .content(HttpStatus.INTERNAL_SERVER_ERROR));
   }
 

@@ -51,8 +51,6 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.EnrollmentService;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.sms.command.CompletenessMethod;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
@@ -94,9 +92,7 @@ public class DataValueSMSListener extends CommandSMSListener {
   private final DataElementService dataElementService;
 
   public DataValueSMSListener(
-      EnrollmentService enrollmentService,
       CategoryService dataElementCategoryService,
-      EventService eventService,
       UserService userService,
       IncomingSmsService incomingSmsService,
       @Qualifier("smsMessageSender") MessageSender smsSender,
@@ -106,14 +102,7 @@ public class DataValueSMSListener extends CommandSMSListener {
       SMSCommandService smsCommandService,
       DataSetService dataSetService,
       DataElementService dataElementService) {
-    super(
-        enrollmentService,
-        dataElementCategoryService,
-        eventService,
-        userService,
-        incomingSmsService,
-        smsSender);
-
+    super(dataElementCategoryService, userService, incomingSmsService, smsSender);
     this.registrationService = registrationService;
     this.dataValueService = dataValueService;
     this.dataElementCategoryService = dataElementCategoryService1;

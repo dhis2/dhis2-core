@@ -51,6 +51,7 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -77,63 +78,135 @@ import org.springframework.transaction.annotation.Transactional;
 public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
-          new AnalyticsTableColumn("pi", CHARACTER_11, NOT_NULL, "pi.uid"),
-          new AnalyticsTableColumn("enrollmentdate", TIMESTAMP, "pi.enrollmentdate"),
-          new AnalyticsTableColumn("incidentdate", TIMESTAMP, "pi.occurreddate"),
-          new AnalyticsTableColumn(
-              "completeddate",
-              TIMESTAMP,
-              "case pi.status when 'COMPLETED' then pi.completeddate end"),
-          new AnalyticsTableColumn("lastupdated", TIMESTAMP, "pi.lastupdated"),
-          new AnalyticsTableColumn("storedby", VARCHAR_255, "pi.storedby"),
-          new AnalyticsTableColumn(
-              "createdbyusername",
-              VARCHAR_255,
-              "pi.createdbyuserinfo ->> 'username' as createdbyusername"),
-          new AnalyticsTableColumn(
-              "createdbyname",
-              VARCHAR_255,
-              "pi.createdbyuserinfo ->> 'firstName' as createdbyname"),
-          new AnalyticsTableColumn(
-              "createdbylastname",
-              VARCHAR_255,
-              "pi.createdbyuserinfo ->> 'surname' as createdbylastname"),
-          new AnalyticsTableColumn(
-              "createdbydisplayname",
-              VARCHAR_255,
-              getDisplayName("createdbyuserinfo", "pi", "createdbydisplayname")),
-          new AnalyticsTableColumn(
-              "lastupdatedbyusername",
-              VARCHAR_255,
-              "pi.lastupdatedbyuserinfo ->> 'username' as lastupdatedbyusername"),
-          new AnalyticsTableColumn(
-              "lastupdatedbyname",
-              VARCHAR_255,
-              "pi.lastupdatedbyuserinfo ->> 'firstName' as lastupdatedbyname"),
-          new AnalyticsTableColumn(
-              "lastupdatedbylastname",
-              VARCHAR_255,
-              "pi.lastupdatedbyuserinfo ->> 'surname' as lastupdatedbylastname"),
-          new AnalyticsTableColumn(
-              "lastupdatedbydisplayname",
-              VARCHAR_255,
-              getDisplayName("lastupdatedbyuserinfo", "pi", "lastupdatedbydisplayname")),
-          new AnalyticsTableColumn("enrollmentstatus", VARCHAR_50, "pi.status"),
-          new AnalyticsTableColumn(
-              "longitude",
-              DOUBLE,
-              "CASE WHEN 'POINT' = GeometryType(pi.geometry) THEN ST_X(pi.geometry) ELSE null END"),
-          new AnalyticsTableColumn(
-              "latitude",
-              DOUBLE,
-              "CASE WHEN 'POINT' = GeometryType(pi.geometry) THEN ST_Y(pi.geometry) ELSE null END"),
-          new AnalyticsTableColumn("ou", CHARACTER_11, NOT_NULL, "ou.uid"),
-          new AnalyticsTableColumn("ouname", TEXT, NOT_NULL, "ou.name"),
-          new AnalyticsTableColumn("oucode", TEXT, "ou.code"),
-          new AnalyticsTableColumn("oulevel", INTEGER, "ous.level"),
-          new AnalyticsTableColumn("pigeometry", GEOMETRY, "pi.geometry", IndexType.GIST),
-          new AnalyticsTableColumn(
-              "registrationou", CHARACTER_11, NOT_NULL, "coalesce(registrationou.uid,ou.uid)"));
+          AnalyticsTableColumn.builder()
+              .name("enrollment")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("en.uid")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("enrollmentdate")
+              .dataType(TIMESTAMP)
+              .selectExpression("en.enrollmentdate")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("incidentdate")
+              .dataType(TIMESTAMP)
+              .selectExpression("en.occurreddate")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("completeddate")
+              .dataType(TIMESTAMP)
+              .selectExpression("case en.status when 'COMPLETED' then en.completeddate end")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("lastupdated")
+              .dataType(TIMESTAMP)
+              .selectExpression("en.lastupdated")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("storedby")
+              .dataType(VARCHAR_255)
+              .selectExpression("en.storedby")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("createdbyusername")
+              .dataType(VARCHAR_255)
+              .selectExpression("en.createdbyuserinfo ->> 'username' as createdbyusername")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("createdbyname")
+              .dataType(VARCHAR_255)
+              .selectExpression("en.createdbyuserinfo ->> 'firstName' as createdbyname")
+              .skipIndex(Skip.SKIP)
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("createdbylastname")
+              .dataType(VARCHAR_255)
+              .selectExpression("en.createdbyuserinfo ->> 'surname' as createdbylastname")
+              .skipIndex(Skip.SKIP)
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("createdbydisplayname")
+              .dataType(VARCHAR_255)
+              .selectExpression(getDisplayName("createdbyuserinfo", "en", "createdbydisplayname"))
+              .skipIndex(Skip.SKIP)
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("lastupdatedbyusername")
+              .dataType(VARCHAR_255)
+              .selectExpression("en.lastupdatedbyuserinfo ->> 'username' as lastupdatedbyusername")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("lastupdatedbyname")
+              .dataType(VARCHAR_255)
+              .selectExpression("en.lastupdatedbyuserinfo ->> 'firstName' as lastupdatedbyname")
+              .skipIndex(Skip.SKIP)
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("lastupdatedbylastname")
+              .dataType(VARCHAR_255)
+              .selectExpression("en.lastupdatedbyuserinfo ->> 'surname' as lastupdatedbylastname")
+              .skipIndex(Skip.SKIP)
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("lastupdatedbydisplayname")
+              .dataType(VARCHAR_255)
+              .selectExpression(
+                  getDisplayName("lastupdatedbyuserinfo", "en", "lastupdatedbydisplayname"))
+              .skipIndex(Skip.SKIP)
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("enrollmentstatus")
+              .dataType(VARCHAR_50)
+              .selectExpression("en.status")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("longitude")
+              .dataType(DOUBLE)
+              .selectExpression(
+                  "CASE WHEN 'POINT' = GeometryType(en.geometry) THEN ST_X(en.geometry) ELSE null END")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("latitude")
+              .dataType(DOUBLE)
+              .selectExpression(
+                  "CASE WHEN 'POINT' = GeometryType(en.geometry) THEN ST_Y(en.geometry) ELSE null END")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("ou")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("ou.uid")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("ouname")
+              .dataType(TEXT)
+              .nullable(NOT_NULL)
+              .selectExpression("ou.name")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("oucode")
+              .dataType(TEXT)
+              .selectExpression("ou.code")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("oulevel")
+              .dataType(INTEGER)
+              .selectExpression("ous.level")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("enrollmentgeometry")
+              .dataType(GEOMETRY)
+              .selectExpression("en.geometry")
+              .indexType(IndexType.GIST)
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("registrationou")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("coalesce(registrationou.uid,ou.uid)")
+              .build());
 
   public JdbcEnrollmentAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -204,29 +277,29 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
   }
 
   @Override
-  protected void populateTable(
-      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+  public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     Program program = partition.getMasterTable().getProgram();
 
     String fromClause =
         replace(
             """
-            \s from enrollment pi \
-            inner join program pr on pi.programid=pr.programid \
-            left join trackedentity tei on pi.trackedentityid=tei.trackedentityid \
-            and tei.deleted is false \
-            left join organisationunit registrationou on tei.organisationunitid=registrationou.organisationunitid \
-            inner join organisationunit ou on pi.organisationunitid=ou.organisationunitid \
-            left join analytics_rs_orgunitstructure ous on pi.organisationunitid=ous.organisationunitid \
-            left join analytics_rs_organisationunitgroupsetstructure ougs on pi.organisationunitid=ougs.organisationunitid \
-            and (cast(date_trunc('month', pi.enrollmentdate) as date)=ougs.startdate or ougs.startdate is null) \
-            left join analytics_rs_dateperiodstructure dps on cast(pi.enrollmentdate as date)=dps.dateperiod \
+            \s from enrollment en \
+            inner join program pr on en.programid=pr.programid \
+            left join trackedentity te on en.trackedentityid=te.trackedentityid \
+            and te.deleted = false \
+            left join organisationunit registrationou on te.organisationunitid=registrationou.organisationunitid \
+            inner join organisationunit ou on en.organisationunitid=ou.organisationunitid \
+            left join analytics_rs_orgunitstructure ous on en.organisationunitid=ous.organisationunitid \
+            left join analytics_rs_organisationunitgroupsetstructure ougs on en.organisationunitid=ougs.organisationunitid \
+            and (cast(${enrollmentDateMonth} as date)=ougs.startdate or ougs.startdate is null) \
+            left join analytics_rs_dateperiodstructure dps on cast(en.enrollmentdate as date)=dps.dateperiod \
             where pr.programid=${programId}  \
-            and pi.organisationunitid is not null \
-            and pi.lastupdated <= '${startTime}' \
-            and pi.occurreddate is not null \
-            and pi.deleted is false\s""",
+            and en.organisationunitid is not null \
+            and en.lastupdated <= '${startTime}' \
+            and en.occurreddate is not null \
+            and en.deleted = false\s""",
             Map.of(
+                "enrollmentDateMonth", sqlBuilder.dateTrunc("month", "en.enrollmentdate"),
                 "programId", String.valueOf(program.getId()),
                 "startTime", toLongDate(params.getStartTime())));
 
@@ -235,17 +308,26 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
 
   private List<AnalyticsTableColumn> getColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
-
+    columns.addAll(FIXED_COLS);
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.add(getOrganisationUnitNameHierarchyColumn());
     columns.addAll(getOrganisationUnitGroupSetColumns());
     columns.addAll(getPeriodTypeColumns("dps"));
     columns.addAll(getTrackedEntityAttributeColumns(program));
-    columns.addAll(FIXED_COLS);
 
     if (program.isRegistration()) {
-      columns.add(new AnalyticsTableColumn("tei", CHARACTER_11, "tei.uid"));
-      columns.add(new AnalyticsTableColumn("teigeometry", GEOMETRY, "tei.geometry"));
+      columns.add(
+          AnalyticsTableColumn.builder()
+              .name("trackedentity")
+              .dataType(CHARACTER_11)
+              .selectExpression("te.uid")
+              .build());
+      columns.add(
+          AnalyticsTableColumn.builder()
+              .name("tegeometry")
+              .dataType(GEOMETRY)
+              .selectExpression("te.geometry")
+              .build());
     }
 
     return filterDimensionColumns(columns);

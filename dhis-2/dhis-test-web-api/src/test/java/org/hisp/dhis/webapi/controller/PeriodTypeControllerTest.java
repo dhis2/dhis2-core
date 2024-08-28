@@ -34,9 +34,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.domain.JsonPeriodType;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonPeriodType;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -44,14 +44,14 @@ import org.junit.jupiter.api.Test;
  *
  * @author Morten Olav Hansen
  */
-class PeriodTypeControllerTest extends DhisControllerConvenienceTest {
+class PeriodTypeControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testPeriodTypeDefaults() {
     JsonObject object = GET("/periodTypes").content(HttpStatus.OK).as(JsonObject.class);
     JsonList<JsonPeriodType> periodTypes = object.getList("periodTypes", JsonPeriodType.class);
     assertTrue(periodTypes.exists());
-    assertEquals(19, periodTypes.size());
+    assertEquals(20, periodTypes.size());
     JsonPeriodType periodType = periodTypes.get(0);
     assertNotNull(periodType.getName());
     assertNotNull(periodType.getIsoDuration());
@@ -67,7 +67,7 @@ class PeriodTypeControllerTest extends DhisControllerConvenienceTest {
             .as(JsonObject.class)
             .getList("periodTypes", JsonPeriodType.class);
     assertTrue(periodTypes.exists());
-    assertEquals(19, periodTypes.size());
+    assertEquals(20, periodTypes.size());
     JsonPeriodType periodType = periodTypes.get(0);
     assertNotNull(periodType.getName());
     assertNotNull(periodType.getIsoFormat());

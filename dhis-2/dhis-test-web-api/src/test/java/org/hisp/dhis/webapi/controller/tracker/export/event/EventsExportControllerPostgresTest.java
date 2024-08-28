@@ -28,8 +28,8 @@
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.hisp.dhis.security.Authorities.ALL;
-import static org.hisp.dhis.utils.Assertions.assertContains;
-import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.test.utils.Assertions.assertContains;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -38,6 +38,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.google.common.collect.Sets;
 import java.util.Date;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -45,45 +47,60 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.UserAccess;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.hisp.dhis.webapi.controller.tracker.JsonEventChangeLog;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage.JsonPager;
 import org.hisp.dhis.webapi.controller.tracker.JsonUser;
-import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
+class EventsExportControllerPostgresTest extends PostgresControllerIntegrationTestBase {
   private static final String DATA_ELEMENT_VALUE = "value 1";
 
   @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private CategoryService categoryService;
+
+  private CategoryOptionCombo coc;
+
   private User user;
+
   private Program program;
+
   private ProgramStage programStage;
+
   private OrganisationUnit orgUnit;
+
   private User owner;
+
   private TrackedEntityType trackedEntityType;
+
   private Event event;
+
   private DataElement dataElement;
 
   @BeforeEach
   void setUp() {
     owner = makeUser("owner");
+
+    coc = categoryService.getDefaultCategoryOptionCombo();
+
     orgUnit = createOrganisationUnit("a");
     orgUnit.setUid("ZiMBqH865GV");
     manager.save(orgUnit);
@@ -188,7 +205,8 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
                 pager.getNextPage(),
                 2,
                 1,
-                String.format("http://localhost/tracker/events/%s/changeLogs", event.getUid())));
+                String.format(
+                    "http://localhost/api/tracker/events/%s/changeLogs", event.getUid())));
   }
 
   @Test
@@ -212,13 +230,14 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
                 pager.getPrevPage(),
                 1,
                 1,
-                String.format("http://localhost/tracker/events/%s/changeLogs", event.getUid())),
+                String.format("http://localhost/api/tracker/events/%s/changeLogs", event.getUid())),
         () ->
             assertPagerLink(
                 pager.getNextPage(),
                 3,
                 1,
-                String.format("http://localhost/tracker/events/%s/changeLogs", event.getUid())));
+                String.format(
+                    "http://localhost/api/tracker/events/%s/changeLogs", event.getUid())));
   }
 
   @Test
@@ -242,7 +261,7 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
                 pager.getPrevPage(),
                 2,
                 1,
-                String.format("http://localhost/tracker/events/%s/changeLogs", event.getUid())),
+                String.format("http://localhost/api/tracker/events/%s/changeLogs", event.getUid())),
         () -> assertHasNoMember(pager, "nextPage"));
   }
 
@@ -311,16 +330,16 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
     enrollment.setAutoFields();
     enrollment.setEnrollmentDate(new Date());
     enrollment.setOccurredDate(new Date());
-    enrollment.setStatus(ProgramStatus.COMPLETED);
+    enrollment.setStatus(EnrollmentStatus.COMPLETED);
     manager.save(enrollment);
     return enrollment;
   }
 
   private Event event(Enrollment enrollment) {
-    Event event = new Event(enrollment, programStage, enrollment.getOrganisationUnit());
-    event.setAutoFields();
-    manager.save(event);
-    return event;
+    Event eventA = new Event(enrollment, programStage, enrollment.getOrganisationUnit(), coc);
+    eventA.setAutoFields();
+    manager.save(eventA);
+    return eventA;
   }
 
   private String createJson(Event event, String value) {
@@ -382,14 +401,6 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
         () -> assertEquals(currentUser.getUsername(), createdBy.getUsername()),
         () -> assertEquals(currentUser.getFirstName(), createdBy.getFirstName()),
         () -> assertEquals(currentUser.getSurname(), createdBy.getSurname()));
-  }
-
-  private static void assertCreate(
-      DataElement dataElement, String currentValue, JsonEventChangeLog actual) {
-    assertAll(
-        () -> assertUser(actual),
-        () -> assertEquals("CREATE", actual.getType()),
-        () -> assertChange(dataElement, null, currentValue, actual));
   }
 
   private static void assertUpdate(

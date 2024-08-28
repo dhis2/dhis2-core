@@ -69,7 +69,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("org.hisp.dhis.analytics.OrgUnitTargetTableManager")
 public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
-      List.of(new AnalyticsTableColumn("oug", CHARACTER_11, NOT_NULL, "oug.uid"));
+      List.of(
+          AnalyticsTableColumn.builder()
+              .name("oug")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("oug.uid")
+              .build());
 
   public JdbcOrgUnitTargetTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -121,18 +127,12 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
   }
 
   @Override
-  protected boolean hasUpdatedLatestData(Date startDate, Date endDate) {
-    return false;
-  }
-
-  @Override
   protected List<String> getPartitionChecks(Integer year, Date endDate) {
     return List.of();
   }
 
   @Override
-  protected void populateTable(
-      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+  public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
 
     String sql = replace("insert into ${tableName} (", Map.of("tableName", tableName));
@@ -153,20 +153,26 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
 
     sql +=
         """
-            from orgunitgroupmembers ougm
-            inner join orgunitgroup oug on ougm.orgunitgroupid=oug.orgunitgroupid
-            left join analytics_rs_orgunitstructure ous on ougm.organisationunitid=ous.organisationunitid
-            left join analytics_rs_organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid""";
+        from orgunitgroupmembers ougm
+        inner join orgunitgroup oug on ougm.orgunitgroupid=oug.orgunitgroupid
+        left join analytics_rs_orgunitstructure ous on ougm.organisationunitid=ous.organisationunitid
+        left join analytics_rs_organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid""";
 
-    invokeTimeAndLog(sql, tableName);
+    invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }
 
   private List<AnalyticsTableColumn> getColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
-
-    columns.addAll(getOrganisationUnitLevelColumns());
     columns.addAll(FIXED_COLS);
-    columns.add(new AnalyticsTableColumn("value", DOUBLE, NULL, FACT, "1 as value"));
+    columns.addAll(getOrganisationUnitLevelColumns());
+    columns.add(
+        AnalyticsTableColumn.builder()
+            .name("value")
+            .dataType(DOUBLE)
+            .nullable(NULL)
+            .valueType(FACT)
+            .selectExpression("1 as value")
+            .build());
 
     return filterDimensionColumns(columns);
   }

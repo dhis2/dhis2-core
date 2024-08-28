@@ -40,13 +40,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.eventvisualization.EventVisualization;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.interpretation.InterpretationComment;
@@ -72,7 +72,6 @@ import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -87,9 +86,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("ui")
 @Controller
-@RequestMapping(value = InterpretationSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/interpretations")
 public class InterpretationController extends AbstractCrudController<Interpretation> {
   @Autowired private InterpretationService interpretationService;
 
@@ -98,7 +96,11 @@ public class InterpretationController extends AbstractCrudController<Interpretat
   @Override
   @SuppressWarnings("unchecked")
   protected List<Interpretation> getEntityList(
-      WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders)
+      WebMetadata metadata,
+      WebOptions options,
+      List<String> filters,
+      List<Order> orders,
+      List<Interpretation> objects)
       throws QueryParserException {
     // If custom filter (mentions:in:[username]) in filters -> Remove from
     // filters
@@ -122,7 +124,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
     }
 
     List<Interpretation> entityList;
-    if (options.getOptions().containsKey("query")) {
+    if (objects == null && options.getOptions().containsKey("query")) {
       entityList =
           Lists.newArrayList(manager.filter(getEntityClass(), options.getOptions().get("query")));
     } else {
@@ -334,8 +336,8 @@ public class InterpretationController extends AbstractCrudController<Interpretat
   @PutMapping("/{uid}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @ResponseBody
-  public WebMessage updateInterpretation(
-      @PathVariable("uid") String uid, @RequestBody String text) {
+  public WebMessage updateInterpretation(@PathVariable("uid") String uid, @RequestBody String text)
+      throws ForbiddenException {
     Interpretation interpretation = interpretationService.getInterpretation(uid);
 
     if (interpretation == null) {
@@ -344,7 +346,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     if (!currentUser.equals(interpretation.getCreatedBy()) && !currentUser.isSuper()) {
-      throw new AccessDeniedException("You are not allowed to update this interpretation.");
+      throw new ForbiddenException("You are not allowed to update this interpretation.");
     }
 
     interpretationService.updateInterpretationText(interpretation, text);
@@ -357,7 +359,8 @@ public class InterpretationController extends AbstractCrudController<Interpretat
       @PathVariable String uid,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request,
-      HttpServletResponse response) {
+      HttpServletResponse response)
+      throws ForbiddenException {
     Interpretation interpretation = interpretationService.getInterpretation(uid);
 
     if (interpretation == null) {
@@ -366,7 +369,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
 
     if (!currentUser.equals(UserDetails.fromUser(interpretation.getCreatedBy()))
         && !currentUser.isSuper()) {
-      throw new AccessDeniedException("You are not allowed to delete this interpretation.");
+      throw new ForbiddenException("You are not allowed to delete this interpretation.");
     }
 
     interpretationService.deleteInterpretation(interpretation);
@@ -406,7 +409,8 @@ public class InterpretationController extends AbstractCrudController<Interpretat
   public WebMessage updateComment(
       @PathVariable("uid") String uid,
       @PathVariable("cuid") String cuid,
-      @RequestBody String content) {
+      @RequestBody String content)
+      throws ForbiddenException {
     Interpretation interpretation = interpretationService.getInterpretation(uid);
 
     if (interpretation == null) {
@@ -418,7 +422,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
     for (InterpretationComment comment : interpretation.getComments()) {
       if (comment.getUid().equals(cuid)) {
         if (!currentUser.equals(comment.getCreatedBy()) && !currentUser.isSuper()) {
-          throw new AccessDeniedException("You are not allowed to update this comment.");
+          throw new ForbiddenException("You are not allowed to update this comment.");
         }
 
         comment.setText(content);
@@ -434,7 +438,8 @@ public class InterpretationController extends AbstractCrudController<Interpretat
   public WebMessage deleteComment(
       @PathVariable("uid") String uid,
       @PathVariable("cuid") String cuid,
-      HttpServletResponse response) {
+      HttpServletResponse response)
+      throws ForbiddenException {
     Interpretation interpretation = interpretationService.getInterpretation(uid);
 
     if (interpretation == null) {
@@ -449,7 +454,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
       InterpretationComment comment = iterator.next();
       if (comment.getUid().equals(cuid)) {
         if (!currentUser.equals(comment.getCreatedBy()) && !currentUser.isSuper()) {
-          throw new AccessDeniedException("You are not allowed to delete this comment.");
+          throw new ForbiddenException("You are not allowed to delete this comment.");
         }
 
         iterator.remove();

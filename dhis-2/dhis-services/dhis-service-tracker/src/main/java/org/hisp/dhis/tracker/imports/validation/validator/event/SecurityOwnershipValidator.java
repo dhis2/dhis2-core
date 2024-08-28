@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.imports.validation.validator.event;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.security.Authorities.F_UNCOMPLETE_EVENT;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1083;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.EVENT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL;
@@ -52,7 +53,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
-import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
+import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
@@ -124,13 +125,13 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
     OrganisationUnit ownerOrgUnit = getOwnerOrganisationUnit(preheat, teUid, program);
     // Check acting user is allowed to change existing/write event
     if (strategy.isUpdateOrDelete()) {
-      TrackedEntity entityInstance = preheatEvent.getEnrollment().getTrackedEntity();
+      TrackedEntity trackedEntity = preheatEvent.getEnrollment().getTrackedEntity();
       validateUpdateAndDeleteEvent(
           reporter,
           bundle,
           event,
           preheatEvent,
-          entityInstance == null ? null : entityInstance.getUid(),
+          trackedEntity == null ? null : trackedEntity.getUid(),
           ownerOrgUnit);
     } else {
       validateCreateEvent(
@@ -211,7 +212,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
     if (strategy.isUpdate()
         && EventStatus.COMPLETED == preheatEvent.getStatus()
         && event.getStatus() != preheatEvent.getStatus()
-        && (!user.isSuper() && !user.isAuthorized("F_UNCOMPLETE_EVENT"))) {
+        && (!user.isSuper() && !user.isAuthorized(F_UNCOMPLETE_EVENT))) {
       reporter.addError(event, E1083, user);
     }
   }
@@ -330,8 +331,8 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
     if (eventOrgUnit == null) {
       log.warn(ORG_UNIT_NO_USER_ASSIGNED, event.getUid());
     } else if (isCreatableInSearchScope
-        ? !user.isInUserSearchHierarchy(eventOrgUnit.getPath())
-        : !user.isInUserDataHierarchy(eventOrgUnit.getPath())) {
+        ? !user.isInUserEffectiveSearchOrgUnitHierarchy(eventOrgUnit.getPath())
+        : !user.isInUserHierarchy(eventOrgUnit.getPath())) {
       reporter.addError(event, ValidationCode.E1000, user, eventOrgUnit);
     }
   }

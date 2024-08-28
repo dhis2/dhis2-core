@@ -27,19 +27,20 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
 
 /** Tests the {@link PredictorController} using (mocked) REST requests. */
-class PredictorControllerTest extends DhisControllerConvenienceTest {
+class PredictorControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testGetExpressionDescription() {
@@ -77,9 +78,7 @@ class PredictorControllerTest extends DhisControllerConvenienceTest {
   void testRunPredictor() {
     String pId = postNewPredictor();
 
-    User actingUser = XpreCreateInjectAdminUserWithoutPersistence();
-    manager.persist(actingUser);
-
+    User actingUser = getAdminUser();
     UserDetails currentUserDetails = UserDetails.fromUser(actingUser);
     currentUserDetails.setId(0L);
     injectSecurityContext(currentUserDetails);

@@ -75,7 +75,7 @@ public class JacksonObjectMapperConfig {
   public static final ObjectMapper hibernateAwareJsonMapper = configureMapper(new ObjectMapper());
 
   /*
-   * Standard JSON mapper for Program Stage Instance data values.
+   * Standard JSON mapper for event data values.
    */
   public static final ObjectMapper dataValueJsonMapper = configureMapper(new ObjectMapper(), true);
 
@@ -88,12 +88,12 @@ public class JacksonObjectMapperConfig {
   public static final CsvMapper csvMapper = configureCsvMapper(new CsvMapper());
 
   @Primary
-  @Bean("jsonMapper")
+  @Bean
   public ObjectMapper jsonMapper() {
     return jsonMapper;
   }
 
-  @Bean("hibernateAwareJsonMapper")
+  @Bean
   public ObjectMapper hibernateAwareJsonMapper() {
     Hibernate5Module hibernate5Module = new Hibernate5Module();
     hibernate5Module.enable(
@@ -102,7 +102,7 @@ public class JacksonObjectMapperConfig {
     return hibernateAwareJsonMapper;
   }
 
-  @Bean("dataValueJsonMapper")
+  @Bean
   public ObjectMapper dataValueJsonMapper() {
     return dataValueJsonMapper;
   }

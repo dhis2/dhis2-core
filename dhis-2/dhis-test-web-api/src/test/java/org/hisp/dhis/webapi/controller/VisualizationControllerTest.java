@@ -30,10 +30,12 @@ package org.hisp.dhis.webapi.controller;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
-import static org.hisp.dhis.web.HttpStatus.CONFLICT;
-import static org.hisp.dhis.web.HttpStatus.CREATED;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.web.HttpStatus.CONFLICT;
+import static org.hisp.dhis.test.web.HttpStatus.CREATED;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.indicator.Indicator;
@@ -43,15 +45,15 @@ import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.web.WebClient;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.web.WebClient;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonImportSummary;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class VisualizationControllerTest extends DhisControllerConvenienceTest {
+class VisualizationControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
   private Program mockProgram;
@@ -294,5 +296,19 @@ class VisualizationControllerTest extends DhisControllerConvenienceTest {
     assertThat(response.get("sorting").toString(), containsString("pe"));
     assertThat(response.get("sorting").toString(), containsString("ASC"));
     assertThat(response.get("sorting").toString(), not(containsString("DESC")));
+  }
+
+  @Test
+  void testRelativePeriods() {
+    POST(
+            "/metadata?importStrategy=CREATE_AND_UPDATE&async=false",
+            WebClient.Body("metadata/metadata_with_visualization.json"))
+        .content(HttpStatus.OK)
+        .as(JsonImportSummary.class);
+    JsonMixed visualization =
+        GET("/visualizations/qD72aBqsHvt").content(HttpStatus.OK).as(JsonMixed.class);
+    assertNotNull(visualization);
+    assertTrue(
+        visualization.getObject("relativePeriods").getBoolean("last12Months").booleanValue());
   }
 }

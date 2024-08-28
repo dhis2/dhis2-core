@@ -40,7 +40,7 @@ import java.util.function.UnaryOperator;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
-import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
+import org.hisp.dhis.analytics.trackedentity.query.context.sql.QueryContext;
 
 /**
  * This class represents the constant values renderer. It will render the constant values and bind
@@ -59,7 +59,7 @@ public class ConstantValuesRenderer extends BaseRenderable {
 
   public static ConstantValuesRenderer of(
       Object values, ValueTypeMapping valueTypeMapping, QueryContext queryContext) {
-    return of(values, valueTypeMapping, queryContext, Function.identity());
+    return of(values, valueTypeMapping, queryContext, valueTypeMapping.getArgumentTransformer());
   }
 
   @Override

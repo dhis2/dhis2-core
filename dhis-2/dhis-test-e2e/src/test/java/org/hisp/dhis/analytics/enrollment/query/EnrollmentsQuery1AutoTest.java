@@ -36,9 +36,9 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.AnalyticsApiTest;
-import org.hisp.dhis.actions.analytics.AnalyticsEnrollmentsActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEnrollmentsActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
@@ -101,8 +101,8 @@ public class EnrollmentsQuery1AutoTest extends AnalyticsApiTest {
         6,
         "enrollmentdate",
         "Start of treatment date",
-        "DATE",
-        "java.time.LocalDate",
+        "DATETIME",
+        "java.time.LocalDateTime",
         false,
         true);
     validateHeader(response, 7, "uIuxlbV1vRT", "Area", "TEXT", "java.lang.String", false, true);
@@ -1466,7 +1466,14 @@ public class EnrollmentsQuery1AutoTest extends AnalyticsApiTest {
     validateHeader(
         response, 6, "Bpx0589u8y0", "Facility Ownership", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 7, "lastupdated", "Last updated on", "DATE", "java.time.LocalDate", false, true);
+        response,
+        7,
+        "lastupdated",
+        "Last updated on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
 
     // Assert rows.
     validateRow(
@@ -2713,7 +2720,14 @@ public class EnrollmentsQuery1AutoTest extends AnalyticsApiTest {
     validateHeader(
         response, 1, "Bpx0589u8y0", "Facility Ownership", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 2, "lastupdated", "Last updated on", "DATE", "java.time.LocalDate", false, true);
+        response,
+        2,
+        "lastupdated",
+        "Last updated on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
     validateHeader(
         response, 3, "Kv4fmHVAzwX", "Focus Name", "TEXT", "java.lang.String", false, true);
 
@@ -2811,7 +2825,14 @@ public class EnrollmentsQuery1AutoTest extends AnalyticsApiTest {
     validateHeader(
         response, 1, "Bpx0589u8y0", "Facility Ownership", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 2, "lastupdated", "Last updated on", "DATE", "java.time.LocalDate", false, true);
+        response,
+        2,
+        "lastupdated",
+        "Last updated on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
     validateHeader(
         response, 3, "Kv4fmHVAzwX", "Focus Name", "TEXT", "java.lang.String", false, true);
     validateHeader(

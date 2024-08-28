@@ -30,6 +30,7 @@ package org.hisp.dhis.query;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import lombok.Getter;
 import lombok.ToString;
@@ -64,6 +65,8 @@ public final class Type {
 
   private final boolean isCollection;
 
+  private final boolean isMap;
+
   private final boolean isList;
 
   private final boolean isSet;
@@ -83,6 +86,7 @@ public final class Type {
     isEnum = object instanceof Enum;
     isDate = object instanceof Date;
     isCollection = object instanceof Collection;
+    isMap = object instanceof Map;
     isList = object instanceof List;
     isSet = object instanceof Set;
   }

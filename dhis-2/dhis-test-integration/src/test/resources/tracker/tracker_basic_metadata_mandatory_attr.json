@@ -4,7 +4,7 @@
       "translations": [],
       "enableUserAssignment": false,
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "sortOrder": 1,
       "openAfterEnrollment": false,
@@ -15,7 +15,7 @@
       "notificationTemplates": [],
       "id": "Qmqxq907VNz",
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "displayGenerateEventBox": true,
       "generatedByEnrollmentDate": false,
@@ -70,14 +70,14 @@
       "sharing": {
         "public": "rw------",
         "external": false,
-        "owner": "M5zQapPyTZI",
+        "owner": "tTgjgobT1oS",
         "users": {},
         "userGroups": {}
       }
     },
     {
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "translations": [],
       "enableUserAssignment": false,
@@ -89,7 +89,7 @@
       "created": "2019-03-29T12:41:32.971",
       "id": "OilWH8Cj6QU",
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "notificationTemplates": [],
       "generatedByEnrollmentDate": false,
@@ -145,7 +145,7 @@
       "sharing": {
         "public": "rw------",
         "external": false,
-        "owner": "M5zQapPyTZI",
+        "owner": "tTgjgobT1oS",
         "users": {},
         "userGroups": {}
       }
@@ -158,7 +158,7 @@
       "sortOrder": 3,
       "openAfterEnrollment": false,
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "translations": [],
       "enableUserAssignment": false,
@@ -169,7 +169,7 @@
       "displayGenerateEventBox": true,
       "id": "m7HlXaMvgX2",
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "notificationTemplates": [],
       "remindCompleted": false,
@@ -220,7 +220,7 @@
       "sharing": {
         "public": "rw------",
         "external": false,
-        "owner": "M5zQapPyTZI",
+        "owner": "tTgjgobT1oS",
         "users": {},
         "userGroups": {}
       }
@@ -256,13 +256,13 @@
       "openingDate": "2019-03-25T00:00:00.000",
       "id": "QfUVllTs6cS",
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "attributeValues": [],
       "name": "Country",
       "translations": [],
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "code": "Country",
       "created": "2019-03-25T13:59:02.598",
@@ -284,7 +284,7 @@
       },
       "expiryDays": 0,
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "programStages": [
         {
@@ -306,7 +306,7 @@
       "accessLevel": "OPEN",
       "id": "E8o1E9tAppy",
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "completeEventsExpiryDays": 10,
       "organisationUnits": [
@@ -475,7 +475,7 @@
       "sharing": {
         "public": "rw------",
         "external": false,
-        "owner": "M5zQapPyTZI",
+        "owner": "tTgjgobT1oS",
         "users": {},
         "userGroups": {}
       }
@@ -492,7 +492,7 @@
       },
       "expiryDays": 0,
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "selectEnrollmentDatesInFuture": false,
       "categoryCombo": {
@@ -503,7 +503,7 @@
       "accessLevel": "OPEN",
       "id": "XXX1E9tAppy",
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "completeEventsExpiryDays": 0,
       "organisationUnits": [
@@ -530,7 +530,7 @@
       "sharing": {
         "public": "rw------",
         "external": false,
-        "owner": "M5zQapPyTZI",
+        "owner": "tTgjgobT1oS",
         "users": {},
         "userGroups": {}
       }
@@ -545,7 +545,7 @@
       ],
       "teiSearchOrganisationUnits": [],
       "created": "2019-03-25T13:58:35.560",
-      "code": "admin",
+      "code": "tracker admin",
       "organisationUnits": [
         {
           "id": "QfUVllTs6cS"
@@ -559,17 +559,17 @@
       "disabled": false,
       "userRoles": [
         {
-          "id": "yrB6vc5Ip3r"
+          "id": "nJ4Ml8ads4M"
         }
       ],
-      "name": "admin admin",
-      "displayName": "admin admin",
+      "name": "tracker admin",
+      "displayName": "tracker admin",
       "favorites": [],
       "selfRegistered": false,
       "externalAccess": false,
       "externalAuth": false,
       "twoFA": false,
-      "username": "admin",
+      "username": "trackeradmin",
       "userGroupAccesses": [],
       "access": {
         "externalize": true,
@@ -584,9 +584,9 @@
       "lastLogin": "2019-03-29T12:42:06.495",
       "translations": [],
       "passwordLastUpdated": "2019-03-29T08:57:41.766",
-      "firstName": "admin",
-      "surname": "admin",
-      "id": "M5zQapPyTZI",
+      "firstName": "trackeradmin",
+      "surname": "trackeradmin",
+      "id": "tTgjgobT1oS",
       "attributeValues": []
     },
     {
@@ -607,7 +607,7 @@
       "disabled": false,
       "userRoles": [
         {
-          "id": "yrB6vc5Ip3r"
+          "id": "nJ4Ml8ads4M"
         }
       ],
       "name": "netroms netroms",
@@ -899,10 +899,10 @@
   "userRoles": [
     {
       "created": "2019-03-25T13:58:35.567",
-      "code": "Superuser",
-      "description": "Superuser",
+      "code": "tracker Superuser",
+      "description": "tracker Superuser",
       "lastUpdated": "2019-03-25T13:58:35.567",
-      "name": "Superuser",
+      "name": "tracker Superuser",
       "translations": [],
       "authorities": [
         "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
@@ -912,7 +912,6 @@
         "F_ORGANISATIONUNIT_MOVE",
         "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS",
         "F_PREDICTOR_RUN",
-        "F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION",
         "F_SKIP_DATA_IMPORT_AUDIT",
         "F_RUN_VALIDATION",
         "F_LOCALE_ADD",
@@ -933,7 +932,7 @@
         "F_APPROVE_DATA_LOWER_LEVELS",
         "F_UNCOMPLETE_EVENT"
       ],
-      "id": "yrB6vc5Ip3r",
+      "id": "nJ4Ml8ads4M",
       "sharing": {
         "public": "--------",
         "external": false,
@@ -956,7 +955,6 @@
         "F_ORGANISATIONUNIT_MOVE",
         "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS",
         "F_PREDICTOR_RUN",
-        "F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION",
         "F_SKIP_DATA_IMPORT_AUDIT",
         "F_RUN_VALIDATION",
         "F_LOCALE_ADD",
@@ -998,7 +996,6 @@
         "F_ORGANISATIONUNIT_MOVE",
         "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS",
         "F_PREDICTOR_RUN",
-        "F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION",
         "F_SKIP_DATA_IMPORT_AUDIT",
         "F_RUN_VALIDATION",
         "F_LOCALE_ADD",
@@ -1046,10 +1043,10 @@
       "unique": false,
       "inherit": false,
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "translations": [],
       "attributeValues": [],
@@ -1057,7 +1054,7 @@
       "sharing": {
         "public": "rw------",
         "external": false,
-        "owner": "M5zQapPyTZI",
+        "owner": "tTgjgobT1oS",
         "users": {},
         "userGroups": {}
       }
@@ -1080,10 +1077,10 @@
       "unique": false,
       "inherit": false,
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "translations": [],
       "attributeValues": [],
@@ -1091,7 +1088,7 @@
       "sharing": {
         "public": "rw------",
         "external": false,
-        "owner": "M5zQapPyTZI",
+        "owner": "tTgjgobT1oS",
         "users": {},
         "userGroups": {}
       }
@@ -1114,10 +1111,10 @@
       "unique": false,
       "inherit": false,
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "translations": [],
       "attributeValues": [],
@@ -1125,7 +1122,7 @@
       "sharing": {
         "public": "rw------",
         "external": false,
-        "owner": "M5zQapPyTZI",
+        "owner": "tTgjgobT1oS",
         "users": {},
         "userGroups": {}
       }
@@ -1148,10 +1145,10 @@
       "unique": false,
       "inherit": false,
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "translations": [],
       "attributeValues": [],
@@ -1159,7 +1156,7 @@
       "sharing": {
         "public": "rw------",
         "external": false,
-        "owner": "M5zQapPyTZI",
+        "owner": "tTgjgobT1oS",
         "users": {},
         "userGroups": {}
       }
@@ -1182,19 +1179,19 @@
       "legendSets": [],
       "inherit": false,
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "translations": [],
       "orgunitScope": false,
       "skipSynchronization": false,
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "id": "sTJvSLN7Kcb",
       "sharing": {
         "public": "rw------",
         "external": false,
-        "owner": "M5zQapPyTZI",
+        "owner": "tTgjgobT1oS",
         "users": {},
         "userGroups": {}
       }
@@ -1211,7 +1208,7 @@
       "pattern": "",
       "translations": [],
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "inherit": false,
       "legendSets": [],
@@ -1222,14 +1219,14 @@
       "displayOnVisitSchedule": false,
       "id": "fmBIpOStKkF",
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "skipSynchronization": false,
       "orgunitScope": false,
       "sharing": {
         "public": "rw------",
         "external": false,
-        "owner": "M5zQapPyTZI",
+        "owner": "tTgjgobT1oS",
         "users": {},
         "userGroups": {}
       }
@@ -1252,13 +1249,13 @@
       "legendSets": [],
       "inherit": false,
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "translations": [],
       "orgunitScope": false,
       "skipSynchronization": false,
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "id": "cejWyOfXge6",
       "optionSet": {
@@ -1267,7 +1264,7 @@
       "sharing": {
         "public": "rw------",
         "external": false,
-        "owner": "M5zQapPyTZI",
+        "owner": "tTgjgobT1oS",
         "users": {},
         "userGroups": {}
       }
@@ -1276,7 +1273,7 @@
   "dataElements": [
     {
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "name": "Stage1 DataElement",
       "translations": [],
@@ -1288,7 +1285,7 @@
       "created": "2019-03-29T08:59:47.676",
       "id": "NXzX9s90nT3",
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "aggregationType": "SUM",
       "aggregationLevels": [],
@@ -1300,7 +1297,7 @@
       "sharing": {
         "public": "rw------",
         "external": false,
-        "owner": "M5zQapPyTZI",
+        "owner": "tTgjgobT1oS",
         "users": {},
         "userGroups": {}
       }
@@ -1314,7 +1311,7 @@
       "domainType": "TRACKER",
       "aggregationType": "SUM",
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "id": "yjF5elLCmQx",
       "created": "2019-03-29T09:10:42.013",
@@ -1326,19 +1323,19 @@
       "translations": [],
       "name": "Stage2 DataElement",
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "sharing": {
         "public": "rw------",
         "external": false,
-        "owner": "M5zQapPyTZI",
+        "owner": "tTgjgobT1oS",
         "users": {},
         "userGroups": {}
       }
     },
     {
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "translations": [],
       "name": "Stage3 DataElement",
@@ -1350,7 +1347,7 @@
       "created": "2019-03-29T09:10:53.600",
       "id": "LjQPcfuEI6P",
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "aggregationType": "SUM",
       "aggregationLevels": [],
@@ -1362,7 +1359,7 @@
       "sharing": {
         "public": "rw------",
         "external": false,
-        "owner": "M5zQapPyTZI",
+        "owner": "tTgjgobT1oS",
         "users": {},
         "userGroups": {}
       }
@@ -1374,7 +1371,7 @@
       "attributeValues": [],
       "maxTeiCountToReturn": 0,
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "id": "bPJ0FMtcnEh",
       "minAttributesRequiredToSearch": 1,
@@ -1450,14 +1447,14 @@
       "created": "2019-03-29T09:20:08.103",
       "allowAuditLog": false,
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "translations": [],
       "name": "Person",
       "sharing": {
         "public": "rw------",
         "external": false,
-        "owner": "M5zQapPyTZI",
+        "owner": "tTgjgobT1oS",
         "users": {},
         "userGroups": {
           "jCDKJBruqjc": {
@@ -1472,7 +1469,7 @@
       "attributeValues": [],
       "maxTeiCountToReturn": 0,
       "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "id": "XXXbPJ0FMtc",
       "minAttributesRequiredToSearch": 1,
@@ -1480,14 +1477,14 @@
       "created": "2019-03-29T09:20:08.103",
       "allowAuditLog": false,
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "translations": [],
       "name": "PersonYYY",
       "sharing": {
         "public": "rw------",
         "external": false,
-        "owner": "M5zQapPyTZI",
+        "owner": "tTgjgobT1oS",
         "users": {},
         "userGroups": {
           "jCDKJBruqjc": {
@@ -1577,7 +1574,7 @@
       "dataDimension": false,
       "version": 1,
       "user": {
-        "id": "M5zQapPyTZI"
+        "id": "tTgjgobT1oS"
       },
       "options": [
         {
@@ -1592,7 +1589,7 @@
       "sharing": {
         "public": "rw------",
         "external": false,
-        "owner": "M5zQapPyTZI",
+        "owner": "tTgjgobT1oS",
         "users": {},
         "userGroups": {}
       }

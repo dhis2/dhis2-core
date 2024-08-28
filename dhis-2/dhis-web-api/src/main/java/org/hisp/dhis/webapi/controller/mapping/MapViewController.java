@@ -34,7 +34,6 @@ import java.awt.image.BufferedImage;
 import java.util.List;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletResponse;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfilter.Defaults;
@@ -46,7 +45,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
-import org.hisp.dhis.schema.descriptors.MapViewSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
@@ -62,9 +60,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("metadata")
 @Controller
-@RequestMapping(value = MapViewSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/mapViews")
 public class MapViewController extends AbstractCrudController<MapView> {
   @Autowired private MappingService mappingService;
 
@@ -117,7 +114,11 @@ public class MapViewController extends AbstractCrudController<MapView> {
   @Override
   @SuppressWarnings("unchecked")
   protected List<MapView> getEntityList(
-      WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders)
+      WebMetadata metadata,
+      WebOptions options,
+      List<String> filters,
+      List<Order> orders,
+      List<MapView> objects)
       throws QueryParserException {
     List<MapView> entityList;
     Query query =
@@ -130,7 +131,7 @@ public class MapViewController extends AbstractCrudController<MapView> {
     query.setDefaultOrder();
     query.setDefaults(Defaults.valueOf(options.get("defaults", DEFAULTS)));
 
-    if (options.getOptions().containsKey("query")) {
+    if (objects == null && options.getOptions().containsKey("query")) {
       entityList =
           Lists.newArrayList(manager.filter(getEntityClass(), options.getOptions().get("query")));
     } else {

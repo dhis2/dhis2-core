@@ -49,6 +49,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -60,7 +61,9 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.PropertyNames;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.common.UID;
@@ -73,7 +76,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
-import org.hisp.dhis.node.Preset;
+import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
@@ -89,9 +92,7 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
-import org.hisp.dhis.util.CheckedFunction;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.openapi.Api.PropertyNames;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -113,7 +114,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
  *
  * @author Jan Bernitt
  */
+@Maturity.Stable
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@OpenApi.Document(group = OpenApi.Document.GROUP_QUERY)
 public abstract class AbstractFullReadOnlyController<T extends IdentifiableObject>
     extends AbstractGistReadOnlyController<T> {
   protected static final String DEFAULTS = "INCLUDE";
@@ -177,17 +180,6 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     List<Object> entries;
   }
 
-  @Value
-  public static class ListParams {
-    WebMetadata metadata;
-
-    WebOptions options;
-
-    List<String> filters;
-
-    List<Order> orders;
-  }
-
   @OpenApi.Param(name = "fields", value = String[].class)
   @OpenApi.Param(name = "filter", value = String[].class)
   @OpenApi.Params(WebOptions.class)
@@ -200,12 +192,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException {
     return getObjectList(
-        rpParameters,
-        orderParams,
-        response,
-        currentUser,
-        !rpParameters.containsKey("query"),
-        params -> getEntityList(params.metadata, params.options, params.filters, params.orders));
+        rpParameters, orderParams, response, currentUser, !rpParameters.containsKey("query"), null);
   }
 
   protected final ResponseEntity<StreamingJsonRoot<T>> getObjectList(
@@ -214,14 +201,14 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
       HttpServletResponse response,
       UserDetails userDetails,
       boolean countTotal,
-      CheckedFunction<ListParams, List<T>> fetchList)
+      @CheckForNull List<T> objects)
       throws ForbiddenException, BadRequestException {
     List<Order> orders = orderParams.getOrders(getSchema());
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
     List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
 
     if (fields.isEmpty()) {
-      fields.addAll(Preset.defaultPreset().getFields());
+      fields.addAll(FieldPreset.defaultPreset().getFields());
     }
 
     WebOptions options = new WebOptions(rpParameters);
@@ -234,7 +221,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
     forceFiltering(options, filters);
 
-    List<T> entities = fetchList.apply(new ListParams(metadata, options, filters, orders));
+    List<T> entities = getEntityList(metadata, options, filters, orders, objects);
 
     Pager pager = metadata.getPager();
 
@@ -290,7 +277,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     WebMetadata metadata = new WebMetadata();
 
     if (fields.isEmpty() || fields.contains("*") || fields.contains(":all")) {
-      fields.addAll(Preset.defaultPreset().getFields());
+      fields.addAll(FieldPreset.defaultPreset().getFields());
     }
 
     // only support metadata
@@ -304,7 +291,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
           "You don't have the proper permissions to read objects of this type.");
     }
 
-    List<T> entities = getEntityList(metadata, options, filters, orders);
+    List<T> entities = getEntityList(metadata, options, filters, orders, null);
 
     try {
       String csv = applyCsvSteps(fields, entities, separator, arraySeparator, skipHeader);
@@ -421,7 +408,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
   @OpenApi.Param(name = "filter", value = String[].class)
   @OpenApi.Params(WebOptions.class)
   @OpenApi.Response(OpenApi.EntityType.class)
-  @GetMapping("/{uid}")
+  @GetMapping("/{uid:[a-zA-Z0-9]{11}}")
   @SuppressWarnings("unchecked")
   public @ResponseBody ResponseEntity<?> getObject(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
@@ -473,7 +460,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
   @OpenApi.Param(name = "fields", value = String[].class)
   @OpenApi.Params(WebOptions.class)
-  @GetMapping("/{uid}/{property}")
+  @GetMapping("/{uid:[a-zA-Z0-9]{11}}/{property}")
   public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
       @OpenApi.Param(PropertyNames.class) @PathVariable("property") String pvProperty,
@@ -550,7 +537,11 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
   @SuppressWarnings("unchecked")
   protected List<T> getEntityList(
-      WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders)
+      WebMetadata metadata,
+      WebOptions options,
+      List<String> filters,
+      List<Order> orders,
+      List<T> objects)
       throws BadRequestException {
     Query query =
         BadRequestException.on(
@@ -564,12 +555,20 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
                     options.getRootJunction()));
     query.setDefaultOrder();
     query.setDefaults(Defaults.valueOf(options.get("defaults", DEFAULTS)));
+    query.setObjects(objects);
 
-    if (options.getOptions().containsKey("query")) {
-      return Lists.newArrayList(
-          manager.filter(getEntityClass(), options.getOptions().get("query")));
+    // Note: objects being null means no query had been running whereas empty means a query did run
+    // with no result
+    if (objects == null && options.getOptions().containsKey("query")) {
+      return getEntityListPostProcess(
+          options,
+          Lists.newArrayList(manager.filter(getEntityClass(), options.getOptions().get("query"))));
     }
-    return (List<T>) queryService.query(query);
+    return getEntityListPostProcess(options, (List<T>) queryService.query(query));
+  }
+
+  protected List<T> getEntityListPostProcess(WebOptions options, List<T> entities) {
+    return entities;
   }
 
   private long countTotal(WebOptions options, List<String> filters, List<Order> orders)

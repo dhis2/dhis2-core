@@ -51,20 +51,23 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class DefaultEventCoordinateService implements EventCoordinateService {
-  public static final String COL_NAME_PI_GEOMETRY = "pigeometry";
+  public static final String COL_NAME_ENROLLMENT_GEOMETRY = "enrollmentgeometry";
 
-  public static final String COL_NAME_PSI_GEOMETRY = "psigeometry";
+  public static final String COL_NAME_EVENT_GEOMETRY = "eventgeometry";
 
-  public static final String COL_NAME_TEI_GEOMETRY = "teigeometry";
+  public static final String COL_NAME_TRACKED_ENTITY_GEOMETRY = "tegeometry";
 
   public static final String COL_NAME_OU_GEOMETRY = "ougeometry";
 
   public static final List<String> COL_NAME_GEOMETRY_LIST =
       List.of(
-          COL_NAME_PSI_GEOMETRY, COL_NAME_PI_GEOMETRY, COL_NAME_TEI_GEOMETRY, COL_NAME_OU_GEOMETRY);
+          COL_NAME_EVENT_GEOMETRY,
+          COL_NAME_ENROLLMENT_GEOMETRY,
+          COL_NAME_TRACKED_ENTITY_GEOMETRY,
+          COL_NAME_OU_GEOMETRY);
 
   public static final List<String> COL_NAME_PROGRAM_NO_REGISTRATION_GEOMETRY_LIST =
-      List.of(COL_NAME_PSI_GEOMETRY, COL_NAME_PI_GEOMETRY, COL_NAME_OU_GEOMETRY);
+      List.of(COL_NAME_EVENT_GEOMETRY, COL_NAME_ENROLLMENT_GEOMETRY, COL_NAME_OU_GEOMETRY);
 
   @Nonnull private final ProgramService programService;
 
@@ -78,7 +81,7 @@ public class DefaultEventCoordinateService implements EventCoordinateService {
       return false;
     }
 
-    if (COL_NAME_TEI_GEOMETRY.equals(coordinateField)) {
+    if (COL_NAME_TRACKED_ENTITY_GEOMETRY.equals(coordinateField)) {
       return isRegistration;
     }
 
@@ -140,7 +143,7 @@ public class DefaultEventCoordinateService implements EventCoordinateService {
   public String getCoordinateField(String program, String coordinateField, ErrorCode errorCode) {
     Program pr = programService.getProgram(program);
 
-    if (COL_NAME_TEI_GEOMETRY.equals(coordinateField) && !pr.isRegistration()) {
+    if (COL_NAME_TRACKED_ENTITY_GEOMETRY.equals(coordinateField) && !pr.isRegistration()) {
       throwIllegalQueryEx(errorCode, coordinateField);
     }
 

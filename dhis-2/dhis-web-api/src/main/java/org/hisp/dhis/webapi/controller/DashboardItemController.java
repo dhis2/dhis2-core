@@ -37,8 +37,7 @@ import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dashboard.DashboardItemShape;
 import org.hisp.dhis.dashboard.DashboardService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
-import org.hisp.dhis.schema.descriptors.DashboardItemSchemaDescriptor;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,9 +51,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags("ui")
+@OpenApi.Document(domain = Dashboard.class)
 @Controller
-@RequestMapping(value = DashboardItemSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/dashboardItems")
 public class DashboardItemController extends AbstractCrudController<DashboardItem> {
   // TODO this controller class is only needed for the pre 2.30 old dashboard
   // app and should be removed
@@ -79,7 +78,7 @@ public class DashboardItemController extends AbstractCrudController<DashboardIte
     Dashboard dashboard = dashboardService.getDashboardFromDashboardItem(item);
 
     if (!aclService.canUpdate(currentUser, dashboard)) {
-      throw new UpdateAccessDeniedException(
+      throw new ForbiddenException(
           "You don't have the proper permissions to update this dashboard.");
     }
 

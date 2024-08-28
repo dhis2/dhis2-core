@@ -36,9 +36,9 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.AnalyticsApiTest;
-import org.hisp.dhis.actions.analytics.AnalyticsEnrollmentsActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEnrollmentsActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
@@ -92,7 +92,14 @@ public class EnrollmentsQuery2AutoTest extends AnalyticsApiTest {
     validateHeader(
         response, 1, "Bpx0589u8y0", "Facility Ownership", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 2, "lastupdated", "Last updated on", "DATE", "java.time.LocalDate", false, true);
+        response,
+        2,
+        "lastupdated",
+        "Last updated on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
     validateHeader(
         response, 3, "Kv4fmHVAzwX", "Focus Name", "TEXT", "java.lang.String", false, true);
     validateHeader(
@@ -285,7 +292,14 @@ public class EnrollmentsQuery2AutoTest extends AnalyticsApiTest {
     validateHeader(
         response, 1, "Bpx0589u8y0", "Facility Ownership", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 2, "lastupdated", "Last updated on", "DATE", "java.time.LocalDate", false, true);
+        response,
+        2,
+        "lastupdated",
+        "Last updated on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
     validateHeader(
         response, 3, "coaSpbzZiTB", "System Focus ID", "TEXT", "java.lang.String", false, true);
     validateHeader(
@@ -386,7 +400,14 @@ public class EnrollmentsQuery2AutoTest extends AnalyticsApiTest {
     validateHeader(
         response, 1, "Bpx0589u8y0", "Facility Ownership", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 2, "lastupdated", "Last updated on", "DATE", "java.time.LocalDate", false, true);
+        response,
+        2,
+        "lastupdated",
+        "Last updated on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
     validateHeader(
         response, 3, "coaSpbzZiTB", "System Focus ID", "TEXT", "java.lang.String", false, true);
     validateHeader(
@@ -485,7 +506,14 @@ public class EnrollmentsQuery2AutoTest extends AnalyticsApiTest {
     validateHeader(
         response, 1, "Bpx0589u8y0", "Facility Ownership", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 2, "lastupdated", "Last updated on", "DATE", "java.time.LocalDate", false, true);
+        response,
+        2,
+        "lastupdated",
+        "Last updated on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
     validateHeader(
         response,
         3,
@@ -539,8 +567,8 @@ public class EnrollmentsQuery2AutoTest extends AnalyticsApiTest {
         10,
         "enrollmentdate",
         "Date of enrollment",
-        "DATE",
-        "java.time.LocalDate",
+        "DATETIME",
+        "java.time.LocalDateTime",
         false,
         true);
   }

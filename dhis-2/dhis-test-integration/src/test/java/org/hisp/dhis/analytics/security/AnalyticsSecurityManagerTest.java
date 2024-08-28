@@ -54,17 +54,19 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-class AnalyticsSecurityManagerTest extends TransactionalIntegrationTest {
+@Transactional
+class AnalyticsSecurityManagerTest extends PostgresIntegrationTestBase {
   @Autowired private AnalyticsSecurityManager securityManager;
 
   @Autowired private CategoryService categoryService;
@@ -72,8 +74,6 @@ class AnalyticsSecurityManagerTest extends TransactionalIntegrationTest {
   @Autowired private DataElementService dataElementService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
-
-  @Autowired private UserService _userService;
 
   private CategoryOption coA;
 
@@ -99,10 +99,8 @@ class AnalyticsSecurityManagerTest extends TransactionalIntegrationTest {
 
   private Set<OrganisationUnit> userOrgUnits;
 
-  @Override
-  public void setUpTest() {
-    userService = _userService;
-    createAndInjectAdminUser();
+  @BeforeEach
+  void setUp() {
     coA = createCategoryOption('A');
     coB = createCategoryOption('B');
     coNotReadable = createCategoryOption('N');

@@ -27,11 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.utils.Assertions.assertGreaterOrEqual;
-import static org.hisp.dhis.utils.Assertions.assertLessOrEqual;
+import static org.hisp.dhis.test.utils.Assertions.assertContains;
+import static org.hisp.dhis.test.utils.Assertions.assertGreaterOrEqual;
+import static org.hisp.dhis.test.utils.Assertions.assertLessOrEqual;
+import static org.hisp.dhis.test.web.WebClient.Accept;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
 
 import io.swagger.parser.OpenAPIParser;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
@@ -41,7 +44,7 @@ import java.nio.file.Path;
 import java.util.List;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.openapitools.codegen.DefaultGenerator;
 import org.openapitools.codegen.config.CodegenConfigurator;
@@ -54,13 +57,13 @@ import org.openapitools.codegen.config.CodegenConfigurator;
  *
  * @author Jan Bernitt
  */
-class OpenApiControllerTest extends DhisControllerConvenienceTest {
+class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testGetOpenApiDocumentJson() {
     JsonObject doc =
         GET("/openapi/openapi.json?failOnNameClash=true&failOnInconsistency=true").content();
     assertTrue(doc.isObject());
-    assertTrue(doc.getObject("components.schemas.PropertyNames_OrganisationUnit").isObject());
+    assertTrue(doc.getObject("components.schemas.OrganisationUnitPropertyNames").isObject());
     assertGreaterOrEqual(150, doc.getObject("paths").size());
     assertGreaterOrEqual(0, doc.getObject("security[0].basicAuth").size());
     assertGreaterOrEqual(1, doc.getObject("components.securitySchemes").size());
@@ -74,30 +77,46 @@ class OpenApiControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void testGetOpenApiDocument_PathFilter() {
-    JsonObject doc = GET("/openapi/openapi.json?path=/users").content();
+    JsonObject doc = GET("/openapi/openapi.json?path=/api/users").content();
     assertTrue(doc.isObject());
     assertTrue(
         doc.getObject("paths")
-            .has("/users/gist", "/users/invite", "/users/invites", "/users/sharing"));
+            .has(
+                "/api/users/gist",
+                "/api/users/invite",
+                "/api/users/invites",
+                "/api/users/sharing"));
     assertLessOrEqual(26, doc.getObject("paths").size());
-    assertLessOrEqual(22, doc.getObject("components.schemas").size());
+    assertLessOrEqual(60, doc.getObject("components.schemas").size());
   }
 
   @Test
-  void testGetOpenApiDocument_TagFilter() {
-    JsonObject doc = GET("/openapi/openapi.json?tag=user").content();
+  void testGetOpenApiDocument_DomainFilter() {
+    JsonObject doc = GET("/openapi/openapi.json?domain=User").content();
     assertTrue(doc.isObject());
     assertTrue(
         doc.getObject("paths")
-            .has("/users/gist", "/users/invite", "/users/invites", "/users/sharing"));
+            .has(
+                "/api/users/gist",
+                "/api/users/invite",
+                "/api/users/invites",
+                "/api/users/sharing"));
     assertLessOrEqual(151, doc.getObject("paths").size());
-    assertLessOrEqual(60, doc.getObject("components.schemas").size());
+    assertLessOrEqual(80, doc.getObject("components.schemas").size());
+  }
+
+  @Test
+  void testGetOpenApiDocumentHtml_DomainFilter() {
+    String html =
+        GET("/openapi/openapi.html?domain=DataElement", Accept(TEXT_HTML_VALUE))
+            .content(TEXT_HTML_VALUE);
+    assertContains("#DataElement", html);
   }
 
   @Test
   void testGetOpenApiDocument_DefaultValue() {
     // defaults in parameter objects (from Property analysis)
-    JsonObject users = GET("/openapi/openapi.json?path=/users").content();
+    JsonObject users = GET("/openapi/openapi.json?path=/api/users").content();
     JsonObject sharedParams = users.getObject("components.parameters");
     assertEquals(50, sharedParams.getNumber("{GistParams.pageSize}.schema.default").integer());
     assertEquals(
@@ -105,18 +124,21 @@ class OpenApiControllerTest extends DhisControllerConvenienceTest {
     assertTrue(sharedParams.getBoolean("{GistParams.translate}.schema.default").booleanValue());
 
     // defaults in individual parameters (from endpoint method parameter analysis)
-    JsonObject fileResources = GET("/openapi/openapi.json?path=/fileResources").content();
+    JsonObject fileResources = GET("/openapi/openapi.json?path=/api/fileResources").content();
     JsonObject domain =
-        fileResources.get("paths./fileResources/.post.parameters").asList(JsonObject.class).stream()
+        fileResources
+            .get("paths./api/fileResources/.post.parameters")
+            .asList(JsonObject.class)
+            .stream()
             .filter(p -> "domain".equals(p.getString("name").string()))
             .findFirst()
             .orElse(JsonMixed.of("{}"));
     assertEquals("DATA_VALUE", domain.getString("schema.default").string());
 
-    JsonObject audits = GET("/openapi/openapi.json?path=/audits").content();
+    JsonObject audits = GET("/openapi/openapi.json?path=/api/audits").content();
     JsonObject pageSize =
         audits
-            .getArray("paths./audits/trackedEntityAttributeValue.get.parameters")
+            .getArray("paths./api/audits/trackedEntityAttributeValue.get.parameters")
             .asList(JsonObject.class)
             .stream()
             .filter(p -> "pageSize".equals(p.getString("name").string()))

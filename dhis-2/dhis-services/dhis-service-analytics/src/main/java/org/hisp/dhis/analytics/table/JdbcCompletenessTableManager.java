@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getLatestTablePartition;
+import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.BOOLEAN;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
@@ -36,7 +37,6 @@ import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
-import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.ArrayList;
@@ -76,8 +76,18 @@ import org.springframework.transaction.annotation.Transactional;
 public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
-          new AnalyticsTableColumn("dx", CHARACTER_11, NOT_NULL, "ds.uid"),
-          new AnalyticsTableColumn("year", INTEGER, NOT_NULL, "ps.year"));
+          AnalyticsTableColumn.builder()
+              .name("dx")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("ds.uid")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("year")
+              .dataType(INTEGER)
+              .nullable(NOT_NULL)
+              .selectExpression("ps.year")
+              .build());
 
   public JdbcCompletenessTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -136,15 +146,15 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   }
 
   @Override
-  protected boolean hasUpdatedLatestData(Date startDate, Date endDate) {
+  public boolean hasUpdatedLatestData(Date startDate, Date endDate) {
     String sql =
         """
         select cdr.datasetid \
-            from completedatasetregistration cdr \
-            where cdr.lastupdated >= '${startDate}' \
-            and cdr.lastupdated < '${endDate}' \
-            limit 1;""";
-    replace(sql, Map.of("startDate", toLongDate(startDate), "endDate", toLongDate(endDate)));
+        from completedatasetregistration cdr \
+        where cdr.lastupdated >= '${startDate}' \
+        and cdr.lastupdated < '${endDate}' \
+        limit 1;""";
+    sql = replace(sql, Map.of("startDate", toLongDate(startDate), "endDate", toLongDate(endDate)));
 
     return !jdbcTemplate.queryForList(sql).isEmpty();
   }
@@ -180,8 +190,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   }
 
   @Override
-  protected void populateTable(
-      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+  public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
     String partitionClause = getPartitionClause(partition);
 
@@ -210,11 +219,9 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             """
             from completedatasetregistration cdr \
             inner join dataset ds on cdr.datasetid=ds.datasetid \
-            inner join period pe on cdr.periodid=pe.periodid \
             inner join analytics_rs_periodstructure ps on cdr.periodid=ps.periodid \
-            inner join organisationunit ou on cdr.sourceid=ou.organisationunitid \
             inner join analytics_rs_organisationunitgroupsetstructure ougs on cdr.sourceid=ougs.organisationunitid \
-            and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null) \
+            and (cast(${peStartDateMonth} as date)=ougs.startdate or ougs.startdate is null) \
             left join analytics_rs_orgunitstructure ous on cdr.sourceid=ous.organisationunitid \
             inner join analytics_rs_categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid \
             inner join categoryoptioncombo ao on cdr.attributeoptioncomboid=ao.categoryoptioncomboid \
@@ -223,12 +230,14 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             and cdr.lastupdated < '${startTime}' \
             and cdr.completed = true""",
             Map.of(
+                "peStartDateMonth",
+                sqlBuilder.dateTrunc("month", "ps.startdate"),
                 "partitionClause",
                 partitionClause,
                 "startTime",
                 toLongDate(params.getStartTime())));
 
-    invokeTimeAndLog(sql, String.format("Populate %s", tableName));
+    invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }
 
   /**
@@ -239,31 +248,43 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
    */
   private String getPartitionClause(AnalyticsTablePartition partition) {
     String latestFilter =
-        replace(
-            "and cdr.lastupdated >= '${startDate}'",
-            Map.of("startDate", toLongDate(partition.getStartDate())));
-    String partitionFilter =
-        replace("and ps.year = ${year}", Map.of("year", String.valueOf(partition.getYear())));
+        format("and cdr.lastupdated >= '{}' ", toLongDate(partition.getStartDate()));
+    String partitionFilter = format("and ps.year = {} ", partition.getYear());
 
     return partition.isLatestPartition() ? latestFilter : partitionFilter;
   }
 
   private List<AnalyticsTableColumn> getColumns() {
+    String idColAlias = "concat(ds.uid,'-',ps.iso,'-',ous.organisationunituid,'-',ao.uid) as id ";
+    String timelyDateDiff = "cast(cdr.date as date) - ps.enddate";
+    String timelyAlias = "((" + timelyDateDiff + ") <= ds.timelydays) as timely";
+
     List<AnalyticsTableColumn> columns = new ArrayList<>();
-
-    String idColAlias = "concat(ds.uid,'-',ps.iso,'-',ou.uid,'-',ao.uid) as id ";
-    String timelyDateDiff = "cast(cdr.date as date) - pe.enddate";
-    String timelyAlias = "(select (" + timelyDateDiff + ") <= ds.timelydays) as timely";
-
-    columns.add(new AnalyticsTableColumn("id", TEXT, idColAlias));
+    columns.addAll(FIXED_COLS);
+    columns.add(
+        AnalyticsTableColumn.builder()
+            .name("id")
+            .dataType(TEXT)
+            .selectExpression(idColAlias)
+            .build());
     columns.addAll(getOrganisationUnitGroupSetColumns());
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.addAll(getAttributeCategoryOptionGroupSetColumns());
     columns.addAll(getAttributeCategoryColumns());
     columns.addAll(getPeriodTypeColumns("ps"));
-    columns.add(new AnalyticsTableColumn("timely", BOOLEAN, timelyAlias));
-    columns.addAll(FIXED_COLS);
-    columns.add(new AnalyticsTableColumn("value", DATE, NULL, FACT, "cdr.date as value"));
+    columns.add(
+        AnalyticsTableColumn.builder()
+            .name("timely")
+            .dataType(BOOLEAN)
+            .selectExpression(timelyAlias)
+            .build());
+    columns.add(
+        AnalyticsTableColumn.builder()
+            .name("value")
+            .dataType(DATE)
+            .valueType(FACT)
+            .selectExpression("cdr.date as value")
+            .build());
 
     return filterDimensionColumns(columns);
   }

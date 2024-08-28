@@ -31,10 +31,14 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.UserDetailsImpl.UserDetailsImplBuilder;
 import org.springframework.security.core.GrantedAuthority;
 
@@ -158,6 +162,12 @@ public interface UserDetails extends org.springframework.security.core.userdetai
               ? setOfIds(user.getTeiSearchOrganisationUnitsWithFallback())
               : (searchOrgUnitUids.isEmpty() ? orgUnitUids : searchOrgUnitUids);
 
+      Set<String> userEffectiveSearchOrgUnitIds =
+          Stream.of(userOrgUnitIds, userSearchOrgUnitIds)
+              .filter(Objects::nonNull)
+              .flatMap(Collection::stream)
+              .collect(Collectors.toSet());
+
       Set<String> userDataOrgUnitIds =
           (dataViewUnitUids == null)
               ? setOfIds(user.getDataViewOrganisationUnitsWithFallback())
@@ -166,6 +176,7 @@ public interface UserDetails extends org.springframework.security.core.userdetai
       userDetailsImplBuilder
           .userOrgUnitIds(userOrgUnitIds)
           .userSearchOrgUnitIds(userSearchOrgUnitIds)
+          .userEffectiveSearchOrgUnitIds(userEffectiveSearchOrgUnitIds)
           .userDataOrgUnitIds(userDataOrgUnitIds)
           .allRestrictions(user.getAllRestrictions());
 
@@ -173,6 +184,7 @@ public interface UserDetails extends org.springframework.security.core.userdetai
       userDetailsImplBuilder
           .userOrgUnitIds(Set.of())
           .userSearchOrgUnitIds(Set.of())
+          .userEffectiveSearchOrgUnitIds(Set.of())
           .userDataOrgUnitIds(Set.of())
           .allRestrictions(Set.of());
     }
@@ -227,11 +239,18 @@ public interface UserDetails extends org.springframework.security.core.userdetai
   Set<String> getUserSearchOrgUnitIds();
 
   @Nonnull
+  Set<String> getUserEffectiveSearchOrgUnitIds();
+
+  @Nonnull
   Set<String> getUserDataOrgUnitIds();
 
   boolean hasAnyAuthority(Collection<String> auths);
 
+  boolean hasAnyAuthorities(Collection<Authorities> auths);
+
   boolean isAuthorized(String auth);
+
+  boolean isAuthorized(@Nonnull Authorities auth);
 
   @Nonnull
   Map<String, Serializable> getUserSettings();
@@ -255,6 +274,10 @@ public interface UserDetails extends org.springframework.security.core.userdetai
 
   default boolean isInUserSearchHierarchy(String orgUnitPath) {
     return isInUserHierarchy(orgUnitPath, getUserSearchOrgUnitIds());
+  }
+
+  default boolean isInUserEffectiveSearchOrgUnitHierarchy(String orgUnitPath) {
+    return isInUserHierarchy(orgUnitPath, getUserEffectiveSearchOrgUnitIds());
   }
 
   default boolean isInUserDataHierarchy(String orgUnitPath) {

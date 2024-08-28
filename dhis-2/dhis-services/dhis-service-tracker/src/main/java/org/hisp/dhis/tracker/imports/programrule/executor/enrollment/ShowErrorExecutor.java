@@ -35,13 +35,13 @@ import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.programrule.IssueType;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
+import org.hisp.dhis.tracker.imports.programrule.engine.ValidationEffect;
 import org.hisp.dhis.tracker.imports.programrule.executor.ValidationExecutor;
-import org.hisp.dhis.tracker.imports.programrule.executor.ValidationRuleAction;
 
 /** This executor shows errors calculated by Rule Engine. @Author Enrico Colasante */
 @RequiredArgsConstructor
 public class ShowErrorExecutor implements ValidationExecutor<Enrollment> {
-  private final ValidationRuleAction ruleAction;
+  private final ValidationEffect validationEffect;
 
   @Override
   public boolean needsToRun(Enrollment enrollment) {
@@ -55,6 +55,6 @@ public class ShowErrorExecutor implements ValidationExecutor<Enrollment> {
 
   @Override
   public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Enrollment enrollment) {
-    return execute(ruleAction, enrollment);
+    return execute(validationEffect, enrollment);
   }
 }

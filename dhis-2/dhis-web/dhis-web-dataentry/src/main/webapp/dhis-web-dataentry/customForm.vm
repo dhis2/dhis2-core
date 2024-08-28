@@ -1,5 +1,0 @@
-
-#set( $css = "cde cde-${dataEntryForm.style}" )
-<div class="${css}">
-$customDataEntryFormCode
-</div>

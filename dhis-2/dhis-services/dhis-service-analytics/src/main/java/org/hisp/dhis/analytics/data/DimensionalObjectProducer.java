@@ -31,6 +31,7 @@ import static java.lang.String.join;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.substringAfter;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_DATA_X;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ORGUNIT;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ORGUNIT_GROUP;
@@ -58,9 +59,12 @@ import static org.hisp.dhis.common.IdentifiableProperty.UID;
 import static org.hisp.dhis.commons.collection.ListUtils.sort;
 import static org.hisp.dhis.feedback.ErrorCode.E7124;
 import static org.hisp.dhis.feedback.ErrorCode.E7143;
+import static org.hisp.dhis.feedback.ErrorCode.E7611;
 import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_DATASET;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_LEVEL;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_ORGUNIT_GROUP;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_PROGRAM;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT_CHILDREN;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT_GRANDCHILDREN;
@@ -71,6 +75,7 @@ import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
 import static org.hisp.dhis.period.RelativePeriods.getRelativePeriodsFromEnum;
 import static org.hisp.dhis.period.WeeklyPeriodType.NAME;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_FINANCIAL_YEAR_START;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -89,6 +94,7 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nFormat;
@@ -97,12 +103,11 @@ import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.DateField;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.RelativePeriodEnum;
-import org.hisp.dhis.period.comparator.AscendingPeriodComparator;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -192,17 +197,15 @@ public class DimensionalObjectProducer {
         systemSettingManager.getSystemSetting(
             ANALYTICS_FINANCIAL_YEAR_START, AnalyticsFinancialYearStartKey.class);
 
-    boolean containsRelativePeriods = false;
-
     for (String isoPeriod : items) {
       // Contains isoPeriod and timeField
       IsoPeriodHolder isoPeriodHolder = IsoPeriodHolder.of(isoPeriod);
 
       if (RelativePeriodEnum.contains(isoPeriodHolder.getIsoPeriod())) {
-        containsRelativePeriods = true;
-
+        String dateField = isoPeriodHolder.getDateField();
+        DateField dateAndField = new DateField(relativePeriodDate, dateField);
         addRelativePeriods(
-            relativePeriodDate, periods, dimensionalKeywords, financialYearStart, isoPeriodHolder);
+            dateAndField, periods, dimensionalKeywords, financialYearStart, isoPeriodHolder);
       } else {
         Period period = getPeriodFromIsoString(isoPeriodHolder.getIsoPeriod());
 
@@ -215,11 +218,7 @@ public class DimensionalObjectProducer {
     }
 
     // Remove duplicates
-    periods = periods.stream().distinct().collect(toList());
-
-    if (containsRelativePeriods) {
-      periods.sort(new AscendingPeriodComparator());
-    }
+    periods = periods.stream().distinct().toList();
 
     overridePeriodAttributes(periods, getCalendar());
 
@@ -252,7 +251,9 @@ public class DimensionalObjectProducer {
       dimensionalKeywords.addKeyword(
           isoPeriodHolder.getIsoPeriod(), join(" - ", startDate, endDate));
       periods.add(periodToAdd);
+      return;
     }
+    throw new IllegalQueryException(E7611, isoPeriodHolder.getIsoPeriod());
   }
 
   /**
@@ -299,7 +300,7 @@ public class DimensionalObjectProducer {
    * @param isoPeriodHolder the object where the ISO period and date will be extracted from.
    */
   private void addRelativePeriods(
-      Date relativePeriodDate,
+      DateField relativePeriodDate,
       List<Period> periods,
       DimensionItemKeywords dimensionalKeywords,
       AnalyticsFinancialYearStartKey financialYearStart,
@@ -383,7 +384,7 @@ public class DimensionalObjectProducer {
           levels.stream()
               .map(organisationUnitService::getOrganisationUnitLevelByLevel)
               .filter(Objects::nonNull)
-              .collect(toList()));
+              .toList());
     }
 
     if (!groups.isEmpty()) {
@@ -397,7 +398,7 @@ public class DimensionalObjectProducer {
                           group.getUid(),
                           group.getCode(),
                           group.getDisplayProperty(displayProperty)))
-              .collect(toList()));
+              .toList());
     }
 
     // When levels / groups are present, OUs are considered boundaries
@@ -469,12 +470,20 @@ public class DimensionalObjectProducer {
         OrganisationUnit unit =
             idObjectManager.getObject(OrganisationUnit.class, inputIdScheme, ou);
         addIgnoreNull(ous, unit);
+      } else if (ou.startsWith(KEY_DATASET)) {
+        List<OrganisationUnit> dataSetOus =
+            organisationUnitService.getDataSetOrganisationUnits(substringAfter(ou, KEY_DATASET));
+        ous.addAll(dataSetOus);
+      } else if (ou.startsWith(KEY_PROGRAM)) {
+        List<OrganisationUnit> programOus =
+            organisationUnitService.getProgramOrganisationUnits(substringAfter(ou, KEY_PROGRAM));
+        ous.addAll(programOus);
       }
     }
 
     // Remove duplicates
 
-    return ous.stream().distinct().collect(toList());
+    return ous.stream().distinct().toList();
   }
 
   /**
@@ -532,7 +541,7 @@ public class DimensionalObjectProducer {
       Class<? extends DimensionalItemObject> itemClass =
           DIMENSION_CLASS_ITEM_CLASS_MAP.get(dimClass);
 
-      UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+      UserDetails currentUserDetails = getCurrentUserDetails();
       List<DimensionalItemObject> dimItems =
           !allItems
               ? asList(idObjectManager.getOrdered(itemClass, inputIdScheme, items))
@@ -562,6 +571,6 @@ public class DimensionalObjectProducer {
       UserDetails userDetails, DimensionalObject object) {
     return object.getItems().stream()
         .filter(o -> aclService.canDataOrMetadataRead(userDetails, o))
-        .collect(toList());
+        .toList();
   }
 }

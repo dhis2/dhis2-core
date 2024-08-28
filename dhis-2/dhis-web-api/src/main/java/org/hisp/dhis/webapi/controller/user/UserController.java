@@ -33,8 +33,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
-import static org.hisp.dhis.user.User.populateUserCredentialsDtoCopyOnlyChanges;
-import static org.hisp.dhis.user.User.populateUserCredentialsDtoFields;
+import static org.hisp.dhis.security.Authorities.F_REPLICATE_USER;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import static org.springframework.http.MediaType.TEXT_XML_VALUE;
@@ -61,12 +60,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UserOrgUnitType;
-import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
 import org.hisp.dhis.commons.jackson.jsonpatch.operations.AddOperation;
@@ -87,8 +88,6 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fieldfilter.Defaults;
-import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
-import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.query.Order;
@@ -97,6 +96,7 @@ import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.MetadataMergeParams;
 import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
 import org.hisp.dhis.user.CurrentUser;
@@ -119,7 +119,6 @@ import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -133,10 +132,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags({"user", "management"})
+@OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
 @Slf4j
 @Controller
-@RequestMapping(value = UserSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/users")
 public class UserController extends AbstractCrudController<User> {
   public static final String INVITE_PATH = "/invite";
 
@@ -159,7 +158,11 @@ public class UserController extends AbstractCrudController<User> {
   @Override
   @SuppressWarnings("unchecked")
   protected List<User> getEntityList(
-      WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders)
+      WebMetadata metadata,
+      WebOptions options,
+      List<String> filters,
+      List<Order> orders,
+      List<User> objects)
       throws QueryParserException {
     UserQueryParams params = makeUserQueryParams(options);
 
@@ -252,9 +255,10 @@ public class UserController extends AbstractCrudController<User> {
 
   @Override
   @GetMapping("/{uid}/{property}")
+  @OpenApi.Document(group = OpenApi.Document.GROUP_QUERY)
   public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
-      @PathVariable("uid") String pvUid,
-      @PathVariable("property") String pvProperty,
+      @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
+      @OpenApi.Param(OpenApi.PropertyNames.class) @PathVariable("property") String pvProperty,
       @RequestParam Map<String, String> rpParameters,
       TranslateParams translateParams,
       @CurrentUser UserDetails currentUser,
@@ -267,15 +271,12 @@ public class UserController extends AbstractCrudController<User> {
 
     User user = userService.getUser(pvUid);
 
-    if (user == null
-        // TODO: To remove when we remove old UserCredentials compatibility
-        || user.getUserCredentials() == null) {
+    if (user == null) {
       throw new NotFoundException("User not found: " + pvUid);
     }
 
     if (!aclService.canRead(currentUser, user)) {
-      throw new CreateAccessDeniedException(
-          "You don't have the proper permissions to access this user.");
+      throw new ForbiddenException("You don't have the proper permissions to access this user.");
     }
 
     return ResponseEntity.ok(userControllerUtils.getUserDataApprovalWorkflows(user));
@@ -285,6 +286,8 @@ public class UserController extends AbstractCrudController<User> {
   // POST
   // -------------------------------------------------------------------------
 
+  @OpenApi.Params(MetadataImportParams.class)
+  @OpenApi.Param(OpenApi.EntityType.class)
   @Override
   @PostMapping(consumes = {APPLICATION_XML_VALUE, TEXT_XML_VALUE})
   @ResponseBody
@@ -293,6 +296,8 @@ public class UserController extends AbstractCrudController<User> {
     return postObject(renderService.fromXml(request.getInputStream(), getEntityClass()));
   }
 
+  @OpenApi.Params(MetadataImportParams.class)
+  @OpenApi.Param(OpenApi.EntityType.class)
   @Override
   @PostMapping(consumes = APPLICATION_JSON_VALUE)
   @ResponseBody
@@ -302,8 +307,6 @@ public class UserController extends AbstractCrudController<User> {
   }
 
   private WebMessage postObject(User user) throws ForbiddenException, ConflictException {
-    // TODO: To remove when we remove old UserCredentials compatibility
-    populateUserCredentialsDtoFields(user);
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     validateCreateUser(user, currentUser);
@@ -331,8 +334,6 @@ public class UserController extends AbstractCrudController<User> {
 
   private WebMessage postInvite(HttpServletRequest request, User user)
       throws ForbiddenException, ConflictException {
-    // TODO: To remove when we remove old UserCredentials compatibility
-    populateUserCredentialsDtoFields(user);
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
@@ -363,10 +364,6 @@ public class UserController extends AbstractCrudController<User> {
       throws ForbiddenException, ConflictException {
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    // TODO: To remove when we remove old UserCredentials compatibility
-    for (User user : users.getUsers()) {
-      populateUserCredentialsDtoFields(user);
-    }
 
     for (User user : users.getUsers()) {
       validateInviteUser(user, currentUser);
@@ -432,7 +429,7 @@ public class UserController extends AbstractCrudController<User> {
   }
 
   @SuppressWarnings("unchecked")
-  @PreAuthorize("hasRole('ALL') or hasRole('F_REPLICATE_USER')")
+  @RequiresAuthority(anyOf = F_REPLICATE_USER)
   @PostMapping("/{uid}/replica")
   @ResponseBody
   public WebMessage replicateUser(
@@ -482,7 +479,7 @@ public class UserController extends AbstractCrudController<User> {
 
     User userReplica = new User();
     metadataMergeService.merge(
-        new MetadataMergeParams<>(existingUser, userReplica).setMergeMode(MergeMode.MERGE));
+        new MetadataMergeParams<>(existingUser, userReplica).setMergeMode(MergeMode.REPLACE));
     copyAttributeValues(userReplica);
     userReplica.setId(0);
     userReplica.setUuid(UUID.randomUUID());
@@ -552,7 +549,8 @@ public class UserController extends AbstractCrudController<User> {
    */
   @PostMapping("/{uid}/twoFA/disabled")
   @ResponseBody
-  public WebMessage disableTwoFa(@PathVariable("uid") String uid, @CurrentUser User currentUser) {
+  public WebMessage disableTwoFa(@PathVariable("uid") String uid, @CurrentUser User currentUser)
+      throws ForbiddenException {
     List<ErrorReport> errors = new ArrayList<>();
     userService.privilegedTwoFactorDisable(currentUser, uid, errors::add);
 
@@ -596,12 +594,6 @@ public class UserController extends AbstractCrudController<User> {
       HttpServletRequest request)
       throws IOException, ConflictException, ForbiddenException, NotFoundException {
     User inputUser = renderService.fromJson(request.getInputStream(), getEntityClass());
-
-    User user = getEntity(pvUid);
-
-    // TODO: To remove when we remove old UserCredentials compatibility
-    populateUserCredentialsDtoCopyOnlyChanges(user, inputUser);
-
     return importReport(updateUser(pvUid, inputUser)).withPlainResponseBefore(DhisApiVersion.V38);
   }
 
@@ -658,6 +650,11 @@ public class UserController extends AbstractCrudController<User> {
     return importReport;
   }
 
+  @Override
+  protected void postUpdateItems(User entity, IdentifiableObjects items) {
+    aclService.invalidateCurrentUserGroupInfoCache();
+  }
+
   protected void updateUserGroups(String userUid, User parsed, User currentUser) {
     User user = userService.getUser(userUid);
 
@@ -673,13 +670,6 @@ public class UserController extends AbstractCrudController<User> {
   // -------------------------------------------------------------------------
   // PATCH
   // -------------------------------------------------------------------------
-
-  @Override
-  protected void prePatchEntity(User oldEntity, User newEntity) {
-    // TODO: To remove when we remove old UserCredentials compatibility
-    populateUserCredentialsDtoCopyOnlyChanges(oldEntity, newEntity);
-  }
-
   @Override
   protected void postPatchEntity(JsonPatch patch, User entityAfter) {
     // Make sure we always expire all the user's active sessions if we
@@ -861,7 +851,8 @@ public class UserController extends AbstractCrudController<User> {
    * @param disable boolean value, true for disable, false for enable
    * @throws WebMessageException thrown if "current" user is not allowed to modify the user
    */
-  private void setDisabled(String uid, boolean disable) throws WebMessageException {
+  private void setDisabled(String uid, boolean disable)
+      throws WebMessageException, ForbiddenException {
     User userToModify = userService.getUser(uid);
     checkCurrentUserCanModify(userToModify);
 
@@ -875,13 +866,13 @@ public class UserController extends AbstractCrudController<User> {
     }
   }
 
-  private void checkCurrentUserCanModify(User userToModify) throws WebMessageException {
+  private void checkCurrentUserCanModify(User userToModify)
+      throws WebMessageException, ForbiddenException {
 
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
 
     if (!aclService.canUpdate(currentUserDetails, userToModify)) {
-      throw new UpdateAccessDeniedException(
-          "You don't have the proper permissions to update this object.");
+      throw new ForbiddenException("You don't have the proper permissions to update this object.");
     }
 
     if (!userService.canAddOrUpdateUser(getUids(userToModify.getGroups()))
@@ -892,7 +883,8 @@ public class UserController extends AbstractCrudController<User> {
     }
   }
 
-  private void setExpires(String uid, Date accountExpiry) throws WebMessageException {
+  private void setExpires(String uid, Date accountExpiry)
+      throws WebMessageException, ForbiddenException {
     User userToModify = userService.getUser(uid);
     checkCurrentUserCanModify(userToModify);
 

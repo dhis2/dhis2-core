@@ -52,11 +52,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author James Chang <jamesbchang@gmail.com>
  */
-@OpenApi.Tags("metadata")
+@OpenApi.Document(domain = OrganisationUnit.class)
 @Controller
-@RequestMapping(value = OrganisationUnitLocationController.RESOURCE_PATH)
+@RequestMapping("/api/organisationUnitLocations")
 public class OrganisationUnitLocationController {
-  public static final String RESOURCE_PATH = "/organisationUnitLocations";
 
   private static final String ORGUNIGROUP_SYMBOL = "orgUnitGroupSymbol";
 

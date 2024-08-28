@@ -68,11 +68,11 @@ import org.hisp.dhis.query.JpaCriteriaQueryEngine;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.planner.DefaultQueryPlanner;
-import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.test.random.BeanRandomizer;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
@@ -112,11 +112,11 @@ class DataElementOperandControllerTest {
 
   @Mock private SystemSettingManager systemSettingManager;
 
-  private QueryService queryService;
-
   @Mock private UserService userService;
 
-  private static final String ENDPOINT = "/dataElementOperands";
+  private QueryService queryService;
+
+  private static final String ENDPOINT = "/api/dataElementOperands";
 
   private final BeanRandomizer rnd = BeanRandomizer.create();
 

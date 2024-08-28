@@ -55,7 +55,6 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
-import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -233,8 +232,8 @@ public class TrackerPreheat {
    */
   private final Set<String> existingRelationships = new HashSet<>();
 
-  /** Internal map of all preheated notes (events and enrollments) */
-  private final Map<String, Note> notes = new HashMap<>();
+  /** Internal set of all preheated notes uids (events and enrollments) */
+  private final Set<String> notes = new HashSet<>();
 
   /**
    * Internal map of all existing TrackedEntityProgramOwner. Used for ownership validations and
@@ -483,16 +482,12 @@ public class TrackerPreheat {
     events.put(uid, event);
   }
 
-  public void putNotes(List<Note> notes) {
-    notes.forEach(c -> putNote(c.getUid(), c));
+  public void addNotes(Set<String> notes) {
+    this.notes.addAll(notes);
   }
 
-  public void putNote(String uid, Note note) {
-    notes.put(uid, note);
-  }
-
-  public Optional<Note> getNote(String uid) {
-    return Optional.ofNullable(notes.get(uid));
+  public boolean hasNote(String uid) {
+    return notes.contains(uid);
   }
 
   public RelationshipType getRelationshipType(MetadataIdentifier id) {

@@ -27,30 +27,38 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.supplier.strategy;
 
+import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
-import lombok.RequiredArgsConstructor;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.relationship.RelationshipStore;
-import org.hisp.dhis.tracker.imports.domain.Relationship;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.mappers.RelationshipMapper;
 import org.hisp.dhis.tracker.imports.preheat.supplier.DetachUtils;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Luciano Fiandesio
  */
-@RequiredArgsConstructor
 @Component
-@StrategyFor(value = Relationship.class, mapper = RelationshipMapper.class)
-public class RelationshipStrategy implements ClassBasedSupplierStrategy {
-  @Nonnull private final RelationshipStore relationshipStore;
+@StrategyFor(
+    value = org.hisp.dhis.tracker.imports.domain.Relationship.class,
+    mapper = RelationshipMapper.class)
+public class RelationshipStrategy extends HibernateGenericStore<Relationship>
+    implements ClassBasedSupplierStrategy {
+
+  public RelationshipStrategy(
+      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
+    super(entityManager, jdbcTemplate, publisher, Relationship.class, false);
+  }
 
   @Override
   public void add(List<List<String>> splitList, TrackerPreheat preheat) {
-    List<org.hisp.dhis.relationship.Relationship> relationships = retrieveRelationships(splitList);
+    List<Relationship> relationships = retrieveRelationships(splitList);
 
     preheat.putRelationships(
         DetachUtils.detach(
@@ -60,11 +68,25 @@ public class RelationshipStrategy implements ClassBasedSupplierStrategy {
   private List<org.hisp.dhis.relationship.Relationship> retrieveRelationships(
       List<List<String>> splitList) {
     List<String> uids =
-        splitList.stream()
-            .flatMap(List::stream)
-            .filter(CodeGenerator::isValidUid)
-            .collect(Collectors.toList());
+        splitList.stream().flatMap(List::stream).filter(CodeGenerator::isValidUid).toList();
 
-    return relationshipStore.getByUidsIncludeDeleted(uids);
+    return getIncludingDeleted(uids);
+  }
+
+  private List<Relationship> getIncludingDeleted(List<String> uids) {
+    List<Relationship> relationships = new ArrayList<>();
+    List<List<String>> uidsPartitions = Lists.partition(uids, 20000);
+
+    for (List<String> uidsPartition : uidsPartitions) {
+      if (!uidsPartition.isEmpty()) {
+        relationships.addAll(
+            getSession()
+                .createQuery("from Relationship as r where r.uid in (:uids)", Relationship.class)
+                .setParameter("uids", uidsPartition)
+                .list());
+      }
+    }
+
+    return relationships;
   }
 }

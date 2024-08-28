@@ -27,13 +27,10 @@
  */
 package org.hisp.dhis.trackedentityattributevalue;
 
-import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
-
-import java.util.Collection;
+import java.util.Map;
 import lombok.AllArgsConstructor;
-import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Component;
 
@@ -42,31 +39,19 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class TrackedEntityAttributeValueDeletionHandler extends DeletionHandler {
+public class TrackedEntityAttributeValueDeletionHandler extends JdbcDeletionHandler {
   private static final DeletionVeto VETO =
       new DeletionVeto(
           TrackedEntityAttributeValue.class, "Some values are still assigned to this attribute");
 
-  private final TrackedEntityAttributeValueService attributeValueService;
-
   @Override
   protected void register() {
-    whenDeleting(TrackedEntity.class, this::deleteTrackedEntity);
     whenVetoing(TrackedEntityAttribute.class, this::allowDeleteTrackedEntityAttribute);
   }
 
-  private void deleteTrackedEntity(TrackedEntity trackedEntity) {
-    Collection<TrackedEntityAttributeValue> attributeValues =
-        attributeValueService.getTrackedEntityAttributeValues(trackedEntity);
-
-    for (TrackedEntityAttributeValue attributeValue : attributeValues) {
-      attributeValueService.deleteTrackedEntityAttributeValue(attributeValue);
-    }
-  }
-
   private DeletionVeto allowDeleteTrackedEntityAttribute(TrackedEntityAttribute attribute) {
-    return attributeValueService.getCountOfAssignedTrackedEntityAttributeValues(attribute) == 0
-        ? ACCEPT
-        : VETO;
+    String sql =
+        "select 1 from trackedentityattributevalue where trackedentityattributeid = :id limit 1";
+    return vetoIfExists(VETO, sql, Map.of("id", attribute.getId()));
   }
 }

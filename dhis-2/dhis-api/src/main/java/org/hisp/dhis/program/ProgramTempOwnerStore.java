@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.program;
 
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.user.UserDetails;
 
 /**
@@ -38,11 +37,11 @@ public interface ProgramTempOwnerStore {
   String ID = ProgramTempOwnerStore.class.getName();
 
   /**
-   * Adds program temo owner record
+   * Adds program temp owner record
    *
    * @param programTempOwner the temp owner details to add
    */
   void addProgramTempOwner(ProgramTempOwner programTempOwner);
 
-  int getValidTempOwnerCount(Program program, TrackedEntity entityInstance, UserDetails user);
+  int getValidTempOwnerCount(Program program, String trackedEntity, UserDetails user);
 }

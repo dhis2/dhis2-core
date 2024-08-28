@@ -32,8 +32,8 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getCoalesce;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
+import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
@@ -54,6 +54,8 @@ import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -100,15 +102,15 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   private static final List<String> COLUMNS =
       List.of(
-          "pi",
-          "tei",
+          "enrollment",
+          "trackedentity",
           "enrollmentdate",
           "incidentdate",
           "storedby",
           "createdbydisplayname",
           "lastupdatedbydisplayname",
           "lastupdated",
-          "ST_AsGeoJSON(pigeometry)",
+          "ST_AsGeoJSON(enrollmentgeometry)",
           "longitude",
           "latitude",
           "ouname",
@@ -378,17 +380,24 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     }
 
     // ---------------------------------------------------------------------
-    // Organisation unit group sets
+    // Categories (enrollments don't have attribute categories)
     // ---------------------------------------------------------------------
 
     List<DimensionalObject> dynamicDimensions =
         params.getDimensionsAndFilters(Sets.newHashSet(DimensionType.CATEGORY));
 
     for (DimensionalObject dim : dynamicDimensions) {
-      String col = quoteAlias(dim.getDimensionName());
+      if (!isAttributeCategory(dim)) {
+        String col = quoteAlias(dim.getDimensionName());
 
-      sql += "and " + col + " in (" + getQuotedCommaDelimitedString(getUids(dim.getItems())) + ") ";
+        sql +=
+            "and " + col + " in (" + getQuotedCommaDelimitedString(getUids(dim.getItems())) + ") ";
+      }
     }
+
+    // ---------------------------------------------------------------------
+    // Organisation unit group sets
+    // ---------------------------------------------------------------------
 
     dynamicDimensions =
         params.getDimensionsAndFilters(Sets.newHashSet(DimensionType.ORGANISATION_UNIT_GROUP_SET));
@@ -438,10 +447,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     // Various filters
     // ---------------------------------------------------------------------
 
-    if (params.hasProgramStatus()) {
+    if (params.hasEnrollmentStatuses()) {
       sql +=
           "and enrollmentstatus in ("
-              + params.getProgramStatus().stream()
+              + params.getEnrollmentStatus().stream()
                   .map(p -> singleQuote(p.name()))
                   .collect(joining(","))
               + ") ";
@@ -455,7 +464,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       sql +=
           "and "
               + getCoalesce(
-                  params.getCoordinateFields(), FallbackCoordinateFieldType.PI_GEOMETRY.getValue())
+                  params.getCoordinateFields(),
+                  FallbackCoordinateFieldType.ENROLLMENT_GEOMETRY.getValue())
               + IS_NOT_NULL;
     }
 
@@ -467,7 +477,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       sql +=
           "and "
               + getCoalesce(
-                  params.getCoordinateFields(), FallbackCoordinateFieldType.PI_GEOMETRY.getValue())
+                  params.getCoordinateFields(),
+                  FallbackCoordinateFieldType.ENROLLMENT_GEOMETRY.getValue())
               + " && ST_MakeEnvelope("
               + params.getBbox()
               + ",4326) ";
@@ -480,7 +491,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   protected String getSelectClause(EventQueryParams params) {
     List<String> selectCols =
         ListUtils.distinctUnion(
-            params.isAggregatedEnrollments() ? List.of("pi") : COLUMNS,
+            params.isAggregatedEnrollments() ? List.of("enrollment") : COLUMNS,
             getSelectColumns(params, false));
 
     return "select " + StringUtils.join(selectCols, ",") + " ";
@@ -545,9 +556,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
               + eventTableName
               + " where "
               + eventTableName
-              + ".pi = "
+              + ".enrollment = "
               + ANALYTICS_TBL_ALIAS
-              + ".pi "
+              + ".enrollment "
               + "and "
               + colName
               + IS_NOT_NULL
@@ -587,7 +598,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
       String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
       String excludingScheduledCondition =
-          eventTableName + ".psistatus != '" + EventStatus.SCHEDULE + "' and ";
+          eventTableName + ".eventstatus != '" + EventStatus.SCHEDULE + "' and ";
 
       if (item.getProgramStage().getRepeatable()
           && item.hasRepeatableStageParams()
@@ -600,9 +611,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             + " where "
             + excludingScheduledCondition
             + eventTableName
-            + ".pi = "
+            + ".enrollment = "
             + ANALYTICS_TBL_ALIAS
-            + ".pi "
+            + ".enrollment "
             + "and ps = '"
             + item.getProgramStage().getUid()
             + "'"
@@ -625,9 +636,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             + " where "
             + excludingScheduledCondition
             + eventTableName
-            + ".pi = "
+            + ".enrollment = "
             + ANALYTICS_TBL_ALIAS
-            + ".pi "
+            + ".enrollment "
             + "and ps = '"
             + item.getProgramStage().getUid()
             + "' "
@@ -654,9 +665,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
           + " where "
           + excludingScheduledCondition
           + eventTableName
-          + ".pi = "
+          + ".enrollment = "
           + ANALYTICS_TBL_ALIAS
-          + ".pi "
+          + ".enrollment "
           + "and "
           + colName
           + IS_NOT_NULL
@@ -669,9 +680,21 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
           + " "
           + LIMIT_1
           + " )";
+    } else if (isOrganizationUnitProgramAttribute(item)) {
+      return quoteAlias(colName + suffix);
     } else {
       return quoteAlias(colName);
     }
+  }
+
+  /**
+   * Returns true if the item is a program attribute and the value type is an organizational unit.
+   *
+   * @param item the {@link QueryItem}.
+   */
+  private boolean isOrganizationUnitProgramAttribute(QueryItem item) {
+    return item.getValueType() == ValueType.ORGANISATION_UNIT
+        && item.getItem().getDimensionItemType() == DimensionItemType.PROGRAM_ATTRIBUTE;
   }
 
   /**
@@ -682,6 +705,20 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   @Override
   protected String getColumn(QueryItem item) {
     return getColumn(item, "");
+  }
+
+  /**
+   * Is a category dimension an attribute category (rather than a disaggregation category)?
+   * Attribute categories are not included in enrollment tables, so category user dimension
+   * restrictions (which use attribute categories) do not apply.
+   */
+  private boolean isAttributeCategory(DimensionalObject categoryDim) {
+    return ((CategoryOption) categoryDim.getItems().get(0))
+            .getCategories()
+            .iterator()
+            .next()
+            .getDataDimensionType()
+        == ATTRIBUTE;
   }
 
   private String getExecutionDateFilter(Date startDate, Date endDate) {

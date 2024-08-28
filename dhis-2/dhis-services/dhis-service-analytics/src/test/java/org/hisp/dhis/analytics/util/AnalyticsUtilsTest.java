@@ -49,7 +49,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.EnumUtils;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -87,12 +86,13 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.test.TestBase;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-class AnalyticsUtilsTest extends DhisConvenienceTest {
+class AnalyticsUtilsTest extends TestBase {
   @Test
   void testGetByDataDimensionType() {
     Program prA = createProgram('A');
@@ -572,7 +572,7 @@ class AnalyticsUtilsTest extends DhisConvenienceTest {
     assertEquals("coB", dvs.getRow(1).get(3));
     assertEquals("aoB", dvs.getRow(1).get(4));
     assertEquals(2d, dvs.getRow(1).get(5));
-    assertEquals("", dvs.getRow(1).get(6));
+    assertNull(dvs.getRow(1).get(6));
 
     assertEquals("dxA", dvs.getRow(3).get(0));
     assertEquals("peB", dvs.getRow(3).get(1));
@@ -580,7 +580,7 @@ class AnalyticsUtilsTest extends DhisConvenienceTest {
     assertEquals("coA", dvs.getRow(3).get(3));
     assertNull(dvs.getRow(3).get(4));
     assertEquals(4d, dvs.getRow(3).get(5));
-    assertEquals("", dvs.getRow(3).get(6));
+    assertNull(dvs.getRow(3).get(6));
 
     assertEquals("dxC", dvs.getRow(6).get(0));
     assertEquals("peA", dvs.getRow(6).get(1));
@@ -588,7 +588,7 @@ class AnalyticsUtilsTest extends DhisConvenienceTest {
     assertNull(dvs.getRow(6).get(3));
     assertEquals("aoA", dvs.getRow(6).get(4));
     assertEquals(7, dvs.getRow(6).get(5));
-    assertEquals("", dvs.getRow(6).get(6));
+    assertNull(dvs.getRow(6).get(6));
   }
 
   @Test
@@ -728,5 +728,13 @@ class AnalyticsUtilsTest extends DhisConvenienceTest {
         EnumUtils.getEnum(Database.class, ConfigurationKey.ANALYTICS_DATABASE.getDefaultValue()));
     assertNull(EnumUtils.getEnum(Database.class, "PostgreSQL"));
     assertNull(EnumUtils.getEnum(Database.class, "postgresql"));
+  }
+
+  @Test
+  void testGetClosingParentheses() {
+    assertEquals("", AnalyticsUtils.getClosingParentheses(null));
+    assertEquals("", AnalyticsUtils.getClosingParentheses(""));
+    assertEquals(")", AnalyticsUtils.getClosingParentheses("from(select(select (*))"));
+    assertEquals("))", AnalyticsUtils.getClosingParentheses("(("));
   }
 }

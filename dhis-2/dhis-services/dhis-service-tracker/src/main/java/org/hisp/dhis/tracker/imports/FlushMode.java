@@ -27,9 +27,12 @@
  */
 package org.hisp.dhis.tracker.imports;
 
+import org.hisp.dhis.common.OpenApi;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Shared(name = "TrackerFlushMode")
 public enum FlushMode {
   /** Flush for every db write. */
   OBJECT,

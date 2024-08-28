@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.scheduling;
 
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+
 /**
  * The {@link NoopJobProgress} can be used as a {@link JobProgress} instance when no actual flow
  * control and tracking is wanted. For example in test context or in manual runs of operations that
@@ -34,7 +37,7 @@ package org.hisp.dhis.scheduling;
  *
  * @author Jan Bernitt
  */
-public class NoopJobProgress implements JobProgress {
+class NoopJobProgress implements JobProgress {
   public static final JobProgress INSTANCE = new NoopJobProgress();
 
   private NoopJobProgress() {
@@ -52,12 +55,13 @@ public class NoopJobProgress implements JobProgress {
   }
 
   @Override
-  public void failedProcess(String error, Object... args) {
+  public void failedProcess(@CheckForNull String error, Object... args) {
     // as the name said we do nothing
   }
 
   @Override
-  public void startingStage(String description, int workItems, FailurePolicy onFailure) {
+  public void startingStage(
+      @Nonnull String description, int workItems, @Nonnull FailurePolicy onFailure) {
     // as the name said we do nothing
   }
 
@@ -67,12 +71,12 @@ public class NoopJobProgress implements JobProgress {
   }
 
   @Override
-  public void failedStage(String error, Object... args) {
+  public void failedStage(@Nonnull String error, Object... args) {
     // as the name said we do nothing
   }
 
   @Override
-  public void startingWorkItem(String description, FailurePolicy onFailure) {
+  public void startingWorkItem(@Nonnull String description, @Nonnull FailurePolicy onFailure) {
     // as the name said we do nothing
   }
 
@@ -82,7 +86,7 @@ public class NoopJobProgress implements JobProgress {
   }
 
   @Override
-  public void failedWorkItem(String error, Object... args) {
+  public void failedWorkItem(@Nonnull String error, Object... args) {
     // as the name said we do nothing
   }
 }

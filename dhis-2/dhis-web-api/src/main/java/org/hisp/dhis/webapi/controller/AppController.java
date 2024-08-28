@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.security.Authorities.M_DHIS_WEB_APP_MANAGEMENT;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
@@ -58,11 +59,10 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -71,11 +71,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -92,13 +87,13 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("ui")
+@OpenApi.Document(domain = App.class)
 @Controller
-@RequestMapping(AppController.RESOURCE_PATH)
+@RequestMapping("/api/apps")
 @Slf4j
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class AppController {
-  public static final String RESOURCE_PATH = "/apps";
+  public static final String RESOURCE_PATH = "/api/apps";
 
   public static final Pattern REGEX_REMOVE_PROTOCOL = Pattern.compile(".+:/+");
 
@@ -116,32 +111,8 @@ public class AppController {
 
   @GetMapping(value = "/menu", produces = ContextUtils.CONTENT_TYPE_JSON)
   public @ResponseBody Map<String, List<WebModule>> getWebModules(HttpServletRequest request) {
-    checkForEmbeddedJettyRuntime(request);
-
     String contextPath = HttpServletRequestPaths.getContextPath(request);
     return Map.of("modules", getAccessibleAppMenu(contextPath));
-  }
-
-  /**
-   * Checks if we are running in embedded Jetty mode. If so, we need to set the SecurityContext
-   * manually from the session object SPRING_SECURITY_CONTEXT. This is done for compatibility with
-   * the old Struts action, which is not 100% ported yet. To be removed when application is ported
-   * away from Struts
-   */
-  private static void checkForEmbeddedJettyRuntime(HttpServletRequest request) {
-    Object springSecurityContext = request.getSession().getAttribute("SPRING_SECURITY_CONTEXT");
-    if (springSecurityContext != null) {
-      SecurityContextImpl context = (SecurityContextImpl) springSecurityContext;
-      Authentication authentication = context.getAuthentication();
-
-      UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-
-      if (authentication != null && currentUserDetails == null) {
-        SecurityContext newContext = SecurityContextHolder.createEmptyContext();
-        newContext.setAuthentication(authentication);
-        SecurityContextHolder.setContext(context);
-      }
-    }
   }
 
   private List<WebModule> getAccessibleAppMenu(String contextPath) {
@@ -183,7 +154,7 @@ public class AppController {
   }
 
   @PostMapping
-  @PreAuthorize("hasRole('ALL') or hasRole('M_dhis-web-app-management')")
+  @RequiresAuthority(anyOf = M_DHIS_WEB_APP_MANAGEMENT)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void installApp(@RequestParam("file") MultipartFile file)
       throws IOException, WebMessageException {
@@ -200,7 +171,7 @@ public class AppController {
   }
 
   @PutMapping
-  @PreAuthorize("hasRole('ALL') or hasRole('M_dhis-web-app-management')")
+  @RequiresAuthority(anyOf = M_DHIS_WEB_APP_MANAGEMENT)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void reloadApps() {
     appManager.reloadApps();
@@ -209,7 +180,7 @@ public class AppController {
   @GetMapping("/{app}/**")
   public void renderApp(
       @PathVariable("app") String app, HttpServletRequest request, HttpServletResponse response)
-      throws IOException, WebMessageException {
+      throws IOException, WebMessageException, ForbiddenException {
     String contextPath = HttpServletRequestPaths.getContextPath(request);
     App application = appManager.getApp(app, contextPath);
 
@@ -230,7 +201,7 @@ public class AppController {
     }
 
     if (!appManager.isAccessible(application)) {
-      throw new ReadAccessDeniedException("You don't have access to application " + app + ".");
+      throw new ForbiddenException("You don't have access to application " + app + ".");
     }
 
     if (application.getAppState() == AppStatus.DELETION_IN_PROGRESS) {
@@ -302,7 +273,7 @@ public class AppController {
   }
 
   @DeleteMapping("/{app}")
-  @PreAuthorize("hasRole('ALL') or hasRole('M_dhis-web-app-management')")
+  @RequiresAuthority(anyOf = M_DHIS_WEB_APP_MANAGEMENT)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteApp(
       @PathVariable("app") String app, @RequestParam(required = false) boolean deleteAppData)
@@ -322,7 +293,7 @@ public class AppController {
 
   @SuppressWarnings("unchecked")
   @PostMapping(value = "/config", consumes = ContextUtils.CONTENT_TYPE_JSON)
-  @PreAuthorize("hasRole('ALL') or hasRole('M_dhis-web-app-management')")
+  @RequiresAuthority(anyOf = M_DHIS_WEB_APP_MANAGEMENT)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void setConfig(HttpServletRequest request) throws IOException, WebMessageException {
     Map<String, String> config = renderService.fromJson(request.getInputStream(), Map.class);

@@ -84,6 +84,10 @@ public final class UID implements Serializable {
     return object == null ? null : new UID(object.getUid());
   }
 
+  public static Set<UID> of(@Nonnull Collection<String> values) {
+    return values.stream().map(UID::of).collect(toUnmodifiableSet());
+  }
+
   public static Set<String> toValueSet(Collection<UID> uids) {
     return uids.stream().map(UID::getValue).collect(toUnmodifiableSet());
   }

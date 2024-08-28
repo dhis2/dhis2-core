@@ -29,6 +29,7 @@ package org.hisp.dhis.datastore;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static java.util.Comparator.comparing;
 
 import java.util.Date;
 import java.util.List;
@@ -41,9 +42,11 @@ import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -69,11 +72,28 @@ public class DefaultDatastoreService implements DatastoreService {
   private final AclService aclService;
 
   @Override
+  @NonTransactional
+  public DatastoreNamespaceProtection getProtection(@Nonnull String namespace) {
+    return protectionByNamespace.get(namespace);
+  }
+
+  @Nonnull
+  @Override
+  @NonTransactional
+  public List<DatastoreNamespaceProtection> getProtections() {
+    return protectionByNamespace.values().stream()
+        .sorted(comparing(DatastoreNamespaceProtection::getNamespace))
+        .toList();
+  }
+
+  @Override
+  @NonTransactional
   public void addProtection(DatastoreNamespaceProtection protection) {
     protectionByNamespace.put(protection.getNamespace(), protection);
   }
 
   @Override
+  @NonTransactional
   public void removeProtection(String namespace) {
     protectionByNamespace.remove(namespace);
   }
@@ -86,13 +106,14 @@ public class DefaultDatastoreService implements DatastoreService {
 
   @Override
   @Transactional(readOnly = true)
-  public boolean isUsedNamespace(String namespace) {
+  public boolean isUsedNamespace(String namespace) throws ForbiddenException {
     return readProtectedIn(namespace, false, () -> store.countKeysInNamespace(namespace) > 0);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public List<String> getKeysInNamespace(String namespace, Date lastUpdated) {
+  public List<String> getKeysInNamespace(String namespace, Date lastUpdated)
+      throws ForbiddenException {
     return readProtectedIn(
         namespace, emptyList(), () -> store.getKeysInNamespace(namespace, lastUpdated));
   }
@@ -100,7 +121,7 @@ public class DefaultDatastoreService implements DatastoreService {
   @Override
   @Transactional(readOnly = true)
   public <T> T getEntries(DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform)
-      throws ConflictException {
+      throws ConflictException, ForbiddenException {
     DatastoreQueryValidator.validate(query);
     return readProtectedIn(query.getNamespace(), null, () -> store.getEntries(query, transform));
   }
@@ -113,13 +134,14 @@ public class DefaultDatastoreService implements DatastoreService {
 
   @Override
   @Transactional(readOnly = true)
-  public DatastoreEntry getEntry(String namespace, String key) {
+  public DatastoreEntry getEntry(String namespace, String key) throws ForbiddenException {
     return readProtectedIn(namespace, null, () -> store.getEntry(namespace, key));
   }
 
   @Override
   @Transactional
-  public void addEntry(DatastoreEntry entry) throws ConflictException, BadRequestException {
+  public void addEntry(DatastoreEntry entry)
+      throws ConflictException, BadRequestException, ForbiddenException {
     if (getEntry(entry.getNamespace(), entry.getKey()) != null) {
       throw new ConflictException(
           String.format(
@@ -145,7 +167,8 @@ public class DefaultDatastoreService implements DatastoreService {
 
   @Override
   @Transactional
-  public void saveOrUpdateEntry(DatastoreEntry entry) throws BadRequestException {
+  public void saveOrUpdateEntry(DatastoreEntry entry)
+      throws BadRequestException, ForbiddenException {
     validateEntry(entry);
     DatastoreEntry existing = getEntry(entry.getNamespace(), entry.getKey());
     if (existing != null) {
@@ -193,13 +216,14 @@ public class DefaultDatastoreService implements DatastoreService {
    *     to {@link DatastoreEntry} or {@link org.hisp.dhis.user.User} has no {@link Sharing} access
    *     for restricted namespace {@link DatastoreEntry}
    */
-  private <T> T readProtectedIn(String namespace, T whenHidden, Supplier<T> read) {
+  private <T> T readProtectedIn(String namespace, T whenHidden, Supplier<T> read)
+      throws ForbiddenException {
     DatastoreNamespaceProtection protection = protectionByNamespace.get(namespace);
     if (userHasNamespaceReadAccess(protection)) {
       T res = read.get();
       if (res instanceof DatastoreEntry de
           && (!aclService.canRead(CurrentUserUtil.getCurrentUserDetails(), de))) {
-        throw new AccessDeniedException(
+        throw new ForbiddenException(
             String.format("Access denied for key '%s' in namespace '%s'", de.getKey(), namespace));
       }
       return res;
@@ -212,13 +236,13 @@ public class DefaultDatastoreService implements DatastoreService {
   private boolean userHasNamespaceReadAccess(DatastoreNamespaceProtection protection) {
     return protection == null
         || protection.getReads() == ProtectionType.NONE
-        || currentUserHasAuthority(protection.getAuthorities());
+        || currentUserHasAuthority(protection.getReadAuthorities());
   }
 
   private boolean userHasNamespaceWriteAccess(DatastoreNamespaceProtection protection) {
     return protection == null
         || protection.getWrites() == ProtectionType.NONE
-        || currentUserHasAuthority(protection.getAuthorities());
+        || currentUserHasAuthority(protection.getWriteAuthorities());
   }
 
   /**
@@ -271,7 +295,7 @@ public class DefaultDatastoreService implements DatastoreService {
     DatastoreNamespaceProtection protection = protectionByNamespace.get(namespace);
     return protection == null
         || protection.getReads() != ProtectionType.HIDDEN
-        || currentUserHasAuthority(protection.getAuthorities());
+        || currentUserHasAuthority(protection.getReadAuthorities());
   }
 
   private boolean currentUserHasAuthority(Set<String> authorities) {

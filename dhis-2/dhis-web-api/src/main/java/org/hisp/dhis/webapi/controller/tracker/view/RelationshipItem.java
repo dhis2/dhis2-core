@@ -38,15 +38,18 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.OpenApi.Shared.Pattern;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.EnrollmentStatus;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.locationtech.jts.geom.Geometry;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Shared(pattern = Pattern.TRACKER)
+@OpenApi.Shared(name = "TrackerRelationshipItem")
 @Data
 @Builder
 @NoArgsConstructor
@@ -57,9 +60,10 @@ public class RelationshipItem {
   @NoArgsConstructor
   @AllArgsConstructor
   @OpenApi.Shared(value = false)
+  @OpenApi.Identifiable(as = org.hisp.dhis.trackedentity.TrackedEntity.class)
   public static class TrackedEntity {
     @JsonProperty
-    @OpenApi.Property({UID.class, TrackedEntity.class})
+    @OpenApi.Property({UID.class, org.hisp.dhis.trackedentity.TrackedEntity.class})
     private String trackedEntity;
 
     @JsonProperty private String trackedEntityType;
@@ -72,7 +76,9 @@ public class RelationshipItem {
 
     @JsonProperty private Instant updatedAtClient;
 
-    @JsonProperty private String orgUnit;
+    @JsonProperty
+    @OpenApi.Property({UID.class, OrganisationUnit.class})
+    private String orgUnit;
 
     @JsonProperty private boolean inactive;
 
@@ -82,7 +88,9 @@ public class RelationshipItem {
 
     @JsonProperty private Geometry geometry;
 
-    @JsonProperty private String storedBy;
+    @JsonProperty
+    @OpenApi.Property({UID.class, org.hisp.dhis.user.User.class})
+    private String storedBy;
 
     @JsonProperty private User createdBy;
 
@@ -100,8 +108,9 @@ public class RelationshipItem {
   @NoArgsConstructor
   @AllArgsConstructor
   @OpenApi.Shared(value = false)
+  @OpenApi.Identifiable(as = org.hisp.dhis.program.Enrollment.class)
   public static class Enrollment {
-    @OpenApi.Property({UID.class, Enrollment.class})
+    @OpenApi.Property({UID.class, org.hisp.dhis.program.Enrollment.class})
     @JsonProperty
     private String enrollment;
 
@@ -153,26 +162,37 @@ public class RelationshipItem {
   @NoArgsConstructor
   @AllArgsConstructor
   @OpenApi.Shared(value = false)
+  @OpenApi.Identifiable(as = org.hisp.dhis.program.Event.class)
   public static class Event {
-    @OpenApi.Property({UID.class, Event.class})
+    @OpenApi.Property({UID.class, org.hisp.dhis.program.Event.class})
     @JsonProperty
     private String event;
 
     @JsonProperty @Builder.Default private EventStatus status = EventStatus.ACTIVE;
 
-    @JsonProperty private String program;
+    @OpenApi.Property({UID.class, Program.class})
+    @JsonProperty
+    private String program;
 
-    @JsonProperty private String programStage;
+    @OpenApi.Property({UID.class, ProgramStage.class})
+    @JsonProperty
+    private String programStage;
 
-    @JsonProperty private String enrollment;
+    @OpenApi.Property({UID.class, org.hisp.dhis.program.Enrollment.class})
+    @JsonProperty
+    private String enrollment;
 
-    @JsonProperty private String orgUnit;
+    @OpenApi.Property({UID.class, OrganisationUnit.class})
+    @JsonProperty
+    private String orgUnit;
 
     @JsonProperty private Instant occurredAt;
 
     @JsonProperty private Instant scheduledAt;
 
-    @JsonProperty private String storedBy;
+    @OpenApi.Property({UID.class, org.hisp.dhis.user.User.class})
+    @JsonProperty
+    private String storedBy;
 
     @JsonProperty private boolean followUp;
 

@@ -39,12 +39,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.reservedvalue.ReserveValueException;
 import org.hisp.dhis.reservedvalue.ReservedValue;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
-import org.hisp.dhis.schema.descriptors.TrackedEntityAttributeSchemaDescriptor;
 import org.hisp.dhis.textpattern.TextPatternGenerationException;
 import org.hisp.dhis.textpattern.TextPatternService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -67,9 +65,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags("tracker")
 @Controller
-@RequestMapping(value = TrackedEntityAttributeSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/trackedEntityAttributes")
 public class TrackedEntityAttributeController
     extends AbstractCrudController<TrackedEntityAttribute> {
 

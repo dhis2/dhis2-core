@@ -87,7 +87,7 @@ class EventOperationParamsMapper {
       throws BadRequestException, ForbiddenException {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    Program program = paramsValidator.validateProgram(operationParams.getProgramUid(), currentUser);
+    Program program = paramsValidator.validateProgramAccess(operationParams.getProgramUid());
     ProgramStage programStage =
         validateProgramStage(operationParams.getProgramStageUid(), currentUser);
     TrackedEntity trackedEntity =
@@ -95,7 +95,7 @@ class EventOperationParamsMapper {
 
     OrganisationUnit orgUnit =
         validateRequestedOrgUnit(operationParams.getOrgUnitUid(), currentUser);
-    validateOrgUnitMode(operationParams.getOrgUnitMode(), currentUser, program);
+    validateOrgUnitMode(operationParams.getOrgUnitMode(), program);
 
     CategoryOptionCombo attributeOptionCombo =
         categoryOptionComboService.getAttributeOptionCombo(
@@ -118,14 +118,12 @@ class EventOperationParamsMapper {
         .setProgramStage(programStage)
         .setOrgUnit(orgUnit)
         .setTrackedEntity(trackedEntity)
-        .setProgramStatus(operationParams.getProgramStatus())
+        .setEnrollmentStatus(operationParams.getEnrollmentStatus())
         .setFollowUp(operationParams.getFollowUp())
         .setOrgUnitMode(operationParams.getOrgUnitMode())
         .setAssignedUserQueryParam(
             new AssignedUserQueryParam(
-                operationParams.getAssignedUserMode(),
-                currentUser,
-                operationParams.getAssignedUsers()))
+                operationParams.getAssignedUserMode(), operationParams.getAssignedUsers()))
         .setOccurredStartDate(operationParams.getOccurredAfter())
         .setOccurredEndDate(operationParams.getOccurredBefore())
         .setScheduledStartDate(operationParams.getScheduledAfter())
@@ -178,7 +176,7 @@ class EventOperationParamsMapper {
     }
 
     if (!organisationUnitService.isInUserHierarchy(
-        orgUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback())) {
+        orgUnit.getUid(), user.getEffectiveSearchOrganisationUnits())) {
       throw new ForbiddenException(
           "Organisation unit is not part of your search scope: " + orgUnit.getUid());
     }

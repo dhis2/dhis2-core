@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.trackedentity;
 
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1002;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1063;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1114;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -52,11 +52,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 class ExistenceValidatorTest {
-  private static final String SOFT_DELETED_TE_UID = "SoftDeletedTEIId";
+  private static final String SOFT_DELETED_TE_UID = "SoftDeletedTEId";
 
-  private static final String TE_UID = "TEIId";
+  private static final String TE_UID = "TEId";
 
-  private static final String NOT_PRESENT_TE_UID = "NotPresentTEIId";
+  private static final String NOT_PRESENT_TE_UID = "NotPresentTEId";
 
   @Mock private TrackerBundle bundle;
 

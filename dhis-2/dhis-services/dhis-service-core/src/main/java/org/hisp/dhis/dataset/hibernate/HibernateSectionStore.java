@@ -27,10 +27,12 @@
  */
 package org.hisp.dhis.dataset.hibernate;
 
+import java.util.Collection;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.SectionStore;
@@ -67,22 +69,18 @@ public class HibernateSectionStore extends HibernateIdentifiableObjectStore<Sect
 
   @Override
   public List<Section> getSectionsByDataElement(String dataElementUid) {
-    String hql =
+    String sql =
         "select * from section s"
             + " left join sectiondataelements sde on s.sectionid = sde.sectionid"
             + " left join sectiongreyedfields sgf on s.sectionid = sgf.sectionid"
             + " left join dataelementoperand deo on sgf.dataelementoperandid = deo.dataelementoperandid"
             + ", dataelement de"
             + " where de.uid = :dataElementId and (sde.dataelementid = de.dataelementid or deo.dataelementid = de.dataelementid);";
-    return getSession()
-        .createNativeQuery(hql, Section.class)
-        .setParameter("dataElementId", dataElementUid)
-        .list();
+    return nativeSynchronizedTypedQuery(sql).setParameter("dataElementId", dataElementUid).list();
   }
 
   @Override
   public List<Section> getSectionsByIndicators(List<Indicator> indicators) {
-    // language=sql
     String sql =
         """
             select s.* from section s
@@ -90,9 +88,20 @@ public class HibernateSectionStore extends HibernateIdentifiableObjectStore<Sect
             where si.indicatorid in :indicators
             group by s.sectionid
           """;
-    return getSession()
-        .createNativeQuery(sql, Section.class)
-        .setParameter("indicators", indicators)
-        .list();
+    return nativeSynchronizedTypedQuery(sql).setParameter("indicators", indicators).list();
+  }
+
+  @Override
+  public List<Section> getByDataElement(Collection<DataElement> dataElements) {
+    return getQuery(
+            """
+            select s from Section s
+            join s.dataElements de
+            where de in :dataElements
+            group by s.id
+            """,
+            Section.class)
+        .setParameter("dataElements", dataElements)
+        .getResultList();
   }
 }

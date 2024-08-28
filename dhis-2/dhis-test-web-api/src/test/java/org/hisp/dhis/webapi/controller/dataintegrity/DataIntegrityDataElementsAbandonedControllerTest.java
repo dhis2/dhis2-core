@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 
 import java.time.ZonedDateTime;
 import java.util.Date;
@@ -35,8 +35,8 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.web.WebClient;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.web.WebClient;
 import org.junit.jupiter.api.Test;
 
 /**

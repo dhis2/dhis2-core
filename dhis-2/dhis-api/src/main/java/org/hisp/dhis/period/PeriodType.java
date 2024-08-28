@@ -146,6 +146,7 @@ public abstract class PeriodType implements Serializable {
           new YearlyPeriodType(),
           new FinancialAprilPeriodType(),
           new FinancialJulyPeriodType(),
+          new FinancialSeptemberPeriodType(),
           new FinancialOctoberPeriodType(),
           new FinancialNovemberPeriodType());
 
@@ -261,7 +262,6 @@ public abstract class PeriodType implements Serializable {
    * startDate</code> of type date and a column <code>periodType</code> are present.
    *
    * @param calendar the {@link Calendar}.
-   * @param rs the {@link ResultSet}.
    * @return the ISO period name.
    */
   public static String getIsoPeriod(

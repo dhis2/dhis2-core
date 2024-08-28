@@ -238,8 +238,8 @@
   "users": [
     {
       "lastUpdated": "2016-03-10T05:01:28.993+0000",
-      "surname": "admin",
-      "firstName": "admin",
+      "surname": "metadata admin",
+      "firstName": "metadata admin",
       "dataViewOrganisationUnits": [],
       "id": "ZK1wkC59FCw",
       "organisationUnits": [
@@ -252,7 +252,7 @@
       "externalAuth": false,
       "invitation": false,
       "cogsDimensionConstraints": [],
-      "username": "admin",
+      "username": "metadataadmin",
       "disabled": false,
       "passwordLastUpdated": "2016-03-10T05:00:11.791+0000",
       "catDimensionConstraints": [],
@@ -307,7 +307,7 @@
       "dataSets": [],
       "programs": [],
       "id": "VIkpd2KHCb1",
-      "name": "Superuser",
+      "name": "metadata Superuser",
       "lastUpdated": "2016-03-10T05:00:11.778+0000",
       "sharing": {
         "public": "--------",

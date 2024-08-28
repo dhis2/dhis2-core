@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
@@ -163,18 +164,34 @@ public class DhisOidcUser extends DefaultOAuth2User implements UserDetails, Oidc
 
   @Nonnull
   @Override
+  public Set<String> getUserEffectiveSearchOrgUnitIds() {
+    return user.getUserEffectiveSearchOrgUnitIds();
+  }
+
+  @Nonnull
+  @Override
   public Set<String> getUserDataOrgUnitIds() {
     return user.getUserDataOrgUnitIds();
   }
 
   @Override
   public boolean hasAnyAuthority(Collection<String> auths) {
-    return false;
+    return user.hasAnyAuthority(auths);
+  }
+
+  @Override
+  public boolean hasAnyAuthorities(Collection<Authorities> auths) {
+    return hasAnyAuthority(Authorities.toStringList(auths));
   }
 
   @Override
   public boolean isAuthorized(String auth) {
-    return false;
+    return user.isAuthorized(auth);
+  }
+
+  @Override
+  public boolean isAuthorized(@Nonnull Authorities auth) {
+    return isAuthorized(auth.toString());
   }
 
   @Nonnull

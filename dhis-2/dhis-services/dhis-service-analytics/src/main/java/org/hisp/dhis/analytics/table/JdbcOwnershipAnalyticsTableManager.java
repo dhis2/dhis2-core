@@ -28,7 +28,7 @@
 package org.hisp.dhis.analytics.table;
 
 import static java.util.stream.Collectors.toList;
-import static org.hisp.dhis.commons.util.TextUtils.*;
+import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
@@ -51,6 +51,7 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
+import org.hisp.dhis.analytics.table.writer.JdbcOwnershipWriter;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.timer.SystemTimer;
@@ -85,14 +86,31 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
   private static final String HISTORY_TABLE_ID = "1001-01-01";
 
   // Must be later than the dummy HISTORY_TABLE_ID for SQL query order.
-  private static final String TEI_OWN_TABLE_ID = "2002-02-02";
+  private static final String TRACKED_ENTITY_OWN_TABLE_ID = "2002-02-02";
 
   protected static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
-          new AnalyticsTableColumn("teiuid", CHARACTER_11, "tei.uid"),
-          new AnalyticsTableColumn("startdate", DATE, "a.startdate"),
-          new AnalyticsTableColumn("enddate", DATE, "a.enddate"),
-          new AnalyticsTableColumn("ou", CHARACTER_11, NOT_NULL, "ou.uid"));
+          AnalyticsTableColumn.builder()
+              .name("teuid")
+              .dataType(CHARACTER_11)
+              .selectExpression("te.uid")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("startdate")
+              .dataType(DATE)
+              .selectExpression("a.startdate")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("enddate")
+              .dataType(DATE)
+              .selectExpression("a.enddate")
+              .build(),
+          AnalyticsTableColumn.builder()
+              .name("ou")
+              .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
+              .selectExpression("ou.uid")
+              .build());
 
   public JdbcOwnershipAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -155,8 +173,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
   }
 
   @Override
-  protected void populateTable(
-      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+  public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
 
     Program program = partition.getMasterTable().getProgram();
@@ -221,46 +238,45 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
 
     // FROM clause
 
-    // For TEIs in this program that are in programownershiphistory, get
+    // For TRACKED ENTITIES in this program that are in programownershiphistory, get
     // one row for each programownershiphistory row and then get a final
     // row from the trackedentityprogramowner table to show the final owner.
     //
     // The start date values are dummy so that all the history table rows
-    // will be ordered first and the tei owner table row will come last.
+    // will be ordered first and the tracked entity owner table row will come last.
     //
     // (The start date in the analytics table will be a far past date for
-    // the first row for each TEI, or the previous row's end date plus one
-    // day in subsequent rows for that TEI.)
+    // the first row for each TRACKED ENTITY, or the previous row's end date plus one
+    // day in subsequent rows for that TRACKED ENTITY.)
     //
     // Rows in programownershiphistory that don't have organisationunitid
     // will be filtered out.
     sb.append(
         replace(
             """
-                 from (\
-                select h.trackedentityid, '${historyTableId}' as startdate, h.enddate as enddate, h.organisationunitid \
-                from programownershiphistory h \
-                where h.programid=${programId} \
-                and h.organisationunitid is not null \
-                union \
-                select o.trackedentityid, '${teiOwnTableId}' as startdate, null as enddate, o.organisationunitid \
-                from trackedentityprogramowner o \
-                where o.programid=${programId} \
-                and exists (\
-                select 1 from programownershiphistory p \
-                where o.trackedentityid = p.trackedentityid \
-                and p.programid=${programId} \
-                and p.organisationunitid is not null)) a \
-                inner join trackedentity tei on a.trackedentityid = tei.trackedentityid \
-                inner join organisationunit ou on a.organisationunitid = ou.organisationunitid \
-                left join analytics_rs_orgunitstructure ous on a.organisationunitid = ous.organisationunitid \
-                left join analytics_rs_organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid \
-                order by tei.uid, a.startdate, a.enddate""",
+            \sfrom (\
+            select h.trackedentityid, '${historyTableId}' as startdate, h.enddate as enddate, h.organisationunitid \
+            from programownershiphistory h \
+            where h.programid=${programId} \
+            and h.organisationunitid is not null \
+            union \
+            select o.trackedentityid, '${trackedEntityOwnTableId}' as startdate, null as enddate, o.organisationunitid \
+            from trackedentityprogramowner o \
+            where o.programid=${programId} \
+            and exists (\
+            select 1 from programownershiphistory p \
+            where o.trackedentityid = p.trackedentityid \
+            and p.programid=${programId} \
+            and p.organisationunitid is not null)) a \
+            inner join trackedentity te on a.trackedentityid = te.trackedentityid \
+            inner join organisationunit ou on a.organisationunitid = ou.organisationunitid \
+            left join analytics_rs_orgunitstructure ous on a.organisationunitid = ous.organisationunitid \
+            left join analytics_rs_organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid \
+            order by te.uid, a.startdate, a.enddate""",
             Map.of(
                 "historyTableId", HISTORY_TABLE_ID,
-                "teiOwnTableId", TEI_OWN_TABLE_ID,
-                "programId", String.valueOf(program.getId()),
-                "TEI_OWN_TABLE_ID", TEI_OWN_TABLE_ID)));
+                "trackedEntityOwnTableId", TRACKED_ENTITY_OWN_TABLE_ID,
+                "programId", String.valueOf(program.getId()))));
     return sb.toString();
   }
 
@@ -282,10 +298,9 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
    */
   private List<AnalyticsTableColumn> getColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
-
+    columns.addAll(FIXED_COLS);
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.addAll(getOrganisationUnitGroupSetColumns());
-    columns.addAll(FIXED_COLS);
 
     return filterDimensionColumns(columns);
   }

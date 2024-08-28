@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
-import org.hisp.dhis.random.BeanRandomizer;
+import org.hisp.dhis.test.random.BeanRandomizer;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
@@ -78,13 +78,13 @@ class BodyConverterTest {
     List<Event> events1 = createEvent(3, "ev1", "enr1");
     List<Event> events2 = createEvent(7, "ev2", "enr2");
     List<Enrollment> enrollments = new ArrayList<>();
-    Enrollment enrollment1 = createEnrollment("enr1", "teiABC", events1);
-    Enrollment enrollment2 = createEnrollment("enr2", "teiABC", events2);
+    Enrollment enrollment1 = createEnrollment("enr1", "teABC", events1);
+    Enrollment enrollment2 = createEnrollment("enr2", "teABC", events2);
     enrollment1.setRelationships(relationships2);
     enrollment2.setRelationships(relationships1);
     enrollments.add(enrollment1);
     enrollments.add(enrollment2);
-    TrackedEntity trackedEntity = createTrackedEntity("teiABC", enrollments);
+    TrackedEntity trackedEntity = createTrackedEntity("teABC", enrollments);
     trackedEntity.setRelationships(relationships1);
     Body build = Body.builder().trackedEntities(Collections.singletonList(trackedEntity)).build();
     String jsonPayload = toJson(build);
@@ -102,13 +102,13 @@ class BodyConverterTest {
     List<Event> events1 = createEvent(3, "ev1", "enr1");
     List<Event> events2 = createEvent(7, "ev2", "enr2");
     List<Enrollment> enrollments = new ArrayList<>();
-    Enrollment enrollment1 = createEnrollment("enr1", "teiABC", events1);
-    Enrollment enrollment2 = createEnrollment("enr2", "teiABC", events2);
+    Enrollment enrollment1 = createEnrollment("enr1", "teABC", events1);
+    Enrollment enrollment2 = createEnrollment("enr2", "teABC", events2);
     enrollment1.setRelationships(relationships2);
     enrollment2.setRelationships(relationships1);
     enrollments.add(enrollment1);
     enrollments.add(enrollment2);
-    TrackedEntity trackedEntity = createTrackedEntity("teiABC", enrollments);
+    TrackedEntity trackedEntity = createTrackedEntity("teABC", enrollments);
     trackedEntity.setRelationships(relationships1);
     Body build = Body.builder().trackedEntities(Collections.singletonList(trackedEntity)).build();
     String jsonPayload = toJson(build);
@@ -138,7 +138,7 @@ class BodyConverterTest {
     Body build = Body.builder().trackedEntities(Collections.singletonList(trackedEntity)).build();
     String jsonPayload = toJson(build);
     Body b2 = this.objectMapper.readValue(jsonPayload, Body.class);
-    // TEI has uid
+    // TE has uid
     assertThat(b2.getTrackedEntities().get(0).getTrackedEntity(), is(notNullValue()));
     // Also check parent uid is set
     assertThat(

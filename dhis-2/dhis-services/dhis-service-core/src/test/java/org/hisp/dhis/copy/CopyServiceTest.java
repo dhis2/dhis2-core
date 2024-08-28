@@ -46,9 +46,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
@@ -59,7 +59,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.EventProgramEnrollmentService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -77,6 +77,7 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -89,7 +90,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 
 @ExtendWith(MockitoExtension.class)
-class CopyServiceTest extends DhisConvenienceTest {
+class CopyServiceTest extends TestBase {
 
   @Mock private ProgramService programService;
 
@@ -105,9 +106,11 @@ class CopyServiceTest extends DhisConvenienceTest {
 
   @Mock private ProgramRuleVariableService programRuleVariableService;
 
-  @Mock private EnrollmentService enrollmentService;
+  @Mock private EventProgramEnrollmentService eventProgramEnrollmentService;
 
   @Mock private AclService aclService;
+
+  @Mock private IdentifiableObjectManager identifiableObjectManager;
 
   @InjectMocks private CopyService copyService;
 
@@ -136,7 +139,7 @@ class CopyServiceTest extends DhisConvenienceTest {
     when(aclService.canWrite(UserDetails.fromUser(user), original)).thenReturn(true);
     injectSecurityContext(UserDetails.fromUser(user));
 
-    when(enrollmentService.getEnrollments(original)).thenReturn(originalEnrollments);
+    when(eventProgramEnrollmentService.getEnrollments(original)).thenReturn(originalEnrollments);
 
     Program programCopy = copyService.copyProgram(VALID_PROGRAM_UID, Map.of());
 
@@ -152,7 +155,7 @@ class CopyServiceTest extends DhisConvenienceTest {
     verify(programRuleVariableService, times(1))
         .addProgramRuleVariable(any(ProgramRuleVariable.class));
     verify(programSectionService, times(1)).addProgramSection(any(ProgramSection.class));
-    verify(enrollmentService, times(1)).addEnrollment(any(Enrollment.class));
+    verify(identifiableObjectManager, times(1)).save(any(Enrollment.class));
   }
 
   @Test
@@ -302,7 +305,7 @@ class CopyServiceTest extends DhisConvenienceTest {
   void testCopyProgramFromUidWithValidProgramAndNullEnrollments()
       throws NotFoundException, ForbiddenException {
     when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
-    when(enrollmentService.getEnrollments(original)).thenReturn(null);
+    when(eventProgramEnrollmentService.getEnrollments(original)).thenReturn(null);
 
     when(aclService.canWrite(UserDetails.fromUser(user), original)).thenReturn(true);
     injectSecurityContext(UserDetails.fromUser(user));
@@ -311,7 +314,7 @@ class CopyServiceTest extends DhisConvenienceTest {
 
     assertNotEquals(original.getUid(), programCopy.getUid());
     assertTrue(CodeGenerator.isValidUid(programCopy.getUid()));
-    verify(enrollmentService, never()).addEnrollment(any(Enrollment.class));
+    verify(identifiableObjectManager, never()).save(any(Enrollment.class));
   }
 
   @Test

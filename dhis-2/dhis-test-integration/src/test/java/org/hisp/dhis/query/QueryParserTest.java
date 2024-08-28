@@ -39,16 +39,16 @@ import org.hisp.dhis.query.operators.EqualOperator;
 import org.hisp.dhis.query.operators.LikeOperator;
 import org.hisp.dhis.query.operators.NullOperator;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class QueryParserTest extends IntegrationTestBase {
+class QueryParserTest extends PostgresIntegrationTestBase {
 
   private QueryParser queryParser;
 
@@ -56,12 +56,8 @@ class QueryParserTest extends IntegrationTestBase {
 
   @Autowired private OrganisationUnitStore organisationUnitStore;
 
-  @Autowired private UserService _userService;
-
-  @Override
-  protected void setUpTest() throws Exception {
-    this.userService = _userService;
-
+  @BeforeEach
+  void setUp() {
     OrganisationUnit orgUnitA = createOrganisationUnit('A');
     organisationUnitStore.save(orgUnitA);
 

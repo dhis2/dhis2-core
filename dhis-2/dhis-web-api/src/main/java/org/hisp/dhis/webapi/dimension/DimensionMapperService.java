@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.dimension;
 
-import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
+import static org.hisp.dhis.common.collection.CollectionUtils.mapToList;
 import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 
 import java.util.Collection;

@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.user;
 
-import static org.hisp.dhis.user.User.populateUserCredentialsDtoFields;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.CacheControl.noStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -60,13 +59,13 @@ import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.interpretation.InterpretationService;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.node.NodeUtils;
-import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
@@ -83,7 +82,6 @@ import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.PasswordValidationResult;
 import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentialsDto;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
@@ -111,10 +109,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags({"user", "query"})
+@OpenApi.Document(domain = User.class, group = OpenApi.Document.GROUP_QUERY)
 @Controller
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-@RequestMapping("/me")
+@RequestMapping("/api/me")
 @RequiredArgsConstructor
 public class MeController {
   @Nonnull private final UserService userService;
@@ -185,10 +183,6 @@ public class MeController {
     MeDto meDto = new MeDto(user, userSettings, programs, dataSets, patTokens);
     determineUserImpersonation(meDto);
 
-    // TODO: To remove when we remove old UserCredentials compatibility
-    UserCredentialsDto userCredentialsDto = user.getUserCredentials();
-    meDto.setUserCredentials(userCredentialsDto);
-
     var params = org.hisp.dhis.fieldfiltering.FieldFilterParams.of(meDto, fields);
 
     ObjectNode jsonNodes = fieldFilterService.toObjectNodes(params).get(0);
@@ -228,6 +222,7 @@ public class MeController {
     return ResponseEntity.ok(objectNode);
   }
 
+  @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
   @PutMapping(value = "", consumes = APPLICATION_JSON_VALUE)
   public void updateCurrentUser(
       HttpServletRequest request,
@@ -238,9 +233,6 @@ public class MeController {
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
     User user = renderService.fromJson(request.getInputStream(), User.class);
-
-    // TODO: To remove when we remove old UserCredentials compatibility
-    populateUserCredentialsDtoFields(user);
 
     merge(currentUser, user);
 
@@ -265,7 +257,7 @@ public class MeController {
     manager.update(currentUser);
 
     if (fields.isEmpty()) {
-      fields.addAll(Preset.ALL.getFields());
+      fields.addAll(FieldPreset.ALL.getFields());
     }
 
     CollectionNode collectionNode =
@@ -327,6 +319,7 @@ public class MeController {
     return ResponseEntity.ok().cacheControl(noStore()).body(value);
   }
 
+  @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
   @PutMapping(
       value = "/changePassword",
       consumes = {"text/*", "application/*"})
@@ -353,6 +346,7 @@ public class MeController {
     userService.invalidateUserSessions(currentUser.getUid());
   }
 
+  @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
   @PostMapping(value = "/verifyPassword", consumes = "text/*")
   public @ResponseBody RootNode verifyPasswordText(
       @RequestBody String password,
@@ -362,6 +356,7 @@ public class MeController {
     return verifyPasswordInternal(password, currentUser);
   }
 
+  @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
   @PostMapping(value = "/validatePassword", consumes = "text/*")
   public @ResponseBody RootNode validatePasswordText(
       @RequestBody String password,
@@ -371,6 +366,7 @@ public class MeController {
     return validatePasswordInternal(password, currentUser);
   }
 
+  @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
   @PostMapping(value = "/verifyPassword", consumes = APPLICATION_JSON_VALUE)
   public @ResponseBody RootNode verifyPasswordJson(
       @RequestBody Map<String, String> body,
@@ -391,6 +387,7 @@ public class MeController {
     return dashboard;
   }
 
+  @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
   @PostMapping(value = "/dashboard/interpretations/read")
   @ResponseStatus(value = HttpStatus.NO_CONTENT)
   @ApiVersion(include = {DhisApiVersion.ALL, DhisApiVersion.DEFAULT})

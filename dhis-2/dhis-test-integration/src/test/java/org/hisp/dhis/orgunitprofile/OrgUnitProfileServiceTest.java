@@ -48,6 +48,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datastore.DatastoreService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
@@ -55,23 +56,26 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.orgunitprofile.impl.DefaultOrgUnitProfileService;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
-class OrgUnitProfileServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class OrgUnitProfileServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private OrgUnitProfileService service;
-
-  @Autowired private UserService _userService;
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -87,10 +91,8 @@ class OrgUnitProfileServiceTest extends SingleSetupIntegrationTestBase {
 
   private OrgUnitProfileService mockService;
 
-  @Override
-  public void setUpTest() {
-    userService = _userService;
-    createAndInjectAdminUser();
+  @BeforeAll
+  void setUp() {
     mockAnalyticsService = Mockito.mock(AnalyticsService.class);
     mockService =
         new DefaultOrgUnitProfileService(
@@ -103,7 +105,7 @@ class OrgUnitProfileServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testSave() {
+  void testSave() throws ForbiddenException {
     OrgUnitProfile orgUnitProfile =
         createOrgUnitProfile(
             Lists.newArrayList("Attribute1", "Attribute2"),
@@ -121,7 +123,7 @@ class OrgUnitProfileServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testUpdateOrgUnitProfile() {
+  void testUpdateOrgUnitProfile() throws ForbiddenException {
     OrgUnitProfile orgUnitProfile =
         createOrgUnitProfile(
             Lists.newArrayList("Attribute1", "Attribute2"),
@@ -144,7 +146,7 @@ class OrgUnitProfileServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testGetProfileDataWithoutOrgUnitProfile() {
+  void testGetProfileDataWithoutOrgUnitProfile() throws ForbiddenException {
     Attribute attribute = createAttribute('A');
     attribute.setOrganisationUnitAttribute(true);
     manager.save(attribute);
@@ -184,7 +186,7 @@ class OrgUnitProfileServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testGetProfileDataWithOrgUnitProfile() {
+  void testGetProfileDataWithOrgUnitProfile() throws ForbiddenException {
     Attribute attribute = createAttribute('A');
     attribute.setOrganisationUnitAttribute(true);
     manager.save(attribute);
@@ -275,7 +277,7 @@ class OrgUnitProfileServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testDeletionHandling() {
+  void testDeletionHandling() throws ForbiddenException {
     OrganisationUnitGroupSet groupSet = createOrganisationUnitGroupSet('A');
 
     manager.save(groupSet);

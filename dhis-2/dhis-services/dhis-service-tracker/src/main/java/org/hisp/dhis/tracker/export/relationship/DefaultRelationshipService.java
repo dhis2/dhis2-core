@@ -30,7 +30,9 @@ package org.hisp.dhis.tracker.export.relationship;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
@@ -39,7 +41,7 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -58,7 +60,7 @@ public class DefaultRelationshipService implements RelationshipService {
 
   @Override
   public List<Relationship> getRelationships(RelationshipOperationParams params)
-      throws ForbiddenException, NotFoundException {
+      throws ForbiddenException, NotFoundException, BadRequestException {
     RelationshipQueryParams queryParams = mapper.map(params);
 
     return getRelationships(queryParams);
@@ -67,7 +69,7 @@ public class DefaultRelationshipService implements RelationshipService {
   @Override
   public Page<Relationship> getRelationships(
       RelationshipOperationParams params, PageParams pageParams)
-      throws ForbiddenException, NotFoundException {
+      throws ForbiddenException, NotFoundException, BadRequestException {
     RelationshipQueryParams queryParams = mapper.map(params);
 
     return getRelationships(queryParams, pageParams);
@@ -82,7 +84,7 @@ public class DefaultRelationshipService implements RelationshipService {
     }
 
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    List<String> errors = trackerAccessManager.canRead(currentUser, relationship);
+    List<String> errors = accessErrors(currentUser, relationship);
     if (!errors.isEmpty()) {
       throw new ForbiddenException(errors.toString());
     }
@@ -90,56 +92,66 @@ public class DefaultRelationshipService implements RelationshipService {
     return map(relationship);
   }
 
-  public List<Relationship> getRelationshipsByTrackedEntity(
+  @Override
+  public List<Relationship> getRelationships(@Nonnull List<String> uids)
+      throws ForbiddenException, NotFoundException {
+    List<Relationship> relationships = new ArrayList<>();
+    for (String uid : uids) {
+      relationships.add(getRelationship(uid));
+    }
+    return relationships;
+  }
+
+  private List<Relationship> getRelationshipsByTrackedEntity(
       TrackedEntity trackedEntity, RelationshipQueryParams queryParams) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     List<Relationship> relationships =
         relationshipStore.getByTrackedEntity(trackedEntity, queryParams).stream()
-            .filter(r -> trackerAccessManager.canRead(currentUser, r).isEmpty())
+            .filter(r -> accessErrors(currentUser, r).isEmpty())
             .toList();
     return map(relationships);
   }
 
-  public Page<Relationship> getRelationshipsByTrackedEntity(
+  private Page<Relationship> getRelationshipsByTrackedEntity(
       TrackedEntity trackedEntity, RelationshipQueryParams queryParams, PageParams pageParams) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     Page<Relationship> relationshipPage =
         relationshipStore.getByTrackedEntity(trackedEntity, queryParams, pageParams);
     List<Relationship> relationships =
         relationshipPage.getItems().stream()
-            .filter(r -> trackerAccessManager.canRead(currentUser, r).isEmpty())
+            .filter(r -> accessErrors(currentUser, r).isEmpty())
             .toList();
     return relationshipPage.withItems(map(relationships));
   }
 
-  public List<Relationship> getRelationshipsByEnrollment(
+  private List<Relationship> getRelationshipsByEnrollment(
       Enrollment enrollment, RelationshipQueryParams queryParams) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     List<Relationship> relationships =
         relationshipStore.getByEnrollment(enrollment, queryParams).stream()
-            .filter(r -> trackerAccessManager.canRead(currentUser, r).isEmpty())
+            .filter(r -> accessErrors(currentUser, r).isEmpty())
             .toList();
     return map(relationships);
   }
 
-  public Page<Relationship> getRelationshipsByEnrollment(
+  private Page<Relationship> getRelationshipsByEnrollment(
       Enrollment enrollment, RelationshipQueryParams queryParams, PageParams pageParams) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     Page<Relationship> relationshipPage =
         relationshipStore.getByEnrollment(enrollment, queryParams, pageParams);
     List<Relationship> relationships =
         relationshipPage.getItems().stream()
-            .filter(r -> trackerAccessManager.canRead(currentUser, r).isEmpty())
+            .filter(r -> accessErrors(currentUser, r).isEmpty())
             .toList();
     return relationshipPage.withItems(map(relationships));
   }
 
-  public List<Relationship> getRelationshipsByEvent(
+  private List<Relationship> getRelationshipsByEvent(
       Event event, RelationshipQueryParams queryParams) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     List<Relationship> relationships =
         relationshipStore.getByEvent(event, queryParams).stream()
-            .filter(r -> trackerAccessManager.canRead(currentUser, r).isEmpty())
+            .filter(r -> accessErrors(currentUser, r).isEmpty())
             .toList();
     return map(relationships);
   }
@@ -151,12 +163,13 @@ public class DefaultRelationshipService implements RelationshipService {
         relationshipStore.getByEvent(event, queryParams, pageParams);
     List<Relationship> relationships =
         relationshipPage.getItems().stream()
-            .filter(r -> trackerAccessManager.canRead(currentUser, r).isEmpty())
+            .filter(r -> accessErrors(currentUser, r).isEmpty())
             .toList();
     return relationshipPage.withItems(map(relationships));
   }
 
   private List<Relationship> getRelationships(RelationshipQueryParams queryParams) {
+
     if (queryParams.getEntity() instanceof TrackedEntity te) {
       return getRelationshipsByTrackedEntity(te, queryParams);
     }
@@ -174,6 +187,7 @@ public class DefaultRelationshipService implements RelationshipService {
 
   private Page<Relationship> getRelationships(
       RelationshipQueryParams queryParams, PageParams pageParams) {
+
     if (queryParams.getEntity() instanceof TrackedEntity te) {
       return getRelationshipsByTrackedEntity(te, queryParams, pageParams);
     }
@@ -187,6 +201,10 @@ public class DefaultRelationshipService implements RelationshipService {
     }
 
     throw new IllegalArgumentException("Unkown type");
+  }
+
+  private List<String> accessErrors(UserDetails user, Relationship relationship) {
+    return trackerAccessManager.canRead(user, relationship);
   }
 
   /** Map to a non-proxied Relationship to prevent hibernate exceptions. */

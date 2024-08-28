@@ -32,8 +32,6 @@ import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 import java.time.Year;
@@ -53,24 +51,22 @@ class DefaultResourceTableServiceTest {
 
   @Mock private PeriodDataProvider periodDataProvider;
 
-  @Mock private AnalyticsTableSettings analyticsExportSettings;
+  @Mock private AnalyticsTableSettings analyticsTableSettings;
 
   @Mock private ResourceTableStore resourceTableStore;
 
   @Test
   void generateDatePeriodTableWhenYearIsOutOfRange() {
-    // Given
     List<Integer> yearsToCheck = List.of(2000, 2001, 2002, 2003, 2004);
     int defaultOffset = 22;
 
-    // When
     when(periodDataProvider.getAvailableYears(DATABASE)).thenReturn(yearsToCheck);
-    when(analyticsExportSettings.getMaxPeriodYearsOffset()).thenReturn(defaultOffset);
+    when(analyticsTableSettings.getMaxPeriodYearsOffset()).thenReturn(defaultOffset);
 
-    // Then
     RuntimeException exception =
         assertThrows(
-            RuntimeException.class, () -> defaultResourceTableService.generateDatePeriodTable());
+            RuntimeException.class,
+            () -> defaultResourceTableService.getAndValidateAvailableDataYears());
 
     assertTrue(
         exception.getMessage().contains("Your database contains years out of the allowed offset"));
@@ -78,18 +74,16 @@ class DefaultResourceTableServiceTest {
 
   @Test
   void generateDatePeriodTableWhenOffsetIsZeroWithPreviousYears() {
-    // Given
     List<Integer> yearsToCheck = List.of(2000, 2001, 2002, 2003, 2004);
     int zeroOffset = 0;
 
-    // When
     when(periodDataProvider.getAvailableYears(DATABASE)).thenReturn(yearsToCheck);
-    when(analyticsExportSettings.getMaxPeriodYearsOffset()).thenReturn(zeroOffset);
+    when(analyticsTableSettings.getMaxPeriodYearsOffset()).thenReturn(zeroOffset);
 
-    // Then
     RuntimeException exception =
         assertThrows(
-            RuntimeException.class, () -> defaultResourceTableService.generateDatePeriodTable());
+            RuntimeException.class,
+            () -> defaultResourceTableService.getAndValidateAvailableDataYears());
 
     assertTrue(
         exception.getMessage().contains("Your database contains years out of the allowed offset"));
@@ -97,22 +91,17 @@ class DefaultResourceTableServiceTest {
 
   @Test
   void generateDatePeriodTableWhenOffsetIsZeroWithCurrentYear() {
-    // Given
     List<Integer> yearsToCheck = List.of(Year.now().getValue());
     int zeroOffset = 0;
 
-    // When
     when(periodDataProvider.getAvailableYears(DATABASE)).thenReturn(yearsToCheck);
-    when(analyticsExportSettings.getMaxPeriodYearsOffset()).thenReturn(zeroOffset);
-    doNothing().when(resourceTableStore).generateResourceTable(any());
+    when(analyticsTableSettings.getMaxPeriodYearsOffset()).thenReturn(zeroOffset);
 
-    // Then
-    assertDoesNotThrow(() -> defaultResourceTableService.generateDatePeriodTable());
+    assertDoesNotThrow(() -> defaultResourceTableService.getAndValidateAvailableDataYears());
   }
 
   @Test
   void generateDatePeriodTableWhenYearsAreInExpectedRange() {
-    // Given
     List<Integer> yearsToCheck =
         List.of(
             Year.now().getValue(),
@@ -120,12 +109,9 @@ class DefaultResourceTableServiceTest {
             Year.now().plus(2, YEARS).getValue());
     int defaultOffset = 2;
 
-    // When
     when(periodDataProvider.getAvailableYears(DATABASE)).thenReturn(yearsToCheck);
-    when(analyticsExportSettings.getMaxPeriodYearsOffset()).thenReturn(defaultOffset);
-    doNothing().when(resourceTableStore).generateResourceTable(any());
+    when(analyticsTableSettings.getMaxPeriodYearsOffset()).thenReturn(defaultOffset);
 
-    // Then
-    assertDoesNotThrow(() -> defaultResourceTableService.generateDatePeriodTable());
+    assertDoesNotThrow(() -> defaultResourceTableService.getAndValidateAvailableDataYears());
   }
 }

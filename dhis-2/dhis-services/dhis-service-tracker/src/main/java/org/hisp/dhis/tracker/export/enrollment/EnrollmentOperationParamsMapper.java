@@ -32,7 +32,6 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 
-import java.util.HashSet;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -64,20 +63,19 @@ class EnrollmentOperationParamsMapper {
       throws BadRequestException, ForbiddenException {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    Program program = paramsValidator.validateProgram(operationParams.getProgramUid(), currentUser);
+    Program program = paramsValidator.validateTrackerProgram(operationParams.getProgramUid());
     TrackedEntityType trackedEntityType =
-        paramsValidator.validateTrackedEntityType(
-            operationParams.getTrackedEntityTypeUid(), currentUser);
+        paramsValidator.validateTrackedEntityType(operationParams.getTrackedEntityTypeUid());
     TrackedEntity trackedEntity =
         paramsValidator.validateTrackedEntity(operationParams.getTrackedEntityUid(), currentUser);
 
     Set<OrganisationUnit> orgUnits =
-        paramsValidator.validateOrgUnits(operationParams.getOrgUnitUids(), currentUser);
-    validateOrgUnitMode(operationParams.getOrgUnitMode(), currentUser, program);
+        paramsValidator.validateOrgUnits(operationParams.getOrgUnitUids());
+    validateOrgUnitMode(operationParams.getOrgUnitMode(), program);
 
     EnrollmentQueryParams params = new EnrollmentQueryParams();
     params.setProgram(program);
-    params.setProgramStatus(operationParams.getProgramStatus());
+    params.setEnrollmentStatus(operationParams.getEnrollmentStatus());
     params.setFollowUp(operationParams.getFollowUp());
     params.setLastUpdated(operationParams.getLastUpdated());
     params.setLastUpdatedDuration(operationParams.getLastUpdatedDuration());
@@ -104,11 +102,10 @@ class EnrollmentOperationParamsMapper {
   private void mergeOrgUnitModes(
       EnrollmentOperationParams operationParams, User user, EnrollmentQueryParams queryParams) {
     if (user != null && operationParams.getOrgUnitMode() == ACCESSIBLE) {
-      queryParams.addOrganisationUnits(
-          new HashSet<>(user.getTeiSearchOrganisationUnitsWithFallback()));
+      queryParams.addOrganisationUnits(user.getEffectiveSearchOrganisationUnits());
       queryParams.setOrganisationUnitMode(DESCENDANTS);
     } else if (user != null && operationParams.getOrgUnitMode() == CAPTURE) {
-      queryParams.addOrganisationUnits(new HashSet<>(user.getOrganisationUnits()));
+      queryParams.addOrganisationUnits(user.getOrganisationUnits());
       queryParams.setOrganisationUnitMode(DESCENDANTS);
     }
   }

@@ -30,18 +30,25 @@ package org.hisp.dhis.webapi.controller.sms;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.security.Authorities.F_MOBILE_SENDSMS;
+import static org.hisp.dhis.security.Authorities.F_MOBILE_SETTINGS;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
@@ -50,11 +57,14 @@ import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -63,9 +73,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /** Zubair <rajazubair.asghar@gmail.com> */
-@OpenApi.Tags("messaging")
 @RestController
-@RequestMapping(value = "/sms/inbound")
+@RequestMapping("/api/sms/inbound")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
 public class SmsInboundController extends AbstractCrudController<IncomingSms> {
@@ -77,12 +86,25 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms> {
 
   private final UserService userService;
 
+  @Override
+  @RequiresAuthority(anyOf = F_MOBILE_SENDSMS)
+  @GetMapping
+  public @ResponseBody ResponseEntity<StreamingJsonRoot<IncomingSms>> getObjectList(
+      @RequestParam Map<String, String> rpParameters,
+      OrderParams orderParams,
+      HttpServletResponse response,
+      @CurrentUser UserDetails currentUser)
+      throws ForbiddenException, BadRequestException {
+    return getObjectList(
+        rpParameters, orderParams, response, currentUser, !rpParameters.containsKey("query"), null);
+  }
+
   // -------------------------------------------------------------------------
   // POST
   // -------------------------------------------------------------------------
 
   @PostMapping(produces = APPLICATION_JSON_VALUE)
-  @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')")
+  @RequiresAuthority(anyOf = F_MOBILE_SETTINGS)
   @ResponseBody
   public WebMessage receiveSMSMessage(
       @RequestParam String originator,
@@ -111,7 +133,7 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms> {
   }
 
   @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-  @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')")
+  @RequiresAuthority(anyOf = F_MOBILE_SETTINGS)
   @ResponseBody
   public WebMessage receiveSMSMessage(HttpServletRequest request, @CurrentUser User currentUser)
       throws WebMessageException, IOException {
@@ -125,7 +147,7 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms> {
   }
 
   @PostMapping(value = "/import", produces = APPLICATION_JSON_VALUE)
-  @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')")
+  @RequiresAuthority(anyOf = F_MOBILE_SETTINGS)
   @ResponseBody
   public WebMessage importUnparsedSMSMessages() {
     List<IncomingSms> importMessageList = incomingSMSService.getAllUnparsedMessages();
@@ -142,7 +164,7 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms> {
   // -------------------------------------------------------------------------
 
   @DeleteMapping(value = "/{uid}", produces = APPLICATION_JSON_VALUE)
-  @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')")
+  @RequiresAuthority(anyOf = F_MOBILE_SETTINGS)
   @ResponseBody
   public WebMessage deleteInboundMessage(@PathVariable String uid) {
     IncomingSms sms = incomingSMSService.get(uid);
@@ -157,7 +179,7 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms> {
   }
 
   @DeleteMapping(produces = APPLICATION_JSON_VALUE)
-  @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')")
+  @RequiresAuthority(anyOf = F_MOBILE_SETTINGS)
   @ResponseBody
   public WebMessage deleteInboundMessages(@RequestParam List<String> ids) {
     ids.forEach(incomingSMSService::delete);

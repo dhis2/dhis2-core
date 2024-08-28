@@ -27,28 +27,35 @@
  */
 package org.hisp.dhis.user;
 
+import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.google.common.collect.Sets;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Nguyen Hong Duc
  */
-class UserStoreTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class UserStoreTest extends PostgresIntegrationTestBase {
   public static final String AUTH_A = "AuthA";
 
   public static final String AUTH_B = "AuthB";
@@ -63,7 +70,7 @@ class UserStoreTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private UserGroupService userGroupService;
 
-  @Autowired private UserService _userService;
+  @Autowired private DbmsManager dbmsManager;
 
   private OrganisationUnit unit1;
 
@@ -75,14 +82,13 @@ class UserStoreTest extends SingleSetupIntegrationTestBase {
 
   private UserRole roleC;
 
-  @Override
-  public void setUpTest() throws Exception {
+  @BeforeAll
+  void setUp() {
     unit1 = createOrganisationUnit('A');
     unit2 = createOrganisationUnit('B');
     organisationUnitService.addOrganisationUnit(unit1);
     organisationUnitService.addOrganisationUnit(unit2);
 
-    this.userService = _userService;
     roleA = createUserRole('A');
     roleB = createUserRole('B');
     roleC = createUserRole('C');
@@ -149,19 +155,21 @@ class UserStoreTest extends SingleSetupIntegrationTestBase {
 
   @Test
   void testGetCurrentUserGroupInfo() {
-    User userA = makeUser("A");
-    userStore.save(userA);
-    UserGroup userGroupA = createUserGroup('A', Sets.newHashSet(userA));
+    UserGroup userGroupA = createUserGroup('A', null);
     userGroupService.addUserGroup(userGroupA);
-    UserGroup userGroupB = createUserGroup('B', Sets.newHashSet(userA));
+
+    UserGroup userGroupB = createUserGroup('B', null);
     userGroupService.addUserGroup(userGroupB);
-    userA.getGroups().add(userGroupA);
-    userA.getGroups().add(userGroupB);
-    // TODO: MAS - this should be refactored out
-    CurrentUserGroupInfo currentUserGroupInfo = userStore.getCurrentUserGroupInfo(userA.getUid());
-    assertNotNull(currentUserGroupInfo);
-    assertEquals(2, currentUserGroupInfo.getUserGroupUIDs().size());
-    assertEquals(userA.getUid(), currentUserGroupInfo.getUserUID());
+
+    User userA = makeUser("A");
+    userA.setGroups(Set.of(userGroupA, userGroupB));
+    userGroupA.setMembers(Set.of(userA));
+    userGroupB.setMembers(Set.of(userA));
+    userStore.save(userA);
+
+    assertEquals(
+        userA.getGroups().size(),
+        userStore.getCurrentUserGroupInfo(userA.getUid()).getUserGroupUIDs().size());
   }
 
   @Test
@@ -234,5 +242,40 @@ class UserStoreTest extends SingleSetupIntegrationTestBase {
     Map<String, String> emailsByUsername =
         userStore.getUserGroupUserEmailsByUsername(group.getUid());
     assertEquals(Map.of("usernamea", "emaila", "usernameb", "emailb"), emailsByUsername);
+  }
+
+  @Test
+  void testGetUserByOpenId() {
+    String openId1 = "ABC";
+    String openId2 = "DEF";
+
+    User userA = makeUser("A");
+    User userB = makeUser("B");
+    User userC = makeUser("C");
+    User userD = makeUser("D");
+    User userE = makeUser("E");
+
+    userA.setOpenId(openId1);
+    userB.setOpenId(openId1);
+    userC.setOpenId(openId1);
+    userD.setOpenId(openId1);
+    userE.setOpenId(openId2);
+
+    userA.setLastLogin(parseDate("2024-07-01"));
+    userB.setLastLogin(parseDate("2024-07-02"));
+    userC.setLastLogin(parseDate("2024-07-03"));
+    userD.setLastLogin(null);
+    userE.setLastLogin(parseDate("2024-07-04"));
+
+    userC.setDisabled(true);
+
+    userStore.save(userA);
+    userStore.save(userB);
+    userStore.save(userC);
+    userStore.save(userD);
+    userStore.save(userE);
+
+    User foundUser = userStore.getUserByOpenId(openId1);
+    assertEquals(userB.getUid(), foundUser.getUid());
   }
 }

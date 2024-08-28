@@ -27,11 +27,12 @@
  */
 package org.hisp.dhis.tracker.imports.preprocess;
 
-import static org.hisp.dhis.DhisConvenienceTest.createCategoryCombo;
-import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionCombo;
-import static org.hisp.dhis.DhisConvenienceTest.createProgram;
-import static org.hisp.dhis.DhisConvenienceTest.createProgramStage;
+import static org.hisp.dhis.test.TestBase.createCategoryCombo;
+import static org.hisp.dhis.test.TestBase.createCategoryOptionCombo;
+import static org.hisp.dhis.test.TestBase.createProgram;
+import static org.hisp.dhis.test.TestBase.createProgramStage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -199,6 +200,20 @@ class EventProgramPreProcessorTest {
         MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION),
         bundle.getEvents().get(0).getProgram());
     assertEquals(MetadataIdentifier.EMPTY_UID, bundle.getEvents().get(0).getProgramStage());
+  }
+
+  @Test
+  void shouldNotProcessEventWhenEventIsInvalidWithNoProgramAndNoProgramStage() {
+    Event event = invalidProgramEventWithNoProgramAndNoProgramStage();
+    TrackerBundle bundle =
+        TrackerBundle.builder().events(Collections.singletonList(event)).preheat(preheat).build();
+
+    preprocessor.process(bundle);
+
+    verify(preheat, never()).getProgram(PROGRAM_WITH_REGISTRATION);
+    verify(preheat, never()).getProgramStage(PROGRAM_STAGE_WITH_REGISTRATION);
+    assertNull(bundle.getEvents().get(0).getProgram());
+    assertNull(bundle.getEvents().get(0).getProgramStage());
   }
 
   @Test
@@ -440,6 +455,14 @@ class EventProgramPreProcessorTest {
     program.setUid(PROGRAM_WITHOUT_REGISTRATION);
     program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
     return program;
+  }
+
+  private Event invalidProgramEventWithNoProgramAndNoProgramStage() {
+    return Event.builder()
+        .program(null)
+        .programStage(null)
+        .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
+        .build();
   }
 
   private Event programEventWithProgram() {

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
-import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasOnlyMembers;
@@ -38,6 +38,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -47,22 +49,22 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.controller.tracker.JsonAttribute;
 import org.hisp.dhis.webapi.controller.tracker.JsonEnrollment;
 import org.hisp.dhis.webapi.controller.tracker.JsonEvent;
@@ -73,9 +75,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest {
+class EnrollmentsExportControllerTest extends H2ControllerIntegrationTestBase {
+
+  private static final String ATTRIBUTE_VALUE = "value";
 
   @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private CategoryService categoryService;
+
+  private CategoryOptionCombo coc;
 
   private OrganisationUnit orgUnit;
 
@@ -97,8 +105,6 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest {
 
   private DataElement dataElement;
 
-  private static final String ATTRIBUTE_VALUE = "value";
-
   private TrackedEntityAttributeValue trackedEntityAttributeValue;
 
   private EventDataValue eventDataValue;
@@ -107,6 +113,8 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest {
   void setUp() {
     owner = makeUser("o");
     manager.save(owner, false);
+
+    coc = categoryService.getDefaultCategoryOptionCombo();
 
     orgUnit = createOrganisationUnit('A');
     manager.save(orgUnit);
@@ -286,8 +294,8 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest {
   }
 
   private Event event() {
-    Event event = new Event(enrollment, programStage, enrollment.getOrganisationUnit());
-    event.setAutoFields();
+    Event eventA = new Event(enrollment, programStage, enrollment.getOrganisationUnit(), coc);
+    eventA.setAutoFields();
 
     eventDataValue = new EventDataValue();
     eventDataValue.setValue("value");
@@ -296,9 +304,9 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest {
     manager.save(dataElement);
     eventDataValue.setDataElement(dataElement.getUid());
     Set<EventDataValue> eventDataValues = Set.of(eventDataValue);
-    event.setEventDataValues(eventDataValues);
-    manager.save(event);
-    return event;
+    eventA.setEventDataValues(eventDataValues);
+    manager.save(eventA);
+    return eventA;
   }
 
   private Relationship relationship(Enrollment from, TrackedEntity to) {
@@ -356,7 +364,7 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest {
     enrollment.setAutoFields();
     enrollment.setEnrollmentDate(new Date());
     enrollment.setOccurredDate(new Date());
-    enrollment.setStatus(ProgramStatus.COMPLETED);
+    enrollment.setStatus(EnrollmentStatus.COMPLETED);
     enrollment.setFollowup(true);
     manager.save(enrollment, false);
     te.setEnrollments(Set.of(enrollment));

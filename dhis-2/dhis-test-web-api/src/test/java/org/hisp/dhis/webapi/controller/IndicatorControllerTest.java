@@ -27,13 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -43,7 +44,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class IndicatorControllerTest extends DhisControllerConvenienceTest {
+class IndicatorControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testGetExpressionDescription() {
@@ -102,14 +103,16 @@ class IndicatorControllerTest extends DhisControllerConvenienceTest {
         POST(
                 "/indicators/merge",
                 """
-            {
-                "sources": ["Uid00000010"],
-                "target": "Uid00000012",
-                "deleteSources": true
-            }""")
+        {
+            "sources": ["Uid00000010"],
+            "target": "Uid00000012",
+            "deleteSources": true
+        }""")
             .content(HttpStatus.FORBIDDEN);
     assertEquals("Forbidden", mergeResponse.getString("httpStatus").string());
     assertEquals("ERROR", mergeResponse.getString("status").string());
-    assertEquals("Access is denied", mergeResponse.getString("message").string());
+    assertEquals(
+        "Access is denied, requires one Authority from [F_INDICATOR_MERGE]",
+        mergeResponse.getString("message").string());
   }
 }

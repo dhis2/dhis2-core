@@ -34,12 +34,12 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 
 import com.google.gson.JsonObject;
-import org.hisp.dhis.Constants;
-import org.hisp.dhis.actions.IdGenerator;
-import org.hisp.dhis.dto.TrackerApiResponse;
+import org.hisp.dhis.test.e2e.Constants;
+import org.hisp.dhis.test.e2e.actions.IdGenerator;
+import org.hisp.dhis.test.e2e.dto.TrackerApiResponse;
+import org.hisp.dhis.test.e2e.utils.DataGenerator;
 import org.hisp.dhis.tracker.TrackerApiTest;
 import org.hisp.dhis.tracker.imports.databuilder.EventDataBuilder;
-import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -105,7 +105,7 @@ public class EventNotesTests extends TrackerApiTest {
   private JsonObject buildEventWithNote(String id) {
     JsonObject ob =
         new EventDataBuilder()
-            .setOu(Constants.ORG_UNIT_IDS[0])
+            .setOrgUnit(Constants.ORG_UNIT_IDS[0])
             .setId(id)
             .setProgram(Constants.EVENT_PROGRAM_ID)
             .setProgramStage(Constants.EVENT_PROGRAM_STAGE_ID)

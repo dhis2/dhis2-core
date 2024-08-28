@@ -69,7 +69,7 @@ import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
-import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -80,15 +80,14 @@ import org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -96,6 +95,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.tracker.export.relationship.RelationshipStore;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -307,7 +307,7 @@ class JdbcEventStore implements EventStore {
               event.setDeleted(resultSet.getBoolean(COLUMN_EVENT_DELETED));
 
               enrollment.setStatus(
-                  ProgramStatus.valueOf(resultSet.getString(COLUMN_ENROLLMENT_STATUS)));
+                  EnrollmentStatus.valueOf(resultSet.getString(COLUMN_ENROLLMENT_STATUS)));
               enrollment.setFollowup(resultSet.getBoolean(COLUMN_ENROLLMENT_FOLLOWUP));
               event.setEnrollment(enrollment);
               event.setProgramStage(ps);
@@ -522,9 +522,9 @@ class JdbcEventStore implements EventStore {
     sqlBuilder.append(
         getIdSqlBasedOnIdScheme(
             idSchemes.getCategoryOptionComboIdScheme(),
-            "coc.uid as coc_identifier, ",
-            "coc.attributevalues #>> '{%s, value}' as coc_identifier, ",
-            "coc.code as coc_identifier, "));
+            "coc_agg.uid as coc_identifier, ",
+            "coc_agg.attributevalues #>> '{%s, value}' as coc_identifier, ",
+            "coc_agg.code as coc_identifier, "));
 
     return sqlBuilder.toString();
   }
@@ -564,9 +564,8 @@ class JdbcEventStore implements EventStore {
   }
 
   /**
-   * Query is based on three sub queries on event, data value and note, which are joined using
-   * program stage instance id. The purpose of the separate queries is to be able to page properly
-   * on events.
+   * Query is based on three sub queries on event, data value and note, which are joined using event
+   * id. The purpose of the separate queries is to be able to page properly on events.
    */
   private String buildSql(
       EventQueryParams queryParams,
@@ -611,7 +610,8 @@ class JdbcEventStore implements EventStore {
    * by a range of operators. All searching is using lower() since attribute values are
    * case-insensitive.
    */
-  private String joinAttributeValue(EventQueryParams params) {
+  private String joinAttributeValue(
+      EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     StringBuilder sql = new StringBuilder();
 
     for (Entry<TrackedEntityAttribute, List<QueryFilter>> queryItem :
@@ -640,14 +640,22 @@ class JdbcEventStore implements EventStore {
 
       sql.append(
           getAttributeFilterQuery(
-              queryItem.getValue(), teaCol, teaValueCol, tea.getValueType().isNumeric()));
+              mapSqlParameterSource,
+              queryItem.getValue(),
+              teaCol,
+              teaValueCol,
+              tea.getValueType().isNumeric()));
     }
 
     return sql.toString();
   }
 
   private String getAttributeFilterQuery(
-      List<QueryFilter> filters, String teaCol, String teaValueCol, boolean isNumericTea) {
+      MapSqlParameterSource mapSqlParameterSource,
+      List<QueryFilter> filters,
+      String teaCol,
+      String teaValueCol,
+      boolean isNumericTea) {
 
     if (filters.isEmpty()) {
       return "";
@@ -674,20 +682,27 @@ class JdbcEventStore implements EventStore {
     }
 
     List<String> filterStrings = new ArrayList<>();
-    for (QueryFilter filter : filters) {
+
+    for (int i = 0; i < filters.size(); i++) {
+      QueryFilter filter = filters.get(i);
       StringBuilder filterString = new StringBuilder();
       final String queryCol =
           isNumericTea ? castToNumber(teaValueCol + ".value") : lower(teaValueCol + ".value");
-      final Object encodedFilter =
+      int itemType = isNumericTea ? Types.NUMERIC : Types.VARCHAR;
+      String parameterKey = "attributeFilter_%s_%d".formatted(teaValueCol.replace("\"", ""), i);
+      mapSqlParameterSource.addValue(
+          parameterKey,
           isNumericTea
-              ? Double.valueOf(filter.getFilter())
-              : StringUtils.lowerCase(filter.getSqlFilter(filter.getFilter()));
+              ? Double.valueOf(filter.getSqlBindFilter())
+              : StringUtils.lowerCase(filter.getSqlBindFilter()),
+          itemType);
+
       filterString
           .append(queryCol)
           .append(SPACE)
           .append(filter.getSqlOperator())
           .append(SPACE)
-          .append(encodedFilter);
+          .append(":" + parameterKey);
       filterStrings.add(filterString.toString());
     }
     query.append(String.join(AND, filterStrings));
@@ -788,7 +803,7 @@ class JdbcEventStore implements EventStore {
             .append("au.username as ")
             .append(COLUMN_EVENT_ASSIGNED_USER_USERNAME)
             .append(",")
-            .append("coc.uid as ")
+            .append("coc_agg.uid as ")
             .append(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_UID)
             .append(", ")
             .append("coc_agg.co_uids AS co_uids, ")
@@ -874,7 +889,7 @@ class JdbcEventStore implements EventStore {
         .append("left join userinfo au on (ev.assigneduserid=au.userinfoid) ");
 
     // JOIN attributes we need to filter on.
-    fromBuilder.append(joinAttributeValue(params));
+    fromBuilder.append(joinAttributeValue(params, mapSqlParameterSource));
 
     // LEFT JOIN not filterable attributes we need to sort on.
     fromBuilder.append(getFromSubQueryJoinOrderByAttributes(params));
@@ -909,8 +924,8 @@ class JdbcEventStore implements EventStore {
           .append(" ");
     }
 
-    if (params.getProgramStatus() != null) {
-      mapSqlParameterSource.addValue("program_status", params.getProgramStatus().name());
+    if (params.getEnrollmentStatus() != null) {
+      mapSqlParameterSource.addValue("program_status", params.getEnrollmentStatus().name());
 
       fromBuilder.append(hlp.whereAnd()).append(" en.status = ").append(":program_status ");
     }
@@ -1479,13 +1494,11 @@ class JdbcEventStore implements EventStore {
    */
   private String getCategoryOptionComboQuery(User user) {
     String joinCondition =
-        "inner join categoryoptioncombo coc on coc.categoryoptioncomboid = ev.attributeoptioncomboid "
-            + " inner join lateral (select coc.categoryoptioncomboid as id,"
+        " inner join (select coc.uid, coc.attributevalues, coc.code, coc.categoryoptioncomboid as id,"
             + " string_agg(co.uid, ',') as co_uids, count(co.categoryoptionid) as co_count"
             + " from categoryoptioncombo coc "
             + " inner join categoryoptioncombos_categoryoptions cocco on coc.categoryoptioncomboid = cocco.categoryoptioncomboid"
             + " inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid"
-            + " where ev.attributeoptioncomboid = coc.categoryoptioncomboid"
             + " group by coc.categoryoptioncomboid ";
 
     if (!isSuper(user)) {

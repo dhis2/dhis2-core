@@ -38,10 +38,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.EventProgramEnrollmentService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -90,9 +91,11 @@ public class CopyService {
 
   private final ProgramRuleVariableService programRuleVariableService;
 
-  private final EnrollmentService enrollmentService;
+  private final EventProgramEnrollmentService eventProgramEnrollmentService;
 
   private final AclService aclService;
+
+  private final IdentifiableObjectManager identifiableObjectManager;
 
   /**
    * Method to copy a {@link Program} from a UID
@@ -205,10 +208,15 @@ public class CopyService {
     return stageMappings;
   }
 
+  /**
+   * This method copies enrollments of event programs only, as these kinds of enrollments act as
+   * placeholders and are considered metadata. It won't copy enrollments of tracker programs because
+   * those are actual data.
+   */
   private void copyEnrollments(Program original, Program copy) {
     List<Enrollment> enrollments =
-        copyList(copy, enrollmentService.getEnrollments(original), Enrollment.copyOf);
-    enrollments.forEach(enrollmentService::addEnrollment);
+        copyList(copy, eventProgramEnrollmentService.getEnrollments(original), Enrollment.copyOf);
+    enrollments.forEach(identifiableObjectManager::save);
   }
 
   /**

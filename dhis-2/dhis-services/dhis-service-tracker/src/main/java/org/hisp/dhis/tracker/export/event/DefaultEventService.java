@@ -27,12 +27,15 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -47,7 +50,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
@@ -67,7 +70,7 @@ class DefaultEventService implements EventService {
 
   private final EventStore eventStore;
 
-  private final org.hisp.dhis.program.EventService eventService;
+  private final IdentifiableObjectManager manager;
 
   private final TrackerAccessManager trackerAccessManager;
 
@@ -78,25 +81,23 @@ class DefaultEventService implements EventService {
   private final EventOperationParamsMapper paramsMapper;
 
   @Override
-  public FileResourceStream getFileResource(UID eventUid, UID dataElementUid)
-      throws NotFoundException {
-    FileResource fileResource = getFileResourceMetadata(eventUid, dataElementUid);
+  public FileResourceStream getFileResource(UID event, UID dataElement)
+      throws NotFoundException, ForbiddenException {
+    FileResource fileResource = getFileResourceMetadata(event, dataElement);
     return FileResourceStream.of(fileResourceService, fileResource);
   }
 
   @Override
   public FileResourceStream getFileResourceImage(
-      UID eventUid, UID dataElementUid, ImageFileDimension dimension) throws NotFoundException {
-    FileResource fileResource = getFileResourceMetadata(eventUid, dataElementUid);
+      UID event, UID dataElement, ImageFileDimension dimension)
+      throws NotFoundException, ForbiddenException {
+    FileResource fileResource = getFileResourceMetadata(event, dataElement);
     return FileResourceStream.ofImage(fileResourceService, fileResource, dimension);
   }
 
   private FileResource getFileResourceMetadata(UID eventUid, UID dataElementUid)
-      throws NotFoundException {
-    Event event = eventService.getEvent(eventUid.getValue());
-    if (event == null) {
-      throw new NotFoundException(Event.class, eventUid.getValue());
-    }
+      throws NotFoundException, ForbiddenException {
+    Event event = getEvent(eventUid);
 
     DataElement dataElement = dataElementService.getDataElement(dataElementUid.getValue());
     if (dataElement == null) {
@@ -131,23 +132,38 @@ class DefaultEventService implements EventService {
   }
 
   @Override
-  public Event getEvent(String uid, EventParams eventParams)
-      throws NotFoundException, ForbiddenException {
-    Event event = eventService.getEvent(uid);
-    if (event == null) {
-      throw new NotFoundException(Event.class, uid);
-    }
-
-    return getEvent(event, eventParams);
+  public Event getEvent(@Nonnull UID event) throws ForbiddenException, NotFoundException {
+    return getEvent(event, EventParams.FALSE, CurrentUserUtil.getCurrentUserDetails());
   }
 
-  public Event getEvent(@Nonnull Event event, EventParams eventParams) throws ForbiddenException {
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    List<String> errors = trackerAccessManager.canRead(currentUser, event, false);
+  @Override
+  public Event getEvent(@Nonnull UID event, UserDetails user)
+      throws ForbiddenException, NotFoundException {
+    return getEvent(event, EventParams.FALSE, user);
+  }
+
+  @Override
+  public Event getEvent(@Nonnull UID event, EventParams eventParams)
+      throws ForbiddenException, NotFoundException {
+    return getEvent(event, eventParams, CurrentUserUtil.getCurrentUserDetails());
+  }
+
+  public Event getEvent(@Nonnull UID eventUid, EventParams eventParams, UserDetails user)
+      throws NotFoundException, ForbiddenException {
+    Event event = manager.get(Event.class, eventUid.getValue());
+    if (event == null) {
+      throw new NotFoundException(Event.class, eventUid.getValue());
+    }
+
+    List<String> errors = trackerAccessManager.canRead(user, event, false);
     if (!errors.isEmpty()) {
       throw new ForbiddenException(errors.toString());
     }
 
+    return getEvent(event, eventParams, user);
+  }
+
+  private Event getEvent(@Nonnull Event event, EventParams eventParams, UserDetails currentUser) {
     Event result = new Event();
     result.setId(event.getId());
     result.setUid(event.getUid());
@@ -194,7 +210,7 @@ class DefaultEventService implements EventService {
 
         result.getEventDataValues().add(value);
       } else {
-        log.info("Can not find a Data Element having UID [" + dataValue.getDataElement() + "]");
+        log.info("Cannot find data element with UID {}", dataValue.getDataElement());
       }
     }
 
@@ -219,16 +235,36 @@ class DefaultEventService implements EventService {
 
   @Override
   public List<Event> getEvents(EventOperationParams operationParams)
-      throws BadRequestException, ForbiddenException {
+      throws BadRequestException, ForbiddenException, NotFoundException {
     EventQueryParams queryParams = paramsMapper.map(operationParams);
     return eventStore.getEvents(queryParams);
   }
 
   @Override
   public Page<Event> getEvents(EventOperationParams operationParams, PageParams pageParams)
-      throws BadRequestException, ForbiddenException {
+      throws BadRequestException, ForbiddenException, NotFoundException {
     EventQueryParams queryParams = paramsMapper.map(operationParams);
     return eventStore.getEvents(queryParams, pageParams);
+  }
+
+  @Override
+  public RelationshipItem getEventInRelationshipItem(String uid, EventParams eventParams)
+      throws NotFoundException {
+    RelationshipItem relationshipItem = new RelationshipItem();
+
+    Event event = manager.get(Event.class, uid);
+    if (event == null) {
+      throw new NotFoundException(Event.class, uid);
+    }
+
+    UserDetails currentUser = getCurrentUserDetails();
+    List<String> errors = trackerAccessManager.canRead(currentUser, event, false);
+    if (!errors.isEmpty()) {
+      return null;
+    }
+
+    relationshipItem.setEvent(getEvent(event, eventParams, currentUser));
+    return relationshipItem;
   }
 
   @Override

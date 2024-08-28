@@ -30,14 +30,16 @@ package org.hisp.dhis.analytics.common.params.dimension;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier.DimensionIdentifierType.ENROLLMENT;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier.DimensionIdentifierType.EVENT;
-import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier.DimensionIdentifierType.TEI;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier.DimensionIdentifierType.TRACKED_ENTITY;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.DIMENSION_SEPARATOR;
 
+import java.util.function.Predicate;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.With;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.params.IdentifiableKey;
+import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -61,7 +63,7 @@ public class DimensionIdentifier<D extends UidObject> implements IdentifiableKey
   @With private final String groupId;
 
   /**
-   * Creates a dimension identifier for a TEI dimension with empty groupId.
+   * Creates a dimension identifier for a TE dimension with empty groupId.
    *
    * @param program the {@link ElementWithOffset<Program>}.
    * @param programStage the {@link ElementWithOffset<ProgramStage>}.
@@ -92,7 +94,7 @@ public class DimensionIdentifier<D extends UidObject> implements IdentifiableKey
     if (isEnrollmentDimension()) {
       return ENROLLMENT;
     }
-    return TEI;
+    return TRACKED_ENTITY;
   }
 
   public boolean isEmpty() {
@@ -101,6 +103,10 @@ public class DimensionIdentifier<D extends UidObject> implements IdentifiableKey
 
   public boolean isEnrollmentDimension() {
     return hasProgram() && !hasProgramStage();
+  }
+
+  public boolean isTeDimension() {
+    return !hasProgram() && !hasProgramStage();
   }
 
   public boolean isEventDimension() {
@@ -131,7 +137,7 @@ public class DimensionIdentifier<D extends UidObject> implements IdentifiableKey
   }
 
   public enum DimensionIdentifierType {
-    TEI,
+    TRACKED_ENTITY,
     ENROLLMENT,
     EVENT
   }
@@ -151,5 +157,20 @@ public class DimensionIdentifier<D extends UidObject> implements IdentifiableKey
 
   public String getKeyNoOffset() {
     return withoutOffset().toString();
+  }
+
+  private boolean has(Predicate<QueryItem> function) {
+    if (dimension instanceof DimensionParam dimensionParam && dimensionParam.isQueryItem()) {
+      return function.test(dimensionParam.getQueryItem());
+    }
+    return false;
+  }
+
+  public boolean hasLegendSet() {
+    return has(QueryItem::hasLegendSet);
+  }
+
+  public boolean hasOptionSet() {
+    return has(QueryItem::hasOptionSet);
   }
 }

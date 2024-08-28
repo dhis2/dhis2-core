@@ -31,9 +31,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import org.hisp.dhis.helpers.config.TestConfiguration;
+import org.hisp.dhis.test.e2e.helpers.config.TestConfiguration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.WebDriver;
@@ -41,6 +42,7 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
 @Tag("uitests")
+@Disabled("Deprecated with Struts")
 class LoginPageTest {
   private WebDriver driver;
 

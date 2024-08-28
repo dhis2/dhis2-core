@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
-import static org.hisp.dhis.utils.Assertions.assertStartsWith;
-import static org.hisp.dhis.web.WebClient.Header;
+import static org.hisp.dhis.test.utils.Assertions.assertContains;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.test.web.WebClient.Header;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasOnlyMembers;
@@ -45,6 +46,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -61,23 +64,23 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.controller.tracker.JsonDataValue;
 import org.hisp.dhis.webapi.controller.tracker.JsonEvent;
 import org.hisp.dhis.webapi.controller.tracker.JsonNote;
@@ -88,7 +91,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
+class EventsExportControllerByIdTest extends H2ControllerIntegrationTestBase {
   private static final String DATA_ELEMENT_VALUE = "value";
 
   @Autowired private IdentifiableObjectManager manager;
@@ -96,6 +99,10 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
   @Autowired private FileResourceService fileResourceService;
 
   @Autowired private FileResourceContentStore fileResourceContentStore;
+
+  @Autowired private CategoryService categoryService;
+
+  private CategoryOptionCombo coc;
 
   private OrganisationUnit orgUnit;
 
@@ -118,6 +125,8 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
   @BeforeEach
   void setUp() {
     owner = makeUser("owner");
+
+    coc = categoryService.getDefaultCategoryOptionCombo();
 
     orgUnit = createOrganisationUnit('A');
     orgUnit.getSharing().setOwner(owner);
@@ -375,6 +384,7 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
     assertEquals("no-cache, private", response.header("Cache-Control"));
     assertEquals(Long.toString(file.getContentLength()), response.header("Content-Length"));
     assertEquals("filename=" + file.getName(), response.header("Content-Disposition"));
+    assertContains("script-src 'none';", response.header("Content-Security-Policy"));
     assertEquals("file content", response.content("text/plain"));
   }
 
@@ -420,6 +430,7 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
     assertEquals(HttpStatus.NOT_MODIFIED, response.status());
     assertEquals("\"" + file.getUid() + "\"", response.header("Etag"));
     assertEquals("no-cache, private", response.header("Cache-Control"));
+    assertContains("script-src 'none';", response.header("Content-Security-Policy"));
     assertFalse(response.hasBody());
   }
 
@@ -546,7 +557,7 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
     this.switchContextToUser(user);
 
     GET("/tracker/events/{eventUid}/dataValues/{dataElementUid}/file", event.getUid(), de.getUid())
-        .error(HttpStatus.NOT_FOUND);
+        .error(HttpStatus.FORBIDDEN);
   }
 
   @Test
@@ -758,13 +769,13 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
     enrollment.setAutoFields();
     enrollment.setEnrollmentDate(new Date());
     enrollment.setOccurredDate(new Date());
-    enrollment.setStatus(ProgramStatus.COMPLETED);
+    enrollment.setStatus(EnrollmentStatus.COMPLETED);
     manager.save(enrollment);
     return enrollment;
   }
 
   private Event event(Enrollment enrollment) {
-    Event event = new Event(enrollment, programStage, enrollment.getOrganisationUnit());
+    Event event = new Event(enrollment, programStage, enrollment.getOrganisationUnit(), coc);
     event.setAutoFields();
     manager.save(event);
     return event;
@@ -887,8 +898,8 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
     assertHasMember(json, "updatedAtClient");
     assertHasMember(json, "dataValues");
     assertHasMember(json, "notes");
-    assertHasNoMember(json, "attributeOptionCombo");
-    assertHasNoMember(json, "attributeCategoryOptions");
+    assertHasMember(json, "attributeOptionCombo");
+    assertHasMember(json, "attributeCategoryOptions");
     assertHasNoMember(json, "relationships");
   }
 }

@@ -51,17 +51,17 @@ public class ServiceConfig {
     return DefaultLocationManager.getDefault();
   }
 
-  @Bean("maxAttempts")
+  @Bean
   public ConfigurationPropertyFactoryBean maxAttempts() {
     return new ConfigurationPropertyFactoryBean(META_DATA_SYNC_RETRY);
   }
 
-  @Bean("initialInterval")
+  @Bean
   public ConfigurationPropertyFactoryBean initialInterval() {
     return new ConfigurationPropertyFactoryBean(META_DATA_SYNC_RETRY_TIME_FREQUENCY_MILLISEC);
   }
 
-  @Bean("sessionTimeout")
+  @Bean
   public ConfigurationPropertyFactoryBean sessionTimeout() {
     return new ConfigurationPropertyFactoryBean(SYSTEM_SESSION_TIMEOUT);
   }

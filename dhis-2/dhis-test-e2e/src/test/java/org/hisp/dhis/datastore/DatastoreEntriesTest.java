@@ -36,11 +36,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.actions.UserActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.test.e2e.actions.LoginActions;
+import org.hisp.dhis.test.e2e.actions.RestApiActions;
+import org.hisp.dhis.test.e2e.actions.UserActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -217,7 +217,6 @@ class DatastoreEntriesTest extends ApiTest {
         .update("/" + NAMESPACE + "/" + key1, getEntry("arsenal update3"))
         .validateStatus(403)
         .validate()
-        .statusCode(403)
         .body("httpStatus", equalTo("Forbidden"))
         .body("status", equalTo("ERROR"))
         .body("message", equalTo("Access denied for key 'arsenal' in namespace 'football'"));
@@ -244,9 +243,13 @@ class DatastoreEntriesTest extends ApiTest {
     loginActions.loginAsUser(BASIC_USER, "Test1234!");
     ApiResponse getResponse =
         datastoreActions.get("/" + NAMESPACE + "/" + key1).validateStatus(403);
-    assertEquals(
-        "{\"httpStatus\":\"Forbidden\",\"httpStatusCode\":403,\"status\":\"ERROR\",\"message\":\"Access denied for key 'arsenal' in namespace 'football'\"}",
-        getResponse.getAsString());
+
+    getResponse
+        .validate()
+        .body("httpStatus", equalTo("Forbidden"))
+        .body("status", equalTo("ERROR"))
+        .body("message", equalTo("Access denied for key 'arsenal' in namespace 'football'"))
+        .body("errorCode", equalTo("E1006"));
   }
 
   @Test
@@ -442,9 +445,13 @@ class DatastoreEntriesTest extends ApiTest {
     loginActions.loginAsUser(BASIC_USER, "Test1234!");
     ApiResponse getResponse =
         datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData").validateStatus(403);
-    assertEquals(
-        "{\"httpStatus\":\"Forbidden\",\"httpStatusCode\":403,\"status\":\"ERROR\",\"message\":\"Access denied for key 'arsenal' in namespace 'football'\"}",
-        getResponse.getAsString());
+
+    getResponse
+        .validate()
+        .body("httpStatus", equalTo("Forbidden"))
+        .body("status", equalTo("ERROR"))
+        .body("message", equalTo("Access denied for key 'arsenal' in namespace 'football'"))
+        .body("errorCode", equalTo("E1006"));
   }
 
   @Test
@@ -579,7 +586,6 @@ class DatastoreEntriesTest extends ApiTest {
         .delete("/" + NAMESPACE + "/" + key1)
         .validateStatus(403)
         .validate()
-        .statusCode(403)
         .body("httpStatus", equalTo("Forbidden"))
         .body("status", equalTo("ERROR"))
         .body("message", equalTo("Access denied for key 'arsenal' in namespace 'football'"));

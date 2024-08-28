@@ -53,7 +53,6 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.schema.descriptors.EventChartSchemaDescriptor;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -62,7 +61,7 @@ import org.hisp.dhis.visualization.PlotData;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
-import org.jfree.chart.ChartUtils;
+import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -80,7 +79,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @OpenApi.Ignore
 @Deprecated
 @Controller
-@RequestMapping(value = EventChartSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/eventCharts")
 public class EventChartController extends AbstractCrudController<EventChart> {
   @Autowired private EventChartService eventChartService;
 
@@ -154,7 +153,7 @@ public class EventChartController extends AbstractCrudController<EventChart> {
         filename,
         attachment);
 
-    ChartUtils.writeChartAsPNG(response.getOutputStream(), jFreeChart, width, height);
+    ChartUtilities.writeChartAsPNG(response.getOutputStream(), jFreeChart, width, height);
   }
 
   // --------------------------------------------------------------------------

@@ -163,7 +163,7 @@ public class DefaultProgramService implements ProgramService {
 
   @Override
   public boolean hasOrgUnit(Program program, OrganisationUnit organisationUnit) {
-    return this.programStore.hasOrgUnit(program, organisationUnit);
+    return programStore.hasOrgUnit(program, organisationUnit);
   }
 
   @Override
@@ -172,10 +172,5 @@ public class DefaultProgramService implements ProgramService {
     idObjectManager.loadByUid(Program.class, programUids);
 
     return jdbcOrgUnitAssociationsStore.getOrganisationUnitsAssociationsForCurrentUser(programUids);
-  }
-
-  @Override
-  public boolean checkProgramOrganisationUnitsAssociations(String program, String orgUnit) {
-    return jdbcOrgUnitAssociationsStore.checkOrganisationUnitsAssociations(program, orgUnit);
   }
 }

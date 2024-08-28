@@ -130,6 +130,13 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
   }
 
   @Override
+  public void deleteDataValue(DataValue dataValue) {
+    getQuery("delete from DataValue dv where dv = :dataValue")
+        .setParameter("dataValue", dataValue)
+        .executeUpdate();
+  }
+
+  @Override
   public DataValue getDataValue(
       DataElement dataElement,
       Period period,
@@ -190,8 +197,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         and deleted is true""";
 
     return getSingleResult(
-        getSession()
-            .createNativeQuery(sql, DataValue.class)
+        nativeSynchronizedTypedQuery(sql)
             .setParameter("deid", dataValue.getDataElement().getId())
             .setParameter("periodid", storedPeriod.getId())
             .setParameter("attributeOptionCombo", dataValue.getAttributeOptionCombo().getId())
@@ -205,6 +211,13 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
     return getList(
         builder, newJpaParameters().addPredicate(root -> builder.equal(root.get(DELETED), false)));
+  }
+
+  @Override
+  public List<DataValue> getAllDataValuesByDataElement(List<DataElement> dataElements) {
+    return getQuery("from DataValue dv where dv.dataElement in :dataElements")
+        .setParameter("dataElements", dataElements)
+        .getResultList();
   }
 
   @Override
@@ -240,12 +253,15 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     String cocIdsSql =
         "select distinct categoryoptioncomboid from categorycombos_optioncombos where categorycomboid = :cc";
     List<?> cocIds =
-        getSession().createNativeQuery(cocIdsSql).setParameter("cc", combo.getId()).list();
+        getSession()
+            .createNativeQuery(cocIdsSql)
+            .addSynchronizedEntityClass(CategoryOptionCombo.class)
+            .setParameter("cc", combo.getId())
+            .list();
     String anyDataValueSql =
         "select 1 from datavalue dv "
             + "where dv.categoryoptioncomboid in :cocIds or dv.attributeoptioncomboid in :cocIds limit 1";
-    return !getSession()
-        .createNativeQuery(anyDataValueSql)
+    return !nativeSynchronizedQuery(anyDataValueSql)
         .setParameter("cocIds", cocIds)
         .list()
         .isEmpty();

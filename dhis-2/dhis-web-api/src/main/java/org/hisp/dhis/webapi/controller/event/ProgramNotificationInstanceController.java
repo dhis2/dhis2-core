@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
 
 import java.util.Date;
@@ -35,15 +36,20 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.program.EnrollmentService;
-import org.hisp.dhis.program.EventService;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceParam;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.schema.descriptors.ProgramNotificationInstanceSchemaDescriptor;
+import org.hisp.dhis.security.RequiresAuthority;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
+import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -53,9 +59,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Zubair Asghar
  */
-@OpenApi.Tags("tracker")
+@OpenApi.Document(domain = ProgramNotificationInstance.class)
 @Controller
-@RequestMapping(value = ProgramNotificationInstanceSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/programNotificationInstances")
 @ApiVersion(include = {DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class ProgramNotificationInstanceController {
   private final ProgramNotificationInstanceService programNotificationInstanceService;
@@ -73,7 +79,7 @@ public class ProgramNotificationInstanceController {
     this.eventService = eventService;
   }
 
-  @PreAuthorize("hasRole('ALL')")
+  @RequiresAuthority(anyOf = ALL)
   @GetMapping(produces = {"application/json"})
   public @ResponseBody Page<ProgramNotificationInstance> getScheduledMessage(
       @Deprecated(since = "2.41") @RequestParam(required = false) UID programInstance,
@@ -89,7 +95,7 @@ public class ProgramNotificationInstanceController {
       @RequestParam(required = false) Boolean paging,
       @RequestParam(required = false, defaultValue = "1") int page,
       @RequestParam(required = false, defaultValue = "50") int pageSize)
-      throws BadRequestException {
+      throws BadRequestException, ForbiddenException, NotFoundException {
     if (paging != null && skipPaging != null && paging.equals(skipPaging)) {
       throw new BadRequestException(
           "Paging can either be enabled or disabled. Prefer 'paging' as 'skipPaging' will be removed.");
@@ -101,18 +107,24 @@ public class ProgramNotificationInstanceController {
     UID eventUid =
         validateDeprecatedParameter("programStageInstance", programStageInstance, "event", event);
 
+    Event storedEvent = null;
+    if (eventUid != null) {
+      storedEvent = eventService.getEvent(eventUid);
+    }
+    Enrollment storedEnrollment = null;
+    if (enrollmentUid != null) {
+      storedEnrollment =
+          enrollmentService.getEnrollment(enrollmentUid.getValue(), EnrollmentParams.FALSE, false);
+    }
     ProgramNotificationInstanceParam params =
         ProgramNotificationInstanceParam.builder()
-            .enrollment(
-                enrollmentService.getEnrollment(
-                    enrollmentUid == null ? null : enrollmentUid.getValue()))
-            .event(eventService.getEvent(eventUid == null ? null : eventUid.getValue()))
+            .enrollment(storedEnrollment)
+            .event(storedEvent)
             .skipPaging(!isPaged)
             .page(page)
             .pageSize(pageSize)
             .scheduledAt(scheduledAt)
             .build();
-    programNotificationInstanceService.validateQueryParameters(params);
 
     List<ProgramNotificationInstance> instances =
         programNotificationInstanceService.getProgramNotificationInstances(params);

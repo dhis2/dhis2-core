@@ -37,7 +37,6 @@ import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -45,9 +44,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
@@ -56,20 +53,18 @@ import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
+import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -78,11 +73,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class EventSecurityImportValidationTest extends TrackerTest {
 
-  @Autowired protected TrackedEntityService trackedEntityService;
-
   @Autowired private TrackerImportService trackerImportService;
-
-  @Autowired private EventService programStageServiceInstance;
 
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
@@ -94,11 +85,9 @@ class EventSecurityImportValidationTest extends TrackerTest {
 
   @Autowired private TrackedEntityTypeService trackedEntityTypeService;
 
-  @Autowired private EnrollmentService enrollmentService;
-
   @Autowired private OrganisationUnitService organisationUnitService;
 
-  @Autowired private UserService _userService;
+  @Autowired private TrackerOwnershipManager trackerOwnershipAccessManager;
 
   private TrackedEntity maleA;
 
@@ -124,33 +113,32 @@ class EventSecurityImportValidationTest extends TrackerTest {
 
   private TrackedEntityType trackedEntityType;
 
-  @Override
-  protected void initTest() throws IOException {
-    userService = _userService;
+  private User importUser;
+
+  @BeforeAll
+  void setUp() throws IOException {
     setUpMetadata("tracker/tracker_basic_metadata.json");
-    injectAdminUser();
 
-    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-    Set<String> allAuthorities = currentUserDetails.getAllAuthorities();
+    importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
 
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     assertNoErrors(
         trackerImportService.importTracker(
-            new TrackerImportParams(),
-            fromJson("tracker/validations/enrollments_te_te-data.json")));
+            params, fromJson("tracker/validations/enrollments_te_te-data.json")));
     assertNoErrors(
         trackerImportService.importTracker(
-            new TrackerImportParams(),
-            fromJson("tracker/validations/enrollments_te_enrollments-data.json")));
+            params, fromJson("tracker/validations/enrollments_te_enrollments-data.json")));
     manager.flush();
-  }
 
-  private void setupMetadata() {
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitB = createOrganisationUnit('B');
     manager.save(organisationUnitA);
     manager.save(organisationUnitB);
     organisationUnitA.setPublicAccess(AccessStringHelper.FULL);
     manager.update(organisationUnitA);
+    importUser.addOrganisationUnit(organisationUnitA);
+    manager.update(importUser);
     dataElementA = createDataElement('A');
     dataElementB = createDataElement('B');
     dataElementA.setValueType(ValueType.INTEGER);
@@ -201,32 +189,37 @@ class EventSecurityImportValidationTest extends TrackerTest {
     manager.save(maleB);
     manager.save(femaleA);
     manager.save(femaleB);
+
     int testYear = Calendar.getInstance().get(Calendar.YEAR) - 1;
     Date dateMar20 = getDate(testYear, 3, 20);
     Date dateApr10 = getDate(testYear, 4, 10);
-    Enrollment enrollment =
-        enrollmentService.enrollTrackedEntity(
-            maleA, programA, dateMar20, dateApr10, organisationUnitA, "MNWZ6hnuhSX");
-    enrollmentService.addEnrollment(enrollment);
+
+    Enrollment enrollmentA = createEnrollment(programA, maleA, organisationUnitA);
+    enrollmentA.setEnrollmentDate(dateMar20);
+    enrollmentA.setOccurredDate(dateApr10);
+    enrollmentA.setUid("MNWZ6hnuhSX");
+    manager.save(enrollmentA);
+    maleA.getEnrollments().add(enrollmentA);
+    manager.update(maleA);
+    trackerOwnershipAccessManager.assignOwnership(maleA, programA, organisationUnitA, false, false);
+
     trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
-        maleA.getUid(), programA.getUid(), organisationUnitA.getUid());
+        maleA, programA, organisationUnitA);
     manager.update(programA);
     User user = userService.getUser(USER_5);
     OrganisationUnit qfUVllTs6cS = organisationUnitService.getOrganisationUnit("QfUVllTs6cS");
     user.addOrganisationUnit(qfUVllTs6cS);
     user.addOrganisationUnit(organisationUnitA);
-    User adminUser = userService.getUser(ADMIN_USER_UID);
-    adminUser.addOrganisationUnit(organisationUnitA);
+    importUser.addOrganisationUnit(organisationUnitA);
     Program p = programService.getProgram("prabcdefghA");
     p.addOrganisationUnit(qfUVllTs6cS);
     programService.updateProgram(p);
     manager.update(user);
-    manager.update(adminUser);
+    manager.update(importUser);
   }
 
   @Test
   void testNoWriteAccessToProgramStage() throws IOException {
-    setupMetadata();
     TrackerObjects trackerObjects =
         fromJson("tracker/validations/events_error-no-programStage-access.json");
     TrackerImportParams params = new TrackerImportParams();
@@ -234,6 +227,7 @@ class EventSecurityImportValidationTest extends TrackerTest {
     params.setUserId(user.getUid());
     user.addOrganisationUnit(organisationUnitA);
     manager.update(user);
+
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertHasOnlyErrors(importReport, ValidationCode.E1095, ValidationCode.E1096);
@@ -241,14 +235,16 @@ class EventSecurityImportValidationTest extends TrackerTest {
 
   @Test
   void testNoUncompleteEventAuth() throws IOException {
-    setupMetadata();
     TrackerObjects trackerObjects = fromJson("tracker/validations/events_error-no-uncomplete.json");
-    TrackerImportParams params = new TrackerImportParams();
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     params.setImportStrategy(TrackerImportStrategy.CREATE);
+
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+
     assertNoErrors(importReport);
+
     // Change just inserted Event to status COMPLETED...
-    Event zwwuwNp6gVd = programStageServiceInstance.getEvent("ZwwuwNp6gVd");
+    Event zwwuwNp6gVd = manager.get(Event.class, "ZwwuwNp6gVd");
     zwwuwNp6gVd.setStatus(EventStatus.COMPLETED);
     manager.update(zwwuwNp6gVd);
     programA.setPublicAccess(AccessStringHelper.FULL);

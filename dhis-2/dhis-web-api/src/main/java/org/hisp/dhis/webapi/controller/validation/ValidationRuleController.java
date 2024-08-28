@@ -32,7 +32,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.google.common.collect.Lists;
 import java.util.List;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
@@ -43,7 +42,6 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.query.Order;
-import org.hisp.dhis.schema.descriptors.ValidationRuleSchemaDescriptor;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
@@ -60,9 +58,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags("data")
 @Controller
-@RequestMapping(value = ValidationRuleSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/validationRules")
 public class ValidationRuleController extends AbstractCrudController<ValidationRule> {
   @Autowired private DataSetService dataSetService;
 
@@ -74,7 +71,11 @@ public class ValidationRuleController extends AbstractCrudController<ValidationR
 
   @Override
   protected List<ValidationRule> getEntityList(
-      WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders)
+      WebMetadata metadata,
+      WebOptions options,
+      List<String> filters,
+      List<Order> orders,
+      List<ValidationRule> objects)
       throws BadRequestException {
     if (options.contains("dataSet")) {
       DataSet ds = dataSetService.getDataSet(options.get("dataSet"));
@@ -86,7 +87,7 @@ public class ValidationRuleController extends AbstractCrudController<ValidationR
       return Lists.newArrayList(validationRuleService.getValidationRulesForDataSet(ds));
     }
 
-    return super.getEntityList(metadata, options, filters, orders);
+    return super.getEntityList(metadata, options, filters, orders, objects);
   }
 
   @PostMapping(value = "/expression/description", produces = APPLICATION_JSON_VALUE)

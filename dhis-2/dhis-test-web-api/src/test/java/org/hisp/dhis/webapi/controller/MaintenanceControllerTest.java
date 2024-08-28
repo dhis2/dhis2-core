@@ -27,12 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -40,7 +41,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class MaintenanceControllerTest extends DhisControllerConvenienceTest {
+class MaintenanceControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testPruneDataByOrganisationUnit() {
@@ -72,7 +73,7 @@ class MaintenanceControllerTest extends DhisControllerConvenienceTest {
   void testPruneDataByOrganisationUnit_MissingAuthority() {
     switchToNewUser("guest");
     assertEquals(
-        "Access is denied",
+        "Access is denied, requires one Authority from [ALL]",
         POST("/maintenance/dataPruning/organisationUnits/xzy")
             .error(HttpStatus.FORBIDDEN)
             .getMessage());
@@ -118,7 +119,7 @@ class MaintenanceControllerTest extends DhisControllerConvenienceTest {
   void testPruneDataByDataElement_MissingAuthority() {
     switchToNewUser("guest");
     assertEquals(
-        "Access is denied",
+        "Access is denied, requires one Authority from [ALL]",
         POST("/maintenance/dataPruning/dataElements/xzy").error(HttpStatus.FORBIDDEN).getMessage());
   }
 
@@ -131,7 +132,8 @@ class MaintenanceControllerTest extends DhisControllerConvenienceTest {
   void testAppReload_MissingAuthority() {
     switchToNewUser("guest");
     assertEquals(
-        "Access is denied", GET("/maintenance/appReload").error(HttpStatus.FORBIDDEN).getMessage());
+        "Access is denied, requires one Authority from [F_PERFORM_MAINTENANCE]",
+        GET("/maintenance/appReload").error(HttpStatus.FORBIDDEN).getMessage());
   }
 
   @Test
@@ -163,7 +165,7 @@ class MaintenanceControllerTest extends DhisControllerConvenienceTest {
   void testUpdateCategoryOptionCombos_MissingAuthority() {
     switchToNewUser("guest");
     assertEquals(
-        "Access is denied",
+        "Access is denied, requires one Authority from [F_PERFORM_MAINTENANCE]",
         POST("/maintenance/categoryOptionComboUpdate/categoryCombo/xyz")
             .error(HttpStatus.FORBIDDEN)
             .getMessage());

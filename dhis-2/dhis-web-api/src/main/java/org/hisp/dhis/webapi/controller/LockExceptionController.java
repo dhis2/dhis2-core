@@ -39,7 +39,6 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.dataset.DataSet;
@@ -51,11 +50,10 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
-import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
+import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.node.NodeUtils;
-import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -87,12 +85,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-@OpenApi.Tags("data")
 @Controller
-@RequestMapping(LockExceptionController.RESOURCE_PATH)
+@RequestMapping("/api/lockExceptions")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class LockExceptionController extends AbstractGistReadOnlyController<LockException> {
-  public static final String RESOURCE_PATH = "/lockExceptions";
 
   @Autowired private ContextService contextService;
 
@@ -125,7 +121,7 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
     if (fields.isEmpty()) {
-      fields.addAll(Preset.ALL.getFields());
+      fields.addAll(FieldPreset.ALL.getFields());
     }
 
     List<LockException> lockExceptions = new ArrayList<>();
@@ -179,7 +175,7 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
     if (fields.isEmpty()) {
-      fields.addAll(Preset.ALL.getFields());
+      fields.addAll(FieldPreset.ALL.getFields());
     }
 
     List<LockException> lockExceptions = this.dataSetService.getLockExceptionCombinations();
@@ -272,7 +268,7 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
       @RequestParam("ds") String dataSetId,
       HttpServletRequest request,
       HttpServletResponse response)
-      throws WebMessageException {
+      throws WebMessageException, ForbiddenException {
     DataSet dataSet = dataSetService.getDataSet(dataSetId);
 
     Period period = periodService.reloadPeriod(PeriodType.getPeriodFromIsoString(periodId));
@@ -289,8 +285,7 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
     }
 
     if (!aclService.canDelete(CurrentUserUtil.getCurrentUserDetails(), dataSet)) {
-      throw new ReadAccessDeniedException(
-          "You don't have the proper permissions to delete this object.");
+      throw new ForbiddenException("You don't have the proper permissions to delete this object.");
     }
 
     if (organisationUnit != null) {

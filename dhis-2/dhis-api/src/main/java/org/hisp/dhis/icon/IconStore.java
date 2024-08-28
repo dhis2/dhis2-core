@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.icon;
 
-import java.sql.SQLException;
 import java.util.List;
 
 public interface IconStore {
@@ -37,7 +36,7 @@ public interface IconStore {
    *
    * @param icon to persist
    */
-  void save(Icon icon) throws SQLException;
+  void save(Icon icon);
 
   /**
    * Remove {@link Icon}
@@ -51,7 +50,7 @@ public interface IconStore {
    *
    * @param icon to update
    */
-  void update(Icon icon) throws SQLException;
+  void update(Icon icon);
 
   /**
    * Get the count of Icons based on filters provided in {@link IconQueryParams}
@@ -81,4 +80,10 @@ public interface IconStore {
    * @return the custom icon matching the key, or null instead
    */
   Icon getIconByKey(String key);
+
+  /**
+   * @return number of icons deleted because they were not custom but refer to a non-existing {@link
+   *     org.hisp.dhis.fileresource.FileResource}
+   */
+  int deleteOrphanDefaultIcons();
 }

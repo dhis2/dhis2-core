@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
-import static org.hisp.dhis.utils.Assertions.assertContains;
-import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.test.utils.Assertions.assertContains;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
@@ -67,7 +67,8 @@ class EventsExportControllerUnitTest {
         assertThrows(
             IllegalStateException.class,
             () ->
-                new EventsExportController(eventService, null, null, null, null, null, null, null));
+                new EventsExportController(
+                    eventService, null, null, null, null, null, null, null, null));
 
     assertAll(
         () -> assertStartsWith("event controller supports ordering by", exception.getMessage()),

@@ -49,12 +49,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.junit.jupiter.api.BeforeEach;
@@ -72,7 +71,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
-class FileResourceCleanUpJobTest extends IntegrationTestBase {
+class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
 
   private FileResourceCleanUpJob cleanUpJob;
 
@@ -95,8 +94,6 @@ class FileResourceCleanUpJobTest extends IntegrationTestBase {
 
   @Autowired private ExternalFileResourceService externalFileResourceService;
 
-  @Autowired private UserService _userService;
-
   @Mock private FileResourceContentStore fileResourceContentStore;
 
   private DataValue dataValueA;
@@ -109,8 +106,6 @@ class FileResourceCleanUpJobTest extends IntegrationTestBase {
 
   @BeforeEach
   public void init() {
-    userService = _userService;
-
     cleanUpJob =
         new FileResourceCleanUpJob(
             fileResourceService, systemSettingManager, fileResourceContentStore);
@@ -132,7 +127,7 @@ class FileResourceCleanUpJobTest extends IntegrationTestBase {
 
     dataValueService.deleteDataValue(dataValueA);
 
-    cleanUpJob.execute(null, NoopJobProgress.INSTANCE);
+    cleanUpJob.execute(null, JobProgress.noop());
 
     assertNull(fileResourceService.getFileResource(dataValueA.getValue()));
   }
@@ -162,7 +157,7 @@ class FileResourceCleanUpJobTest extends IntegrationTestBase {
     audit.setCreated(getDate(2000, 1, 1));
     dataValueAuditStore.updateDataValueAudit(audit);
 
-    cleanUpJob.execute(null, NoopJobProgress.INSTANCE);
+    cleanUpJob.execute(null, JobProgress.noop());
 
     assertNotNull(fileResourceService.getFileResource(dataValueA.getValue()));
     assertTrue(fileResourceService.getFileResource(dataValueA.getValue()).isAssigned());
@@ -196,7 +191,7 @@ class FileResourceCleanUpJobTest extends IntegrationTestBase {
     assertNotNull(fileResourceService.getFileResource(uidA));
     assertNotNull(fileResourceService.getFileResource(uidB));
 
-    cleanUpJob.execute(null, NoopJobProgress.INSTANCE);
+    cleanUpJob.execute(null, JobProgress.noop());
 
     assertNull(fileResourceService.getFileResource(uidA));
     assertNotNull(fileResourceService.getFileResource(uidB));
@@ -222,7 +217,7 @@ class FileResourceCleanUpJobTest extends IntegrationTestBase {
     ex.getFileResource().setAssigned(false);
     fileResourceService.updateFileResource(ex.getFileResource());
 
-    cleanUpJob.execute(null, NoopJobProgress.INSTANCE);
+    cleanUpJob.execute(null, JobProgress.noop());
 
     assertNotNull(
         externalFileResourceService.getExternalFileResourceByAccessToken(ex.getAccessToken()));
@@ -243,7 +238,7 @@ class FileResourceCleanUpJobTest extends IntegrationTestBase {
     ex.getFileResource().setStorageStatus(FileResourceStorageStatus.PENDING);
     fileResourceService.updateFileResource(ex.getFileResource());
 
-    cleanUpJob.execute(null, NoopJobProgress.INSTANCE);
+    cleanUpJob.execute(null, JobProgress.noop());
 
     assertNull(
         externalFileResourceService.getExternalFileResourceByAccessToken(ex.getAccessToken()));

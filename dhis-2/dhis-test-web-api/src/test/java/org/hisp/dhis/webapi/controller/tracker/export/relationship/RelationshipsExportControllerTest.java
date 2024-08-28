@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
-import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContainsAll;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertEnrollmentWithinRelationship;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertEventWithinRelationshipItem;
@@ -40,8 +40,11 @@ import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertTrack
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -51,25 +54,27 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackerdataview.TrackerDataView;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.controller.tracker.JsonAttribute;
 import org.hisp.dhis.webapi.controller.tracker.JsonDataValue;
 import org.hisp.dhis.webapi.controller.tracker.JsonNote;
@@ -81,9 +86,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
+class RelationshipsExportControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private CategoryService categoryService;
+
+  private CategoryOptionCombo coc;
 
   private OrganisationUnit orgUnit;
 
@@ -110,6 +119,8 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     owner = makeUser("o");
     manager.save(owner, false);
 
+    coc = categoryService.getDefaultCategoryOptionCombo();
+
     orgUnit = createOrganisationUnit('A');
     orgUnit.getSharing().setOwner(owner);
     manager.save(orgUnit, false);
@@ -122,17 +133,6 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     user.addOrganisationUnit(orgUnit);
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit));
     this.userService.updateUser(user);
-
-    program = createProgram('A');
-    program.addOrganisationUnit(orgUnit);
-    program.getSharing().setOwner(owner);
-    program.getSharing().addUserAccess(userAccess());
-    manager.save(program, false);
-
-    programStage = createProgramStage('A', program);
-    programStage.getSharing().setOwner(owner);
-    programStage.getSharing().addUserAccess(userAccess());
-    manager.save(programStage, false);
 
     tea = createTrackedEntityAttribute('A');
     tea.getSharing().setOwner(owner);
@@ -155,6 +155,18 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
 
     trackedEntityType.setTrackedEntityTypeAttributes(List.of(trackedEntityTypeAttribute));
     manager.save(trackedEntityType, false);
+
+    program = createProgram('A');
+    program.addOrganisationUnit(orgUnit);
+    program.getSharing().setOwner(owner);
+    program.getSharing().addUserAccess(userAccess());
+    program.setTrackedEntityType(trackedEntityType);
+    manager.save(program, false);
+
+    programStage = createProgramStage('A', program);
+    programStage.getSharing().setOwner(owner);
+    programStage.getSharing().addUserAccess(userAccess());
+    manager.save(programStage, false);
 
     dataElement = createDataElement('A');
     manager.save(dataElement, false);
@@ -309,7 +321,19 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     TrackedEntity to = trackedEntity();
     Event from = event(enrollment(to));
     from.setEventDataValues(Set.of(new EventDataValue(dataElement.getUid(), "12")));
-    relationship(from, to);
+    Relationship relationship = relationship(from, to);
+    RelationshipType type = relationship.getRelationshipType();
+
+    RelationshipConstraint toConstraint = new RelationshipConstraint();
+
+    TrackerDataView trackerDataView = new TrackerDataView();
+    trackerDataView.setDataElements(new LinkedHashSet<>(Set.of(dataElement.getUid())));
+
+    toConstraint.setTrackerDataView(trackerDataView);
+
+    type.setFromConstraint(toConstraint);
+
+    manager.update(type);
 
     JsonList<JsonRelationship> relationships =
         GET(
@@ -407,7 +431,18 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     program.setProgramAttributes(List.of(createProgramTrackedEntityAttribute(program, tea)));
 
     Enrollment from = enrollment(to);
-    relationship(from, to);
+    Relationship relationship = relationship(from, to);
+
+    RelationshipType type = relationship.getRelationshipType();
+
+    RelationshipConstraint constraint = new RelationshipConstraint();
+
+    TrackerDataView trackerDataView = new TrackerDataView();
+    trackerDataView.setAttributes(new LinkedHashSet<>(Set.of(tea.getUid())));
+
+    constraint.setTrackerDataView(trackerDataView);
+
+    type.setFromConstraint(constraint);
 
     JsonList<JsonRelationship> relationships =
         GET(
@@ -455,7 +490,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     Relationship r = relationship(from, to);
 
     JsonList<JsonRelationship> relationships =
-        GET("/tracker/relationships?trackedEntity={tei}", to.getUid())
+        GET("/tracker/relationships?trackedEntity={trackedEntity}", to.getUid())
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
 
@@ -556,7 +591,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void getRelationshipsByTe() {
+  void getRelationshipsByDeprecatedTei() {
     TrackedEntity to = trackedEntity();
     Enrollment from = enrollment(to);
     Relationship r = relationship(from, to);
@@ -580,7 +615,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
 
     JsonList<JsonRelationship> relationships =
         GET(
-                "/tracker/relationships?trackedEntity={tei}&fields=to[trackedEntity[enrollments[enrollment,trackedEntity]]",
+                "/tracker/relationships?trackedEntity={trackedEntity}&fields=to[trackedEntity[enrollments[enrollment,trackedEntity]]",
                 to.getUid())
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
@@ -598,11 +633,30 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
         Set.of(attributeValue(tea, to, "12"), attributeValue(tea2, to, "24")));
     program.setProgramAttributes(List.of(createProgramTrackedEntityAttribute(program, tea2)));
     Enrollment from = enrollment(to);
-    relationship(from, to);
+    Relationship relationship = relationship(from, to);
+
+    RelationshipType type = relationship.getRelationshipType();
+
+    RelationshipConstraint fromConstraint = new RelationshipConstraint();
+
+    TrackerDataView trackerDataView = new TrackerDataView();
+    trackerDataView.setAttributes(new LinkedHashSet<>(Set.of(tea2.getUid())));
+
+    fromConstraint.setTrackerDataView(trackerDataView);
+
+    RelationshipConstraint toConstraint = new RelationshipConstraint();
+
+    TrackerDataView dataView = new TrackerDataView();
+    dataView.setAttributes(new LinkedHashSet<>(Set.of(tea.getUid(), tea2.getUid())));
+
+    toConstraint.setTrackerDataView(dataView);
+
+    type.setFromConstraint(fromConstraint);
+    type.setToConstraint(toConstraint);
 
     JsonList<JsonRelationship> relationships =
         GET(
-                "/tracker/relationships?trackedEntity={tei}&fields=from[enrollment[attributes[attribute,value]]],to[trackedEntity[attributes[attribute,value]]]",
+                "/tracker/relationships?trackedEntity={trackedEntity}&fields=from[enrollment[attributes[attribute,value]]],to[trackedEntity[attributes[attribute,value]]]",
                 to.getUid())
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
@@ -627,7 +681,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
 
     JsonList<JsonRelationship> relationships =
         GET(
-                "/tracker/relationships?trackedEntity={tei}&fields=to[trackedEntity[programOwners]",
+                "/tracker/relationships?trackedEntity={trackedEntity}&fields=to[trackedEntity[programOwners]",
                 to.getUid())
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
@@ -646,7 +700,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     Relationship r = relationship(from, to);
 
     JsonList<JsonRelationship> relationships =
-        GET("/tracker/relationships?trackedEntity={tei}", from.getUid())
+        GET("/tracker/relationships?trackedEntity={trackedEntity}", from.getUid())
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
 
@@ -663,7 +717,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     Relationship r = relationship(from, to);
 
     JsonList<JsonRelationship> relationships =
-        GET("/tracker/relationships?trackedEntity={tei}", from.getUid())
+        GET("/tracker/relationships?trackedEntity={trackedEntity}", from.getUid())
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
 
@@ -681,7 +735,8 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     this.switchContextToUser(user);
 
     assertNoRelationships(
-        GET("/tracker/relationships?trackedEntity={tei}", from.getUid()).content(HttpStatus.OK));
+        GET("/tracker/relationships?trackedEntity={trackedEntity}", from.getUid())
+            .content(HttpStatus.OK));
   }
 
   @Test
@@ -692,7 +747,8 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     this.switchContextToUser(user);
 
     assertNoRelationships(
-        GET("/tracker/relationships?trackedEntity={tei}", from.getUid()).content(HttpStatus.OK));
+        GET("/tracker/relationships?trackedEntity={trackedEntity}", from.getUid())
+            .content(HttpStatus.OK));
   }
 
   @Test
@@ -704,7 +760,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
 
     assertEquals(
         HttpStatus.FORBIDDEN,
-        GET("/tracker/relationships?trackedEntity={tei}", from.getUid()).status());
+        GET("/tracker/relationships?trackedEntity={trackedEntity}", from.getUid()).status());
   }
 
   @Test
@@ -718,7 +774,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
 
     assertEquals(
         HttpStatus.FORBIDDEN,
-        GET("/tracker/relationships?trackedEntity={tei}", from.getUid()).status());
+        GET("/tracker/relationships?trackedEntity={trackedEntity}", from.getUid()).status());
   }
 
   @Test
@@ -788,7 +844,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     enrollment.setAutoFields();
     enrollment.setEnrollmentDate(new Date());
     enrollment.setOccurredDate(new Date());
-    enrollment.setStatus(ProgramStatus.COMPLETED);
+    enrollment.setStatus(EnrollmentStatus.COMPLETED);
     manager.save(enrollment, false);
     te.setEnrollments(Set.of(enrollment));
     manager.save(te, false);
@@ -796,7 +852,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
   }
 
   private Event event(Enrollment enrollment) {
-    Event event = new Event(enrollment, programStage, orgUnit);
+    Event event = new Event(enrollment, programStage, orgUnit, coc);
     event.setAutoFields();
     manager.save(event, false);
     enrollment.setEvents(Set.of(event));

@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.util.Date;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.merge.Simple;
-import org.hisp.dhis.dxf2.metadata.merge.SimpleCollection;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -42,20 +41,21 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.schema.MetadataMergeParams;
 import org.hisp.dhis.schema.MetadataMergeService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
-import org.junit.jupiter.api.Assertions;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class MetadataMergeServiceTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class MetadataMergeServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private MetadataMergeService metadataMergeService;
-
-  @Override
-  public void setUpTest() {}
 
   @Test
   void simpleReplace() {
@@ -64,28 +64,11 @@ class MetadataMergeServiceTest extends SingleSetupIntegrationTestBase {
     Simple target = new Simple();
     metadataMergeService.merge(
         new MetadataMergeParams<>(source, target).setMergeMode(MergeMode.REPLACE));
-    Assertions.assertEquals("string", target.getString());
+    assertEquals("string", target.getString());
     assertEquals(10, (int) target.getInteger());
-    Assertions.assertEquals(date, target.getDate());
-    Assertions.assertEquals(false, target.getBool());
-    Assertions.assertEquals(123, target.getAnInt());
-  }
-
-  @Test
-  void simpleCollection() {
-    Date date = new Date();
-    SimpleCollection source = new SimpleCollection("name");
-    source.getSimples().add(new Simple("simple", 10, date, false, 123, 2.5f));
-    source.getSimples().add(new Simple("simple", 20, date, false, 123, 2.5f));
-    source.getSimples().add(new Simple("simple", 30, date, false, 123, 2.5f));
-    SimpleCollection target = new SimpleCollection("target");
-    metadataMergeService.merge(
-        new MetadataMergeParams<>(source, target).setMergeMode(MergeMode.MERGE));
-    Assertions.assertEquals("name", target.getName());
-    Assertions.assertEquals(3, target.getSimples().size());
-    Assertions.assertTrue(target.getSimples().contains(source.getSimples().get(0)));
-    Assertions.assertTrue(target.getSimples().contains(source.getSimples().get(1)));
-    Assertions.assertTrue(target.getSimples().contains(source.getSimples().get(2)));
+    assertEquals(date, target.getDate());
+    assertFalse(target.getBool());
+    assertEquals(123, target.getAnInt());
   }
 
   @Test

@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.web.WebClient.Body;
-import static org.hisp.dhis.web.WebClient.ContentType;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.web.WebClient.Body;
+import static org.hisp.dhis.test.web.WebClient.ContentType;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -41,11 +41,11 @@ import org.hisp.dhis.attribute.Attribute.ObjectType;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
-import org.hisp.dhis.webapi.json.domain.JsonGenerator;
-import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
-import org.hisp.dhis.webapi.json.domain.JsonSchema;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonGenerator;
+import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
+import org.hisp.dhis.test.webapi.json.domain.JsonSchema;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 
@@ -57,7 +57,7 @@ import org.springframework.http.MediaType;
  *
  * @author Jan Bernitt
  */
-class SchemaBasedControllerTest extends DhisControllerIntegrationTest {
+class SchemaBasedControllerTest extends PostgresControllerIntegrationTestBase {
 
   private static final Set<String> IGNORED_SCHEMAS =
       Set.of(
@@ -65,7 +65,6 @@ class SchemaBasedControllerTest extends DhisControllerIntegrationTest {
           "identifiableObject", // depends on files
           "dashboard", // uses JSONB functions (improve test setup)
           "pushanalysis", // uses dashboards (see above)
-          "programInstance", // no POST endpoint
           "metadataVersion", // no POST endpoint
           "softDeletableObject", // depends on programInstance (see above)
           "relationship", // generator insufficient for embedded fields

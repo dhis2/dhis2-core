@@ -41,7 +41,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  */
 @OpenApi.Ignore
 @Controller
-@RequestMapping("/type/testAll")
+@RequestMapping("/api/type/testAll")
 @ApiVersion(DhisApiVersion.ALL)
 public class ApiTypeAllController {
   @GetMapping

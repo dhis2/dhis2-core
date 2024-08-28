@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import java.util.Collections;
+import java.util.List;
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
@@ -36,7 +37,8 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChan
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
-import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
+import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
+import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.springframework.stereotype.Component;
 
@@ -80,12 +82,6 @@ public class TrackedEntityPersister
   }
 
   @Override
-  protected void persistNotes(
-      EntityManager entityManager, TrackerPreheat preheat, TrackedEntity trackedEntity) {
-    // DO NOTHING - TE HAVE NO NOTES
-  }
-
-  @Override
   protected void updatePreheat(TrackerPreheat preheat, TrackedEntity dto) {
     preheat.putTrackedEntities(Collections.singletonList(dto));
   }
@@ -107,9 +103,9 @@ public class TrackedEntityPersister
   }
 
   @Override
-  protected TrackerSideEffectDataBundle handleSideEffects(
-      TrackerBundle bundle, TrackedEntity entity) {
-    return TrackerSideEffectDataBundle.builder().build();
+  protected TrackerNotificationDataBundle handleNotifications(
+      TrackerBundle bundle, TrackedEntity entity, List<NotificationTrigger> triggers) {
+    return TrackerNotificationDataBundle.builder().build();
   }
 
   @Override
@@ -122,5 +118,11 @@ public class TrackedEntityPersister
   protected String getUpdatedTrackedEntity(TrackedEntity entity) {
     return null; // We don't need to keep track, Tei has already been
     // updated
+  }
+
+  @Override
+  protected List<NotificationTrigger> determineNotificationTriggers(
+      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.TrackedEntity entity) {
+    return List.of();
   }
 }

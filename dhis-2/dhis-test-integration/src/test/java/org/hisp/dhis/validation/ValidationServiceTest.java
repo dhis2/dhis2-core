@@ -85,20 +85,21 @@ import org.hisp.dhis.period.WeeklyPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.scheduling.NoopJobProgress;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Jim Grace
  */
-class ValidationServiceTest extends IntegrationTestBase {
+class ValidationServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private ValidationService validationService;
 
@@ -228,11 +229,8 @@ class ValidationServiceTest extends IntegrationTestBase {
 
   private CategoryOptionCombo defaultCombo;
 
-  // -------------------------------------------------------------------------
-  // Fixture
-  // -------------------------------------------------------------------------
-  @Override
-  public void setUpTest() throws Exception {
+  @BeforeEach
+  void setUp() {
     this.userService = injectUserService;
     User user = createAndAddUser(true, "SUPERUSER", allSources, null);
     injectSecurityContextUser(user);
@@ -1706,7 +1704,7 @@ class ValidationServiceTest extends IntegrationTestBase {
   }
 
   private List<ValidationResult> runValidationAnalysis(ValidationAnalysisParams params) {
-    return validationService.validationAnalysis(params, NoopJobProgress.INSTANCE);
+    return validationService.validationAnalysis(params, JobProgress.noop());
   }
 
   private ValidationAnalysisParams createParamsMonthlySourceAPeriodA() {

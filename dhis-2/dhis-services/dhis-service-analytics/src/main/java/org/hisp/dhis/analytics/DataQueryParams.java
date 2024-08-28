@@ -99,7 +99,7 @@ import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.common.ReportingRateMetric;
 import org.hisp.dhis.common.UserOrgUnitType;
-import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -1278,6 +1278,10 @@ public class DataQueryParams {
     return startDate != null && endDate != null;
   }
 
+  public boolean hasReportingRates() {
+    return isNotEmpty(getAllReportingRates());
+  }
+
   /**
    * Indicates whether this query has a continuous list of dates range or is empty. It assumes that
    * the datesRange IS SORTED.
@@ -1340,7 +1344,9 @@ public class DataQueryParams {
    * enumeration, the field (column) value is returned.
    */
   public String getTimeFieldAsField() {
-    return TimeField.fieldIsValid(timeField) ? TimeField.valueOf(timeField).getField() : timeField;
+    return TimeField.fieldIsValid(timeField)
+        ? TimeField.valueOf(timeField).getEventAndEnrollmentColumnName()
+        : timeField;
   }
 
   /**
@@ -1349,7 +1355,8 @@ public class DataQueryParams {
    * specified.
    */
   public String getTimeFieldAsFieldFallback() {
-    return ObjectUtils.firstNonNull(getTimeFieldAsField(), TimeField.EVENT_DATE.getField());
+    return ObjectUtils.firstNonNull(
+        getTimeFieldAsField(), TimeField.EVENT_DATE.getEventAndEnrollmentColumnName());
   }
 
   /** Indicates whether this object has a program. */

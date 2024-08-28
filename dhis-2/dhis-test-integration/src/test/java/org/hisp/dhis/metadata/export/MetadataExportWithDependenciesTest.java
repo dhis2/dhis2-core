@@ -37,11 +37,16 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramSection;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class MetadataExportWithDependenciesTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class MetadataExportWithDependenciesTest extends PostgresIntegrationTestBase {
 
   @PersistenceContext private EntityManager entityManager;
   @Autowired private MetadataExportService metadataExportService;

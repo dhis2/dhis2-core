@@ -36,9 +36,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.analytics.common.params.CommonParams;
+import org.hisp.dhis.analytics.common.CommonRequestParams;
+import org.hisp.dhis.analytics.common.ContextParams;
+import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 import org.hisp.dhis.analytics.common.query.Field;
-import org.hisp.dhis.analytics.tei.TeiQueryParams;
+import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
+import org.hisp.dhis.analytics.trackedentity.TrackedEntityRequestParams;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -66,12 +69,15 @@ class HeaderParamsHandlerTest {
     // Given
     String column = "oucode";
     Grid grid = new ListGrid();
-    TeiQueryParams teiQueryParams =
-        TeiQueryParams.builder().commonParams(CommonParams.builder().build()).build();
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .commonRaw(new CommonRequestParams())
+            .commonParsed(CommonParsedParams.builder().build())
+            .build();
     List<Field> fields = List.of(ofUnquoted("ev", of("anyName"), column));
 
     // When
-    headerParamsHandler.handle(grid, teiQueryParams, fields);
+    headerParamsHandler.handle(grid, contextParams, fields);
 
     // Then
     assertEquals(1, grid.getHeaders().size());
@@ -82,12 +88,14 @@ class HeaderParamsHandlerTest {
   void testHandleWithNoFieldColumn() {
     // Given
     Grid grid = new ListGrid();
-    TeiQueryParams teiQueryParams =
-        TeiQueryParams.builder().commonParams(CommonParams.builder().build()).build();
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .commonRaw(new CommonRequestParams())
+            .build();
     List<Field> fields = List.of();
 
     // When
-    headerParamsHandler.handle(grid, teiQueryParams, fields);
+    headerParamsHandler.handle(grid, contextParams, fields);
 
     // Then
     assertTrue(grid.getHeaders().isEmpty());
@@ -97,8 +105,11 @@ class HeaderParamsHandlerTest {
   void testHandleWithParamHeaders() {
     // Given
     Grid grid = new ListGrid();
-    TeiQueryParams teiQueryParams =
-        TeiQueryParams.builder().commonParams(stubCommonParamsWithHeaders()).build();
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .commonRaw(stubCommonParamsWithHeaders())
+            .commonParsed(CommonParsedParams.builder().build())
+            .build();
     List<Field> fields =
         List.of(
             ofUnquoted("ev", of("anyName"), "oucode"),
@@ -106,7 +117,7 @@ class HeaderParamsHandlerTest {
             ofUnquoted("ev", of("anyName"), "lastupdated"));
 
     // When
-    headerParamsHandler.handle(grid, teiQueryParams, fields);
+    headerParamsHandler.handle(grid, contextParams, fields);
 
     // Then
     assertEquals(3, grid.getHeaders().size());
@@ -118,31 +129,37 @@ class HeaderParamsHandlerTest {
   @Test
   void testHandleWithNonExistingParamHeader() {
     // Given
-    CommonParams commonParams = stubCommonParamsWithHeaders();
+    CommonRequestParams commonParams = stubCommonParamsWithHeaders();
     commonParams.getHeaders().add("non-existing");
-
-    Grid grid = new ListGrid();
-    TeiQueryParams teiQueryParams = TeiQueryParams.builder().commonParams(commonParams).build();
+    ContextParams<TrackedEntityRequestParams, TrackedEntityQueryParams> contextParams =
+        ContextParams.<TrackedEntityRequestParams, TrackedEntityQueryParams>builder()
+            .commonRaw(commonParams)
+            .commonParsed(CommonParsedParams.builder().build())
+            .build();
     List<Field> fields =
         List.of(
             ofUnquoted("ev", of("anyName"), "oucode"),
             ofUnquoted("ev", of("anyName"), "ouname"),
             ofUnquoted("ev", of("anyName"), "lastupdated"));
+    Grid grid = new ListGrid();
 
     // When
     IllegalQueryException ex =
         assertThrows(
             IllegalQueryException.class,
-            () -> headerParamsHandler.handle(grid, teiQueryParams, fields),
+            () -> headerParamsHandler.handle(grid, contextParams, fields),
             "Expected exception not thrown: handle()");
 
     // Then
     assertTrue(ex.getMessage().contains("Header param `non-existing` does not exist"));
   }
 
-  private CommonParams stubCommonParamsWithHeaders() {
+  private CommonRequestParams stubCommonParamsWithHeaders() {
     Set<String> headers = new LinkedHashSet<>(List.of("oucode", "ouname", "lastupdated"));
 
-    return CommonParams.builder().headers(headers).build();
+    CommonRequestParams requestParams = new CommonRequestParams();
+    requestParams.setHeaders(headers);
+
+    return requestParams;
   }
 }

@@ -37,6 +37,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.security.Authorities;
 import org.springframework.security.core.GrantedAuthority;
 
 @Getter
@@ -66,6 +67,7 @@ public class UserDetailsImpl implements UserDetails {
   @Nonnull private final Set<String> userOrgUnitIds;
   @Nonnull private final Set<String> userDataOrgUnitIds;
   @Nonnull private final Set<String> userSearchOrgUnitIds;
+  @Nonnull private final Set<String> userEffectiveSearchOrgUnitIds;
   private final boolean isSuper;
   @Nonnull private final Set<String> userRoleIds;
 
@@ -76,7 +78,7 @@ public class UserDetailsImpl implements UserDetails {
     }
 
     final Set<String> auths = getAllAuthorities();
-    if (auths.contains(UserRole.AUTHORITY_ALL)) {
+    if (auths.contains(Authorities.ALL.toString())) {
       return true;
     }
 
@@ -94,11 +96,21 @@ public class UserDetailsImpl implements UserDetails {
   }
 
   @Override
+  public boolean hasAnyAuthorities(Collection<Authorities> auths) {
+    return hasAnyAuthority(Authorities.toStringList(auths));
+  }
+
+  @Override
   public boolean isAuthorized(String auth) {
     if (auth == null) {
       return false;
     }
     final Set<String> auths = getAllAuthorities();
-    return auths.contains(UserRole.AUTHORITY_ALL) || auths.contains(auth);
+    return auths.contains(Authorities.ALL.toString()) || auths.contains(auth);
+  }
+
+  @Override
+  public boolean isAuthorized(@Nonnull Authorities auth) {
+    return isAuthorized(auth.toString());
   }
 }

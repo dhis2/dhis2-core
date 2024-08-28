@@ -36,9 +36,9 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.AnalyticsApiTest;
-import org.hisp.dhis.actions.analytics.AnalyticsEventActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEventActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
@@ -85,7 +85,14 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
     validateHeader(response, 0, "psi", "Event", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 1, "ps", "Program stage", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 2, "eventdate", "Report date", "DATE", "java.time.LocalDate", false, true);
+        response,
+        2,
+        "eventdate",
+        "Report date",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
     validateHeader(response, 3, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response, 4, "createdbydisplayname", "Created by", "TEXT", "java.lang.String", false, true);
@@ -99,9 +106,23 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
         false,
         true);
     validateHeader(
-        response, 6, "lastupdated", "Last updated on", "DATE", "java.time.LocalDate", false, true);
+        response,
+        6,
+        "lastupdated",
+        "Last updated on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
     validateHeader(
-        response, 7, "scheduleddate", "Scheduled date", "DATE", "java.time.LocalDate", false, true);
+        response,
+        7,
+        "scheduleddate",
+        "Scheduled date",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
     validateHeader(response, 8, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response, 9, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
@@ -2805,7 +2826,14 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
     validateHeader(response, 0, "psi", "Event", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 1, "ps", "Program stage", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 2, "eventdate", "Report date", "DATE", "java.time.LocalDate", false, true);
+        response,
+        2,
+        "eventdate",
+        "Report date",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
     validateHeader(response, 3, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response, 4, "createdbydisplayname", "Created by", "TEXT", "java.lang.String", false, true);
@@ -2819,9 +2847,23 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
         false,
         true);
     validateHeader(
-        response, 6, "lastupdated", "Last updated on", "DATE", "java.time.LocalDate", false, true);
+        response,
+        6,
+        "lastupdated",
+        "Last updated on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
     validateHeader(
-        response, 7, "scheduleddate", "Scheduled date", "DATE", "java.time.LocalDate", false, true);
+        response,
+        7,
+        "scheduleddate",
+        "Scheduled date",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
     validateHeader(response, 8, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response, 9, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
@@ -5634,7 +5676,14 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
     validateHeader(response, 0, "psi", "Event", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 1, "ps", "Program stage", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 2, "eventdate", "Report date", "DATE", "java.time.LocalDate", false, true);
+        response,
+        2,
+        "eventdate",
+        "Report date",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
     validateHeader(response, 3, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response, 4, "createdbydisplayname", "Created by", "TEXT", "java.lang.String", false, true);
@@ -5648,9 +5697,23 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
         false,
         true);
     validateHeader(
-        response, 6, "lastupdated", "Last updated on", "DATE", "java.time.LocalDate", false, true);
+        response,
+        6,
+        "lastupdated",
+        "Last updated on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
     validateHeader(
-        response, 7, "scheduleddate", "Scheduled date", "DATE", "java.time.LocalDate", false, true);
+        response,
+        7,
+        "scheduleddate",
+        "Scheduled date",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
     validateHeader(response, 8, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response, 9, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
@@ -8463,7 +8526,14 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
     validateHeader(response, 0, "psi", "Event", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 1, "ps", "Program stage", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 2, "eventdate", "Report date", "DATE", "java.time.LocalDate", false, true);
+        response,
+        2,
+        "eventdate",
+        "Report date",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
     validateHeader(response, 3, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response, 4, "createdbydisplayname", "Created by", "TEXT", "java.lang.String", false, true);
@@ -8477,9 +8547,23 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
         false,
         true);
     validateHeader(
-        response, 6, "lastupdated", "Last updated on", "DATE", "java.time.LocalDate", false, true);
+        response,
+        6,
+        "lastupdated",
+        "Last updated on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
     validateHeader(
-        response, 7, "scheduleddate", "Scheduled date", "DATE", "java.time.LocalDate", false, true);
+        response,
+        7,
+        "scheduleddate",
+        "Scheduled date",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
     validateHeader(response, 8, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response, 9, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);

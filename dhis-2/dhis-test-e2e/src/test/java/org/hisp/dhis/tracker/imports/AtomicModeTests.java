@@ -33,10 +33,10 @@ import static org.hamcrest.Matchers.hasSize;
 
 import com.google.gson.JsonObject;
 import java.io.File;
-import org.hisp.dhis.dto.TrackerApiResponse;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.JsonFileReader;
+import org.hisp.dhis.test.e2e.dto.TrackerApiResponse;
+import org.hisp.dhis.test.e2e.helpers.JsonObjectBuilder;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.hisp.dhis.tracker.TrackerApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -85,7 +85,8 @@ public class AtomicModeTests extends TrackerApiTest {
   private JsonObject createWrongPayload() throws Exception {
     JsonObject object =
         new JsonFileReader(
-                new File("src/test/resources/tracker/importer/teis/teisAndRelationship.json"))
+                new File(
+                    "src/test/resources/tracker/importer/trackedEntities/trackedEntitiesAndRelationship.json"))
             .replaceStringsWithIds("JjZ2Nwds92v", "JjZ2Nwds93v")
             .get(JsonObject.class);
 

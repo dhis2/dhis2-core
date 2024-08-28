@@ -37,9 +37,9 @@ import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.AnalyticsApiTest;
-import org.hisp.dhis.actions.analytics.AnalyticsEnrollmentsActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEnrollmentsActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
@@ -100,8 +100,8 @@ public class EnrollmentsQuery3AutoTest extends AnalyticsApiTest {
         2,
         "enrollmentdate",
         "Start of treatment date",
-        "DATE",
-        "java.time.LocalDate",
+        "DATETIME",
+        "java.time.LocalDateTime",
         false,
         true);
   }
@@ -159,8 +159,8 @@ public class EnrollmentsQuery3AutoTest extends AnalyticsApiTest {
         2,
         "enrollmentdate",
         "Start of treatment date",
-        "DATE",
-        "java.time.LocalDate",
+        "DATETIME",
+        "java.time.LocalDateTime",
         false,
         true);
 
@@ -254,8 +254,8 @@ public class EnrollmentsQuery3AutoTest extends AnalyticsApiTest {
         3,
         "enrollmentdate",
         "Start of treatment date",
-        "DATE",
-        "java.time.LocalDate",
+        "DATETIME",
+        "java.time.LocalDateTime",
         false,
         true);
 
@@ -301,19 +301,25 @@ public class EnrollmentsQuery3AutoTest extends AnalyticsApiTest {
 
     // Assert headers.
     validateHeader(response, 0, "pi", "Enrollment", "TEXT", "java.lang.String", false, true);
-    validateHeader(
-        response, 1, "tei", "Tracked entity instance", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 1, "tei", "Tracked entity", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response,
         2,
         "enrollmentdate",
         "Date of Focus Registration",
-        "DATE",
-        "java.time.LocalDate",
+        "DATETIME",
+        "java.time.LocalDateTime",
         false,
         true);
     validateHeader(
-        response, 3, "incidentdate", "Incident date", "DATE", "java.time.LocalDate", false, true);
+        response,
+        3,
+        "incidentdate",
+        "Incident date",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
     validateHeader(response, 4, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response, 5, "createdbydisplayname", "Created by", "TEXT", "java.lang.String", false, true);
@@ -327,7 +333,14 @@ public class EnrollmentsQuery3AutoTest extends AnalyticsApiTest {
         false,
         true);
     validateHeader(
-        response, 7, "lastupdated", "Last updated on", "DATE", "java.time.LocalDate", false, true);
+        response,
+        7,
+        "lastupdated",
+        "Last updated on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
     validateHeader(response, 8, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response, 9, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
@@ -530,5 +543,232 @@ public class EnrollmentsQuery3AutoTest extends AnalyticsApiTest {
             "ACTIVE",
             "DiszpKrYNg8",
             ""));
+  }
+
+  @Test
+  public void queryRandomQuery13() throws JSONException {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("includeMetadataDetails=true")
+            .add("asc=incidentdate,ouname")
+            .add("headers=ouname,enrollmentdate,incidentdate")
+            .add("displayProperty=NAME")
+            .add("totalPages=false")
+            .add("enrollmentDate=202301,202201")
+            .add("rowContext=true")
+            .add("pageSize=5")
+            .add("outputType=ENROLLMENT")
+            .add("page=1")
+            .add("incidentDate=202201,202301")
+            .add("dimension=ou:USER_ORGUNIT");
+
+    // When
+    ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(3)))
+        .body("rows", hasSize(equalTo(5)))
+        .body("height", equalTo(5))
+        .body("width", equalTo(3))
+        .body("headerWidth", equalTo(3));
+
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"pageSize\":5,\"isLastPage\":false},\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"202201\":{\"name\":\"January 2022\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"uid\":\"ZzYYXq4fJie\",\"name\":\"Baby Postnatal\",\"description\":\"Baby Postnatal\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"202301\":{\"name\":\"January 2023\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Assert headers.
+    validateHeader(
+        response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response,
+        1,
+        "enrollmentdate",
+        "Date of enrollment",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeader(
+        response,
+        2,
+        "incidentdate",
+        "Date of birth",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+
+    // Assert rows.
+    validateRow(
+        response, 0, List.of("Baiwala CHP", "2022-01-01 12:05:00.0", "2022-01-01 12:05:00.0"));
+    validateRow(
+        response,
+        1,
+        List.of("Bandajuma Sinneh MCHP", "2022-01-01 12:05:00.0", "2022-01-01 12:05:00.0"));
+    validateRow(
+        response,
+        2,
+        List.of("Banka Makuloh MCHP", "2022-01-01 12:05:00.0", "2022-01-01 12:05:00.0"));
+    validateRow(
+        response, 3, List.of("Conakry Dee CHC", "2022-01-01 12:05:00.0", "2022-01-01 12:05:00.0"));
+    validateRow(
+        response, 4, List.of("Dankawalie MCHP", "2022-01-01 12:05:00.0", "2022-01-01 12:05:00.0"));
+  }
+
+  @Test
+  public void queryRandomQuery14() throws JSONException {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("includeMetadataDetails=true")
+            .add("asc=incidentdate,ouname")
+            .add("headers=ouname,enrollmentdate,incidentdate")
+            .add("displayProperty=NAME")
+            .add("totalPages=false")
+            .add("enrollmentDate=202308")
+            .add("rowContext=true")
+            .add("pageSize=5")
+            .add("outputType=ENROLLMENT")
+            .add("page=1")
+            .add("incidentDate=202308,202308")
+            .add("dimension=ou:USER_ORGUNIT");
+
+    // When
+    ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(3)))
+        .body("rows", hasSize(equalTo(5)))
+        .body("height", equalTo(5))
+        .body("width", equalTo(3))
+        .body("headerWidth", equalTo(3));
+
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"pageSize\":5,\"isLastPage\":false},\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"uid\":\"ZzYYXq4fJie\",\"name\":\"Baby Postnatal\",\"description\":\"Baby Postnatal\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"202308\":{\"name\":\"August 2023\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Assert headers.
+    validateHeader(
+        response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response,
+        1,
+        "enrollmentdate",
+        "Date of enrollment",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeader(
+        response,
+        2,
+        "incidentdate",
+        "Date of birth",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+
+    // Assert rows.
+    validateRow(
+        response,
+        0,
+        List.of("Banka Makuloh MCHP", "2023-08-01 12:05:00.0", "2023-08-01 12:05:00.0"));
+    validateRow(
+        response,
+        1,
+        List.of("Baoma Station CHP", "2023-08-01 12:05:00.0", "2023-08-01 12:05:00.0"));
+    validateRow(
+        response, 2, List.of("Bomie MCHP", "2023-08-01 12:05:00.0", "2023-08-01 12:05:00.0"));
+    validateRow(
+        response, 3, List.of("Bumban MCHP", "2023-08-01 12:05:00.0", "2023-08-01 12:05:00.0"));
+    validateRow(
+        response,
+        4,
+        List.of("Gbonkoh Kareneh MCHP", "2023-08-01 12:05:00.0", "2023-08-01 12:05:00.0"));
+  }
+
+  @Test
+  public void queryRandomQuery15() throws JSONException {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("includeMetadataDetails=true")
+            .add("asc=incidentdate,ouname")
+            .add("headers=ouname,enrollmentdate,incidentdate")
+            .add("displayProperty=NAME")
+            .add("totalPages=false")
+            .add("rowContext=true")
+            .add("pageSize=5")
+            .add("outputType=ENROLLMENT")
+            .add("page=1")
+            .add("incidentDate=202301,202401")
+            .add("dimension=ou:USER_ORGUNIT");
+
+    // When
+    ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(3)))
+        .body("rows", hasSize(equalTo(5)))
+        .body("height", equalTo(5))
+        .body("width", equalTo(3))
+        .body("headerWidth", equalTo(3));
+
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"pageSize\":5,\"isLastPage\":false},\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"uid\":\"ZzYYXq4fJie\",\"name\":\"Baby Postnatal\",\"description\":\"Baby Postnatal\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"202301\":{\"name\":\"January 2023\"},\"202401\":{\"name\":\"January 2024\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Assert headers.
+    validateHeader(
+        response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response,
+        1,
+        "enrollmentdate",
+        "Date of enrollment",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeader(
+        response,
+        2,
+        "incidentdate",
+        "Date of birth",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+
+    // Assert rows.
+    validateRow(
+        response, 0, List.of("Ngelehun CHC", "2023-01-01 00:00:00.0", "2023-01-01 00:00:00.0"));
+    validateRow(
+        response, 1, List.of("Fulamansa MCHP", "2023-01-01 12:05:00.0", "2023-01-01 12:05:00.0"));
+    validateRow(
+        response,
+        2,
+        List.of("Kordebotehun MCHP", "2023-01-01 12:05:00.0", "2023-01-01 12:05:00.0"));
+    validateRow(
+        response, 3, List.of("Largo CHC", "2023-01-01 12:05:00.0", "2023-01-01 12:05:00.0"));
+    validateRow(
+        response, 4, List.of("Manjeihun MCHP", "2023-01-01 12:05:00.0", "2023-01-01 12:05:00.0"));
   }
 }

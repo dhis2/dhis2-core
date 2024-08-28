@@ -29,7 +29,7 @@ package org.hisp.dhis.system.grid;
 
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.common.ValueType.getValueTypeFromSqlType;
-import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
+import static org.hisp.dhis.common.collection.CollectionUtils.mapToList;
 import static org.hisp.dhis.feedback.ErrorCode.E7230;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -64,6 +64,7 @@ import org.hisp.dhis.common.ExecutionPlan;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.PerformanceMetrics;
 import org.hisp.dhis.common.Reference;
 import org.hisp.dhis.common.adapter.JacksonRowDataSerializer;
@@ -76,10 +77,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
  * @author Lars Helge Overland
  */
 public class ListGrid implements Grid, Serializable {
-
-  public static final String HAS_VALUE = ".hasValue";
-  public static final String STATUS = ".status";
-  public static final String EXISTS = ".exists";
+  public static final String LEGEND = ".legend";
 
   private static final String REGRESSION_SUFFIX = "_regression";
 
@@ -440,6 +438,7 @@ public class ListGrid implements Grid, Serializable {
   @Override
   @JsonProperty
   @JsonSerialize(using = JacksonRowDataSerializer.class)
+  @OpenApi.Property(String[][].class)
   public List<List<Object>> getRows() {
     return grid;
   }

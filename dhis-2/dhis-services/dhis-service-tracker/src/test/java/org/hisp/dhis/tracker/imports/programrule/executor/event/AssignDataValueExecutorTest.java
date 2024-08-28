@@ -37,7 +37,7 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
@@ -48,6 +48,7 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -67,18 +68,20 @@ import org.mockito.quality.Strictness;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
-class AssignDataValueExecutorTest extends DhisConvenienceTest {
+class AssignDataValueExecutorTest extends TestBase {
+  private static final UID RULE_UID = UID.of("TvctPPhpD8u");
+
   private static final String EVENT_ID = "EventId";
 
   private static final String SECOND_EVENT_ID = "SecondEventId";
 
-  private static final String DATA_ELEMENT_ID = "DataElementId";
+  private static final UID DATA_ELEMENT_UID = UID.of("h4w96yEMlzO");
 
   private static final String DATA_ELEMENT_CODE = "DataElementCode";
 
   private static final String ANOTHER_DATA_ELEMENT_ID = "AnotherDataElementId";
 
-  private static final String OPTION_SET_DATA_ELEMENT_ID = "OptionSetDataElementId";
+  private static final UID OPTION_SET_DATA_ELEMENT_UID = UID.of("NpsdDv6kKSO");
 
   private static final String DATAELEMENT_OLD_VALUE = "10.0";
 
@@ -109,7 +112,7 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
     firstProgramStage = createProgramStage('A', 0);
     firstProgramStage.setValidationStrategy(ValidationStrategy.ON_UPDATE_AND_INSERT);
     dataElementA = createDataElement('A');
-    dataElementA.setUid(DATA_ELEMENT_ID);
+    dataElementA.setUid(DATA_ELEMENT_UID.getValue());
     dataElementA.setCode(DATA_ELEMENT_CODE);
     ProgramStageDataElement programStageDataElementA =
         createProgramStageDataElement(firstProgramStage, dataElementA, 0);
@@ -121,7 +124,7 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
     ProgramStageDataElement programStageDataElementB =
         createProgramStageDataElement(secondProgramStage, dataElementB, 0);
     optionSetDataElement = createDataElement('P');
-    optionSetDataElement.setUid(OPTION_SET_DATA_ELEMENT_ID);
+    optionSetDataElement.setUid(OPTION_SET_DATA_ELEMENT_UID.getValue());
     OptionSet optionSet = new OptionSet();
     Option option = new Option("ten", "10");
     optionSet.setOptions(List.of(option));
@@ -135,8 +138,9 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
         .thenReturn(firstProgramStage);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(secondProgramStage)))
         .thenReturn(secondProgramStage);
-    when(preheat.getDataElement(DATA_ELEMENT_ID)).thenReturn(dataElementA);
-    when(preheat.getDataElement(OPTION_SET_DATA_ELEMENT_ID)).thenReturn(optionSetDataElement);
+    when(preheat.getDataElement(DATA_ELEMENT_UID.getValue())).thenReturn(dataElementA);
+    when(preheat.getDataElement(OPTION_SET_DATA_ELEMENT_UID.getValue()))
+        .thenReturn(optionSetDataElement);
 
     bundle = TrackerBundle.builder().build();
     bundle.setPreheat(preheat);
@@ -154,16 +158,16 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
             systemSettingManager,
-            "",
+            RULE_UID,
             INVALID_OPTION_VALUE,
-            OPTION_SET_DATA_ELEMENT_ID,
+            OPTION_SET_DATA_ELEMENT_UID,
             eventWithOptionDataValue.getDataValues());
 
     Optional<ProgramRuleIssue> warning =
         executor.executeRuleAction(bundle, eventWithOptionDataValue);
 
     Optional<DataValue> dataValue =
-        findDataValueByUid(bundle, EVENT_ID, OPTION_SET_DATA_ELEMENT_ID);
+        findDataValueByUid(bundle, EVENT_ID, OPTION_SET_DATA_ELEMENT_UID);
 
     assertDataValueWasNotAssignedAndErrorIsPresent(VALID_OPTION_VALUE, dataValue, warning);
   }
@@ -178,16 +182,16 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
             systemSettingManager,
-            "",
+            RULE_UID,
             VALID_OPTION_VALUE,
-            OPTION_SET_DATA_ELEMENT_ID,
+            OPTION_SET_DATA_ELEMENT_UID,
             eventWithOptionDataValue.getDataValues());
 
     Optional<ProgramRuleIssue> warning =
         executor.executeRuleAction(bundle, eventWithOptionDataValue);
 
     Optional<DataValue> dataValue =
-        findDataValueByUid(bundle, EVENT_ID, OPTION_SET_DATA_ELEMENT_ID);
+        findDataValueByUid(bundle, EVENT_ID, OPTION_SET_DATA_ELEMENT_UID);
 
     assertTrue(dataValue.isPresent());
     assertEquals(VALID_OPTION_VALUE, dataValue.get().getValue());
@@ -205,16 +209,16 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
             systemSettingManager,
-            "",
+            RULE_UID,
             INVALID_OPTION_VALUE,
-            OPTION_SET_DATA_ELEMENT_ID,
+            OPTION_SET_DATA_ELEMENT_UID,
             eventWithOptionDataValue.getDataValues());
 
     Optional<ProgramRuleIssue> warning =
         executor.executeRuleAction(bundle, eventWithOptionDataValue);
 
     Optional<DataValue> dataValue =
-        findDataValueByUid(bundle, SECOND_EVENT_ID, OPTION_SET_DATA_ELEMENT_ID);
+        findDataValueByUid(bundle, SECOND_EVENT_ID, OPTION_SET_DATA_ELEMENT_UID);
 
     assertAll(
         () -> assertTrue(dataValue.isEmpty()),
@@ -234,16 +238,16 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
             systemSettingManager,
-            "",
+            RULE_UID,
             INVALID_OPTION_VALUE,
-            OPTION_SET_DATA_ELEMENT_ID,
+            OPTION_SET_DATA_ELEMENT_UID,
             eventWithOptionDataValue.getDataValues());
 
     Optional<ProgramRuleIssue> warning =
         executor.executeRuleAction(bundle, eventWithOptionDataValue);
 
     Optional<DataValue> dataValue =
-        findDataValueByUid(bundle, EVENT_ID, OPTION_SET_DATA_ELEMENT_ID);
+        findDataValueByUid(bundle, EVENT_ID, OPTION_SET_DATA_ELEMENT_UID);
 
     assertDataValueWasAssignedAndWarningIsPresent(null, dataValue, warning);
   }
@@ -258,15 +262,15 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
             systemSettingManager,
-            "",
+            RULE_UID,
             DATAELEMENT_NEW_VALUE,
-            DATA_ELEMENT_ID,
+            DATA_ELEMENT_UID,
             eventWithDataValueNOTSet.getDataValues());
 
     Optional<ProgramRuleIssue> warning =
         executor.executeRuleAction(bundle, eventWithDataValueNOTSet);
 
-    Optional<DataValue> dataValue = findDataValueByUid(bundle, SECOND_EVENT_ID, DATA_ELEMENT_ID);
+    Optional<DataValue> dataValue = findDataValueByUid(bundle, SECOND_EVENT_ID, DATA_ELEMENT_UID);
 
     assertDataValueWasAssignedAndWarningIsPresent(DATAELEMENT_NEW_VALUE, dataValue, warning);
   }
@@ -280,14 +284,14 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
             systemSettingManager,
-            "",
+            RULE_UID,
             DATAELEMENT_NEW_VALUE,
-            DATA_ELEMENT_ID,
+            DATA_ELEMENT_UID,
             eventWithDataValueSet.getDataValues());
 
     Optional<ProgramRuleIssue> error = executor.executeRuleAction(bundle, eventWithDataValueSet);
 
-    Optional<DataValue> dataValue = findDataValueByUid(bundle, EVENT_ID, DATA_ELEMENT_ID);
+    Optional<DataValue> dataValue = findDataValueByUid(bundle, EVENT_ID, DATA_ELEMENT_UID);
 
     assertDataValueWasNotAssignedAndErrorIsPresent(DATAELEMENT_OLD_VALUE, dataValue, error);
   }
@@ -296,7 +300,7 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
   void shouldNotAssignDataValueValueForEventsWhenDataValueIsAlreadyPresentUsingIdSchemeCode() {
     TrackerIdSchemeParams idSchemes =
         TrackerIdSchemeParams.builder().dataElementIdScheme(TrackerIdSchemeParam.CODE).build();
-    when(preheat.getDataElement(DATA_ELEMENT_ID)).thenReturn(dataElementA);
+    when(preheat.getDataElement(DATA_ELEMENT_UID.getValue())).thenReturn(dataElementA);
     Event eventWithDataValueSet = getEventWithDataValueSet(idSchemes);
     List<Event> events = List.of(eventWithDataValueSet);
     bundle.setEvents(events);
@@ -304,9 +308,9 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
             systemSettingManager,
-            "",
+            RULE_UID,
             DATAELEMENT_NEW_VALUE,
-            DATA_ELEMENT_ID,
+            DATA_ELEMENT_UID,
             eventWithDataValueSet.getDataValues());
 
     Optional<ProgramRuleIssue> error = executor.executeRuleAction(bundle, eventWithDataValueSet);
@@ -325,15 +329,15 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
             systemSettingManager,
-            "",
+            RULE_UID,
             DATAELEMENT_NEW_VALUE,
-            DATA_ELEMENT_ID,
+            DATA_ELEMENT_UID,
             eventWithDataValueSetSameValue.getDataValues());
 
     Optional<ProgramRuleIssue> warning =
         executor.executeRuleAction(bundle, eventWithDataValueSetSameValue);
 
-    Optional<DataValue> dataValue = findDataValueByUid(bundle, EVENT_ID, DATA_ELEMENT_ID);
+    Optional<DataValue> dataValue = findDataValueByUid(bundle, EVENT_ID, DATA_ELEMENT_UID);
 
     assertDataValueWasAssignedAndWarningIsPresent(DATAELEMENT_NEW_VALUE, dataValue, warning);
   }
@@ -350,23 +354,23 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
             systemSettingManager,
-            "",
+            RULE_UID,
             DATAELEMENT_NEW_VALUE,
-            DATA_ELEMENT_ID,
+            DATA_ELEMENT_UID,
             eventWithDataValueSet.getDataValues());
 
     Optional<ProgramRuleIssue> warning = executor.executeRuleAction(bundle, eventWithDataValueSet);
 
-    Optional<DataValue> dataValue = findDataValueByUid(bundle, EVENT_ID, DATA_ELEMENT_ID);
+    Optional<DataValue> dataValue = findDataValueByUid(bundle, EVENT_ID, DATA_ELEMENT_UID);
 
     assertDataValueWasAssignedAndWarningIsPresent(DATAELEMENT_NEW_VALUE, dataValue, warning);
   }
 
   private Optional<DataValue> findDataValueByUid(
-      TrackerBundle bundle, String eventUid, String dataValueUid) {
+      TrackerBundle bundle, String eventUid, UID dataValueUid) {
     Event event = bundle.findEventByUid(eventUid).get();
     return event.getDataValues().stream()
-        .filter(dv -> dv.getDataElement().equals(MetadataIdentifier.ofUid(dataValueUid)))
+        .filter(dv -> dv.getDataElement().equals(MetadataIdentifier.ofUid(dataValueUid.getValue())))
         .findAny();
   }
 
@@ -447,7 +451,7 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
   private Set<DataValue> getDataValues() {
     DataValue dataValue =
         DataValue.builder()
-            .dataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_ID))
+            .dataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID.getValue()))
             .value(DATAELEMENT_OLD_VALUE)
             .build();
     return Set.of(dataValue);
@@ -456,7 +460,7 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
   private Set<DataValue> getDataValuesSameValue() {
     DataValue dataValue =
         DataValue.builder()
-            .dataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_ID))
+            .dataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID.getValue()))
             .value(DATAELEMENT_NEW_VALUE)
             .build();
     return Set.of(dataValue);
@@ -465,7 +469,7 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
   private Set<DataValue> getOptionSetDataValues() {
     DataValue dataValue =
         DataValue.builder()
-            .dataElement(MetadataIdentifier.ofUid(OPTION_SET_DATA_ELEMENT_ID))
+            .dataElement(MetadataIdentifier.ofUid(OPTION_SET_DATA_ELEMENT_UID.getValue()))
             .value(VALID_OPTION_VALUE)
             .build();
     return Set.of(dataValue);

@@ -45,11 +45,9 @@ class GistTransformControllerTest extends AbstractGistControllerTest {
   @Test
   void testTransform_Rename() {
     JsonObject user =
-        GET(
-                "/users/{uid}/gist?fields=surname~rename(name),username~rename(alias)",
-                getSuperuserUid())
+        GET("/users/{uid}/gist?fields=surname~rename(name),username~rename(alias)", getAdminUid())
             .content();
-    assertEquals("Surnameadmin", user.getString("name").string());
+    assertEquals(getAdminUser().getSurname(), user.getString("name").string());
     assertEquals(2, user.size());
   }
 
@@ -65,21 +63,21 @@ class GistTransformControllerTest extends AbstractGistControllerTest {
   @Test
   void testTransform_Pluck() {
     JsonObject gist =
-        GET("/users/{uid}/userGroups/gist?fields=name,users::pluck(surname)", getSuperuserUid())
+        GET("/users/{uid}/userGroups/gist?fields=name,users::pluck(surname)", getAdminUid())
             .content();
     assertHasPager(gist, 1, 50);
     assertEquals(
-        "Surnameadmin",
+        getAdminUser().getSurname(),
         gist.getArray("userGroups").getObject(0).getArray("users").getString(0).string());
   }
 
   @Test
   void testTransform_Pluck_NoArgument() {
     JsonObject gist =
-        GET("/users/{uid}/userGroups/gist?fields=name,users::pluck", getSuperuserUid()).content();
+        GET("/users/{uid}/userGroups/gist?fields=name,users::pluck", getAdminUid()).content();
     assertHasPager(gist, 1, 50);
     assertEquals(
-        getSuperuserUid(),
+        getAdminUid(),
         gist.getArray("userGroups").getObject(0).getArray("users").getString(0).string());
   }
 
@@ -87,10 +85,10 @@ class GistTransformControllerTest extends AbstractGistControllerTest {
   void testTransform_Member() {
     String url = "/users/{uid}/userGroups/gist?fields=name,users::member({uid})";
     // member(id) with a user that is a member
-    JsonObject gist = GET(url, getSuperuserUid(), getSuperuserUid()).content();
+    JsonObject gist = GET(url, getAdminUid(), getAdminUid()).content();
     assertTrue(gist.getArray("userGroups").getObject(0).getBoolean("users").booleanValue());
     // member(id) with a user that is not a member
-    gist = GET(url, getSuperuserUid(), "non-existing-user-uid").content();
+    gist = GET(url, getAdminUid(), "non-existing-user-uid").content();
     assertFalse(gist.getArray("userGroups").getObject(0).getBoolean("users").booleanValue());
   }
 
@@ -98,17 +96,17 @@ class GistTransformControllerTest extends AbstractGistControllerTest {
   void testTransform_NotMember() {
     String url = "/users/{uid}/userGroups/gist?fields=name,users::not-member({uid})";
     // not-member(id) with a user that is a member
-    JsonObject gist = GET(url, getSuperuserUid(), getSuperuserUid()).content();
+    JsonObject gist = GET(url, getAdminUid(), getAdminUid()).content();
     assertFalse(gist.getArray("userGroups").getObject(0).getBoolean("users").booleanValue());
     // not-member(id) with a user that is not a member
-    gist = GET(url, getSuperuserUid(), "non-existing-user-uid").content();
+    gist = GET(url, getAdminUid(), "non-existing-user-uid").content();
     assertTrue(gist.getArray("userGroups").getObject(0).getBoolean("users").booleanValue());
   }
 
   @Test
   void testTransform_Auto_MediumUsesSize() {
     JsonObject gist =
-        GET("/users/{uid}/userGroups/gist?fields=name,users&auto=M", getSuperuserUid()).content();
+        GET("/users/{uid}/userGroups/gist?fields=name,users&auto=M", getAdminUid()).content();
     assertHasPager(gist, 1, 50);
     assertEquals(1, gist.getArray("userGroups").getObject(0).getNumber("users").intValue());
   }
@@ -116,10 +114,10 @@ class GistTransformControllerTest extends AbstractGistControllerTest {
   @Test
   void testTransform_Auto_LargeUsesIds() {
     JsonObject gist =
-        GET("/users/{uid}/userGroups/gist?fields=name,users&auto=L", getSuperuserUid()).content();
+        GET("/users/{uid}/userGroups/gist?fields=name,users&auto=L", getAdminUid()).content();
     assertHasPager(gist, 1, 50);
     assertEquals(
-        getSuperuserUid(),
+        getAdminUid(),
         gist.getArray("userGroups").getObject(0).getArray("users").getString(0).string());
   }
 }

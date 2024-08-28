@@ -51,25 +51,27 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserRole;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * TODO Test delete with data set elements
  *
  * @author Lars Helge Overland
  */
-class DataSetServiceTest extends TransactionalIntegrationTest {
+@Transactional
+class DataSetServiceTest extends PostgresIntegrationTestBase {
   private PeriodType periodType;
 
   private Period period;
@@ -102,8 +104,6 @@ class DataSetServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private PeriodService periodService;
 
-  @Autowired protected UserService _userService;
-
   @Autowired private DataApprovalService approvalService;
 
   @Autowired private DataApprovalService dataApprovalService;
@@ -112,14 +112,8 @@ class DataSetServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private AclService aclService;
 
-  // -------------------------------------------------------------------------
-  // Fixture
-  // -------------------------------------------------------------------------
-  @Override
-  public void setUpTest() throws Exception {
-    userService = _userService;
-    //    preCreateInjectAdminUser();
-
+  @BeforeEach
+  void setUp() {
     periodType = new MonthlyPeriodType();
     period = createPeriod(periodType, getDate(2000, 3, 1), getDate(2000, 3, 31));
     periodService.addPeriod(period);
@@ -143,7 +137,7 @@ class DataSetServiceTest extends TransactionalIntegrationTest {
 
     superUser =
         createAndAddUser(
-            true, "username", newHashSet(unitA), newHashSet(unitA), UserRole.AUTHORITY_ALL);
+            true, "username", newHashSet(unitA), newHashSet(unitA), Authorities.ALL.toString());
     injectSecurityContextUser(superUser);
   }
 

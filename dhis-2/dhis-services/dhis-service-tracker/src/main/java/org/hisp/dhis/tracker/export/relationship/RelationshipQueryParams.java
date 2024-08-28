@@ -35,10 +35,10 @@ import org.hisp.dhis.tracker.export.Order;
 
 @Getter
 @Builder(toBuilder = true)
-class RelationshipQueryParams {
+public class RelationshipQueryParams {
   private final IdentifiableObject entity;
 
-  private List<Order> order;
+  @Builder.Default private List<Order> order = List.of();
 
   private boolean includeDeleted;
 }

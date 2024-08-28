@@ -32,9 +32,9 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.AnalyticsApiTest;
-import org.hisp.dhis.actions.analytics.AnalyticsEnrollmentsActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEnrollmentsActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.Test;
 
 public class EnrollmentsAggregateDownloadTest extends AnalyticsApiTest {
@@ -58,7 +58,7 @@ public class EnrollmentsAggregateDownloadTest extends AnalyticsApiTest {
 
     // When
     ApiResponse response =
-        analyticsEnrollmentsActions.query().get("IpHINAT79UW.xml", TYPE, TYPE, params);
+        analyticsEnrollmentsActions.aggregate().get("IpHINAT79UW.xml", TYPE, TYPE, params);
 
     // Then
     response.validate().statusCode(200).contentType(TYPE);
@@ -83,7 +83,32 @@ public class EnrollmentsAggregateDownloadTest extends AnalyticsApiTest {
 
     // When
     ApiResponse response =
-        analyticsEnrollmentsActions.query().get("IpHINAT79UW.xls", TYPE, TYPE, params);
+        analyticsEnrollmentsActions.aggregate().get("IpHINAT79UW.xls", TYPE, TYPE, params);
+
+    // Then
+    response.validate().statusCode(200).contentType(TYPE);
+
+    assertTrue(isNotBlank(response.getAsString()));
+  }
+
+  @Test
+  void queryWithXlsxDownload() {
+    // Given
+    final String TYPE = "application/vnd.ms-excel";
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=ou:O6uvpzGd5pu;kJq2mPyFEHo")
+            .add("dimension=pe:THIS_YEAR")
+            .add("dimension=A03MvHHogjR.cejWyOfXge6")
+            .add("stage=A03MvHHogjR")
+            .add("program=IpHINAT79UW")
+            .add("displayProperty=SHORTNAME")
+            .add("totalPages=false")
+            .add("outputType=ENROLLMENT");
+
+    // When
+    ApiResponse response =
+        analyticsEnrollmentsActions.aggregate().get("IpHINAT79UW.xlsx", TYPE, TYPE, params);
 
     // Then
     response.validate().statusCode(200).contentType(TYPE);
@@ -108,7 +133,7 @@ public class EnrollmentsAggregateDownloadTest extends AnalyticsApiTest {
 
     // When
     ApiResponse response =
-        analyticsEnrollmentsActions.query().get("IpHINAT79UW.csv", TYPE, TYPE, params);
+        analyticsEnrollmentsActions.aggregate().get("IpHINAT79UW.csv", TYPE, TYPE, params);
 
     response.validate().statusCode(200).contentType(TYPE);
 
@@ -132,7 +157,7 @@ public class EnrollmentsAggregateDownloadTest extends AnalyticsApiTest {
     // When
     ApiResponse response =
         analyticsEnrollmentsActions
-            .query()
+            .aggregate()
             .get("IpHINAT79UW.html", HTML.toString(), HTML.toString(), params);
 
     // Then
@@ -158,7 +183,7 @@ public class EnrollmentsAggregateDownloadTest extends AnalyticsApiTest {
     // When
     ApiResponse response =
         analyticsEnrollmentsActions
-            .query()
+            .aggregate()
             .get("IpHINAT79UW.html+css", HTML.toString(), HTML.toString(), params);
 
     // Then

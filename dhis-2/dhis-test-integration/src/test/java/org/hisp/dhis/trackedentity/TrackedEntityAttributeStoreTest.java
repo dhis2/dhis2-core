@@ -47,14 +47,15 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Chau Thu Tran
  */
-class TrackedEntityAttributeStoreTest extends IntegrationTestBase {
+class TrackedEntityAttributeStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackedEntityAttributeService attributeService;
 
@@ -74,8 +75,8 @@ class TrackedEntityAttributeStoreTest extends IntegrationTestBase {
 
   private Program programB;
 
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  void setUp() {
     attributeW = createTrackedEntityAttribute('W');
     attributeY = createTrackedEntityAttribute('Y');
     attributeZ = createTrackedEntityAttribute('Z', ValueType.NUMBER);

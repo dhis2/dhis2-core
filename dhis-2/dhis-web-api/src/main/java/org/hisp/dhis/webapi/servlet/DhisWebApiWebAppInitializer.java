@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.servlet;
 
 import java.util.EnumSet;
+import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletRegistration;
@@ -44,6 +45,7 @@ import org.springframework.orm.jpa.support.OpenEntityManagerInViewFilter;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
+import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.filter.DelegatingFilterProxy;
@@ -91,13 +93,16 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
 
   public static void setupServlets(
       ServletContext context, AnnotationConfigWebApplicationContext webApplicationContext) {
-    DispatcherServlet servlet = new DispatcherServlet(webApplicationContext);
 
+    DispatcherServlet servlet = new DispatcherServlet(webApplicationContext);
     ServletRegistration.Dynamic dispatcher = context.addServlet("dispatcher", servlet);
     dispatcher.setAsyncSupported(true);
     dispatcher.setLoadOnStartup(1);
-    dispatcher.addMapping("/api/*");
-    dispatcher.addMapping("/uaa/*");
+    dispatcher.addMapping("/*");
+
+    context
+        .addServlet("TempGetAppMenuServlet", TempGetAppMenuServlet.class)
+        .addMapping("/dhis-web-commons/menu/getModules.action");
 
     context
         .addFilter("webMetricsFilter", new DelegatingFilterProxy("webMetricsFilter"))
@@ -118,6 +123,11 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
     characterEncodingFilter.addMappingForServletNames(null, false, "dispatcher");
 
     context
+        .addFilter(
+            "springSecurityFilterChain", new DelegatingFilterProxy("springSecurityFilterChain"))
+        .addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
+
+    context
         .addFilter("RequestIdentifierFilter", new DelegatingFilterProxy("requestIdentifierFilter"))
         .addMappingForUrlPatterns(null, true, "/*");
 
@@ -129,9 +139,12 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
         .addFilter("GlobalShellFilter", new DelegatingFilterProxy("globalShellFilter"))
         .addMappingForUrlPatterns(null, true, "/*");
 
-    context
-        .addFilter(
-            "SwitchUserProcessingFilter", new DelegatingFilterProxy("switchUserProcessingFilter"))
-        .addMappingForUrlPatterns(null, true, "/*");
+    context.addServlet("RootPageServlet", LoginFallbackServlet.class).addMapping("/login.html");
+
+    String profile = System.getProperty("spring.profiles.active");
+    if (profile == null || !profile.equals("embeddedJetty")) {
+      RequestContextListener requestContextListener = new RequestContextListener();
+      context.addListener(requestContextListener);
+    }
   }
 }

@@ -32,6 +32,8 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.concurrent.atomic.AtomicBoolean;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.system.notification.NotificationDataType;
 import org.hisp.dhis.system.notification.NotificationLevel;
@@ -79,12 +81,13 @@ public class NotifierJobProgress implements JobProgress {
   }
 
   @Override
-  public void failedProcess(String error, Object... args) {
+  public void failedProcess(@CheckForNull String error, Object... args) {
     notifier.notify(jobId, NotificationLevel.ERROR, format(error, args), true);
   }
 
   @Override
-  public void startingStage(String description, int workItems, FailurePolicy onFailure) {
+  public void startingStage(
+      @Nonnull String description, int workItems, @Nonnull FailurePolicy onFailure) {
     stageItems = workItems;
     stageItem = 0;
     if (isNotEmpty(description)) {
@@ -100,14 +103,14 @@ public class NotifierJobProgress implements JobProgress {
   }
 
   @Override
-  public void failedStage(String error, Object... args) {
+  public void failedStage(@Nonnull String error, Object... args) {
     if (isNotEmpty(error)) {
       notifier.notify(jobId, NotificationLevel.ERROR, format(error, args), false);
     }
   }
 
   @Override
-  public void startingWorkItem(String description, FailurePolicy onFailure) {
+  public void startingWorkItem(@Nonnull String description, @Nonnull FailurePolicy onFailure) {
     if (isNotEmpty(description)) {
       String nOf = "[" + (stageItems > 0 ? stageItem + "/" + stageItems : "" + stageItem) + "] ";
       notifier.notify(jobId, NotificationLevel.LOOP, nOf + description, false);
@@ -124,7 +127,7 @@ public class NotifierJobProgress implements JobProgress {
   }
 
   @Override
-  public void failedWorkItem(String error, Object... args) {
+  public void failedWorkItem(@Nonnull String error, Object... args) {
     if (isNotEmpty(error)) {
       notifier.notify(jobId, NotificationLevel.ERROR, format(error, args), false);
     }

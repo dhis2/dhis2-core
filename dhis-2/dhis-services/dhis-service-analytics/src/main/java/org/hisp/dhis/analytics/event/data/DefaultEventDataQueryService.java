@@ -28,10 +28,10 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
+import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_ENROLLMENT_GEOMETRY;
+import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_EVENT_GEOMETRY;
 import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_GEOMETRY_LIST;
-import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_PI_GEOMETRY;
-import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_PSI_GEOMETRY;
-import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_TEI_GEOMETRY;
+import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_TRACKED_ENTITY_GEOMETRY;
 import static org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService.SortableItems.isSortable;
 import static org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService.SortableItems.translateItemIfNecessary;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.illegalQueryExSupplier;
@@ -56,6 +56,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
+import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.OrgUnitField;
@@ -75,6 +76,7 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.RequestTypeAware;
+import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -143,8 +145,11 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
     Locale locale = (Locale) userSettingService.getUserSetting(UserSettingKey.DB_LOCALE);
 
+    DataQueryParams dataQueryParams =
+        DataQueryParams.newBuilder().withUserOrgUnitType(UserOrgUnitType.DATA_OUTPUT).build();
+
     List<OrganisationUnit> userOrgUnits =
-        dataQueryService.getUserOrgUnits(null, request.getUserOrgUnit());
+        dataQueryService.getUserOrgUnits(dataQueryParams, request.getUserOrgUnit());
 
     Program pr = programService.getProgram(request.getProgram());
 
@@ -209,7 +214,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
             .withPageSize(request.getPageSize())
             .withPaging(request.isPaging())
             .withTotalPages(request.isTotalPages())
-            .withProgramStatuses(request.getProgramStatus())
+            .withEnrollmentStatuses(request.getEnrollmentStatus())
             .withApiVersion(request.getApiVersion())
             .withLocale(locale)
             .withEnhancedConditions(request.isEnhancedConditions())
@@ -435,6 +440,10 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       boolean defaultCoordinateFallback) {
     List<String> coordinateFields = new ArrayList<>();
 
+    // TODO!!! remove when all fe apps stop using old names of coordinate fields
+    coordinateField = mapCoordinateField(coordinateField);
+    fallbackCoordinateField = mapCoordinateField(fallbackCoordinateField);
+
     if (coordinateField == null) {
       coordinateFields.add(StringUtils.EMPTY);
     } else if (COL_NAME_GEOMETRY_LIST.contains(coordinateField)) {
@@ -443,15 +452,15 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     } else if (EventQueryParams.EVENT_COORDINATE_FIELD.equals(coordinateField)) {
       coordinateFields.add(
           eventCoordinateService.getCoordinateField(
-              program, COL_NAME_PSI_GEOMETRY, ErrorCode.E7221));
+              program, COL_NAME_EVENT_GEOMETRY, ErrorCode.E7221));
     } else if (EventQueryParams.ENROLLMENT_COORDINATE_FIELD.equals(coordinateField)) {
       coordinateFields.add(
           eventCoordinateService.getCoordinateField(
-              program, COL_NAME_PI_GEOMETRY, ErrorCode.E7221));
+              program, COL_NAME_ENROLLMENT_GEOMETRY, ErrorCode.E7221));
     } else if (EventQueryParams.TRACKER_COORDINATE_FIELD.equals(coordinateField)) {
       coordinateFields.add(
           eventCoordinateService.getCoordinateField(
-              program, COL_NAME_TEI_GEOMETRY, ErrorCode.E7221));
+              program, COL_NAME_TRACKED_ENTITY_GEOMETRY, ErrorCode.E7221));
     }
 
     DataElement dataElement = dataElementService.getDataElement(coordinateField);
@@ -486,6 +495,29 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
   // -------------------------------------------------------------------------
   // Supportive methods
   // -------------------------------------------------------------------------
+
+  // TODO!!! remove when all fe apps stop using old names of the coordinate fields
+  /**
+   * Temporary only, should not be in 2.42 release!!! Retrieves an old name of the coordinate field.
+   *
+   * @param coordinateField a name of the coordinate field
+   * @return old name of the coordinate field.
+   */
+  private String mapCoordinateField(String coordinateField) {
+    if ("pigeometry".equalsIgnoreCase(coordinateField)) {
+      return COL_NAME_ENROLLMENT_GEOMETRY;
+    }
+
+    if ("psigeometry".equalsIgnoreCase(coordinateField)) {
+      return COL_NAME_EVENT_GEOMETRY;
+    }
+
+    if ("teigeometry".equalsIgnoreCase(coordinateField)) {
+      return COL_NAME_TRACKED_ENTITY_GEOMETRY;
+    }
+
+    return coordinateField;
+  }
 
   private QueryItem getQueryItem(
       String dimension, String filter, Program program, EventOutputType type) {

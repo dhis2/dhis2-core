@@ -28,8 +28,8 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.lang.String.format;
-import static org.hisp.dhis.web.WebClient.Body;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.web.WebClient.Body;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -37,8 +37,8 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockMultipartFile;
@@ -49,7 +49,7 @@ import org.springframework.mock.web.MockMultipartFile;
  *
  * @author Jan Bernitt
  */
-class DataValueFileResourceControllerTest extends DhisControllerIntegrationTest {
+class DataValueFileResourceControllerTest extends PostgresControllerIntegrationTestBase {
   private String pe;
 
   private String de;
@@ -104,7 +104,7 @@ class DataValueFileResourceControllerTest extends DhisControllerIntegrationTest 
   }
 
   private void assertClearsFileResourceDataValue(Runnable clearRequest) {
-    String url = format("/dataValues/file?de=%s&pe=%s&ou=%s&co=%s", de, pe, ou, coc);
+    String url = format("/api/dataValues/file?de=%s&pe=%s&ou=%s&co=%s", de, pe, ou, coc);
     MockMultipartFile image =
         new MockMultipartFile(
             "file", "OU_profile_image.png", "image/png", "<<png data>>".getBytes());

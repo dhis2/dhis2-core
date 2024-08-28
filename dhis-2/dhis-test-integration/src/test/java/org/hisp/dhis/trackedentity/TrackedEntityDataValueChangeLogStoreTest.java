@@ -27,15 +27,17 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.audit.UserInfoTestHelper;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.changelog.ChangeLogType;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -43,31 +45,33 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.UserInfoSnapshot;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogStore;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-class TrackedEntityDataValueChangeLogStoreTest extends SingleSetupIntegrationTestBase {
+@TestInstance(Lifecycle.PER_CLASS)
+@Transactional
+class TrackedEntityDataValueChangeLogStoreTest extends PostgresIntegrationTestBase {
   private static final String USER_A = "userA";
 
   private static final UserInfoSnapshot USER_SNAP_A = UserInfoTestHelper.testUserInfo(USER_A);
 
   @Autowired private TrackedEntityDataValueChangeLogStore auditStore;
-
-  @Autowired private TrackedEntityService entityInstanceService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -77,9 +81,11 @@ class TrackedEntityDataValueChangeLogStoreTest extends SingleSetupIntegrationTes
 
   @Autowired private ProgramStageService programStageService;
 
-  @Autowired private EnrollmentService enrollmentService;
+  @Autowired private CategoryService categoryService;
 
-  @Autowired private EventService eventService;
+  @Autowired private IdentifiableObjectManager manager;
+
+  private CategoryOptionCombo coc;
 
   private OrganisationUnit ouA;
 
@@ -121,8 +127,9 @@ class TrackedEntityDataValueChangeLogStoreTest extends SingleSetupIntegrationTes
 
   private EventDataValue dvE;
 
-  @Override
-  public void setUpTest() {
+  @BeforeAll
+  void setUp() {
+    coc = categoryService.getDefaultCategoryOptionCombo();
     ouA = createOrganisationUnit('A');
     ouB = createOrganisationUnit('B', ouA);
     ouC = createOrganisationUnit('C', ouA);
@@ -151,11 +158,13 @@ class TrackedEntityDataValueChangeLogStoreTest extends SingleSetupIntegrationTes
     dataElementService.addDataElement(deA);
     dataElementService.addDataElement(deB);
 
-    TrackedEntity teiA = createTrackedEntity(ouA);
-    entityInstanceService.addTrackedEntity(teiA);
+    TrackedEntity teA = createTrackedEntity(ouA);
+    manager.save(teA);
 
-    Enrollment enrollmentA =
-        enrollmentService.enrollTrackedEntity(teiA, pA, new Date(), new Date(), ouA);
+    Enrollment enrollment = createEnrollment(pA, teA, ouA);
+    manager.save(enrollment);
+    teA.getEnrollments().add(enrollment);
+    manager.update(teA);
 
     dvA = new EventDataValue(deA.getUid(), "A", USER_SNAP_A);
     dvB = new EventDataValue(deB.getUid(), "B", USER_SNAP_A);
@@ -163,16 +172,16 @@ class TrackedEntityDataValueChangeLogStoreTest extends SingleSetupIntegrationTes
     dvD = new EventDataValue(deB.getUid(), "D", USER_SNAP_A);
     dvE = new EventDataValue(deB.getUid(), "E", USER_SNAP_A);
 
-    eventA = createEvent(enrollmentA, psA, ouA, Set.of(dvA, dvB));
-    eventB = createEvent(enrollmentA, psB, ouB, Set.of(dvC, dvD));
-    eventC = createEvent(enrollmentA, psA, ouC, Set.of(dvA, dvB));
-    eventD = createEvent(enrollmentA, psB, ouD, Set.of(dvC, dvD));
-    eventE = createEvent(enrollmentA, psA, ouE, Set.of(dvA, dvE));
-    eventService.addEvent(eventA);
-    eventService.addEvent(eventB);
-    eventService.addEvent(eventC);
-    eventService.addEvent(eventD);
-    eventService.addEvent(eventE);
+    eventA = createEvent(enrollment, psA, ouA, Set.of(dvA, dvB));
+    eventB = createEvent(enrollment, psB, ouB, Set.of(dvC, dvD));
+    eventC = createEvent(enrollment, psA, ouC, Set.of(dvA, dvB));
+    eventD = createEvent(enrollment, psB, ouD, Set.of(dvC, dvD));
+    eventE = createEvent(enrollment, psA, ouE, Set.of(dvA, dvE));
+    manager.save(eventA);
+    manager.save(eventB);
+    manager.save(eventC);
+    manager.save(eventD);
+    manager.save(eventE);
   }
 
   @Test

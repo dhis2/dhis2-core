@@ -27,16 +27,19 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParentheses;
+import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
+import static org.hisp.dhis.commons.util.TextUtils.replace;
+import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.model.AnalyticsColumnType;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.model.Skip;
@@ -91,6 +94,8 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
         sqlBuilder);
   }
 
+  public static final String OU_NAME_COL_SUFFIX = "_name";
+
   protected final String getNumericClause() {
     return " and value ~* '" + NUMERIC_LENIENT_REGEXP + "'";
   }
@@ -138,11 +143,6 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
     return tableIsNotEmpty("event");
   }
 
-  @Override
-  protected boolean hasUpdatedLatestData(Date startDate, Date endDate) {
-    throw new IllegalStateException("This method should never be invoked");
-  }
-
   /**
    * Populates the given analytics table partition using the given columns and join statement.
    *
@@ -170,7 +170,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
 
     sql += fromClause;
 
-    invokeTimeAndLog(sql, String.format("Populate %s", tableName));
+    invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }
 
   protected List<AnalyticsTableColumn> getTrackedEntityAttributeColumns(Program program) {
@@ -186,12 +186,12 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
       Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
       String sql =
-          TextUtils.replace(
+          replace(
               """
-                (select ${select} from trackedentityattributevalue \
-                where trackedentityid=pi.trackedentityid \
-                and trackedentityattributeid=${attributeId}\
-                ${dataClause})${closingParentheses} as ${attributeUid}""",
+              (select ${select} from trackedentityattributevalue \
+              where trackedentityid=en.trackedentityid \
+              and trackedentityattributeid=${attributeId}\
+              ${dataClause})${closingParentheses} as ${attributeUid}""",
               Map.of(
                   "select",
                   select,
@@ -203,9 +203,54 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
                   getClosingParentheses(select),
                   "attributeUid",
                   quote(attribute.getUid())));
-      columns.add(new AnalyticsTableColumn(attribute.getUid(), dataType, sql, skipIndex));
-    }
+      columns.add(
+          AnalyticsTableColumn.builder()
+              .name(attribute.getUid())
+              .columnType(AnalyticsColumnType.DYNAMIC)
+              .dataType(dataType)
+              .selectExpression(sql)
+              .skipIndex(skipIndex)
+              .build());
 
+      if (attribute.getValueType().isOrganisationUnit()) {
+        String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select value";
+        String ouNameSql = selectForInsert(attribute, fromTypeSql, dataClause);
+
+        columns.add(
+            AnalyticsTableColumn.builder()
+                .name((attribute.getUid() + OU_NAME_COL_SUFFIX))
+                .columnType(AnalyticsColumnType.DYNAMIC)
+                .dataType(TEXT)
+                .selectExpression(ouNameSql)
+                .skipIndex(SKIP)
+                .build());
+      }
+    }
     return columns;
+  }
+
+  /**
+   * The select statement used by the table population.
+   *
+   * @param attribute the {@link TrackedEntityAttribute}.
+   * @param fromType the sql snippet related to "from" part
+   * @param dataClause the data type related clause like "NUMERIC"
+   * @return
+   */
+  protected String selectForInsert(
+      TrackedEntityAttribute attribute, String fromType, String dataClause) {
+    return replace(
+        """
+            (select ${fromType} from trackedentityattributevalue \
+            where trackedentityid=en.trackedentityid \
+            and trackedentityattributeid=${attributeId}\
+            ${dataClause})\
+            ${closingParentheses} as ${attributeUid}""",
+        Map.of(
+            "fromType", fromType,
+            "dataClause", dataClause,
+            "attributeId", String.valueOf(attribute.getId()),
+            "closingParentheses", getClosingParentheses(fromType),
+            "attributeUid", quote(attribute.getUid())));
   }
 }

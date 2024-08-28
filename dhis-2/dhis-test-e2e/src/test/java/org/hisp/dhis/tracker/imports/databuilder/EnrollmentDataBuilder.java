@@ -30,7 +30,7 @@ package org.hisp.dhis.tracker.imports.databuilder;
 import com.google.gson.JsonObject;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
+import org.hisp.dhis.test.e2e.helpers.JsonObjectBuilder;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -56,8 +56,8 @@ public class EnrollmentDataBuilder implements TrackerImporterDataBuilder {
     return this;
   }
 
-  public EnrollmentDataBuilder setTei(String tei) {
-    jsonObjectBuilder.addProperty("trackedEntity", tei);
+  public EnrollmentDataBuilder setTrackedEntity(String te) {
+    jsonObjectBuilder.addProperty("trackedEntity", te);
 
     return this;
   }
@@ -82,7 +82,7 @@ public class EnrollmentDataBuilder implements TrackerImporterDataBuilder {
     return this;
   }
 
-  public EnrollmentDataBuilder setOu(String ouId) {
+  public EnrollmentDataBuilder setOrgUnit(String ouId) {
     jsonObjectBuilder.addProperty("orgUnit", ouId);
 
     return this;
@@ -102,7 +102,7 @@ public class EnrollmentDataBuilder implements TrackerImporterDataBuilder {
     // ).getAsString();
 
     return addEvent(
-        new EventDataBuilder().setProgramStage(programStage).setOu(orgUnit).setStatus(status));
+        new EventDataBuilder().setProgramStage(programStage).setOrgUnit(orgUnit).setStatus(status));
   }
 
   public EnrollmentDataBuilder addAttribute(String attributeId, String value) {
@@ -117,12 +117,12 @@ public class EnrollmentDataBuilder implements TrackerImporterDataBuilder {
   }
 
   public JsonObject array(String program, String ou) {
-    setProgram(program).setOu(ou);
+    setProgram(program).setOrgUnit(ou);
     return array();
   }
 
-  public JsonObject array(String program, String ou, String tei, String status) {
-    setProgram(program).setOu(ou).setStatus(status).setTei(tei);
+  public JsonObject array(String program, String ou, String te, String status) {
+    setProgram(program).setOrgUnit(ou).setStatus(status).setTrackedEntity(te);
 
     return array();
   }

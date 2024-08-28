@@ -52,8 +52,7 @@ pipeline {
                 echo 'Building DHIS2 ...'
                 script {
                     withMaven(options: [artifactsPublisher(disabled: true)]) {
-                        sh 'mvn -X -T 4 --batch-mode --no-transfer-progress clean install -f dhis-2/pom.xml -P -default --update-snapshots -pl -dhis-web-embedded-jetty,-dhis-test-coverage'
-                        sh 'mvn -X -T 4 --batch-mode --no-transfer-progress install -f dhis-2/dhis-web/pom.xml -P -default --update-snapshots'
+                        sh 'mvn -X -T 4 --batch-mode --no-transfer-progress clean install -f dhis-2/pom.xml -P -default --update-snapshots -pl -dhis-test-coverage'
                     }
                 }
             }
@@ -134,29 +133,27 @@ pipeline {
 
             steps {
                 script {
-                    def imageTag = env.DOCKER_IMAGE_TAG
-
                     // Remove -rc suffix in case it's there, will be added later if needed.
-                    imageTag = imageTag.replace("-rc", "")
+                    oldImageTag = env.DOCKER_IMAGE_TAG.replace("-rc", "")
 
                     // If version contains more than 2 dots... It's a hotfix.
-                    boolean isHotfix = imageTag.length() - imageTag.replace(".", "").length() > 2
+                    boolean isHotfix = oldImageTag.length() - oldImageTag.replace(".", "").length() > 2
 
                     if (!isHotfix) {
-                        imageTag = "$imageTag.0"
+                        oldImageTag = "$oldImageTag.0"
                     }
 
-                    def newImageTagFormat = imageTag.replaceFirst(/^2\./, "")
+                    imageTag = oldImageTag.replaceFirst(/^2\./, "")
 
                     withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
                         withMaven(options: [artifactsPublisher(disabled: true)]) {
                             if (env.DOCKER_IMAGE_TAG.endsWith("-rc")) {
-                                newImageTagFormat = "$newImageTagFormat-rc"
+                                imageTag = "$imageTag-rc"
 
                                 // Release candidates don't need immutable and rolling tags.
-                                sh "./dhis-2/build-docker-image.sh -t $newImageTagFormat -d"
+                                sh "./dhis-2/build-docker-image.sh -t $imageTag -d"
                             } else {
-                                sh "./dhis-2/build-docker-image.sh -t $newImageTagFormat"
+                                sh "./dhis-2/build-docker-image.sh -t $imageTag"
                             }
                         }
                     }
@@ -170,6 +167,49 @@ pipeline {
                 sh 'curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/copy-war-s3.sh" -O'
                 sh 'chmod +x copy-war-s3.sh'
                 sh './copy-war-s3.sh stable ${GIT_BRANCH}'
+            }
+        }
+
+        stage('Update stable.json') {
+            when {
+                buildingTag()
+            }
+
+            environment {
+                DHIS2_RELEASES_REPO = "dhis2/dhis2-releases"
+                GITHUB_EMAIL = 'apps@dhis2.org'
+                GITHUB_USER = 'dhis2-bot'
+            }
+
+            steps {
+                script {
+                    dir('dhis2-releases') {
+                        git url: "https://github.com/$DHIS2_RELEASES_REPO"
+
+                        majorVersion = imageTag.split("\\.")[0]
+
+                        sh """
+                            ./tools/update-stable-json/update_stable_json.py \
+                            --version $imageTag \
+                            --war-path ${WORKSPACE}/dhis-2/dhis-web-server/target/dhis.war \
+                            --war-url https://releases.dhis2.org/${majorVersion}/dhis2-stable-${imageTag}.war \
+                            --release-date \$(date +%F) \
+                            --json-file ./downloads/v1/versions/stable.json
+                        """
+
+                        sh 'git config  user.email "$GITHUB_EMAIL"'
+                        sh 'git config  user.name "$GITHUB_USER"'
+
+                        releasesBranch = "add-release-${imageTag}"
+
+                        sh "git checkout -b $releasesBranch"
+                        sh 'git add ./downloads/v1/versions/stable.json'
+                        sh "git diff-index --quiet HEAD || git commit -m \"chore: add version $imageTag to stable.json\""
+                        sh "git push https://${GITHUB_TOKEN}@github.com/$DHIS2_RELEASES_REPO"
+
+                        sh "gh pr create --head $releasesBranch --fill-first --reviewer Philip-Larsen-Donnelly,dhis2/devops"
+                    }
+                }
             }
         }
 
@@ -189,8 +229,9 @@ pipeline {
                 FLYWAY_REPAIR_BEFORE_MIGRATION = "true"
                 INSTANCE_TTL = "315360000"
                 STARTUP_PROBE_FAILURE_THRESHOLD = "50"
-                LIVENESS_PROBE_TIMEOUT_SECONDS = "3"
-                READINESS_PROBE_TIMEOUT_SECONDS = "3"
+                LIVENESS_PROBE_TIMEOUT_SECONDS = "5"
+                READINESS_PROBE_TIMEOUT_SECONDS = "5"
+                CORE_RESOURCES_REQUESTS_MEMORY = "2500Mi"
             }
 
             steps {
@@ -239,7 +280,11 @@ pipeline {
     post {
         failure {
             script {
-                slack.sendFailureMessage()
+                slack.sendMessage(
+                    '#ff0000',
+                    slack.buildUrl() + "\nLatest run on ${GIT_BRANCH} failed and needs investigation. :detective-duck:\nCommit: <${GIT_URL}/commit/${GIT_COMMIT}|${GIT_COMMIT}>",
+                    'team-backend'
+                )
             }
         }
 

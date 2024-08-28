@@ -28,15 +28,16 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.singletonList;
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,14 +53,14 @@ import org.springframework.core.io.ClassPathResource;
  * <p>This test is purely about access control aspect and does not spend much effort on verifying
  * correctness of the returned payload. This is handled by {@link DatastoreControllerTest}.
  *
- * <p>Each test scenario tests that the {@link AppManager#WEB_MAINTENANCE_APPMANAGER_AUTHORITY} user
- * can use the store, that a app manager with the {@link App#getSeeAppAuthority()} can use the store
- * but a user lacking any of the two authorities can not.
+ * <p>Each test scenario tests that the {@link Authorities#M_DHIS_WEB_APP_MANAGEMENT} user can use
+ * the store, that a app manager with the {@link App#getSeeAppAuthority()} can use the store but a
+ * user lacking any of the two authorities can not.
  *
  * @author Jan Bernitt
  * @see DatastoreControllerTest
  */
-class DatastoreControllerAppTest extends DhisControllerConvenienceTest {
+class DatastoreControllerAppTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private AppManager appManager;
 
@@ -69,7 +70,7 @@ class DatastoreControllerAppTest extends DhisControllerConvenienceTest {
         AppStatus.OK,
         appManager.installApp(new ClassPathResource("app/test-app.zip").getFile(), "test-app.zip"));
     // by default we are an app manager
-    switchToNewUser("app-admin", AppManager.WEB_MAINTENANCE_APPMANAGER_AUTHORITY);
+    switchToNewUser("app-admin", Authorities.M_DHIS_WEB_APP_MANAGEMENT.toString());
   }
 
   @Test

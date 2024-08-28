@@ -34,10 +34,10 @@ import static org.hamcrest.Matchers.hasItems;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.actions.UserActions;
-import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.actions.LoginActions;
+import org.hisp.dhis.test.e2e.actions.RestApiActions;
+import org.hisp.dhis.test.e2e.actions.UserActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -403,7 +403,9 @@ class IndicatorTypeMergeTest extends ApiTest {
         .statusCode(403)
         .body("httpStatus", equalTo("Forbidden"))
         .body("status", equalTo("ERROR"))
-        .body("message", equalTo("Access is denied"));
+        .body(
+            "message",
+            equalTo("Access is denied, requires one Authority from [F_INDICATOR_TYPE_MERGE]"));
   }
 
   private JsonObject getMergeBody(

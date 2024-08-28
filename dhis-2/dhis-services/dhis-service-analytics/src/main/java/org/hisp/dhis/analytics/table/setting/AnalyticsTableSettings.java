@@ -27,18 +27,27 @@
  */
 package org.hisp.dhis.analytics.table.setting;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.db.model.Logged.LOGGED;
 import static org.hisp.dhis.db.model.Logged.UNLOGGED;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_ORDERING;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE_CATALOG;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE_DRIVER_FILENAME;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_SKIP_COLUMN;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_SKIP_INDEX;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_UNLOGGED;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_PERIOD_YEARS_OFFSET;
 import static org.hisp.dhis.util.ObjectUtils.isNull;
 
+import com.google.common.collect.Lists;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -72,10 +81,6 @@ public class AnalyticsTableSettings {
     return LOGGED;
   }
 
-  public boolean isTableOrdering() {
-    return config.isEnabled(ANALYTICS_TABLE_ORDERING);
-  }
-
   /**
    * Returns the years' offset defined for the period generation. See {@link
    * ANALYTICS_MAX_PERIOD_YEARS_OFFSET}.
@@ -89,6 +94,15 @@ public class AnalyticsTableSettings {
   }
 
   /**
+   * Indicates whether an analytics database instance is configured.
+   *
+   * @return true if an analytics database instance is configured.
+   */
+  public boolean isAnalyticsDatabaseConfigured() {
+    return config.isAnalyticsDatabaseConfigured();
+  }
+
+  /**
    * Returns the configured analytics {@link Database}. Default is {@link Database#POSTGRESQL}.
    *
    * @return the analytics {@link Database}.
@@ -97,6 +111,43 @@ public class AnalyticsTableSettings {
     String value = config.getProperty(ANALYTICS_DATABASE);
     String valueUpperCase = StringUtils.trimToEmpty(value).toUpperCase();
     return getAndValidateDatabase(valueUpperCase);
+  }
+
+  /**
+   * Returns the analytics database JDBC catalog name.
+   *
+   * @return the analytics database JDBC catalog name.
+   */
+  public String getAnalyticsDatabaseCatalog() {
+    return config.getProperty(ANALYTICS_DATABASE_CATALOG);
+  }
+
+  /**
+   * Returns the analytics database JDBC driver filename.
+   *
+   * @return the analytics database JDBC driver filename.
+   */
+  public String getAnalyticsDatabaseDriverFilename() {
+    return config.getProperty(ANALYTICS_DATABASE_DRIVER_FILENAME);
+  }
+
+  /**
+   * Returns a set of dimension identifiers for which to skip building indexes for columns on
+   * analytics tables.
+   *
+   * @return a set of dimension identifiers.
+   */
+  public Set<String> getSkipIndexDimensions() {
+    return toSet(config.getProperty(ANALYTICS_TABLE_SKIP_INDEX));
+  }
+
+  /**
+   * Returns a set of dimension identifiers for which to skip creating columns for analytics tables.
+   *
+   * @return a set of dimension identifiers.
+   */
+  public Set<String> getSkipColumnDimensions() {
+    return toSet(config.getProperty(ANALYTICS_TABLE_SKIP_COLUMN));
   }
 
   /**
@@ -120,5 +171,32 @@ public class AnalyticsTableSettings {
     }
 
     return database;
+  }
+
+  /**
+   * Splits the given value on comma, and returns the values as a set.
+   *
+   * @param value the value.
+   * @return a set of values.
+   */
+  Set<String> toSet(String value) {
+    if (isBlank(value)) {
+      return Set.of();
+    }
+
+    return Lists.newArrayList(value.split(",")).stream()
+        .filter(Objects::nonNull)
+        .map(String::trim)
+        .collect(Collectors.toSet());
+  }
+
+  /**
+   * Converts the boolean enabled flag to a {@link Skip} value.
+   *
+   * @param enabled the boolean enabled flag.
+   * @return a {@link Skip} value.
+   */
+  Skip toSkip(boolean enabled) {
+    return enabled ? Skip.INCLUDE : Skip.SKIP;
   }
 }

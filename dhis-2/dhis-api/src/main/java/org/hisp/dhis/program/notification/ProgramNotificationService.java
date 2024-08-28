@@ -28,6 +28,7 @@
 package org.hisp.dhis.program.notification;
 
 import java.util.Date;
+import java.util.List;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -75,23 +76,21 @@ public interface ProgramNotificationService {
    * Send completion notifications for the Enrollment triggered by ProgramRule evaluation. {@link
    * ProgramNotificationTemplate templates}, nothing will happen.
    *
-   * @param pnt ProgramNotificationTemplate id to send
-   * @param enrollment the Enrollment id.
+   * @param template ProgramNotificationTemplate to send
+   * @param enrollment the enrollment.
    */
-  void sendProgramRuleTriggeredNotifications(long pnt, long enrollment);
-
-  void sendProgramRuleTriggeredNotifications(long pnt, Enrollment enrollment);
+  void sendProgramRuleTriggeredNotifications(
+      ProgramNotificationTemplate template, Enrollment enrollment);
 
   /**
    * Send completion notifications for the Event triggered by ProgramRule evaluation. {@link
    * ProgramNotificationTemplate templates}, nothing will happen.
    *
-   * @param pnt ProgramNotificationTemplate id to send
-   * @param eventId the event id.
+   * @param template ProgramNotificationTemplate to send
+   * @param event the event.
    */
-  void sendProgramRuleTriggeredEventNotifications(long pnt, long eventId);
-
-  void sendProgramRuleTriggeredEventNotifications(long pnt, Event event);
+  void sendProgramRuleTriggeredEventNotifications(
+      ProgramNotificationTemplate template, Event event);
 
   /**
    * Send completion notifications for the Enrollment. If the Program is not configured with
@@ -108,4 +107,28 @@ public interface ProgramNotificationService {
    * @param enrollment the Enrollment id.
    */
   void sendEnrollmentNotifications(long enrollment);
+
+  /**
+   * Get all events which have notifications with the given ProgramNotificationTemplate scheduled on
+   * the given date.
+   *
+   * @param template the template.
+   * @param notificationDate the Date for which the notification is scheduled.
+   * @return a list of Event.
+   */
+  @Deprecated
+  List<Event> getWithScheduledNotifications(
+      ProgramNotificationTemplate template, Date notificationDate);
+
+  /**
+   * Get all enrollments which have notifications with the given ProgramNotificationTemplate
+   * scheduled on the given date.
+   *
+   * @param template the template.
+   * @param notificationDate the Date for which the notification is scheduled.
+   * @return a list of Enrollment.
+   */
+  @Deprecated
+  List<Enrollment> getEnrollmentsWithScheduledNotifications(
+      ProgramNotificationTemplate template, Date notificationDate);
 }

@@ -47,7 +47,7 @@ import org.hisp.dhis.tracker.imports.TrackerIdentifierCollector;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -59,13 +59,6 @@ class TrackerPreheatServiceTest extends TrackerTest {
   @Autowired private TrackerPreheatService trackerPreheatService;
 
   @Autowired private TrackerIdentifierCollector identifierCollector;
-
-  @Autowired protected UserService _userService;
-
-  @Override
-  protected void initTest() throws IOException {
-    userService = _userService;
-  }
 
   @Test
   void testCollectIdentifiersEvents() throws IOException {
@@ -112,7 +105,7 @@ class TrackerPreheatServiceTest extends TrackerTest {
             .trackedEntities(
                 Lists.newArrayList(
                     TrackedEntity.builder()
-                        .trackedEntity("TEI12345678")
+                        .trackedEntity("TE012345678")
                         .orgUnit(MetadataIdentifier.ofCode("OU123456789"))
                         .build()))
             .build();
@@ -126,7 +119,7 @@ class TrackerPreheatServiceTest extends TrackerTest {
     Set<String> organisationUnits = collectedMap.get(OrganisationUnit.class);
     assertTrue(organisationUnits.contains("OU123456789"));
     assertEquals(1, organisationUnits.size());
-    assertTrue(trackedEntities.contains("TEI12345678"));
+    assertTrue(trackedEntities.contains("TE012345678"));
     assertEquals(1, trackedEntities.size());
   }
 
@@ -141,6 +134,10 @@ class TrackerPreheatServiceTest extends TrackerTest {
   @Test
   void testPreheatEvents() throws IOException {
     setUpMetadata("tracker/event_metadata.json");
+
+    User importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
+
     TrackerObjects trackerObjects = fromJson("tracker/event_events.json");
 
     TrackerPreheat preheat =

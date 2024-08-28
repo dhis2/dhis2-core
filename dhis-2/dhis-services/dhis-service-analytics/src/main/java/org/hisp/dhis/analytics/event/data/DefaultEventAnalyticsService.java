@@ -61,6 +61,7 @@ import static org.hisp.dhis.analytics.common.ColumnHeader.PROGRAM_STAGE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.PROGRAM_STATUS;
 import static org.hisp.dhis.analytics.common.ColumnHeader.SCHEDULED_DATE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.STORED_BY;
+import static org.hisp.dhis.analytics.common.ColumnHeader.TRACKED_ENTITY;
 import static org.hisp.dhis.analytics.event.LabelMapper.getEnrollmentDateLabel;
 import static org.hisp.dhis.analytics.event.LabelMapper.getEventDateLabel;
 import static org.hisp.dhis.analytics.event.LabelMapper.getEventLabel;
@@ -74,7 +75,7 @@ import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.ValueType.BOOLEAN;
-import static org.hisp.dhis.common.ValueType.DATE;
+import static org.hisp.dhis.common.ValueType.DATETIME;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 
@@ -91,6 +92,7 @@ import org.hisp.dhis.analytics.EventAnalyticsDimensionalItem;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
 import org.hisp.dhis.analytics.common.ColumnHeader;
+import org.hisp.dhis.analytics.common.scheme.SchemeInfo;
 import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
@@ -594,7 +596,10 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
       }
     }
 
-    schemeIdResponseMapper.applyCustomIdScheme(params, grid);
+    if (!params.isSkipMeta()) {
+      SchemeInfo schemeInfo = new SchemeInfo(schemeSettings(params), schemeData(params));
+      schemeIdResponseMapper.applyCustomIdScheme(schemeInfo, grid);
+    }
 
     // ---------------------------------------------------------------------
     // Meta-ata
@@ -708,7 +713,7 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
             new GridHeader(
                 EVENT_DATE.getItem(),
                 getEventDateLabel(params.getProgramStage(), EVENT_DATE.getName()),
-                DATE,
+                DATETIME,
                 false,
                 true))
         .addHeader(new GridHeader(STORED_BY.getItem(), STORED_BY.getName(), TEXT, false, true))
@@ -727,12 +732,12 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
                 false,
                 true))
         .addHeader(
-            new GridHeader(LAST_UPDATED.getItem(), LAST_UPDATED.getName(), DATE, false, true))
+            new GridHeader(LAST_UPDATED.getItem(), LAST_UPDATED.getName(), DATETIME, false, true))
         .addHeader(
             new GridHeader(
                 SCHEDULED_DATE.getItem(),
                 getScheduledDateLabel(params.getProgramStage(), SCHEDULED_DATE.getName()),
-                DATE,
+                DATETIME,
                 false,
                 true));
 
@@ -741,19 +746,18 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
               new GridHeader(
                   ENROLLMENT_DATE.getItem(),
                   getEnrollmentDateLabel(params.getProgram(), ENROLLMENT_DATE.getName()),
-                  DATE,
+                  DATETIME,
                   false,
                   true))
           .addHeader(
               new GridHeader(
                   INCIDENT_DATE.getItem(),
                   getIncidentDateLabel(params.getProgram(), INCIDENT_DATE.getName()),
-                  DATE,
+                  DATETIME,
                   false,
                   true))
           .addHeader(
-              new GridHeader(
-                  ColumnHeader.TEI.getItem(), ColumnHeader.TEI.getName(), TEXT, false, true))
+              new GridHeader(TRACKED_ENTITY.getItem(), TRACKED_ENTITY.getName(), TEXT, false, true))
           .addHeader(
               new GridHeader(
                   PROGRAM_INSTANCE.getItem(), PROGRAM_INSTANCE.getName(), TEXT, false, true));

@@ -40,16 +40,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-class NotifierTest extends DhisConvenienceTest {
+class NotifierTest extends TestBase {
   private Notifier notifier = new InMemoryNotifier();
 
   private final User user = makeUser("A");

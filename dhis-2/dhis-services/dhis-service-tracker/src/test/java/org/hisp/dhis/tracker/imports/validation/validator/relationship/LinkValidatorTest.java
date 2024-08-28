@@ -28,9 +28,9 @@
 package org.hisp.dhis.tracker.imports.validation.validator.relationship;
 
 import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4000;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.relationship.RelationshipConstraint;
@@ -114,19 +114,7 @@ class LinkValidatorTest {
     return relType;
   }
 
-  private RelationshipItem trackedEntityRelationshipItem() {
-    return RelationshipItem.builder().trackedEntity(trackedEntity()).build();
-  }
-
   private RelationshipItem trackedEntityRelationshipItem(String trackedEntityUid) {
     return RelationshipItem.builder().trackedEntity(trackedEntityUid).build();
-  }
-
-  private String trackedEntity() {
-    return CodeGenerator.generateUid();
-  }
-
-  private String enrollment() {
-    return CodeGenerator.generateUid();
   }
 }

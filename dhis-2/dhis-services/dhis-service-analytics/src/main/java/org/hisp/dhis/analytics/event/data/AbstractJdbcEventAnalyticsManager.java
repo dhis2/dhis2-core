@@ -49,6 +49,7 @@ import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.analytics.SortOrder.DESC;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GEOMETRY_COL_SUFFIX;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_NAME_COL_SUFFIX;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.replaceStringBetween;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
@@ -395,13 +396,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
       columns.add(columnAndAlias.asSql());
 
-      // asked for row context if allowed and needed
-      if (rowContextAllowedAndNeeded(params, queryItem)) {
+      // asked for row context if allowed and needed based on column and its alias
+      if (rowContextAllowedAndNeeded(params, queryItem) && !isEmpty(columnAndAlias.alias)) {
         String columnForExists = " exists (" + columnAndAlias.column + ")";
         String aliasForExists = columnAndAlias.alias + ".exists";
         columns.add((new ColumnAndAlias(columnForExists, aliasForExists)).asSql());
         String columnForStatus =
-            " (" + columnAndAlias.column.replace(queryItem.getItem().getUid(), "psistatus") + ")";
+            replaceStringBetween(columnAndAlias.column, "select", "from", " eventstatus ");
         String aliasForStatus = columnAndAlias.alias + ".status";
         columns.add((new ColumnAndAlias(columnForStatus, aliasForStatus)).asSql());
       }
@@ -453,7 +454,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           .anyMatch(f -> queryItem.getItem().getUid().equals(f))) {
         return getCoordinateColumn(queryItem, OU_GEOMETRY_COL_SUFFIX);
       } else {
-        return ColumnAndAlias.ofColumn(getColumn(queryItem, OU_NAME_COL_SUFFIX));
+        return getOrgUnitQueryItemColumnAndAlias(params, queryItem);
       }
     } else if (queryItem.getValueType() == ValueType.NUMBER && !isGroupByClause) {
       ColumnAndAlias columnAndAlias =
@@ -469,6 +470,23 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     } else {
       return getColumnAndAlias(queryItem, isGroupByClause, "");
     }
+  }
+
+  /**
+   * The method create a ColumnAndAlias object for query item with repeatable stage and organization
+   * unit value type, will return f.e. select 'w75KJ2mc4zz' from..., '') as 'w75KJ2mc4zz'
+   *
+   * @param params the {@link EventQueryParams}.
+   * @param queryItem the {@link QueryItem}.
+   * @return the {@link ColumnAndAlias}
+   */
+  private ColumnAndAlias getOrgUnitQueryItemColumnAndAlias(
+      EventQueryParams params, QueryItem queryItem) {
+    return rowContextAllowedAndNeeded(params, queryItem)
+        ? ColumnAndAlias.ofColumnAndAlias(
+            getColumn(queryItem, OU_NAME_COL_SUFFIX),
+            getAlias(queryItem).orElse(queryItem.getItemName()))
+        : ColumnAndAlias.ofColumn(getColumn(queryItem, OU_NAME_COL_SUFFIX));
   }
 
   /**
@@ -715,23 +733,23 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       if (params.hasEnrollmentProgramIndicatorDimension()) {
         if (EventOutputType.TRACKED_ENTITY_INSTANCE.equals(outputType)
             && params.isProgramRegistration()) {
-          return "count(distinct tei)";
-        } else // EVENT
+          return "count(distinct trackedentity)";
+        } else // ENROLLMENT
         {
-          return "count(pi)";
+          return "count(enrollment)";
         }
       } else {
         if (EventOutputType.TRACKED_ENTITY_INSTANCE.equals(outputType)
             && params.isProgramRegistration()) {
-          return "count(distinct " + quoteAlias("tei") + ")";
+          return "count(distinct " + quoteAlias("trackedentity") + ")";
         } else if (EventOutputType.ENROLLMENT.equals(outputType)) {
           if (params.hasEnrollmentProgramIndicatorDimension()) {
-            return "count(" + quoteAlias("pi") + ")";
+            return "count(" + quoteAlias("enrollment") + ")";
           }
-          return "count(distinct " + quoteAlias("pi") + ")";
+          return "count(distinct " + quoteAlias("enrollment") + ")";
         } else // EVENT
         {
-          return "count(" + quoteAlias("psi") + ")";
+          return "count(" + quoteAlias("event") + ")";
         }
       }
     }
@@ -990,7 +1008,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     sql =
         "select count("
             + OUTER_SQL_ALIAS
-            + ".pi) as "
+            + ".enrollment) as "
             + COL_VALUE
             + ", "
             + columns
@@ -1400,6 +1418,27 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   protected boolean isUnlimitedQuery(EventQueryParams params, boolean unlimitedPaging) {
     return unlimitedPaging && (Objects.isNull(params.getPageSize()) || params.getPageSize() == 0);
+  }
+
+  /**
+   * Returns a coalesce expression for coordinates fallback.
+   *
+   * @param fields Collection of coordinate fields.
+   * @param defaultColumnName Default coordinate field
+   * @return a coalesce expression for coordinates fallback.
+   */
+  protected String getCoalesce(List<String> fields, String defaultColumnName) {
+    if (fields == null) {
+      return defaultColumnName;
+    }
+
+    String args =
+        fields.stream()
+            .filter(f -> f != null && !f.isBlank())
+            .map(f -> sqlBuilder.quoteAx(f))
+            .collect(Collectors.joining(","));
+
+    return args.isEmpty() ? defaultColumnName : "coalesce(" + args + ")";
   }
 
   /**
