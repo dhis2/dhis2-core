@@ -81,7 +81,8 @@ public class NoAnalyticsTablesErrorsScenariosTest {
     ApiResponse response = analyticsAggregateActions.get(params);
 
     // Then
-    assertNoAnalyticsTableResponse(response, "ERROR: relation \"analytics\" does not exist\n  Position: 68");
+    assertNoAnalyticsTableResponse(
+        response, "ERROR: relation \"analytics\" does not exist\n  Position: 68");
   }
 
   @Test
@@ -96,7 +97,9 @@ public class NoAnalyticsTablesErrorsScenariosTest {
     ApiResponse response = analyticsEventActions.query().get("eBAyeGv0exc", JSON, JSON, params);
 
     // Then
-    assertNoAnalyticsTableResponse(response, "ERROR: relation \"analytics_event_ebayegv0exc\" does not exist\n  Position: 263");
+    assertNoAnalyticsTableResponse(
+        response,
+        "ERROR: relation \"analytics_event_ebayegv0exc\" does not exist\n  Position: 263");
   }
 
   @Test
@@ -109,7 +112,9 @@ public class NoAnalyticsTablesErrorsScenariosTest {
         analyticsEnrollmentsActions.query().get("IpHINAT79UW", JSON, JSON, params);
 
     // Then
-    assertNoAnalyticsTableResponse(response,"ERROR: relation \"analytics_enrollment_iphinat79uw\" does not exist\n  Position: 241");
+    assertNoAnalyticsTableResponse(
+        response,
+        "ERROR: relation \"analytics_enrollment_iphinat79uw\" does not exist\n  Position: 241");
   }
 
   @Test
@@ -124,7 +129,8 @@ public class NoAnalyticsTablesErrorsScenariosTest {
     ApiResponse response = analyticsEventActions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
 
     // Then
-    assertNoAnalyticsTableResponse(response,"ERROR: relation \"analytics_event_iphinat79uw\" does not exist\n  Position: 68");
+    assertNoAnalyticsTableResponse(
+        response, "ERROR: relation \"analytics_event_iphinat79uw\" does not exist\n  Position: 68");
   }
 
   @Test
@@ -140,7 +146,8 @@ public class NoAnalyticsTablesErrorsScenariosTest {
         analyticsTrackedEntityActions.query().get("nEenWmSyUEp", JSON, JSON, params);
 
     // Then
-    assertNoAnalyticsTableResponse(response,"ERROR: relation \"analytics_te_neenwmsyuep\" does not exist\n  Position: 1955");
+    assertNoAnalyticsTableResponse(
+        response, "ERROR: relation \"analytics_te_neenwmsyuep\" does not exist\n  Position: 1955");
   }
 
   @Test
