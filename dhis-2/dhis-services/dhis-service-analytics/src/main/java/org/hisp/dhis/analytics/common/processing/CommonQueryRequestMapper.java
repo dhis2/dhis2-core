@@ -121,6 +121,9 @@ public class CommonQueryRequestMapper {
             getProgramAttributes(programs)
                 .map(IdentifiableObject::getUid)
                 .collect(Collectors.toSet()));
+        .getInternal()
+        .getProgramAttributes()
+        .addAll(getProgramAttributes(programs).map(IdentifiableObject::getUid).toList());
 
     return CommonParams.builder()
         .programs(programs)
