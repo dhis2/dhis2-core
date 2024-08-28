@@ -43,12 +43,14 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.security.TwoFactorController;
 import org.jboss.aerogear.security.otp.Totp;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link TwoFactorController} sing (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testQr2FaConflictMustDisableFirst() {

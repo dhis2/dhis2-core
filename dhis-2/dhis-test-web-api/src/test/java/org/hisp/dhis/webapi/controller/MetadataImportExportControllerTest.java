@@ -68,6 +68,7 @@ import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.metadata.MetadataImportExportController} using
@@ -75,6 +76,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Jan Bernitt
  */
+@Transactional
 class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private DataElementService dataElementService;
@@ -88,7 +90,8 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
         null,
         POST(
                 "/38/metadata",
-                "{'organisationUnits':[{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}]}")
+                "{'organisationUnits':[{'name':'My Unit', 'shortName':'OU1', 'openingDate':"
+                    + " '2020-01-01'}]}")
             .content(HttpStatus.OK));
   }
 
@@ -102,7 +105,8 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     JsonObject report =
         POST(
                 "/37/metadata",
-                "{'organisationUnits':[{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}]}")
+                "{'organisationUnits':[{'name':'My Unit', 'shortName':'OU1', 'openingDate':"
+                    + " '2020-01-01'}]}")
             .content(HttpStatus.OK);
     assertEquals("OK", report.getString("status").string());
   }
@@ -171,7 +175,9 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
   void testPostProgramStageWithProgram() {
     POST(
             "/metadata/",
-            "{'programs':[{'name':'test program', 'id':'VoZMWi7rBgj', 'shortName':'test program','programType':'WITH_REGISTRATION','programStages':[{'id':'VoZMWi7rBgf'}] }],'programStages':[{'id':'VoZMWi7rBgf','name':'test programStage'}]}")
+            "{'programs':[{'name':'test program', 'id':'VoZMWi7rBgj', 'shortName':'test"
+                + " program','programType':'WITH_REGISTRATION','programStages':[{'id':'VoZMWi7rBgf'}]"
+                + " }],'programStages':[{'id':'VoZMWi7rBgf','name':'test programStage'}]}")
         .content(HttpStatus.OK);
     assertEquals(
         "VoZMWi7rBgj",
@@ -185,7 +191,8 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
   void testGetWithIeqFilter() {
     POST(
             "/metadata/",
-            "{'programs':[{'name':'Test Program', 'id':'VoZMWi7rBgj', 'shortName':'test program','programType':'WITH_REGISTRATION', 'version':'5'}]}")
+            "{'programs':[{'name':'Test Program', 'id':'VoZMWi7rBgj', 'shortName':'test"
+                + " program','programType':'WITH_REGISTRATION', 'version':'5'}]}")
         .content(HttpStatus.OK);
 
     assertEquals(
@@ -201,7 +208,8 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
   void testGetWithIeqFilterNonString() {
     POST(
             "/metadata/",
-            "{'programs':[{'name':'Test Program', 'id':'VoZMWi7rBgj', 'shortName':'test program','programType':'WITH_REGISTRATION', 'version':'5'}]}")
+            "{'programs':[{'name':'Test Program', 'id':'VoZMWi7rBgj', 'shortName':'test"
+                + " program','programType':'WITH_REGISTRATION', 'version':'5'}]}")
         .content(HttpStatus.OK);
 
     JsonWebMessage response =
@@ -219,10 +227,11 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
   void testPostValidGeoJsonAttribute() throws IOException {
     POST(
             "/metadata",
-            "{\"organisationUnits\": [ {\"id\":\"rXnqqH2Pu6N\",\"name\": \"My Unit 2\",\"shortName\": \"OU2\",\"openingDate\": \"2020-01-01\","
-                + "\"attributeValues\": [{\"value\":  \"{\\\"type\\\": \\\"Polygon\\\","
-                + "\\\"coordinates\\\":  [[[100,0],[101,0],[101,1],[100,1],[100,0]]] }\","
-                + "\"attribute\": {\"id\": \"RRH9IFiZZYN\"}}]}],"
+            "{\"organisationUnits\": [ {\"id\":\"rXnqqH2Pu6N\",\"name\": \"My Unit"
+                + " 2\",\"shortName\": \"OU2\",\"openingDate\": \"2020-01-01\",\"attributeValues\":"
+                + " [{\"value\":  \"{\\\"type\\\": \\\"Polygon\\\",\\\"coordinates\\\": "
+                + " [[[100,0],[101,0],[101,1],[100,1],[100,0]]] }\",\"attribute\": {\"id\":"
+                + " \"RRH9IFiZZYN\"}}]}],"
                 + "\"attributes\":[{\"id\":\"RRH9IFiZZYN\",\"valueType\":\"GEOJSON\",\"organisationUnitAttribute\":true,\"name\":\"testgeojson\"}]}")
         .content(HttpStatus.OK);
 
@@ -243,9 +252,10 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     JsonWebMessage message =
         POST(
                 "/metadata",
-                "{\"organisationUnits\": [ {\"id\":\"rXnqqH2Pu6N\",\"name\": \"My Unit 2\",\"shortName\": \"OU2\",\"openingDate\": \"2020-01-01\","
-                    + "\"attributeValues\": [{\"value\":  \"{\\\"type\\\": \\\"Polygon\\\"}\","
-                    + "\"attribute\": {\"id\": \"RRH9IFiZZYN\"}}]}],"
+                "{\"organisationUnits\": [ {\"id\":\"rXnqqH2Pu6N\",\"name\": \"My Unit"
+                    + " 2\",\"shortName\": \"OU2\",\"openingDate\":"
+                    + " \"2020-01-01\",\"attributeValues\": [{\"value\":  \"{\\\"type\\\":"
+                    + " \\\"Polygon\\\"}\",\"attribute\": {\"id\": \"RRH9IFiZZYN\"}}]}],"
                     + "\"attributes\":[{\"id\":\"RRH9IFiZZYN\",\"valueType\":\"GEOJSON\",\"organisationUnitAttribute\":true,\"name\":\"testgeojson\"}]}")
             .content(HttpStatus.CONFLICT)
             .as(JsonWebMessage.class);
@@ -259,10 +269,15 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     POST(
             "/metadata",
             "{\"optionSets\":\n"
-                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"Uh4HvjK6zg3\"},{\"id\": \"BQMei56UBl6\"}]}],\n"
+                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\":"
+                + " 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"Uh4HvjK6zg3\"},{\"id\":"
+                + " \"BQMei56UBl6\"}]}],\n"
                 + "\"options\":\n"
-                + "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\": \"BQMei56UBl6\",\"sortOrder\": 5,\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
-                + "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}")
+                + "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\":"
+                + " \"BQMei56UBl6\",\"sortOrder\": 5,\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
+                + "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined"
+                + " refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\":"
+                + " \"RHqFlB1Wm4d\"}}]}")
         .content(HttpStatus.OK);
 
     JsonObject response =
@@ -281,10 +296,15 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     POST(
             "/metadata",
             "{\"optionSets\":\n"
-                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"Uh4HvjK6zg3\"},{\"id\": \"BQMei56UBl6\"}]}],\n"
+                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\":"
+                + " 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"Uh4HvjK6zg3\"},{\"id\":"
+                + " \"BQMei56UBl6\"}]}],\n"
                 + "\"options\":\n"
-                + "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\": \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
-                + "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"sortOrder\": 3,\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}")
+                + "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\":"
+                + " \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
+                + "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined"
+                + " refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"sortOrder\": 3,\"optionSet\":{\"id\":"
+                + " \"RHqFlB1Wm4d\"}}]}")
         .content(HttpStatus.OK);
 
     JsonObject response =
@@ -301,10 +321,15 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     POST(
             "/metadata",
             "{\"optionSets\":\n"
-                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"BQMei56UBl6\"},{\"id\": \"Uh4HvjK6zg3\"}]}],\n"
+                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\":"
+                + " 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"BQMei56UBl6\"},{\"id\":"
+                + " \"Uh4HvjK6zg3\"}]}],\n"
                 + "\"options\":\n"
-                + "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\": \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
-                + "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}")
+                + "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\":"
+                + " \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
+                + "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined"
+                + " refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\":"
+                + " \"RHqFlB1Wm4d\"}}]}")
         .content(HttpStatus.OK);
 
     JsonObject response =
@@ -320,10 +345,15 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     POST(
             "/metadata",
             "{\"optionSets\":\n"
-                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"Uh4HvjK6zg3\"},{\"id\": \"BQMei56UBl6\"}]}],\n"
+                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\":"
+                + " 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"Uh4HvjK6zg3\"},{\"id\":"
+                + " \"BQMei56UBl6\"}]}],\n"
                 + "\"options\":\n"
-                + "    [{\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
-                + "    {\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\": \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}")
+                + "    [{\"code\": \"Icelined refrigerator\",\"name\": \"Icelined"
+                + " refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\":"
+                + " \"RHqFlB1Wm4d\"}},\n"
+                + "    {\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\":"
+                + " \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}")
         .content(HttpStatus.OK);
 
     response = GET("/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d").content();
@@ -337,10 +367,15 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     POST(
             "/metadata",
             "{\"optionSets\":\n"
-                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"Uh4HvjK6zg3\"},{\"id\": \"BQMei56UBl6\"}]}],\n"
+                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\":"
+                + " 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"Uh4HvjK6zg3\"},{\"id\":"
+                + " \"BQMei56UBl6\"}]}],\n"
                 + "\"options\":\n"
-                + "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"sortOrder\": 2,\"id\": \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
-                + "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"sortOrder\": 2,\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}")
+                + "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"sortOrder\":"
+                + " 2,\"id\": \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
+                + "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined"
+                + " refrigerator\",\"sortOrder\": 2,\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\":"
+                + " \"RHqFlB1Wm4d\"}}]}")
         .content(HttpStatus.OK);
 
     JsonObject response =
@@ -356,10 +391,14 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     POST(
             "/metadata",
             "{\"optionSets\":\n"
-                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\"}],\n"
+                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\":"
+                + " 2,\"valueType\": \"TEXT\"}],\n"
                 + "\"options\":\n"
-                + "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"sortOrder\": 2,\"id\": \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
-                + "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"sortOrder\": 3,\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}")
+                + "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"sortOrder\":"
+                + " 2,\"id\": \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
+                + "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined"
+                + " refrigerator\",\"sortOrder\": 3,\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\":"
+                + " \"RHqFlB1Wm4d\"}}]}")
         .content(HttpStatus.OK);
 
     JsonObject response =
@@ -372,7 +411,8 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
 
   @Test
   @DisplayName(
-      "Should not include null objects in collection Category.categorycombos or CategoryCombo.categories after importing")
+      "Should not include null objects in collection Category.categorycombos or"
+          + " CategoryCombo.categories after importing")
   void testImportCategoryComboAndCategory() {
     POST("/metadata", Body("metadata/category_and_categorycombo.json")).content(HttpStatus.OK);
     JsonMixed response = GET("/categories/{uid}?fields=id,categoryCombos", "IjOK1aXkjVO").content();
@@ -465,7 +505,8 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
         POST(
                 "/metadata",
                 "{\"optionSets\":\n"
-                    + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"createdBy\": \"invalid\"}]}")
+                    + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\":"
+                    + " 2,\"valueType\": \"TEXT\",\"createdBy\": \"invalid\"}]}")
             .content(HttpStatus.OK);
 
     assertNotNull(report.get("response"));
@@ -480,7 +521,8 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
         POST(
                 "/metadata?skipSharing=true",
                 "{\"optionSets\":\n"
-                    + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"createdBy\": \"invalid\"}]}")
+                    + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\":"
+                    + " 2,\"valueType\": \"TEXT\",\"createdBy\": \"invalid\"}]}")
             .content(HttpStatus.OK);
 
     assertNotNull(report.get("response"));
@@ -496,18 +538,18 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     POST(
             "/metadata",
             """
-             {'optionSets':
-                 [{'name': 'Device category','id': 'RHqFlB1Wm4d','version': 2,'valueType': 'TEXT'}]
-             ,'dataElements':
-             [{'name':'test DataElement with OptionSet', 'shortName':'test DataElement', 'aggregationType':'SUM','domainType':'AGGREGATE','categoryCombo':{'id':'bjDvmb4bfuf'},'valueType':'NUMBER','optionSet':{'id':'RHqFlB1Wm4d'}
-             }]}""")
+{'optionSets':
+    [{'name': 'Device category','id': 'RHqFlB1Wm4d','version': 2,'valueType': 'TEXT'}]
+,'dataElements':
+[{'name':'test DataElement with OptionSet', 'shortName':'test DataElement', 'aggregationType':'SUM','domainType':'AGGREGATE','categoryCombo':{'id':'bjDvmb4bfuf'},'valueType':'NUMBER','optionSet':{'id':'RHqFlB1Wm4d'}
+}]}""")
         .content(HttpStatus.OK);
     JsonImportSummary report =
         POST(
                 "/metadata?importStrategy=DELETE",
                 """
-                {'optionSets':
-                [{'name': 'Device category','id': 'RHqFlB1Wm4d','version': 2,'valueType': 'TEXT'}]}""")
+{'optionSets':
+[{'name': 'Device category','id': 'RHqFlB1Wm4d','version': 2,'valueType': 'TEXT'}]}""")
             .content(HttpStatus.CONFLICT)
             .get("response")
             .as(JsonImportSummary.class);
@@ -528,7 +570,8 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     PATCH(
             "/aggregateDataExchanges/PnWccbwCJLQ",
             Body(
-                "[{'op': 'replace', 'path': '/name', 'value': 'External basic auth data exchange updated'}]"))
+                "[{'op': 'replace', 'path': '/name', 'value': 'External basic auth data exchange"
+                    + " updated'}]"))
         .content(HttpStatus.OK);
 
     JsonObject object =
@@ -538,7 +581,8 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
 
   @Test
   @DisplayName(
-      "Should return error E6305 if create a new AggregateDataExchange without authentication details")
+      "Should return error E6305 if create a new AggregateDataExchange without authentication"
+          + " details")
   void testCreateAggregateDataExchangeWithoutAuthentication() {
     JsonImportSummary report =
         POST("/metadata/", Body("metadata/aggregate_data_exchange_no_auth.json"))
@@ -546,7 +590,8 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
             .get("response")
             .as(JsonImportSummary.class);
     assertEquals(
-        "Aggregate data exchange target API must specify either access token or username and password",
+        "Aggregate data exchange target API must specify either access token or username and"
+            + " password",
         report
             .find(
                 JsonErrorReport.class, errorReport -> errorReport.getErrorCode() == ErrorCode.E6305)
@@ -555,7 +600,8 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
 
   @Test
   @DisplayName(
-      "Should return error if user doesn't have Data Write permission for given AggregateDataExchange")
+      "Should return error if user doesn't have Data Write permission for given"
+          + " AggregateDataExchange")
   void testAggregateDataExchangeFail() {
     POST("/metadata/", Body("metadata/aggregate_data_exchange.json")).content(HttpStatus.OK);
     User userA = createAndAddUser("UserA");
@@ -600,7 +646,8 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     POST(
             "/metadata",
             "{\"optionSets\":\n"
-                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\", \"translations\":[{\n"
+                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\":"
+                + " 2,\"valueType\": \"TEXT\", \"translations\":[{\n"
                 + "      \"locale\": \"en_GB\",\n"
                 + "      \"property\": \"NAME\",\n"
                 + "      \"value\": \"Device category 1\"\n"
@@ -610,7 +657,8 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     POST(
             "/metadata",
             "{\"optionSets\":\n"
-                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\", \"translations\":[{\n"
+                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\":"
+                + " 2,\"valueType\": \"TEXT\", \"translations\":[{\n"
                 + "      \"locale\": \"en_GB\",\n"
                 + "      \"property\": \"NAME\",\n"
                 + "      \"value\": \"Device category 2\"\n"
@@ -627,7 +675,8 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
 
   @Test
   @DisplayName(
-      "DataElements with default categoryCombo should be present in payload when defaults are INCLUDE by default")
+      "DataElements with default categoryCombo should be present in payload when defaults are"
+          + " INCLUDE by default")
   void metadataWithCatComboFieldsIncludingDefaultsTest() {
     CategoryCombo catComboA = createCategoryCombo('A');
     CategoryCombo catComboB = createCategoryCombo('B');

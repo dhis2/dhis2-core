@@ -88,7 +88,9 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 class TrackedEntitiesExportControllerTest extends H2ControllerIntegrationTestBase {
   // Used to generate unique chars for creating test objects like TEA, ...
   private static final String UNIQUE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";

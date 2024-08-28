@@ -109,6 +109,7 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests tracker compression and command based SMS
@@ -127,6 +128,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * It also tests parts of {@link org.hisp.dhis.webapi.controller.sms.SmsInboundController} and other
  * SMS classes in the SMS class hierarchy.
  */
+@Transactional
 class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
 
