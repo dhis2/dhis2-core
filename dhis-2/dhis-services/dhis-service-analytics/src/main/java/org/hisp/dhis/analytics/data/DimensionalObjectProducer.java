@@ -69,7 +69,6 @@ import static org.hisp.dhis.organisationunit.OrganisationUnit.getSortedGrandChil
 import static org.hisp.dhis.period.PeriodType.getCalendar;
 import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
 import static org.hisp.dhis.period.RelativePeriods.getRelativePeriodsFromEnum;
-import static org.hisp.dhis.period.WeeklyPeriodType.NAME;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_FINANCIAL_YEAR_START;
 
 import java.util.ArrayList;
@@ -338,12 +337,10 @@ public class DimensionalObjectProducer {
 
     for (Period period : periods) {
       String name = format != null ? format.formatPeriod(period) : null;
-
-      if (!period.getPeriodType().getName().contains(NAME)) {
-        period.setShortName(name);
-      }
+      String shortName = format != null ? format.formatPeriod(period, true) : null;
 
       period.setName(name);
+      period.setShortName(shortName);
 
       if (!calendar.isIso8601()) {
         period.setUid(getLocalPeriodIdentifier(period, calendar));
