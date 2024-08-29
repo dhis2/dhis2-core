@@ -64,7 +64,6 @@ public class H2TestConfig {
   }
 
   @Bean(name = {"dataSource", "analyticsDataSource"})
-  @Primary
   public DataSource actualDataSource(DhisConfigurationProvider config)
       throws SQLException, PropertyVetoException {
     String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
