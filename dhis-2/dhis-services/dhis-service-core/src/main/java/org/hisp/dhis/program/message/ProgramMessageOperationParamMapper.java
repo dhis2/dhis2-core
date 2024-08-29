@@ -100,9 +100,6 @@ public class ProgramMessageOperationParamMapper {
     List<Program> programs = programService.getCurrentUserPrograms();
     String currentUser = CurrentUserUtil.getCurrentUsername();
 
-    if (currentUser == null) {
-      throw new IllegalQueryException("CurrentUser cannot be null");
-    }
     if (!programs.contains(entity.getProgram())) {
       throw new IllegalQueryException(
           String.format(

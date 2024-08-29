@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
@@ -58,5 +59,21 @@ class CurrentUserUtilTest extends H2ControllerIntegrationTestBase {
     assertNotNull(basicUser);
     assertEquals("basicUser", basicUser.getUsername());
     assertFalse(basicUser.isSuper());
+  }
+
+  @Test
+  void testCurrentUserDetailsThrowsException() {
+    clearSecurityContext();
+    RuntimeException exception =
+        assertThrows(RuntimeException.class, () -> CurrentUserUtil.getCurrentUserDetails());
+    assertEquals("No authenticated user found", exception.getMessage());
+  }
+
+  @Test
+  void testCurrentUsernameThrowsException() {
+    clearSecurityContext();
+    RuntimeException exception =
+        assertThrows(RuntimeException.class, () -> CurrentUserUtil.getCurrentUsername());
+    assertEquals("No authenticated user found", exception.getMessage());
   }
 }

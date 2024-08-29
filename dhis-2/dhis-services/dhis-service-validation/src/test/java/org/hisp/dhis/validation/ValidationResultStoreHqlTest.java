@@ -32,6 +32,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
+import static org.hisp.dhis.user.CurrentUserUtil.injectUserInSecurityContext;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -55,6 +56,7 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
@@ -65,9 +67,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
@@ -128,20 +127,14 @@ class ValidationResultStoreHqlTest {
     SecurityContextHolder.clearContext();
   }
 
-  public static void injectSecurityContext(User user) {
-    UserDetails currentUserDetails = UserDetails.fromUser(user);
-    Authentication authentication =
-        new UsernamePasswordAuthenticationToken(
-            currentUserDetails, "", currentUserDetails.getAuthorities());
-    SecurityContext context = SecurityContextHolder.createEmptyContext();
-    context.setAuthentication(authentication);
-    SecurityContextHolder.setContext(context);
+  public static void injectUserSecurityContext(User user) {
+    injectUserInSecurityContext(UserDetails.fromUser(user));
   }
 
   private void setUpUser(String orgUnitUid, Category category, CategoryOptionGroupSet groupSet) {
     User user = new User();
     user.setUsername("testuser");
-    injectSecurityContext(user);
+    injectUserSecurityContext(user);
     when(userService.getUserByUsername(anyString())).thenReturn(user);
     user.setGroups(emptySet());
     OrganisationUnit unit = new OrganisationUnit();
@@ -155,23 +148,27 @@ class ValidationResultStoreHqlTest {
     user.setCogsDimensionConstraints(options);
   }
 
+  private void setUpSuperUser() {
+    injectUserInSecurityContext(new SystemUser());
+  }
+
   @Test
   void getById() {
-    //    setUpUser("uid", null, null);
+    setUpSuperUser();
     store.getById(13L);
     assertHQLMatches("from ValidationResult vr where vr.id = :id");
   }
 
   @Test
   void getAllUnreportedValidationResults() {
-    //    setUpUser("uid", null, null);
+    setUpSuperUser();
     store.getAllUnreportedValidationResults();
     assertHQLMatches("from ValidationResult vr where vr.notificationSent = false");
   }
 
   @Test
   void queryDefaultQuery() {
-    //    setUpUser("uid", null, null);
+    setUpSuperUser();
     store.query(new ValidationResultQuery());
     assertHQLMatches("from ValidationResult vr");
   }
@@ -221,6 +218,7 @@ class ValidationResultStoreHqlTest {
 
   @Test
   void queryWithOrgUnitFilter() {
+    setUpSuperUser();
     ValidationResultQuery query = new ValidationResultQuery();
     query.setOu(asList("uid1", "uid2"));
     store.query(query);
@@ -231,6 +229,7 @@ class ValidationResultStoreHqlTest {
 
   @Test
   void queryWithValidationRuleFilter() {
+    setUpSuperUser();
     ValidationResultQuery query = new ValidationResultQuery();
     query.setVr(asList("uid1", "uid2"));
     store.query(query);
@@ -242,6 +241,7 @@ class ValidationResultStoreHqlTest {
 
   @Test
   void queryWithOrgUnitAndValidationRuleFilter() {
+    setUpSuperUser();
     ValidationResultQuery query = new ValidationResultQuery();
     query.setOu(asList("uid1", "uid2"));
     query.setVr(asList("uid3", "uid4"));
@@ -255,6 +255,7 @@ class ValidationResultStoreHqlTest {
 
   @Test
   void queryWithIsoPeriodFilter() {
+    setUpSuperUser();
     ValidationResultQuery query = new ValidationResultQuery();
     query.setPe(singletonList("2017Q1"));
     store.query(query);

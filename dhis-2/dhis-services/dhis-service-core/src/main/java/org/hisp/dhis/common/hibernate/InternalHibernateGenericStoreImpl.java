@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
@@ -81,6 +82,9 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
 
   @Override
   public List<Function<Root<T>, Predicate>> getSharingPredicates(CriteriaBuilder builder) {
+    if (!CurrentUserUtil.hasCurrentUser()) {
+      return List.of();
+    }
     return getSharingPredicates(builder, CurrentUserUtil.getCurrentUserDetails());
   }
 
@@ -222,54 +226,16 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
 
   @Override
   public List<Function<Root<T>, Predicate>> getDataSharingPredicates(
-      CriteriaBuilder builder, UserDetails userDetails) {
-
-    if (userDetails == null) {
-      return List.of();
-    }
-
+      CriteriaBuilder builder, @Nonnull UserDetails userDetails) {
     CurrentUserGroupInfo currentUserGroupInfo = getCurrentUserGroupInfo(userDetails.getUid());
-    if (userDetails.getUserGroupIds().size() != currentUserGroupInfo.getUserGroupUIDs().size()) {
-      String msg =
-          String.format(
-              "User '%s' getGroups().size() has %d groups, but  getUserGroupUIDs() returns %d groups!",
-              userDetails.getUsername(),
-              userDetails.getUserGroupIds().size(),
-              currentUserGroupInfo.getUserGroupUIDs().size());
-
-      RuntimeException runtimeException = new RuntimeException(msg);
-      log.error(msg, runtimeException);
-      throw runtimeException;
-    }
-
     return getDataSharingPredicates(
         builder, userDetails, currentUserGroupInfo, AclService.LIKE_READ_DATA);
   }
 
   @Override
   public List<Function<Root<T>, Predicate>> getSharingPredicates(
-      CriteriaBuilder builder, UserDetails userDetails) {
-    if (userDetails == null) {
-      return List.of();
-    }
-
-    // TODO: MAS: we need to keep this for the special case when the acting user's UserGroups are
-    // changed in the request.
-    // See tests in AbstractCrudControllerTest#testMergeCollectionItemsJson()
-    // If it was not the acting user, we could easily invalidate the changed user if they are
-    // logged in.
+      CriteriaBuilder builder, @Nonnull UserDetails userDetails) {
     CurrentUserGroupInfo currentUserGroupInfo = getCurrentUserGroupInfo(userDetails.getUid());
-    if (userDetails.getUserGroupIds().size() != currentUserGroupInfo.getUserGroupUIDs().size()) {
-      String msg =
-          String.format(
-              "User '%s' getGroups().size() has %d groups, but  getUserGroupUIDs() returns %d groups!",
-              userDetails.getUsername(),
-              userDetails.getUserGroupIds().size(),
-              currentUserGroupInfo.getUserGroupUIDs().size());
-
-      log.error(msg, new RuntimeException(msg));
-    }
-
     return getSharingPredicates(
         builder, userDetails, currentUserGroupInfo, AclService.LIKE_READ_METADATA);
   }
@@ -277,12 +243,12 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
   @Override
   public List<Function<Root<T>, Predicate>> getDataSharingPredicates(
       CriteriaBuilder builder,
-      UserDetails userDetails,
+      @Nonnull UserDetails userDetails,
       CurrentUserGroupInfo groupInfo,
       String access) {
     List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
 
-    if (userDetails == null || dataSharingDisabled(userDetails) || groupInfo == null) {
+    if (dataSharingDisabled(userDetails) || groupInfo == null) {
       return predicates;
     }
 
@@ -292,10 +258,10 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
 
   @Override
   public List<Function<Root<T>, Predicate>> getDataSharingPredicates(
-      CriteriaBuilder builder, UserDetails userDetails, String access) {
+      CriteriaBuilder builder, @Nonnull UserDetails userDetails, String access) {
     List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
 
-    if (userDetails == null || dataSharingDisabled(userDetails)) {
+    if (dataSharingDisabled(userDetails)) {
       return predicates;
     }
 
@@ -308,14 +274,12 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
     return Dashboard.class.isAssignableFrom(clazz);
   }
 
-  protected boolean sharingEnabled(UserDetails userDetails) {
+  protected boolean sharingEnabled(@Nonnull UserDetails userDetails) {
     boolean b = forceAcl();
-
     if (b) {
       return b;
     } else {
-      return (aclService.isClassShareable(clazz)
-          && !(userDetails == null || userDetails.isSuper()));
+      return (aclService.isClassShareable(clazz) && !(userDetails.isSuper()));
     }
   }
 
@@ -325,11 +289,11 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
 
   private List<Function<Root<T>, Predicate>> getSharingPredicates(
       CriteriaBuilder builder,
-      UserDetails userDetails,
+      @Nonnull UserDetails userDetails,
       CurrentUserGroupInfo groupInfo,
       String access) {
 
-    if (userDetails == null || groupInfo == null || !sharingEnabled(userDetails)) {
+    if (groupInfo == null || !sharingEnabled(userDetails)) {
       return List.of();
     }
 
@@ -342,8 +306,6 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
     return aclService.getCurrentUserGroupInfo(userUid, this::fetchCurrentUserGroupInfo);
   }
 
-  // TODO: MAS can this be removed and we rely on first fetch on login? make sure current logged in
-  // users are get invalidated when group changes
   private CurrentUserGroupInfo fetchCurrentUserGroupInfo(String userUid) {
     CriteriaBuilder builder = getCriteriaBuilder();
     CriteriaQuery<Object[]> query = builder.createQuery(Object[].class);

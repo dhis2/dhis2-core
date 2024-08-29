@@ -53,8 +53,8 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
@@ -73,16 +73,16 @@ public class EventPersister
   private final TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event>
       eventConverter;
 
-  private final TrackedEntityDataValueChangeLogService trackedEntityDataValueAuditService;
+  private final EventChangeLogService eventChangeLogService;
 
   public EventPersister(
       ReservedValueService reservedValueService,
       TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event> eventConverter,
       TrackedEntityAttributeValueChangeLogService trackedEntityAttributeValueChangeLogService,
-      TrackedEntityDataValueChangeLogService trackedEntityDataValueChangeLogService) {
+      EventChangeLogService eventChangeLogService) {
     super(reservedValueService, trackedEntityAttributeValueChangeLogService);
     this.eventConverter = eventConverter;
-    this.trackedEntityDataValueAuditService = trackedEntityDataValueChangeLogService;
+    this.eventChangeLogService = eventChangeLogService;
   }
 
   @Override
@@ -233,7 +233,7 @@ public class EventPersister
       valueAudit.setProvidedElsewhere(valuesHolder.isProvidedElseWhere());
       valueAudit.setCreated(created);
 
-      trackedEntityDataValueAuditService.addTrackedEntityDataValueChangeLog(valueAudit);
+      eventChangeLogService.addTrackedEntityDataValueChangeLog(valueAudit);
     }
   }
 

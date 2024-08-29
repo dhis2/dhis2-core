@@ -350,9 +350,14 @@ public class DefaultUserService implements UserService {
 
     if (!params.hasUser()) {
       // TODO: MAS: Refactor to use userDetails instead of User in params
-      String currentUsername = CurrentUserUtil.getCurrentUsername();
-      User currentUser = getUserByUsername(currentUsername);
-      params.setUser(currentUser);
+      boolean hasCurrentUser = CurrentUserUtil.hasCurrentUser();
+      if (!hasCurrentUser) {
+        params.setUser(null);
+      } else {
+        String currentUsername = CurrentUserUtil.getCurrentUsername();
+        User currentUser = getUserByUsername(currentUsername);
+        params.setUser(currentUser);
+      }
     }
 
     if (params.hasUser() && params.getUser().isSuper()) {
@@ -437,10 +442,6 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional(readOnly = true)
   public boolean canAddOrUpdateUser(Collection<String> userGroups, User currentUser) {
-    if (currentUser == null) {
-      return false;
-    }
-
     boolean canAdd = currentUser.isAuthorized(UserGroup.AUTH_USER_ADD);
 
     if (canAdd) {
@@ -660,7 +661,7 @@ public class DefaultUserService implements UserService {
       return true;
     }
 
-    if (user == null || user.getPasswordLastUpdated() == null) {
+    if (user.getPasswordLastUpdated() == null) {
       return true;
     }
 
@@ -675,7 +676,7 @@ public class DefaultUserService implements UserService {
 
     List<ErrorReport> errors = new ArrayList<>();
 
-    if (currentUser == null || user == null || currentUser.isSuper()) {
+    if (user == null || currentUser.isSuper()) {
       return errors;
     }
 
@@ -763,7 +764,7 @@ public class DefaultUserService implements UserService {
 
     List<ErrorReport> errors = new ArrayList<>();
 
-    if (currentUser == null || role == null) {
+    if (role == null) {
       return errors;
     }
 
@@ -1024,10 +1025,6 @@ public class DefaultUserService implements UserService {
     }
 
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-
-    if (currentUserDetails == null) {
-      throw new ForbiddenException("No current user in session, can not update user.");
-    }
 
     // Current user can not update their own 2FA settings, must use
     // /2fa/enable or disable API, even if they are admin.

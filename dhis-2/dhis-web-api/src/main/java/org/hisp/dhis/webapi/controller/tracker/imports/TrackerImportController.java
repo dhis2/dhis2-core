@@ -61,7 +61,7 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
@@ -112,8 +112,8 @@ public class TrackerImportController {
       HttpServletRequest request, ImportRequestParams importRequestParams, @RequestBody Body body)
       throws ConflictException, NotFoundException, IOException {
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    String userUid = currentUser == null ? null : currentUser.getUid();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    String userUid = currentUserDetails.getUid();
 
     TrackerImportParams trackerImportParams =
         TrackerImportParamsMapper.trackerImportParams(userUid, importRequestParams);
@@ -157,8 +157,8 @@ public class TrackerImportController {
   public ResponseEntity<ImportReport> syncPostJsonTracker(
       ImportRequestParams importRequestParams, @RequestBody Body body) {
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    String userUid = currentUser == null ? null : currentUser.getUid();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    String userUid = currentUserDetails.getUid();
 
     TrackerImportParams params =
         TrackerImportParamsMapper.trackerImportParams(userUid, importRequestParams);
@@ -187,8 +187,8 @@ public class TrackerImportController {
       @RequestParam(required = false, defaultValue = "true") boolean skipFirst)
       throws IOException, ParseException, ConflictException, NotFoundException {
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    String userUid = currentUser == null ? null : currentUser.getUid();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    String userUid = currentUserDetails.getUid();
 
     InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat(request.getInputStream());
 
@@ -218,8 +218,8 @@ public class TrackerImportController {
       @RequestParam(defaultValue = "errors", required = false) TrackerBundleReportMode reportMode)
       throws IOException, ParseException {
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    String userUid = currentUser == null ? null : currentUser.getUid();
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    String userUid = currentUserDetails.getUid();
 
     InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat(request.getInputStream());
 
