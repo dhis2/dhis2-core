@@ -290,11 +290,10 @@ public class HibernateValidationResultStore extends HibernateGenericStore<Valida
    * @return String to add restrictions to the HQL query.
    */
   private String getUserRestrictions(SqlHelper sqlHelper) {
-    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-    if (currentUserDetails == null || currentUserDetails.isSuper()) {
+    if (CurrentUserUtil.getCurrentUserDetails().isSuper()) {
       return "";
     }
-
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     StringBuilder restrictions = new StringBuilder();
 
     // ---------------------------------------------------------------------
@@ -308,7 +307,7 @@ public class HibernateValidationResultStore extends HibernateGenericStore<Valida
     if (!userOrgUnits.isEmpty()) {
       for (OrganisationUnit ou : userOrgUnits) {
         restrictions.append(
-            (restrictions.length() == 0 ? " " + sqlHelper.whereAnd() + " (" : " or ")
+            (restrictions.isEmpty() ? " " + sqlHelper.whereAnd() + " (" : " or ")
                 + "locate('"
                 + ou.getUid()
                 + "',vr.organisationUnit.path) <> 0");

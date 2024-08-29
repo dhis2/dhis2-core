@@ -25,11 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentity;
+package org.hisp.dhis.tracker.acl;
 
-import static org.hisp.dhis.trackedentity.ApiTrackerOwnershipManager.NO_READ_ACCESS_TO_ORG_UNIT;
-import static org.hisp.dhis.trackedentity.ApiTrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED;
-import static org.hisp.dhis.trackedentity.ApiTrackerOwnershipManager.PROGRAM_ACCESS_CLOSED;
+import static org.hisp.dhis.tracker.acl.TrackerOwnershipManager.NO_READ_ACCESS_TO_ORG_UNIT;
+import static org.hisp.dhis.tracker.acl.TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED;
+import static org.hisp.dhis.tracker.acl.TrackerOwnershipManager.PROGRAM_ACCESS_CLOSED;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,6 +49,8 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,7 +64,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
   private final AclService aclService;
-  private final ApiTrackerOwnershipManager ownershipAccessManager;
+  private final TrackerOwnershipManager ownershipAccessManager;
   private final ProgramService programService;
 
   /**
@@ -72,9 +74,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
    * @return No errors if a user has access to at least one program
    */
   @Override
-  public List<String> canRead(UserDetails user, TrackedEntity trackedEntity) {
+  public List<String> canRead(@Nonnull UserDetails user, TrackedEntity trackedEntity) {
     // always allow if user == null (internal process) or user is superuser
-    if (user == null || user.isSuper() || trackedEntity == null) {
+    if (user.isSuper() || trackedEntity == null) {
       return List.of();
     }
 
@@ -149,9 +151,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
    */
   @Override
   @Transactional(readOnly = true)
-  public List<String> canWrite(UserDetails user, TrackedEntity trackedEntity) {
+  public List<String> canWrite(@Nonnull UserDetails user, TrackedEntity trackedEntity) {
     // always allow if user == null (internal process) or user is superuser
-    if (user == null || user.isSuper() || trackedEntity == null) {
+    if (user.isSuper() || trackedEntity == null) {
       return List.of();
     }
 
@@ -211,9 +213,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
   @Override
   public List<String> canReadProgramAndTrackedEntityType(
-      UserDetails user, TrackedEntity trackedEntity, Program program) {
+      @Nonnull UserDetails user, TrackedEntity trackedEntity, Program program) {
     // always allow if user == null (internal process) or user is superuser
-    if (user == null || user.isSuper() || trackedEntity == null) {
+    if (user.isSuper() || trackedEntity == null) {
       return List.of();
     }
 
@@ -233,9 +235,10 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canRead(UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck) {
+  public List<String> canRead(
+      @Nonnull UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck) {
     // always allow if user == null (internal process) or user is superuser
-    if (user == null || user.isSuper() || enrollment == null) {
+    if (user.isSuper() || enrollment == null) {
       return List.of();
     }
 
@@ -270,9 +273,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
   @Override
   public List<String> canCreate(
-      UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck) {
+      @Nonnull UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck) {
     // always allow if user == null (internal process) or user is superuser
-    if (user == null || user.isSuper() || enrollment == null) {
+    if (user.isSuper() || enrollment == null) {
       return List.of();
     }
 
@@ -307,9 +310,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
   @Override
   public List<String> canUpdate(
-      UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck) {
+      @Nonnull UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck) {
     // always allow if user == null (internal process) or user is superuser
-    if (user == null || user.isSuper() || enrollment == null) {
+    if (user.isSuper() || enrollment == null) {
       return List.of();
     }
 
@@ -343,9 +346,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
   @Override
   public List<String> canDelete(
-      UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck) {
+      @Nonnull UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck) {
     // always allow if user == null (internal process) or user is superuser
-    if (user == null || user.isSuper() || enrollment == null) {
+    if (user.isSuper() || enrollment == null) {
       return List.of();
     }
 
@@ -377,9 +380,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canRead(UserDetails user, Event event, boolean skipOwnershipCheck) {
+  public List<String> canRead(@Nonnull UserDetails user, Event event, boolean skipOwnershipCheck) {
     // always allow if user == null (internal process) or user is superuser
-    if (user == null || user.isSuper() || event == null) {
+    if (user.isSuper() || event == null) {
       return List.of();
     }
 
@@ -425,9 +428,10 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canCreate(UserDetails user, Event event, boolean skipOwnershipCheck) {
+  public List<String> canCreate(
+      @Nonnull UserDetails user, Event event, boolean skipOwnershipCheck) {
     // always allow if user == null (internal process) or user is superuser
-    if (user == null || user.isSuper() || event == null) {
+    if (user.isSuper() || event == null) {
       return List.of();
     }
 
@@ -441,9 +445,12 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     List<String> errors = new ArrayList<>();
     OrganisationUnit ou = event.getOrganisationUnit();
     if (ou != null) {
-      if (event.isCreatableInSearchScope()
-          ? !user.isInUserEffectiveSearchOrgUnitHierarchy(ou.getPath())
-          : !user.isInUserHierarchy(ou.getPath())) {
+      boolean isInHierarchy =
+          event.isCreatableInSearchScope()
+              ? user.isInUserEffectiveSearchOrgUnitHierarchy(ou.getPath())
+              : user.isInUserHierarchy(ou.getPath());
+
+      if (!isInHierarchy) {
         errors.add("User has no create access to organisation unit: " + ou.getUid());
       }
     }
@@ -463,9 +470,10 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canUpdate(UserDetails user, Event event, boolean skipOwnershipCheck) {
+  public List<String> canUpdate(
+      @Nonnull UserDetails user, Event event, boolean skipOwnershipCheck) {
     // always allow if user == null (internal process) or user is superuser
-    if (user == null || user.isSuper() || event == null) {
+    if (user.isSuper() || event == null) {
       return List.of();
     }
 
@@ -502,9 +510,10 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canDelete(UserDetails user, Event event, boolean skipOwnershipCheck) {
+  public List<String> canDelete(
+      @Nonnull UserDetails user, Event event, boolean skipOwnershipCheck) {
     // always allow if user == null (internal process) or user is superuser
-    if (user == null || user.isSuper() || event == null) {
+    if (user.isSuper() || event == null) {
       return List.of();
     }
 
@@ -570,9 +579,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canRead(UserDetails user, Relationship relationship) {
+  public List<String> canRead(@Nonnull UserDetails user, Relationship relationship) {
     // always allow if user == null (internal process) or user is superuser
-    if (user == null || user.isSuper() || relationship == null) {
+    if (user.isSuper() || relationship == null) {
       return List.of();
     }
 
@@ -600,9 +609,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
   @Override
   @Transactional(readOnly = true)
-  public List<String> canWrite(UserDetails user, Relationship relationship) {
+  public List<String> canWrite(@Nonnull UserDetails user, Relationship relationship) {
     // always allow if user == null (internal process) or user is superuser
-    if (user == null || user.isSuper() || relationship == null) {
+    if (user.isSuper() || relationship == null) {
       return List.of();
     }
 
@@ -661,8 +670,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
   @Override
   public List<String> canRead(
-      UserDetails user, Event event, DataElement dataElement, boolean skipOwnershipCheck) {
-    if (user == null || user.isSuper()) {
+      @Nonnull UserDetails user, Event event, DataElement dataElement, boolean skipOwnershipCheck) {
+
+    if (user.isSuper()) {
       return List.of();
     }
 
@@ -678,8 +688,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
   @Override
   public List<String> canWrite(
-      UserDetails user, Event event, DataElement dataElement, boolean skipOwnershipCheck) {
-    if (user == null || user.isSuper()) {
+      @Nonnull UserDetails user, Event event, DataElement dataElement, boolean skipOwnershipCheck) {
+
+    if (user.isSuper()) {
       return List.of();
     }
 
@@ -694,8 +705,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canRead(UserDetails user, CategoryOptionCombo categoryOptionCombo) {
-    if (user == null || user.isSuper() || categoryOptionCombo == null) {
+  public List<String> canRead(@Nonnull UserDetails user, CategoryOptionCombo categoryOptionCombo) {
+
+    if (user.isSuper() || categoryOptionCombo == null) {
       return List.of();
     }
 
@@ -710,8 +722,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canWrite(UserDetails user, CategoryOptionCombo categoryOptionCombo) {
-    if (user == null || user.isSuper() || categoryOptionCombo == null) {
+  public List<String> canWrite(@Nonnull UserDetails user, CategoryOptionCombo categoryOptionCombo) {
+    if (user.isSuper() || categoryOptionCombo == null) {
       return List.of();
     }
 
@@ -726,12 +738,12 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public boolean canAccess(UserDetails user, Program program, OrganisationUnit orgUnit) {
+  public boolean canAccess(@Nonnull UserDetails user, Program program, OrganisationUnit orgUnit) {
     if (orgUnit == null) {
       return false;
     }
 
-    if (user == null || user.isSuper()) {
+    if (user.isSuper()) {
       return true;
     }
 
@@ -744,7 +756,10 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
   @Override
   public String canAccessProgramOwner(
-      UserDetails user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck) {
+      @Nonnull UserDetails user,
+      TrackedEntity trackedEntity,
+      Program program,
+      boolean skipOwnershipCheck) {
     if (!skipOwnershipCheck && !ownershipAccessManager.hasAccess(user, trackedEntity, program)) {
       if (program.isProtected()) {
         return ownershipAccessManager.isOwnerInUserSearchScope(user, trackedEntity, program)

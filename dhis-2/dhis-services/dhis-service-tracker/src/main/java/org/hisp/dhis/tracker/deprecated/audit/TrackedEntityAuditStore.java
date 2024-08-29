@@ -25,40 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentity;
+package org.hisp.dhis.tracker.deprecated.audit;
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.user.UserDetails;
+import java.util.List;
+import org.hisp.dhis.trackedentity.TrackedEntityAudit;
+import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
 
 /**
- * @author Ameen Mohamed
+ * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
-public interface ApiTrackerOwnershipManager {
-  String OWNERSHIP_ACCESS_DENIED = "OWNERSHIP_ACCESS_DENIED";
-
-  String PROGRAM_ACCESS_CLOSED = "PROGRAM_ACCESS_CLOSED";
-
-  String NO_READ_ACCESS_TO_ORG_UNIT = "User has no read access to organisation unit";
+@Deprecated(since = "2.42", forRemoval = true)
+public interface TrackedEntityAuditStore {
+  String ID = TrackedEntityAuditStore.class.getName();
 
   /**
-   * Check whether the user has access (as owner or has temporarily broken the glass) to the tracked
-   * entity - program combination.
+   * Adds the given tracked entity audit.
    *
-   * @param user The user with which access has to be checked for.
-   * @param trackedEntity The tracked entity.
-   * @param program The program.
-   * @return true if the user has access, false otherwise.
+   * @param trackedEntityAudit the {@link TrackedEntityAudit} to add.
    */
-  boolean hasAccess(UserDetails user, TrackedEntity trackedEntity, Program program);
-
-  boolean hasAccess(
-      UserDetails user, String trackedEntity, OrganisationUnit organisationUnit, Program program);
+  void addTrackedEntityAudit(TrackedEntityAudit trackedEntityAudit);
 
   /**
-   * Checks whether the owner of the TE/program pair resides within the user search scope.
+   * Adds the given {@link TrackedEntityAudit}s.
    *
-   * @return true if the owner is in the search scope, false otherwise
+   * @param trackedEntityAudit the list of {@link TrackedEntityAudit}.
    */
-  boolean isOwnerInUserSearchScope(UserDetails user, TrackedEntity trackedEntity, Program program);
+  void addTrackedEntityAudit(List<TrackedEntityAudit> trackedEntityAudit);
+
+  /**
+   * Returns tracked entity audits matching query params
+   *
+   * @param params tracked entity audit query params
+   * @return a list of {@link TrackedEntityAudit}.
+   */
+  List<TrackedEntityAudit> getTrackedEntityAudit(TrackedEntityAuditQueryParams params);
+
+  /**
+   * Returns count of tracked entity audits matching query params
+   *
+   * @param params tracked entity audit query params
+   * @return count of audits.
+   */
+  int getTrackedEntityAuditCount(TrackedEntityAuditQueryParams params);
 }

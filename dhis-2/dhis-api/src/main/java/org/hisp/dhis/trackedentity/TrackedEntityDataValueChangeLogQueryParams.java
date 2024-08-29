@@ -41,8 +41,6 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramStage;
 
 /**
- * Encapsulation of a web API request for tracked entity data value audit records.
- *
  * @author Lars Helge Overland
  */
 @Data

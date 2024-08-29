@@ -34,6 +34,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryOption;
@@ -512,7 +513,8 @@ public class DefaultAclService implements AclService {
 
   @Override
   @SuppressWarnings("unchecked")
-  public <T extends IdentifiableObject> Access getAccess(T object, UserDetails userDetails) {
+  public <T extends IdentifiableObject> Access getAccess(
+      T object, @Nonnull UserDetails userDetails) {
     return object == null
         ? new Access(true)
         : getAccess(object, userDetails, HibernateProxyUtils.getRealClass(object));
@@ -520,9 +522,9 @@ public class DefaultAclService implements AclService {
 
   @Override
   public <T extends IdentifiableObject> Access getAccess(
-      T object, UserDetails userDetails, Class<? extends T> objType) {
+      T object, @Nonnull UserDetails userDetails, Class<? extends T> objType) {
 
-    if (userDetails == null || isSuper(userDetails)) {
+    if (isSuper(userDetails)) {
       Access access = new Access(true);
 
       if (isDataClassShareable(objType)) {
@@ -558,9 +560,9 @@ public class DefaultAclService implements AclService {
   }
 
   @Override
-  public <T extends IdentifiableObject> void resetSharing(T object, UserDetails userDetails) {
-    // TODO: MAS do not allow userDetails to be NULL here
-    if (object == null || !isShareable(object) || userDetails == null) {
+  public <T extends IdentifiableObject> void resetSharing(
+      T object, @Nonnull UserDetails userDetails) {
+    if (object == null || !isShareable(object)) {
       return;
     }
 
@@ -580,8 +582,9 @@ public class DefaultAclService implements AclService {
   }
 
   @Override
-  public <T extends IdentifiableObject> void clearSharing(T object, UserDetails userDetails) {
-    if (object == null || !isShareable(object) || userDetails == null) {
+  public <T extends IdentifiableObject> void clearSharing(
+      T object, @Nonnull UserDetails userDetails) {
+    if (object == null || !isShareable(object)) {
       return;
     }
     Sharing sharing = object.getSharing();
@@ -599,7 +602,7 @@ public class DefaultAclService implements AclService {
 
   @Override
   public <T extends IdentifiableObject> List<ErrorReport> verifySharing(
-      T object, UserDetails userDetails) {
+      T object, @Nonnull UserDetails userDetails) {
     List<ErrorReport> errorReports = new ArrayList<>();
 
     if (object == null || haveOverrideAuthority(userDetails) || !isShareable(object)) {
@@ -695,7 +698,7 @@ public class DefaultAclService implements AclService {
   }
 
   private boolean isSuper(UserDetails user) {
-    return user == null || user.isSuper();
+    return user.isSuper();
   }
 
   private boolean canAccess(UserDetails user, Collection<String> anyAuthorities) {
@@ -715,9 +718,8 @@ public class DefaultAclService implements AclService {
    * @param object Object to check against
    * @return true/false depending on if access should be allowed
    */
-  private boolean checkOwner(UserDetails userDetails, IdentifiableObject object) {
-    return userDetails == null
-        || object.getSharing().getOwner() == null
+  private boolean checkOwner(@Nonnull UserDetails userDetails, IdentifiableObject object) {
+    return object.getSharing().getOwner() == null
         || userDetails.getUid().equals(object.getSharing().getOwner());
   }
 
@@ -729,7 +731,7 @@ public class DefaultAclService implements AclService {
    * @return true/false depending on if sharing settings are allowed for given user
    */
   private <T extends IdentifiableObject> boolean checkSharingAccess(
-      UserDetails userDetails, IdentifiableObject object, Class<T> objType) {
+      @Nonnull UserDetails userDetails, IdentifiableObject object, Class<T> objType) {
     boolean canMakePublic = canMakeClassPublic(userDetails, objType);
     boolean canMakePrivate = canMakeClassPrivate(userDetails, objType);
     boolean canMakeExternal = canMakeClassExternal(userDetails, objType);
@@ -744,11 +746,7 @@ public class DefaultAclService implements AclService {
       }
     }
 
-    if (object.getSharing().isExternal() && !canMakeExternal) {
-      return false;
-    }
-
-    return true;
+    return !object.getSharing().isExternal() || canMakeExternal;
   }
 
   /**
@@ -775,11 +773,7 @@ public class DefaultAclService implements AclService {
    * @return true if user can access object, false otherwise
    */
   private boolean checkSharingPermission(
-      UserDetails userDetails, IdentifiableObject object, Permission permission) {
-    // throw null pointer if userDetails is null
-    if (userDetails == null) {
-      throw new IllegalArgumentException("userDetails is null");
-    }
+      @Nonnull UserDetails userDetails, IdentifiableObject object, Permission permission) {
 
     Sharing sharing = object.getSharing();
     if (AccessStringHelper.isEnabled(sharing.getPublicAccess(), permission)) {

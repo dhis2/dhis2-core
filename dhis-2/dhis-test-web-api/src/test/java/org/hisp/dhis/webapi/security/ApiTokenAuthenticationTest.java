@@ -215,14 +215,19 @@ class ApiTokenAuthenticationTest extends ControllerWithApiTokenAuthTestBase {
 
   @Test
   void testTokenDoesNotExistAndIsDeletedFromCache() {
+    User usera = switchToNewUser("tom", "ALL");
+
     ApiKeyTokenGenerator.TokenWrapper wrapper = createNewToken();
     final String plaintext = new String(wrapper.getPlaintextToken());
 
+    assertEquals(usera, wrapper.getApiToken().getCreatedBy());
+
     // Do a request to cache the token
     JsonUser user = GET(URI, ApiTokenHeader(plaintext)).content().as(JsonUser.class);
-    assertEquals(getAdminUser().getUid(), user.getId());
+    assertEquals(usera.getUid(), user.getId());
 
     ApiToken token = wrapper.getApiToken();
+    injectSecurityContextUser(usera);
     apiTokenService.delete(token);
 
     assertEquals(

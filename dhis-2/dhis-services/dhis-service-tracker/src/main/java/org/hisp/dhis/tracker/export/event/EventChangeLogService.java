@@ -27,10 +27,13 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
+import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 
@@ -44,6 +47,22 @@ public interface EventChangeLogService {
   Page<EventChangeLog> getEventChangeLog(
       UID event, EventChangeLogOperationParams operationParams, PageParams pageParams)
       throws NotFoundException, ForbiddenException;
+
+  /**
+   * @deprecated use {@link EventChangeLogService#getEventChangeLog} instead
+   */
+  @Deprecated(since = "2.41")
+  List<org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog>
+      getTrackedEntityDataValueChangeLogs(TrackedEntityDataValueChangeLogQueryParams params);
+
+  void addTrackedEntityDataValueChangeLog(
+      org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog
+          trackedEntityDataValueChangeLog);
+
+  @Deprecated(since = "2.42")
+  int countTrackedEntityDataValueChangeLogs(TrackedEntityDataValueChangeLogQueryParams params);
+
+  void deleteTrackedEntityDataValueChangeLog(Event event);
 
   /**
    * Fields the {@link #getEventChangeLog(UID, EventChangeLogOperationParams, PageParams)} can order

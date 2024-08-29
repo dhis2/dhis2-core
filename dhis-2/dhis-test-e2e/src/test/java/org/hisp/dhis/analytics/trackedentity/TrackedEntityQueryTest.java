@@ -1247,10 +1247,10 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Ahmadiyya Muslim Hospital",
             "OU_268246",
             "Sierra Leone / Tonkolili / Yoni / Ahmadiyya Muslim Hospital",
-            "Angela",
-            "Wright",
             "Female",
             "",
+            "Angela",
+            "Wright",
             "BV4IomHvri4"));
 
     validateRow(
@@ -1269,10 +1269,10 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Ahmadiyya Muslim Hospital",
             "OU_268246",
             "Sierra Leone / Tonkolili / Yoni / Ahmadiyya Muslim Hospital",
-            "Brenda",
-            "Morgan",
             "Female",
             "",
+            "Brenda",
+            "Morgan",
             "BV4IomHvri4"));
 
     validateRow(
@@ -1291,10 +1291,10 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Ahmadiyya Muslim Hospital",
             "OU_268246",
             "Sierra Leone / Tonkolili / Yoni / Ahmadiyya Muslim Hospital",
-            "Edward",
-            "Murray",
             "Male",
             "",
+            "Edward",
+            "Murray",
             "BV4IomHvri4"));
   }
 
@@ -1342,10 +1342,10 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Ahmadiyya Muslim Hospital",
             "OU_268246",
             "Sierra Leone / Tonkolili / Yoni / Ahmadiyya Muslim Hospital",
-            "Angela",
-            "Wright",
             "Female",
             "",
+            "Angela",
+            "Wright",
             "BV4IomHvri4"));
 
     validateRow(
@@ -1364,10 +1364,10 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Ahmadiyya Muslim Hospital",
             "OU_268246",
             "Sierra Leone / Tonkolili / Yoni / Ahmadiyya Muslim Hospital",
-            "Brenda",
-            "Morgan",
             "Female",
             "",
+            "Brenda",
+            "Morgan",
             "BV4IomHvri4"));
 
     validateRow(
@@ -1386,10 +1386,10 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Ahmadiyya Muslim Hospital",
             "OU_268246",
             "Sierra Leone / Tonkolili / Yoni / Ahmadiyya Muslim Hospital",
-            "Edward",
-            "Murray",
             "Male",
             "",
+            "Edward",
+            "Murray",
             "BV4IomHvri4"));
   }
 
@@ -1737,10 +1737,10 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Ngelehun CHC",
             "OU_559",
             "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+            "",
+            "",
             "Tom",
             "Johson",
-            "",
-            "",
             "12.0"));
   }
 
@@ -1927,10 +1927,10 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Plantain Island MCHP",
             "OU_247071",
             "Sierra Leone / Moyamba / Kargboro / Plantain Island MCHP",
-            "Willie",
-            "Wallace",
             "Male",
             "",
+            "Willie",
+            "Wallace",
             "Negative-Conf"));
 
     validateRow(
@@ -1949,10 +1949,10 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Yankasa MCHP",
             "OU_193257",
             "Sierra Leone / Bombali / Makari Gbanti / Yankasa MCHP",
-            "Willie",
-            "Stewart",
             "Male",
             "",
+            "Willie",
+            "Stewart",
             "Negative-Conf"));
 
     validateRow(
@@ -1971,10 +1971,10 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Bumpeh Perri CHC",
             "OU_260423",
             "Sierra Leone / Pujehun / Galliness Perri / Bumpeh Perri CHC",
-            "Willie",
-            "Stevens",
             "Male",
             "",
+            "Willie",
+            "Stevens",
             "Negative-Conf"));
   }
 
@@ -2028,10 +2028,10 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Plantain Island MCHP",
             "OU_247071",
             "Sierra Leone / Moyamba / Kargboro / Plantain Island MCHP",
-            "Willie",
-            "Wallace",
             "Male",
             "",
+            "Willie",
+            "Wallace",
             "Negative (Confirmed)"));
 
     validateRow(
@@ -2050,10 +2050,10 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Yankasa MCHP",
             "OU_193257",
             "Sierra Leone / Bombali / Makari Gbanti / Yankasa MCHP",
-            "Willie",
-            "Stewart",
             "Male",
             "",
+            "Willie",
+            "Stewart",
             "Negative (Confirmed)"));
 
     validateRow(
@@ -2072,10 +2072,10 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Bumpeh Perri CHC",
             "OU_260423",
             "Sierra Leone / Pujehun / Galliness Perri / Bumpeh Perri CHC",
-            "Willie",
-            "Stevens",
             "Male",
             "",
+            "Willie",
+            "Stevens",
             "Negative (Confirmed)"));
   }
 
@@ -2128,16 +2128,16 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Ngelehun CHC",
             "OU_559",
             "Sierra Leone / Bo / Badjia / Ngelehun CHC",
-            "ABC123456",
-            "PID0001",
             "Johnson",
-            "Sarah",
+            "30",
             "1988-07-10 00:00:00.0",
             "",
-            "30",
             "FEMALE",
-            "",
+            "ABC123456",
+            "PID0001",
             "FR",
+            "Sarah",
+            "",
             ""));
 
     validateRow(
@@ -2156,15 +2156,15 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Ngelehun CHC",
             "OU_559",
             "Sierra Leone / Bo / Badjia / Ngelehun CHC",
-            "LBO315445",
-            "7hdjdj",
             "Martin",
-            "Steve",
+            "43",
             "1976-02-03 00:00:00.0",
             "",
-            "43",
             "FEMALE",
+            "LBO315445",
+            "7hdjdj",
             "",
+            "Steve",
             "",
             ""));
 
@@ -2184,17 +2184,17 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Ngelehun CHC",
             "OU_559",
             "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+            "",
+            "21",
+            "1998-02-04 00:00:00.0",
+            "",
+            "",
             "YOH335093",
             "",
             "",
             "",
-            "1998-02-04 00:00:00.0",
-            "",
-            "21",
-            "",
-            "",
-            "",
-            "SRID=4326;POINT(40.41441 -3.71542)"));
+            "SRID=4326;POINT(40.41441 -3.71542)",
+            ""));
   }
 
   @Test
@@ -2246,16 +2246,16 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Ngelehun CHC",
             "OU_559",
             "Sierra Leone / Bo / Badjia / Ngelehun CHC",
-            "ABC123456",
-            "PID0001",
             "Johnson",
-            "Sarah",
+            "30",
             "1988-07-10 00:00:00.0",
             "",
-            "30",
             "FEMALE",
-            "",
+            "ABC123456",
+            "PID0001",
             "FR",
+            "Sarah",
+            "",
             ""));
 
     validateRow(
@@ -2274,15 +2274,15 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Ngelehun CHC",
             "OU_559",
             "Sierra Leone / Bo / Badjia / Ngelehun CHC",
-            "LBO315445",
-            "7hdjdj",
             "Martin",
-            "Steve",
+            "43",
             "1976-02-03 00:00:00.0",
             "",
-            "43",
             "FEMALE",
+            "LBO315445",
+            "7hdjdj",
             "",
+            "Steve",
             "",
             ""));
 
@@ -2302,17 +2302,17 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Ngelehun CHC",
             "OU_559",
             "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+            "",
+            "21",
+            "1998-02-04 00:00:00.0",
+            "",
+            "",
             "YOH335093",
             "",
             "",
             "",
-            "1998-02-04 00:00:00.0",
-            "",
-            "21",
-            "",
-            "",
-            "",
-            "SRID=4326;POINT(40.41441 -3.71542)"));
+            "SRID=4326;POINT(40.41441 -3.71542)",
+            ""));
   }
 
   @Test
@@ -2367,10 +2367,10 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Jangalor MCHP",
             "OU_543020",
             "Sierra Leone / Bonthe / Imperi / Jangalor MCHP",
-            "Antonio",
-            "Ruiz",
             "Male",
             "",
+            "Antonio",
+            "Ruiz",
             "3681.0",
             "Positive"));
 
@@ -2390,10 +2390,10 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Mattru Jong MCHP",
             "OU_197389",
             "Sierra Leone / Bonthe / Jong / Mattru Jong MCHP",
-            "Julia",
-            "Gardner",
             "Female",
             "",
+            "Julia",
+            "Gardner",
             "3945.0",
             "Positive"));
 
@@ -2413,10 +2413,10 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Ngaiya MCHP",
             "OU_233404",
             "Sierra Leone / Kono / Nimikoro / Ngaiya MCHP",
-            "Beverly",
-            "Hart",
             "Female",
             "",
+            "Beverly",
+            "Hart",
             "3104.0",
             "Positive"));
   }
@@ -2473,10 +2473,10 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Jangalor MCHP",
             "OU_543020",
             "Sierra Leone / Bonthe / Imperi / Jangalor MCHP",
-            "Antonio",
-            "Ruiz",
             "rBvjJYbMCVx",
             "",
+            "Antonio",
+            "Ruiz",
             "3681.0",
             "fWI0UiNZgMy"));
 
@@ -2496,10 +2496,10 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Mattru Jong MCHP",
             "OU_197389",
             "Sierra Leone / Bonthe / Jong / Mattru Jong MCHP",
-            "Julia",
-            "Gardner",
             "Mnp3oXrpAbK",
             "",
+            "Julia",
+            "Gardner",
             "3945.0",
             "fWI0UiNZgMy"));
 
@@ -2519,10 +2519,10 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Ngaiya MCHP",
             "OU_233404",
             "Sierra Leone / Kono / Nimikoro / Ngaiya MCHP",
-            "Beverly",
-            "Hart",
             "Mnp3oXrpAbK",
             "",
+            "Beverly",
+            "Hart",
             "3104.0",
             "fWI0UiNZgMy"));
   }
@@ -2577,10 +2577,10 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Ngelehun CHC",
             "OU_559",
             "Sierra Leone / Bo / Badjia / Ngelehun CHC",
-            "Filona",
-            "Ryder",
             "Female",
             "",
+            "Filona",
+            "Ryder",
             "COMPLETED"));
   }
 
@@ -2634,10 +2634,10 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Ngelehun CHC",
             "OU_559",
             "Sierra Leone / Bo / Badjia / Ngelehun CHC",
-            "Filona",
-            "Ryder",
             "Female",
             "",
+            "Filona",
+            "Ryder",
             "COMPLETED"));
   }
 
@@ -2691,10 +2691,10 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Ngelehun CHC",
             "OU_559",
             "Sierra Leone / Bo / Badjia / Ngelehun CHC",
-            "Filona",
-            "Ryder",
             "Female",
             "",
+            "Filona",
+            "Ryder",
             "COMPLETED"));
   }
 
