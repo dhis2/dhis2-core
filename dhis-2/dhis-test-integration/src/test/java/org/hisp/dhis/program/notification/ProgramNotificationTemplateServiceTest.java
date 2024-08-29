@@ -29,15 +29,23 @@ package org.hisp.dhis.program.notification;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleActionService;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
+import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,9 +67,17 @@ class ProgramNotificationTemplateServiceTest extends SingleSetupIntegrationTestB
 
   private OrganisationUnit organisationUnit;
 
+  private ProgramRule programRule;
+
+  private ProgramRuleAction ruleAction;
+
   @Autowired private ProgramService programService;
 
   @Autowired private ProgramStageService programStageService;
+
+  @Autowired private ProgramRuleService programRuleService;
+
+  @Autowired private ProgramRuleActionService programRuleActionService;
 
   @Autowired private ProgramNotificationTemplateService programNotificationTemplateService;
 
@@ -102,10 +118,20 @@ class ProgramNotificationTemplateServiceTest extends SingleSetupIntegrationTestB
     programNotificationTemplateService.save(pnt3);
     program.getNotificationTemplates().add(pnt1);
     program.getNotificationTemplates().add(pnt2);
+
+    programRule = createProgramRule('R', program);
+    ruleAction = createProgramRuleAction('A', programRule);
+    ruleAction.setProgramRuleActionType(ProgramRuleActionType.SENDMESSAGE);
+    ruleAction.setTemplateUid(pnt1.getUid());
+
+    programRuleService.addProgramRule(programRule);
+    programRuleActionService.addProgramRuleAction(ruleAction);
+    programRule.getProgramRuleActions().add(ruleAction);
+    programRuleService.updateProgramRule(programRule);
   }
 
   @Test
-  void testGetProgramNotificationTemplates() {
+  void shouldGetProgramNotificationTemplates() {
     ProgramNotificationTemplateParam param =
         ProgramNotificationTemplateParam.builder().program(program).build();
     List<ProgramNotificationTemplate> templates =
@@ -118,7 +144,7 @@ class ProgramNotificationTemplateServiceTest extends SingleSetupIntegrationTestB
   }
 
   @Test
-  void testCountProgramNotificationTemplates() {
+  void shouldCountProgramNotificationTemplates() {
     ProgramNotificationTemplateParam param =
         ProgramNotificationTemplateParam.builder().program(program).build();
     ProgramNotificationTemplateParam param2 =
@@ -129,5 +155,25 @@ class ProgramNotificationTemplateServiceTest extends SingleSetupIntegrationTestB
     assertEquals(
         programNotificationTemplateService.getProgramNotificationTemplates(param2).size(),
         programNotificationTemplateService.countProgramNotificationTemplates(param2));
+  }
+
+  @Test
+  void shouldThrowWhenUserDeleteTemplateLinkedToRuleAction() {
+    DeleteNotAllowedException exception =
+        assertThrows(
+            DeleteNotAllowedException.class,
+            () -> {
+              programNotificationTemplateService.delete(pnt1);
+            });
+
+    assertEquals(
+        "Object could not be deleted because it is associated with another object: ProgramRuleAction",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldDeleteProgramNotificationTemplate() {
+    programNotificationTemplateService.delete(pnt2);
+    assertNull(programNotificationTemplateService.get(pnt2.getId()));
   }
 }
