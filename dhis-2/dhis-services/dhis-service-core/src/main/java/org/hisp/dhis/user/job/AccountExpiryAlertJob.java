@@ -33,7 +33,7 @@ import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLI
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.message.EmailMessageSender;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -43,7 +43,6 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccountExpiryInfo;
 import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
@@ -66,7 +65,7 @@ public class AccountExpiryAlertJob implements Job {
 
   private final UserService userService;
 
-  private final @Qualifier("emailMessageSender") MessageSender emailMessageSender;
+  private final EmailMessageSender emailMessageSender;
 
   private final SystemSettingManager systemSettingManager;
 
