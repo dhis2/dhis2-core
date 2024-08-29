@@ -58,9 +58,9 @@ public class DefaultNodeService implements NodeService {
   @Autowired(required = false)
   private List<NodeDeserializer> nodeDeserializers = Lists.newArrayList();
 
-  private Map<String, NodeSerializer> nodeSerializerMap = Maps.newHashMap();
+  private static Map<String, NodeSerializer> nodeSerializerMap = Maps.newHashMap();
 
-  private Map<String, NodeDeserializer> nodeDeserializerMap = Maps.newHashMap();
+  private static Map<String, NodeDeserializer> nodeDeserializerMap = Maps.newHashMap();
 
   @PostConstruct
   private void init() {
