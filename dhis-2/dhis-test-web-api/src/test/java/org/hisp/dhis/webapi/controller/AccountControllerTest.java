@@ -44,7 +44,7 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.message.FakeMessageSender;
+import org.hisp.dhis.test.message.DefaultFakeMessageSender;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
@@ -332,7 +332,7 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
 
   private OutboundMessage assertMessageSendTo(String email) {
     List<OutboundMessage> messagesByEmail =
-        ((FakeMessageSender) messageSender).getMessagesByEmail(email);
+        ((DefaultFakeMessageSender) messageSender).getMessagesByEmail(email);
     assertFalse(messagesByEmail.isEmpty());
     return messagesByEmail.get(0);
   }

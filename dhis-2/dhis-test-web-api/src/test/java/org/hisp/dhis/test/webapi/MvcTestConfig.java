@@ -40,11 +40,11 @@ import org.hisp.dhis.common.DefaultRequestInfoService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPathConverter;
-import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.node.DefaultNodeService;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
+import org.hisp.dhis.test.message.DefaultFakeMessageSender;
 import org.hisp.dhis.test.message.FakeMessageSender;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
@@ -62,7 +62,6 @@ import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.format.support.FormattingConversionService;
@@ -93,7 +92,6 @@ import org.springframework.web.servlet.resource.ResourceUrlProviderExposingInter
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Configuration
 @EnableWebMvc
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class MvcTestConfig implements WebMvcConfigurer {
@@ -288,10 +286,20 @@ public class MvcTestConfig implements WebMvcConfigurer {
     return expressionHandler;
   }
 
-  @Bean
+  @Bean("smsMessageSender")
+  public FakeMessageSender smsMessageSender(FakeMessageSender fakeMessageSender) {
+    return fakeMessageSender;
+  }
+
+  @Bean("emailMessageSender")
+  public FakeMessageSender emailMessageSender(FakeMessageSender fakeMessageSender) {
+    return fakeMessageSender;
+  }
+
   @Primary
-  public MessageSender messageSender() {
-    return new FakeMessageSender();
+  @Bean("fakeMessageSender")
+  public FakeMessageSender fakeMessageSender() {
+    return new DefaultFakeMessageSender();
   }
 
   static final class TestInterceptorRegistry extends InterceptorRegistry {

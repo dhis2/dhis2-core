@@ -51,6 +51,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.message.SmsMessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchStatus;
@@ -60,10 +61,10 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.sms.config.BulkSmsGatewayConfig;
 import org.hisp.dhis.sms.config.BulkSmsHttpGateway;
+import org.hisp.dhis.sms.config.DefaultSmsMessageSender;
 import org.hisp.dhis.sms.config.GatewayAdministrationService;
 import org.hisp.dhis.sms.config.SmsGateway;
 import org.hisp.dhis.sms.config.SmsGatewayConfig;
-import org.hisp.dhis.sms.config.SmsMessageSender;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.sms.outbound.OutboundSmsService;
 import org.hisp.dhis.user.User;
@@ -136,7 +137,7 @@ class SmsMessageSenderTest {
     smsGateways.add(bulkSmsGateway);
 
     smsMessageSender =
-        new SmsMessageSender(
+        new DefaultSmsMessageSender(
             gatewayAdministrationService,
             smsGateways,
             userSettingService,

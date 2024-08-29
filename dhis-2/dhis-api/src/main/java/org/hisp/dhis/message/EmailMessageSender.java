@@ -25,16 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.message;
+package org.hisp.dhis.message;
 
-import java.util.List;
-import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.outboundmessage.OutboundMessage;
-
-public interface FakeMessageSender extends MessageSender {
-  List<OutboundMessage> getMessagesByEmail(String recipient);
-
-  void clearMessages();
-
-  List<OutboundMessage> getAllMessages();
-}
+public interface EmailMessageSender extends MessageSender {}
