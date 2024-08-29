@@ -25,20 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.jackson.config;
+package org.hisp.dhis.attribute;
 
-import com.fasterxml.jackson.core.JacksonException;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import java.io.IOException;
-import org.hisp.dhis.attribute.AttributeValues;
 
-public class AttributeValuesDeserializer extends JsonDeserializer<AttributeValues> {
+/**
+ * @author Jan Bernitt
+ */
+public class AttributeValuesSerializer extends JsonSerializer<AttributeValues> {
   @Override
-  public AttributeValues deserialize(JsonParser parser, DeserializationContext context)
-      throws IOException, JacksonException {
-    String value = parser.getValueAsString();
-    return AttributeValues.of(value);
+  public void serialize(
+      AttributeValues values, JsonGenerator generator, SerializerProvider serializerProvider)
+      throws IOException {
+    if (values == null) {
+      generator.writeNull();
+    } else {
+      generator.writeRawValue(values.toArrayJson());
+    }
   }
 }

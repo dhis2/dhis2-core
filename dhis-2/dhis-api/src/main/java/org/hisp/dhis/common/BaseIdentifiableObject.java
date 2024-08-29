@@ -54,6 +54,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Immutable;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.attribute.AttributeValues;
+import org.hisp.dhis.attribute.AttributeValuesDeserializer;
+import org.hisp.dhis.attribute.AttributeValuesSerializer;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.schema.PropertyType;
@@ -276,6 +278,8 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   @Override
   @OpenApi.Property(AttributeValue[].class)
   @JsonProperty("attributeValues")
+  @JsonDeserialize(using = AttributeValuesDeserializer.class)
+  @JsonSerialize(using = AttributeValuesSerializer.class)
   public AttributeValues getAttributeValues() {
     return attributeValues;
   }

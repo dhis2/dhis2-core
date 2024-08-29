@@ -44,7 +44,6 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.time.Instant;
 import java.util.Date;
-import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.commons.jackson.config.geometry.GeometrySerializer;
 import org.hisp.dhis.commons.jackson.config.geometry.JtsXmlModule;
 import org.hisp.dhis.dataexchange.aggregate.Api;
@@ -155,7 +154,6 @@ public class JacksonObjectMapperConfig {
     module.addSerializer(JsonPointer.class, new JsonPointerStdSerializer());
     module.addSerializer(Api.class, new ApiSerializer());
     module.addSerializer(JsonValue.class, new JsonValueSerializer());
-    module.addSerializer(AttributeValues.class, new AttributeValuesSerializer());
 
     // Registering a custom Instant serializer/deserializer for DTOs
     JavaTimeModule javaTimeModule = new JavaTimeModule();
