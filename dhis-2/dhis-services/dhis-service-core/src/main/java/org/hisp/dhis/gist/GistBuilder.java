@@ -67,7 +67,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.Attribute.ObjectType;
-import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Field;
@@ -286,25 +286,16 @@ final class GistBuilder {
   }
 
   private Object attributeValue(String attributeUid, Object attributeValues, Attribute attribute) {
-    @SuppressWarnings("unchecked")
-    Set<AttributeValue> values = (Set<AttributeValue>) attributeValues;
-    for (AttributeValue v : values) {
-      if (attributeUid.equals(v.getAttribute().getUid())) {
-        return attribute != null
-            ? support.getTypedAttributeValue(attribute, v.getValue())
-            : v.getValue();
-      }
-    }
-    return null;
+    AttributeValues values = (AttributeValues) attributeValues;
+    String value = values.get(attributeUid);
+    return attribute != null ? support.getTypedAttributeValue(attribute, value) : value;
   }
 
   private Map<String, String> attributeValues(Object attributeValues) {
-    @SuppressWarnings("unchecked")
-    Set<AttributeValue> values = (Set<AttributeValue>) attributeValues;
+    AttributeValues values = (AttributeValues) attributeValues;
     return values == null || values.isEmpty()
         ? Map.of()
-        : values.stream()
-            .collect(toMap(value -> value.getAttribute().getUid(), AttributeValue::getValue));
+        : values.stream().collect(toMap(Entry::getKey, Entry::getValue));
   }
 
   @SuppressWarnings("unchecked")

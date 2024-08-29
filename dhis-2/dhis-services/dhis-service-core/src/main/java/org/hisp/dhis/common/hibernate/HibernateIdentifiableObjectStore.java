@@ -405,7 +405,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     String hql =
         "from %s where jsonb_extract_path_text(attributevalues, '%s', 'value') = :value"
             .formatted(getClazz().getSimpleName(), attribute.getValue());
-
+    // FIXME add sharing
     return getSingleResult(getQuery(hql).setParameter("value", value));
   }
 
