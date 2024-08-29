@@ -100,8 +100,9 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
   }
 
   private static String getTableName(EntityManager em, Class<?> entityClass) {
-    MetamodelImplementor metamodelImplementor = (MetamodelImplementor) em.getMetamodel();
+    // Note: this is the same way we extract the table name for Schema
     try {
+      MetamodelImplementor metamodelImplementor = (MetamodelImplementor) em.getMetamodel();
       EntityPersister entityPersister = metamodelImplementor.entityPersister(entityClass);
       if (entityPersister instanceof SingleTableEntityPersister) {
         return ((SingleTableEntityPersister) entityPersister).getTableName();
