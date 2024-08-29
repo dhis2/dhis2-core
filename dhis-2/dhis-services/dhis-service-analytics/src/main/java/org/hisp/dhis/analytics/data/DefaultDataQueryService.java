@@ -119,7 +119,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
-import org.hisp.dhis.period.WeeklyPeriodType;
 import org.hisp.dhis.period.comparator.AscendingPeriodComparator;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
@@ -537,12 +536,10 @@ public class DefaultDataQueryService implements DataQueryService {
 
       for (Period period : periods) {
         String name = format != null ? format.formatPeriod(period) : null;
-
-        if (!period.getPeriodType().getName().contains(WeeklyPeriodType.NAME)) {
-          period.setShortName(name);
-        }
+        String shortName = format != null ? format.formatPeriod(period, true) : null;
 
         period.setName(name);
+        period.setShortName(shortName);
 
         if (!calendar.isIso8601()) {
           period.setUid(getLocalPeriodIdentifier(period, calendar));
