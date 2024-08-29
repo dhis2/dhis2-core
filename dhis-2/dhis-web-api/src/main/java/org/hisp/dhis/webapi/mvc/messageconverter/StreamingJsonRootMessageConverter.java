@@ -82,7 +82,7 @@ public class StreamingJsonRootMessageConverter
 
   @Override
   protected boolean supports(Class<?> clazz) {
-    return StreamingJsonRoot.class.equals(clazz);
+    return StreamingJsonRoot.class == clazz;
   }
 
   @Override

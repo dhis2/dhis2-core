@@ -175,20 +175,28 @@ class AttributeValuesTest {
   }
 
   @Test
-  void testToJson() {
-    assertEquals("{}", AttributeValues.empty().toJson());
-    assertEquals("{}", AttributeValues.of("{}").toJson());
-    assertEquals("{}", AttributeValues.of(Map.of()).toJson());
-    assertEquals(
-        "{\"a\": {\"value\":\"b\"}}", AttributeValues.of("{\"a\": {\"value\":\"b\"}}").toJson());
+  void testToObjectJson() {
+    assertEquals("{}", AttributeValues.empty().toObjectJson());
+    assertEquals("{}", AttributeValues.of("{}").toObjectJson());
+    assertEquals("{}", AttributeValues.of(Map.of()).toObjectJson());
+    AttributeValues fromJson = AttributeValues.of("{\"a\": {\"value\":\"b\"}}");
+    assertEquals("{\"a\": {\"value\":\"b\"}}", fromJson.toObjectJson());
     // note that the JSON is different in whitespace because when constructed from JSON the original
-    // JSON is returned
-    // while when constructed from a map the JSON is composed
-    assertEquals("{\"a\":{\"value\":\"b\"}}", AttributeValues.of(Map.of("a", "b")).toJson());
+    // JSON is returned while when constructed from a map the JSON is composed
+    assertEquals("{\"a\":{\"value\":\"b\"}}", AttributeValues.of(Map.of("a", "b")).toObjectJson());
+    // however, once the JSON got parsed internally the toJson is computed again
+    assertFalse(fromJson.isEmpty()); // force parse
+    assertEquals("{\"a\":{\"value\":\"b\"}}", fromJson.toObjectJson());
+
     // note that the order of root properties is alphabetically sorted in JSON
     assertEquals(
         "{\"c\":{\"value\":\"d\"},\"x\":{\"value\":\"y\"}}",
-        AttributeValues.of(Map.of("x", "y", "c", "d")).toJson());
+        AttributeValues.of(Map.of("x", "y", "c", "d")).toObjectJson());
+  }
+
+  @Test
+  void testToArrayJson() {
+    // TODO
   }
 
   @Test

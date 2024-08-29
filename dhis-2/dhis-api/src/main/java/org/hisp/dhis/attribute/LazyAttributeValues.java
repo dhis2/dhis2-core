@@ -32,6 +32,7 @@ import static java.util.Arrays.binarySearch;
 import static java.util.Arrays.copyOf;
 import static java.util.Arrays.copyOfRange;
 import static java.util.stream.Collectors.toMap;
+import static org.hisp.dhis.jsontree.JsonBuilder.createArray;
 import static org.hisp.dhis.jsontree.JsonBuilder.createObject;
 
 import java.util.Arrays;
@@ -49,8 +50,10 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.intellij.lang.annotations.Language;
 
 /**
@@ -74,7 +77,8 @@ final class LazyAttributeValues implements AttributeValues {
 
   @Nonnull
   static AttributeValues of(@Nonnull @Language("json") String json) {
-    return "{}".equals(json) ? empty() : new LazyAttributeValues(json, null, null);
+    if ("{}".equals(json) || "[]".equals(json)) return empty();
+    return new LazyAttributeValues(json, null, null);
   }
 
   static AttributeValues of(@Nonnull Map<String, String> values) {
@@ -103,6 +107,7 @@ final class LazyAttributeValues implements AttributeValues {
       return;
     }
     initSync(json);
+    json = null; // free memory
   }
 
   private void initEmpty() {
@@ -117,21 +122,41 @@ final class LazyAttributeValues implements AttributeValues {
    */
   private synchronized void initSync(@Nonnull String json) {
     if (keys != null) return;
-    JsonObject map = JsonMixed.of(json);
-    if (map.isNull() || map.isEmpty()) {
+    JsonMixed objOrArr = JsonMixed.of(json);
+    if (objOrArr.isNull() || objOrArr.isEmpty()) {
       initEmpty();
       return;
     }
     // Note that this needs to go via TreeMap to ensure alphabetic ordering;
     // using JSON value API directly is difficult due to incompatibility of lambdas and i-counters
-    init(
-        map.entries()
-            .collect(
-                toMap(
-                    Map.Entry::getKey,
-                    e -> e.getValue().asObject().getString("value").string(),
-                    (a, b) -> a,
-                    TreeMap::new)));
+    if (objOrArr.isObject()) {
+      init(parseObjectJson(objOrArr));
+    } else if (objOrArr.isArray()) {
+      init(parseArrayJson(objOrArr));
+    } else throw new IllegalArgumentException("Not a valid attribute value JSON: " + json);
+  }
+
+  @Nonnull
+  private static TreeMap<String, String> parseObjectJson(JsonObject map) {
+    return map.entries()
+        .collect(
+            toMap(
+                Map.Entry::getKey,
+                e -> e.getValue().asObject().getString("value").string(),
+                (a, b) -> a,
+                TreeMap::new));
+  }
+
+  @Nonnull
+  private static TreeMap<String, String> parseArrayJson(JsonArray arr) {
+    return arr.stream()
+        .map(JsonValue::asObject)
+        .collect(
+            toMap(
+                obj -> obj.getObject("attribute").getString("id").string(),
+                obj -> obj.getString("value").string(),
+                (a, b) -> a,
+                TreeMap::new));
   }
 
   private void init(TreeMap<String, String> from) {
@@ -139,7 +164,8 @@ final class LazyAttributeValues implements AttributeValues {
     values = new String[keys.length];
     int i = 0;
     for (Map.Entry<String, String> e : from.entrySet()) {
-      keys[i] = e.getKey();
+      // Note: intern is used so all keys of the same attribute share a String instance
+      keys[i] = e.getKey().intern();
       values[i++] = e.getValue();
     }
   }
@@ -328,20 +354,30 @@ final class LazyAttributeValues implements AttributeValues {
 
   @Nonnull
   @Override
-  public String toJson() {
-    if (json != null) return json;
+  public String toObjectJson() {
+    if (json != null && json.charAt(0) == '{') return json;
     init();
     if (isEmpty()) return "{}";
-    json =
-        createObject(
-                obj -> {
-                  for (int i = 0; i < size(); i++) {
-                    String val = values[i];
-                    obj.addObject(keys[i], attrObj -> attrObj.addString("value", val));
-                  }
-                })
-            .getDeclaration();
-    return json;
+    return createObject(
+            map ->
+                forEach((key, value) -> map.addObject(key, obj -> obj.addString("value", value))))
+        .getDeclaration();
+  }
+
+  @Nonnull
+  @Override
+  public String toArrayJson() {
+    init();
+    if (isEmpty()) return "[]";
+    return createArray(
+            arr ->
+                forEach(
+                    (key, value) ->
+                        arr.addObject(
+                            obj ->
+                                obj.addString("value", value)
+                                    .addObject("attribute", attr -> attr.addString("id", key)))))
+        .getDeclaration();
   }
 
   @Override
@@ -361,6 +397,6 @@ final class LazyAttributeValues implements AttributeValues {
 
   @Override
   public String toString() {
-    return toJson();
+    return toObjectJson();
   }
 }

@@ -39,7 +39,10 @@ import javax.annotation.Nonnull;
 import org.intellij.lang.annotations.Language;
 
 /**
- * ADT of an immutable set of {@link Attribute} values.
+ * An immutable set of {@link Attribute} values.
+ *
+ * <p>{@link AttributeValues} variables and fields should never be initialized to {@code null}.
+ * Always prefer to use {@link #empty()} as it has virtually no costs.
  *
  * <p>This should prevent usages to get dependent on the exact representation of attribute values as
  * well as prevent issues with managing the state such as the backing collection being
@@ -52,7 +55,7 @@ public sealed interface AttributeValues extends Iterable<Map.Entry<String, Strin
     permits LazyAttributeValues {
 
   /**
-   * @return a fresh mutable empty collection of attribute values
+   * @return an empty collection of attribute values
    */
   @Nonnull
   static AttributeValues empty() {
@@ -64,6 +67,23 @@ public sealed interface AttributeValues extends Iterable<Map.Entry<String, Strin
     return LazyAttributeValues.of(values);
   }
 
+  /**
+   * Possible input shapes:
+   *
+   * <pre>
+   * { "{uid}": { "value": "..." } }
+   * [ { "value": "...", "attribute": { "id": "{uid}" }} ]
+   * null
+   * </pre>
+   *
+   * Both, array and object shape may contain more properties that are of no interest as long as
+   * they at least provide the shape outlined.
+   *
+   * @param json either an object with keys being the attribute ID and value being an object with a
+   *     "value" property or an array of objects with a string "value" and an object "attribute"
+   *     property or null.
+   * @return a new instance of {@link AttributeValues} with same mapping as given by the JSON
+   */
   @Nonnull
   static AttributeValues of(@Nonnull @Language("json") String json) {
     return LazyAttributeValues.of(json);
@@ -96,11 +116,34 @@ public sealed interface AttributeValues extends Iterable<Map.Entry<String, Strin
   Stream<Map.Entry<String, String>> stream();
 
   /**
+   * JSON of the shape
+   *
+   * <pre>
+   * {
+   *   "{uid}": { "value": "..." }
+   * }
+   * </pre>
+   *
    * @return The JSON as stored in DB
    */
   @Nonnull
   @Language("json")
-  String toJson();
+  String toObjectJson();
+
+  /**
+   * JSON of the shape
+   *
+   * <pre>
+   * [
+   *   { "value": "...", "attribute": { "id": "{uid}" }}
+   * ]
+   * </pre>
+   *
+   * @return the JSON as returned by the API
+   */
+  @Nonnull
+  @Language("json")
+  String toArrayJson();
 
   /*
   Modification

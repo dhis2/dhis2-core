@@ -284,6 +284,8 @@ public class FieldFilterService {
     }
   }
 
+  // FIXME(JB) this now has to fill in the attributeValues[attribute[*]] properties should a user
+  // request them
   private void applyAttributeValueFields(
       Object object, ObjectNode objectNode, List<FieldPath> fieldPaths) {
     if (!(object instanceof BaseIdentifiableObject)) {

@@ -121,15 +121,4 @@ public interface AttributeService {
    * @param attributeValue the attribute value.
    */
   <T extends IdentifiableObject> void deleteAttributeValue(T object, AttributeValue attributeValue);
-
-  /**
-   * Deletes a Set of attribute values.
-   *
-   * @param object the object which the attributeValue belongs to.
-   * @param attributeValues the Set of attribute values.
-   */
-  <T extends IdentifiableObject> void deleteAttributeValues(
-      T object, Set<AttributeValue> attributeValues);
-
-  <T extends IdentifiableObject> void generateAttributes(List<T> entityList);
 }

@@ -168,18 +168,4 @@ public class DefaultAttributeService implements AttributeService {
     object.removeAttributeValue(attributeValue.getAttribute().getUid());
     manager.update(object);
   }
-
-  @Override
-  @Transactional
-  public <T extends IdentifiableObject> void deleteAttributeValues(
-      T object, Set<AttributeValue> attributeValues) {
-    attributeValues.forEach(a -> object.removeAttributeValue(a.getAttribute().getUid()));
-    manager.update(object);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> void generateAttributes(List<T> entityList) {
-    // FIXME(JB) originally this was where the full Attribute was put into each AttributeValue
-  }
 }

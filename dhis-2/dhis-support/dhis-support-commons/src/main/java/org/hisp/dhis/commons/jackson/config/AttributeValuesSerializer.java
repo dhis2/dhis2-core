@@ -44,7 +44,7 @@ public class AttributeValuesSerializer extends JsonSerializer<AttributeValues> {
     if (values == null) {
       generator.writeNull();
     } else {
-      generator.writeRawValue(values.toJson());
+      generator.writeRawValue(values.toArrayJson());
     }
   }
 }

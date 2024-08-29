@@ -155,7 +155,7 @@ public class AuditManager {
       return ((IdentifiableObject) value).getUid();
     }
     if (value instanceof AttributeValues attrs) {
-      return attrs.toJson();
+      return attrs.toObjectJson();
     }
 
     if (value instanceof RelationshipItem) {
