@@ -34,6 +34,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.SetValuedMap;
@@ -285,11 +286,7 @@ public class DefaultCategoryService implements CategoryService {
   @Override
   @Transactional(readOnly = true)
   public List<CategoryOption> getDataWriteCategoryOptions(
-      Category category, UserDetails userDetails) {
-    if (userDetails == null) {
-      return Lists.newArrayList();
-    }
-
+      Category category, @Nonnull UserDetails userDetails) {
     return userDetails.isSuper()
         ? getCategoryOptions(category)
         : categoryOptionStore.getDataWriteCategoryOptions(category, userDetails);

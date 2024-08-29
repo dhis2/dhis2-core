@@ -81,7 +81,8 @@ public class NoAnalyticsTablesErrorsScenariosTest {
     ApiResponse response = analyticsAggregateActions.get(params);
 
     // Then
-    assertNoAnalyticsTableResponse(response);
+    assertNoAnalyticsTableResponse(
+        response, "ERROR: relation \"analytics\" does not exist\n  Position: 68");
   }
 
   @Test
@@ -96,7 +97,9 @@ public class NoAnalyticsTablesErrorsScenariosTest {
     ApiResponse response = analyticsEventActions.query().get("eBAyeGv0exc", JSON, JSON, params);
 
     // Then
-    assertNoAnalyticsTableResponse(response);
+    assertNoAnalyticsTableResponse(
+        response,
+        "ERROR: relation \"analytics_event_ebayegv0exc\" does not exist\n  Position: 263");
   }
 
   @Test
@@ -109,7 +112,9 @@ public class NoAnalyticsTablesErrorsScenariosTest {
         analyticsEnrollmentsActions.query().get("IpHINAT79UW", JSON, JSON, params);
 
     // Then
-    assertNoAnalyticsTableResponse(response);
+    assertNoAnalyticsTableResponse(
+        response,
+        "ERROR: relation \"analytics_enrollment_iphinat79uw\" does not exist\n  Position: 241");
   }
 
   @Test
@@ -124,7 +129,8 @@ public class NoAnalyticsTablesErrorsScenariosTest {
     ApiResponse response = analyticsEventActions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
 
     // Then
-    assertNoAnalyticsTableResponse(response);
+    assertNoAnalyticsTableResponse(
+        response, "ERROR: relation \"analytics_event_iphinat79uw\" does not exist\n  Position: 68");
   }
 
   @Test
@@ -140,7 +146,8 @@ public class NoAnalyticsTablesErrorsScenariosTest {
         analyticsTrackedEntityActions.query().get("nEenWmSyUEp", JSON, JSON, params);
 
     // Then
-    assertNoAnalyticsTableResponse(response);
+    assertNoAnalyticsTableResponse(
+        response, "ERROR: relation \"analytics_te_neenwmsyuep\" does not exist\n  Position: 1955");
   }
 
   @Test
@@ -170,7 +177,7 @@ public class NoAnalyticsTablesErrorsScenariosTest {
         .body("errorCode", equalTo("E7180"));
   }
 
-  private void assertNoAnalyticsTableResponse(ApiResponse response) {
+  private void assertNoAnalyticsTableResponse(ApiResponse response, String expectedMessage) {
     response
         .validate()
         .statusCode(409)
@@ -180,6 +187,6 @@ public class NoAnalyticsTablesErrorsScenariosTest {
             equalTo(
                 "Query failed because a referenced table does not exist. Please ensure analytics job was run (SqlState: 42P01)"))
         .body("errorCode", equalTo("E7144"))
-        .body("devMessage", equalTo("SqlState: 42P01"));
+        .body("devMessage", equalTo(expectedMessage));
   }
 }
