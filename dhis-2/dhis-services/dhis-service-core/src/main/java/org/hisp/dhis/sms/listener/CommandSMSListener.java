@@ -41,7 +41,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.message.SmsMessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.code.SMSCode;
@@ -50,7 +50,6 @@ import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Created by zubair@dhis2.org on 11.08.17. */
@@ -72,7 +71,7 @@ public abstract class CommandSMSListener extends BaseSMSListener {
       CategoryService dataElementCategoryService,
       UserService userService,
       IncomingSmsService incomingSmsService,
-      @Qualifier("smsMessageSender") MessageSender smsSender) {
+      SmsMessageSender smsSender) {
     super(incomingSmsService, smsSender);
     checkNotNull(dataElementCategoryService);
     checkNotNull(userService);

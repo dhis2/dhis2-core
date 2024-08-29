@@ -32,13 +32,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Map;
 import java.util.function.Consumer;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.message.SmsMessageSender;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsListener;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.smscompression.SmsResponse;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
@@ -60,11 +59,9 @@ public abstract class BaseSMSListener implements IncomingSmsListener {
 
   protected final IncomingSmsService incomingSmsService;
 
-  protected final MessageSender smsSender;
+  protected final SmsMessageSender smsSender;
 
-  protected BaseSMSListener(
-      IncomingSmsService incomingSmsService,
-      @Qualifier("smsMessageSender") MessageSender smsSender) {
+  protected BaseSMSListener(IncomingSmsService incomingSmsService, SmsMessageSender smsSender) {
     checkNotNull(incomingSmsService);
     checkNotNull(smsSender);
 

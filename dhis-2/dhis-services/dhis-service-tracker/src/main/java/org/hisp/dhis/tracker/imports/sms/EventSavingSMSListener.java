@@ -53,7 +53,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.message.SmsMessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
@@ -97,7 +97,7 @@ public abstract class EventSavingSMSListener extends CompressionSMSListener {
 
   protected EventSavingSMSListener(
       IncomingSmsService incomingSmsService,
-      MessageSender smsSender,
+      SmsMessageSender smsSender,
       UserService userService,
       TrackedEntityTypeService trackedEntityTypeService,
       TrackedEntityAttributeService trackedEntityAttributeService,

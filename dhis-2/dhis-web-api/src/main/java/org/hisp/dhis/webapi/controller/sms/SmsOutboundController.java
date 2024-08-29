@@ -46,6 +46,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.message.SmsMessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
@@ -56,7 +57,6 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -81,7 +81,7 @@ public class SmsOutboundController extends AbstractCrudController<OutboundSms> {
   private final OutboundSmsService outboundSmsService;
 
   public SmsOutboundController(
-      @Qualifier("smsMessageSender") MessageSender smsSender,
+      SmsMessageSender smsSender,
       RenderService renderService,
       OutboundSmsService outboundSmsService) {
     this.smsSender = smsSender;

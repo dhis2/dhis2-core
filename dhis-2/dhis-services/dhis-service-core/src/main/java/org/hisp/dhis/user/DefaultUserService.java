@@ -80,7 +80,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
-import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.message.EmailMessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
@@ -97,7 +97,6 @@ import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.jboss.aerogear.security.otp.api.Base32;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
@@ -126,7 +125,7 @@ public class DefaultUserService implements UserService {
   private final SessionRegistry sessionRegistry;
   private final UserSettingService userSettingService;
   private final RestTemplate restTemplate;
-  private final MessageSender emailMessageSender;
+  private final EmailMessageSender emailMessageSender;
   private final I18nManager i18nManager;
   private final ObjectMapper jsonMapper;
 
@@ -138,7 +137,7 @@ public class DefaultUserService implements UserService {
   public DefaultUserService(
       UserSettingService userSettingService,
       RestTemplate restTemplate,
-      @Qualifier("emailMessageSender") MessageSender emailMessageSender,
+      EmailMessageSender emailMessageSender,
       I18nManager i18nManager,
       ObjectMapper jsonMapper,
       UserStore userStore,
