@@ -28,11 +28,9 @@
 package org.hisp.dhis.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static java.lang.String.format;
+import static java.lang.String.join;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -53,14 +51,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.annotations.QueryHints;
 import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.metamodel.spi.MetamodelImplementor;
+import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.persister.entity.SingleTableEntityPersister;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
-import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
-import org.hisp.dhis.hibernate.jsonb.type.JsonAttributeValueBinaryType;
+import org.hisp.dhis.common.UID;
 import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -70,19 +69,14 @@ import org.springframework.jdbc.core.JdbcTemplate;
  */
 @Slf4j
 public class HibernateGenericStore<T> implements GenericStore<T> {
-  public static final String FUNCTION_JSONB_EXTRACT_PATH = "jsonb_extract_path";
-
-  public static final String FUNCTION_JSONB_EXTRACT_PATH_TEXT = "jsonb_extract_path_text";
 
   protected static final int OBJECT_FETCH_SIZE = 2000;
 
-  protected EntityManager entityManager;
-
-  protected JdbcTemplate jdbcTemplate;
-
-  protected ApplicationEventPublisher publisher;
-
-  protected Class<T> clazz;
+  protected final EntityManager entityManager;
+  protected final JdbcTemplate jdbcTemplate;
+  protected final ApplicationEventPublisher publisher;
+  protected final Class<T> clazz;
+  protected final String tableName;
 
   protected boolean cacheable;
 
@@ -101,7 +95,21 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
     this.jdbcTemplate = jdbcTemplate;
     this.publisher = publisher;
     this.clazz = clazz;
+    this.tableName = getTableName(entityManager, clazz);
     this.cacheable = cacheable;
+  }
+
+  private static String getTableName(EntityManager em, Class<?> entityClass) {
+    MetamodelImplementor metamodelImplementor = (MetamodelImplementor) em.getMetamodel();
+    try {
+      EntityPersister entityPersister = metamodelImplementor.entityPersister(entityClass);
+      if (entityPersister instanceof SingleTableEntityPersister) {
+        return ((SingleTableEntityPersister) entityPersister).getTableName();
+      }
+    } catch (Exception ex) {
+      log.warn("Failed to set table name for: " + entityClass, ex);
+    }
+    return null;
   }
 
   /** Could be overridden programmatically. */
@@ -427,100 +435,23 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
 
   @Nonnull
   @Override
-  public List<T> getAllByAttributes(@Nonnull List<Attribute> attributes) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    CriteriaQuery<T> query = builder.createQuery(getClazz());
-    Root<T> root = query.from(getClazz());
-    query.select(root).distinct(true);
-
-    List<Predicate> predicates =
-        attributes.stream()
-            .map(
-                attribute ->
-                    builder.isNotNull(
-                        builder.function(
-                            FUNCTION_JSONB_EXTRACT_PATH,
-                            String.class,
-                            root.get("attributeValues"),
-                            builder.literal(attribute.getUid()))))
-            .collect(Collectors.toList());
-
-    query.where(builder.or(predicates.toArray(new Predicate[predicates.size()])));
-
-    return getSession().createQuery(query).list();
-  }
-
-  @Nonnull
-  @Override
-  public List<AttributeValue> getAllValuesByAttributes(@Nonnull List<Attribute> attributes) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    CriteriaQuery<String> query = builder.createQuery(String.class);
-    Root<T> root = query.from(getClazz());
-
-    CriteriaBuilder.Coalesce<String> coalesce = builder.coalesce();
-    attributes.stream()
-        .forEach(
-            attribute ->
-                coalesce.value(
-                    builder.function(
-                        FUNCTION_JSONB_EXTRACT_PATH,
-                        String.class,
-                        root.get("attributeValues"),
-                        builder.literal(attribute.getUid()))));
-
-    query.select(coalesce);
-
-    List<Predicate> predicates =
-        attributes.stream()
-            .map(
-                attribute ->
-                    builder.isNotNull(
-                        builder.function(
-                            FUNCTION_JSONB_EXTRACT_PATH,
-                            String.class,
-                            root.get("attributeValues"),
-                            builder.literal(attribute.getUid()))))
-            .collect(Collectors.toList());
-
-    query.where(builder.or(predicates.toArray(new Predicate[predicates.size()])));
-
-    List<String> result = getSession().createQuery(query).list();
-
-    return convertListJsonToListObject(
-        JsonAttributeValueBinaryType.MAPPER, result, AttributeValue.class);
+  public List<T> getAllByAttributes(@Nonnull Collection<UID> attributes) {
+    String quotedIds = join(",", attributes.stream().map(id -> "'" + id.getValue() + "'").toList());
+    // language=sql
+    String sql =
+        "select * from %s where jsonb_exists_any(attributevalues, array[%s])"
+            .formatted(tableName, quotedIds);
+    return nativeSynchronizedTypedQuery(sql).list();
   }
 
   @Override
-  public long countAllValuesByAttributes(@Nonnull List<Attribute> attributes) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    CriteriaQuery<Long> query = builder.createQuery(Long.class);
-    Root<T> root = query.from(getClazz());
-    query.select(builder.countDistinct(root));
-
-    List<Predicate> predicates =
-        attributes.stream()
-            .map(
-                attribute ->
-                    builder.isNotNull(
-                        builder.function(
-                            FUNCTION_JSONB_EXTRACT_PATH,
-                            String.class,
-                            root.get("attributeValues"),
-                            builder.literal(attribute.getUid()))))
-            .collect(Collectors.toList());
-
-    query.where(builder.or(predicates.toArray(new Predicate[predicates.size()])));
-
-    return getSession().createQuery(query).getSingleResult();
-  }
-
-  @Nonnull
-  @Override
-  public List<AttributeValue> getAttributeValueByAttribute(@Nonnull Attribute attribute) {
-    return getAllValuesByAttributes(Lists.newArrayList(attribute));
+  public long countAllValuesByAttributes(@Nonnull Collection<UID> attributes) {
+    String quotedIds = join(",", attributes.stream().map(id -> "'" + id.getValue() + "'").toList());
+    // language=sql
+    String sql =
+        "select count(*) from %s where jsonb_exists_any(attributevalues, array[%s])"
+            .formatted(tableName, quotedIds);
+    return ((Number) nativeSynchronizedQuery(sql).getSingleResult()).longValue();
   }
 
   @Override
@@ -534,142 +465,61 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
 
   @Nonnull
   @Override
-  public List<T> getByAttribute(@Nonnull Attribute attribute) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-    CriteriaQuery<T> query = builder.createQuery(getClazz());
-
-    Root<T> root = query.from(getClazz());
-
-    query.select(root);
-    query.where(
-        builder
-            .function(
-                FUNCTION_JSONB_EXTRACT_PATH,
-                String.class,
-                root.get("attributeValues"),
-                builder.literal(attribute.getUid()))
-            .isNotNull());
-
-    return getSession().createQuery(query).list();
+  public List<T> getByAttribute(@Nonnull UID attribute) {
+    // language=sql
+    String sql =
+        "select * from %s where jsonb_exists(attributevalues, '%s')"
+            .formatted(tableName, attribute.getValue());
+    return nativeSynchronizedTypedQuery(sql).list();
   }
 
   @Nonnull
   @Override
-  public List<T> getByAttributeAndValue(@Nonnull Attribute attribute, String value) {
-    CriteriaBuilder builder = getCriteriaBuilder();
+  public List<T> getByAttributeAndValue(@Nonnull UID attribute, String value) {
+    // language=sql
+    String sql =
+        "select * from %s where jsonb_extract_path_text(attributevalues, '%s', 'value') = :value"
+            .formatted(tableName, attribute.getValue());
+    return nativeSynchronizedTypedQuery(sql).setParameter("value", value).list();
+  }
 
-    CriteriaQuery<T> query = builder.createQuery(getClazz());
-    Root<T> root = query.from(getClazz());
-    query.select(root);
-    query.where(
-        builder.equal(
-            builder.function(
-                FUNCTION_JSONB_EXTRACT_PATH_TEXT,
-                String.class,
-                root.get("attributeValues"),
-                builder.literal(attribute.getUid()),
-                builder.literal("value")),
-            value));
-    return getSession().createQuery(query).list();
+  @Override
+  public boolean isAttributeValueUniqueTo(
+      @Nonnull UID object, @Nonnull UID attribute, @Nonnull String value) {
+    // language=sql
+    String sql =
+        "select count(*) from %s where uid != :object and jsonb_extract_path_text(attributeValues, '%s', 'value') = :value"
+            .formatted(tableName, attribute.getValue());
+    Number count =
+        (Number)
+            nativeSynchronizedQuery(sql)
+                .setParameter("value", value)
+                .setParameter("object", object.getValue())
+                .getSingleResult();
+    return count.intValue() == 0;
   }
 
   @Nonnull
   @Override
-  public List<AttributeValue> getAttributeValueByAttributeAndValue(
-      @Nonnull Attribute attribute, @Nonnull String value) {
-    CriteriaBuilder builder = getCriteriaBuilder();
+  public List<T> getAllByAttributeAndValues(@Nonnull UID attribute, @Nonnull List<String> values) {
+    // language=sql
+    String sql =
+        "select * from %s where jsonb_extract_path_text(attributeValues, '%s', 'value') in :values"
+            .formatted(tableName, attribute.getValue());
 
-    CriteriaQuery<String> query = builder.createQuery(String.class);
-    Root<T> root = query.from(getClazz());
-
-    query.select(
-        builder.function(
-            FUNCTION_JSONB_EXTRACT_PATH,
-            String.class,
-            root.get("attributeValues"),
-            builder.literal(attribute.getUid())));
-
-    query.where(
-        builder.equal(
-            builder.function(
-                FUNCTION_JSONB_EXTRACT_PATH_TEXT,
-                String.class,
-                root.get("attributeValues"),
-                builder.literal(attribute.getUid()),
-                builder.literal("value")),
-            value));
-
-    List<String> result = getSession().createQuery(query).list();
-
-    return convertListJsonToListObject(
-        JsonAttributeValueBinaryType.MAPPER, result, AttributeValue.class);
-  }
-
-  @Nonnull
-  @Override
-  public List<T> getByAttributeValue(@Nonnull AttributeValue attributeValue) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    CriteriaQuery<T> query = builder.createQuery(getClazz());
-    Root<T> root = query.from(getClazz());
-    query.select(root);
-    query.where(
-        builder.equal(
-            builder.function(
-                FUNCTION_JSONB_EXTRACT_PATH_TEXT,
-                String.class,
-                root.get("attributeValues"),
-                builder.literal(attributeValue.getAttribute().getUid()),
-                builder.literal("value")),
-            attributeValue.getValue()));
-    return getSession().createQuery(query).list();
-  }
-
-  @Override
-  public boolean isAttributeValueUnique(@Nonnull T object, @Nonnull AttributeValue attributeValue) {
-    List<T> objects = getByAttributeValue(attributeValue);
-    return objects.isEmpty()
-        || (object != null && objects.size() == 1 && object.equals(objects.get(0)));
-  }
-
-  @Override
-  public boolean isAttributeValueUnique(
-      @Nonnull T object, @Nonnull Attribute attribute, @Nonnull String value) {
-    List<T> objects = getByAttributeAndValue(attribute, value);
-    return objects.isEmpty()
-        || (object != null && objects.size() == 1 && object.equals(objects.get(0)));
-  }
-
-  @Nonnull
-  @Override
-  public List<T> getAllByAttributeAndValues(
-      @Nonnull Attribute attribute, @Nonnull List<String> values) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    CriteriaQuery<T> query = builder.createQuery(getClazz());
-    Root<T> root = query.from(getClazz());
-    query.select(root);
-    query.where(
-        builder
-            .function(
-                FUNCTION_JSONB_EXTRACT_PATH_TEXT,
-                String.class,
-                root.get("attributeValues"),
-                builder.literal(attribute.getUid()),
-                builder.literal("value"))
-            .in(values));
-
-    return getSession().createQuery(query).list();
+    return nativeSynchronizedTypedQuery(sql).setParameterList("values", values).list();
   }
 
   @Override
   public int updateAllAttributeValues(
-      @Nonnull Attribute attribute, @Nonnull String newValue, boolean createMissing) {
-    String template =
-        "update %s set attributevalues = jsonb_strip_nulls("
-            + "jsonb_set(cast(attributevalues as jsonb), '{%s}', cast(:value as jsonb), :createMissing))";
-    return getSession()
-        .createSQLQuery(format(template, getClazz().getSimpleName(), attribute.getUid()))
+      @Nonnull UID attribute, @Nonnull String newValue, boolean createMissing) {
+    // language=sql
+    String sql =
+        """
+        update %s set attributevalues = jsonb_strip_nulls(
+            jsonb_set(cast(attributevalues as jsonb), '{%s}', cast(:value as jsonb), :createMissing))"""
+            .formatted(tableName, attribute.getValue());
+    return nativeSynchronizedQuery(sql)
         .setParameter("value", newValue)
         .setParameter("createMissing", createMissing)
         .executeUpdate();
@@ -682,28 +532,5 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
    */
   protected JpaQueryParameters<T> newJpaParameters() {
     return new JpaQueryParameters<>();
-  }
-
-  /**
-   * Convert List of Json String object into List of given klass
-   *
-   * @param mapper Object mapper that is configured for given klass
-   * @param content List of Json String
-   * @param klass Class for converting to
-   * @param <T>
-   * @return List of converted Object
-   */
-  public static <T> List<T> convertListJsonToListObject(
-      ObjectMapper mapper, List<String> content, Class<T> klass) {
-    return content.stream()
-        .map(
-            json -> {
-              try {
-                return mapper.readValue(json, klass);
-              } catch (IOException e) {
-                throw new RuntimeException(e);
-              }
-            })
-        .collect(Collectors.toList());
   }
 }

@@ -37,9 +37,8 @@ import java.text.DateFormat;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
-import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
+import java.util.Map;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
@@ -119,14 +118,8 @@ class MessageFormatterTest {
         List.of("WTTYiPQDqh1", "friendship", "meet", "sunshine", "ice", "wheat", "red"), args);
   }
 
-  private Set<AttributeValue> attributeValues(String uid, String value) {
-    return Set.of(new AttributeValue(attribute(uid), value));
-  }
-
-  private Attribute attribute(String attributeUid) {
-    Attribute att = new Attribute();
-    att.setUid(attributeUid);
-    return att;
+  private AttributeValues attributeValues(String uid, String value) {
+    return AttributeValues.of(Map.of(uid, value));
   }
 
   @Test

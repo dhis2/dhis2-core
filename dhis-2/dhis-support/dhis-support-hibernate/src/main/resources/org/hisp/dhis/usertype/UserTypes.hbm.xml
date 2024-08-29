@@ -147,7 +147,7 @@
     <param name="clazz">org.hisp.dhis.programrule.ProgramRuleActionEvaluationEnvironment</param>
   </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonAttributeValueBinaryType" name="jsbAttributeValues">
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonAttributeValuesBinaryType" name="jsbAttributeValues">
     <param name="clazz">org.hisp.dhis.attribute.AttributeValue</param>
   </typedef>
 

@@ -25,55 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.hibernate.jsonb.type;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.function.Function;
+import org.hibernate.HibernateException;
+import org.hisp.dhis.attribute.AttributeValues;
+import org.intellij.lang.annotations.Language;
 
-/**
- * @author Lars Helge Overland
- */
-public class SetMap<T, V> extends HashMap<T, Set<V>> {
-  public SetMap() {
-    super();
+public class JsonAttributeValuesBinaryType extends JsonBinaryType {
+
+  @Override
+  public String convertObjectToJson(Object object) {
+    if (!(object instanceof AttributeValues values)) return "{}";
+    return values.toObjectJson();
   }
 
-  public SetMap(SetMap<T, V> setMap) {
-    super(setMap);
+  @Override
+  public Object deepCopy(Object value) throws HibernateException {
+    return value; // is immutable and does not need a deep copy
   }
 
-  public void putValue(T key, V value) {
-    computeIfAbsent(key, k -> new HashSet<>()).add(value);
-  }
-
-  public void putValues(T key, Collection<? extends V> values) {
-    computeIfAbsent(key, k -> new HashSet<>()).addAll(values);
-  }
-
-  public void putValues(SetMap<T, V> setMap) {
-    setMap.forEach(this::putValues);
-  }
-
-  /**
-   * Produces a SetMap based on the given set of values. The key for each entry is produced by
-   * applying the given keyMapper function.
-   *
-   * @param values the values of the map.
-   * @param keyMapper the function producing the key for each entry.
-   * @return a SetMap.
-   */
-  public static <T, V> SetMap<T, V> getSetMap(Set<V> values, Function<V, T> keyMapper) {
-    SetMap<T, V> map = new SetMap<>();
-
-    for (V value : values) {
-      T key = keyMapper.apply(value);
-
-      map.putValue(key, value);
-    }
-
-    return map;
+  @Override
+  public AttributeValues convertJsonToObject(@Language("json") String json) {
+    return json == null ? AttributeValues.empty() : AttributeValues.of(json);
   }
 }

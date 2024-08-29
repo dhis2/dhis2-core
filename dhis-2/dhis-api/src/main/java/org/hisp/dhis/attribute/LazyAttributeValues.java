@@ -78,6 +78,7 @@ final class LazyAttributeValues implements AttributeValues {
   @Nonnull
   static AttributeValues of(@Nonnull @Language("json") String json) {
     if ("{}".equals(json) || "[]".equals(json)) return empty();
+    if (json.isEmpty() || (json.charAt(0) != '{' && json.charAt(0) != '[')) throw illegalJson(json);
     return new LazyAttributeValues(json, null, null);
   }
 
@@ -133,7 +134,12 @@ final class LazyAttributeValues implements AttributeValues {
       init(parseObjectJson(objOrArr));
     } else if (objOrArr.isArray()) {
       init(parseArrayJson(objOrArr));
-    } else throw new IllegalArgumentException("Not a valid attribute value JSON: " + json);
+    } else throw illegalJson(json);
+  }
+
+  @Nonnull
+  private static IllegalArgumentException illegalJson(@Nonnull String json) {
+    return new IllegalArgumentException("Not a valid attribute value JSON: " + json);
   }
 
   @Nonnull

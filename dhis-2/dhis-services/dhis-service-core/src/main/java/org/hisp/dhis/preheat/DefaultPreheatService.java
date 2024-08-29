@@ -28,7 +28,6 @@
 package org.hisp.dhis.preheat;
 
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toUnmodifiableList;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -54,6 +53,7 @@ import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
@@ -301,17 +301,18 @@ public class DefaultPreheatService implements PreheatService {
                   .computeIfAbsent(klass, key -> new HashSet<>())
                   .add(attribute.getUid()));
 
-      List<Attribute> uniqueAttributes =
+      List<UID> uniqueAttributes =
           attributesByObjectType.getOrDefault(klass, List.of()).stream()
               .filter(Attribute::isUnique)
-              .collect(toUnmodifiableList());
+              .map(a -> UID.of(a.getUid()))
+              .toList();
 
       uniqueAttributes.forEach(
-          attribute ->
+          attributeId ->
               preheat
                   .getUniqueAttributes()
                   .computeIfAbsent(klass, key -> new HashSet<>())
-                  .add(attribute.getUid()));
+                  .add(attributeId.getValue()));
 
       List<? extends IdentifiableObject> uniqueAttributeValues =
           manager.getAllByAttributes(klass, uniqueAttributes);

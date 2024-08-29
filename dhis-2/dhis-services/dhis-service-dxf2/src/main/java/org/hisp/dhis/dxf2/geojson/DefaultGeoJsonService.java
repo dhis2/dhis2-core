@@ -50,6 +50,7 @@ import lombok.experimental.Accessors;
 import org.geotools.geojson.geom.GeometryJSON;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
@@ -90,7 +91,8 @@ public class DefaultGeoJsonService implements GeoJsonService {
     int deletions =
         attribute == null
             ? organisationUnitStore.updateAllOrganisationUnitsGeometryToNull()
-            : organisationUnitStore.updateAllAttributeValues(attribute, "null", false);
+            : organisationUnitStore.updateAllAttributeValues(
+                UID.of(attribute.getUid()), "null", false);
     report.getImportCount().incrementDeleted(deletions);
     return report;
   }

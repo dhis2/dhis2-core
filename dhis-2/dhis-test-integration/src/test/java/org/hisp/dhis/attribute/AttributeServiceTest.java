@@ -52,7 +52,7 @@ class AttributeServiceTest extends PostgresIntegrationTestBase {
   void testAddAttribute() {
     Attribute attribute = createAttribute("attribute1", ValueType.TEXT);
     attributeService.addAttribute(attribute);
-    attribute = attributeService.getAttribute(attribute.getId());
+    attribute = attributeService.getAttribute(attribute.getUid());
     assertNotNull(attribute);
     assertEquals(ValueType.TEXT, attribute.getValueType());
     assertEquals("attribute1", attribute.getName());
@@ -62,11 +62,10 @@ class AttributeServiceTest extends PostgresIntegrationTestBase {
   void testDeleteAttribute() {
     Attribute attribute = createAttribute("attribute1", ValueType.TEXT);
     attributeService.addAttribute(attribute);
-    attribute = attributeService.getAttribute(attribute.getId());
+    attribute = attributeService.getAttribute(attribute.getUid());
     assertNotNull(attribute);
-    long attributeId = attribute.getId();
     attributeService.deleteAttribute(attribute);
-    attribute = attributeService.getAttribute(attributeId);
+    attribute = attributeService.getAttribute(attribute.getUid());
     assertNull(attribute);
   }
 
@@ -74,7 +73,7 @@ class AttributeServiceTest extends PostgresIntegrationTestBase {
   void testGetAttribute() {
     Attribute attribute = createAttribute("attribute1", ValueType.TEXT);
     attributeService.addAttribute(attribute);
-    attribute = attributeService.getAttribute(attribute.getId());
+    attribute = attributeService.getAttribute(attribute.getUid());
     assertNotNull(attribute);
   }
 

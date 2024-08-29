@@ -37,7 +37,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -97,12 +97,11 @@ class UniqueAttributeSupplierTest extends TestBase {
     OrganisationUnit orgUnit = createOrganisationUnit('A');
     Program program = createProgram('A');
     Attribute attribute = createAttribute('A');
-    AttributeValue attributeValue = createAttributeValue(attribute, UNIQUE_VALUE);
     trackedEntity = createTrackedEntity('A', orgUnit);
     trackedEntity.setUid(TE_UID);
-    trackedEntity.setAttributeValues(Collections.singleton(attributeValue));
+    trackedEntity.setAttributeValues(AttributeValues.of(Map.of(attribute.getUid(), UNIQUE_VALUE)));
     enrollment = createEnrollment(program, trackedEntity, orgUnit);
-    enrollment.setAttributeValues(Collections.singleton(attributeValue));
+    enrollment.setAttributeValues(AttributeValues.of(Map.of(attribute.getUid(), UNIQUE_VALUE)));
     trackedEntityAttributeValue =
         createTrackedEntityAttributeValue('A', trackedEntity, uniqueAttribute);
   }

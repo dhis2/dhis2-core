@@ -50,7 +50,6 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -300,12 +299,13 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
     deGroupSetA.addDataElementGroup(deGroupB);
     deGroupSetA.addDataElementGroup(deGroupC);
     dataElementService.updateDataElementGroupSet(deGroupSetA);
-    attributeService.addAttributeValue(deA, new AttributeValue(atA, "AVA"));
-    attributeService.addAttributeValue(deB, new AttributeValue(atA, "AVB"));
-    attributeService.addAttributeValue(deC, new AttributeValue(atA, "AVC"));
-    attributeService.addAttributeValue(deD, new AttributeValue(atA, "AVD"));
-    attributeService.addAttributeValue(deE, new AttributeValue(atA, "AVE"));
-    attributeService.addAttributeValue(deF, new AttributeValue(atA, "AVF"));
+    String attributeId = atA.getUid();
+    attributeService.addAttributeValue(deA, attributeId, "AVA");
+    attributeService.addAttributeValue(deB, attributeId, "AVB");
+    attributeService.addAttributeValue(deC, attributeId, "AVC");
+    attributeService.addAttributeValue(deD, attributeId, "AVD");
+    attributeService.addAttributeValue(deE, attributeId, "AVE");
+    attributeService.addAttributeValue(deF, attributeId, "AVF");
 
     // ---------------------------------------------------------------------
     // Inject user

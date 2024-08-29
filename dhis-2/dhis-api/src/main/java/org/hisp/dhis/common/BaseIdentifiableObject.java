@@ -276,8 +276,6 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   @Override
   @OpenApi.Property(AttributeValue[].class)
   @JsonProperty("attributeValues")
-  @JacksonXmlElementWrapper(localName = "attributeValues", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "attributeValue", namespace = DxfNamespaces.DXF_2_0)
   public AttributeValues getAttributeValues() {
     return attributeValues;
   }
@@ -297,6 +295,7 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
     this.attributeValues = attributeValues.removed(attributeId);
   }
 
+  @JsonIgnore
   public String getAttributeValue(String attributeUid) {
     return attributeValues.get(attributeUid);
   }

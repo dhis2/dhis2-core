@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -48,6 +49,13 @@ import org.junit.jupiter.api.Test;
  * @since 2.42
  */
 class AttributeValuesTest {
+
+  @Test
+  void testOf() {
+    assertThrows(IllegalArgumentException.class, () -> AttributeValues.of("1"));
+    assertThrows(IllegalArgumentException.class, () -> AttributeValues.of("true"));
+    assertThrows(IllegalArgumentException.class, () -> AttributeValues.of("\"hello\""));
+  }
 
   @Test
   void testIsEmpty() {
@@ -196,7 +204,14 @@ class AttributeValuesTest {
 
   @Test
   void testToArrayJson() {
-    // TODO
+    assertEquals("[]", AttributeValues.empty().toArrayJson());
+    assertEquals("[]", AttributeValues.of("{}").toArrayJson());
+    assertEquals("[]", AttributeValues.of(Map.of()).toArrayJson());
+    AttributeValues fromJson = AttributeValues.of("{\"a\": {\"value\":\"b\"}}");
+    assertEquals("[{\"value\":\"b\",\"attribute\":{\"id\":\"a\"}}]", fromJson.toArrayJson());
+    assertEquals(
+        "[{\"value\":\"d\",\"attribute\":{\"id\":\"c\"}},{\"value\":\"y\",\"attribute\":{\"id\":\"x\"}}]",
+        AttributeValues.of(Map.of("x", "y", "c", "d")).toArrayJson());
   }
 
   @Test

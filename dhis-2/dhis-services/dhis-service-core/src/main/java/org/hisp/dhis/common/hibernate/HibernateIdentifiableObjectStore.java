@@ -45,13 +45,12 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
@@ -394,55 +393,20 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
   @Override
   @CheckForNull
-  public T getByUniqueAttributeValue(@Nonnull Attribute attribute, @Nonnull String value) {
-    if (StringUtils.isEmpty(value) || !attribute.isUnique()) {
-      return null;
-    }
-
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    JpaQueryParameters<T> param =
-        new JpaQueryParameters<T>()
-            .addPredicates(getSharingPredicates(builder))
-            .addPredicate(
-                root ->
-                    builder.equal(
-                        builder.function(
-                            FUNCTION_JSONB_EXTRACT_PATH_TEXT,
-                            String.class,
-                            root.get("attributeValues"),
-                            builder.literal(attribute.getUid()),
-                            builder.literal("value")),
-                        value));
-
-    return getSingleResult(builder, param);
+  public T getByUniqueAttributeValue(@Nonnull UID attribute, @Nonnull String value) {
+    return getByUniqueAttributeValue(attribute, value, CurrentUserUtil.getCurrentUserDetails());
   }
 
   @Override
   @CheckForNull
   public T getByUniqueAttributeValue(
-      @Nonnull Attribute attribute, @Nonnull String value, @Nonnull UserDetails user) {
-    if (StringUtils.isEmpty(value) || !attribute.isUnique()) {
-      return null;
-    }
+      @Nonnull UID attribute, @Nonnull String value, @Nonnull UserDetails user) {
+    // language=hql
+    String hql =
+        "from %s where jsonb_extract_path_text(attributevalues, '%s', 'value') = :value"
+            .formatted(getClazz().getSimpleName(), attribute.getValue());
 
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    JpaQueryParameters<T> param =
-        new JpaQueryParameters<T>()
-            .addPredicates(getSharingPredicates(builder, user))
-            .addPredicate(
-                root ->
-                    builder.equal(
-                        builder.function(
-                            FUNCTION_JSONB_EXTRACT_PATH_TEXT,
-                            String.class,
-                            root.get("attributeValues"),
-                            builder.literal(attribute.getUid()),
-                            builder.literal("value")),
-                        value));
-
-    return getSingleResult(builder, param);
+    return getSingleResult(getQuery(hql).setParameter("value", value));
   }
 
   @Nonnull
