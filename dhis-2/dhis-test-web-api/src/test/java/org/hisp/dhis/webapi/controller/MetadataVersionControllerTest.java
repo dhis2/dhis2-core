@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonMetadataVersion;
@@ -59,5 +60,118 @@ class MetadataVersionControllerTest extends H2ControllerIntegrationTestBase {
     assertTrue(DateUtils.dateIsValid(metadataVersion.getCreated()), "date is valid date");
     assertEquals("ATOMIC", metadataVersion.getType());
     assertNotNull(metadataVersion.getHashCode());
+  }
+
+  @Test
+  @DisplayName("A valid current metadata version should be returned from the version endpoint")
+  void getCurrentMetadataVersionTest() {
+    // given
+    POST("/systemSettings/keyVersionEnabled?value=true").success();
+    POST("/metadata/version/create?type=ATOMIC").success();
+
+    // when
+    JsonMetadataVersion metadataVersion =
+        GET("/metadata/version").content().as(JsonMetadataVersion.class);
+
+    // then
+    assertEquals("Version_1", metadataVersion.getName());
+    assertTrue(CodeGenerator.isValidUid(metadataVersion.getId()), "id is valid UID");
+    assertTrue(DateUtils.dateIsValid(metadataVersion.getCreated()), "date is valid date");
+    assertEquals("ATOMIC", metadataVersion.getType());
+    assertNotNull(metadataVersion.getHashCode());
+  }
+
+  @Test
+  @DisplayName("A valid metadata version by name should be returned from the version endpoint")
+  void getMetadataVersionByNameTest() {
+    // given
+    POST("/systemSettings/keyVersionEnabled?value=true").success();
+    POST("/metadata/version/create?type=ATOMIC").success();
+    POST("/metadata/version/create?type=ATOMIC").success();
+
+    // when
+    JsonMetadataVersion metadataVersion =
+        GET("/metadata/version?versionName=Version_2").content().as(JsonMetadataVersion.class);
+
+    // then
+    assertEquals("Version_2", metadataVersion.getName());
+    assertTrue(CodeGenerator.isValidUid(metadataVersion.getId()), "id is valid UID");
+    assertTrue(DateUtils.dateIsValid(metadataVersion.getCreated()), "date is valid date");
+    assertEquals("ATOMIC", metadataVersion.getType());
+    assertNotNull(metadataVersion.getHashCode());
+  }
+
+  @Test
+  @DisplayName(
+      "Valid metadata version history should be returned from the version history endpoint")
+  void getCurrentMetadataVersionHistoryTest() {
+    // given
+    POST("/systemSettings/keyVersionEnabled?value=true").success();
+    POST("/metadata/version/create?type=ATOMIC").success();
+
+    // when
+    JsonObject response = GET("/metadata/version/history").content().as(JsonObject.class);
+    JsonMetadataVersion metadataVersion =
+        response.getArray("metadataversions").get(0, JsonMetadataVersion.class);
+
+    // then
+    assertEquals("Version_1", metadataVersion.getName());
+    assertTrue(CodeGenerator.isValidUid(metadataVersion.getId()), "id is valid UID");
+    assertTrue(DateUtils.dateIsValid(metadataVersion.getCreated()), "date is valid date");
+    assertEquals("ATOMIC", metadataVersion.getType());
+    assertNotNull(metadataVersion.getHashCode());
+  }
+
+  @Test
+  @DisplayName(
+      "Valid metadata version history by name should be returned from the version history endpoint")
+  void getCurrentMetadataVersionHistoryByNameTest() {
+    // given
+    POST("/systemSettings/keyVersionEnabled?value=true").success();
+    POST("/metadata/version/create?type=ATOMIC").success();
+    POST("/metadata/version/create?type=ATOMIC").success();
+
+    // when
+    JsonArray versions =
+        GET("/metadata/version/history?versionName=Version_2")
+            .content()
+            .as(JsonObject.class)
+            .getArray("metadataversions");
+
+    // then
+    assertEquals(2, versions.size());
+  }
+
+  @Test
+  @DisplayName("Valid metadata version data should be returned from the version data endpoint")
+  void getCurrentMetadataVersionDataTest() {
+    // given
+    POST("/systemSettings/keyVersionEnabled?value=true").success();
+    POST("/metadata/version/create?type=ATOMIC").success();
+    POST("/metadata/version/create?type=ATOMIC").success();
+
+    // when
+    JsonObject systemData =
+        GET("/metadata/version/Version_2/data").content().as(JsonObject.class).getObject("system");
+
+    // then
+    assertNotNull(systemData.getString("id"));
+    assertTrue(DateUtils.dateIsValid(systemData.getString("date").string()), "date is valid date");
+  }
+
+  @Test
+  @DisplayName("Valid metadata version data (zipped) call should be successful")
+  void getCurrentMetadataVersionDataZippedTest() {
+    // given
+    POST("/systemSettings/keyVersionEnabled?value=true").success();
+    POST("/metadata/version/create?type=ATOMIC").success();
+    POST("/metadata/version/create?type=ATOMIC").success();
+
+    // when
+    HttpResponse response = GET("/metadata/version/Version_2/data.gz");
+
+    // then
+    assertTrue(response.success(), "response is successful");
+    assertEquals("application/gzip", response.header("Content-Type"));
   }
 }
