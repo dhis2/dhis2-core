@@ -255,6 +255,16 @@ public class I18nFormat {
    * @param period the value to format.
    */
   public String formatPeriod(Period period) {
+    return formatPeriod(period, false);
+  }
+
+  /**
+   * Formats a period. Returns null if value is null. Returns INVALID_DATE if formatting string is
+   * invalid.
+   *
+   * @param period the value to format.
+   */
+  public String formatPeriod(Period period, boolean shortVersion) {
     if (period == null) {
       return null;
     }
@@ -282,7 +292,9 @@ public class I18nFormat {
 
       if (isWeeklyPeriodType(periodType)) {
         return String.format(
-            "Week %s %d-%02d-%02d - %d-%02d-%02d",
+            shortVersion
+                ? "W%s %d-%02d-%02d - %d-%02d-%02d"
+                : "Week %s %d-%02d-%02d - %d-%02d-%02d",
             week,
             startDate.getYear(),
             startDate.getMonth().getValue(),
