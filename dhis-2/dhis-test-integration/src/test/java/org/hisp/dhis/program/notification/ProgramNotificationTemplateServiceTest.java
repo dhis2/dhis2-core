@@ -29,6 +29,7 @@ package org.hisp.dhis.program.notification;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -161,19 +162,20 @@ class ProgramNotificationTemplateServiceTest extends SingleSetupIntegrationTestB
   void shouldThrowWhenUserDeleteTemplateLinkedToRuleAction() {
     DeleteNotAllowedException exception =
         assertThrows(
-            DeleteNotAllowedException.class,
-            () -> {
-              programNotificationTemplateService.delete(pnt1);
-            });
+            DeleteNotAllowedException.class, () -> programNotificationTemplateService.delete(pnt1));
 
     assertEquals(
         "Object could not be deleted because it is associated with another object: ProgramRuleAction",
         exception.getMessage());
+    assertNotNull(programNotificationTemplateService.get(pnt1.getId()));
   }
 
   @Test
   void shouldDeleteProgramNotificationTemplate() {
-    programNotificationTemplateService.delete(pnt2);
-    assertNull(programNotificationTemplateService.get(pnt2.getId()));
+    ProgramNotificationTemplate toBeDeleted = programNotificationTemplateService.get(pnt2.getId());
+
+    programNotificationTemplateService.delete(toBeDeleted);
+
+    assertNull(programNotificationTemplateService.get(toBeDeleted.getId()));
   }
 }
