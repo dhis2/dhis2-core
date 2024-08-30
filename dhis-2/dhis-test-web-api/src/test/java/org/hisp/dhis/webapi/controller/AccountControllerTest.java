@@ -212,7 +212,7 @@ class AccountControllerTest extends DhisControllerIntegrationTest {
 
     JsonMixed response = GET("/account/linkedAccounts").content(HttpStatus.OK);
     JsonList<JsonObject> users = response.getList("users", JsonObject.class);
-    assertEquals(3, users.size());
+    assertEquals(4, users.size());
   }
 
   private static void assertMessage(String key, String value, String message, JsonMixed response) {
