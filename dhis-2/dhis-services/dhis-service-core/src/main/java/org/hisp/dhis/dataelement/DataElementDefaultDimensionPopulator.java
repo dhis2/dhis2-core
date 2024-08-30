@@ -28,6 +28,8 @@
 package org.hisp.dhis.dataelement;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.user.CurrentUserUtil.clearSecurityContext;
+import static org.hisp.dhis.user.CurrentUserUtil.injectUserInSecurityContext;
 
 import java.util.Collection;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +37,7 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.SystemUser;
 
 /**
@@ -53,7 +56,6 @@ public class DataElementDefaultDimensionPopulator extends TransactionContextStar
   // -------------------------------------------------------------------------
 
   private final DataElementService dataElementService;
-
   private final CategoryService categoryService;
 
   public DataElementDefaultDimensionPopulator(
@@ -72,28 +74,27 @@ public class DataElementDefaultDimensionPopulator extends TransactionContextStar
   public void executeInTransaction() {
     SystemUser actingUser = new SystemUser();
 
+    boolean hasCurrentUser = CurrentUserUtil.hasCurrentUser();
+    if (!hasCurrentUser) {
+      injectUserInSecurityContext(actingUser);
+    }
+
     Category defaultCategory =
         categoryService.getCategoryByName(Category.DEFAULT_NAME, new SystemUser());
 
     if (defaultCategory == null) {
       categoryService.generateDefaultDimension(actingUser);
-
       defaultCategory = categoryService.getCategoryByName(Category.DEFAULT_NAME, new SystemUser());
-
       log.info("Added default category");
     }
 
     categoryService.updateCategory(defaultCategory, actingUser);
-
     String defaultName = CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
-
     CategoryCombo categoryCombo = categoryService.getCategoryComboByName(defaultName);
 
     if (categoryCombo == null) {
       categoryService.generateDefaultDimension(actingUser);
-
       log.info("Added default dataelement dimension");
-
       categoryCombo = categoryService.getCategoryComboByName(defaultName);
     }
 
@@ -107,9 +108,12 @@ public class DataElementDefaultDimensionPopulator extends TransactionContextStar
     for (DataElement dataElement : dataElements) {
       if (dataElement.getCategoryCombo() == null) {
         dataElement.setCategoryCombo(categoryCombo);
-
         dataElementService.updateDataElement(dataElement);
       }
+    }
+
+    if (!hasCurrentUser) {
+      clearSecurityContext();
     }
   }
 }

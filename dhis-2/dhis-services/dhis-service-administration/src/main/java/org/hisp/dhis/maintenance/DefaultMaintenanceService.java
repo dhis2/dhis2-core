@@ -147,8 +147,7 @@ public class DefaultMaintenanceService implements MaintenanceService {
   @Override
   @Transactional
   public boolean pruneData(OrganisationUnit organisationUnit) {
-    if (CurrentUserUtil.getCurrentUsername() == null
-        || !CurrentUserUtil.getCurrentUserDetails().isSuper()) {
+    if (!CurrentUserUtil.getCurrentUserDetails().isSuper()) {
       return false;
     }
 
@@ -166,8 +165,7 @@ public class DefaultMaintenanceService implements MaintenanceService {
   @Override
   @Transactional
   public boolean pruneData(DataElement dataElement) {
-    if (CurrentUserUtil.getCurrentUsername() == null
-        || !CurrentUserUtil.getCurrentUserDetails().isSuper()) {
+    if (!CurrentUserUtil.getCurrentUserDetails().isSuper()) {
       return false;
     }
 

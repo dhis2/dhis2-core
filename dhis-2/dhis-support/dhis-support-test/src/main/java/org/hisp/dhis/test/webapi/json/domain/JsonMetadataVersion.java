@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,34 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
+package org.hisp.dhis.test.webapi.json.domain;
 
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserDetails;
-import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
-import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.hisp.dhis.jsontree.JsonObject;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * Web API equivalent of a {@link org.hisp.dhis.metadata.version.MetadataVersion}.
+ *
+ * @author David Mackessy
  */
-public class ImpersonatingUserDetailsChecker extends AccountStatusUserDetailsChecker {
-  @Override
-  public void check(org.springframework.security.core.userdetails.UserDetails userToImpersonate) {
-    if (!CurrentUserUtil.hasCurrentUser()) {
-      throw new InsufficientAuthenticationException("User is not authenticated");
-    }
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    if (currentUser.getUsername().equals(userToImpersonate.getUsername())) {
-      throw new InsufficientAuthenticationException("User can not impersonate itself");
-    }
+public interface JsonMetadataVersion extends JsonObject {
 
-    boolean userToImpersonateIsSuper =
-        userToImpersonate.getAuthorities().stream()
-            .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ALL"));
+  default String getName() {
+    return getString("name").string();
+  }
 
-    if ((!currentUser.isSuper() && userToImpersonateIsSuper)) {
-      throw new InsufficientAuthenticationException(
-          "User is not authorized to impersonate super user");
-    }
+  default String getType() {
+    return getString("type").string();
+  }
+
+  default String getCreated() {
+    return getString("created").string();
+  }
+
+  default String getId() {
+    return getString("id").string();
+  }
+
+  default String getHashCode() {
+    return getString("hashCode").string();
   }
 }

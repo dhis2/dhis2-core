@@ -168,7 +168,7 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
    */
   @CheckForNull
   T getByUniqueAttributeValue(
-      @Nonnull Attribute attribute, @Nonnull String value, @CheckForNull UserDetails userDetails);
+      @Nonnull Attribute attribute, @Nonnull String value, @Nonnull UserDetails userDetails);
 
   /**
    * Retrieves a List of all objects (sorted on name).
