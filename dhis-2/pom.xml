@@ -222,7 +222,7 @@
     <javax.persistence-api.version>2.2</javax.persistence-api.version>
 
     <!-- Maven plugin versions -->
-    <maven-surefire-plugin.version>3.5.0</maven-surefire-plugin.version>
+    <maven-surefire-plugin.version>3.3.0</maven-surefire-plugin.version>
     <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
     <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
     <maven-failsafe-plugin.version>3.4.0</maven-failsafe-plugin.version>
@@ -2291,6 +2291,7 @@ jasperreports.version=${jasperreports.version}
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
+            <version>${maven-surefire-plugin.version}</version>
             <configuration>
               <parallel>all</parallel>
               <threadCount>10</threadCount>
@@ -2319,6 +2320,7 @@ jasperreports.version=${jasperreports.version}
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
+            <version>${maven-surefire-plugin.version}</version>
             <configuration>
               <skipTests>false</skipTests>
               <trimStackTrace>false</trimStackTrace>
@@ -2345,6 +2347,7 @@ jasperreports.version=${jasperreports.version}
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
+            <version>${maven-surefire-plugin.version}</version>
             <configuration>
               <skipTests>false</skipTests>
               <trimStackTrace>false</trimStackTrace>
@@ -2372,6 +2375,7 @@ jasperreports.version=${jasperreports.version}
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
+            <version>${maven-surefire-plugin.version}</version>
             <configuration>
               <skipTests>true</skipTests>
               <trimStackTrace>false</trimStackTrace>
