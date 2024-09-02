@@ -394,6 +394,7 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
     return access;
   }
 
+  @Override
   public void setAccess(Access access) {
     this.access = access;
   }

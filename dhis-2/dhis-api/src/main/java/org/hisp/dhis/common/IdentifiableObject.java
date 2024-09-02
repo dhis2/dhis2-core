@@ -66,6 +66,8 @@ public interface IdentifiableObject
 
   Set<Translation> getTranslations();
 
+  void setAccess(Access access);
+
   Set<String> getFavorites();
 
   boolean isFavorite();

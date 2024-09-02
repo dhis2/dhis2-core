@@ -47,10 +47,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.fieldfiltering.transformers.IsEmptyFieldTransformer;
@@ -236,18 +236,39 @@ public class FieldFilterService {
     ObjectMapper objectMapper = jsonMapper.copy().setFilterProvider(filterProvider);
 
     Map<String, List<FieldTransformer>> fieldTransformers = getTransformers(paths);
+    List<FieldPath> absoluteAttributePaths = getAttributePropertyPathsInAttributeValues(paths);
+    List<FieldPath> relativeAttributePaths =
+        absoluteAttributePaths.stream().map(e -> e.relativeTo("attribute")).toList();
+
+    Map<String, ObjectNode> attributeProperties = new HashMap<>();
 
     for (Object object : objects) {
       applyAccess(object, paths, isSkipSharing, currentUserDetails);
       applySharingDisplayNames(object, paths, isSkipSharing);
-      applyAttributeValuesAttribute(object, paths, isSkipSharing);
 
       ObjectNode objectNode = objectMapper.valueToTree(object);
-      applyAttributeValueFields(object, objectNode, paths);
+      addAttributeFieldsInAttributeValues(
+          object, objectNode, relativeAttributePaths, attributeProperties);
+      applyAttributeAsPropertyFields(object, objectNode, paths);
       applyTransformers(objectNode, null, "", fieldTransformers);
 
       consumer.accept(objectNode);
     }
+  }
+
+  private static final Pattern ATTRIBUTE_VALUES_PATH =
+      Pattern.compile("attributeValues\\.attribute\\.(?!id).*");
+
+  /**
+   * @param paths all paths requested
+   * @return only paths that belong to a property of {@link Attribute} that is not "id" with the
+   *     "attributeValues"
+   */
+  @Nonnull
+  private static List<FieldPath> getAttributePropertyPathsInAttributeValues(List<FieldPath> paths) {
+    return paths.stream()
+        .filter(path -> ATTRIBUTE_VALUES_PATH.matcher(path.toFullPath()).matches())
+        .toList();
   }
 
   /**
@@ -284,26 +305,63 @@ public class FieldFilterService {
     }
   }
 
-  // FIXME(JB) this now has to fill in the attributeValues[attribute[*]] properties should a user
-  // request them
-  private void applyAttributeValueFields(
-      Object object, ObjectNode objectNode, List<FieldPath> fieldPaths) {
-    if (!(object instanceof BaseIdentifiableObject)) {
+  /**
+   * Adds in properties of {@link Attribute} that are not contained in the serialization of {@link
+   * org.hisp.dhis.attribute.AttributeValues} if the {@link FieldPath}s contains a path to an {@link
+   * Attribute} property other than "id".
+   */
+  private void addAttributeFieldsInAttributeValues(
+      Object object,
+      ObjectNode objectNode,
+      List<FieldPath> relativeAttributePaths,
+      Map<String, ObjectNode> attributeProperties) {
+    if (relativeAttributePaths.isEmpty()) return;
+    if (!(object instanceof IdentifiableObject source)) return;
+    ArrayNode attributes = objectNode.putArray("attributeValues");
+    source
+        .getAttributeValues()
+        .forEach(
+            (attributeId, value) -> {
+              ObjectNode attrValueNode = attributes.addObject();
+              attrValueNode.put("value", value);
+              attrValueNode.set(
+                  "attribute",
+                  attributeProperties.computeIfAbsent(
+                      attributeId,
+                      key -> {
+                        Attribute attribute = attributeService.getAttribute(attributeId);
+                        List<ObjectNode> res = new ArrayList<>(1);
+                        toObjectNodes(
+                            List.of(attribute), relativeAttributePaths, null, true, res::add);
+                        ObjectNode attr = res.get(0);
+                        attr.put("id", attributeId);
+                        return attr;
+                      }));
+            });
+  }
+
+  /**
+   * Adds in those property paths that end with a UID of an attribute treating attributes as if they
+   * were usual properties of the parent object.
+   */
+  private void applyAttributeAsPropertyFields(
+      Object object, ObjectNode node, List<FieldPath> fieldPaths) {
+    if (!(object instanceof IdentifiableObject identifiableObject)) {
       return;
     }
-
     for (FieldPath path : fieldPaths) {
-      applyFieldPath(object, objectNode, path);
+      applyAttributeAsPropertyField(identifiableObject, node, path);
     }
   }
 
-  private void applyFieldPath(Object object, ObjectNode objectNode, FieldPath path) {
+  private void applyAttributeAsPropertyField(
+      IdentifiableObject object, ObjectNode node, FieldPath path) {
     String attributeId = path.getFullPath();
     if (path.getProperty() != null || !CodeGenerator.isValidUid(attributeId)) {
       return;
     }
 
-    String fieldValue = ((BaseIdentifiableObject) object).getAttributeValues().get(attributeId);
+    String fieldValue = object.getAttributeValues().get(attributeId);
     if (fieldValue == null) {
       return;
     }
@@ -312,12 +370,12 @@ public class FieldFilterService {
 
     if (!fieldValue.isBlank() && attribute.getValueType().isJson()) {
       try {
-        objectNode.set(attributeId, jsonMapper.readTree(fieldValue));
+        node.set(attributeId, jsonMapper.readTree(fieldValue));
       } catch (JsonProcessingException e) {
-        objectNode.put(attributeId, fieldValue);
+        node.put(attributeId, fieldValue);
       }
     } else {
-      objectNode.put(attributeId, fieldValue);
+      node.put(attributeId, fieldValue);
     }
   }
 
@@ -424,22 +482,6 @@ public class FieldFilterService {
     return transformerMap;
   }
 
-  private void applyAttributeValuesAttribute(
-      Object object, List<FieldPath> fieldPaths, boolean isSkipSharing) {
-    applyFieldPathVisitor(
-        object,
-        fieldPaths,
-        isSkipSharing,
-        s -> s.equals("attributeValues.attribute") || s.endsWith(".attributeValues.attribute"),
-        o -> {
-          // FIXME needs replacement
-          if (o instanceof AttributeValue a) {
-            a.setAttribute(
-                attributeService.getAttribute(((AttributeValue) o).getAttribute().getUid()));
-          }
-        });
-  }
-
   private void applySharingDisplayNames(
       Object root, List<FieldPath> fieldPaths, boolean isSkipSharing) {
     applyFieldPathVisitor(
@@ -482,9 +524,8 @@ public class FieldFilterService {
         isSkipSharing,
         s -> s.equals("access") || s.endsWith(".access"),
         o -> {
-          if (o instanceof BaseIdentifiableObject identifiableObject) {
-            identifiableObject.setAccess(
-                aclService.getAccess(((IdentifiableObject) o), userDetails));
+          if (o instanceof IdentifiableObject identifiableObject) {
+            identifiableObject.setAccess(aclService.getAccess(identifiableObject, userDetails));
           }
         });
   }

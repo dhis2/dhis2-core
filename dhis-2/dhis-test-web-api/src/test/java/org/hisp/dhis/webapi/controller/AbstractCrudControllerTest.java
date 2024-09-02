@@ -58,6 +58,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.web.snippets.SomeUserId;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonAttributeValue;
 import org.hisp.dhis.test.webapi.json.domain.JsonError;
 import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonGeoMap;
@@ -1043,8 +1044,8 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         GET("/dataElements?fields=id,name,attributeValues", dataElement.getUid())
             .content()
             .getList("dataElements", JsonIdentifiableObject.class);
-    assertEquals(
-        attribute.getUid(), response.get(0).getAttributeValues().get(0).getAttribute().getId());
+    JsonAttributeValue attributeValue0 = response.get(0).getAttributeValues().get(0);
+    assertEquals(attribute.getUid(), attributeValue0.getAttribute().getId());
 
     response =
         GET(
@@ -1052,10 +1053,9 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                 dataElement.getUid())
             .content()
             .getList("dataElements", JsonIdentifiableObject.class);
-    assertEquals(
-        attribute.getUid(), response.get(0).getAttributeValues().get(0).getAttribute().getId());
-    assertEquals(
-        attribute.getName(), response.get(0).getAttributeValues().get(0).getAttribute().getName());
+    attributeValue0 = response.get(0).getAttributeValues().get(0);
+    assertEquals(attribute.getUid(), attributeValue0.getAttribute().getId());
+    assertEquals("AttributeA", attributeValue0.getAttribute().getName());
   }
 
   @Test
