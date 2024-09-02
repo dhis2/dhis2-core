@@ -38,9 +38,9 @@ import java.util.Map;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.DefaultRequestInfoService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
+import org.hisp.dhis.email.EmailMessageSender;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPathConverter;
-import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.node.DefaultNodeService;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.system.database.DatabaseInfo;
@@ -284,9 +284,10 @@ public class MvcTestConfig implements WebMvcConfigurer {
     return expressionHandler;
   }
 
-  @Bean(name = {"messageSender", "emailMessageSender", "smsMessageSender"})
-  @Primary
-  public MessageSender fakeMessageSender() {
+  //  @Bean(name = {"messageSender", "emailMessageSender", "smsMessageSender"})
+  //  @Primary
+  @Bean
+  public EmailMessageSender emailMessageSender() {
     return new FakeMessageSender();
   }
 

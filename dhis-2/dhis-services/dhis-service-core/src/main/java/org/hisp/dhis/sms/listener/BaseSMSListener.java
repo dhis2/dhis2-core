@@ -32,7 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Map;
 import java.util.function.Consumer;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.sms.SmsMessageSender;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsListener;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
@@ -59,9 +59,9 @@ public abstract class BaseSMSListener implements IncomingSmsListener {
 
   protected final IncomingSmsService incomingSmsService;
 
-  protected final MessageSender smsSender;
+  protected final SmsMessageSender smsSender;
 
-  protected BaseSMSListener(IncomingSmsService incomingSmsService, MessageSender smsSender) {
+  protected BaseSMSListener(IncomingSmsService incomingSmsService, SmsMessageSender smsSender) {
     checkNotNull(incomingSmsService);
     checkNotNull(smsSender);
 

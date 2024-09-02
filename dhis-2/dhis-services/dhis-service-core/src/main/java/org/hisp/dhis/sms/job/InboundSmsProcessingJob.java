@@ -29,17 +29,16 @@ package org.hisp.dhis.sms.job;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.SmsInboundProcessingJobParameters;
+import org.hisp.dhis.sms.SmsMessageSender;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsListener;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -49,8 +48,7 @@ public class InboundSmsProcessingJob implements Job {
 
   private final List<IncomingSmsListener> listeners;
 
-  @Qualifier("smsMessageSender")
-  private final MessageSender smsSender;
+  private final SmsMessageSender smsSender;
 
   @Override
   public JobType getJobType() {

@@ -33,15 +33,14 @@ import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLI
 import java.util.Date;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.sms.SmsMessageSender;
 import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.outbound.OutboundSmsService;
 import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
@@ -49,12 +48,7 @@ import org.springframework.stereotype.Component;
 public class SendScheduledMessageJob implements Job {
   private final OutboundSmsService outboundSmsService;
 
-  @Qualifier("smsMessageSender")
-  private final MessageSender smsSender;
-
-  // -------------------------------------------------------------------------
-  // Implementation
-  // -------------------------------------------------------------------------
+  private final SmsMessageSender smsSender;
 
   @Override
   public JobType getJobType() {

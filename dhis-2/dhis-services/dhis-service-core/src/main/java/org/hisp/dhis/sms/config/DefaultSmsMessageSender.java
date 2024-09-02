@@ -44,7 +44,6 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchStatus;
@@ -52,6 +51,7 @@ import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.sms.SmsMessageSender;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.outbound.OutboundSmsService;
@@ -71,9 +71,9 @@ import org.springframework.util.concurrent.ListenableFuture;
  * @author Nguyen Kim Lai
  */
 @Slf4j
-@Component("smsMessageSender")
+@Component
 @Scope(proxyMode = ScopedProxyMode.TARGET_CLASS)
-public class SmsMessageSender implements MessageSender {
+public class DefaultSmsMessageSender implements SmsMessageSender {
   private static final String NO_CONFIG = "No default gateway configured";
 
   private static final String BATCH_ABORTED = "Aborted sending message batch";
@@ -97,7 +97,7 @@ public class SmsMessageSender implements MessageSender {
 
   private final SystemSettingManager systemSettingManager;
 
-  public SmsMessageSender(
+  public DefaultSmsMessageSender(
       GatewayAdministrationService gatewayAdminService,
       List<SmsGateway> smsGateways,
       UserSettingService userSettingService,

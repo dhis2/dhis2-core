@@ -65,6 +65,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.sms.SmsMessageSender;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
@@ -86,7 +87,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.ContextConfiguration;
 
 /**
  * Tests tracker SMS to delete an event implemented via {@link
@@ -94,9 +97,17 @@ import org.springframework.transaction.annotation.Transactional;
  * org.hisp.dhis.webapi.controller.sms.SmsInboundController} and other SMS classes in the SMS class
  * hierarchy.
  */
-@Transactional
+@ContextConfiguration(classes = {TrackerDeleteEventSMSTest.Config.class})
 class TrackerDeleteEventSMSTest extends PostgresControllerIntegrationTestBase {
   private static final int SMS_COMPRESSION_VERSION = 2;
+
+  static class Config {
+    @Primary
+    @Bean
+    public SmsMessageSender smsMessageSender() {
+      return new FakeMessageSender();
+    }
+  }
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -106,7 +117,7 @@ class TrackerDeleteEventSMSTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired private IncomingSmsService incomingSmsService;
 
-  @Autowired private FakeMessageSender messageSender;
+  @Autowired private FakeMessageSender smsMessageSender;
 
   private CategoryOptionCombo coc;
 
@@ -168,7 +179,7 @@ class TrackerDeleteEventSMSTest extends PostgresControllerIntegrationTestBase {
 
   @AfterEach
   void afterEach() {
-    messageSender.clearMessages();
+    smsMessageSender.clearMessages();
   }
 
   @Test
@@ -214,7 +225,7 @@ class TrackerDeleteEventSMSTest extends PostgresControllerIntegrationTestBase {
         () ->
             assertThrows(
                 NotFoundException.class, () -> eventService.getEvent(UID.of(event.getUid()))),
-        () -> assertContainsOnly(List.of(expectedMessage), messageSender.getAllMessages()));
+        () -> assertContainsOnly(List.of(expectedMessage), smsMessageSender.getAllMessages()));
   }
 
   @Test
@@ -260,7 +271,7 @@ class TrackerDeleteEventSMSTest extends PostgresControllerIntegrationTestBase {
         () ->
             assertThrows(
                 NotFoundException.class, () -> eventService.getEvent(UID.of(event.getUid()))),
-        () -> assertContainsOnly(List.of(expectedMessage), messageSender.getAllMessages()));
+        () -> assertContainsOnly(List.of(expectedMessage), smsMessageSender.getAllMessages()));
   }
 
   @Test
@@ -303,7 +314,7 @@ class TrackerDeleteEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertTrue(sms.isParsed()),
         () -> assertEquals(originator, sms.getOriginator()),
         () -> assertEquals(user, sms.getCreatedBy()),
-        () -> assertContainsOnly(List.of(expectedMessage), messageSender.getAllMessages()));
+        () -> assertContainsOnly(List.of(expectedMessage), smsMessageSender.getAllMessages()));
   }
 
   private IncomingSms getSms(JsonWebMessage response) {

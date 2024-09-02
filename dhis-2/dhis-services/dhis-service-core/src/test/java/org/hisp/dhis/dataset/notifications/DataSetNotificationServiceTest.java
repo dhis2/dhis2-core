@@ -53,8 +53,8 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.message.DefaultEmailMessageSender;
 import org.hisp.dhis.message.DefaultMessageService;
-import org.hisp.dhis.message.EmailMessageSender;
 import org.hisp.dhis.message.MessageConversationStore;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.notification.NotificationMessage;
@@ -155,7 +155,7 @@ class DataSetNotificationServiceTest extends TestBase {
 
   @Mock private OrganisationUnitService organisationUnitService;
 
-  @Mock private EmailMessageSender emailMessageSender;
+  @Mock private DefaultEmailMessageSender emailMessageSender;
 
   @Captor private ArgumentCaptor<CompleteDataSetRegistration> registrationCaptor;
 

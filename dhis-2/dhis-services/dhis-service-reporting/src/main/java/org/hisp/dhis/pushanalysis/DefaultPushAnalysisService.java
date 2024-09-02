@@ -53,6 +53,7 @@ import org.apache.velocity.VelocityContext;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.commons.util.Encoder;
 import org.hisp.dhis.dashboard.DashboardItem;
+import org.hisp.dhis.email.EmailMessageSender;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.ExternalFileResource;
@@ -64,7 +65,6 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.mapgeneration.MapGenerationService;
 import org.hisp.dhis.mapgeneration.MapUtils;
 import org.hisp.dhis.mapping.Map;
-import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SettingKey;
@@ -114,8 +114,7 @@ public class DefaultPushAnalysisService implements PushAnalysisService {
 
   private final I18nManager i18nManager;
 
-  @Qualifier("emailMessageSender")
-  private final MessageSender messageSender;
+  private final EmailMessageSender emailMessageSender;
 
   @Qualifier("org.hisp.dhis.pushanalysis.PushAnalysisStore")
   private final IdentifiableObjectStore<PushAnalysis> pushAnalysisStore;
@@ -217,10 +216,10 @@ public class DefaultPushAnalysisService implements PushAnalysisService {
             throw new UncheckedIOException(ex);
           }
           // TODO: Better handling of messageStatus; Might require
-          // refactoring of EmailMessageSender
+          // refactoring of DefaultEmailMessageSender
           @SuppressWarnings("unused")
           Future<OutboundMessageResponse> status =
-              messageSender.sendMessageAsync(title, html, "", null, Set.of(user), true);
+              emailMessageSender.sendMessageAsync(title, html, "", null, Set.of(user), true);
         });
   }
 

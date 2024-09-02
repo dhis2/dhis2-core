@@ -57,10 +57,10 @@ import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.LockStatus;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.sms.SmsMessageSender;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.SMSSpecialCharacter;
@@ -119,7 +119,7 @@ class DataValueListenerTest extends TestBase {
 
   @Mock private IncomingSmsService incomingSmsService;
 
-  @Mock private MessageSender smsSender;
+  @Mock private SmsMessageSender smsSender;
 
   @Mock private CompleteDataSetRegistrationService registrationService;
 

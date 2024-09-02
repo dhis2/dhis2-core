@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
+import org.hisp.dhis.email.EmailMessageSender;
 import org.hisp.dhis.email.EmailResponse;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
@@ -46,6 +47,7 @@ import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchStatus;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
+import org.hisp.dhis.sms.SmsMessageSender;
 import org.hisp.dhis.user.User;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.util.concurrent.ListenableFuture;
@@ -56,7 +58,7 @@ import org.springframework.util.concurrent.ListenableFuture;
  *
  * @author Jan Bernitt
  */
-public class FakeMessageSender implements MessageSender {
+public class FakeMessageSender implements SmsMessageSender, EmailMessageSender {
   private final Map<String, List<OutboundMessage>> sendMessagesByRecipient = new HashMap<>();
 
   public List<OutboundMessage> getMessagesByEmail(String recipient) {

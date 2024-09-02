@@ -60,10 +60,10 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.sms.config.BulkSmsGatewayConfig;
 import org.hisp.dhis.sms.config.BulkSmsHttpGateway;
+import org.hisp.dhis.sms.config.DefaultSmsMessageSender;
 import org.hisp.dhis.sms.config.GatewayAdministrationService;
 import org.hisp.dhis.sms.config.SmsGateway;
 import org.hisp.dhis.sms.config.SmsGatewayConfig;
-import org.hisp.dhis.sms.config.SmsMessageSender;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.sms.outbound.OutboundSmsService;
 import org.hisp.dhis.user.User;
@@ -80,12 +80,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Zubair Asghar.
  */
 @ExtendWith(MockitoExtension.class)
-class SmsMessageSenderTest {
+class DefaultSmsMessageSenderTest {
   private static final Integer MAX_ALLOWED_RECIPIENTS = 200;
 
   private static final String NO_CONFIG = "No default gateway configured";
 
-  private SmsMessageSender smsMessageSender;
+  private DefaultSmsMessageSender smsMessageSender;
 
   @Mock private UserSettingService userSettingService;
 
@@ -136,7 +136,7 @@ class SmsMessageSenderTest {
     smsGateways.add(bulkSmsGateway);
 
     smsMessageSender =
-        new SmsMessageSender(
+        new DefaultSmsMessageSender(
             gatewayAdministrationService,
             smsGateways,
             userSettingService,

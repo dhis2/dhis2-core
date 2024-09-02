@@ -29,12 +29,13 @@ package org.hisp.dhis.sms.outbound;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.sms.config.DefaultSmsMessageSender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Simple {@link OutboundSmsService sms service} storing the sms in a store and forwards the request
- * to a {@link org.hisp.dhis.sms.config.SmsMessageSender sms transport service} for sending.
+ * to a {@link DefaultSmsMessageSender sms transport service} for sending.
  */
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.sms.outbound.OutboundSmsService")

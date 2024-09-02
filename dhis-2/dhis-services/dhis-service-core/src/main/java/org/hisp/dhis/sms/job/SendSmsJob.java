@@ -31,24 +31,22 @@ import static java.lang.String.format;
 
 import java.util.HashSet;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
+import org.hisp.dhis.sms.SmsMessageSender;
 import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.outbound.OutboundSmsService;
 import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
 @Component
 public class SendSmsJob implements Job {
-  @Qualifier("smsMessageSender")
-  private final MessageSender smsSender;
+  private final SmsMessageSender smsSender;
 
   private final OutboundSmsService outboundSmsService;
 

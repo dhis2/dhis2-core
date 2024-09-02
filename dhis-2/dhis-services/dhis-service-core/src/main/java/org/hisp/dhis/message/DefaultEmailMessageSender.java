@@ -47,6 +47,7 @@ import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.email.EmailConfiguration;
+import org.hisp.dhis.email.EmailMessageSender;
 import org.hisp.dhis.email.EmailResponse;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
@@ -73,9 +74,9 @@ import org.springframework.util.concurrent.ListenableFuture;
  */
 @Slf4j
 @RequiredArgsConstructor
-@Component("emailMessageSender")
+@Component
 @Scope(proxyMode = ScopedProxyMode.TARGET_CLASS)
-public class EmailMessageSender implements MessageSender {
+public class DefaultEmailMessageSender implements EmailMessageSender {
   private static final String DEFAULT_APPLICATION_TITLE = "DHIS 2";
 
   private static final String LB = System.getProperty("line.separator");
