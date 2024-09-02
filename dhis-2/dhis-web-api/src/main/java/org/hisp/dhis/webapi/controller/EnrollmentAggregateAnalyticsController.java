@@ -27,11 +27,21 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.common.DhisApiVersion.ALL;
+import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
+import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.security.Authorities.F_PERFORM_ANALYTICS_EXPLAIN;
+import static org.hisp.dhis.setting.SettingKey.ANALYSIS_RELATIVE_PERIOD;
+import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_LIMIT;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_EXCEL;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_HTML;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -56,12 +66,10 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
-import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.security.RequiresAuthority;
-import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.util.PeriodCriteriaUtils;
@@ -82,10 +90,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Document(domain = DataValue.class)
 @Controller
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-@RequestMapping("/api/analytics/enrollments")
+@ApiVersion({DEFAULT, ALL})
+@RequestMapping("/api/analytics/enrollments/aggregate")
 @AllArgsConstructor
-public class EnrollmentAnalyticsController {
+public class EnrollmentAggregateAnalyticsController {
   @Nonnull private final EventDataQueryService eventDataQueryService;
 
   @Nonnull private final EnrollmentAnalyticsService analyticsService;
@@ -108,7 +116,7 @@ public class EnrollmentAnalyticsController {
 
   @RequiresAuthority(anyOf = F_PERFORM_ANALYTICS_EXPLAIN)
   @GetMapping(
-      value = "/aggregate/{program}/explain",
+      value = "/{program}/explain",
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})
   public @ResponseBody Grid getExplainAggregateJson( // JSON, JSONP
       @PathVariable String program,
@@ -118,8 +126,7 @@ public class EnrollmentAnalyticsController {
     EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, true, AGGREGATE);
 
     Grid grid = analyticsService.getEnrollments(params);
-    contextUtils.configureResponse(
-        response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING);
+    contextUtils.configureResponse(response, CONTENT_TYPE_JSON, RESPECT_SYSTEM_SETTING);
 
     if (params.analyzeOnly()) {
       String key = params.getExplainOrderId();
@@ -130,7 +137,7 @@ public class EnrollmentAnalyticsController {
   }
 
   @GetMapping(
-      value = "/aggregate/{program}",
+      value = "/{program}",
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})
   public @ResponseBody Grid getAggregateJson( // JSON, JSONP
       @PathVariable String program,
@@ -139,14 +146,13 @@ public class EnrollmentAnalyticsController {
       HttpServletResponse response) {
     EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
 
-    contextUtils.configureResponse(
-        response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING);
+    contextUtils.configureResponse(response, CONTENT_TYPE_JSON, RESPECT_SYSTEM_SETTING);
 
     return analyticsService.getEnrollments(params);
   }
 
   @SneakyThrows
-  @GetMapping("/aggregate/{program}.xml")
+  @GetMapping("/{program}.xml")
   public void getAggregateXml(
       @PathVariable String program,
       EnrollmentAnalyticsQueryCriteria criteria,
@@ -155,17 +161,13 @@ public class EnrollmentAnalyticsController {
     EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
 
     contextUtils.configureResponse(
-        response,
-        ContextUtils.CONTENT_TYPE_XML,
-        CacheStrategy.RESPECT_SYSTEM_SETTING,
-        "enrollments.xml",
-        false);
+        response, CONTENT_TYPE_XML, RESPECT_SYSTEM_SETTING, "enrollments.xml", false);
     Grid grid = analyticsService.getEnrollments(params);
     GridUtils.toXml(grid, response.getOutputStream());
   }
 
   @SneakyThrows
-  @GetMapping("/aggregate/{program}.xls")
+  @GetMapping("/{program}.xls")
   public void getAggregateXls(
       @PathVariable String program,
       EnrollmentAnalyticsQueryCriteria criteria,
@@ -174,17 +176,13 @@ public class EnrollmentAnalyticsController {
     EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
 
     contextUtils.configureResponse(
-        response,
-        ContextUtils.CONTENT_TYPE_EXCEL,
-        CacheStrategy.RESPECT_SYSTEM_SETTING,
-        "enrollments.xls",
-        true);
+        response, CONTENT_TYPE_EXCEL, RESPECT_SYSTEM_SETTING, "enrollments.xls", true);
     Grid grid = analyticsService.getEnrollments(params);
     GridUtils.toXls(grid, response.getOutputStream());
   }
 
   @SneakyThrows
-  @GetMapping("/aggregate/{program}.xlsx")
+  @GetMapping("/{program}.xlsx")
   public void getAggregateXlsx(
       @PathVariable String program,
       EnrollmentAnalyticsQueryCriteria criteria,
@@ -193,17 +191,13 @@ public class EnrollmentAnalyticsController {
     EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
 
     contextUtils.configureResponse(
-        response,
-        ContextUtils.CONTENT_TYPE_EXCEL,
-        CacheStrategy.RESPECT_SYSTEM_SETTING,
-        "enrollments.xlsx",
-        true);
+        response, CONTENT_TYPE_EXCEL, RESPECT_SYSTEM_SETTING, "enrollments.xlsx", true);
     Grid grid = analyticsService.getEnrollments(params);
     GridUtils.toXlsx(grid, response.getOutputStream());
   }
 
   @SneakyThrows
-  @GetMapping("/aggregate/{program}.csv")
+  @GetMapping("/{program}.csv")
   public void getAggregateCsv(
       @PathVariable String program,
       EnrollmentAnalyticsQueryCriteria criteria,
@@ -212,17 +206,13 @@ public class EnrollmentAnalyticsController {
     EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
 
     contextUtils.configureResponse(
-        response,
-        ContextUtils.CONTENT_TYPE_CSV,
-        CacheStrategy.RESPECT_SYSTEM_SETTING,
-        "enrollments.csv",
-        true);
+        response, CONTENT_TYPE_CSV, RESPECT_SYSTEM_SETTING, "enrollments.csv", true);
     Grid grid = analyticsService.getEnrollments(params);
     GridUtils.toCsv(grid, response.getWriter());
   }
 
   @SneakyThrows
-  @GetMapping("/aggregate/{program}.html")
+  @GetMapping("/{program}.html")
   public void getAggregateHtml(
       @PathVariable String program,
       EnrollmentAnalyticsQueryCriteria criteria,
@@ -231,17 +221,13 @@ public class EnrollmentAnalyticsController {
     EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
 
     contextUtils.configureResponse(
-        response,
-        ContextUtils.CONTENT_TYPE_HTML,
-        CacheStrategy.RESPECT_SYSTEM_SETTING,
-        "enrollments.html",
-        false);
+        response, CONTENT_TYPE_HTML, RESPECT_SYSTEM_SETTING, "enrollments.html", false);
     Grid grid = analyticsService.getEnrollments(params);
     GridUtils.toHtml(grid, response.getWriter());
   }
 
   @SneakyThrows
-  @GetMapping("/aggregate/{program}.html+css")
+  @GetMapping("/{program}.html+css")
   public void getAggregateHtmlCss(
       @PathVariable String program,
       EnrollmentAnalyticsQueryCriteria criteria,
@@ -250,194 +236,19 @@ public class EnrollmentAnalyticsController {
     EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
 
     contextUtils.configureResponse(
-        response,
-        ContextUtils.CONTENT_TYPE_HTML,
-        CacheStrategy.RESPECT_SYSTEM_SETTING,
-        "enrollments.html",
-        false);
-    Grid grid = analyticsService.getEnrollments(params);
-    GridUtils.toHtmlCss(grid, response.getWriter());
-  }
-
-  @RequiresAuthority(anyOf = F_PERFORM_ANALYTICS_EXPLAIN)
-  @GetMapping(
-      value = "/query/{program}/explain",
-      produces = {APPLICATION_JSON_VALUE, "application/javascript"})
-  public @ResponseBody Grid getExplainQueryJson( // JSON, JSONP
-      @PathVariable String program,
-      EnrollmentAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
-      HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, true, QUERY);
-
-    Grid grid = analyticsService.getEnrollments(params);
-    contextUtils.configureResponse(
-        response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING);
-
-    if (params.analyzeOnly()) {
-      String key = params.getExplainOrderId();
-      grid.addPerformanceMetrics(executionPlanStore.getExecutionPlans(key));
-    }
-
-    return grid;
-  }
-
-  @GetMapping(
-      value = "/query/{program}",
-      produces = {APPLICATION_JSON_VALUE, "application/javascript"})
-  public @ResponseBody Grid getQueryJson( // JSON, JSONP
-      @PathVariable String program,
-      EnrollmentAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
-      HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, QUERY);
-
-    contextUtils.configureResponse(
-        response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING);
-
-    return analyticsService.getEnrollments(params);
-  }
-
-  @SneakyThrows
-  @GetMapping("/query/{program}.xml")
-  public void getQueryXml(
-      @PathVariable String program,
-      EnrollmentAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
-      HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, QUERY);
-
-    contextUtils.configureResponse(
-        response,
-        ContextUtils.CONTENT_TYPE_XML,
-        CacheStrategy.RESPECT_SYSTEM_SETTING,
-        "enrollments.xml",
-        false);
-    Grid grid = analyticsService.getEnrollments(params);
-    GridUtils.toXml(grid, response.getOutputStream());
-  }
-
-  @SneakyThrows
-  @GetMapping("/query/{program}.xls")
-  public void getQueryXls(
-      @PathVariable String program,
-      EnrollmentAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
-      HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, QUERY);
-
-    contextUtils.configureResponse(
-        response,
-        ContextUtils.CONTENT_TYPE_EXCEL,
-        CacheStrategy.RESPECT_SYSTEM_SETTING,
-        "enrollments.xls",
-        true);
-    Grid grid = analyticsService.getEnrollments(params);
-    GridUtils.toXls(grid, response.getOutputStream());
-  }
-
-  @SneakyThrows
-  @GetMapping("/query/{program}.xlsx")
-  public void getQueryXlsx(
-      @PathVariable String program,
-      EnrollmentAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
-      HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, QUERY);
-
-    contextUtils.configureResponse(
-        response,
-        ContextUtils.CONTENT_TYPE_EXCEL,
-        CacheStrategy.RESPECT_SYSTEM_SETTING,
-        "enrollments.xlsx",
-        true);
-    Grid grid = analyticsService.getEnrollments(params);
-    GridUtils.toXlsx(grid, response.getOutputStream());
-  }
-
-  @SneakyThrows
-  @GetMapping("/query/{program}.csv")
-  public void getQueryCsv(
-      @PathVariable String program,
-      EnrollmentAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
-      HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, QUERY);
-
-    contextUtils.configureResponse(
-        response,
-        ContextUtils.CONTENT_TYPE_CSV,
-        CacheStrategy.RESPECT_SYSTEM_SETTING,
-        "enrollments.csv",
-        true);
-    Grid grid = analyticsService.getEnrollments(params);
-    GridUtils.toCsv(grid, response.getWriter());
-  }
-
-  @SneakyThrows
-  @GetMapping("/query/{program}.html")
-  public void getQueryHtml(
-      @PathVariable String program,
-      EnrollmentAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
-      HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, QUERY);
-
-    contextUtils.configureResponse(
-        response,
-        ContextUtils.CONTENT_TYPE_HTML,
-        CacheStrategy.RESPECT_SYSTEM_SETTING,
-        "enrollments.html",
-        false);
-    Grid grid = analyticsService.getEnrollments(params);
-    GridUtils.toHtml(grid, response.getWriter());
-  }
-
-  @SneakyThrows
-  @GetMapping("/query/{program}.html+css")
-  public void getQueryHtmlCss(
-      @PathVariable String program,
-      EnrollmentAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
-      HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, QUERY);
-
-    contextUtils.configureResponse(
-        response,
-        ContextUtils.CONTENT_TYPE_HTML,
-        CacheStrategy.RESPECT_SYSTEM_SETTING,
-        "enrollments.html",
-        false);
+        response, CONTENT_TYPE_HTML, RESPECT_SYSTEM_SETTING, "enrollments.html", false);
     Grid grid = analyticsService.getEnrollments(params);
     GridUtils.toHtmlCss(grid, response.getWriter());
   }
 
   @ResponseBody
-  @GetMapping("/query/dimensions")
-  public AnalyticsDimensionsPagingWrapper<ObjectNode> getQueryDimensions(
-      @RequestParam String programId,
-      @RequestParam(defaultValue = "*") List<String> fields,
-      DimensionsCriteria dimensionsCriteria,
-      HttpServletResponse response) {
-    contextUtils.configureResponse(
-        response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING);
-    return dimensionFilteringAndPagingService.pageAndFilter(
-        dimensionMapperService.toDimensionResponse(
-            enrollmentAnalyticsDimensionsService.getQueryDimensionsByProgramId(programId),
-            EnrollmentAnalyticsPrefixStrategy.INSTANCE),
-        dimensionsCriteria,
-        fields);
-  }
-
-  @ResponseBody
-  @GetMapping("/aggregate/dimensions")
+  @GetMapping("/dimensions")
   public AnalyticsDimensionsPagingWrapper<ObjectNode> getAggregateDimensions(
       @RequestParam String programId,
       @RequestParam(defaultValue = "*") List<String> fields,
       DimensionsCriteria dimensionsCriteria,
       HttpServletResponse response) {
-    contextUtils.configureResponse(
-        response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING);
+    contextUtils.configureResponse(response, CONTENT_TYPE_JSON, RESPECT_SYSTEM_SETTING);
     return dimensionFilteringAndPagingService.pageAndFilter(
         dimensionMapperService.toDimensionResponse(
             enrollmentAnalyticsDimensionsService.getAggregateDimensionsByProgramStageId(programId),
@@ -452,7 +263,7 @@ public class EnrollmentAnalyticsController {
       DhisApiVersion apiVersion,
       boolean analyzeOnly,
       EndpointAction endpointAction) {
-    criteria.definePageSize(systemSettingManager.getIntSetting(SettingKey.ANALYTICS_MAX_LIMIT));
+    criteria.definePageSize(systemSettingManager.getIntSetting(ANALYTICS_MAX_LIMIT));
 
     if (endpointAction == QUERY) {
       AnalyticsPeriodCriteriaUtils.defineDefaultPeriodForCriteria(
@@ -463,7 +274,7 @@ public class EnrollmentAnalyticsController {
       PeriodCriteriaUtils.defineDefaultPeriodForCriteria(
           criteria,
           systemSettingManager.getSystemSetting(
-              SettingKey.ANALYSIS_RELATIVE_PERIOD, RelativePeriodEnum.class));
+              ANALYSIS_RELATIVE_PERIOD, RelativePeriodEnum.class));
     }
 
     EventDataQueryRequest request =

@@ -30,23 +30,25 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonGrid;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the {@link EventAnalyticsController}.
+ * Tests for the {@link EnrollmentAggregateAnalyticsController}.
  *
  * <p>The main purpose of this test is not to test the correct business logic but to make sure the
  * controller parameters are recognised correctly.
  *
  * @author Jan Bernitt
  */
-class EventAnalyticsControllerTest extends H2ControllerIntegrationTestBase {
+class EnrollmentQueryAnalyticsControllerTest extends H2ControllerIntegrationTestBase {
 
   private String programId;
 
@@ -76,7 +78,7 @@ class EventAnalyticsControllerTest extends H2ControllerIntegrationTestBase {
   void testGetQueryJson() {
     JsonGrid grid =
         GET(
-                "/analytics/events/query/{program}?dimension=ou:{unit}&startDate=2019-01-01&endDate=2021-01-01",
+                "/analytics/enrollments/query/{program}?dimension=ou:{unit}&startDate=2019-01-01&endDate=2021-01-01",
                 programId,
                 orgUnitId)
             .content()
@@ -85,9 +87,26 @@ class EventAnalyticsControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(
         "My Program", grid.getMetaData().getItems().get(programId).getString("name").string());
     assertEquals(
-        "My Unit", grid.getMetaData().getItems().get(orgUnitId).getString("name").string());
-    assertEquals(
         orgUnitId,
         grid.getMetaData().getDimensions().get("ou").get(0).as(JsonString.class).string());
+  }
+
+  @Test
+  void testBadGrammarException() {
+    /* We know this query will fail since it runs on H2 with postgres specific syntax */
+    JsonWebMessage jsonWebMessage =
+        GET(
+                "/analytics/enrollments/query/{program}?dimension=ou:{unit}&startDate=2019-01-01&endDate=2021-01-01",
+                programId,
+                orgUnitId)
+            .content(HttpStatus.CONFLICT)
+            .as(JsonWebMessage.class);
+
+    assertEquals("Conflict", jsonWebMessage.getHttpStatus());
+    assertEquals(409, jsonWebMessage.getHttpStatusCode());
+    assertEquals("ERROR", jsonWebMessage.getStatus());
+    assertEquals(
+        "Query failed because of a syntax error (SqlState: 90022)", jsonWebMessage.getMessage());
+    assertEquals(ErrorCode.E7145, jsonWebMessage.getErrorCode());
   }
 }
