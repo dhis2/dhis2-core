@@ -36,7 +36,7 @@ public class AttributeValuesDeserializer extends JsonDeserializer<AttributeValue
   @Override
   public AttributeValues deserialize(JsonParser parser, DeserializationContext context)
       throws IOException {
-    String value = parser.getValueAsString();
+    String value = parser.readValueAsTree().toString();
     if (value == null) return AttributeValues.empty();
     return AttributeValues.of(value);
   }
