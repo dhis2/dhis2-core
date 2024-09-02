@@ -29,6 +29,7 @@ package org.hisp.dhis.programrule;
 
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 
 /**
  * @author markusbekken
@@ -47,4 +48,6 @@ public interface ProgramRuleActionStore extends IdentifiableObjectStore<ProgramR
   List<ProgramRuleAction> getProgramActionsWithNoNotification();
 
   List<ProgramRuleAction> getMalFormedRuleActionsByType(ProgramRuleActionType type);
+
+  boolean programRuleActionExists(ProgramNotificationTemplate template);
 }

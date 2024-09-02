@@ -30,6 +30,7 @@ package org.hisp.dhis.programrule;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -115,5 +116,10 @@ public class DefaultProgramRuleActionService implements ProgramRuleActionService
   public List<ProgramRuleAction> getProgramRuleActionsWithNoStageId() {
     return programRuleActionStore.getMalFormedRuleActionsByType(
         ProgramRuleActionType.HIDEPROGRAMSTAGE);
+  }
+
+  @Override
+  public boolean programRuleActionExists(ProgramNotificationTemplate template) {
+    return programRuleActionStore.programRuleActionExists(template);
   }
 }

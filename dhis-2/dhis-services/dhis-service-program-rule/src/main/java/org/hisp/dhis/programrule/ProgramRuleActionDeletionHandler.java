@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.programrule;
 
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
@@ -39,15 +38,17 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class ProgramRuleActionDeletionHandler extends IdObjectDeletionHandler<ProgramRuleAction> {
+public class ProgramRuleActionDeletionHandler extends DeletionHandler {
+  private final ProgramRuleActionService ruleActionService;
 
   @Override
-  protected void registerHandler() {
+  protected void register() {
     whenVetoing(ProgramNotificationTemplate.class, this::allowDeleteProgramNotificationTemplate);
   }
 
   private DeletionVeto allowDeleteProgramNotificationTemplate(ProgramNotificationTemplate pnt) {
-    String sql = "select 1 from programruleaction where templateuid=:uid limit 1";
-    return vetoIfExists(VETO, sql, Map.of("uid", pnt.getUid()));
+    return ruleActionService.programRuleActionExists(pnt)
+        ? new DeletionVeto(ProgramRuleAction.class)
+        : DeletionVeto.ACCEPT;
   }
 }

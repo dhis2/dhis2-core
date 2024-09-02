@@ -28,6 +28,7 @@
 package org.hisp.dhis.programrule;
 
 import java.util.List;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 
 /**
  * @author markusbekken
@@ -86,4 +87,13 @@ public interface ProgramRuleActionService {
   List<ProgramRuleAction> getProgramRuleActionsWithNoSectionId();
 
   List<ProgramRuleAction> getProgramRuleActionsWithNoStageId();
+
+  /**
+   * Checks whether a program rule action exists for the given {@link ProgramNotificationTemplate}.
+   *
+   * @param template the {@link ProgramNotificationTemplate} to check
+   * @return {@code true} if a program rule action exists for the specified template, {@code false}
+   *     otherwise
+   */
+  boolean programRuleActionExists(ProgramNotificationTemplate template);
 }

@@ -33,6 +33,7 @@ import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionStore;
@@ -109,5 +110,17 @@ public class HibernateProgramRuleActionStore
     }
 
     return new ArrayList<>();
+  }
+
+  @Override
+  public boolean programRuleActionExists(ProgramNotificationTemplate template) {
+    List<ProgramRuleAction> actions =
+        getQuery(
+                "FROM ProgramRuleAction pra WHERE pra.programRuleActionType IN ( :notificationTypes ) AND pra.templateUid IS :template")
+            .setParameter("notificationTypes", ProgramRuleActionType.NOTIFICATION_LINKED_TYPES)
+            .setParameter("template", template.getUid())
+            .getResultList();
+
+    return !actions.isEmpty();
   }
 }
