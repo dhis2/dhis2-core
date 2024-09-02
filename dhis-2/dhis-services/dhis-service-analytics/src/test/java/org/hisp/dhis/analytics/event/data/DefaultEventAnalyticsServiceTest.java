@@ -31,6 +31,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createPeriod;
 import static org.hisp.dhis.test.TestBase.createProgram;
+import static org.hisp.dhis.test.TestBase.injectSecurityContext;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.doNothing;
@@ -59,7 +60,9 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -98,6 +101,11 @@ class DefaultEventAnalyticsServiceTest {
   @Mock private SchemeIdResponseMapper schemeIdResponseMapper;
 
   @Mock private UserService userService;
+
+  @BeforeAll
+  static void setup() {
+    injectSecurityContext(new SystemUser());
+  }
 
   @BeforeEach
   public void setUp() {

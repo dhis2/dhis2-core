@@ -49,7 +49,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueStore;
+import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -87,7 +87,7 @@ class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackedEntityAttributeStore trackedEntityAttributeStore;
 
-  @Autowired private TrackedEntityAttributeValueStore trackedEntityAttributeValueStore;
+  @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
   @Autowired private DbmsManager dbmsManager;
 
@@ -180,10 +180,12 @@ class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
     trackedEntityAttributeStore.save(tea);
     TrackedEntityAttributeValue teav = createTrackedEntityAttributeValue('Z', trackedEntity, tea);
     teav.setValue(prog001);
-    trackedEntityAttributeValueStore.save(teav);
+    trackedEntityAttributeValueService.addTrackedEntityAttributeValue(teav);
     ReservedValue rv = reservedValue.value(prog001).build();
     rv.setTrackedEntityAttributeId(teav.getAttribute().getId());
-    assertEquals(1, trackedEntityAttributeValueStore.getAll().size());
+    assertEquals(
+        1,
+        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntity).size());
     assertEquals(0, reservedValueStore.getAll().size());
     List<ReservedValue> res =
         reservedValueStore.getAvailableValues(
@@ -226,7 +228,7 @@ class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
     trackedEntityAttributeStore.save(tea);
     TrackedEntityAttributeValue teav = createTrackedEntityAttributeValue('Z', trackedEntity, tea);
     teav.setValue(prog001);
-    trackedEntityAttributeValueStore.save(teav);
+    trackedEntityAttributeValueService.addTrackedEntityAttributeValue(teav);
     assertEquals(1, reservedValueStore.getCount());
   }
 
@@ -242,7 +244,7 @@ class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
     trackedEntityAttributeStore.save(tea);
     TrackedEntityAttributeValue teav = createTrackedEntityAttributeValue('Z', trackedEntity, tea);
     teav.setValue(prog001);
-    trackedEntityAttributeValueStore.save(teav);
+    trackedEntityAttributeValueService.addTrackedEntityAttributeValue(teav);
     reservedValueStore.removeUsedOrExpiredReservations();
     assertFalse(
         reservedValueStore.isReserved(Objects.TRACKEDENTITYATTRIBUTE.name(), teaUid, prog001));
@@ -266,7 +268,7 @@ class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
     trackedEntityAttributeStore.save(tea);
     TrackedEntityAttributeValue teav = createTrackedEntityAttributeValue('Z', trackedEntity, tea);
     teav.setValue(prog001);
-    trackedEntityAttributeValueStore.save(teav);
+    trackedEntityAttributeValueService.addTrackedEntityAttributeValue(teav);
     ReservedValue rv = reservedValue.value(prog001).build();
     reservedValueStore.save(rv);
     reservedValueStore.removeUsedOrExpiredReservations();

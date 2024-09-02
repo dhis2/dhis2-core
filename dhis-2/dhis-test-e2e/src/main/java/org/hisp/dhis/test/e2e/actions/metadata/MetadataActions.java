@@ -64,6 +64,18 @@ public class MetadataActions extends RestApiActions {
     return new MetadataApiResponse(response);
   }
 
+  public MetadataApiResponse importMetadataWithContentType(
+      File file, String contentType, String... queryParams) {
+    QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
+    queryParamsBuilder.addAll(queryParams);
+    queryParamsBuilder.addAll("importReportMode=FULL");
+
+    ApiResponse response = postFileWithContentType(file, queryParamsBuilder, contentType);
+    response.validate().statusCode(200);
+
+    return new MetadataApiResponse(response);
+  }
+
   public MetadataApiResponse importMetadata(JsonObject object, String... queryParams) {
     QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
     queryParamsBuilder.addAll(queryParams);
@@ -75,9 +87,9 @@ public class MetadataActions extends RestApiActions {
     return new MetadataApiResponse(response);
   }
 
-  public MetadataApiResponse importMetadata(String metadata) {
+  public MetadataApiResponse importMetadata(String metadata, String... queryParams) {
     JsonObject json = new Gson().fromJson(metadata, JsonObject.class);
-    ApiResponse response = importMetadata(json);
+    ApiResponse response = importMetadata(json, queryParams);
     return new MetadataApiResponse(response);
   }
 

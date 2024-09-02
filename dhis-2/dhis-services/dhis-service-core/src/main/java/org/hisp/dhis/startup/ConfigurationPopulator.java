@@ -28,6 +28,8 @@
 package org.hisp.dhis.startup;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.user.CurrentUserUtil.clearSecurityContext;
+import static org.hisp.dhis.user.CurrentUserUtil.injectUserInSecurityContext;
 
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +38,8 @@ import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.SystemUser;
 
 @Slf4j
 public class ConfigurationPopulator extends TransactionContextStartupRoutine {
@@ -55,6 +59,12 @@ public class ConfigurationPopulator extends TransactionContextStartupRoutine {
 
   @Override
   public void executeInTransaction() {
+    SystemUser actingUser = new SystemUser();
+    boolean hasCurrentUser = CurrentUserUtil.hasCurrentUser();
+    if (!hasCurrentUser) {
+      injectUserInSecurityContext(actingUser);
+    }
+
     checkSecurityConfiguration();
 
     Configuration config = configurationService.getConfiguration();
@@ -62,6 +72,10 @@ public class ConfigurationPopulator extends TransactionContextStartupRoutine {
     if (config != null && config.getSystemId() == null) {
       config.setSystemId(UUID.randomUUID().toString());
       configurationService.setConfiguration(config);
+    }
+
+    if (!hasCurrentUser) {
+      clearSecurityContext();
     }
   }
 

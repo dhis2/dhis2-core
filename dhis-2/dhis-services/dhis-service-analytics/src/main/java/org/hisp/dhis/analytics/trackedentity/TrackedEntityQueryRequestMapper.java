@@ -83,10 +83,9 @@ public class TrackedEntityQueryRequestMapper {
     // Adding tracked entity type attributes to the list of dimensions.
     requestParams
         .getInternal()
-        .setEntityTypeAttributes(
-            getTrackedEntityAttributes(trackedEntityType)
-                .map(IdentifiableObject::getUid)
-                .collect(toSet()));
+        .getEntityTypeAttributes()
+        .addAll(
+            getTrackedEntityAttributes(trackedEntityType).map(IdentifiableObject::getUid).toList());
 
     return TrackedEntityQueryParams.builder().trackedEntityType(trackedEntityType).build();
   }

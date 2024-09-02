@@ -49,8 +49,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityChangeLogService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.deduplication.DeduplicationMergeParams;
 import org.hisp.dhis.tracker.deduplication.DeduplicationService;
 import org.hisp.dhis.tracker.deduplication.DeduplicationStatus;
@@ -59,6 +58,7 @@ import org.hisp.dhis.tracker.deduplication.MergeStrategy;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicate;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateForbiddenException;
+import org.hisp.dhis.tracker.deprecated.audit.TrackedEntityAuditService;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -81,7 +81,7 @@ class DeduplicationMvcTest {
 
   @Mock private IdentifiableObjectManager manager;
 
-  @Mock private TrackedEntityChangeLogService trackedEntityChangeLogService;
+  @Mock private TrackedEntityAuditService trackedEntityAuditService;
 
   @Mock private TrackerAccessManager trackerAccessManager;
 

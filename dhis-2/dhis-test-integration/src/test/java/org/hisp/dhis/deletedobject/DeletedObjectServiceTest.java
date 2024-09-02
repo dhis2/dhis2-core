@@ -57,18 +57,12 @@ class DeletedObjectServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private TransactionTemplate transactionTemplate;
 
-  private DeletedObject elementA = new DeletedObject(createDataElement('A'));
-
-  private DeletedObject elementB = new DeletedObject(createDataElement('B'));
-
-  private DeletedObject elementC = new DeletedObject(createDataElement('C'));
-
-  private DeletedObject elementD = new DeletedObject(createDataElement('D'));
-
-  private DeletedObject elementE = new DeletedObject(createDataElement('E'));
-
   @Test
   void testAddDeletedObject() {
+    DeletedObject elementA = new DeletedObject(createDataElement('A'));
+    DeletedObject elementB = new DeletedObject(createDataElement('B'));
+    DeletedObject elementC = new DeletedObject(createDataElement('C'));
+
     deletedObjectService.addDeletedObject(elementA);
     deletedObjectService.addDeletedObject(elementB);
     deletedObjectService.addDeletedObject(elementC);
@@ -77,6 +71,12 @@ class DeletedObjectServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetDeletedObject() {
+    DeletedObject elementA = new DeletedObject(createDataElement('A'));
+    DeletedObject elementB = new DeletedObject(createDataElement('B'));
+    DeletedObject elementC = new DeletedObject(createDataElement('C'));
+    DeletedObject elementD = new DeletedObject(createDataElement('D'));
+    DeletedObject elementE = new DeletedObject(createDataElement('E'));
+
     DeletedObjectQuery deletedObjectQuery = new DeletedObjectQuery();
     deletedObjectQuery.setTotal(5);
     deletedObjectQuery.setPageSize(2);
@@ -105,6 +105,10 @@ class DeletedObjectServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testSearchForKlass() {
+    DeletedObject elementA = new DeletedObject(createDataElement('A'));
+    DeletedObject elementB = new DeletedObject(createDataElement('B'));
+    DeletedObject elementC = new DeletedObject(createDataElement('C'));
+
     deletedObjectService.addDeletedObject(elementA);
     deletedObjectService.addDeletedObject(elementB);
     deletedObjectService.addDeletedObject(elementC);

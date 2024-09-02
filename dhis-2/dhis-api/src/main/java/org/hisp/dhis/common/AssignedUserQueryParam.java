@@ -27,10 +27,11 @@
  */
 package org.hisp.dhis.common;
 
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
+
 import java.util.Collections;
 import java.util.Set;
 import lombok.Value;
-import org.hisp.dhis.user.User;
 
 /**
  * Query parameter to select events based on their assigned users. See {@link
@@ -40,7 +41,7 @@ import org.hisp.dhis.user.User;
 public class AssignedUserQueryParam {
 
   public static final AssignedUserQueryParam ALL =
-      new AssignedUserQueryParam(AssignedUserSelectionMode.ALL, null, Collections.emptySet());
+      new AssignedUserQueryParam(AssignedUserSelectionMode.ALL, Collections.emptySet());
 
   private final AssignedUserSelectionMode mode;
 
@@ -50,14 +51,9 @@ public class AssignedUserQueryParam {
    * Non-empty assigned users are only allowed with mode PROVIDED (or null).
    *
    * @param mode assigned user mode
-   * @param current current user with which query is made
    * @param assignedUsers assigned user uids
    */
-  public AssignedUserQueryParam(
-      AssignedUserSelectionMode mode, User current, Set<String> assignedUsers) {
-    if (mode == AssignedUserSelectionMode.CURRENT && current == null) {
-      throw new IllegalQueryException("Current user must be specified if selectionMode is CURRENT");
-    }
+  public AssignedUserQueryParam(AssignedUserSelectionMode mode, Set<String> assignedUsers) {
     if (mode == AssignedUserSelectionMode.PROVIDED
         && (assignedUsers == null || assignedUsers.isEmpty())) {
       throw new IllegalQueryException(
@@ -74,7 +70,7 @@ public class AssignedUserQueryParam {
 
     if (mode == AssignedUserSelectionMode.CURRENT) {
       this.mode = AssignedUserSelectionMode.PROVIDED;
-      this.assignedUsers = Collections.singleton(current.getUid());
+      this.assignedUsers = Collections.singleton(getCurrentUserDetails().getUid());
     } else if ((mode == null || mode == AssignedUserSelectionMode.PROVIDED)
         && (assignedUsers != null && !assignedUsers.isEmpty())) {
       this.mode = AssignedUserSelectionMode.PROVIDED;
