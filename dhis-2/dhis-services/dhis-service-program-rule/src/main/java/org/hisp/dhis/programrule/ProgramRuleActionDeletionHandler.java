@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,27 +27,28 @@
  */
 package org.hisp.dhis.programrule;
 
-import java.util.List;
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionVeto;
+import org.springframework.stereotype.Component;
 
 /**
- * @author markusbekken
+ * @author Zubair Asghar
  */
-public interface ProgramRuleActionStore extends IdentifiableObjectStore<ProgramRuleAction> {
-  /**
-   * Get programRuleAction by program
-   *
-   * @param programRule {@link ProgramRule}
-   * @return ProgramRuleActionVariable list
-   */
-  List<ProgramRuleAction> get(ProgramRule programRule);
+@Component
+@RequiredArgsConstructor
+public class ProgramRuleActionDeletionHandler extends DeletionHandler {
+  private final ProgramRuleActionService ruleActionService;
 
-  List<ProgramRuleAction> getProgramActionsWithNoDataObject();
+  @Override
+  protected void register() {
+    whenVetoing(ProgramNotificationTemplate.class, this::allowDeleteProgramNotificationTemplate);
+  }
 
-  List<ProgramRuleAction> getProgramActionsWithNoNotification();
-
-  List<ProgramRuleAction> getMalFormedRuleActionsByType(ProgramRuleActionType type);
-
-  boolean programRuleActionExists(ProgramNotificationTemplate template);
+  private DeletionVeto allowDeleteProgramNotificationTemplate(ProgramNotificationTemplate pnt) {
+    return ruleActionService.programRuleActionExists(pnt)
+        ? new DeletionVeto(ProgramRuleAction.class)
+        : DeletionVeto.ACCEPT;
+  }
 }
