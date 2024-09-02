@@ -28,104 +28,18 @@
 package org.hisp.dhis.attribute;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
-import java.util.Objects;
-import org.hisp.dhis.common.DxfNamespaces;
+import lombok.Getter;
+import lombok.Setter;
 import org.hisp.dhis.common.EmbeddedObject;
-import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.schema.annotation.Property;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement(localName = "attributeValues", namespace = DxfNamespaces.DXF_2_0)
+@Setter
+@Getter
 public class AttributeValue implements Serializable, EmbeddedObject {
 
-  private Attribute attribute;
-  private String value;
-
-  public AttributeValue() {}
-
-  public AttributeValue(String value) {
-    this();
-    this.value = value;
-  }
-
-  public AttributeValue(String value, Attribute attribute) {
-    this.value = value;
-    this.attribute = attribute;
-  }
-
-  public AttributeValue(Attribute attribute, String value) {
-    this.value = value;
-    this.attribute = attribute;
-  }
-
-  @Override
-  public boolean equals(Object object) {
-    if (this == object) {
-      return true;
-    }
-
-    if (object == null || getClass() != object.getClass()) {
-      return false;
-    }
-
-    AttributeValue that = (AttributeValue) object;
-
-    if (!Objects.equals(attribute, that.attribute)) {
-      return false;
-    }
-
-    if (!Objects.equals(value, that.value)) {
-      return false;
-    }
-
-    return true;
-  }
-
-  @Override
-  public int hashCode() {
-    int result = 7;
-    result = 31 * result + (attribute != null ? attribute.hashCode() : 0);
-    result = 31 * result + (value != null ? value.hashCode() : 0);
-    return result;
-  }
-
-  @Override
-  public String toString() {
-    return "AttributeValue{"
-        + "class="
-        + getClass()
-        + ", value='"
-        + value
-        + '\''
-        + ", attribute='"
-        + attribute
-        + '\''
-        + '}';
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty
-  @Property(required = Property.Value.TRUE)
-  public String getValue() {
-    return value;
-  }
-
-  public void setValue(String value) {
-    this.value = value;
-  }
-
-  @JsonProperty
-  @Property(value = PropertyType.REFERENCE, required = Property.Value.TRUE)
-  public Attribute getAttribute() {
-    return attribute;
-  }
-
-  public void setAttribute(Attribute attribute) {
-    this.attribute = attribute;
-  }
+  @JsonProperty private Attribute attribute;
+  @JsonProperty private String value;
 }

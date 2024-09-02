@@ -52,7 +52,7 @@ import java.util.stream.Stream;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Immutable;
-import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.attribute.AttributeValuesDeserializer;
 import org.hisp.dhis.attribute.AttributeValuesSerializer;
@@ -274,6 +274,8 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   public void setLastUpdated(Date lastUpdated) {
     this.lastUpdated = lastUpdated;
   }
+
+  public record AttributeValue(@JsonProperty Attribute attribute, @JsonProperty String value) {}
 
   @Override
   @OpenApi.Property(AttributeValue[].class)

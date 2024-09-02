@@ -748,7 +748,7 @@ public class DefaultFieldFilterService implements FieldFilterService {
   }
 
   /**
-   * {@link AttributeValue} is saved as JSONB, and it contains only Attribute's uid If fields
+   * An {@link Attribute} value is saved as JSONB, and it contains only Attribute's uid If fields
    * parameter requires more than just Attribute's uid then we need to get full {@link Attribute}
    * object ( from cache ) e.g. fields=id,name,attributeValues[value,attribute[id,name,description]]
    */
