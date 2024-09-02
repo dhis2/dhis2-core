@@ -39,7 +39,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the {@link EventAggregateAnalyticsController}.
+ * Tests the {@link EventQueryAnalyticsController}.
  *
  * <p>The main purpose of this test is not to test the correct business logic but to make sure the
  * controller parameters are recognised correctly.

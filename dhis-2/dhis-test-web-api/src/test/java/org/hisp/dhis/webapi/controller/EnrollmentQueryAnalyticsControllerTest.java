@@ -41,7 +41,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests for the {@link EnrollmentAggregateAnalyticsController}.
+ * Tests for the {@link EnrollmentQueryAnalyticsController}.
  *
  * <p>The main purpose of this test is not to test the correct business logic but to make sure the
  * controller parameters are recognised correctly.
