@@ -48,14 +48,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
-@MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 class ProgramNotificationTemplateOperationParamsMapperTest {
-  private static UID PROGRAM = UID.of(CodeGenerator.generateUid());
-  private static UID PROGRAM_STAGE = UID.of(CodeGenerator.generateUid());
+  private static final UID PROGRAM = UID.of(CodeGenerator.generateUid());
+  private static final UID PROGRAM_STAGE = UID.of(CodeGenerator.generateUid());
 
   @Mock private IdentifiableObjectManager manager;
 
@@ -79,13 +76,11 @@ class ProgramNotificationTemplateOperationParamsMapperTest {
     programStage = new ProgramStage();
     programStage.setName("TB-Program-Stage-1");
     programStage.setUid(PROGRAM_STAGE.getValue());
-
-    when(manager.get(Program.class, PROGRAM.getValue())).thenReturn(program);
-    when(manager.get(ProgramStage.class, PROGRAM_STAGE.getValue())).thenReturn(programStage);
   }
 
   @Test
   void shouldMapValidProgram() {
+    when(manager.get(Program.class, PROGRAM.getValue())).thenReturn(program);
     ProgramNotificationTemplateOperationParams operationParams =
         ProgramNotificationTemplateOperationParams.builder()
             .program(PROGRAM)
@@ -103,10 +98,13 @@ class ProgramNotificationTemplateOperationParamsMapperTest {
     assertEquals(1, result.getPage());
     assertEquals(10, result.getPageSize());
     assertTrue(result.isPaged());
+    verify(manager).get(Program.class, PROGRAM.getValue());
+    verifyNoMoreInteractions(manager);
   }
 
   @Test
   void shouldMapValidProgramStage() {
+    when(manager.get(ProgramStage.class, PROGRAM_STAGE.getValue())).thenReturn(programStage);
     ProgramNotificationTemplateOperationParams operationParams =
         ProgramNotificationTemplateOperationParams.builder().programStage(PROGRAM_STAGE).build();
 
@@ -115,6 +113,8 @@ class ProgramNotificationTemplateOperationParamsMapperTest {
     assertNotNull(result);
     assertNull(result.getProgram());
     assertEquals(programStage, result.getProgramStage());
+    verify(manager).get(ProgramStage.class, PROGRAM_STAGE.getValue());
+    verifyNoMoreInteractions(manager);
   }
 
   @Test
@@ -122,17 +122,16 @@ class ProgramNotificationTemplateOperationParamsMapperTest {
     UID invalidProgram = UID.of(CodeGenerator.generateUid());
     ProgramNotificationTemplateOperationParams operationParams =
         ProgramNotificationTemplateOperationParams.builder().program(invalidProgram).build();
-    operationParams.setProgram(invalidProgram);
+    when(manager.get(Program.class, invalidProgram.getValue())).thenReturn(null);
 
     IllegalQueryException exception =
-        assertThrows(
-            IllegalQueryException.class,
-            () -> {
-              mapper.map(operationParams);
-            });
+        assertThrows(IllegalQueryException.class, () -> mapper.map(operationParams));
+
     assertEquals(
         "Program with UID %s does not exist.".formatted(invalidProgram.getValue()),
         exception.getMessage());
+    verify(manager).get(Program.class, invalidProgram.getValue());
+    verifyNoMoreInteractions(manager);
   }
 
   @Test
@@ -142,15 +141,15 @@ class ProgramNotificationTemplateOperationParamsMapperTest {
         ProgramNotificationTemplateOperationParams.builder()
             .programStage(invalidProgramStage)
             .build();
+    when(manager.get(ProgramStage.class, invalidProgramStage.getValue())).thenReturn(null);
 
     IllegalQueryException exception =
-        assertThrows(
-            IllegalQueryException.class,
-            () -> {
-              mapper.map(operationParams);
-            });
+        assertThrows(IllegalQueryException.class, () -> mapper.map(operationParams));
+
     assertEquals(
         "ProgramStage with UID %s does not exist.".formatted(invalidProgramStage.getValue()),
         exception.getMessage());
+    verify(manager).get(ProgramStage.class, invalidProgramStage.getValue());
+    verifyNoMoreInteractions(manager);
   }
 }
