@@ -30,8 +30,8 @@ package org.hisp.dhis.tracker.imports.bundle.persister;
 import java.util.List;
 import javax.persistence.EntityManager;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
 import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
@@ -53,9 +53,9 @@ public class RelationshipPersister
       ReservedValueService reservedValueService,
       TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship>
           relationshipConverter,
-      TrackedEntityAttributeValueChangeLogService trackedEntityAttributeValueChangeLogService) {
+      TrackedEntityChangeLogService trackedEntityChangeLogService) {
 
-    super(reservedValueService, trackedEntityAttributeValueChangeLogService);
+    super(reservedValueService, trackedEntityChangeLogService);
     this.relationshipConverter = relationshipConverter;
   }
 
