@@ -51,10 +51,10 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
+import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLog;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
@@ -78,9 +78,9 @@ public class EventPersister
   public EventPersister(
       ReservedValueService reservedValueService,
       TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event> eventConverter,
-      TrackedEntityAttributeValueChangeLogService trackedEntityAttributeValueChangeLogService,
+      TrackedEntityChangeLogService trackedEntityChangeLogService,
       EventChangeLogService eventChangeLogService) {
-    super(reservedValueService, trackedEntityAttributeValueChangeLogService);
+    super(reservedValueService, trackedEntityChangeLogService);
     this.eventConverter = eventConverter;
     this.eventChangeLogService = eventChangeLogService;
   }

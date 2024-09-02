@@ -87,13 +87,13 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAudit;
 import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
-import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLog;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogQueryParams;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
 import org.hisp.dhis.tracker.deprecated.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
+import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLog;
+import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLogQueryParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityAttributeValueChangeLog;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityAttributeValueChangeLogQueryParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -120,7 +120,7 @@ public class ChangeLogController {
 
   private final EventChangeLogService eventChangeLogService;
 
-  private final TrackedEntityAttributeValueChangeLogService attributeValueChangeLogService;
+  private final TrackedEntityChangeLogService attributeValueChangeLogService;
 
   private final DataApprovalAuditService dataApprovalAuditService;
 

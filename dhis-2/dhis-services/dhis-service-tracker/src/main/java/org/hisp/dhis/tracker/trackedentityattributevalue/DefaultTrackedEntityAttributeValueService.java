@@ -44,8 +44,8 @@ import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLog;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityAttributeValueChangeLog;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,8 +57,7 @@ public class DefaultTrackedEntityAttributeValueService
 
   private final FileResourceService fileResourceService;
 
-  private final TrackedEntityAttributeValueChangeLogService
-      trackedEntityAttributeValueChangeLogService;
+  private final TrackedEntityChangeLogService trackedEntityChangeLogService;
 
   private final ReservedValueService reservedValueService;
 
@@ -75,7 +74,7 @@ public class DefaultTrackedEntityAttributeValueService
             ChangeLogType.DELETE);
 
     if (config.isEnabled(CHANGELOG_TRACKER)) {
-      trackedEntityAttributeValueChangeLogService.addTrackedEntityAttributeValueChangLog(
+      trackedEntityChangeLogService.addTrackedEntityAttributeValueChangeLog(
           trackedEntityAttributeValueChangeLog);
     }
 
@@ -176,7 +175,7 @@ public class DefaultTrackedEntityAttributeValueService
               ChangeLogType.UPDATE);
 
       if (config.isEnabled(CHANGELOG_TRACKER)) {
-        trackedEntityAttributeValueChangeLogService.addTrackedEntityAttributeValueChangLog(
+        trackedEntityChangeLogService.addTrackedEntityAttributeValueChangeLog(
             trackedEntityAttributeValueChangeLog);
       }
 

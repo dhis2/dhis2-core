@@ -25,34 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentityattributevalue;
+package org.hisp.dhis.tracker.export.event;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.changelog.ChangeLogType;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.ProgramStage;
 
 /**
- * Encapsulation of a web API request for tracked entity data value audit records.
- *
  * @author Lars Helge Overland
  */
 @Data
 @Accessors(chain = true)
-public class TrackedEntityAttributeValueChangeLogQueryParams {
-  private List<TrackedEntityAttribute> trackedEntityAttributes = new ArrayList<>();
+public class TrackedEntityDataValueChangeLogQueryParams {
+  private List<DataElement> dataElements = new ArrayList<>();
 
-  private List<TrackedEntity> trackedEntities = new ArrayList<>();
+  private List<OrganisationUnit> orgUnits = new ArrayList<>();
+
+  private List<Event> events = new ArrayList<>();
+
+  private List<ProgramStage> programStages = new ArrayList<>();
+
+  private Date startDate;
+
+  private Date endDate;
+
+  private OrganisationUnitSelectionMode ouMode;
 
   private List<ChangeLogType> auditTypes = new ArrayList<>();
 
   private Pager pager;
 
-  public boolean hasPager() {
+  public boolean hasOuMode() {
+    return ouMode != null;
+  }
+
+  public boolean hasPaging() {
     return pager != null;
   }
 }
