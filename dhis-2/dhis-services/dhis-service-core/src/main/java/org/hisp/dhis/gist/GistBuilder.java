@@ -31,7 +31,6 @@ import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
 import static org.hisp.dhis.gist.GistLogic.getBaseType;
 import static org.hisp.dhis.gist.GistLogic.isAccessProperty;
 import static org.hisp.dhis.gist.GistLogic.isAttributeFlagProperty;
@@ -292,10 +291,7 @@ final class GistBuilder {
   }
 
   private Map<String, String> attributeValues(Object attributeValues) {
-    AttributeValues values = (AttributeValues) attributeValues;
-    return values == null || values.isEmpty()
-        ? Map.of()
-        : values.stream().collect(toMap(Entry::getKey, Entry::getValue));
+    return attributeValues instanceof AttributeValues attrs ? attrs.toMap() : Map.of();
   }
 
   @SuppressWarnings("unchecked")

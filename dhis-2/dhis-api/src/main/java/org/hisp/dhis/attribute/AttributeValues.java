@@ -33,6 +33,7 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -184,4 +185,10 @@ public sealed interface AttributeValues extends Iterable<Map.Entry<String, Strin
    */
   @Nonnull
   AttributeValues mapKeys(@Nonnull Function<String, String> mapper);
+
+  default Map<String, String> toMap() {
+    return isEmpty()
+        ? Map.of()
+        : stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
 }

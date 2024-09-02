@@ -31,7 +31,6 @@ import static java.lang.System.arraycopy;
 import static java.util.Arrays.binarySearch;
 import static java.util.Arrays.copyOf;
 import static java.util.Arrays.copyOfRange;
-import static java.util.stream.Collectors.toMap;
 import static org.hisp.dhis.jsontree.JsonBuilder.createArray;
 import static org.hisp.dhis.jsontree.JsonBuilder.createObject;
 
@@ -44,6 +43,7 @@ import java.util.TreeMap;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import javax.annotation.CheckForNull;
@@ -146,7 +146,7 @@ final class LazyAttributeValues implements AttributeValues {
   private static TreeMap<String, String> parseObjectJson(JsonObject map) {
     return map.entries()
         .collect(
-            toMap(
+            Collectors.toMap(
                 Map.Entry::getKey,
                 e -> e.getValue().asObject().getString("value").string(),
                 (a, b) -> a,
@@ -158,7 +158,7 @@ final class LazyAttributeValues implements AttributeValues {
     return arr.stream()
         .map(JsonValue::asObject)
         .collect(
-            toMap(
+            Collectors.toMap(
                 obj -> obj.getObject("attribute").getString("id").string(),
                 obj -> obj.getString("value").string(),
                 (a, b) -> a,
