@@ -48,6 +48,20 @@
       "version": {
         "min": 42
       }
+    },
+    {
+      "name": "weeklyShortNameLabel",
+      "query": "/api/42/analytics?dimension=dx:fbfJHSPpUQD,pe:2021SunW52&filter=ou:USER_ORGUNIT&displayProperty=SHORTNAME&includeNumDen=true&skipMeta=false&skipData=false",
+      "version": {
+        "min": 42
+      }
+    },
+    {
+      "name": "weeklyNameLabel",
+      "query": "/api/42/analytics?dimension=dx:fbfJHSPpUQD,pe:2021SunW52&filter=ou:USER_ORGUNIT&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=false\n",
+      "version": {
+        "min": 42
+      }
     }
   ]
 }

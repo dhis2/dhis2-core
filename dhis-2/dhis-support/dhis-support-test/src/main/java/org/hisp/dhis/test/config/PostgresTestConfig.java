@@ -25,29 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.attribute.exception;
+package org.hisp.dhis.test.config;
 
-import java.util.List;
-import java.util.stream.Collectors;
-import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Use this Spring configuration for tests relying on the Postgres DB running in a Docker container.
+ *
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class MissingMandatoryAttributeValueException extends Exception {
-  private final List<Attribute> attributes;
-
-  public MissingMandatoryAttributeValueException(List<Attribute> attributes) {
-    super(
-        String.valueOf(
-            attributes.stream()
-                .map(att -> "Attribute " + att.getDisplayName() + " (" + att.getUid() + ")")
-                .collect(Collectors.toList())));
-
-    this.attributes = attributes;
-  }
-
-  public List<Attribute> getAttributes() {
-    return attributes;
+@Configuration
+public class PostgresTestConfig {
+  @Bean
+  public DhisConfigurationProvider dhisConfigurationProvider() {
+    return new PostgresDhisConfigurationProvider();
   }
 }

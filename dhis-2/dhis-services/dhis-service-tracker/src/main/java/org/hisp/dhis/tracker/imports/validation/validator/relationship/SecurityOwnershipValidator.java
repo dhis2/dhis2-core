@@ -28,7 +28,7 @@
 package org.hisp.dhis.tracker.imports.validation.validator.relationship;
 
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.tracker.access.TrackerAccessManager;
+import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.RelationshipTrackerConverterService;

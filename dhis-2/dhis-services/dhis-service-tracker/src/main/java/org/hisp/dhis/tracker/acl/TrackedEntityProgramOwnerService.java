@@ -25,19 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.config;
+package org.hisp.dhis.tracker.acl;
 
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 
-/** Use this Spring configuration for tests relying on the H2 in-memory DB. */
-@Profile("test-h2")
-@Configuration
-public class H2DhisTestConfig {
-  @Bean
-  public DhisConfigurationProvider dhisConfigurationProvider() {
-    return new H2DhisConfigurationProvider();
-  }
+/**
+ * @author Ameen Mohamed
+ */
+public interface TrackedEntityProgramOwnerService {
+  String ID = TrackedEntityProgramOwnerService.class.getName();
+
+  /**
+   * Get the program owner details for a tracked entity.
+   *
+   * @return The TrackedEntityProgramOwner object
+   */
+  TrackedEntityProgramOwner getTrackedEntityProgramOwner(TrackedEntity te, Program program);
+
+  /**
+   * Assign an orgUnit as the owner for a tracked entity for the given program. If another owner
+   * already exist then it would be overwritten.
+   */
+  void createOrUpdateTrackedEntityProgramOwner(
+      TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit);
+
+  /**
+   * Update the owner ou for a tracked entity for the given program. If no owner previously exist,
+   * then this method will fail.
+   */
+  void updateTrackedEntityProgramOwner(
+      TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit);
+
+  /**
+   * Create a new program owner ou for a tracked entity. If an owner previously exist, then this
+   * method will fail.
+   */
+  void createTrackedEntityProgramOwner(
+      TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit);
 }

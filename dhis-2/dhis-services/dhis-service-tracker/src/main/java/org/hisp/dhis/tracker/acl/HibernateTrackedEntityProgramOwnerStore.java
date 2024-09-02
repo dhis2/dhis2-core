@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentity.hibernate;
+package org.hisp.dhis.tracker.acl;
 
 import com.google.common.collect.Iterables;
 import java.util.ArrayList;
@@ -38,7 +38,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
-import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerStore;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -46,7 +45,7 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Ameen Mohamed
  */
-@Repository("org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerStore")
+@Repository("org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerStore")
 public class HibernateTrackedEntityProgramOwnerStore
     extends HibernateGenericStore<TrackedEntityProgramOwner>
     implements TrackedEntityProgramOwnerStore {
@@ -73,7 +72,7 @@ public class HibernateTrackedEntityProgramOwnerStore
       Set<Long> teIds) {
     List<TrackedEntityProgramOwnerOrgUnit> trackedEntityProgramOwnerOrgUnits = new ArrayList<>();
 
-    if (teIds == null || teIds.size() == 0) {
+    if (teIds == null || teIds.isEmpty()) {
       return trackedEntityProgramOwnerOrgUnits;
     }
 

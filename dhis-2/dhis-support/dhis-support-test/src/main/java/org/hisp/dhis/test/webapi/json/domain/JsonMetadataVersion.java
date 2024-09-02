@@ -25,21 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentity;
+package org.hisp.dhis.test.webapi.json.domain;
 
-import java.util.List;
-import java.util.Set;
-import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.program.Program;
+import org.hisp.dhis.jsontree.JsonObject;
 
 /**
- * @author Ameen Mohamed
+ * Web API equivalent of a {@link org.hisp.dhis.metadata.version.MetadataVersion}.
+ *
+ * @author David Mackessy
  */
-public interface TrackedEntityProgramOwnerStore extends GenericStore<TrackedEntityProgramOwner> {
-  String ID = TrackedEntityProgramOwnerStore.class.getName();
+public interface JsonMetadataVersion extends JsonObject {
 
-  /** Get tracked entity program owner entity for the te-program combination. */
-  TrackedEntityProgramOwner getTrackedEntityProgramOwner(TrackedEntity te, Program program);
+  default String getName() {
+    return getString("name").string();
+  }
 
-  List<TrackedEntityProgramOwnerOrgUnit> getTrackedEntityProgramOwnerOrgUnits(Set<Long> teIds);
+  default String getType() {
+    return getString("type").string();
+  }
+
+  default String getCreated() {
+    return getString("created").string();
+  }
+
+  default String getId() {
+    return getString("id").string();
+  }
+
+  default String getHashCode() {
+    return getString("hashCode").string();
+  }
 }
