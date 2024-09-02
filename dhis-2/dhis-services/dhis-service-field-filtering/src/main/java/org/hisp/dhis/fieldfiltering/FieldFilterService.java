@@ -48,7 +48,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.CodeGenerator;
@@ -264,7 +263,6 @@ public class FieldFilterService {
    * @return only paths that belong to a property of {@link Attribute} that is not "id" with the
    *     "attributeValues"
    */
-  @Nonnull
   private static List<FieldPath> getAttributePropertyPathsInAttributeValues(List<FieldPath> paths) {
     return paths.stream()
         .filter(path -> ATTRIBUTE_VALUES_PATH.matcher(path.toFullPath()).matches())
