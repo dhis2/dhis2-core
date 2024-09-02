@@ -46,7 +46,6 @@ public class NotificationPagingParam {
 
   private Integer pageSize;
 
-  @Deprecated(since = "2.41")
   private boolean skipPaging;
 
   private boolean paged;
