@@ -129,13 +129,13 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
         "java.lang.String",
         false,
         true);
+    validateHeader(response, 12, "cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 12, "w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false, true);
+        response, 13, "lZGmxYbs97q", "Unique ID", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 13, "zDhUuAYrxNC", "Last name", "TEXT", "java.lang.String", false, true);
-    validateHeader(response, 14, "cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true);
+        response, 14, "w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 15, "lZGmxYbs97q", "Unique ID", "TEXT", "java.lang.String", false, true);
+        response, 15, "zDhUuAYrxNC", "Last name", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response,
         16,
@@ -175,10 +175,10 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "Ngelehun CHC",
             "OU_559",
             "Sierra Leone / Bo / Badjia / Ngelehun CHC",
-            "Sharon",
-            "Johnson",
             "Female",
             "",
+            "Sharon",
+            "Johnson",
             "36282.0",
             "3.0"));
     validateRow(
@@ -197,10 +197,10 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "Ngelehun CHC",
             "OU_559",
             "Sierra Leone / Bo / Badjia / Ngelehun CHC",
-            "Filona",
-            "Ryder",
             "Female",
             "",
+            "Filona",
+            "Ryder",
             "4322.0",
             ""));
     validateRow(
@@ -219,10 +219,10 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "Ngelehun CHC",
             "OU_559",
             "Sierra Leone / Bo / Badjia / Ngelehun CHC",
-            "Jack",
-            "Dean",
             "Male",
             "",
+            "Jack",
+            "Dean",
             "4210.0",
             "10.0"));
     validateRow(
@@ -240,10 +240,10 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "Ngelehun CHC",
             "OU_559",
             "Sierra Leone / Bo / Badjia / Ngelehun CHC",
-            "Tim",
-            "Johnson",
             "Male",
             "",
+            "Tim",
+            "Johnson",
             "4201.0",
             "8.0"));
     validateRow(
@@ -261,10 +261,10 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "Ngelehun CHC",
             "OU_559",
             "Sierra Leone / Bo / Badjia / Ngelehun CHC",
-            "Lily",
-            "Matthews",
             "Female",
             "",
+            "Lily",
+            "Matthews",
             "4201.0",
             "5.0"));
     validateRow(
@@ -282,10 +282,10 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "Konjo MCHP",
             "OU_222670",
             "Sierra Leone / Kenema / Lower Bambara / Konjo MCHP",
-            "Bobby",
-            "Foster",
             "Male",
             "",
+            "Bobby",
+            "Foster",
             "3999.0",
             "2.0"));
   }
@@ -437,13 +437,13 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
         "java.lang.String",
         false,
         true);
+    validateHeader(response, 12, "cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 12, "w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false, true);
+        response, 13, "lZGmxYbs97q", "Unique ID", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 13, "zDhUuAYrxNC", "Last name", "TEXT", "java.lang.String", false, true);
-    validateHeader(response, 14, "cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true);
+        response, 14, "w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 15, "lZGmxYbs97q", "Unique ID", "TEXT", "java.lang.String", false, true);
+        response, 15, "zDhUuAYrxNC", "Last name", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response,
         16,
@@ -483,10 +483,10 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "Ngelehun CHC",
             "OU_559",
             "Sierra Leone / Bo / Badjia / Ngelehun CHC",
-            "Filona",
-            "Ryder",
             "Female",
             "",
+            "Filona",
+            "Ryder",
             "4322.0",
             ""));
     validateRow(
@@ -505,10 +505,10 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "Ngelehun CHC",
             "OU_559",
             "Sierra Leone / Bo / Badjia / Ngelehun CHC",
-            "Frank",
-            "Fjordsen",
             "Male",
             "",
+            "Frank",
+            "Fjordsen",
             "3444.0",
             "5.0"));
     validateRow(
@@ -527,10 +527,10 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "Ngelehun CHC",
             "OU_559",
             "Sierra Leone / Bo / Badjia / Ngelehun CHC",
-            "Gertrude",
-            "Fjordsen",
             "Female",
             "",
+            "Gertrude",
+            "Fjordsen",
             "3320.0",
             "5.0"));
     validateRow(
@@ -549,10 +549,10 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "Mapailleh MCHP",
             "OU_247072",
             "Sierra Leone / Moyamba / Kargboro / Mapailleh MCHP",
-            "Paula",
-            "Walker",
             "Female",
             "",
+            "Paula",
+            "Walker",
             "3444.0",
             "1.0"));
     validateRow(
@@ -571,10 +571,10 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "Ngelehun CHC",
             "OU_559",
             "Sierra Leone / Bo / Badjia / Ngelehun CHC",
-            "John",
-            "Kelly",
             "Male",
             "",
+            "John",
+            "Kelly",
             "",
             ""));
     validateRow(
@@ -593,10 +593,10 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "Ngelehun CHC",
             "OU_559",
             "Sierra Leone / Bo / Badjia / Ngelehun CHC",
-            "Anna",
-            "Jones",
             "Female",
             "",
+            "Anna",
+            "Jones",
             "3243.0",
             "10.0"));
     validateRow(
@@ -615,10 +615,10 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "Gelehun MCHP",
             "OU_222626",
             "Sierra Leone / Kenema / Small Bo / Gelehun MCHP",
-            "Eric",
-            "Robertson",
             "Male",
             "",
+            "Eric",
+            "Robertson",
             "3706.0",
             "2.0"));
     validateRow(
@@ -637,10 +637,10 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "Masoko MCHP",
             "OU_268158",
             "Sierra Leone / Tonkolili / Kholifa Rowalla / Masoko MCHP",
-            "Diane",
-            "Bryant",
             "Female",
             "",
+            "Diane",
+            "Bryant",
             "3779.0",
             "0.0"));
     validateRow(
@@ -659,10 +659,10 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "Tonko Maternity Clinic",
             "OU_193214",
             "Sierra Leone / Bombali / Bombali Sebora / Tonko Maternity Clinic",
-            "Mark",
-            "Coleman",
             "Male",
             "",
+            "Mark",
+            "Coleman",
             "3297.0",
             "0.0"));
     validateRow(
@@ -681,10 +681,10 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "Banka Makuloh MCHP",
             "OU_211259",
             "Sierra Leone / Kambia / Masungbala / Banka Makuloh MCHP",
-            "Deborah",
-            "James",
             "Female",
             "",
+            "Deborah",
+            "James",
             "2579.0",
             "0.0"));
   }
