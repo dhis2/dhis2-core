@@ -148,7 +148,6 @@
   </typedef>
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonAttributeValuesBinaryType" name="jsbAttributeValues">
-    <param name="clazz">org.hisp.dhis.attribute.AttributeValue</param>
   </typedef>
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.SafeJsonBinaryType" name="jbProgramNotificationTemplateSnapshot">

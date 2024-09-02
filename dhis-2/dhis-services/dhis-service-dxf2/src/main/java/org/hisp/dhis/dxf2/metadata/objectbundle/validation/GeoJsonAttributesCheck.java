@@ -54,7 +54,6 @@ import org.geojson.MultiPolygon;
 import org.geojson.Point;
 import org.geojson.Polygon;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.DebugUtils;
@@ -136,7 +135,8 @@ public class GeoJsonAttributesCheck implements ObjectValidationCheck {
    *
    * <p>If Jackson throws error then create new ErrorReport with ErrorCode.E6004
    *
-   * @param attributeValue {@link AttributeValue} for validating.
+   * @param attributeId the ID of the attribute being checked
+   * @param attributeValue the validated value for the attribute with the provided ID
    * @param addError ErrorReport consumer.
    */
   private void validateGeoJsonValue(
@@ -157,7 +157,7 @@ public class GeoJsonAttributesCheck implements ObjectValidationCheck {
    * Validate given GeoJsonObject using {@link ValidatingGeoJsonVisitor}
    *
    * @param geoJsonObject the {@link GeoJsonObject} to be validated.
-   * @param attributeId The {@link Attribute} ID of the current {@link AttributeValue}
+   * @param attributeId The {@link Attribute} ID of the GeoJSON target attribute
    * @param addError {@link Consumer} for adding the {@link ErrorReport} if any.
    */
   private void validateGeoJsonObject(

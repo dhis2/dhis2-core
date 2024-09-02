@@ -754,6 +754,8 @@ public class DefaultFieldFilterService implements FieldFilterService {
    */
   private Object handleJsonbObjectProperties(
       Class<?> klass, Class<?> propertyClass, Object returnObject) {
+    // FIXME AttributeValue is no longer used so this should be ineffective and needs equivalent
+    // replacement
     if (AttributeValue.class.isAssignableFrom(klass)
         && Attribute.class.isAssignableFrom(propertyClass)) {
       returnObject = attributeService.getAttribute(((Attribute) returnObject).getUid());
