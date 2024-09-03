@@ -25,41 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.incoming;
+package org.hisp.dhis.scheduling.parameters;
 
-import javax.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.sms.SmsPublisher;
-import org.springframework.stereotype.Service;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.sms.incoming.IncomingSms;
 
-/** Zubair <rajazubair.asghar@gmail.com> */
-@Slf4j
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.sms.incoming.SmsConsumerService")
-public class DefaultSmsConsumerService implements SmsConsumerService {
-  private final SmsPublisher smsPublisher;
+@Getter
+@Setter
+@NoArgsConstructor
+public class SmsInboundProcessingJobParameters implements JobParameters {
+  @OpenApi.Property({UID.class, IncomingSms.class})
+  @JsonProperty(required = true)
+  private String sms;
 
-  // -------------------------------------------------------------------------
-  // Implementation
-  // -------------------------------------------------------------------------
-
-  @PostConstruct
-  public void init() {
-    startSmsConsumer();
-  }
-
-  @Override
-  public void startSmsConsumer() {
-    smsPublisher.start();
-
-    log.info("SMS consumer started");
-  }
-
-  @Override
-  public void stopSmsConsumer() {
-    smsPublisher.stop();
-
-    log.info("SMS consumer stopped");
+  public SmsInboundProcessingJobParameters(String sms) {
+    this.sms = sms;
   }
 }
