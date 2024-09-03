@@ -49,6 +49,7 @@ import static org.hisp.dhis.common.DimensionalObject.QUERY_MODS_ID_SEPARATOR;
 import static org.hisp.dhis.common.DimensionalObject.VALUE_COLUMN_NAME;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
+import static org.hisp.dhis.program.AnalyticsType.EVENT;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
@@ -114,6 +115,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.comparator.DescendingPeriodComparator;
+import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramStage;
@@ -1343,20 +1345,23 @@ public class DataQueryParams {
    * Returns the time field as field (column) value. If the time field is within {@link TimeField}
    * enumeration, the field (column) value is returned.
    */
-  public String getTimeFieldAsField() {
-    return TimeField.fieldIsValid(timeField)
-        ? TimeField.valueOf(timeField).getEventAndEnrollmentColumnName()
-        : timeField;
+  public String getTimeFieldAsField(AnalyticsType analyticsType) {
+    if (TimeField.fieldIsValid(timeField)) {
+      TimeField field = TimeField.valueOf(timeField);
+      return analyticsType == EVENT ? field.getEventColumnName() : field.getEnrollmentColumnName();
+    }
+    return timeField;
   }
 
   /**
    * Returns the time field as field (column) value using {@link
-   * DataQueryParams#getTimeFieldAsField()}. Returns the default {@link TimeField#EVENT_DATE} if not
-   * specified.
+   * DataQueryParams#getTimeFieldAsField(AnalyticsType)}. Returns the default {@link
+   * TimeField#EVENT_DATE} if not specified.
    */
   public String getTimeFieldAsFieldFallback() {
     return ObjectUtils.firstNonNull(
-        getTimeFieldAsField(), TimeField.EVENT_DATE.getEventAndEnrollmentColumnName());
+        // only called in Event flow, so we can safely pass EVENT
+        getTimeFieldAsField(EVENT), TimeField.EVENT_DATE.getEventColumnName());
   }
 
   /** Indicates whether this object has a program. */

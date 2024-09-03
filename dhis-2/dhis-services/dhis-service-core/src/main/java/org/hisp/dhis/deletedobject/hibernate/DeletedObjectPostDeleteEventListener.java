@@ -78,9 +78,10 @@ public class DeletedObjectPostDeleteEventListener implements PostCommitDeleteEve
   }
 
   private String getUsername() {
-    return CurrentUserUtil.getCurrentUsername() != null
-        ? CurrentUserUtil.getCurrentUsername()
-        : "system-process";
+    if (!CurrentUserUtil.hasCurrentUser()) {
+      return "system-process";
+    }
+    return CurrentUserUtil.getCurrentUsername();
   }
 
   @Override

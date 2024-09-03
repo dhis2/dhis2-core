@@ -117,9 +117,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   @Override
   public void save(@Nonnull T object, boolean clearSharing) {
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-    if (currentUserDetails == null) {
-      throw new IllegalArgumentException("Current user is not set, can not save object!");
-    }
     save(object, currentUserDetails, clearSharing);
   }
 
@@ -168,9 +165,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   @Override
   public void update(@Nonnull T object) {
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-    if (currentUserDetails == null) {
-      throw new IllegalArgumentException("Current user is not set, can not update object");
-    }
     update(object, currentUserDetails);
   }
 
@@ -220,7 +214,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   @Override
   public void delete(@Nonnull T object) {
     UserDetails userDetails = CurrentUserUtil.getCurrentUserDetails();
-    String username = userDetails != null ? userDetails.getUsername() : "system-process";
+    String username = userDetails.getUsername();
 
     if (!isDeleteAllowed(object, userDetails)) {
       AuditLogUtil.infoWrapper(log, username, object, AuditLogUtil.ACTION_DELETE_DENIED);
@@ -427,7 +421,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
   @Override
   @CheckForNull
   public T getByUniqueAttributeValue(
-      @Nonnull Attribute attribute, @Nonnull String value, @CheckForNull UserDetails user) {
+      @Nonnull Attribute attribute, @Nonnull String value, @Nonnull UserDetails user) {
     if (StringUtils.isEmpty(value) || !attribute.isUnique()) {
       return null;
     }
@@ -850,8 +844,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     JpaQueryParameters<T> parameters =
         new JpaQueryParameters<T>().addPredicates(dataSharingPredicates);
 
-    List<T> list = getList(builder, parameters);
-    return list;
+    return getList(builder, parameters);
   }
 
   /** Remove given UserGroup UID from all sharing records in given tableName */

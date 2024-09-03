@@ -59,6 +59,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -156,6 +157,7 @@ class DeduplicationHelperTest extends TestBase {
   }
 
   @Test
+  @Disabled("There should really by no situation where the user is null")
   void shouldNotHaveUserAccessWhenUserIsNull() throws ForbiddenException, NotFoundException {
     clearSecurityContext();
 

@@ -37,8 +37,8 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.trackedentity.ApiTrackedEntityAuditService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -50,7 +50,7 @@ public abstract class DeliveryChannelStrategy {
 
   @Autowired private IdentifiableObjectManager manager;
 
-  @Autowired private TrackedEntityChangeLogService trackedEntityChangeLogService;
+  @Autowired private ApiTrackedEntityAuditService apiTrackedEntityAuditService;
 
   // -------------------------------------------------------------------------
   // Abstract methods
@@ -97,8 +97,7 @@ public abstract class DeliveryChannelStrategy {
 
     TrackedEntity trackedEntity = manager.get(TrackedEntity.class, uid);
 
-    trackedEntityChangeLogService.addTrackedEntityChangeLog(
-        trackedEntity, getCurrentUsername(), READ);
+    apiTrackedEntityAuditService.addTrackedEntityAudit(trackedEntity, getCurrentUsername(), READ);
 
     message.getRecipients().setTrackedEntity(trackedEntity);
 

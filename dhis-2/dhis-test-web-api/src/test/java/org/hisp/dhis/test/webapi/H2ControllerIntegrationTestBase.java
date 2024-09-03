@@ -28,13 +28,16 @@
 package org.hisp.dhis.test.webapi;
 
 import org.hisp.dhis.test.IntegrationH2Test;
+import org.hisp.dhis.test.config.H2TestConfig;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 
 /**
  * Base class for all Spring Mock MVC based controller tests which use an H2 in-memory DB.
  *
  * @author Jan Bernitt
  */
-@ActiveProfiles("test-h2")
 @IntegrationH2Test
+@ActiveProfiles("test-h2")
+@ContextConfiguration(classes = H2TestConfig.class)
 public abstract class H2ControllerIntegrationTestBase extends ControllerIntegrationTestBase {}

@@ -299,9 +299,6 @@ public class DefaultDatastoreService implements DatastoreService {
   }
 
   private boolean currentUserHasAuthority(Set<String> authorities) {
-    if (CurrentUserUtil.getCurrentUsername() == null) {
-      return false;
-    }
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     return currentUserDetails.isSuper()
         || !authorities.isEmpty() && currentUserDetails.hasAnyAuthority(authorities);

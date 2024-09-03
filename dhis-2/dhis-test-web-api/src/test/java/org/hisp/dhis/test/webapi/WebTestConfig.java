@@ -27,152 +27,25 @@
  */
 package org.hisp.dhis.test.webapi;
 
-import java.beans.PropertyVetoException;
-import java.sql.SQLException;
 import java.util.Map;
-import javax.sql.DataSource;
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.artemis.config.ArtemisConfig;
-import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationStoreConfig;
-import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
-import org.hisp.dhis.commons.util.DebugUtils;
-import org.hisp.dhis.config.AnalyticsDataSourceConfig;
-import org.hisp.dhis.config.DataSourceConfig;
-import org.hisp.dhis.config.HibernateConfig;
-import org.hisp.dhis.config.HibernateEncryptionConfig;
-import org.hisp.dhis.config.ServiceConfig;
-import org.hisp.dhis.config.StartupConfig;
-import org.hisp.dhis.config.StoreConfig;
-import org.hisp.dhis.configuration.NotifierConfig;
-import org.hisp.dhis.datasource.DatabasePoolUtils;
-import org.hisp.dhis.datasource.model.PoolConfig;
-import org.hisp.dhis.db.migration.config.FlywayConfig;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.jdbc.config.JdbcConfig;
-import org.hisp.dhis.leader.election.LeaderElectionConfig;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.SystemAuthoritiesProvider;
-import org.hisp.dhis.test.config.NoOpFlywayTestConfig;
-import org.hisp.dhis.test.h2.H2SqlFunction;
-import org.hisp.dhis.tracker.imports.config.TrackerPreheatConfig;
-import org.hisp.dhis.webapi.security.config.PasswordEncoderConfig;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.FilterType;
-import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
-import org.springframework.core.annotation.Order;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
-import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Repository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com
  */
 @Configuration
-@ComponentScan(
-    basePackages = {"org.hisp.dhis"},
-    useDefaultFilters = false,
-    includeFilters = {
-      @Filter(type = FilterType.ANNOTATION, value = Service.class),
-      @Filter(type = FilterType.ANNOTATION, value = Component.class),
-      @Filter(type = FilterType.ANNOTATION, value = Repository.class)
-    },
-    excludeFilters = @Filter(Configuration.class))
-@Import({
-  ArtemisConfig.class,
-  PasswordEncoderConfig.class,
-  HibernateConfig.class,
-  DataSourceConfig.class,
-  AnalyticsDataSourceConfig.class,
-  JdbcConfig.class,
-  NoOpFlywayTestConfig.class,
-  FlywayConfig.class,
-  HibernateEncryptionConfig.class,
-  ServiceConfig.class,
-  StoreConfig.class,
-  LeaderElectionConfig.class,
-  NotifierConfig.class,
-  org.hisp.dhis.setting.config.ServiceConfig.class,
-  org.hisp.dhis.external.config.ServiceConfig.class,
-  org.hisp.dhis.dxf2.config.ServiceConfig.class,
-  org.hisp.dhis.programrule.config.ServiceConfig.class,
-  org.hisp.dhis.support.config.ServiceConfig.class,
-  org.hisp.dhis.validation.config.ServiceConfig.class,
-  org.hisp.dhis.validation.config.StoreConfig.class,
-  org.hisp.dhis.reporting.config.StoreConfig.class,
-  org.hisp.dhis.analytics.config.ServiceConfig.class,
-  TrackerPreheatConfig.class,
-  JacksonObjectMapperConfig.class,
-  JdbcOrgUnitAssociationStoreConfig.class,
-  StartupConfig.class
-})
-@Transactional
-@Slf4j
-@Order(10)
 public class WebTestConfig {
-  @Bean
-  public static SessionRegistry sessionRegistry() {
-    return new org.springframework.security.core.session.SessionRegistryImpl();
-  }
-
   @Bean
   public RequestCache requestCache() {
     return new HttpSessionRequestCache();
-  }
-
-  @Autowired private DhisConfigurationProvider dhisConfigurationProvider;
-
-  @Bean(name = {"namedParameterJdbcTemplate", "analyticsNamedParameterJdbcTemplate"})
-  @Primary
-  public NamedParameterJdbcTemplate namedParameterJdbcTemplate(
-      @Qualifier("dataSource") DataSource dataSource) {
-    return new NamedParameterJdbcTemplate(dataSource);
-  }
-
-  @Bean(name = {"dataSource", "analyticsDataSource"})
-  @Primary
-  public DataSource actualDataSource() {
-    final DhisConfigurationProvider config = dhisConfigurationProvider;
-    String jdbcUrl = config.getProperty(ConfigurationKey.CONNECTION_URL);
-    String username = config.getProperty(ConfigurationKey.CONNECTION_USERNAME);
-    String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
-
-    PoolConfig.PoolConfigBuilder builder = PoolConfig.builder();
-    builder.dhisConfig(config);
-    builder.dbPoolType(dbPoolType);
-
-    try {
-      final DataSource dbPool = DatabasePoolUtils.createDbPool(builder.build());
-
-      // H2 JSON functions
-      H2SqlFunction.registerH2Functions(dbPool);
-
-      return dbPool;
-    } catch (SQLException | PropertyVetoException e) {
-      String message =
-          String.format(
-              "Connection test failed for main database pool, " + "jdbcUrl: '%s', user: '%s'",
-              jdbcUrl, username);
-
-      log.error(message);
-      log.error(DebugUtils.getStackTrace(e));
-
-      throw new IllegalStateException(message, e);
-    }
   }
 
   @Bean
