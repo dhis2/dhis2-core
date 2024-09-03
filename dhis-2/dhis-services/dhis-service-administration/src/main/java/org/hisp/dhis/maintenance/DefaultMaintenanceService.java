@@ -32,7 +32,6 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DeleteNotAllowedException;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.commons.util.PageRange;
 import org.hisp.dhis.dataapproval.DataApprovalAuditService;
@@ -42,6 +41,7 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.datavalue.DataValueAuditService;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserInvitationStatus;
@@ -78,7 +78,7 @@ public class DefaultMaintenanceService implements MaintenanceService {
 
   private final ApplicationEventPublisher eventPublisher;
 
-  private final IdentifiableObjectManager manager;
+  private final EventChangeLogService trackedEntityDataValueChangelogService;
 
   // -------------------------------------------------------------------------
   // MaintenanceService implementation
@@ -169,7 +169,7 @@ public class DefaultMaintenanceService implements MaintenanceService {
       return false;
     }
 
-    manager.delete(dataElement);
+    trackedEntityDataValueChangelogService.deleteTrackedEntityDataValueChangeLog(dataElement);
     dataValueAuditService.deleteDataValueAudits(dataElement);
     dataValueService.deleteDataValues(dataElement);
 

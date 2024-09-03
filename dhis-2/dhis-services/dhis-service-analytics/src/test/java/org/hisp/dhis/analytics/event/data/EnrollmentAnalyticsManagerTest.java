@@ -112,7 +112,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
   @Captor private ArgumentCaptor<String> sql;
 
   private String DEFAULT_COLUMNS =
-      "enrollment,trackedentity,enrollmentdate,incidentdate,storedby,"
+      "enrollment,trackedentity,enrollmentdate,occurreddate,storedby,"
           + "createdbydisplayname"
           + ","
           + "lastupdatedbydisplayname"
@@ -250,7 +250,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     String dataElementUid = dataElementA.getUid();
 
     String expected =
-        "select enrollment,trackedentity,enrollmentdate,incidentdate,storedby,createdbydisplayname,lastupdatedbydisplayname,lastupdated,ST_AsGeoJSON(enrollmentgeometry),longitude,latitude,"
+        "select enrollment,trackedentity,enrollmentdate,occurreddate,storedby,createdbydisplayname,lastupdatedbydisplayname,lastupdated,ST_AsGeoJSON(enrollmentgeometry),longitude,latitude,"
             + "ouname,ounamehierarchy,oucode,enrollmentstatus,ax.\"quarterly\",ax.\"ou\","
             + "(select \""
             + dataElementUid
@@ -783,7 +783,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
         is(
             "(select json_agg(t1) from (select \""
                 + dataElementA.getUid()
-                + "\", incidentdate, scheduleddate, occurreddate  from analytics_event_"
+                + "\", enrollmentoccurreddate, scheduleddate, occurreddate from analytics_event_"
                 + programB.getUid()
                 + " where analytics_event_"
                 + programB.getUid()
