@@ -28,6 +28,7 @@
 package org.hisp.dhis.common.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.query.JpaQueryUtils.generateHqlQueryForSharingCheck;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -403,10 +404,17 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
       @Nonnull UID attribute, @Nonnull String value, @Nonnull UserDetails user) {
     // language=hql
     String hql =
-        "from %s where jsonb_extract_path_text(attributevalues, '%s', 'value') = :value"
-            .formatted(getClazz().getSimpleName(), attribute.getValue());
-    // FIXME add sharing
-    return getSingleResult(getQuery(hql).setParameter("value", value));
+        """
+        from %s t where jsonb_extract_path_text(t.attributeValues, '%s', 'value') = :value
+          and exists(select 1 from Attribute a where a.uid = :attr and a.unique = true)
+          and %s
+        """
+            .formatted(
+                getClazz().getSimpleName(),
+                attribute.getValue(),
+                generateHqlQueryForSharingCheck("t", user, "r%"));
+    return getSingleResult(
+        getQuery(hql).setParameter("attr", attribute.getValue()).setParameter("value", value));
   }
 
   @Nonnull
