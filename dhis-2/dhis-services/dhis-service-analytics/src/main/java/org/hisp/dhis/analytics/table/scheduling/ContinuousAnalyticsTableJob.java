@@ -27,13 +27,14 @@
  */
 package org.hisp.dhis.analytics.table.scheduling;
 
+import static com.google.common.base.MoreObjects.firstNonNull;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.util.DateUtils.toLongDate;
 
-import com.google.common.base.Preconditions;
 import java.util.Date;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.scheduling.Job;
@@ -79,24 +80,14 @@ public class ContinuousAnalyticsTableJob implements Job {
     ContinuousAnalyticsJobParameters parameters =
         (ContinuousAnalyticsJobParameters) jobConfiguration.getJobParameters();
 
-    Integer fullUpdateHourOfDay =
-        ObjectUtils.firstNonNull(parameters.getFullUpdateHourOfDay(), DEFAULT_HOUR_OF_DAY);
-
-    Date now = new Date();
-    Date defaultNextFullUpdate = DateUtils.getNextDate(fullUpdateHourOfDay, now);
-    Date nextFullUpdate =
-        systemSettingManager.getSystemSetting(
-            SettingKey.NEXT_ANALYTICS_TABLE_UPDATE, defaultNextFullUpdate);
+    final int fullUpdateHourOfDay =
+        firstNonNull(parameters.getFullUpdateHourOfDay(), DEFAULT_HOUR_OF_DAY);
+    final Date startTime = new Date();
 
     log.info(
-        "Starting continuous analytics table update, current time: '{}', default next full update: '{}', next full update: '{}'",
-        getLongDateString(now),
-        getLongDateString(defaultNextFullUpdate),
-        getLongDateString(nextFullUpdate));
+        "Starting continuous analytics table update, current time: '{}'", toLongDate(startTime));
 
-    Preconditions.checkNotNull(nextFullUpdate);
-
-    if (now.after(nextFullUpdate)) {
+    if (runFullUpdate(startTime)) {
       log.info("Performing full analytics table update");
 
       AnalyticsTableUpdateParams params =
@@ -105,13 +96,13 @@ public class ContinuousAnalyticsTableJob implements Job {
               .withSkipResourceTables(false)
               .withSkipTableTypes(parameters.getSkipTableTypes())
               .withJobId(jobConfiguration)
-              .withStartTime(now)
+              .withStartTime(startTime)
               .build();
 
       try {
         analyticsTableGenerator.generateTables(params, progress);
       } finally {
-        Date nextUpdate = DateUtils.getNextDate(fullUpdateHourOfDay, now);
+        Date nextUpdate = DateUtils.getNextDate(fullUpdateHourOfDay, startTime);
         systemSettingManager.saveSystemSetting(SettingKey.NEXT_ANALYTICS_TABLE_UPDATE, nextUpdate);
         log.info("Next full analytics table update: '{}'", getLongDateString(nextUpdate));
       }
@@ -124,10 +115,28 @@ public class ContinuousAnalyticsTableJob implements Job {
               .withSkipResourceTables(true)
               .withSkipTableTypes(parameters.getSkipTableTypes())
               .withJobId(jobConfiguration)
-              .withStartTime(now)
+              .withStartTime(startTime)
               .build();
 
       analyticsTableGenerator.generateTables(params, progress);
     }
+  }
+
+  /**
+   * Indicates whether a full table update should be run. If the next full update time is not set,
+   * it indicates that a full update has never been run for this job, and a full update should be
+   * run immediately. Otherwise, a full update is run if the job start time argument is after the
+   * next full update time.
+   *
+   * @param startTime the job start time.
+   * @return true if a full table update should be run.
+   */
+  boolean runFullUpdate(Date startTime) {
+    Objects.requireNonNull(startTime);
+
+    Date nextFullUpdate =
+        systemSettingManager.getSystemSetting(SettingKey.NEXT_ANALYTICS_TABLE_UPDATE, Date.class);
+
+    return nextFullUpdate == null || startTime.after(nextFullUpdate);
   }
 }
