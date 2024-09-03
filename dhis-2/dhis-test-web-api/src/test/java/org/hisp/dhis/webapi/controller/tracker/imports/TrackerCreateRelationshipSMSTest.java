@@ -33,15 +33,9 @@ import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.imports.SmsTestUtils.encodeSms;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.google.common.collect.Sets;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -50,10 +44,8 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.program.Enrollment;
@@ -62,6 +54,9 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.relationship.RelationshipEntity;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.sms.incoming.IncomingSms;
@@ -69,14 +64,14 @@ import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.smscompression.SmsCompressionException;
 import org.hisp.dhis.smscompression.SmsResponse;
-import org.hisp.dhis.smscompression.models.DeleteSmsSubmission;
+import org.hisp.dhis.smscompression.models.RelationshipSmsSubmission;
 import org.hisp.dhis.test.message.FakeMessageSender;
 import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.export.event.EventService;
+import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.junit.jupiter.api.AfterEach;
@@ -85,17 +80,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Tests tracker SMS to delete an event implemented via {@link
- * org.hisp.dhis.tracker.imports.sms.DeleteEventSMSListener}. It also tests parts of {@link
- * org.hisp.dhis.webapi.controller.sms.SmsInboundController} and other SMS classes in the SMS class
- * hierarchy.
+ * Tests tracker SMS to create an event implemented via {@link
+ * org.hisp.dhis.tracker.imports.sms.RelationshipSMSListener}.
  */
-class TrackerDeleteEventSMSTest extends PostgresControllerIntegrationTestBase {
+class TrackerCreateRelationshipSMSTest extends PostgresControllerIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private CategoryService categoryService;
 
-  @Autowired private EventService eventService;
+  @Autowired private RelationshipService relationshipService;
 
   @Autowired private IncomingSmsService incomingSmsService;
 
@@ -113,7 +106,9 @@ class TrackerDeleteEventSMSTest extends PostgresControllerIntegrationTestBase {
 
   private TrackedEntityType trackedEntityType;
 
-  private Event event;
+  private Event event1;
+  private Event event2;
+  private RelationshipType relType;
 
   @BeforeEach
   void setUp() {
@@ -148,10 +143,13 @@ class TrackerDeleteEventSMSTest extends PostgresControllerIntegrationTestBase {
     programStage.getSharing().addUserAccess(fullAccess(user));
     ProgramStageDataElement programStageDataElement =
         createProgramStageDataElement(programStage, de, 1, false);
-    programStage.setProgramStageDataElements(Sets.newHashSet(programStageDataElement));
+    programStage.setProgramStageDataElements(Set.of(programStageDataElement));
     manager.save(programStage, false);
 
-    event = event(enrollment(trackedEntity()));
+    event1 = event(enrollment(trackedEntity()));
+    event2 = event(enrollment(trackedEntity()));
+
+    relType = relationshipType();
   }
 
   @AfterEach
@@ -160,12 +158,16 @@ class TrackerDeleteEventSMSTest extends PostgresControllerIntegrationTestBase {
   }
 
   @Test
-  void shouldDeleteEvent() throws SmsCompressionException {
-    DeleteSmsSubmission submission = new DeleteSmsSubmission();
+  void shouldCreateRelationship() throws SmsCompressionException {
+    RelationshipSmsSubmission submission = new RelationshipSmsSubmission();
     int submissionId = 1;
     submission.setSubmissionId(submissionId);
     submission.setUserId(user.getUid());
-    submission.setEvent(event.getUid());
+    String relationshipUid = CodeGenerator.generateUid();
+    submission.setRelationship(relationshipUid);
+    submission.setRelationshipType(relType.getUid());
+    submission.setFrom(event1.getUid());
+    submission.setTo(event2.getUid());
 
     String text = encodeSms(submission);
     String originator = user.getPhoneNumber();
@@ -194,69 +196,31 @@ class TrackerDeleteEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertTrue(sms.isParsed()),
         () -> assertEquals(originator, sms.getOriginator()),
         () -> assertEquals(user, sms.getCreatedBy()),
-        () -> assertNotNull(sms.getReceivedDate()),
-        () -> assertEquals(sms.getReceivedDate(), sms.getSentDate()),
-        () -> assertEquals("default", sms.getGatewayId()),
-        () ->
-            assertThrows(
-                NotFoundException.class, () -> eventService.getEvent(UID.of(event.getUid()))),
+        () -> {
+          Relationship relationship = relationshipService.getRelationship(relationshipUid);
+          assertAll(
+              () -> assertEquals(relationshipUid, relationship.getUid()),
+              () -> assertEquals(event1, relationship.getFrom().getEvent()),
+              () -> assertEquals(event2, relationship.getTo().getEvent()));
+        },
         () -> assertContainsOnly(List.of(expectedMessage), messageSender.getAllMessages()));
   }
 
   @Test
-  void shouldDeleteEventViaRequestParameters() throws SmsCompressionException {
-    DeleteSmsSubmission submission = new DeleteSmsSubmission();
-    int submissionId = 1;
-    submission.setSubmissionId(submissionId);
-    submission.setUserId(user.getUid());
-    submission.setEvent(event.getUid());
+  void shouldFailCreatingRelationshipIfUserHasNoDataWriteAccessToRelationshipType()
+      throws SmsCompressionException {
+    relType.getSharing().setUserAccesses(Set.of());
+    manager.save(relType, false);
 
-    String text = encodeSms(submission);
-    String originator = user.getPhoneNumber();
-    LocalDateTime receivedTime = LocalDateTime.of(2024, 9, 2, 10, 15, 30);
-
-    switchContextToUser(user);
-
-    JsonWebMessage response =
-        POST(
-                "/sms/inbound?message={message}&originator={originator}&receivedTime={receivedTime}",
-                text,
-                originator,
-                receivedTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
-            .content(HttpStatus.OK)
-            .as(JsonWebMessage.class);
-
-    IncomingSms sms = getSms(response);
-    String expectedText = submissionId + ":" + SmsResponse.SUCCESS;
-    OutboundMessage expectedMessage = new OutboundMessage(null, expectedText, Set.of(originator));
-    assertAll(
-        () -> assertEquals(SmsMessageStatus.PROCESSED, sms.getStatus()),
-        () -> assertTrue(sms.isParsed()),
-        () -> assertEquals(originator, sms.getOriginator()),
-        () -> assertEquals(user, sms.getCreatedBy()),
-        () -> assertNotNull(sms.getReceivedDate()),
-        () -> assertNotEquals(sms.getReceivedDate(), sms.getSentDate()),
-        () ->
-            assertEquals(
-                receivedTime,
-                sms.getSentDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()),
-        () -> assertEquals("Unknown", sms.getGatewayId()),
-        () ->
-            assertThrows(
-                NotFoundException.class, () -> eventService.getEvent(UID.of(event.getUid()))),
-        () -> assertContainsOnly(List.of(expectedMessage), messageSender.getAllMessages()));
-  }
-
-  @Test
-  void shouldFailDeletingNonExistingEvent() throws SmsCompressionException {
-    UID uid = UID.of(CodeGenerator.generateUid());
-    assertThrows(NotFoundException.class, () -> eventService.getEvent(uid));
-
-    DeleteSmsSubmission submission = new DeleteSmsSubmission();
+    RelationshipSmsSubmission submission = new RelationshipSmsSubmission();
     int submissionId = 2;
     submission.setSubmissionId(submissionId);
     submission.setUserId(user.getUid());
-    submission.setEvent(uid.getValue());
+    String relationshipUid = CodeGenerator.generateUid();
+    submission.setRelationship(relationshipUid);
+    submission.setRelationshipType(relType.getUid());
+    submission.setFrom(event1.getUid());
+    submission.setTo(event2.getUid());
 
     String text = encodeSms(submission);
     String originator = user.getPhoneNumber();
@@ -278,7 +242,7 @@ class TrackerDeleteEventSMSTest extends PostgresControllerIntegrationTestBase {
             .as(JsonWebMessage.class);
 
     IncomingSms sms = getSms(response);
-    String expectedText = submissionId + ":" + SmsResponse.INVALID_EVENT.set(uid.getValue());
+    String expectedText = submissionId + ":" + SmsResponse.UNKNOWN_ERROR;
     OutboundMessage expectedMessage = new OutboundMessage(null, expectedText, Set.of(originator));
     assertAll(
         () -> assertEquals(SmsMessageStatus.FAILED, sms.getStatus()),
@@ -353,5 +317,16 @@ class TrackerDeleteEventSMSTest extends PostgresControllerIntegrationTestBase {
     a.setUser(user);
     a.setAccess(AccessStringHelper.FULL);
     return a;
+  }
+
+  private RelationshipType relationshipType() {
+    RelationshipType type = createRelationshipType('A');
+    type.getFromConstraint().setRelationshipEntity(RelationshipEntity.PROGRAM_STAGE_INSTANCE);
+    type.getToConstraint().setRelationshipEntity(RelationshipEntity.PROGRAM_STAGE_INSTANCE);
+    type.getSharing().setOwner(user);
+    type.getSharing().addUserAccess(fullAccess(user));
+    type.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    manager.save(type, false);
+    return type;
   }
 }
